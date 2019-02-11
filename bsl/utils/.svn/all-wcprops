@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils
+END
+bsl_memcpy.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_memcpy.h
+END
+bsl_utils.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_utils.h
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/BCLOUD
+END
+bsl_construct.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_construct.h
+END
+bsl_memcpy.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_memcpy.cpp
+END
+bsl_debug.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_debug.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/Makefile
+END
+bsl_type_traits.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/utils/bsl_type_traits.h
+END

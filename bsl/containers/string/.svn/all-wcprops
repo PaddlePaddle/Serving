@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/string
+END
+bsl_string.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/string/bsl_string.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/string/Makefile
+END

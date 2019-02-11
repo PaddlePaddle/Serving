@@ -1,0 +1,496 @@
+#!/usr/bin/python
+import re
+import commands
+import sys
+import os
+import getopt
+
+env = {}
+matchenv = re.compile(r"^(\w+) *=(.*)$")
+matchcase = re.compile(r"^(\w+) *(\d*) *:(.+)$")
+matchcase1 = re.compile(r"^(\w+) *(\d*) *:\W*$")
+matchpara = re.compile(r"^\t((?:\d+)|(?:\$\(\w+\)) *)+$")
+matchpara1 = re.compile(r"^\t(\w+) *[=:] *((?:\d+ *|\$\(\w+\) *)+)$")
+matchscript = re.compile(r"^\t!(.*)$")
+matchsubstitution = re.compile(r"\$\((\w+)\)")
+matchcomment = re.compile(r"^\t?#.*$")
+matchif = re.compile(r"^if +(\w+|\$\(\w+\)) +(\w+|\$\(\w+\))$")
+benchfile = []
+compile_only = False
+test_only = False
+compile_single = True
+compile_seperate = False
+compile_script = False
+verbose_mode = False
+output_file = sys.stdout
+seperate_output = False
+output_dir = ""
+remote_host = ""
+def echo(*lines):
+	if verbose_mode:
+		for v in lines:
+			print v,
+		print
+
+def validate():
+	global benchfile
+	state = 0
+	preprocess = []
+	for i in range(len(benchfile)):
+		line = benchfile[i].strip("\r\n")
+		if matchif.match(line) or line == "else" or line == "endif":
+			preprocess.append(line)
+			state = 0
+		elif matchenv.match(line):
+			preprocess.append(line)
+			state = 0
+		elif matchcomment.match(line):
+			pass
+		elif matchcase.match(line) or matchcase1.match(line):
+			preprocess.append(line)
+			state = 1
+		elif (state == 1 or state == 2) and matchscript.match(line):
+			preprocess.append(line)
+			state = 2
+		elif (state == 1 or state == 2 or state == 3) and (matchpara.match(line) or matchpara1.match(line)):
+			preprocess.append(line)
+			state = 3
+		elif (state == 3 or state ==4) and matchscript.match(line):
+			preprocess.append(line)
+			state = 4
+		elif line == "":
+			pass
+		else:
+			print >>sys.stderr, "bench: Benchfile format error"
+			print >>sys.stderr, "line ",str(i + 1) , ": ",line
+			sys.exit(1)
+	if state == 1 or state == 2:
+		print >>sys.stderr, "bench: unexpected Benchfile end"
+		sys.exit(1)
+	benchfile = preprocess
+
+def parse_env(m):
+	del benchfile[0]
+	os.environ[m.group(1)] = m.group(2)
+
+scriptfile = ""
+filename = 0
+def get_cc():
+	m =  translate_env("CC")
+	if m:
+		return m
+	else:
+		return "g++"
+
+def get_macro_def(apparg):
+	macro = []
+	for i, v in apparg:
+		if i:
+			macro.append("-D" + i.upper() + "=" + v)
+	return " ".join(macro)
+
+def compile(outname, gccarg, apparg):
+	cmd =  " ".join([get_cc(), gccarg.strip(), get_macro_def(apparg), "-o", outname])
+	echo(cmd)
+	compile = commands.getstatusoutput(cmd)
+	if compile[0]:
+		print >>sys.stderr, compile[1]
+		print >>sys.stderr, "bench: error, exit"
+		sys.exit(compile[0])
+
+def get_test_arg(apparg):
+	arg = []
+	for i,v in apparg:
+		if i == "":
+			arg.append(v)
+		elif len(i) == 1:
+			arg.append("-" + i  + "=" + v)
+		else:
+			arg.append("--" + i + "=" + v)
+	return " ".join(arg)
+
+def get_compile_name(name):
+	global filename
+	if compile_single and compile_seperate:
+		return ".bench." + name
+	elif compile_seperate:
+		if compile_script:
+			name =  scriptfile + "." + name + "." + str(filename)
+			filename += 1
+			return name
+		else:
+			name = ".bench." + name + "." + str(filename)
+			filename += 1
+			return name
+	else:
+		return ".bench"
+
+def benchmark_script(name, gccarg, repeat, apparg, prescript, postscript):
+	testname = get_compile_name(name)
+	if not compile_single:
+		compile(testname, gccarg, apparg)
+	cmd = "./" +  testname + " " + get_test_arg(apparg)
+	f = open(scriptfile, "a+")
+	f.write(cmd + "\n")
+	echo(cmd)
+	f.close()
+	return None
+
+def benchmark_compile_only(name, gccarg, repeat, apparg, prescript, postscript):
+	if compile_single or not gccarg:
+		return None
+	testname =  get_compile_name(name)
+	compile(testname, gccarg, apparg)
+	return None
+
+def test(cmd, repeat, apparg, prescript, postscript):
+	result = []
+	for i in range(repeat):
+		run_script(prescript)
+		echo(cmd)
+		bench = commands.getstatusoutput(cmd)
+		if bench[0]:
+			print >>sys.stderr, "testcase" + bench[1].encode('utf-8')
+			sys.exit(bench[0])		
+		else:
+			echo(bench[1])
+		if not bench[1]:
+			print >>sys.stderr, "get no output from testcase"
+			sys.exit(1)
+		run_script(postscript)
+		dic = {}
+		for v in bench[1].splitlines()[-1].strip().split():
+			s = v.split(":")
+			dic[s[0]]=s[1]
+		result.append(dic)
+	return (apparg, result)
+
+def benchmark_test_only(name, gccarg, repeat, apparg, prescript, postscript):
+	if gccarg:
+		testname = get_compile_name(name)
+	else:
+		testname = name
+	cmd = "./" + testname + " " + get_test_arg(apparg)
+	return test(cmd, repeat, apparg, prescript, postscript)
+
+def run_script(script):
+	for c in script:
+		echo(c)
+		r = commands.getstatusoutput(c)
+		if r[1]:
+			print r[1]
+		if r[0]:
+			sys.exit(r[0])
+	
+def run_script_remote(script):
+	(host, path) = remote_host.split(":",1)
+	for c in script:
+		echo(c)
+		r = commands.getstatusoutput(" ".join(["ssh", host, c]))
+		if r[1]:
+			print r[1]
+		if r[0]:
+			sys.exit(r[0])
+
+def test_remote(realname, cmd, repeat, apparg, prescript, postscript):
+	(host, path) = remote_host.split(":",1)
+	result = []
+	for i in range(repeat):
+		run_script_remote(prescript)
+		cp = commands.getstatusoutput(" ".join(["scp", realname, host+":"+path]))
+		if cp[0]:
+			print >>sys.stderr, "testcase" + cp[1].encode('utf-8')
+			sys.exit(cp[0])		
+		echo(cmd)
+		bench = commands.getstatusoutput(" ".join(["ssh", host, path + cmd]))
+		if bench[0]:
+			print >>sys.stderr, "testcase" + bench[1].encode('utf-8')
+			sys.exit(bench[0])		
+		else:
+			echo(bench[1])
+		run_script_remote(postscript)
+		dic = {}
+		for v in bench[1].splitlines()[-1].strip().split():
+			s = v.split(":")
+			dic[s[0]]=s[1]
+		result.append(dic)
+	return (apparg, result)
+
+def benchmark_remote(name, gccarg, repeat, apparg, prescript, postscript):
+	if gccarg:
+		realname = get_compile_name(name) 
+		if not compile_single:
+			compile(realname, gccarg, apparg)
+		cmd = realname + " " + get_test_arg(apparg)
+	else:
+		cmd = name + get_test_arg(apparg)
+		realname = name
+	return test_remote(realname, "./" + cmd, repeat, apparg, prescript, postscript)
+
+def benchmark_local(name, gccarg, repeat, apparg, prescript, postscript):
+	if gccarg:
+		realname = get_compile_name(name) 
+		if not compile_single:
+			compile(realname, gccarg, apparg)
+		cmd = realname + " " + get_test_arg(apparg)
+	else:
+		cmd = name + " " + get_test_arg(apparg)
+	return test("./" + cmd, repeat, apparg, prescript, postscript)
+
+benchmark_fun = benchmark_local
+def do_case(name, gccarg, repeat, paras, apparg, prescript, postscript):
+	result = []
+	if paras == []:
+		result.append(benchmark_fun(name, gccarg, [], prescript, postscript))
+	elif len(paras)==1:
+		for p in paras[0][1]:
+			result.append(benchmark_fun(name, gccarg, repeat, apparg + [(paras[0][0],p)], prescript, postscript))
+	else:
+		for p in paras[0][1]:
+			p = do_case(name, gccarg, repeat, paras[1:], apparg + [(paras[0][0],p)], prescript, postscript )
+			result.extend(p)
+	return result
+
+def translate_env(key):
+	if key in os.environ.keys():
+		return os.environ[key]
+	else:
+		return ""
+def print_result(name, result):
+	global output_file
+	if benchmark_fun == benchmark_compile_only\
+		or benchmark_fun == benchmark_script:
+		return
+	else:
+		if seperate_output:
+	#		print output_dir + "/" + name+".result"
+			output_file = open(output_dir + "/" + name+".result", "w+")
+		for i in result[0][0]:
+			print >>output_file, i[0], '\t',
+		for i in result[0][1][0].keys():
+			print >>output_file, i, '\t',
+		print >>output_file
+		for i, v in result:
+			for iv in i:
+				print >>output_file, iv[1], '\t',
+			for vv in result[0][1][0].keys():
+				t = 0.
+				for pp in v:
+					t += float(pp[vv])
+				print >>output_file, "%.4f" % (t/len(v)), '\t',
+			print >>output_file
+def subtitute_var(var):
+	while True:
+		m = matchsubstitution.search(var)
+		if not m:
+			break
+		var = matchsubstitution.sub(translate_env(m.group(1)), var, 1)
+	return var
+
+def do_case_env(name, gccarg, repeat, paras, apparg, prescript, postscript):
+	gccarg = subtitute_var(gccarg) 
+	for p in range(len(paras)):
+		for v in range(len(paras[p][1])):
+			m = matchsubstitution.match(paras[p][1][v])
+			if m:
+				paras[p][1][v] = translate_env(key)
+	global filename
+	filename = 0
+	if compile_single and gccarg and not test_only:
+		compile(get_compile_name(name), gccarg, [])
+	result = do_case(name, gccarg ,repeat, paras, apparg, prescript, postscript)
+	print_result(name, result)
+
+caselist = []
+ex_caselist = []
+def check_dup_para(paras, para):
+	for i, v in paras:
+		if i == para:
+			print >> sys.stderr, "Error: Duplicate parameter Name", '"'+para+'"'
+			sys.exit(1)
+def parse_case(m):
+	global benchfile
+	del benchfile[0]
+	name = m.group(1)
+	if m.group(2):
+		repeat = int(m.group(2))
+	else:
+		repeat = 1
+	if len(m.groups()) == 3:
+		gcc = m.group(3)
+	else:
+		gcc = ""
+	paras = []
+	prescript = []
+	postscript = []
+	while benchfile:
+		m = matchscript.match(benchfile[0])
+		if m:
+			prescript.append(m.group(1).strip())
+			del benchfile[0]
+			continue
+		break
+	while benchfile:
+		m = matchpara.match(benchfile[0])
+		if m:
+			check_dup_para(paras, m.group(1))
+			paras.append(("",benchfile[0][1:].split()))
+			del benchfile[0]
+			continue
+		m = matchpara1.match(benchfile[0])
+		if m:
+			check_dup_para(paras, m.group(1))
+			paras.append((m.group(1),m.group(2).split()))
+			del benchfile[0]
+			continue
+		break
+	while benchfile:
+		m = matchscript.match(benchfile[0])
+		if m:
+			postscript.append(m.group(1).strip())
+			del benchfile[0]
+			continue
+		break
+#	print paras
+	if not caselist or name in caselist:
+		do_case_env(name, gcc, repeat, paras, [], prescript, postscript)
+		if name in caselist:
+			ex_caselist.remove(name)
+def print_version():
+	print """Yperfbench, A Performance Benchmark Framework
+	Version 1.0"""
+def print_help():
+	print """Usage: bench [option] [testcase]
+Options:
+  -sFILE, --script=FILE	Generate benchmark script.
+  -cFILE					Configuration file, default is Benchfile
+  -dDIR					Configuration path, default is conf/
+  -C, --compile				Compile testcase only.
+  -T, --test				Benchmark testcase only, with previously
+							compiled test code.
+  -rHOST, --remote=HOST	Run test code remotely with SSH.
+  --dynamic					Testcase is compiled dynamically.
+  -h, --help				Show this help message.
+  -v, --version				Show version inforamtion.
+  -V, --verbose					Provide detailed information while runing test.
+  --detail				Provide each test result if a test is excuted several times.
+  -fDIR					Put each test result into seperate DIR/casename.result file.
+  --file=FILE		Put test result to FILE.
+
+Report bugs to <yufan@baidu.com>"""
+	sys.exit(0)
+
+def main():
+	global test_only, benchfile, benchmark_fun, scriptfile, compile_single, compile_seperate, verbose_mode, output_file, seperate_output, caselist, ex_caselist
+	global output_dir, remote_host
+	optlist, caselist = getopt.getopt(sys.argv[1:], "CTs:c:r:hd:f:vV", ['compile','script=', 'test','dynamic','remote','help','detail','file=', 'verbose', 'version'])
+	ex_caselist = caselist[:]
+	benchfile_name = "Benchfile"
+	benchfile_path = "conf/"
+	for o,v in optlist:
+		if o == "-s" or o == "--script":
+			compile_seperate = True
+			compile_script = True
+			benchmark_fun = benchmark_script
+			scriptfile = v
+			f = open(v, "w+")
+			f.write("#!/bin/bash\n")
+			f.close()
+		elif o == "-c":
+			benchfile_name = v
+		elif o == "-d":
+			if v[-1] == "/":
+				benchfile_path = v
+			else:
+				benchfile_path = v + "/"
+		elif o == "-C" or o == "--compile":
+			benchmark_fun = benchmark_compile_only
+			compile_seperate = True
+			compile_only = True
+		elif o == "-T" or o == "--test":
+			benchmark_fun = benchmark_test_only
+			compile_seperate = True
+			test_only = True
+		elif o == "-r" or o == "--remote":
+			remote_host = v
+			benchmark_fun = benchmark_remote
+		elif o == "--dynamic":
+			compile_single = False
+		elif o == "-h" or o == "--help":
+			print_help()
+		elif o == "-v" or o == "version":
+			print_version()
+		elif o == "-V" or o == "--verbose":
+			verbose_mode = True
+		elif o == "-d" or o == "--detail":
+			pass
+		elif o == "-f":
+			seperate_output = True
+			try:
+				os.mkdir(v)
+			except:
+				pass
+			output_dir = v
+		elif o == "--file":
+			output_file = open(v, "w+")
+		else:
+			print >> sys.stderr, "Invalid Argument: ", o
+			print >> sys.stderr, "To see a complete option list, use \"bench -h\""
+			sys.exit(1)
+	try:
+		benchfile = open( benchfile_path + benchfile_name).readlines()
+	except:
+		print >>sys.stderr, "bench: no Benchfile found"
+		sys.exit(1)
+	validate()
+	ifstack = [True]
+	while benchfile:
+		line = benchfile[0].strip()
+		if(not line):
+			del benchfile[0]
+			continue
+		m = matchif.match(line)
+		if(m):
+			c1 = subtitute_var(m.group(1)).strip()
+			c2 = subtitute_var(m.group(2)).strip()
+			if c1 == c2:
+				ifstack.append(True)
+			else:
+				ifstack.append(False)
+			del benchfile[0]
+			continue;
+		elif line == "else":
+			ifstack[-1] = not ifstack[-1]
+			del benchfile[0]
+			continue;
+		elif line == "endif":
+			ifstack.pop()
+			del benchfile[0]
+			continue;
+		if not ifstack:
+			print >> sys.stderr, "bench: unmatched if-else-endif"
+			sys.exit(1);
+		if not ifstack[-1]:
+			del benchfile[0]
+			continue;
+		else:
+			m = matchenv.match(line)
+			if(m):
+				parse_env(m)
+				continue
+			m = matchcase.match(line)
+			if(m):
+				parse_case(m)
+				continue
+			m = matchcase1.match(line)
+			if(m):
+				parse_case(m)
+				continue
+		print >>sys.stderr, "bench: ill-formated Benchfile:"
+		print >>sys.stderr, line
+		sys.exit(1)
+	if ex_caselist:
+		print >> sys.stderr, "bench: Error, case not found:", " ".join(caselist)
+
+if __name__ == "__main__":
+    main()
