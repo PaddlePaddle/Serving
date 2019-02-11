@@ -1,0 +1,16 @@
+syntax="proto2";
+import "google/protobuf/descriptor.proto";
+package pds;
+
+extend google.protobuf.FieldOptions {
+      optional bool pack_on = 70000 [default=false];
+};
+
+extend google.protobuf.ServiceOptions {
+  optional PaddleServiceOption options = 80000;
+};
+
+message PaddleServiceOption {
+  optional bool generate_impl = 1 [default = false];
+  optional bool generate_stub = 2 [default = false];
+};
