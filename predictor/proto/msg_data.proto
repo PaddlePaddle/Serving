@@ -1,0 +1,7 @@
+//syntax="proto2";
+package pds.ut;
+
+message OpMessageData {
+    optional int32 a = 1 [default=33];
+    optional float b = 2 [default=4.4];
+};

@@ -1,0 +1,1 @@
+TCMALLOC_SAMPLE_PARAMETER=524288 /home/work/paddle-serving/bin/pdserving --workflow_path=/home/work/paddle-serving/conf/ --inferservice_path=/home/work/paddle-serving/conf/ --logger_path=/home/work/paddle-serving/conf/ --resource_path=/home/work/paddle-serving/conf/
