@@ -1,0 +1,22 @@
+syntax="proto2";
+import "pds_option.proto";
+import "builtin_format.proto";
+package baidu.paddle_serving.predictor.int64tensor_service;
+
+option cc_generic_services = true;
+
+message Request {
+  repeated baidu.paddle_serving.predictor.format.Int64TensorInstance 
+      instances = 1;
+};
+
+message Response {
+  repeated baidu.paddle_serving.predictor.format.Float32TensorPredictor 
+      predictions = 2;
+};
+
+service BuiltinFluidService {
+  rpc inference(Request) returns (Response);
+  rpc debug(Request) returns (Response);
+  option (pds.options).generate_impl = true;
+};

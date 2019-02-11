@@ -1,0 +1,120 @@
+#coding:gbk
+
+COMPILER('gcc482')
+
+#工作路径.
+WORKROOT('../../../')
+
+# version info 
+## module name
+repo_module = REPO_PATH()
+## git branch name (master/rb)
+repo_name = REPO_BRANCH()
+## last changed version
+repo_version = REPO_LAST_CHANGED_REV()
+
+version = repo_module + '_' + repo_name.split('/')[-1] + ',' + repo_version
+build_time = os.popen('date +%Y-%m-%d_%H:%M:%S').read().strip()
+
+#Preprocessor flags.
+CPPFLAGS(r'-DPDSERVING_VERSION=\"%s\"' % (version))
+CPPFLAGS(r'-DPDSERVING_BUILDTIME=\"%s\"' % (build_time))
+
+#使用硬链接copy.
+#CopyUsingHardLink(True)
+
+#C++编译参数.
+#CXXFLAGS('-fsanitize=address -g -DNDEBUG -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated \
+#        -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare \
+#        -std=c++11')
+CXXFLAGS('-g -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated \
+        -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare \
+        -std=c++11')
+
+#for profiler
+#CPPFLAGS('-D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD -DUSE_XBOX -DBAIDU_RPC_ENABLE_CPU_PROFILER -DBAIDU_RPC_ENABLE_HEAP_PROFILER')
+#使用C++11编译idl报错：error: ‘typeof’ was not declared in this scope，需要加上-Dtypeof=__typeof__
+CPPFLAGS('-D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD')
+#链接参数.
+LDFLAGS('-lpthread -lcrypto -lrt -lssl -ldl -lz')
+
+#依赖模块
+CONFIGS('baidu/base/baidu-rpc@ci-base')
+CONFIGS('baidu/im-common/mempool@mempool_1-0-1_BRANCH@git_branch')
+CONFIGS('baidu/third-party/opencv@master@git_branch')
+CONFIGS('public/configure@configure_1-2-17-0_PD_BL')
+#CONFIGS('lib2-64/ullib@ullib_3-1-135-21782_PD_BL')
+CONFIGS('third-64/boost@boost_1-63-0-101_PD_BL')
+CONFIGS('public/bthread@ci-base')
+CONFIGS('third-64/protobuf@protobuf_2-4-1-1100_PD_BL')
+#CONFIGS('third-64/protobuf@protobuf_3-1-0-6209_PD_BL')
+# for ut
+CONFIGS('third-64/gtest@1.7.2.0')
+# for profiler
+#CONFIGS('thirdsrc/tcmalloc@2.5.0.5977', Libraries('libtcmalloc_and_profiler.a'))
+
+# McCache
+CONFIGS('baidu/base/cache@cache_3-1-7-21784_PD_BL')
+
+INCPATHS('$OUT/include/')
+
+PROTOFLAGS('--proto_path=.')
+
+#ServiceGenerator
+HEADERS(GLOB_GEN_SRCS('./proto/*.h'), '$INC/')
+HEADERS(GLOB('./plugin/*.h'), '$INC/plugin')
+Application('pdcodegen', Sources(GLOB('plugin/*.cc'), 'proto/pds_option.proto',
+            'src/pdcodegen.cpp', IncludePaths('. ./proto/ $OUT/include')))
+
+HEADERS(GLOB_GEN_SRCS('./proto/*.h'), '$INC/')
+HEADERS(GLOB('./proto/*.proto'), '$INC/proto')
+HEADERS(GLOB('./common/*.h'), '$INC/common')
+HEADERS(GLOB('./op/*.h'), '$INC/op')
+HEADERS(GLOB('./framework/*.h'), '$INC/framework')
+
+cpp_source_dirs = []
+cpp_source_dirs.append('common/*.cpp')
+cpp_source_dirs.append('op/*.cpp')
+cpp_source_dirs.append('framework/*.cpp')
+cpp_source_dirs.append('proto/*.proto')
+
+#支持.proto作为源文件
+PROTOFLAGS('--plugin=protoc-gen-pdcodegen=plugin/pdcodegen --pdcodegen_out proto --proto_path=.')
+
+#StaticLib
+StaticLibrary('pdserving',
+              Sources(GLOB(' '.join(cpp_source_dirs)), 'src/pdserving.cpp'),
+              LinkFlags('-lpthread -lcrypto -lm -lrt -lssl -ldl -lz'))
+
+#可执行文件
+Application('pdserving', 
+            Sources(GLOB(' '.join(cpp_source_dirs)), 'src/pdserving.cpp'),
+            LinkFlags('-lpthread -lcrypto -lm -lrt -lssl -ldl -lz '))
+ 
+Application('pdclient',
+            Sources(GLOB(' '.join(cpp_source_dirs)), 'src/pdclient.cpp'),
+            LinkFlags('-lpthread -lcrypto -lm -lrt -lssl -ldl -lz'))
+
+#单元测试
+ut_include='./include ./unittest $OUT/include'
+ut_sources=GLOB('./unittest/*.cpp')
+ut_cppflag='-Dprivate=public -Dprotected=public -DUNIT_TEST -std=c++11 -usercode_in_pthread -DUSE_PTHREAD'
+ut_ldflags='-lpthread -lssl -lcrypto -lrt -ldl -lz -std=c++11 -usercode_in_pthread '
+ut_gdbflag='-O0 -g -fpermissive -std=c++11 -usercode_in_pthread'
+
+UTApplication(
+        'test_pdserving',
+        Sources(
+            ut_sources,
+            IncludePaths(ut_include),
+            CppFlags(ut_cppflag),
+            CxxFlags(ut_gdbflag)
+        ),
+        Libraries('$OUT/lib/libpdserving.a'),
+        LinkFlags(ut_ldflags),
+        UTOnServer(True))
+
+OUTPUT('./conf', '$OUT/')
+OUTPUT('./data', '$OUT/')
+OUTPUT('./scripts/images', '$OUT/data/')
+OUTPUT('./scripts/start.sh', '$OUT/bin/')

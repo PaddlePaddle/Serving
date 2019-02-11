@@ -1,0 +1,287 @@
+#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_FRAMEWORK_PREDICTOR_METRIC_H
+#define BAIDU_PADDLE_SERVING_PREDICTOR_FRAMEWORK_PREDICTOR_METRIC_H 
+
+#include <bvar/bvar.h> // bvar
+#include <base/scoped_lock.h> // BAIDU_SCOPED_LOCK
+#include <base/containers/flat_map.h> // FlatMap
+#include <base/memory/singleton.h> // DefaultSingletonTraits
+
+namespace baidu {
+namespace paddle_serving {
+namespace predictor {
+
+static const std::string WORKFLOW_METRIC_PREFIX = "workflow_";
+static const std::string STAGE_METRIC_PREFIX = "stage_";
+static const std::string OP_METRIC_PREFIX = "op_";
+static const std::string NAME_DELIMITER = "_";
+
+typedef ::bvar::Window<::bvar::Adder<int> > AdderWindow;
+typedef ::bvar::Window<::bvar::IntRecorder> RecorderWindow;
+
+class AdderWindowMetric {
+public:
+    AdderWindowMetric() :
+        sum_window(&sum, ::bvar::FLAGS_bvar_dump_interval) {
+    }
+
+    AdderWindowMetric(const std::string& name) :
+        sum_window(name + "_sum_window", &sum, ::bvar::FLAGS_bvar_dump_interval) {
+    }
+
+    inline AdderWindowMetric& operator<<(int count) {
+        sum << count;
+    } 
+
+public:
+    ::bvar::Adder<int> sum;
+    AdderWindow sum_window;
+};
+
+static float g_get_rate(void* arg);
+class RateBaseMetric {
+public:
+    RateBaseMetric(const std::string& name) :
+            rate_value(name + "_rate", g_get_rate, this) {
+    }
+    
+    void update_lhs(int count) { lhs.sum << count; }
+                
+    void update_rhs(int count) { rhs.sum << count; }
+                    
+public:
+    ::bvar::PassiveStatus<float> rate_value;
+    AdderWindowMetric lhs;
+    AdderWindowMetric rhs;
+};
+
+static float g_get_rate(void* arg) {
+    RateBaseMetric* rate_metric = static_cast<RateBaseMetric*>(arg); 
+    if (rate_metric->rhs.sum_window.get_value() <= 0) {
+        return 0;
+    }
+    return rate_metric->lhs.sum_window.get_value() * 100
+            / (float) rate_metric->rhs.sum_window.get_value();
+}
+
+// 计算平均值时取整 
+class AvgWindowMetric {
+public:
+    AvgWindowMetric() :
+        avg_window(&avg, ::bvar::FLAGS_bvar_dump_interval) {
+    }
+
+    AvgWindowMetric(const std::string& name) :
+        avg_window(name + "_avg_window", &avg, ::bvar::FLAGS_bvar_dump_interval) {
+    }
+
+    inline AvgWindowMetric& operator<<(int64_t value) {
+        avg << value;
+    } 
+
+public:
+    ::bvar::IntRecorder avg;
+    RecorderWindow avg_window;
+};
+
+// 计算平均值时不取整 
+static double g_get_double_avg(void* arg);
+class AvgDoubleWindowMetric {
+public:
+    AvgDoubleWindowMetric(const std::string& name) :
+        avg_value(name + "_avg_double_window", g_get_double_avg, this) {
+    }
+
+    inline AvgDoubleWindowMetric& operator<<(int64_t value) {
+        recorder << value;
+    } 
+
+public:
+    ::bvar::PassiveStatus<double> avg_value;
+    AvgWindowMetric recorder;
+};
+
+static double g_get_double_avg(void* arg) {
+    AvgDoubleWindowMetric* avg_metric = static_cast<AvgDoubleWindowMetric*>(arg); 
+    return avg_metric->recorder.avg_window.get_value().get_average_double(); 
+}
+
+class PredictorMetric {
+public:
+    static PredictorMetric* GetInstance();
+
+    ~PredictorMetric() {
+        for (::base::FlatMap<std::string, bvar::LatencyRecorder*>::iterator iter
+                    = latency_recorder_map.begin();
+                iter != latency_recorder_map.end();
+                ++iter) {
+            delete iter->second;
+        }
+        for (::base::FlatMap<std::string, AdderWindowMetric*>::iterator iter
+                    = adder_window_map.begin();
+                iter != adder_window_map.end();
+                ++iter) {
+            delete iter->second;
+        }
+        for (::base::FlatMap<std::string, AvgWindowMetric*>::iterator iter
+                    = avg_window_map.begin();
+                iter != avg_window_map.end();
+                ++iter) {
+            delete iter->second;
+        }
+        for (::base::FlatMap<std::string, AvgDoubleWindowMetric*>::iterator iter
+                    = avg_double_window_map.begin();
+                iter != avg_double_window_map.end();
+                ++iter) {
+            delete iter->second;
+        }
+        for (::base::FlatMap<std::string, RateBaseMetric*>::iterator iter
+                    = rate_map.begin();
+                iter != rate_map.end();
+                ++iter) {
+            delete iter->second;
+        }
+    }
+
+    void regist_latency_metric(const std::string& metric_name) {
+        {
+            BAIDU_SCOPED_LOCK(_mutex);
+            LOG(INFO) << "try to regist latency metric[" << metric_name << "].";
+            if (latency_recorder_map.seek(metric_name) == NULL) {
+                bvar::LatencyRecorder* metric = new (std::nothrow) bvar::LatencyRecorder(metric_name);
+                latency_recorder_map.insert(metric_name, metric);
+                LOG(INFO) << "succ to regist latency metric[" << metric_name << "].";
+            }
+        }
+    }
+
+    void regist_adder_window_metric(const std::string& metric_name) {
+        {
+            BAIDU_SCOPED_LOCK(_mutex);
+            LOG(INFO) << "try to regist adder window metric[" << metric_name << "].";
+            if (adder_window_map.seek(metric_name) == NULL) {
+                AdderWindowMetric* metric = new (std::nothrow) AdderWindowMetric(metric_name);
+                adder_window_map.insert(metric_name, metric);
+                LOG(INFO) << "succ to regist adder window metric[" << metric_name << "].";
+            }
+        }
+    }
+
+    void regist_avg_window_metric(const std::string& metric_name) {
+        {
+            BAIDU_SCOPED_LOCK(_mutex);
+            LOG(INFO) << "try to regist avg window metric[" << metric_name << "].";
+            if (avg_window_map.seek(metric_name) == NULL) {
+                AvgWindowMetric* metric = new (std::nothrow) AvgWindowMetric(metric_name);
+                avg_window_map.insert(metric_name, metric);
+                LOG(INFO) << "succ to regist avg window metric[" << metric_name << "].";
+            }
+        }
+    }
+
+    void regist_avg_double_window_metric(const std::string& metric_name) {
+        {
+            BAIDU_SCOPED_LOCK(_mutex);
+            LOG(INFO) << "try to regist avg double window metric[" << metric_name << "].";
+            if (avg_double_window_map.seek(metric_name) == NULL) {
+                AvgDoubleWindowMetric* metric = new (std::nothrow) AvgDoubleWindowMetric(metric_name);
+                avg_double_window_map.insert(metric_name, metric);
+                LOG(INFO) << "succ to regist avg double window metric[" << metric_name << "].";
+            }
+        }
+    }
+
+    void regist_rate_metric(const std::string& metric_name) {
+        {
+            BAIDU_SCOPED_LOCK(_mutex);
+            LOG(INFO) << "try to regist rate metric[" << metric_name << "].";
+            if (rate_map.seek(metric_name) == NULL) {
+                RateBaseMetric* metric = new (std::nothrow) RateBaseMetric(metric_name);
+                rate_map.insert(metric_name, metric);
+                LOG(INFO) << "succ to regist rate metric[" << metric_name << "].";
+            }
+        }
+    }
+
+    inline void update_latency_metric(const std::string& metric_name, int64_t latency) {
+        bvar::LatencyRecorder** metric = latency_recorder_map.seek(metric_name);
+        if (metric != NULL) {
+            **metric << latency;
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+        }
+    }
+    
+    inline void update_adder_window_metric(const std::string& metric_name, int count) {
+        AdderWindowMetric** metric = adder_window_map.seek(metric_name);
+        if (metric != NULL) {
+            **metric << count;
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+        }
+    }
+    
+    inline void update_avg_window_metric(const std::string& metric_name, int64_t value) {
+        AvgWindowMetric** metric = avg_window_map.seek(metric_name);
+        if (metric != NULL) {
+            **metric << value;
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+        }
+    }
+
+    inline void update_avg_double_window_metric(const std::string& metric_name, int64_t value) {
+        AvgDoubleWindowMetric** metric = avg_double_window_map.seek(metric_name);
+        if (metric != NULL) {
+            **metric << value;
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+        }
+    }
+
+    inline void update_rate_metric_lhs(const std::string& name, int count) {
+        RateBaseMetric** metric = rate_map.seek(name);
+        if (metric != NULL) {
+            (*metric)->update_lhs(count);
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << name << "].";
+        }
+    }
+    
+    inline void update_rate_metric_rhs(const std::string& name, int count) {
+        RateBaseMetric** metric = rate_map.seek(name);
+        if (metric != NULL) {
+            (*metric)->update_rhs(count);
+        } else {
+            LOG(FATAL) << "impossible, check if you regist[" << name << "].";
+        }
+    }
+    
+private:
+    PredictorMetric() : 
+            bucket_count(300) {
+        latency_recorder_map.init(bucket_count);
+        adder_window_map.init(bucket_count);
+        avg_window_map.init(bucket_count);
+        avg_double_window_map.init(bucket_count);
+        rate_map.init(bucket_count);
+    }
+    
+private:
+    const size_t bucket_count;
+    ::base::FlatMap<std::string, bvar::LatencyRecorder*> latency_recorder_map;
+    ::base::FlatMap<std::string, AdderWindowMetric*> adder_window_map;
+    ::base::FlatMap<std::string, AvgWindowMetric*> avg_window_map;
+    ::base::FlatMap<std::string, AvgDoubleWindowMetric*> avg_double_window_map;
+    ::base::FlatMap<std::string, RateBaseMetric*> rate_map;
+   
+    friend struct DefaultSingletonTraits<PredictorMetric>; 
+    mutable base::Mutex _mutex;
+    DISALLOW_COPY_AND_ASSIGN(PredictorMetric);
+};
+
+} // namespace predictor
+} // namespace paddle_serving 
+} // namespace baidu
+
+#endif // BAIDU_PADDLE_SERVING_PREDICTOR_FRAMEWORK_PREDICTOR_METRIC_H 
+

@@ -1,0 +1,20 @@
+syntax="proto2";
+import "pds_option.proto";
+import "builtin_format.proto";
+package baidu.paddle_serving.predictor.dense_service;
+
+option cc_generic_services = true;
+
+message Request {
+  repeated baidu.paddle_serving.predictor.format.DenseInstance instances = 1;
+};
+
+message Response {
+  repeated baidu.paddle_serving.predictor.format.DensePrediction predictions = 1;
+};
+
+service BuiltinDenseFormatService {
+  rpc inference(Request) returns (Response);
+  rpc debug(Request) returns (Response);
+  option (pds.options).generate_impl = true;
+};
