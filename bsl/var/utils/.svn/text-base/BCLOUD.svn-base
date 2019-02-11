@@ -1,0 +1,69 @@
+#edit-mode: -*- python -*-
+#coding:gbk
+
+WORKROOT('../../../../')
+
+#platform, if not write PLATFORM('xxx') in BCLOUD file, default is 'redhat4u3'
+#PLATFORM('centos4u3')
+
+#gcc version, default 'gcc'
+#COMPILER('gcc482')
+
+#Preprocessor flags.
+CPPFLAGS(r'-DVAR_DEBUG_FLAG -DBSL_VERSION=\"bsl1.1.0.0\" -DBSL_CVSTAG=\"bsl_1-1-0-0_PD_BL\" -DBSL_PROJECT_NAME=\"bsl\"')
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C flags.
+#CFLAGS('-g -pipe -W -Wall   -fPIC')
+
+#C++ flags.
+CXXFLAGS(' -g -rdynamic -pipe -fPIC -finline-functions -fsigned-char -Wall   -W -Wshadow -Wpointer-arith -Wcast-qual -Wwrite-strings -Wconversion -Winline -Woverloaded-virtual -Wsign-promo')
+
+#IDL flags.
+#IDLFLAGS('--compack')
+
+#UBRPC flags.
+#UBRPCFLAGS('--compack')
+
+#-I path
+INCPATHS('. ./include $OUT/include')
+#INCPATHS('../../../../')
+
+#libs which need to link with
+#LIBS('$OUT/lib/libutils.a')
+#LIBS('$OUT/so/libutils.so')
+
+#link flags
+#LDFLAGS('-lpthread -lcrypto -lrt')
+
+#CONFIGS("lib2-64/ullib@base")
+
+user_sources=GLOB("*.cpp")
+
+#release headers
+HEADERS('*.h', '$INC/bsl/var')
+#HEADERS('*.h', '$INC/bsl')
+#HEADERS('*.hpp', '$INC')
+#HEADERS('include/*.h', '$INC')
+#HEADERS('include/*.hpp', '$INC')
+
+#release files except headers
+#OUTPUT('conf', '$OUT')
+
+#bin
+#Application('utils', Sources(user_sources))
+
+#UT
+#UTApplication('utils', Sources(user_sources), UTArgs(''), UTOnServer(False))
+
+#.a
+StaticLibrary('bsl_var_utils', Sources(user_sources))
+#StaticLibrary('utils', PreBuilt(True))
+
+#.so
+#SharedLibrary('utils', Sources(user_sources))
+#SharedLibrary('utils', PreBuilt(True))
+
+#sub directory
+#Directory('demo')
+

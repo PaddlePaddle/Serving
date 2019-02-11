@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool
+END
+ShallowCopyString.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/ShallowCopyString.h
+END
+ResourcePool.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/ResourcePool.cpp
+END
+ResourcePool.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/ResourcePool.h
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/BCLOUD
+END
+bsl_wrappers.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/bsl_wrappers.h
+END
+ShallowCopyString.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/ShallowCopyString.cpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/Makefile
+END
+bsl_wrappers_config.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/ResourcePool/bsl_wrappers_config.h
+END

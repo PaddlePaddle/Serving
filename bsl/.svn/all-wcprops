@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL
+END
+pool.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool.h
+END
+list.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/list.h
+END
+set.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/set.h
+END
+map.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/map.h
+END
+exception.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/exception.h
+END
+BCLOUD.lib2-64
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/BCLOUD.lib2-64
+END
+btree.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/btree.h
+END
+release.bcloud
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/release.bcloud
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/BCLOUD
+END
+BinBuffer.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/BinBuffer.h
+END
+AutoBuffer.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/AutoBuffer.h
+END
+deque.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/deque.h
+END
+string.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/string.h
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/README
+END

@@ -1,0 +1,98 @@
+#comment the following line for debugging
+.SILENT: all test output clean tag doc debug build_lib output output_entrances output_heads output_objects output_lib output_bins
+
+.PHONY: all test output clean tag doc debug build_lib output output_entrances output_heads output_objects output_lib output_bins
+
+#comment the following line to use default known suffixes (DANGEROUS!!!)
+.SUFFIXES:
+
+all: output clean
+
+%.o: %.cpp $(DEPEND_HEADS)
+	@echo "[make] building $@ ..."
+	$(CC) -o $@ -c $< $(CXXFLAGS) 
+
+%: %.o $(DEPEND_LIBS) $(PROVIDE_OBJECTS)
+	@echo "[make] building $@ ..."
+	$(CC) -o $@ $^ $(LDFLAGS) 
+
+build_lib: $(PROVIDE_OBJECTS) 
+	if [ "$(strip $(PROVIDE_LIB))" ]; then							\
+		echo "[make] builiding lib$(strip $(PROVIDE_LIB)).a ...";	\
+		ar cr lib$(strip $(PROVIDE_LIB)).a $(PROVIDE_OBJECTS);		\
+	fi
+
+output: output_entrances output_heads output_lib output_bins
+
+output_entrances: $(PROVIDE_ENTRANCES)
+	if [[ "$(strip $(PROVIDE_ENTRANCES))" && "$(strip $(OUTPUT_ENTRANCE_PATH))" ]]; then							\
+		echo "[make] copying $(PROVIDE_ENTRANCES) to $(OUTPUT_ENTRANCE_PATH) ...";	\
+		mkdir -p $(OUTPUT_ENTRANCE_PATH);						\
+		cp -u $^ $(OUTPUT_ENTRANCE_PATH);								\
+	fi
+
+output_heads: $(strip $(filter-out $(PROVIDE_ENTRANCES), $(PROVIDE_HEADS)))	
+	if [[ "$^" && "$(strip $(OUTPUT_HEAD_PATH))" ]]; then							\
+		echo "[make] copying $^ to $(OUTPUT_HEAD_PATH) ...";	\
+		mkdir -p $(OUTPUT_HEAD_PATH);						\
+		cp -u $^ $(OUTPUT_HEAD_PATH);								\
+	fi
+
+output_objects: $(PROVIDE_OBJECTS)
+	if [[ "$(strip $(PROVIDE_OBJECTS))" && "$(strip $(OUTPUT_OBJECT_PATH))" ]]; then							\
+		echo "[make] copying $^ to $(OUTPUT_OBJECT_PATH) ...";	\
+		mkdir -p $(OUTPUT_OBJECT_PATH);							\
+		cp -u $^ $(OUTPUT_OBJECT_PATH);							\
+	fi
+
+output_lib: build_lib
+	if [[ "$(strip $(PROVIDE_LIB))" && "$(strip $(OUTPUT_LIB_PATH))" ]]; then						\
+		echo "[make] copying lib$(strip $(PROVIDE_LIB)).a to $(OUTPUT_LIB_PATH) ...";		\
+		mkdir -p $(OUTPUT_LIB_PATH);							\
+		cp -u lib$(strip $(PROVIDE_LIB)).a $(OUTPUT_LIB_PATH);	\
+	fi
+
+output_bins: $(PROVIDE_BINS)
+	if [[ "$(strip $(PROVIDE_BINS))" && "$(strip $(OUTPUT_BIN_PATH))" ]]; then								\
+		echo "[make] copying $^ to $(OUTPUT_BIN_PATH) ...";		\
+		mkdir -p $(OUTPUT_BIN_PATH);							\
+		cp $^ $(OUTPUT_BIN_PATH);								\
+	fi
+
+clean:
+	@echo "[make] cleaning ..."
+	rm *.o *.a $(PROVIDE_BINS) $(GENERATED_FILES) $(TEST_TARGETS) -f
+	
+doc:
+	@echo "[make] generating documents ..."
+	doxygen 
+
+tag:
+	@echo "[make] generating tags ..."
+	ctags --c++-kinds=+p --fields=+iaS --extra=+q -R $(TAG_ROOT);
+	
+debug:
+	@echo "[make] printing variables ..."
+	@echo 'basic configuration'
+	@echo ''
+	@echo 'path configuration'
+	@echo '$$(WORK_ROOT)         	= $(WORK_ROOT)'
+	@echo '$$(VAR_ROOT)        		= $(VAR_ROOT)'
+	@echo '$$(OUTPUT_HEAD_PATH) 	= $(OUTPUT_HEAD_PATH)'
+	@echo '$$(OUTPUT_OBJECT_PATH) 	= $(OUTPUT_OBJECT_PATH)'
+	@echo '$$(OUTPUT_LIB_PATH)  	= $(OUTPUT_LIB_PATH)'
+	@echo '$$(OUTPUT_BIN_PATH)  	= $(OUTPUT_LIB_PATH)'
+	@echo ''
+	@echo 'build & test configuration'
+	@echo '$$(PROVIDE_HEADS)    = $(PROVIDE_HEADS)'
+	@echo '$$(PROVIDE_OBJECTS)  = $(PROVIDE_OBJECTS)'
+	@echo '$$(PROVIDE_LIB)      = $(PROVIDE_LIB)'
+	@echo '$$(PROVIDE_BINS)     = $(PROVIDE_BINS)'
+	@echo '$$(DEPEND_HEADS)     = $(DEPEND_HEADS)'
+	@echo '$$(DEPEND_OBJECTS)   = $(DEPEND_OBJECTS)'
+	@echo '$$(DEPEND_LIB)       = $(DEPEND_LIB)'
+	@echo '$$(CXXFLAGS)         = $(CXXFLAGS)'
+	@echo '$$(LDFLAGS)          = $(LDFLAGS)'
+	@echo ''
+	@echo 'other'
+	@echo '$$(TAG_ROOT)        = $(TAG_ROOT)'

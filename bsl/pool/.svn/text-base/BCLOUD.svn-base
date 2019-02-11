@@ -1,0 +1,68 @@
+#edit-mode: -*- python -*-
+#coding:gbk
+
+WORKROOT('../../../')
+
+#platform, if not write PLATFORM('xxx') in BCLOUD file, default is 'redhat4u3'
+#PLATFORM('centos4u3')
+
+#gcc version, default 'gcc'
+#COMPILER('gcc482')
+
+#Preprocessor flags.
+#CPPFLAGS(r'-D_GNU_SOURCE -D__STDC_LIMIT_MACROS')
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C flags.
+#CFLAGS('-g -pipe -W -Wall   -fPIC')
+
+#C++ flags.
+CXXFLAGS(' -fsigned-char -Wall   -W -pipe -Wno-unused-parameter -g -fPIC')
+
+#IDL flags.
+#IDLFLAGS('--compack')
+
+#UBRPC flags.
+#UBRPCFLAGS('--compack')
+
+#-I path
+#INCPATHS('. ./include $OUT/include')
+#INCPATHS('../../../')
+
+#libs which need to link with
+#LIBS('$OUT/lib/libpool.a')
+#LIBS('$OUT/so/libpool.so')
+
+#link flags
+#LDFLAGS('-lpthread -lcrypto -lrt')
+
+#CONFIGS("lib2-64/ullib@base")
+
+user_sources=GLOB("*.cpp")
+
+#release headers
+HEADERS('*.h', '$INC/bsl/pool')
+#HEADERS('*.hpp', '$INC')
+#HEADERS('include/*.h', '$INC')
+#HEADERS('include/*.hpp', '$INC')
+
+#release files except headers
+#OUTPUT('conf', '$OUT')
+
+#bin
+#Application('pool', Sources(user_sources))
+
+#UT
+#UTApplication('pool', Sources(user_sources), UTArgs(''), UTOnServer(False))
+
+#.a
+StaticLibrary('bsl_pool', Sources(user_sources))
+#StaticLibrary('pool', PreBuilt(True))
+
+#.so
+#SharedLibrary('pool', Sources(user_sources))
+#SharedLibrary('pool', PreBuilt(True))
+
+#sub directory
+#Directory('demo')
+

@@ -1,0 +1,40 @@
+这里需要说明一下.这个库仅仅封装了df_xz_btree,所以以前很多dpf-btree里面
+的文件都没有保留.
+1.bsl_kv_btree_adapter是对xz_btree的封装.我想统一一下最底层的btree调用
+接口.
+
+2.bsl_kv_btree_archive_traits是对xz_btree的K,V的序列化封装.因为btree仅
+仅有一个序列化到内存的接口,很难和bsl融合.
+
+3.bsl_kv_btree_data_unit是xz_btree的K,V封装.因为btree内部需要K,V之间能
+够相互比较,这就决定了V必须包含K
+
+4.bsl_kv_btree_iterator是xz_btree的iterator结构.里面有
+build_iterator_base和search_iterator_base表示对于build/search btree来
+说,iterator希望看到的接口..
+
+5.bsl_kv_btree就是应该最终使用的文件..:).
+
+其他以df开头的都是原来dpf-btree里面的内容,这里简要说说
+1.df_2d_ary.h是btree底层的内存分配形式,使用二维数组来存储
+2.df_atomic.h/df_bitops.h是原子操作的包装,可以查看asm-x86/asm-i386都有
+对应的df_bitops.h实现
+3.df_btree.h是btree的底层实现,包装各种引用计数操作和BTREE的增删查改
+4.df_def.h是各种类型的定义
+5.df_log.h是打印日志.因为btree内部使用了很多内部日志,而且使用了ullog.
+为了能够不依赖ullib,所以这里全部替换为哑宏
+6.df_misc.h这里面最主要的部分是锁的存在.
+7.df_xz_btree.h是btree的xz版.:)..
+
+然后有两个测试用例分别表示KV为uint64和std::string这种流式类型.事实证明
+btree对于这种类型都可以操作和存储.:).[当然还支持bsl::string,现在的
+bsl::string是完全采用copy的方式来完成的,所以没有任何问题].
+
+NOTE
+1.这个更新似乎有点快,设计文档没有及时更新上.TODO
+2.BTREE的性能似乎可以再上一个台阶..TODO.
+a.memset -> bzero 约快3%
+b.memcpy -> bsl_kv_btree_xmemcpy 没有用xiaowei的xmemcpy的原因是需要链
+接一个库.[没必要,而且放在头文件实现高效很多]越快1倍左右.
+c.热点部分的inline.[使用oprofile annotate找到].
+d.减小BT_FANOUT是否有效....???;[20100806到此为止吧].

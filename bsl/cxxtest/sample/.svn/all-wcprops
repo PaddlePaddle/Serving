@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample
+END
+only.tpl
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/only.tpl
+END
+SimpleTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/SimpleTest.h
+END
+DeltaTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/DeltaTest.h
+END
+file_printer.tpl
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/file_printer.tpl
+END
+EnumTraits.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/EnumTraits.h
+END
+Makefile.msvc
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/Makefile.msvc
+END
+ExceptionTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/ExceptionTest.h
+END
+Construct
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/Construct
+END
+Makefile.PL
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/Makefile.PL
+END
+aborter.tpl
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/aborter.tpl
+END
+TraitsTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/TraitsTest.h
+END
+CreatedTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/CreatedTest.h
+END
+Makefile.unix
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/Makefile.unix
+END
+yes_no_runner.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/yes_no_runner.cpp
+END
+Makefile.bcc32
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/Makefile.bcc32
+END
+MessageTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/MessageTest.h
+END
+FixtureTest.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/cxxtest/sample/FixtureTest.h
+END

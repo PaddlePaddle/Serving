@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast
+END
+check_cast_cstring.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast_cstring.cpp
+END
+check_cast_bsl_string.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast_bsl_string.h
+END
+check_cast_cstring.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast_cstring.h
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/BCLOUD
+END
+check_cast_generated.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast_generated.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/Makefile
+END
+check_cast.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast.h
+END
+check_cast.py
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/check_cast/check_cast.py
+END

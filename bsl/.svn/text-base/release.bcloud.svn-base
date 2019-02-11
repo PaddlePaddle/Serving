@@ -1,0 +1,14 @@
+mv BCLOUD.lib2-64 BCLOUD
+find lib/ -name "libbsl_var*.a" -exec ar xo {} \;
+ar cr lib/libbsl_var.a *.o
+rm -f *.o 
+ar xo lib/libbsl_utils.a
+ar xo lib/libbsl_archive.a
+ar xo lib/libbsl_buffer.a
+ar xo lib/libbsl_exception.a
+ar xo lib/libbsl_check_cast.a
+ar xo lib/libbsl_ResourcePool.a
+ar xo lib/libbsl_pool.a
+ar xo lib/libbsl_var.a
+ar cr lib/libbsl.a *.o
+rm -f *.o 
