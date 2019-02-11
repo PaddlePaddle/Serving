@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash
+END
+bsl_readmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_readmap.h
+END
+bsl_hash_fun.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hash_fun.h
+END
+bsl_hash_multimap.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hash_multimap.h
+END
+bsl_hashtable.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hashtable.h
+END
+bsl_phashtable.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_phashtable.h
+END
+bsl_hashset.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hashset.h
+END
+bsl_phashset.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_phashset.h
+END
+bsl_hashmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hashmap.h
+END
+bsl_phashmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_phashmap.h
+END
+bsl_hashutils.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_hashutils.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/Makefile
+END
+bsl_readset.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_readset.h
+END
+bsl_rwhashset.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/containers/hash/bsl_rwhashset.h
+END

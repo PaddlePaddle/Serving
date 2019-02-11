@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer
+END
+bsl_shared_buffer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/bsl_shared_buffer.cpp
+END
+AutoBuffer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/AutoBuffer.cpp
+END
+BinBuffer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/BinBuffer.cpp
+END
+Makefile.env
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/Makefile.env
+END
+bsl_shared_buffer.h_
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/bsl_shared_buffer.h_
+END
+AutoBuffer.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/AutoBuffer.h
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/BCLOUD
+END
+BinBuffer.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/BinBuffer.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/buffer/Makefile
+END

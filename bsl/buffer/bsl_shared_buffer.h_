@@ -1,0 +1,296 @@
+/***************************************************************************
+ * 
+ * Copyright (c) 2008 Baidu.com, Inc. All Rights Reserved
+ * $Id: bsl_shared_buffer.h_,v 1.4 2009/03/09 04:56:41 xiaowei Exp $ 
+ * 
+ **************************************************************************/
+ 
+ 
+ 
+/**
+ * @file SharedBuffer.h
+ * @author chenxm(chenxiaoming@baidu.com)
+ * @date 2008/09/02 12:15:49
+ * @version $Revision: 1.4 $ 
+ * @brief 
+ *  
+ **/
+#ifndef  __BSL_SHARED_BUFFER_H_
+#define  __BSL_SHARED_BUFFER_H_
+#include <cstring>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstdio>
+
+namespace bsl{
+    /**
+    * @brief 共享缓冲区类
+    *  
+    *  除构造失败、unshare()失败外，一切其它操作都不抛出异常。
+    *  不使用copy-on-write，一切改操作对所有共享的实例都可见。若不希望修改对其它共享实例可见可调用unshare()
+    *  缓冲区满时，会尝试申请新的内存，若失败，不会抛出异常，写入的内容会被截断，truncated() 返回true
+    */
+    class SharedBuffer{
+    public:
+        SharedBuffer( int __capacity = DEFAULT_CAPACITY ){
+            _init( __capacity );
+        }
+        
+        SharedBuffer( const SharedBuffer& other );
+
+        SharedBuffer& operator = ( const SharedBuffer& other );
+
+        ~SharedBuffer( ){
+            _pbuf->_ref_count -= 1;
+
+            if ( !_pbuf->_ref_count ){
+                free( _pbuf );
+            }
+        }
+
+        size_t size() const {
+            return _pbuf->_size;
+        }
+        
+        size_t capacity() const {
+            return _pbuf->_capacity;
+        }
+
+        bool empty() const {
+            return _pbuf->_size == 0;
+        }
+
+        bool full() const {
+            return _pbuf->_size == _pbuf->_capacity;
+        }
+
+        bool truncated() const {
+            return _pbuf->_truncated;
+        }
+
+        const char * c_str() const {
+            return _pbuf->_begin;
+        }
+
+        void clear() {
+            _pbuf->_size = 0;
+        }
+
+        bool reserve( int __capacity ) {
+            if ( __capacity > _pbuf->_capacity  ){
+                if ( __capacity < _pbuf->_capacity * 2 ){ 
+                    __capacity = _pbuf->_capacity * 2;
+                }
+
+                char * _begin = static_cast<char*>(malloc(__capacity + 1));
+                if ( !_begin ){
+                    return false;
+                }
+
+                memcpy( _begin, _pbuf->_begin, _pbuf->_size + 1 );
+                free( _pbuf->_begin );
+                _pbuf->_begin = _begin;
+                _pbuf->_capacity = __capacity;
+
+            }
+
+            return true;
+        }
+
+        void unshare(){
+            if ( _pbuf->_ref_count > 1 ){
+                _buffer_t *old_pbuf = _pbuf;
+
+                try{
+                    _init( old_pbuf->_capacity ); //throw
+
+                    memcpy( _pbuf->_begin, old_pbuf->_begin, old_pbuf->_size + 1);
+                    _pbuf->_size        = old_pbuf->_size;
+                    _pbuf->_truncated   = old_pbuf->_truncated; 
+                    _pbuf->_ref_count   = 1;
+                    -- old_pbuf->_ref_count;
+
+                }catch(...){
+                    _pbuf = old_pbuf;
+                    throw;
+                }
+            }
+        }
+            
+        SharedBuffer& operator << (bool b){
+            _push( b ? TRUE_LITERAL : FALSE_LITERAL, "%s" );
+            return *this;
+        }
+
+        SharedBuffer& operator << (char c){
+            if ( c == '\0' ){
+                return *this;
+            }
+            if ( _pbuf->_size == _pbuf->_capacity ){    //full
+                reserve( _pbuf->_size + 1 ); //may fail
+            }
+            if ( _pbuf->_size < _pbuf->_capacity ){
+                _pbuf->_begin[_pbuf->_size]    = c;
+                _pbuf->_begin[++_pbuf->_size]  = '\0';
+                _pbuf->_truncated = false;
+            }else{
+                _pbuf->_truncated = true;
+            }
+            return *this;
+       }
+
+        SharedBuffer& operator << (int i){
+            _push( i, "%d" );
+            return *this;
+        }
+
+        SharedBuffer& operator << (const char* cstr ){
+            if ( cstr != NULL ){
+                _push( cstr, "%s" );
+            }else{
+                _pbuf->_truncated = false;
+            }
+            return *this;
+        }
+
+        SharedBuffer& operator << (long long ll){
+            _push( ll, "%lld" );
+            return *this;
+        }
+
+        SharedBuffer& operator << (double lf){
+            _push( lf, "%lg" );
+            return *this;
+        }
+
+        SharedBuffer& push(bool b){
+            _push( b ? TRUE_LITERAL : FALSE_LITERAL, "%s" );
+            return *this;
+        }
+
+        SharedBuffer& push(char c){
+            if ( c == '\0' ){
+                return *this;
+            }
+            if ( _pbuf->_size == _pbuf->_capacity ){    //full
+                reserve( _pbuf->_size + 1 ); //may fail
+            }
+            if ( _pbuf->_size < _pbuf->_capacity ){
+                _pbuf->_begin[_pbuf->_size]    = c;
+                _pbuf->_begin[++_pbuf->_size]  = '\0';
+                _pbuf->_truncated = false;
+            }else{
+                _pbuf->_truncated = true;
+            }
+            return *this;
+        }
+
+        SharedBuffer& push(int count, char c){
+            if ( count > 0 && c != '\0' ){
+
+                if ( _pbuf->_size + count > _pbuf->_capacity ){    //full
+                    if( !reserve( _pbuf->_size + count ) ){
+                        //reserve fail
+                        count = _pbuf->_capacity - _pbuf->_size;
+                        _pbuf->_truncated = true;
+                    }else{
+                        _pbuf->_truncated = false;
+                    }
+                }
+                memset( _pbuf->_begin + _pbuf->_size, c, count );
+                _pbuf->_begin[ _pbuf->_size+=count ] = '\0';
+            }
+            return *this;
+        }
+
+
+        SharedBuffer& push(int i){
+            _push( i, "%d" );
+            return *this;
+        }
+
+
+        SharedBuffer& push(const char* cstr ){
+            if ( cstr != NULL ){
+                _push( cstr, "%s" );
+            }else{
+                _pbuf->_truncated = false;
+            }
+            return *this;
+        }
+
+        SharedBuffer& push(const char* cstr, size_t sub_str_len );
+        
+
+        SharedBuffer& push(long long ll ){
+            _push( ll, "%lld" );
+            return *this;
+        }
+
+
+        SharedBuffer& push( double n ){
+            _push( n, "%lg" );
+            return *this;
+        }
+
+        SharedBuffer& pushf( const char *format, ... ){
+            va_list ap;
+            va_start( ap, format );
+            vpushf( format, ap );
+            va_end( ap );
+            return *this;
+        }
+
+        SharedBuffer& vpushf( const char *format, va_list ap );
+
+    public:
+
+        static const int DEFAULT_CAPACITY = 64;
+        static const char * const TRUE_LITERAL;
+        static const char * const FALSE_LITERAL;
+
+
+    private:
+
+        void _init( int __capacity );
+
+        template<typename T>
+            void _push(T value, const char * format ){
+                int len = snprintf( _pbuf->_begin + _pbuf->_size, _pbuf->_capacity + 1 - _pbuf->_size, format, value );
+                if ( _pbuf->_size + len <= _pbuf->_capacity ){
+                    _pbuf->_size += len;
+                    _pbuf->_truncated = false;
+
+                }else{  //truncated
+                    if ( reserve( _pbuf->_size + len)  ){
+                        //reserve succeed, snprintf succeed
+                        snprintf( _pbuf->_begin + _pbuf->_size, _pbuf->_capacity + 1 - _pbuf->_size, format, value );
+                        _pbuf->_size += len;
+                        _pbuf->_truncated = false;
+
+                    }else{
+                        //reserve failed
+                        //content is truncated
+                        _pbuf->_size = _pbuf->_capacity;
+                        _pbuf->_truncated = true;
+                    }
+                    
+                }
+            }
+
+        struct _buffer_t{
+            char *  _begin;
+            int     _size;
+            int     _capacity;
+            int     _ref_count;
+            bool    _truncated;
+        } *_pbuf;
+
+    };
+}   //namespace bsl;
+
+
+
+#endif  //__BSL_SHARED_BUFFER_H_
+
+/* vim: set ts=4 sw=4 sts=4 tw=100 */

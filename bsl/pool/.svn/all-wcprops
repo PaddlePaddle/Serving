@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool
+END
+bsl_cachedpoolappend.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_cachedpoolappend.h
+END
+bsl_pool.h
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_pool.h
+END
+bsl_xcompool.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_xcompool.cpp
+END
+bsl_xmempool.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_xmempool.cpp
+END
+bsl_cachedpool.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_cachedpool.cpp
+END
+bsl_debugpool.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_debugpool.h
+END
+bsl_xcompool.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_xcompool.h
+END
+bsl_xmempool.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_xmempool.h
+END
+bsl_cachedpool.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_cachedpool.h
+END
+BCLOUD
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/BCLOUD
+END
+bsl_cachedpoolappend.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_cachedpoolappend.cpp
+END
+bsl_poolalloc.h
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/bsl_poolalloc.h
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/libsrc/!svn/ver/22056/tags/bsl/bsl_1-1-42-22055_PD_BL/pool/Makefile
+END
