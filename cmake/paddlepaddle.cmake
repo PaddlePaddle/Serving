@@ -14,7 +14,7 @@
 
 INCLUDE(ExternalProject)
 
-SET(PADDLE_SOURCES_DIR ${THIRD_PARTY_PATH}/Paddle)
+SET(PADDLE_SOURCES_DIR ${CMAKE_SOURCE_DIR}/Paddle)
 SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle)
 SET(PADDLE_INCLUDE_DIR "${PADDLE_INSTALL_DIR}/include" CACHE PATH "PaddlePaddle include directory." FORCE)
 SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a" CACHE FILEPATH "Paddle library." FORCE)
@@ -35,13 +35,12 @@ ExternalProject_Add(
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-                    -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
                     -DCMAKE_INSTALL_PREFIX=${PADDLE_INSTALL_DIR}
                     -DCMAKE_INSTALL_LIBDIR=${PADDLE_INSTALL_DIR}/lib
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
                     -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
                     -DCMAKE_PREFIX_PATH=${prefix_path}
+                    -DCMAKE_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
                     -DWITH_SWIG_PY=OFF
                     -DWITH_PYTHON=OFF
                     -DWITH_MKL=${WITH_MKL}
@@ -58,9 +57,10 @@ ExternalProject_Add(
                      -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
+    BUILD_COMMAND make && make inference_lib_dist
 )
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_LIBRARIES})
-ADD_DEPENDENCIES(paddle_fluid extern_paddle)
+ADD_DEPENDENCIES(paddle_fluid extern_paddle extern_gflags extern_glog extern_leveldb extern_snappy extern_protobuf extern_zlib)
 
 LIST(APPEND external_project_dependencies paddle)
