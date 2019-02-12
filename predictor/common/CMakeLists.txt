@@ -1,4 +1,4 @@
-list(APPEND predictor_SOURCES
+add_library(common
     ${CMAKE_CURRENT_LIST_DIR}/constant.cpp
     )
-INCLUDE_DIRECTORIES(.)
+add_dependencies(common brpc)

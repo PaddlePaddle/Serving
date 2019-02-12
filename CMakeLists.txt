@@ -61,12 +61,18 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
-include(external/paddlepaddle)
-
+include(external/zlib)
+include(external/gflags)
+include(external/glog)
+include(external/leveldb)
+include(external/protobuf)
+include(external/snappy)
 include(external/brpc)
+include(external/boost)
 include(flags)
 include(configure)
 include(generic)
+include(paddlepaddle)
 
 include_directories("${PADDLE_SERVING_SOURCE_DIR}")
 

@@ -1,5 +1,6 @@
+include(proto/CMakeLists.txt)
 include(common/CMakeLists.txt)
 include(op/CMakeLists.txt)
 include(framework/CMakeLists.txt)
-include(proto/CMakeLists.txt)
 add_library(predictor ${predictor_SOURCES})
+add_dependencies(predictor proto op protobuf boost brpc)

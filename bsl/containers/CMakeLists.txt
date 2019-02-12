@@ -1,0 +1,6 @@
+add_subdirectory(btree)
+add_subdirectory(deque)
+add_subdirectory(hash)
+add_subdirectory(list)
+add_subdirectory(slist)
+add_subdirectory(string)

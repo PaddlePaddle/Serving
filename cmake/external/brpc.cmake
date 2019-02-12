@@ -63,7 +63,8 @@ ExternalProject_Add(
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
 )
-ADD_DEPENDENCIES(extern_brpc protobuf ssl crypto leveldb gflags glog gtest snappy)
+# ADD_DEPENDENCIES(extern_brpc protobuf ssl crypto leveldb gflags glog gtest snappy)
+ADD_DEPENDENCIES(extern_brpc protobuf ssl crypto leveldb gflags glog snappy)
 ADD_LIBRARY(brpc STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET brpc PROPERTY IMPORTED_LOCATION ${BRPC_LIBRARIES})
 ADD_DEPENDENCIES(brpc extern_brpc)

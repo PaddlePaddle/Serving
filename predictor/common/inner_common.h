@@ -14,17 +14,15 @@
 #include <boost/function.hpp>
 #include <boost/algorithm/string.hpp> // for boost::split&trim
 
-#include <baas-lib-c/baas.h>
-#include <baas-lib-c/giano_mock_helper.h>
 #include <gflags/gflags.h>
 
-#include <base/logging.h>
-#include <base/time.h>
-#include <base/object_pool.h>
-#include <baidu/rpc/channel.h>
-#include <baidu/rpc/server.h>
-#include <baidu/rpc/policy/giano_authenticator.h>
-#include <bthread.h>
+#include <butil/logging.h>
+#include <butil/time.h>
+#include <butil/object_pool.h>
+#include <brpc/channel.h>
+#include <brpc/server.h>
+#include <brpc/policy/giano_authenticator.h>
+#include <bthread/bthread.h>
 #include <error.h>
 
 #include "Configure.h"
