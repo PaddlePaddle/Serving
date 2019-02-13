@@ -1,0 +1,37 @@
+1.2.0
+    * add  configUnit的写支持。add_unit/copy_unit/del_unit/set_value
+
+1.1.0
+    * add 增加热加载支持. ConfigReloader/FileReloader 
+
+1.0.7
+    * fix 消除多线程so使用中析构两次error_unit的问题
+
+1.0.6
+    * fix loadIVar时不给非特殊字符串增加引号
+    * add 支持对configure对象进行约束检查.  configure.check_once
+
+1.0.5
+    * fix 解决configure和idlcompiler的命名冲突问题
+    * fix Configure::loadIVar中，整数和浮点类型的IVar转成的字符串中去掉双引号
+    * fix 将int32等类型定义改成带comcfg_前缀的命名，避免和别处的定义冲突。
+    * fix error unit改成单例模式
+    * fix 解决-Woverloaded-virtual编译参数引起编译warning的问题
+    * add 增加遍历接口get_sub_unit()，配合size()和selfType()可以完成对configure的遍历
+    * add 增加接口get_key_name()，获取key的名字
+
+1.0.4
+    * fix getErrKeyPath方法增加const修饰，并从Configure中移到ConfigUnit中。
+    * add 抛出的Exception中增加出错路径信息
+    * add 增加NOSUCHKEY以外的各种读配置错误的具体路径信息。包括：1).
+	OUTOFRANGE 超出范围;2). FORMATERROR 格式错误;3). NULLVALUE 值为空;4).
+	NULLBUFFER 传出参数指针为NULL;5). GROUPTOUNIT 使用group的取值方法
+
+1.0.3.1     nsfw                2009/08/07
+    * fix   修复autoConfigGen函数中的内存泄露
+    * fix   autoConfigGen()对数组改成只生成一份配置，一份注释的配置
+    * add   增加Configure::getErrKeyPath()接口，获取不存在的key失败时，返回导致出错的key具体路径。
+    * add   增加to_xxx系列提供默认值的重载函数
+    * add   增加ConfigUnit::deepGet()接口，长路径的直接获取
+    * add   增加读取环境变量的宏
+    

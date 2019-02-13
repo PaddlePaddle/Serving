@@ -1,0 +1,45 @@
+#negative num for array
+int32_t a[-10];
+
+#duplicate var name
+int32_t b;
+double b;
+
+#no type 
+nonetype c;
+
+#duplicate struct name
+struct a_t
+{
+};
+struct a_t
+{
+};
+
+#duplicate cf
+int32_t d=fn(a),fn(b);
+
+#duplicate struct field
+struct b_t
+{
+	int32_t a;
+	int32_t a;
+};
+
+#duplicate struct field with non type
+struct c_t
+{
+	nonetype a;
+};
+
+#overwrite 
+d_t overwrite nonestruct
+{
+};
+
+#overwrite non field
+e_t overwrite a_t
+{
+	int32_t a;
+};
+

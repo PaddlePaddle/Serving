@@ -1,0 +1,28 @@
+#ifndef LOG_DES
+#define LOG_DES
+
+struct appender	//设置appender内容
+{
+	string type;	//定义日志打印形式
+	string path;	//定义日志路径
+	string name;	//定义日志文件名
+	int32_t logsize = default(2000), range(1, 2048);	//定义日志大小
+	int32_t open = default(1), range(0, 1);	//定义是否开启这个设备
+	string splittype = default("TRUNCT");	//定义分隔模型
+	int32_t cuttime = default(60), range(1, 100000000);	//分隔时间
+	
+	int32_t logleve = default(16);	//appender自己控制的日志等级
+	string selfdefine = default(""); //appender自己控制的自定义日志等级
+	string layout = default("");	//appender的layout
+};
+
+struct comlog
+{
+	string procname;	//设置进程文件名
+	int32_t level = default(16);		//设置支持的日志等级
+	string selfdefine = default("");	//设置支持的自定义等级名
+	string layout = default("");		//设置默认支持的layout
+	appender device[];					//设置支持的设备
+};
+
+#endif
