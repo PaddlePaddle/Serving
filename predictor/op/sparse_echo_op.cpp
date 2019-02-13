@@ -18,7 +18,7 @@ int SparseEchoOp::inference() {
     // get/mutable_depend_argment()
     // ...
 
-    LOG(DEBUG) 
+    LOG(INFO) 
         << "Receive request in sparse service:"
         << req->ShortDebugString();
     uint32_t sample_size = req->instances_size();

@@ -1,4 +1,4 @@
-#include "pb_to_json.h"
+#include "json2pb/pb_to_json.h"
 #include <google/protobuf/text_format.h>
 
 #include "op/write_json_op.h"
@@ -38,7 +38,7 @@ int WriteJsonOp::inference() {
             return -1;
         }
         std::string* text = ins->mutable_response_json();
-        if (!ProtoMessageToJson(classify_out->predictions(si), 
+        if (!json2pb::ProtoMessageToJson(classify_out->predictions(si), 
                     text, &err_string)) {
             LOG(ERROR) << "Failed convert message[" 
                 << classify_out->predictions(si).ShortDebugString()
@@ -47,7 +47,7 @@ int WriteJsonOp::inference() {
         }
     }
 
-    LOG(TRACE) << "Succ write json:"
+    LOG(INFO) << "Succ write json:"
         << classify_out->ShortDebugString();
 
     return 0; 

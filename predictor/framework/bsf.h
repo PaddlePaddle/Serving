@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <vector>
 #include <deque>
-#include <base/atomicops.h>
+#include <butil/atomicops.h>
 #include <comlog/comlog.h>
 #include "common/inner_common.h"
 
@@ -38,7 +38,7 @@ struct Task {
         return in->size();
     }
 
-    base::atomic<size_t> index;
+    butil::atomic<size_t> index;
 
     Task() {
         read_fd = -1;
@@ -48,7 +48,7 @@ struct Task {
         out = NULL;
         rem = -1;
         size = -1;
-        index.store(0, base::memory_order_relaxed);
+        index.store(0, butil::memory_order_relaxed);
     }
 };
 
@@ -148,7 +148,7 @@ public:
                 while (write(task->write_fd, &c, 1) != 1 && errno == EINTR) {
                     ;
                 }
-                base::return_object(task);
+                butil::return_object(task);
             }
         }
     }

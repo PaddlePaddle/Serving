@@ -42,24 +42,24 @@ public:
     virtual int inference(
             const google::protobuf::Message* request,
             google::protobuf::Message* response,
-            base::IOBufBuilder* debug_os = NULL);
+            butil::IOBufBuilder* debug_os = NULL);
 
     int debug(
             const google::protobuf::Message* request,
             google::protobuf::Message* response,
-            base::IOBufBuilder* debug_os);
+            butil::IOBufBuilder* debug_os);
 
     int execute_one_workflow(
             uint32_t index,
             const google::protobuf::Message* request, 
             google::protobuf::Message* response,
-            base::IOBufBuilder* debug_os);
+            butil::IOBufBuilder* debug_os);
 private:
     int _execute_workflow(
             Workflow* workflow,
             const google::protobuf::Message* request, 
             google::protobuf::Message* response,
-            base::IOBufBuilder* debug_os);
+            butil::IOBufBuilder* debug_os);
 
     std::vector<Workflow*>* _map_request_to_workflow(const google::protobuf::Message* request);
 
@@ -69,7 +69,7 @@ private:
     uint64_t _last_change_timestamp;
     bool _enable_map_request_to_workflow;
     std::string _request_field_key;
-    ::base::FlatMap<std::string, std::vector<Workflow*> > _request_to_workflow_map;
+    ::butil::FlatMap<std::string, std::vector<Workflow*> > _request_to_workflow_map;
     IMerger* _merger;
 };
 
@@ -79,7 +79,7 @@ public:
     int inference(
             const google::protobuf::Message* request,
             google::protobuf::Message* response,
-            base::IOBufBuilder* debug_os) {
+            butil::IOBufBuilder* debug_os) {
         return 0;
     }
 };

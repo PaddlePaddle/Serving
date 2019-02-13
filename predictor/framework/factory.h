@@ -127,7 +127,7 @@ public:
             return -1;
         }
 
-        LOG(TRACE) << "Succ insert one factory, tag: " << tag
+        LOG(INFO) << "Succ insert one factory, tag: " << tag
             << ", base type: " << typeid(B).name();
 
         return 0;

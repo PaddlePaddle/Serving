@@ -1,4 +1,2 @@
-add_library(common
-    ${CMAKE_CURRENT_LIST_DIR}/constant.cpp
-    )
-add_dependencies(common brpc configure)
+FILE(GLOB common_srcs ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
+LIST(APPEND predictor_srcs ${common_srcs})

@@ -1,5 +1,5 @@
 #include "op/op.h"
-#include <base/time.h> // base::Timer
+#include <butil/time.h> // butil::Timer
 #include "common/utils.h"
 #include "common/constant.h"
 #include "framework/channel.h"
@@ -18,7 +18,7 @@ int Op::init(Bus* bus, Dag* dag, uint32_t id, const std::string& name,
     _type = type;
     set_config(conf);
 
-    _timer = base::get_object<TimerFlow>();
+    _timer = butil::get_object<TimerFlow>();
     if (!_timer) {
         LOG(FATAL) << "Invalid timerflow in op:"
             << this->name();
@@ -42,7 +42,7 @@ int Op::init(Bus* bus, Dag* dag, uint32_t id, const std::string& name,
 
 int Op::deinit() {
     if (_timer) {
-        base::return_object(_timer);
+        butil::return_object(_timer);
     }
 
     _bus = NULL;
@@ -73,7 +73,7 @@ int Op::check_time(const char* tag) {
 }
 
 int Op::process(bool debug) {
-    base::Timer op_time(base::Timer::STARTED);
+    butil::Timer op_time(butil::Timer::STARTED);
     if (debug && _timer) {
         _timer->start();
     }
@@ -84,7 +84,7 @@ int Op::process(bool debug) {
     }
 
     if (_has_calc) {
-        LOG(DEBUG)    
+        LOG(INFO)    
             << "Op: " << _name << " already processed before";
         return ERR_OK;
     }
@@ -133,7 +133,7 @@ int Op::process(bool debug) {
     op_time.stop();
     PredictorMetric::GetInstance()->update_latency_metric(
             OP_METRIC_PREFIX + full_name(), op_time.u_elapsed());
-    LOG(NOTICE) << " " << name() << "_time=[" << op_time.u_elapsed() << "]" << noflush;
+    LOG(INFO) << " " << name() << "_time=[" << op_time.u_elapsed() << "]";
     return ERR_OK;
 }
 

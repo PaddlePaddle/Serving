@@ -41,13 +41,13 @@ public:
 
   int deinit();
 
-  int execute(base::IOBufBuilder* debug_os);
+  int execute(butil::IOBufBuilder* debug_os);
 
   // The default execution strategy is in sequencing
   // You can derive a subclass to implement this func.
   // ParallelDagView maybe the one you want.
   virtual int execute_one_stage(ViewStage* vstage,
-          base::IOBufBuilder* debug_os);
+          butil::IOBufBuilder* debug_os);
 
   int set_request_channel(Channel& request);
 
@@ -72,7 +72,7 @@ private:
 // strategy, by implments the execute_one_stage().
 class ParallelDagView : public DagView {
 public:  
-  int execute_one_stage(ViewStage* vstage, base::IOBufBuilder*) {
+  int execute_one_stage(ViewStage* vstage, butil::IOBufBuilder*) {
     return 0;
   }
 };

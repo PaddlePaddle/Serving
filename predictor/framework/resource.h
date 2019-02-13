@@ -3,7 +3,6 @@
 
 #include "common/inner_common.h"
 #include "framework/memory.h"
-#include "framework/mc_cache.h" // McCache
 
 namespace baidu {
 namespace paddle_serving {
@@ -23,9 +22,7 @@ struct DynamicResource {
 class Resource {
 public:
 
-    Resource() :
-        _mc_cache(NULL) {
-    }
+    Resource() : {}
 
     ~Resource() { finalize(); }
 
@@ -48,10 +45,6 @@ public:
         return (DynamicResource*) THREAD_GETSPECIFIC(_tls_bspec_key);
     }
 
-    McCache* get_mc_cache() {
-        return _mc_cache;
-    }
-
 private:
     int thread_finalize() {
         return 0; 
@@ -59,7 +52,6 @@ private:
 
     THREAD_KEY_T _tls_bspec_key;
     
-    McCache* _mc_cache;
 };
 
 } // predictor

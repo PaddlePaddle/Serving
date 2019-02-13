@@ -76,7 +76,7 @@ public:
         if (bus->regist(_op, this) != 0) {
             LOG(FATAL) 
                 << "Failed regist channel[" << _op
-                << "] to bus!" << noflush;
+                << "] to bus!";
             return -1;
         }
 

@@ -22,11 +22,11 @@ template<typename OP_TYPE>
 class OpFactory : public Factory {
 public:
     Op* get_op() {
-        return base::get_object<OP_TYPE>();
+        return butil::get_object<OP_TYPE>();
     }
 
     void return_op(Op* op) {
-        base::return_object<OP_TYPE>(dynamic_cast<OP_TYPE*>(op));
+        butil::return_object<OP_TYPE>(dynamic_cast<OP_TYPE*>(op));
     }
 
     static OpFactory<OP_TYPE>& instance() {
@@ -50,7 +50,7 @@ public:
     template<typename OP_TYPE>
     void regist_op(std::string op_type) {
         _repository[op_type] = &OpFactory<OP_TYPE>::instance();
-        LOG(TRACE) << "Succ regist op: " << op_type << "!";
+        LOG(INFO) << "Succ regist op: " << op_type << "!";
     }
 
     Op* get_op(std::string op_type);

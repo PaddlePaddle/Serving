@@ -521,7 +521,7 @@ private:
         printer->Print(
                 "google::protobuf::Message* cur_res = _stub_handler->fetch_response();\n"
                 "if (cur_res == NULL) {\n"
-                "   LOG(TRACE) << \"Failed fetch response from stub handler, new it\";\n"
+                "   LOG(INFO) << \"Failed fetch response from stub handler, new it\";\n"
                 "   cur_res = response->New();\n"
                 "   if (cur_res == NULL) {\n"
                 "       LOG(FATAL) << \"Failed new response item!\";\n"
@@ -530,7 +530,7 @@ private:
                 "   }\n"
                 "   return baidu::rpc::SubCall(method, request, cur_res, baidu::rpc::DELETE_RESPONSE);\n"
                 "}\n");
-                "LOG(DEBUG) \n"
+                "LOG(INFO) \n"
                 "   << \"[default] Succ map, channel_index: \" << channel_index;\n";
         printer->Print(
                 "return baidu::rpc::SubCall(method, request, cur_res, 0);\n"
@@ -675,7 +675,7 @@ private:
         }
         
         printer->Print(
-                "LOG(DEBUG)\n"
+                "LOG(INFO)\n"
                 "   << \"[pack] Succ map req at: \"\n"
                 "   << channel_index;\n");
         printer->Print(

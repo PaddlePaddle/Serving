@@ -2,9 +2,9 @@
 #define BAIDU_PADDLE_SERVING_PREDICTOR_FRAMEWORK_PREDICTOR_METRIC_H 
 
 #include <bvar/bvar.h> // bvar
-#include <base/scoped_lock.h> // BAIDU_SCOPED_LOCK
-#include <base/containers/flat_map.h> // FlatMap
-#include <base/memory/singleton.h> // DefaultSingletonTraits
+#include <butil/scoped_lock.h> // BAIDU_SCOPED_LOCK
+#include <butil/containers/flat_map.h> // FlatMap
+#include <butil/memory/singleton.h> // DefaultSingletonTraits
 
 namespace baidu {
 namespace paddle_serving {
@@ -30,6 +30,7 @@ public:
 
     inline AdderWindowMetric& operator<<(int count) {
         sum << count;
+        return *this;
     } 
 
 public:
@@ -76,6 +77,7 @@ public:
 
     inline AvgWindowMetric& operator<<(int64_t value) {
         avg << value;
+        return *this;
     } 
 
 public:
@@ -93,6 +95,7 @@ public:
 
     inline AvgDoubleWindowMetric& operator<<(int64_t value) {
         recorder << value;
+        return *this;
     } 
 
 public:
@@ -110,31 +113,31 @@ public:
     static PredictorMetric* GetInstance();
 
     ~PredictorMetric() {
-        for (::base::FlatMap<std::string, bvar::LatencyRecorder*>::iterator iter
+        for (::butil::FlatMap<std::string, bvar::LatencyRecorder*>::iterator iter
                     = latency_recorder_map.begin();
                 iter != latency_recorder_map.end();
                 ++iter) {
             delete iter->second;
         }
-        for (::base::FlatMap<std::string, AdderWindowMetric*>::iterator iter
+        for (::butil::FlatMap<std::string, AdderWindowMetric*>::iterator iter
                     = adder_window_map.begin();
                 iter != adder_window_map.end();
                 ++iter) {
             delete iter->second;
         }
-        for (::base::FlatMap<std::string, AvgWindowMetric*>::iterator iter
+        for (::butil::FlatMap<std::string, AvgWindowMetric*>::iterator iter
                     = avg_window_map.begin();
                 iter != avg_window_map.end();
                 ++iter) {
             delete iter->second;
         }
-        for (::base::FlatMap<std::string, AvgDoubleWindowMetric*>::iterator iter
+        for (::butil::FlatMap<std::string, AvgDoubleWindowMetric*>::iterator iter
                     = avg_double_window_map.begin();
                 iter != avg_double_window_map.end();
                 ++iter) {
             delete iter->second;
         }
-        for (::base::FlatMap<std::string, RateBaseMetric*>::iterator iter
+        for (::butil::FlatMap<std::string, RateBaseMetric*>::iterator iter
                     = rate_map.begin();
                 iter != rate_map.end();
                 ++iter) {
@@ -268,14 +271,14 @@ private:
     
 private:
     const size_t bucket_count;
-    ::base::FlatMap<std::string, bvar::LatencyRecorder*> latency_recorder_map;
-    ::base::FlatMap<std::string, AdderWindowMetric*> adder_window_map;
-    ::base::FlatMap<std::string, AvgWindowMetric*> avg_window_map;
-    ::base::FlatMap<std::string, AvgDoubleWindowMetric*> avg_double_window_map;
-    ::base::FlatMap<std::string, RateBaseMetric*> rate_map;
+    ::butil::FlatMap<std::string, bvar::LatencyRecorder*> latency_recorder_map;
+    ::butil::FlatMap<std::string, AdderWindowMetric*> adder_window_map;
+    ::butil::FlatMap<std::string, AvgWindowMetric*> avg_window_map;
+    ::butil::FlatMap<std::string, AvgDoubleWindowMetric*> avg_double_window_map;
+    ::butil::FlatMap<std::string, RateBaseMetric*> rate_map;
    
     friend struct DefaultSingletonTraits<PredictorMetric>; 
-    mutable base::Mutex _mutex;
+    mutable butil::Mutex _mutex;
     DISALLOW_COPY_AND_ASSIGN(PredictorMetric);
 };
 

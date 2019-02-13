@@ -29,9 +29,9 @@ int Workflow::init(const comcfg::ConfigUnit& conf) {
 DagView* Workflow::fetch_dag_view(const std::string& service_name) {
     DagView* view = NULL;
     if (_type == "Sequence") {
-        view = base::get_object<DagView>();
+        view = butil::get_object<DagView>();
     } else if (_type == "Parallel") {
-        view = base::get_object<ParallelDagView>();
+        view = butil::get_object<ParallelDagView>();
     } else {
         LOG(FATAL) 
             << "Unknown dag type:" << _type << "!";
@@ -48,9 +48,9 @@ DagView* Workflow::fetch_dag_view(const std::string& service_name) {
 void Workflow::return_dag_view(DagView* view) {
     view->deinit();
     if (_type == "Sequence") {
-        base::return_object<DagView>(view);
+        butil::return_object<DagView>(view);
     } else if (_type == "Parallel") {
-        base::return_object<ParallelDagView>(
+        butil::return_object<ParallelDagView>(
             dynamic_cast<ParallelDagView*>(view));
     } else {
         LOG(FATAL) 

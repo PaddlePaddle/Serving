@@ -12,7 +12,7 @@ int DenseEchoOp::inference() {
     const Request* req =
             dynamic_cast<const Request*>(get_request_message());
     Response* res = mutable_data<Response>();
-    LOG(DEBUG) << "Receive request in dense service:"
+    LOG(INFO) << "Receive request in dense service:"
             << req->ShortDebugString();
     uint32_t sample_size = req->instances_size();
     for (uint32_t si = 0; si < sample_size; si++) {

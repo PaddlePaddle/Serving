@@ -15,7 +15,7 @@ namespace predictor {
 volatile bool ServerManager::_s_reload_starting = true;
 
 bool ServerManager::_compare_string_piece_without_case(
-        const base::StringPiece& s1, const char* s2) {
+        const butil::StringPiece& s1, const char* s2) {
     if (strlen(s2) != s1.size()) {
         return false;
     }
@@ -91,7 +91,7 @@ int ServerManager::start_and_wait() {
 }
 
 void ServerManager::_set_server_option_by_protocol(
-        const ::base::StringPiece& protocol_type) {
+        const ::butil::StringPiece& protocol_type) {
     std::string enabled_protocols = FLAGS_enable_protocol_list;
     if (_compare_string_piece_without_case(protocol_type, "itp")) {
         _options.nshead_service = new ::baidu::rpc::policy::ItpAdaptor;
@@ -129,10 +129,10 @@ int ServerManager::_wait_reloader() {
 }
 
 void* ServerManager::_reload_worker(void* args) {
-    LOG(TRACE) << "Entrence reload worker, "
+    LOG(INFO) << "Entrence reload worker, "
         << "interval_s: " << FLAGS_reload_interval_s;
     while (ServerManager::reload_starting()) {
-        LOG(TRACE) << "Begin reload framework...";
+        LOG(INFO) << "Begin reload framework...";
         if (Resource::instance().reload() != 0) {
             LOG(FATAL) << "Failed reload resource!";
         }   
@@ -144,7 +144,7 @@ void* ServerManager::_reload_worker(void* args) {
         usleep(FLAGS_reload_interval_s * 1000000);
     }
 
-    LOG(TRACE) << "Exit reload worker!";
+    LOG(INFO) << "Exit reload worker!";
     return NULL;
 }
 

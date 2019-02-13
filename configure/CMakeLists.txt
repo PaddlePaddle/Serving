@@ -20,6 +20,10 @@ LIST(APPEND configure_srcs
     ${CMAKE_CURRENT_LIST_DIR}/compiler/src/idl_gram.c
 )
 
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_LIST_DIR}/compiler/src/idl.c
+        ${CMAKE_CURRENT_LIST_DIR}/compiler/src/idl_lex.c
+        ${CMAKE_CURRENT_LIST_DIR}/compiler/src/idl_gram.c PROPERTIES LANGUAGE CXX)
+
 add_library(configure ${configure_srcs})
 add_dependencies(configure bsl brpc ullib spreg)
 target_include_directories(configure PUBLIC
