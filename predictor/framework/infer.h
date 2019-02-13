@@ -833,7 +833,7 @@ public:
                     iter->first;
                 return -1;
             }
-            LOG(DEBUG) << "Succ thrd clear version engine: " << iter->first;
+            LOG(INFO) << "Succ thrd clear version engine: " << iter->first;
         }
         return 0;
     }
@@ -1114,7 +1114,7 @@ public:
             return -1;
         }
         version = infer_engine->version();
-        LOG(DEBUG) << "Succ get version: " << version << " for model: " 
+        LOG(INFO) << "Succ get version: " << version << " for model: " 
             << model;
         return 0;
     }

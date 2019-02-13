@@ -26,7 +26,7 @@
 #include <error.h>
 
 #include "Configure.h"
-#include <comlog/comlog.h>
+// #include <comlog/comlog.h>
 
 #include "common/utils.h"
 #include "common/types.h"

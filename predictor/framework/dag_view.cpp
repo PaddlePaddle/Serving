@@ -10,7 +10,7 @@ namespace predictor {
 int DagView::init(Dag* dag, const std::string& service_name) {
     _name = dag->name();
     _full_name = service_name + NAME_DELIMITER + dag->name();
-    _bus = base::get_object<Bus>();
+    _bus = butil::get_object<Bus>();
     _bus->clear();
     uint32_t stage_size = dag->stage_size();
     // create tls stage view
@@ -20,7 +20,7 @@ int DagView::init(Dag* dag, const std::string& service_name) {
             LOG(FATAL) << "Failed get stage by index:" << si;
             return ERR_INTERNAL_FAILURE;
         }
-        ViewStage* vstage = base::get_object<ViewStage>();
+        ViewStage* vstage = butil::get_object<ViewStage>();
         if (vstage == NULL) {
             LOG(FATAL) 
                 << "Failed get vstage from object pool" 
@@ -32,7 +32,7 @@ int DagView::init(Dag* dag, const std::string& service_name) {
         // create tls view node
         for (uint32_t ni = 0; ni < node_size; ni++) {
             DagNode* node = stage->nodes[ni];
-            ViewNode* vnode = base::get_object<ViewNode>();
+            ViewNode* vnode = butil::get_object<ViewNode>();
             if (vnode == NULL) {
                 LOG(FATAL) << "Failed get vnode at:" << ni;
                 return ERR_MEM_ALLOC_FAILURE;
@@ -72,19 +72,19 @@ int DagView::deinit() {
             OpRepository::instance().return_op(vnode->op);
             vnode->reset();
             // clear item
-            base::return_object(vnode);
+            butil::return_object(vnode);
         }
         // clear vector
         vstage->nodes.clear();
-        base::return_object(vstage);
+        butil::return_object(vstage);
     }
     _view.clear();
     _bus->clear();
-    base::return_object(_bus);
+    butil::return_object(_bus);
     return ERR_OK;
 }
 
-int DagView::execute(base::IOBufBuilder* debug_os) {
+int DagView::execute(butil::IOBufBuilder* debug_os) {
     uint32_t stage_size = _view.size();
     for (uint32_t si = 0; si < stage_size; si++) {
         TRACEPRINTF("start to execute stage[%u]", si);
@@ -104,8 +104,8 @@ int DagView::execute(base::IOBufBuilder* debug_os) {
 // You can derive a subclass to implement this func.
 // ParallelDagView maybe the one you want.
 int DagView::execute_one_stage(ViewStage* vstage,
-        base::IOBufBuilder* debug_os) {
-    base::Timer stage_time(base::Timer::STARTED);
+        butil::IOBufBuilder* debug_os) {
+    butil::Timer stage_time(butil::Timer::STARTED);
     uint32_t node_size = vstage->nodes.size(); 
     for (uint32_t ni = 0; ni < node_size; ni++) {
         ViewNode* vnode = vstage->nodes[ni];
@@ -121,7 +121,7 @@ int DagView::execute_one_stage(ViewStage* vstage,
         }
 
         if (errcode > 0) {
-            LOG(TRACE) 
+            LOG(INFO) 
                 << "Execute ignore, Op:" << op->debug_string();
             continue;
         }
