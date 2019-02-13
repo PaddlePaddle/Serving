@@ -1,0 +1,6 @@
+1 手动编译本库的方式：
+make clean
+export MAC=64
+make
+
+2 configure对象不支持拷贝语义，请勿使用传值方式传递configure对象

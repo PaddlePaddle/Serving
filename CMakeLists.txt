@@ -93,4 +93,7 @@ if(WITH_MKLDNN)
 endif()
 
 add_subdirectory(bsl)
+add_subdirectory(ullib)
+add_subdirectory(spreg)
+add_subdirectory(configure)
 add_subdirectory(predictor)

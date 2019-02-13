@@ -1,0 +1,7 @@
+//约束文件：server.range
+struct server_t{
+        int32_t port = range(1024, 65535);
+        string ip = ip();
+};
+//然后我们就可以使用这种类型了
+server_t server;

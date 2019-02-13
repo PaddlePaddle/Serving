@@ -57,7 +57,7 @@ ExternalProject_Add(
                      -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
-    BUILD_COMMAND make && make inference_lib_dist
+    INSTALL_COMMAND make inference_lib_dist
 )
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_LIBRARIES})

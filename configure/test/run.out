@@ -1,0 +1,167 @@
+
+=====test_conf=====
+read = [FILE]
+No such key
+read = [0]
+
+=====test_demo=====
+Module Name : Config Demo
+We have 2 servers.
+Server[0] is : ip = 127.0.0.1, port = 9900
+Server[1] is : ip = 192.168.1.2, port = 9901
+
+=====test_err=====
+No such _key
+Format error
+
+=====test_get_value=====
+
+=====test_option=====
+
+=====test_rawdata=====
+#进程名
+COMLOG_PROCNAME : test_others
+COMLOG_LEVEL : 16
+#支持的设备数目
+COMLOG_DEVICE_NUM : 5
+#支持的自定义等级
+COMLOG_SELFDEFINE : xiaowei, hello
+#支持的设备名
+COMLOG_DEVICE0 : FILE
+COMLOG_DEVICE1 : AFILE
+COMLOG_DEVICE2 : NET
+COMLOG_DEVICE3 : ULLOG
+COMLOG_DEVICE4 : ULNET
+
+#device 0: FILE
+FILE_TYPE : FILE
+FILE_NAME : test_others_file.log
+FILE_PATH : ./log
+FILE_SYSLEVEL : 16
+FILE_OPEN : 1
+FILE_SELFLEVEL : xiaowei, hello
+FILE_SIZE : 2000
+
+#device 1: AFILE
+AFILE_TYPE : AFILE
+AFILE_NAME : test_others_afile.log
+AFILE_PATH : ./log
+AFILE_SYSLEVEL : 16
+AFILE_OPEN : 1
+AFILE_SELFLEVEL : xiaowei, hello
+AFILE_SIZE : 2000
+
+#device 2: NET
+NET_TYPE : NET
+NET_NAME : test_others_net.log
+NET_PATH : 127.0.0.1:9898/data
+NET_OPEN : 1
+NET_SYSLEVEL : 16
+NET_SELFLEVEL : xiaowei, hello
+
+#device 3: ULLOG
+ULLOG_TYPE : ULLOG
+ULLOG_NAME : test_others_ullog.log
+ULLOG_PATH : ./log
+ULLOG_SYSLEVEL : 16
+ULLOG_OPEN : 1
+ULLOG_SELFLEVEL : xiaowei, hello
+ULLOG_SIZE : 2000
+
+#device 4: ULNET
+ULNET_TYPE : ULNET
+ULNET_NAME : test_others_ulnet.log
+ULNET_PATH : 127.0.0.1:9898/log
+ULNET_OPEN : 1
+ULNET_SYSLEVEL : 16
+ULNET_SELFLEVEL : xiaowei, hello
+
+=====test_reader=====
+
+=====test_rebuild=====
+key: 10086
+key: 10086
+
+=====test_str=====
+str1 : to raw : "xyz\x41\x42\x43"
+str1 : to std : xyzABC
+str1 : to cstr: xyzABC
+str2 : to raw : x234567890y234567890
+str2 : to std : x234567890y234567890
+str2 : to cstr: x234567890y2345
+
+=====test_t1=====
+
+=====test_trans_float=====
+[OK] check [3.1415926] IS a float[3.14159]
+[OK] check [3.1415926e100] IS a float[3.14159e+100]
+[OK] check [3.1415926E-10] IS a float[3.14159e-10]
+[OK] check [3.1415926e] ISNOT a float[0]
+[OK] check [.1415926] IS a float[0.141593]
+[OK] check [-.1415926] IS a float[-0.141593]
+[OK] check [3.E] ISNOT a float[0]
+[OK] check [+-3.1] ISNOT a float[0]
+[OK] check [e103] ISNOT a float[0]
+[OK] check [3.1415926e1.1] ISNOT a float[0]
+[OK] check [3.1415926e-10] IS a float[3.14159e-10]
+[OK] check [3.1415926E+0997] IS a float[inf]
+[OK] check [-.141e5926] IS a float[-inf]
+[OK] check [3+.1415926] ISNOT a float[0]
+
+=====test_trans_str2str=====
+----- Read -----
+"test"
+----- trans to -----
+test
+------ Finish -----
+----- Read -----
+"Haha"ddd
+----- trans to -----
+Haha
+------ Finish -----
+----- Read -----
+"\tThis is \"Hawk\".\n"sadf
+----- trans to -----
+	This is "Hawk".
+
+------ Finish -----
+----- Read -----
+askdfj;aj jaskdfj;askf
+----- trans to -----
+askdfj;aj jaskdfj;askf
+------ Finish -----
+----- Read -----
+"\x41---"
+----- trans to -----
+A---
+------ Finish -----
+----- Read -----
+"\101---"
+----- trans to -----
+A---
+------ Finish -----
+
+=====test_xiaowei=====
+Section-------[GLOBAL]
+    Array--------[server] : {
+        Section-------[GLOBAL.@server]
+            =[ip], _value=[127.0.0.1]
+            =[port], _value=[5123]
+        Section-------[GLOBAL.@server]
+            =[ip], _value=[127.0.0.2]
+            =[port], _value=[1123]
+        Section-------[GLOBAL.@server]
+            =[ip], _value=[138.3.1.2]
+            =[port], _value=[1234]
+    }
+    Section-------[GLOBAL.person]
+        =[name], _value=[xiaowei]
+        =[age], _value=[1]
+conf size = 2
+127.0.0.1
+5123
+127.0.0.2
+1123
+138.3.1.2
+1234
+-------catch NoSuchKey---------

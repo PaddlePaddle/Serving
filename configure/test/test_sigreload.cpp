@@ -1,0 +1,165 @@
+/***************************************************************************
+ * 
+ * Copyright (c) 2010 Baidu.com, Inc. All Rights Reserved
+ * 
+ **************************************************************************/
+ 
+ 
+ 
+/**
+ * @file test_sigreload.cpp
+ * @author zhang_rui(com@baidu.com)
+ * @date 2010-1-28
+ * @brief 
+ *  
+ **/
+
+
+#include "ul_conf.h"
+#include "Configure.h"
+#include <ConfigReloader.h>
+#include <pthread.h>
+#include <signal.h>
+#include "stdio.h"
+#include <string>
+
+using namespace comcfg;
+
+static int g_run = 0;
+static ConfigReloader rd;
+static int selfpipe[2];
+
+
+static void * change_threadfun(void *param)
+{
+	ConfigReloader * prd = (ConfigReloader *)param;
+	while (g_run) {
+		char ch;
+		read(selfpipe[0],&ch,1);
+		printf("g_run:%d, monitor: %d\n",g_run, prd->monitor());
+	}
+	return NULL;
+}
+
+static void  change_sig(int)
+{
+	write(selfpipe[1],"",1);
+}
+
+int int_key_change(const ConfigUnit &keyold, const ConfigUnit &keynew, void * ) {
+	printf("old:%d, new:%d\n", keyold.to_int32(), keynew.to_int32());
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int int_string_change(const ConfigUnit &keyold, const ConfigUnit &keynew, void * ) {
+	printf("old:%s, new:%s\n", keyold.to_bsl_string().c_str(), keynew.to_bsl_string().c_str());
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int uint64_key_change(const ConfigUnit &keyold, const ConfigUnit &keynew, void * ) {
+	printf("[%s]old:%llu, new:%llu\n",keynew.get_key_name().c_str(), keyold.to_uint64(), keynew.to_uint64());
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int char_key_change(const ConfigUnit &keyold, const ConfigUnit &keynew, void * ) {
+	printf("[%s]old:%c, new:%c\n",keynew.get_key_name().c_str(), keyold.to_char(), keynew.to_char());
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int float_key_change(const ConfigUnit &keyold, const ConfigUnit &keynew, void * ) {
+	printf("[%s]old:%f, new:%f\n",keynew.get_key_name().c_str(), keyold.to_double(), keynew.to_double());
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int group_change(const ConfigUnit &, const ConfigUnit &keynew, void * ) {
+//	printf("[%s]\n",keynew.print());
+	keynew.print();
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int file_change(const ConfigUnit &, const ConfigUnit &keynew, void * ) {
+	printf("file[ivar]:\n");
+	keynew["ivar"].print();
+	if (g_run) {
+		if (++g_run >3) {
+			g_run = 0;
+		}
+	}
+	return 0;
+}
+
+int main(){
+
+	if (0 != rd.init("./", "reload.conf","reload.range")) {
+		printf("init failed\n");
+		return 1;
+	}
+	rd.add_key_char("ivar.b", char_key_change, NULL);
+	printf("add char:%c\n", rd.get_config()->deepGet("ivar.a").to_char());
+	rd.add_key_int("ivar.a", int_key_change, NULL);
+	printf("add int:%d\n", rd.get_config()->deepGet("ivar.a").to_int32());
+	rd.add_key_uint64("ivar.c", uint64_key_change, NULL);
+	printf("add int:%llu\n", rd.get_config()->deepGet("ivar.c").to_uint64());
+	rd.add_key_float("ivar.d", float_key_change, NULL);
+	printf("add char:%c\n", rd.get_config()->deepGet("ivar.a").to_char());
+	rd.add_key_string("ubclient.proto[4].method[5].name", int_string_change, NULL);
+	printf("add string:%s\n", rd.get_config()->deepGet("ubclient.proto[4].method[5].name").to_bsl_string().c_str());
+
+	rd.add_file_monitor(file_change, NULL);
+	printf("add file\n");
+
+	rd.add_group_monitor("ivar", group_change, NULL);
+	printf("\ngroup:\n");rd.get_config()->deepGet("ivar").print();
+	g_run = 1;
+
+	if (pipe(selfpipe) == -1) {
+		printf("create pipe failed\n");
+		return 1;
+	}
+	signal(SIGINT, change_sig);
+	sigset_t zm;
+	sigemptyset(&zm);
+
+	pthread_t tid;
+	pthread_create(&tid, NULL, change_threadfun, &rd);
+
+//	for (int i=0;i<3;++i) {
+//		sigsuspend(&zm);
+//	}
+
+	pthread_join(tid, NULL);
+	return 0;
+}
+
+
+/* vim: set ts=4 sw=4 sts=4 tw=100 */
