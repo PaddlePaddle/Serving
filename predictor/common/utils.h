@@ -24,7 +24,7 @@ public:
     }
 
     TimerFlow(const char* name) : _csize(0), _name(name) {
-        _last = _start = base::cpuwide_time_us();
+        _last = _start = butil::cpuwide_time_us();
         _auto = true;
         _started = true;
     }
@@ -34,7 +34,7 @@ public:
     }
 
     void start() {
-        _last = _start = base::cpuwide_time_us();
+        _last = _start = butil::cpuwide_time_us();
         _started = true;
     }
 
@@ -43,12 +43,12 @@ public:
             LOG(WARNING) << "Timer not started yet!";
             return false;
         }
-        uint64_t now = base::cpuwide_time_us();
+        uint64_t now = butil::cpuwide_time_us();
         if (!appendf("%s:%lu|", tag, now - _last)) {
             LOG(WARNING) 
                 << "Failed check timer: " << _name 
                 << ", value = [" << tag << ":" 
-                << (now - _last) << "]!" << noflush;
+                << (now - _last) << "]!";
             return false;
         }
 
@@ -61,7 +61,7 @@ public:
     }
 
     void end() {
-        uint64_t now = base::cpuwide_time_us();
+        uint64_t now = butil::cpuwide_time_us();
         if (!appendf("total:%lu", now - _start)) {
             LOG(WARNING) << "Failed dump time_info[" << _name << "]";
         }
@@ -72,7 +72,7 @@ public:
         if (!_auto) {
             return;
         }
-        uint64_t now = base::cpuwide_time_us();
+        uint64_t now = butil::cpuwide_time_us();
         if (appendf("total:%lu,%s", now - _start, _name)) {
             LOG(INFO) 
                 << " " << _name << "_tc=[" << _buf << "]";
@@ -88,7 +88,7 @@ private:
         try {
             int bytes = vsnprintf(_buf + _csize, MAX_SIZE - _csize, fmt, ap);
             if (bytes >= MAX_SIZE - _csize || bytes < 0) {
-                LOG(WARNING) << "Overflow when appendf!" << noflush;
+                LOG(WARNING) << "Overflow when appendf!";
                 return false;
             }
             _csize += bytes;

@@ -1550,11 +1550,11 @@ yyerrlab:
 	      YYSTACK_FREE (yymsg);
 	    }
 	  else
-	    yyerror (scanner, loc, idl, "syntax error; also virtual memory exhausted");
+	    yyerror (scanner, loc, idl, (char *)"syntax error; also virtual memory exhausted");
 	}
       else
 #endif /* YYERROR_VERBOSE */
-	yyerror (scanner, loc, idl, "syntax error");
+	yyerror (scanner, loc, idl, (char *)"syntax error");
     }
 
 
@@ -1672,7 +1672,7 @@ yyabortlab:
 | yyoverflowlab -- parser overflow comes here.  |
 `----------------------------------------------*/
 yyoverflowlab:
-  yyerror (scanner, loc, idl, "parser stack overflow");
+  yyerror (scanner, loc, idl, (char *)"parser stack overflow");
   yyresult = 2;
   /* Fall through.  */
 #endif

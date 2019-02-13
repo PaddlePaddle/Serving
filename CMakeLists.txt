@@ -68,6 +68,7 @@ include(external/leveldb)
 include(external/protobuf)
 include(external/snappy)
 include(external/brpc)
+include(external/pcre)
 include(external/boost)
 include(flags)
 include(configure)
@@ -81,6 +82,8 @@ set(EXTERNAL_LIBS
     glog
     protobuf
     paddlepaddle
+    pcre
+    brpc
 )
 
 if(WITH_MKLML)
@@ -96,4 +99,5 @@ add_subdirectory(bsl)
 add_subdirectory(ullib)
 add_subdirectory(spreg)
 add_subdirectory(configure)
+add_subdirectory(mempool)
 add_subdirectory(predictor)

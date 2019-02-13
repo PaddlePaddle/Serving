@@ -37,9 +37,9 @@ private:
     static void* _reload_worker(void* args);
     
     bool _compare_string_piece_without_case(
-            const base::StringPiece& s1, const char* s2);
+            const butil::StringPiece& s1, const char* s2);
 
-    void _set_server_option_by_protocol(const ::base::StringPiece& protocol_type);
+    void _set_server_option_by_protocol(const ::butil::StringPiece& protocol_type);
 
     baidu::rpc::ServerOptions _options;
     baidu::rpc::Server _server;

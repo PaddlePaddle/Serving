@@ -72,7 +72,7 @@ public:
                 return -1;
             }
 
-            LOG(TRACE) 
+            LOG(INFO) 
                 << "Succ init item:" << name << " from conf:"
                 << path << "/" << file << ", at:" << ii << "!";
         } 
@@ -127,7 +127,7 @@ public:
             }
         }
 
-        LOG(TRACE) << "Finish reload " 
+        LOG(INFO) << "Finish reload " 
             << _item_map.size() 
             << " " << T::tag() << "(s)";
         return ret;

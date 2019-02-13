@@ -195,7 +195,7 @@ public:
             return _channel;
         } 
 
-        _channel = base::get_object<ChannelType>();
+        _channel = butil::get_object<ChannelType>();
         if (!_channel) {
             LOG(FATAL) 
                 << "Failed mutable channel of type:"
@@ -213,7 +213,7 @@ public:
     int release_channel() {
         if (_channel) {
             _channel->deinit();
-            base::return_object<ChannelType>(_channel);
+            butil::return_object<ChannelType>(_channel);
         } 
 
         _channel = NULL; 

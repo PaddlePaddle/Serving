@@ -3,7 +3,7 @@
 #include <errno.h>
 #include <vector>
 #include <deque>
-#include <base/atomicops.h>
+#include <butil/atomicops.h>
 #include <comlog/comlog.h>
 #include "common/inner_common.h"
 #include "framework/infer_data.h"
@@ -46,7 +46,7 @@ struct Task<baidu::paddle_serving::predictor::Tensor,
     size_t rem;
     size_t size;
 
-    base::atomic<size_t> index;
+    butil::atomic<size_t> index;
 
     const BatchTensor* get(bool is_in) const {
         if (is_in) {
@@ -72,7 +72,7 @@ struct Task<baidu::paddle_serving::predictor::Tensor,
         out = NULL;
         rem = -1;
         size = -1;
-        index.store(0, base::memory_order_relaxed); 
+        index.store(0, butil::memory_order_relaxed); 
     }
 };
 
@@ -269,7 +269,7 @@ public:
             }
         }
 
-        LOG(TRACE) << "merge input(" << is_in << ") samples: " 
+        LOG(INFO) << "merge input(" << is_in << ") samples: " 
             << batch_size << " from " << _tasks.size() << " pvs";
     }
 
@@ -327,7 +327,7 @@ public:
                 while (write(task->write_fd, &c, 1) != 1 && errno == EINTR) {
                     ;
                 }
-                base::return_object(task);
+                butil::return_object(task);
             }
         }
     }

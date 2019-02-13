@@ -2,7 +2,7 @@
 #include "framework/channel.h"
 #include "common/constant.h"
 #include "framework/service.h"
-#include <base/time.h> // base::Timer
+#include <butil/time.h> // butil::Timer
 #include "framework/server.h"
 #include "framework/dag_view.h"
 #include "framework/manager.h"
@@ -116,7 +116,7 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
         } 
     }
 
-    LOG(TRACE) 
+    LOG(INFO) 
         << "Succ load infer_service: " 
         << _infer_service_format << "!";
 
@@ -135,7 +135,7 @@ const std::string& InferService::name() const {
 int InferService::inference(
         const google::protobuf::Message* request,
         google::protobuf::Message* response,
-        base::IOBufBuilder* debug_os) {
+        butil::IOBufBuilder* debug_os) {
 
     TRACEPRINTF("start to inference");
     // when funtion call begins, framework will reset
@@ -188,7 +188,7 @@ int InferService::inference(
 int InferService::debug(
         const google::protobuf::Message* request,
         google::protobuf::Message* response,
-        base::IOBufBuilder* debug_os) {
+        butil::IOBufBuilder* debug_os) {
     return inference(request, response, debug_os);
 }
 
@@ -196,7 +196,7 @@ int InferService::execute_one_workflow(
         uint32_t index, 
         const google::protobuf::Message* request, 
         google::protobuf::Message* response,
-        base::IOBufBuilder* debug_os) {
+        butil::IOBufBuilder* debug_os) {
     if (index >= _flows.size()) {
         LOG(FATAL) << "Faield execute workflow, index: "
             << index << " >= max:" << _flows.size();
@@ -210,8 +210,8 @@ int InferService::_execute_workflow(
         Workflow* workflow,
         const google::protobuf::Message* request, 
         google::protobuf::Message* response,
-        base::IOBufBuilder* debug_os) {
-    base::Timer workflow_time(base::Timer::STARTED);
+        butil::IOBufBuilder* debug_os) {
+    butil::Timer workflow_time(butil::Timer::STARTED);
     // create and submit beginer channel
     BuiltinChannel req_channel;
     req_channel.init(0, START_OP_NAME);

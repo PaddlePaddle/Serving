@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    LOG(TRACE) << "Succ initialize logger";
+    LOG(INFO) << "Succ initialize logger";
 
     // initialize resource manager
     if (Resource::instance().initialize(
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
             << FLAGS_resource_path << "/" << FLAGS_resource_file;
         return -1; 
     }
-    LOG(TRACE) << "Succ initialize resource";
+    LOG(INFO) << "Succ initialize resource";
 
     // initialize workflow manager
     if (WorkflowManager::instance().initialize(
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
             << FLAGS_workflow_path << "/" << FLAGS_workflow_file;
         return -1;
     }
-    LOG(TRACE) << "Succ initialize workflow";
+    LOG(INFO) << "Succ initialize workflow";
 
     // initialize service manager
     if (InferServiceManager::instance().initialize(
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
             << FLAGS_inferservice_path << "/" << FLAGS_inferservice_file;
         return -1;
     }
-    LOG(TRACE) << "Succ initialize inferservice";
+    LOG(INFO) << "Succ initialize inferservice";
 
     int errcode = bthread_set_worker_startfn(pthread_worker_start_fn);
     if (errcode != 0) {
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
         LOG(ERROR) << "Failed start server and wait!";
         return -1;
     }
-    LOG(TRACE) << "Succ start service manager";
+    LOG(INFO) << "Succ start service manager";
 
     if (InferServiceManager::instance().finalize() != 0) {
         LOG(ERROR) << "Failed finalize infer service manager.";
