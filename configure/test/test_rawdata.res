@@ -1,0 +1,57 @@
+#进程名
+COMLOG_PROCNAME : test_others
+COMLOG_LEVEL : 16
+#支持的设备数目
+COMLOG_DEVICE_NUM : 5
+#支持的自定义等级
+COMLOG_SELFDEFINE : xiaowei, hello
+#支持的设备名
+COMLOG_DEVICE0 : FILE
+COMLOG_DEVICE1 : AFILE
+COMLOG_DEVICE2 : NET
+COMLOG_DEVICE3 : ULLOG
+COMLOG_DEVICE4 : ULNET
+
+#device 0: FILE
+FILE_TYPE : FILE
+FILE_NAME : test_others_file.log
+FILE_PATH : ./log
+FILE_SYSLEVEL : 16
+FILE_OPEN : 1
+FILE_SELFLEVEL : xiaowei, hello
+FILE_SIZE : 2000
+
+#device 1: AFILE
+AFILE_TYPE : AFILE
+AFILE_NAME : test_others_afile.log
+AFILE_PATH : ./log
+AFILE_SYSLEVEL : 16
+AFILE_OPEN : 1
+AFILE_SELFLEVEL : xiaowei, hello
+AFILE_SIZE : 2000
+
+#device 2: NET
+NET_TYPE : NET
+NET_NAME : test_others_net.log
+NET_PATH : 127.0.0.1:9898/data
+NET_OPEN : 1
+NET_SYSLEVEL : 16
+NET_SELFLEVEL : xiaowei, hello
+
+#device 3: ULLOG
+ULLOG_TYPE : ULLOG
+ULLOG_NAME : test_others_ullog.log
+ULLOG_PATH : ./log
+ULLOG_SYSLEVEL : 16
+ULLOG_OPEN : 1
+ULLOG_SELFLEVEL : xiaowei, hello
+ULLOG_SIZE : 2000
+
+#device 4: ULNET
+ULNET_TYPE : ULNET
+ULNET_NAME : test_others_ulnet.log
+ULNET_PATH : 127.0.0.1:9898/log
+ULNET_OPEN : 1
+ULNET_SYSLEVEL : 16
+ULNET_SELFLEVEL : xiaowei, hello
+

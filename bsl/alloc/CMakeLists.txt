@@ -1,1 +1,2 @@
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+add_custom_target(alloc)

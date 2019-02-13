@@ -1,0 +1,55 @@
+///* variable type */
+raw myraw;
+char a;
+uchar b;
+
+int8_t c;
+uint8_t d;
+
+int16_t e;
+uint16_t f;
+
+int32_t g;
+uint32_t h;
+
+int64_t i;
+uint64_t j;
+
+///* variable array */
+int32_t k[];
+int32_t l[2];
+
+///* multi array */
+int32_t o[50][50];
+int32_t p[][50];
+
+///* constraint32_t function */
+int32_t r=fn();
+int32_t s=fn("a");//lala
+//adsfsadf
+
+///* multi constraint32_t function */
+int32_t t=fn("a"),fn1("b");
+//adsf
+
+///* multi param */
+int32_t u=fn("a","b");
+
+string w=default("hello,world");
+
+///group 
+struct a_t
+{
+};
+struct b_t
+{
+	int32_t a;
+};
+
+///group overwrite 
+c_t overwrite b_t
+{
+	double a=fn(1); #comment test here
+};
+
+#comment test here

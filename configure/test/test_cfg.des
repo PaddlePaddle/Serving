@@ -1,0 +1,17 @@
+#include "log.des"
+#include "clt.des"
+#include "svr.des"
+
+struct my_t
+{
+	comlog log;
+	ubclt clt;
+	ubsvr svr;
+};
+
+comlog log;
+ubclt clt[];
+ubsvr svr[];
+
+my_t my;
+string b;//ab

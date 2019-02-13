@@ -1,0 +1,9 @@
+struct myvec1{
+};
+
+struct myvec2{
+};
+
+myvec1 v1[2];
+
+myvec2 v2[2];

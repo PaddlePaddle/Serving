@@ -1,0 +1,8 @@
+struct server_t{
+	string ip = ip(), length(20);
+	uint16_t port = range(1, 1023);
+};
+
+server_t server;
+string position = length(100);
+
