@@ -1,6 +1,9 @@
 #ifndef BAIDU_PADDLE_SERVING_PREDICTOR_INFER_H
 #define BAIDU_PADDLE_SERVING_PREDICTOR_INFER_H
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include "common/inner_common.h"
 #include "framework/infer_data.h"
 #include "framework/factory.h"
@@ -886,7 +889,7 @@ public:
         InferEngine* engine = default_engine();
         if (!engine) {
             LOG(WARNING) << "fail to get default engine";
-            return NULL;
+            return -1;
         }
         return engine->infer(in, out, batch_size);
     }

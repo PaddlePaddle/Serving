@@ -39,24 +39,6 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     }
     LOG(WARNING) << "Successfully proc initialized mempool wrapper";
 
-    if (FLAGS_enable_mc_cache) {
-        _mc_cache = new (std::nothrow) McCache();
-        CHECK(_mc_cache != nullptr) << "failed to new McCache";
-        
-        uint32_t cache_capacity = 0;
-        conf["cache_capacity"].get_uint32(&cache_capacity, DEFAULT_CACHE_CAPACITY);
-        LOG(INFO) << "cache_capacity[" << cache_capacity << "].";
-        uint32_t cache_unitsize = 0;
-        conf["cache_unitsize"].get_uint32(&cache_unitsize, DEFAULT_CACHE_UNITSIZE);
-        LOG(INFO) << "cache_unitsize[" << cache_unitsize << "].";
-        
-        if (_mc_cache->initialize(cache_capacity, cache_unitsize) != 0) {
-            LOG(ERROR) << "init mc cache failed";
-            return -1;
-        }
-        LOG(INFO) << "mc cache proc_init success.";
-    }
-
     if (FLAGS_enable_model_toolkit) {
         int err = 0;
         std::string model_toolkit_path = conf["model_toolkit_path"].to_cstr(&err);
@@ -166,18 +148,6 @@ int Resource::reload() {
 }
 
 int Resource::finalize() {
-    if (FLAGS_enable_mc_cache && _mc_cache != NULL) {
-        if (_mc_cache->finalize() != 0) {
-            LOG(ERROR) << "failed to finalize mc cache";
-            delete _mc_cache;
-            _mc_cache = NULL;
-            return -1;
-        }
-        delete _mc_cache;
-        _mc_cache = NULL;
-        LOG(INFO) << "mc_cache finalize success";
-    }
-    
     if (FLAGS_enable_model_toolkit && InferManager::instance().proc_finalize() != 0) {
         LOG(FATAL) << "Failed proc finalize infer manager";
         return -1;

@@ -103,7 +103,7 @@ public:
                     printer.Print("#include \"framework/service_manager.h\"\n"); 
                 }
                 if (generate_stub) {
-                    printer.Print("#include <baidu/rpc/parallel_channel.h>\n");
+                    printer.Print("#include <brpc/parallel_channel.h>\n");
                     printer.Print("#include \"factory.h\"\n");
                     printer.Print("#include \"stub.h\"\n");
                     printer.Print("#include \"stub_impl.h\"\n");
@@ -251,9 +251,9 @@ private:
                     "output_name", google::protobuf::dots_to_colons(m->output_type()->full_name()));
             if (m->name() == "inference") {
                 printer->Print(
-                    "  baidu::rpc::ClosureGuard done_guard(done);\n"
-                    "  baidu::rpc::Controller* cntl = \n"
-                    "        static_cast<baidu::rpc::Controller*>(cntl_base);\n"
+                    "  brpc::ClosureGuard done_guard(done);\n"
+                    "  brpc::Controller* cntl = \n"
+                    "        static_cast<brpc::Controller*>(cntl_base);\n"
                     "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
                     "       ::baidu::paddle_serving::predictor::InferServiceManager::instance().item(\"$service$\");\n"
                     "  if (svr == NULL) {\n"
@@ -261,10 +261,10 @@ private:
                     "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
                     "    return ;\n"
                     "  }\n"
-                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\" << noflush;\n"
+                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
+                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
+                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
+                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
                     "  int err_code = svr->inference(request, response);\n"
                     "  if (err_code != 0) {\n"
                     "    LOG(WARNING)\n"
@@ -280,9 +280,9 @@ private:
             }
             if (m->name() == "debug") {
                 printer->Print(
-                    "  baidu::rpc::ClosureGuard done_guard(done);\n"
-                    "  baidu::rpc::Controller* cntl = \n"
-                    "        static_cast<baidu::rpc::Controller*>(cntl_base);\n"
+                    "  brpc::ClosureGuard done_guard(done);\n"
+                    "  brpc::Controller* cntl = \n"
+                    "        static_cast<brpc::Controller*>(cntl_base);\n"
                     "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
                     "       ::baidu::paddle_serving::predictor::InferServiceManager::instance().item(\"$service$\");\n"
                     "  if (svr == NULL) {\n"
@@ -290,11 +290,11 @@ private:
                     "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
                     "    return ;\n"
                     "  }\n"
-                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\" << noflush;\n"
-                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\" << noflush;\n"
-                    "  base::IOBufBuilder debug_os;\n"
+                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
+                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
+                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
+                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
+                    "  butil::IOBufBuilder debug_os;\n"
                     "  int err_code = svr->inference(request, response, &debug_os);\n"
                     "  if (err_code != 0) {\n"
                     "    LOG(WARNING)\n"
@@ -329,7 +329,7 @@ private:
             const std::string& service_name,
             const std::string& class_name) const {
         printer->Print(
-                "class $name$_StubCallMapper : public baidu::rpc::CallMapper {\n"
+                "class $name$_StubCallMapper : public brpc::CallMapper {\n"
                 "private:\n"
                 "   uint32_t _package_size;\n"
                 "   baidu::paddle_serving::sdk_cpp::Stub* _stub_handler;\n"
@@ -342,7 +342,7 @@ private:
                 "}\n", "name", class_name);
 
         printer->Print(
-                "baidu::rpc::SubCall default_map(\n"
+                "brpc::SubCall default_map(\n"
                 "        int channel_index,\n"
                 "        const google::protobuf::MethodDescriptor* method,\n"
                 "        const google::protobuf::Message* request,\n"
@@ -361,7 +361,7 @@ private:
                 "}\n");
 
         printer->Print(
-                "baidu::rpc::SubCall sub_package_map(\n"
+                "brpc::SubCall sub_package_map(\n"
                 "        int channel_index,\n"
                 "        const google::protobuf::MethodDescriptor* method,\n"
                 "        const google::protobuf::Message* request,\n"
@@ -404,7 +404,7 @@ private:
                 "}\n");
 
         printer->Print(
-                "baidu::rpc::SubCall Map(\n"
+                "brpc::SubCall Map(\n"
                 "        int channel_index,\n"
                 "        const google::protobuf::MethodDescriptor* method,\n"
                 "        const google::protobuf::Message* request,\n"
@@ -418,15 +418,15 @@ private:
                     "return default_map(channel_index, method, request, response);\n");
         } else {
             printer->Print(
-                    "base::Timer tt(base::Timer::STARTED);\n"
-                    "baidu::rpc::SubCall ret;\n"
+                    "butil::Timer tt(butil::Timer::STARTED);\n"
+                    "brpc::SubCall ret;\n"
                     "if (_package_size == 0) {\n"
                     "   ret = default_map(channel_index, method, request, response);\n"
                     "} else {\n"
                     "   ret = sub_package_map(channel_index, method, request, response);\n"
                     "}\n"
                     "tt.stop();\n"
-                    "if (ret.flags != baidu::rpc::SKIP_SUB_CHANNEL && ret.method != NULL) {\n"
+                    "if (ret.flags != brpc::SKIP_SUB_CHANNEL && ret.method != NULL) {\n"
                     "   _stub_handler->update_latency(tt.u_elapsed(), \"pack_map\");\n"
                     "}\n"
                     "return ret;\n");
@@ -440,7 +440,7 @@ private:
         
         ////////////////////////////////////////////////////////////////
         printer->Print(
-                "class $name$_StubResponseMerger : public baidu::rpc::ResponseMerger {\n"
+                "class $name$_StubResponseMerger : public brpc::ResponseMerger {\n"
                 "private:\n"
                 "   uint32_t _package_size;\n"
                 "   baidu::paddle_serving::sdk_cpp::Stub* _stub_handler;\n"
@@ -453,7 +453,7 @@ private:
                 "}\n", "name", class_name);
         
         printer->Print(
-                "baidu::rpc::ResponseMerger::Result default_merge(\n"
+                "brpc::ResponseMerger::Result default_merge(\n"
                 "        google::protobuf::Message* response,\n"
                 "        const google::protobuf::Message* sub_response) {\n"
                 "   baidu::paddle_serving::sdk_cpp::TracePackScope scope(\"default_merge\");",
@@ -468,7 +468,7 @@ private:
                 "}\n");
 
         printer->Print(
-                "baidu::rpc::ResponseMerger::Result sub_package_merge(\n"
+                "brpc::ResponseMerger::Result sub_package_merge(\n"
                 "        google::protobuf::Message* response,\n"
                 "        const google::protobuf::Message* sub_response) {\n"
                 "   baidu::paddle_serving::sdk_cpp::TracePackScope scope(\"sub_merge\");",
@@ -483,21 +483,21 @@ private:
                 "}\n");
 
         printer->Print(
-                "baidu::rpc::ResponseMerger::Result Merge(\n"
+                "brpc::ResponseMerger::Result Merge(\n"
                 "        google::protobuf::Message* response,\n"
                 "        const google::protobuf::Message* sub_response) {\n",
                 "name", class_name);
         printer->Indent();
         printer->Print(
-                "base::Timer tt(base::Timer::STARTED);\n"
-                "baidu::rpc::ResponseMerger::Result ret;"
+                "butil::Timer tt(butil::Timer::STARTED);\n"
+                "brpc::ResponseMerger::Result ret;"
                 "if (_package_size <= 0) {\n"
                 "    ret = default_merge(response, sub_response);\n"
                 "} else {\n"
                 "    ret = sub_package_merge(response, sub_response);\n"
                 "}\n"
                 "tt.stop();\n"
-                "if (ret != baidu::rpc::ResponseMerger::FAIL) {\n"
+                "if (ret != brpc::ResponseMerger::FAIL) {\n"
                 "   _stub_handler->update_latency(tt.u_elapsed(), \"pack_merge\");\n"
                 "}\n"
                 "return ret;\n");
@@ -516,7 +516,7 @@ private:
             const std::string& class_name) const {
         printer->Print(
                 "if (channel_index > 0) { \n"
-                "   return baidu::rpc::SubCall::Skip();\n"
+                "   return brpc::SubCall::Skip();\n"
                 "}\n");
         printer->Print(
                 "google::protobuf::Message* cur_res = _stub_handler->fetch_response();\n"
@@ -526,14 +526,14 @@ private:
                 "   if (cur_res == NULL) {\n"
                 "       LOG(FATAL) << \"Failed new response item!\";\n"
                 "       _stub_handler->update_average(1, \"pack_fail\");\n"
-                "       return baidu::rpc::SubCall::Bad();\n"
+                "       return brpc::SubCall::Bad();\n"
                 "   }\n"
-                "   return baidu::rpc::SubCall(method, request, cur_res, baidu::rpc::DELETE_RESPONSE);\n"
+                "   return brpc::SubCall(method, request, cur_res, brpc::DELETE_RESPONSE);\n"
                 "}\n");
                 "LOG(INFO) \n"
                 "   << \"[default] Succ map, channel_index: \" << channel_index;\n";
         printer->Print(
-                "return baidu::rpc::SubCall(method, request, cur_res, 0);\n"
+                "return brpc::SubCall(method, request, cur_res, 0);\n"
                 );
         return true;
     }
@@ -546,11 +546,11 @@ private:
         printer->Print(
                 "try {\n"
                 "   response->MergeFrom(*sub_response);\n"
-                "   return baidu::rpc::ResponseMerger::MERGED;\n"
+                "   return brpc::ResponseMerger::MERGED;\n"
                 "} catch (const std::exception& e) {\n"
                 "   LOG(FATAL) << \"Merge failed.\";\n"
                 "   _stub_handler->update_average(1, \"pack_fail\");\n"
-                "   return baidu::rpc::ResponseMerger::FAIL;\n"
+                "   return brpc::ResponseMerger::FAIL;\n"
                 "}\n");
         return true;
     }
@@ -593,7 +593,7 @@ private:
                 printer->Print(
                         "int start = _package_size * channel_index;\n"
                         "if (start >= total_size) {\n"
-                        "   return baidu::rpc::SubCall::Skip();\n"
+                        "   return brpc::SubCall::Skip();\n"
                         "}\n"
                         "int end = _package_size * (channel_index + 1);\n"
                         "if (end > total_size) {\n"
@@ -605,7 +605,7 @@ private:
                         "if (sub_req == NULL) {\n"
                         "    LOG(FATAL) << \"failed fetch sub_req from stub.\";\n"
                         "    _stub_handler->update_average(1, \"pack_fail\");\n"
-                        "    return baidu::rpc::SubCall::Bad();\n"
+                        "    return brpc::SubCall::Bad();\n"
                         "}\n",
                         "name", class_name, "req_type", google::protobuf::dots_to_colons(
                             md->input_type()->full_name()));
@@ -617,7 +617,7 @@ private:
                         "               << total_size << \"!=\" << req->$field_name$_size()\n"
                         "               << \", field: $field_name$.\";\n"
                         "    _stub_handler->update_average(1, \"pack_fail\");\n"
-                        "    return baidu::rpc::SubCall::Bad();\n"
+                        "    return brpc::SubCall::Bad();\n"
                         "}\n", "field_name", field_name); 
             }
 
@@ -645,7 +645,7 @@ private:
                     "   if (!sub_req) {\n"
                     "       LOG(FATAL) << \"failed fetch sub_req from stub handler.\";\n"
                     "       _stub_handler->update_average(1, \"pack_fail\");\n"
-                    "       return baidu::rpc::SubCall::Bad();\n"
+                    "       return brpc::SubCall::Bad();\n"
                     "   }\n"
                     "}\n", "req_type", google::protobuf::dots_to_colons(
                             md->input_type()->full_name()));
@@ -683,9 +683,9 @@ private:
                 "if (sub_res == NULL) {\n"
                 "    LOG(FATAL) << \"failed create sub_res from res.\";\n"
                 "    _stub_handler->update_average(1, \"pack_fail\");\n"
-                "    return baidu::rpc::SubCall::Bad();\n"
+                "    return brpc::SubCall::Bad();\n"
                 "}\n"
-                "return baidu::rpc::SubCall(method, sub_req, sub_res, 0);\n");
+                "return brpc::SubCall(method, sub_req, sub_res, 0);\n");
         return true;
     }
     bool generate_paddle_serving_stub_package_merger(

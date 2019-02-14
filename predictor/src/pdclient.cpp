@@ -54,7 +54,7 @@ using baidu::paddle_serving::predictor::format::DenseInstance;
 using baidu::paddle_serving::predictor::format::DensePrediction;
 
 void send_dense_format(BuiltinDenseFormatService_Stub& stub, int log_id) {
-    baidu::rpc::Controller cntl;
+    brpc::Controller cntl;
 
     // We will receive response synchronously, safe to put variables
     // on stack.
@@ -83,7 +83,7 @@ void send_dense_format(BuiltinDenseFormatService_Stub& stub, int log_id) {
     }
 
     if (FLAGS_compress) {
-        cntl.set_request_compress_type(baidu::rpc::COMPRESS_TYPE_SNAPPY);
+        cntl.set_request_compress_type(brpc::COMPRESS_TYPE_SNAPPY);
     }
 
     timer.check("compress");
@@ -98,13 +98,13 @@ void send_dense_format(BuiltinDenseFormatService_Stub& stub, int log_id) {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << dense_response.ShortDebugString()
-                      << " latency=" << cntl.latency_us() << "us" << noflush;
+                      << " latency=" << cntl.latency_us() << "us";
         } else {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << dense_response.ShortDebugString()
                       << " (attached=" << cntl.response_attachment() << ")"
-                      << " latency=" << cntl.latency_us() << "us " << noflush;
+                      << " latency=" << cntl.latency_us() << "us ";
         }
     } else {
         LOG(WARNING) << cntl.ErrorText();
@@ -124,7 +124,7 @@ using baidu::paddle_serving::predictor::format::SparseInstance;
 using baidu::paddle_serving::predictor::format::SparsePrediction;
 
 void send_sparse_format(BuiltinSparseFormatService_Stub& stub, int log_id) {
-    baidu::rpc::Controller cntl;
+    brpc::Controller cntl;
 
     // We will receive response synchronously, safe to put variables
     // on stack.
@@ -177,7 +177,7 @@ void send_sparse_format(BuiltinSparseFormatService_Stub& stub, int log_id) {
     }
 
     if (FLAGS_compress) {
-        cntl.set_request_compress_type(baidu::rpc::COMPRESS_TYPE_SNAPPY);
+        cntl.set_request_compress_type(brpc::COMPRESS_TYPE_SNAPPY);
     }
 
     timer.check("compress");
@@ -192,13 +192,13 @@ void send_sparse_format(BuiltinSparseFormatService_Stub& stub, int log_id) {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << sparse_response.ShortDebugString()
-                      << " latency=" << cntl.latency_us() << "us" << noflush;
+                      << " latency=" << cntl.latency_us() << "us";
         } else {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << sparse_response.ShortDebugString()
                       << " (attached=" << cntl.response_attachment() << ")"
-                      << " latency=" << cntl.latency_us() << "us" << noflush;
+                      << " latency=" << cntl.latency_us() << "us";
         }
     } else {
         LOG(WARNING) << cntl.ErrorText();
@@ -217,7 +217,7 @@ using baidu::paddle_serving::predictor::format::Int64TensorInstance;
 using baidu::paddle_serving::predictor::format::Float32TensorPredictor;
 
 void send_fluid_format(BuiltinFluidService_Stub& stub, int log_id) {
-    baidu::rpc::Controller cntl;
+    brpc::Controller cntl;
 
     // We will receive response synchronously, safe to put variables
     // on stack.
@@ -250,7 +250,7 @@ void send_fluid_format(BuiltinFluidService_Stub& stub, int log_id) {
     }
 
     if (FLAGS_compress) {
-        cntl.set_request_compress_type(baidu::rpc::COMPRESS_TYPE_SNAPPY);
+        cntl.set_request_compress_type(brpc::COMPRESS_TYPE_SNAPPY);
     }
 
     timer.check("compress");
@@ -265,13 +265,13 @@ void send_fluid_format(BuiltinFluidService_Stub& stub, int log_id) {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << fluid_response.ShortDebugString()
-                      << " latency=" << cntl.latency_us() << "us" << noflush;
+                      << " latency=" << cntl.latency_us() << "us";
         } else {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << fluid_response.ShortDebugString()
                       << " (attached=" << cntl.response_attachment() << ")"
-                      << " latency=" << cntl.latency_us() << "us " << noflush;
+                      << " latency=" << cntl.latency_us() << "us ";
         }
     } else {
         LOG(WARNING) << cntl.ErrorText();
@@ -294,7 +294,7 @@ using baidu::paddle_serving::predictor::format::XImageReqInstance;
 using baidu::paddle_serving::predictor::format::XImageResInstance;
 
 void send_ximage_format(ImageClassifyService_Stub& stub, int log_id) {
-    baidu::rpc::Controller cntl;
+    brpc::Controller cntl;
 
     // We will receive response synchronously, safe to put variables
     // on stack.
@@ -333,7 +333,7 @@ void send_ximage_format(ImageClassifyService_Stub& stub, int log_id) {
     }
 
     if (FLAGS_compress) {
-        cntl.set_request_compress_type(baidu::rpc::COMPRESS_TYPE_SNAPPY);
+        cntl.set_request_compress_type(brpc::COMPRESS_TYPE_SNAPPY);
     }
 
     timer.check("compress");
@@ -347,13 +347,13 @@ void send_ximage_format(ImageClassifyService_Stub& stub, int log_id) {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << ximage_response.ShortDebugString()
-                      << " latency=" << cntl.latency_us() << "us" << noflush;
+                      << " latency=" << cntl.latency_us() << "us";
         } else {
             LOG(INFO) << "Received response from " << cntl.remote_side()
                       << " to " << cntl.local_side()
                       << ": " << ximage_response.ShortDebugString()
                       << " (attached=" << cntl.response_attachment() << ")"
-                      << " latency=" << cntl.latency_us() << "us " << noflush;
+                      << " latency=" << cntl.latency_us() << "us ";
         }
     } else {
         LOG(WARNING) << cntl.ErrorText();
@@ -381,22 +381,22 @@ int main(int argc, char* argv[]) {
     
     // Login to get `CredentialGenerator' (see baas-lib-c/baas.h for more
     // information) and then pass it to `GianoAuthenticator'. 
-    std::unique_ptr<baidu::rpc::policy::GianoAuthenticator> auth;
+    std::unique_ptr<brpc::policy::GianoAuthenticator> auth;
     if (FLAGS_auth) {
         if (baas::BAAS_Init() != 0) {
             LOG(ERROR) << "Fail to init BAAS";
             return -1;
         }
         baas::CredentialGenerator gen = baas::ClientUtility::Login(FLAGS_auth_group);
-        auth.reset(new baidu::rpc::policy::GianoAuthenticator(&gen, NULL));
+        auth.reset(new brpc::policy::GianoAuthenticator(&gen, NULL));
     }
 
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
-    baidu::rpc::Channel channel;
+    brpc::Channel channel;
     
     // Initialize the channel, NULL means using default options.
-    baidu::rpc::ChannelOptions options;
+    brpc::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
     options.auth = auth.get();
@@ -423,7 +423,7 @@ int main(int argc, char* argv[]) {
 
     // Send a request and wait for the response every 1 second.
     int log_id = 0;
-    while (!baidu::rpc::IsAskedToQuit()) {
+    while (!brpc::IsAskedToQuit()) {
         // We will receive response synchronously, safe to put variables
         // on stack.
         log_id++;
