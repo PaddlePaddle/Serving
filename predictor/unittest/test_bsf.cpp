@@ -18,7 +18,7 @@ namespace baidu {
 namespace paddle_serving {
 namespace unittest {
 
-base::atomic<size_t> global_id;
+butil::atomic<size_t> global_id;
 
 void TestItem::auto_gen() {
     id = global_id.fetch_add(1);
@@ -37,7 +37,7 @@ void work(const std::vector<TestItem>& in, std::vector<TestItem>& out) {
 
 TEST_F(TestBsf, test_single_thread) {
     // initialize TaskExecutor
-    global_id.store(0, base::memory_order_relaxed);
+    global_id.store(0, butil::memory_order_relaxed);
     im::bsf::TaskExecutor<im::bsf::Task<TestItem, TestItem> >::instance()->set_thread_callback_fn(
             boost::bind(&work, _1, _2));
     EXPECT_EQ((im::bsf::TaskExecutor<im::bsf::Task<TestItem, TestItem> >::instance()->start(1)), 0);
@@ -67,7 +67,7 @@ TEST_F(TestBsf, test_single_thread) {
 
 TEST_F(TestBsf, test_multi_thread) {
     // initialize TaskExecutor
-    global_id.store(0, base::memory_order_relaxed);
+    global_id.store(0, butil::memory_order_relaxed);
     im::bsf::TaskExecutor<im::bsf::Task<TestItem, TestItem> >::instance()->set_thread_callback_fn(
             boost::bind(&work, _1, _2));
     im::bsf::TaskExecutor<im::bsf::Task<TestItem, TestItem> >::instance()->set_batch_size(100);

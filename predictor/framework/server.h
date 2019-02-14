@@ -41,8 +41,8 @@ private:
 
     void _set_server_option_by_protocol(const ::butil::StringPiece& protocol_type);
 
-    baidu::rpc::ServerOptions _options;
-    baidu::rpc::Server _server;
+    brpc::ServerOptions _options;
+    brpc::Server _server;
     boost::unordered_map<std::string, Service*> _format_services;
     THREAD_T _reload_thread;
     static volatile bool _s_reload_starting;

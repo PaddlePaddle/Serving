@@ -137,18 +137,18 @@ int Dag::init(const comcfg::Configure& conf, const std::string& name) {
     }
 
     if (FLAGS_el_log_level == 16) {
-        LOG(INFO) << "DAG: " << _dag_name << noflush;
+        LOG(INFO) << "DAG: " << _dag_name;
         LOG(INFO) << ", Op Num: " << _index_nodes.size();
         for (uint32_t nid = 0; nid < _index_nodes.size(); nid++) {
             DagNode* node = _index_nodes[nid];
             LOG(INFO) 
                 << ", OP-" << node->id << "-" << node->name << "-" 
-                << node->type << noflush;
-            LOG(INFO) << " depends: " << node->depends.size() << noflush;
+                << node->type;
+            LOG(INFO) << " depends: " << node->depends.size();
 
             boost::unordered_map<std::string, EdgeMode>::iterator it;
             for (it = node->depends.begin(); it != node->depends.end(); it++) {
-                LOG(INFO) << " " << it->first << " " << it->second << noflush;
+                LOG(INFO) << " " << it->first << " " << it->second;
             }
         }
         LOG(INFO) << "";

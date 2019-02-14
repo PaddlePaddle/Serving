@@ -1,5 +1,5 @@
 #include "framework/dag_view.h"
-#include <baidu/rpc/traceprintf.h> // TRACEPRINTF
+#include <brpc/traceprintf.h> // TRACEPRINTF
 #include "common/inner_common.h"
 #include "framework/op_repository.h"
 
@@ -156,7 +156,7 @@ const Channel* DagView::get_response_channel() const {
     // Caller obtains response channel from bus, and
     // writes it to rpc response(protbuf/json)
     if (_view.size() < 1) {
-        LOG(FATAL) << "invalid empty view stage!" << noflush;
+        LOG(FATAL) << "invalid empty view stage!";
         return NULL;
     }
 
@@ -165,7 +165,7 @@ const Channel* DagView::get_response_channel() const {
                     || last_stage->nodes[0] == NULL) {
         LOG(FATAL) << "Invalid last stage, size[" 
                 << last_stage->nodes.size()
-                << "] != 1" << noflush;
+                << "] != 1";
         return NULL;
     }
 
