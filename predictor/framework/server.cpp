@@ -1,7 +1,6 @@
-#include <baidu/rpc/policy/itp.h> // ItpAdaptor
-#include <baidu/rpc/policy/nova_pbrpc_protocol.h> // NovaServiceAdaptor
-#include <baidu/rpc/policy/public_pbrpc_protocol.h> // PublicPbrpcServiceAdaptor
-#include <baidu/rpc/policy/nshead_mcpack_protocol.h> // NsheadMcpackAdaptor
+#include <brpc/policy/nova_pbrpc_protocol.h> // NovaServiceAdaptor
+#include <brpc/policy/public_pbrpc_protocol.h> // PublicPbrpcServiceAdaptor
+#include <brpc/policy/nshead_mcpack_protocol.h> // NsheadMcpackAdaptor
 #include "common/inner_common.h"
 #include "framework/server.h"
 #include "framework/service_manager.h"
@@ -68,7 +67,7 @@ int ServerManager::start_and_wait() {
   boost::unordered_map<std::string, Service*>::iterator it;
   for (it = _format_services.begin(); it != _format_services.end();
           it++) {
-    if (_server.AddService(it->second, baidu::rpc::SERVER_DOESNT_OWN_SERVICE)
+    if (_server.AddService(it->second, brpc::SERVER_DOESNT_OWN_SERVICE)
             != 0) {
       LOG(ERROR) << "Failed to add service of format:"
           << it->first << "!";
@@ -93,14 +92,12 @@ int ServerManager::start_and_wait() {
 void ServerManager::_set_server_option_by_protocol(
         const ::butil::StringPiece& protocol_type) {
     std::string enabled_protocols = FLAGS_enable_protocol_list;
-    if (_compare_string_piece_without_case(protocol_type, "itp")) {
-        _options.nshead_service = new ::baidu::rpc::policy::ItpAdaptor;
-    } else if (_compare_string_piece_without_case(protocol_type, "nova_pbrpc")) {
-        _options.nshead_service = new ::baidu::rpc::policy::NovaServiceAdaptor;;
+    if (_compare_string_piece_without_case(protocol_type, "nova_pbrpc")) {
+        _options.nshead_service = new ::brpc::policy::NovaServiceAdaptor;;
     } else if (_compare_string_piece_without_case(protocol_type, "public_pbrpc")) {
-        _options.nshead_service = new ::baidu::rpc::policy::PublicPbrpcServiceAdaptor;
+        _options.nshead_service = new ::brpc::policy::PublicPbrpcServiceAdaptor;
     } else if (_compare_string_piece_without_case(protocol_type, "nshead_mcpack")) {
-        _options.nshead_service = new ::baidu::rpc::policy::NsheadMcpackAdaptor;
+        _options.nshead_service = new ::brpc::policy::NsheadMcpackAdaptor;
     } else {
         LOG(ERROR) << "fail to set nshead protocol, protocol_type[" << protocol_type << "].";
         return;

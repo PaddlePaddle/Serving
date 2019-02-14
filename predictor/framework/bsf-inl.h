@@ -1,9 +1,8 @@
 #pragma once
 
 #include <boost/bind.hpp>
-#include <base/atomicops.h>
+#include <butil/atomicops.h>
 
-#include <comlog/comlog.h>
 #include "common/inner_common.h"
 
 #include <sys/syscall.h>
@@ -13,8 +12,6 @@ namespace bsf {
 
 template<typename TaskT>
 void* TaskExecutor<TaskT>::thread_entry(void* args) {
-    ComlogGuard logging_guard;
-
     ThreadContext<TaskT>* context = static_cast<ThreadContext<TaskT>*>(args);
     TaskExecutor<TaskT>* executor = static_cast<TaskExecutor<TaskT>*>(context->executor);
     executor->work(context);
@@ -26,12 +23,12 @@ template<typename TaskT>
 int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
     _stop = false;
     if (!_thread_contexts.empty()) {
-        CWARNING_LOG("BSF has started");
+        LOG(WARNING) << "BSF has started";
         return 0;
     }
 
     if (thread_num == 0) {
-        CFATAL_LOG("cannot init BSF with zero thread");
+        LOG(FATAL) << "cannot init BSF with zero thread";
         return -1;
     }
 
@@ -45,8 +42,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         int rc = THREAD_CREATE(
                 &contexts[i].tid, NULL, &TaskExecutor::thread_entry, &contexts[i]);
         if (rc != 0) {
-            CFATAL_LOG("failed to create BSF worker thread: index=%u, rc=%d, errno=%d:%m",
-                    i, rc, errno);
+            LOG(FATAL) << "failed to create BSF worker thread: index=" << i << ", rc=" << rc << ", errno=" << errno << ":" << strerror(errno);
             return -1;
         }
 
@@ -75,12 +71,12 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         }
 
         if (has_error) {
-            CFATAL_LOG("BSF thread init error");
+            LOG(FATAL) << "BSF thread init error";
             return -1;
         }
 
         if (done) {
-            CDEBUG_LOG("BSF thread init done");
+            LOG(INFO) << "BSF thread init done";
             return 0;
         }
 
@@ -90,7 +86,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         init_timeout -= sleep_interval;
     }
 
-    CFATAL_LOG("BSF thread init timed out");
+    LOG(FATAL) << "BSF thread init timed out";
     return -1;
 }
 
@@ -110,7 +106,7 @@ void TaskExecutor<TaskT>::stop() {
 template<typename TaskT>
 TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
         const InArrayT& in, OutArrayT& out) {
-    TaskT* task = base::get_object<TaskT>();
+    TaskT* task = butil::get_object<TaskT>();
     if (!task) {
         LOG(FATAL) << "Failed get TaskT from object pool";
         return TaskHandler<TaskT>::valid_handle();
@@ -124,7 +120,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     int fds[2];
     int rc = pipe(fds);
     if (rc != 0) {
-        CFATAL_LOG("call pipe() failed, errno=%d:%m", errno);
+        LOG(FATAL) << "call pipe() failed, errno=" << errno << ":" << strerror(errno);
         return TaskHandler<TaskT>::valid_handle();
     }
 
@@ -136,7 +132,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     task->out = &out;
     task->rem = in.size();
     task->size = in.size();
-    task->index.store(0, base::memory_order_relaxed);
+    task->index.store(0, butil::memory_order_relaxed);
 
     AutoMutex lock(_mut);
     _task_queue.push_back(task);
@@ -153,7 +149,7 @@ bool TaskExecutor<TaskT>::fetch_batch(BatchTasks<TaskT>& batch) {
     }
 
     if (_task_queue.empty()) {
-        CFATAL_LOG("invalid task queue!");
+        LOG(FATAL) << "invalid task queue!";
         return false;
     }
 
@@ -173,11 +169,11 @@ template<typename TaskT>
 int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     if (_thread_init_fn != NULL) {
         if (_thread_init_fn(context->user_thread_context) != 0) {
-            CFATAL_LOG("execute thread init thunk failed, BSF thread will exit");
+            LOG(FATAL) << "execute thread init thunk failed, BSF thread will exit";
             context->init_status = -1;
             return -1;
         } else {
-            CDEBUG_LOG("execute thread init thunk succeed");
+            LOG(INFO) << "execute thread init thunk succeed";
         }
     }
 
@@ -185,7 +181,7 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     while (!_stop) {
         if (_thread_reset_fn != NULL) {
             if (_thread_reset_fn(context->user_thread_context) != 0) {
-                CFATAL_LOG("execute user thread reset failed");
+                LOG(FATAL) << "execute user thread reset failed";
             }
         }
 
@@ -209,7 +205,7 @@ bool TaskManager<InItemT, OutItemT>::schedule(const InArrayT& in,
         _task_owned = handler;
         return true;
     } else {
-        CFATAL_LOG("failed to schedule task");
+        LOG(FATAL) << "failed to schedule task";
         return false;
     }
 }

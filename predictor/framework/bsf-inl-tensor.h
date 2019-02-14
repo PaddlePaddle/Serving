@@ -4,7 +4,6 @@
 #include <vector>
 #include <deque>
 #include <butil/atomicops.h>
-#include <comlog/comlog.h>
 #include "common/inner_common.h"
 #include "framework/infer_data.h"
 #include "framework/memory.h"
@@ -112,25 +111,23 @@ public:
             const InArrayT& in, OutArrayT& out, bool align) {
         if (align) {
             if (out.count() <= 0 || out.size() <= 0) {
-                CFATAL_LOG("Out tensor is empty, when aligned");
+                LOG(FATAL) << "Out tensor is empty, when aligned";
                 return false;
             }
 
             if (out.size() != in.size()) {
-                CFATAL_LOG("In/Out tensor size not eq: %ld!=%ld",
-                        out.size(), in.size());
+                LOG(FATAL) << "In/Out tensor size not eq: " << out.size() << "!=" << in.size();
                 return false;
             }
 
             for (size_t fi = 0, shape0 = 0; fi < out.count(); ++fi) {
                 if (!out[fi].valid()) {
-                    CFATAL_LOG("Out[%ld] tensor not valid", fi);
+                    LOG(FATAL) << "Out[" << fi << "] tensor not valid";
                     return false;
                 }
 
                 if (out.size() != out[fi].shape0()) {
-                    CFATAL_LOG("Shape0 not consistency, %ld!=%ld, %ld",
-                            out.size(), out[fi].shape0(), fi);
+                    LOG(FATAL) << "Shape0 not consistency, " << out.size() << "!=" << out[fi].shape0() << ", " << fi;
                     return false;
                 }
             }
@@ -234,7 +231,7 @@ public:
             void* data_buf
                 = MempoolWrapper::instance().malloc(tensor_byte);
             if (!data_buf) {
-                CFATAL_LOG("Malloc failed, size: %ld", tensor_byte);
+                LOG(FATAL) << "Malloc failed, size: " << tensor_byte;
                 return ;
             }
 
@@ -243,25 +240,23 @@ public:
                 TaskMetaT& tm = _tasks[ti];
                 size_t acc_byte = ins_byte * (tm.end - tm.begin);
                 if (data_byte + acc_byte > tensor_byte) {
-                    CFATAL_LOG("Invalid bytes: %ld + %ld >= %ld",
-                            data_byte, acc_byte, tensor_byte);
+                    LOG(FATAL) << "Invalid bytes: " << data_byte << " + " << acc_byte << " >= " << tensor_byte;
                     return ;
                 }
 
                 const Tensor& tensor = (*(tm.task->get(is_in)))[fi];
-                memcpy(data_buf + data_byte, 
-                        tensor.data.data() + tm.begin * ins_byte, 
+                memcpy((char *)data_buf + data_byte, 
+                        (char *)(tensor.data.data()) + tm.begin * ins_byte, 
                         acc_byte);
                 data_byte += acc_byte;
             }
 
             if (data_byte != tensor_byte) {
-                CFATAL_LOG("Invalid tensor byte: %ld != %ld",
-                        data_byte, tensor_byte); 
+                LOG(FATAL) << "Invalid tensor byte: " << data_byte << " != " << tensor_byte; 
                 return ;
             }
 
-            batch_tensor.data = DataBuf(data_buf, tensor_byte);
+            batch_tensor.data = DataBuf((char *)data_buf, tensor_byte);
             if (is_in) {
                 _batch_in.push_back(batch_tensor);
             } else {
@@ -275,8 +270,7 @@ public:
 
     void notify_tasks() {
         if (_batch_out.size() != _batch_in.size()) {
-            CFATAL_LOG("batch size not consistency: %ld != %ld",
-                    _batch_out.size(), _batch_in.size());
+            LOG(FATAL) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
             return ;
         }
 
@@ -299,8 +293,8 @@ public:
                 if (_batch_align) {  // merge all batchs
                     size_t offset_dst = ins_byte * _tasks[ti].begin;
                     void* ptr = const_cast<void*>((*dst)[fi].data.data());
-                    memcpy(ptr + offset_dst, 
-                            _batch_out[fi].data.data() + offset_src, add_byte);
+                    memcpy((char *)ptr + offset_dst, 
+                            (char *)(_batch_out[fi].data.data()) + offset_src, add_byte);
                 } else {  // overwrite
                     if (dst->count() <= 0) {
                         dst->push_back(_batch_out[fi]);
@@ -310,7 +304,7 @@ public:
 
                     (*dst)[fi].shape[0] = add;
                     (*dst)[fi].data = DataBuf(
-                            _batch_out[fi].data.data() + offset_src, add_byte);
+                            (char *)(_batch_out[fi].data.data()) + offset_src, add_byte);
                 }
             }
         }
@@ -348,8 +342,8 @@ private:
     std::vector<TaskMetaT> _tasks;
     InArrayT _batch_in;
     OutArrayT _batch_out;
-    size_t _rem_size;
     size_t _batch_size;
+    size_t _rem_size;
     bool _batch_align;
 };
 

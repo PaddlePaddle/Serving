@@ -22,7 +22,7 @@ struct DynamicResource {
 class Resource {
 public:
 
-    Resource() : {}
+    Resource() {}
 
     ~Resource() { finalize(); }
 

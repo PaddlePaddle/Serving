@@ -1,8 +1,7 @@
 #ifndef BAIDU_PADDLE_SERVING_PREDICTOR_LOGGER_H
 #define BAIDU_PADDLE_SERVING_PREDICTOR_LOGGER_H
 
-#include <base/comlog_sink.h>
-#include "common/inner_common.h"
+#include <butil/comlog_sink.h>
 
 namespace baidu {
 namespace paddle_serving {

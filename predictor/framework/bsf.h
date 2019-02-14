@@ -5,7 +5,6 @@
 #include <vector>
 #include <deque>
 #include <butil/atomicops.h>
-#include <comlog/comlog.h>
 #include "common/inner_common.h"
 
 #include <boost/function.hpp>
@@ -122,8 +121,7 @@ public:
 
     void notify_tasks() {
         if (_batch_out.size() != _batch_in.size()) {
-            CFATAL_LOG("batch size not consistency: %ld != %ld",
-                    _batch_out.size(), _batch_in.size());
+            LOG(FATAL) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
             return ;
         }
 
@@ -135,8 +133,7 @@ public:
 
             for (size_t oi = begin; oi < end; ++oi, ++bi) {
                 if (bi >= _batch_in.size()) {
-                    CFATAL_LOG("batch index overflow: %d > %d", 
-                            bi, _batch_in.size());
+                    LOG(FATAL) << "batch index overflow: " << bi << " > " <<_batch_in.size();
                     return ;
                 }
                 (*task->out)[oi] = _batch_out[bi];
@@ -313,10 +310,10 @@ private:
     std::vector<ThreadContext<TaskT>*> _thread_contexts;
     friend class TaskManager<InType, OutType>;
 
-    boost::function<void(const InArrayT&, OutArrayT&)> _fn;
-
     size_t _batch_size;
     bool _batch_align;
+
+    boost::function<void(const InArrayT&, OutArrayT&)> _fn;
 };
 
 template<typename InItemT, typename OutItemT>
@@ -349,16 +346,6 @@ private:
     TaskExecutor<TaskT>& _executor;
     TaskHandler<TaskT> _task_owned;
 }; // class TaskManager
-
-struct ComlogGuard {
-    ComlogGuard() {
-        com_openlog_r();
-    }
-
-    ~ComlogGuard() {
-        com_closelog_r();
-    }
-};
 
 class AutoMutex {
 public:

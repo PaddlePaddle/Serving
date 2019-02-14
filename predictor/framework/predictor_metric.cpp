@@ -1,5 +1,5 @@
 #include "predictor_metric.h"
-#include "base/memory/singleton.h"
+#include "butil/memory/singleton.h"
 
 namespace baidu {
 namespace paddle_serving {
