@@ -33,6 +33,7 @@ ExternalProject_Add(
     GIT_TAG         "v1.2.0"
     PREFIX          ${PADDLE_SOURCES_DIR}
     UPDATE_COMMAND  ""
+    BINARY_DIR ${CMAKE_BINARY_DIR}/Paddle
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                     -DCMAKE_INSTALL_PREFIX=${PADDLE_INSTALL_DIR}
