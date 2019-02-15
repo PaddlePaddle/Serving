@@ -24,11 +24,9 @@
 #include "common/utils.h"
 #include "common/inner_common.h"
 #include "common/constant.h"
-#include "framework/logger.h"
+#include "butil/logging.h"
 
 DEFINE_string(attachment, "foo", "Carry this along with requests");
-DEFINE_bool(auth, false, "Enable Giano authentication");
-DEFINE_string(auth_group, "g_guest", "Giano Group");
 DEFINE_string(protocol, "baidu_std", "Protocol type. Defined in protocol/baidu/rpc/options.proto");
 DEFINE_bool(compress, true, "Enable compression");
 //DEFINE_string(protocol, "http", "Protocol type. Defined in protocol/baidu/rpc/options.proto");
@@ -42,7 +40,6 @@ DEFINE_string(http_content_type, "application/json", "Content type of http reque
 
 using baidu::paddle_serving::predictor::FLAGS_logger_path;
 using baidu::paddle_serving::predictor::FLAGS_logger_file;
-using baidu::paddle_serving::predictor::LoggerWrapper;
 
 namespace dense_format {
 
@@ -372,25 +369,8 @@ int main(int argc, char* argv[]) {
     google::ParseCommandLineFlags(&argc, &argv, true);
 
     // initialize logger instance
-    if (LoggerWrapper::instance().initialize(
-                FLAGS_logger_path, FLAGS_logger_file) != 0) {
-        LOG(ERROR) << "Failed initialize logger, conf:" 
-            << FLAGS_logger_path << "/" << FLAGS_logger_file;
-        return -1;
-    }
+    google::InitGoogleLogging(strdup(argv[0]));
     
-    // Login to get `CredentialGenerator' (see baas-lib-c/baas.h for more
-    // information) and then pass it to `GianoAuthenticator'. 
-    std::unique_ptr<brpc::policy::GianoAuthenticator> auth;
-    if (FLAGS_auth) {
-        if (baas::BAAS_Init() != 0) {
-            LOG(ERROR) << "Fail to init BAAS";
-            return -1;
-        }
-        baas::CredentialGenerator gen = baas::ClientUtility::Login(FLAGS_auth_group);
-        auth.reset(new brpc::policy::GianoAuthenticator(&gen, NULL));
-    }
-
     // A Channel represents a communication line to a Server. Notice that 
     // Channel is thread-safe and can be shared by all threads in your program.
     brpc::Channel channel;
@@ -399,7 +379,6 @@ int main(int argc, char* argv[]) {
     brpc::ChannelOptions options;
     options.protocol = FLAGS_protocol;
     options.connection_type = FLAGS_connection_type;
-    options.auth = auth.get();
     options.timeout_ms = FLAGS_timeout_ms/*milliseconds*/;
     options.max_retry = FLAGS_max_retry;
     if (channel.Init(FLAGS_server.c_str(), FLAGS_load_balancer.c_str(), &options) != 0) {
@@ -441,6 +420,8 @@ int main(int argc, char* argv[]) {
     }
 
     LOG(INFO) << "Pdserving Client is going to quit";
+
+    google::ShutdownGoogleLogging();
     return 0;
 }
 
