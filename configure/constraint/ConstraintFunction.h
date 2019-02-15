@@ -55,7 +55,7 @@ namespace comcfg{
 			virtual int check(const confIDL::cons_func_t&, const confIDL::var_t &, ConfigGroup*, ConfigUnit*);
 			void setLevel(int lv);
 			int getLevel();
-            virtual ~ConstraintFunction();
+            virtual ~ConstraintFunction() {}
 	};
 	typedef bsl::hashmap<str_t, ConstraintFunction*> CFMAP_T;
 
@@ -238,7 +238,7 @@ namespace comcfg{
 						_cf = cf;
 					}
 					WrapFunction(){}
-                    virtual ~WrapFunction();
+                    virtual ~WrapFunction() {}
 				protected:
 					CF_T _cf;
 			};

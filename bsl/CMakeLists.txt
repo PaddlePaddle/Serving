@@ -1,5 +1,5 @@
-add_custom_target(copy_bsl_headers)
-add_custom_command(TARGET copy_bsl_headers
+add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/ && cp ${CMAKE_CURRENT_LIST_DIR}/*.h ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/utils && cp ${CMAKE_CURRENT_LIST_DIR}/utils/*.h ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/utils
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/alloc && cp ${CMAKE_CURRENT_LIST_DIR}/alloc/*.h ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/alloc
@@ -13,6 +13,9 @@ add_custom_command(TARGET copy_bsl_headers
         COMMAND cp ${CMAKE_CURRENT_LIST_DIR}/check_cast/*.h ${CMAKE_CURRENT_BINARY_DIR}/include/bsl
         COMMAND cp ${CMAKE_CURRENT_LIST_DIR}/ResourcePool/*.h ${CMAKE_CURRENT_BINARY_DIR}/include/bsl/ 
         )
+add_custom_target(copy_bsl_headers
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 add_subdirectory(utils)
 add_subdirectory(alloc)
@@ -26,6 +29,9 @@ add_subdirectory(ResourcePool)
 add_subdirectory(var/interface)
 add_subdirectory(var/utils)
 add_subdirectory(var/implement)
-add_custom_target(bsl)
+add_library(bsl)
 add_dependencies(bsl utils alloc archive containers pool buffer exception
         check_cast ResourcePool interface var_utils implement)
+target_link_libraries(bsl
+        utils archive pool buffer exception check_cast
+        ResourcePool var_utils implement)
