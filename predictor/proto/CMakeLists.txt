@@ -1,3 +1,20 @@
-FILE(GLOB protofiles "${CMAKE_CURRENT_LIST_DIR}/*.proto")
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protofiles})
-LIST(APPEND predictor_srcs ${PROTO_SRCS})
+PROTOBUF_GENERATE_CPP(pdcodegen_proto_srcs pdcodegen_proto_hdrs
+        ${CMAKE_CURRENT_LIST_DIR}/pds_option.proto)
+
+LIST(APPEND pdcodegen_srcs ${pdcodegen_proto_srcs})
+
+LIST(APPEND protofiles
+        ${CMAKE_CURRENT_LIST_DIR}/./builtin_format.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./dense_service.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./echo_service.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./image_classification.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./int64tensor_service.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./msg_data.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./sparse_service.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./xrecord_format.proto
+)
+
+# PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
+LIST(APPEND pdserving_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})
+LIST(APPEND pdclient_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})

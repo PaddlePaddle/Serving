@@ -1,18 +1,17 @@
 #include <iostream>
 #include <fstream>
-#include <bthread_unstable.h> // bthread_set_worker_startfn
+#include <bthread/unstable.h> // bthread_set_worker_startfn
 #include "common/inner_common.h"
 #include "framework/workflow.h"
 #include "framework/service.h"
 #include "framework/manager.h"
 #include "framework/server.h"
-#include "framework/logger.h"
+#include "butil/logging.h"
 #include "framework/resource.h"
 #include "common/constant.h"
 
 using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;
-using baidu::paddle_serving::predictor::LoggerWrapper;
 using baidu::paddle_serving::predictor::InferServiceManager;
 using baidu::paddle_serving::predictor::Resource;
 using baidu::paddle_serving::predictor::FLAGS_workflow_path;
@@ -40,7 +39,7 @@ void print_revision(std::ostream& os, void*) {
 static bvar::PassiveStatus<std::string> s_predictor_revision(
         "predictor_revision", print_revision, NULL);
 
-DEFINE_bool(v, false, "print version, bool");
+DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
 DECLARE_string(flagfile);
 
@@ -72,7 +71,7 @@ int main(int argc, char** argv) {
 #endif
     google::ParseCommandLineFlags(&argc, &argv, true);
 
-    if (FLAGS_v) {
+    if (FLAGS_V) {
         print_revision(std::cout, NULL);
         std::cout << std::flush;
         return 0;
@@ -87,12 +86,7 @@ int main(int argc, char** argv) {
     g_change_server_port();
 
     // initialize logger instance
-    if (LoggerWrapper::instance().initialize(
-                FLAGS_logger_path, FLAGS_logger_file) != 0) {
-        LOG(ERROR) << "Failed initialize logger, conf:" 
-            << FLAGS_logger_path << "/" << FLAGS_logger_file;
-        return -1;
-    }
+    google::InitGoogleLogging(strdup(argv[0]));
 
     LOG(INFO) << "Succ initialize logger";
 
@@ -149,10 +143,7 @@ int main(int argc, char** argv) {
         LOG(ERROR) << "Failed finalize resource manager";
     }
 
-    if (LoggerWrapper::instance().finalize() != 0) {
-        LOG(ERROR) << "Failed finalize logger wrapper";
-    }
-
+    google::ShutdownGoogleLogging();
     LOG(INFO) << "Paddle Inference Server exit successfully!";
     return 0;
 }
