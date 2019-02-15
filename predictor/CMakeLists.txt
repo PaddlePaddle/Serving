@@ -16,7 +16,8 @@ set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc pdcodegen)
+add_dependencies(pdserving protobuf boost brpc leveldb bsl pdcodegen configure
+        ullib spreg mempool)
 
 target_include_directories(pdserving PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
@@ -28,6 +29,24 @@ target_include_directories(pdserving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
 target_link_libraries(pdserving -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
+add_executable(pdserving_exe ${pdserving_srcs})
+set_source_files_properties(
+        ${pdserving_srcs}
+        PROPERTIES
+        COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
+add_dependencies(pdserving_exe protobuf boost brpc leveldb bsl pdcodegen
+        configure ullib spreg mempool)
+
+target_include_directories(pdserving_exe PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_LIST_DIR}/../configure
+        ${CMAKE_CURRENT_LIST_DIR}/../mempool
+        ${CMAKE_CURRENT_LIST_DIR}/../spreg
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
+        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+target_link_libraries(pdserving_exe brpc protobuf leveldb bsl configure ullib
+        spreg mempool -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 add_library(pdclient ${pdclient_srcs})
 set_source_files_properties(
