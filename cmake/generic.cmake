@@ -836,7 +836,8 @@ function(PROTOBUF_GENERATE_SERVING_CPP SRCS HDRS)
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
       COMMAND  ${Protobuf_PROTOC_EXECUTABLE}
-      ARGS --pdcodegen_out=${CMAKE_CURRENT_BINARY_DIR}
+      ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+           --pdcodegen_out=${CMAKE_CURRENT_BINARY_DIR}
            --plugin=protoc-gen-pdcodegen=${CMAKE_CURRENT_BINARY_DIR}/pdcodegen
            --proto_path=.
            ${_protobuf_include_path} ${ABS_FIL}
