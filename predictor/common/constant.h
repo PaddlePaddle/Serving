@@ -30,7 +30,7 @@ DECLARE_bool(enable_model_toolkit);
 DECLARE_string(enable_protocol_list);
 
 // STATIC Variables
-const char* START_OP_NAME = "startup_op";
+extern const char* START_OP_NAME;
 
 // ERRORCODE
 enum {
