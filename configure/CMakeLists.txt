@@ -32,3 +32,4 @@ target_include_directories(configure PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_LIST_DIR}/../spreg/
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+target_link_libraries(configure bsl ullib pcre spreg)

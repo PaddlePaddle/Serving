@@ -16,7 +16,7 @@
 #define BAIDU_PADDLE_SERVING_PREDICTOR_FACTORY_H
 
 #include "common/inner_common.h"
-
+#include "glog/raw_logging.h"
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -29,8 +29,7 @@ namespace predictor {
         if (factory == NULL                     \
                 || FactoryPool<B>::instance().register_factory(\
                     tag, factory) != 0) {       \
-            LOG(FATAL) << "Failed regist factory:"\
-                << #D << " in macro!";          \
+            RAW_LOG_FATAL("Failed regist factory: %s in macro!", #D); \
             return -1;                          \
         }                                       \
         return 0;                               \
@@ -55,8 +54,7 @@ __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject, __LINE_
     if (factory == NULL                         \
             || ::baidu::paddle_serving::predictor::FactoryPool<B>::instance().register_factory(\
                 #D, factory) != 0) {            \
-        LOG(FATAL) << "Failed regist factory:"  \
-            << #D << "->" << #B << " in macro!";\
+        RAW_LOG_FATAL("Failed regist factory: %s->%s in macro!", #D, #B);  \
         return ;                                \
     }                                           \
     return ;                                    \
@@ -70,14 +68,10 @@ __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject, __LINE_
     if (factory == NULL                         \
             || ::baidu::paddle_serving::predictor::FactoryPool<B>::instance().register_factory(\
                 N, factory) != 0) {             \
-        LOG(FATAL) << "Failed regist factory:"  \
-            << #D << "->" << #B << ", tag: "    \
-            << N << " in macro!";               \
+        RAW_LOG_FATAL("Failed regist factory: %s->%s, tag: %s in macro!", #D, #B, N);  \
         return ;                                \
     }                                           \
-    LOG(WARNING) << "Succ regist factory:"      \
-        << #D << "->" << #B << ", tag: "        \
-        << N << " in macro!";                   \
+    RAW_LOG_WARNING("Succ regist factory: %s->%s, tag: %s in macro!", #D, #B, N);      \
     return ;                                    \
 }
 
@@ -113,8 +107,7 @@ public:
         typename std::map<std::string, FactoryBase<B>*>::iterator it 
             = _pool.find(tag);
         if (it != _pool.end()) {
-            LOG(FATAL) << "Insert duplicate with tag: "
-                << tag;
+            RAW_LOG_FATAL("Insert duplicate with tag: %s", tag.c_str());
             return -1;
         }
 
@@ -122,13 +115,11 @@ public:
             typename std::map<std::string, FactoryBase<B>*>::iterator, 
             bool> r = _pool.insert(std::make_pair(tag, factory));
         if (!r.second) {
-            LOG(FATAL) << "Failed insert new factory with:"
-                << tag;
+            RAW_LOG_FATAL("Failed insert new factory with: %s", tag.c_str());
             return -1;
         }
 
-        LOG(INFO) << "Succ insert one factory, tag: " << tag
-            << ", base type: " << typeid(B).name();
+        RAW_LOG_INFO("Succ insert one factory, tag: %s, base type %s", tag.c_str(), typeid(B).name());
 
         return 0;
     }
@@ -137,8 +128,7 @@ public:
         typename std::map<std::string, FactoryBase<B>*>::iterator it 
             = _pool.find(tag);
         if (it == _pool.end() || it->second == NULL) {
-            LOG(FATAL) << "Not found factory pool, tag:" 
-                << tag << ", pool size: " << _pool.size();
+            RAW_LOG_FATAL("Not found factory pool, tag: %s, pool size %u", tag.c_str(), _pool.size());
             return NULL;
         }
 

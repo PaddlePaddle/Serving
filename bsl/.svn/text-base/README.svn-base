@@ -1,8 +1,0 @@
-32位编译比如加入如下参数: -D_XOPEN_SOURE=500 -D_GNU_SOURCE -ftemplate-depth-128
-
-参考wiki
-	http://com.baidu.com/twiki/bin/view/Main/ComBSLIntroduct
-
-
-demo 路径
-	cvspath: opencode/bsl_demo/
