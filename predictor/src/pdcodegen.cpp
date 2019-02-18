@@ -261,10 +261,10 @@ private:
                     "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
                     "    return ;\n"
                     "  }\n"
-                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
-                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
-                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
-                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
+                    "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
+                    "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
+                    "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
+                    "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
                     "  int err_code = svr->inference(request, response);\n"
                     "  if (err_code != 0) {\n"
                     "    LOG(WARNING)\n"
@@ -275,7 +275,7 @@ private:
                     "  gettimeofday(&tv, NULL);\n"
                     "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
                     "  // flush notice log\n"
-                    "  LOG(NOTICE) << \" tc=\[\" << (end - start) << \"\]\";\n",
+                    "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n",
                     "name", class_name, "service", service_name);
             }
             if (m->name() == "debug") {
@@ -290,10 +290,10 @@ private:
                     "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
                     "    return ;\n"
                     "  }\n"
-                    "  LOG(NOTICE) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
-                    "  LOG(NOTICE) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
-                    "  LOG(NOTICE) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
-                    "  LOG(NOTICE) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
+                    "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << \"\]\";\n"
+                    "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << \"\]\";\n"
+                    "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"
+                    "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"
                     "  butil::IOBufBuilder debug_os;\n"
                     "  int err_code = svr->inference(request, response, &debug_os);\n"
                     "  if (err_code != 0) {\n"
@@ -306,7 +306,7 @@ private:
                     "  gettimeofday(&tv, NULL);\n"
                     "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
                     "  // flush notice log\n"
-                    "  LOG(NOTICE) << \" tc=\[\" << (end - start) << \"\]\";\n"
+                    "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n"
                     "  LOG(INFO)\n"
                     "      << \"TC=[\" << (end - start) << \"] Received debug request[log_id=\" << cntl->log_id()\n"
                     "      << \"] from \" << cntl->remote_side()\n"
