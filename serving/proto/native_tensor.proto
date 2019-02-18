@@ -1,0 +1,67 @@
+syntax="proto2";
+import "pds_option.proto";
+package baidu.paddle_serving.predictor.native_tensor;
+
+option cc_generic_services = true;
+
+enum TensorType {
+    FLOAT = 0;
+    DOUBLE = 1;
+    INT32 = 2;
+    INT64 = 3;
+    UINT32 = 4;
+    UINT64 = 5;
+};
+
+message DenseTensor {
+    optional string name = 1;
+    repeated uint32 shape = 2;
+    required TensorType type = 3;
+    repeated float float_data = 4;
+    repeated double double_data = 5;
+    repeated int32 int32_data = 6;
+    repeated int64 int64_data = 7;
+    repeated uint32 uint32_data = 8;
+    repeated uint64 uint64_data = 9;
+};
+
+message DenseRequest {
+    repeated DenseTensor tensors = 1;
+};
+
+message DenseResponse {
+    repeated DenseTensor tensors = 1;
+};
+
+service BuiltinDenseFormatService {
+    rpc inference(DenseRequest) returns (DenseResponse);
+    rpc debug(DenseRequest) returns (DenseResponse);
+    option (pds.options).generate_impl = true;
+};
+
+message SparseTensor {
+    required string name = 1;
+    repeated uint32 keys = 2;
+    repeated uint32 shape = 3;
+    required TensorType type = 4;
+    repeated float float_data = 5;
+    repeated double double_data = 6;
+    repeated int32 int32_data = 7;
+    repeated int64 int64_data = 8;
+    repeated uint32 uint32_data = 9;
+    repeated uint64 uint64_data = 10; 
+};
+
+message SparseRequest {
+    repeated SparseTensor tensors = 1;
+};
+
+message SparseResponse {
+    repeated SparseTensor tensors = 1;
+};
+
+service BuiltinSparseFormatService {
+    rpc inference(SparseRequest) returns (SparseResponse);
+    rpc debug(SparseRequest) returns (SparseResponse);
+    option (pds.options).generate_impl = true;
+};

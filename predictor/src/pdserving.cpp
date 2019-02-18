@@ -1,3 +1,7 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <fstream>
 #include <bthread/unstable.h> // bthread_set_worker_startfn
@@ -86,6 +90,18 @@ int main(int argc, char** argv) {
     g_change_server_port();
 
     // initialize logger instance
+    FLAGS_log_dir = "./log";
+
+    struct stat st_buf;
+    int ret = 0;
+    if ((ret = stat("./log", &st_buf)) != 0) {
+            mkdir("./log", 0777);
+            ret = stat("./log", &st_buf);
+            if (ret != 0) {
+                    LOG(WARNING) << "Log path ./log not exist, and create fail";
+                    return -1;
+            }
+    }
     google::InitGoogleLogging(strdup(argv[0]));
 
     LOG(INFO) << "Succ initialize logger";

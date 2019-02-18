@@ -15,11 +15,11 @@
 INCLUDE(ExternalProject)
 
 SET(PADDLE_SOURCES_DIR ${CMAKE_SOURCE_DIR}/Paddle)
-SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle)
+SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle/)
 SET(PADDLE_INCLUDE_DIR "${PADDLE_INSTALL_DIR}/include" CACHE PATH "PaddlePaddle include directory." FORCE)
 SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a" CACHE FILEPATH "Paddle library." FORCE)
 
-INCLUDE_DIRECTORIES(${PADDLE_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/Paddle/fluid_install_dir)
 
 # Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
@@ -58,10 +58,22 @@ ExternalProject_Add(
                      -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
-    INSTALL_COMMAND make inference_lib_dist
+    INSTALL_COMMAND ""
 )
+
+ExternalProject_Get_Property(extern_paddle BINARY_DIR)
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_LIBRARIES})
-ADD_DEPENDENCIES(paddle_fluid extern_paddle extern_gflags extern_glog extern_leveldb extern_snappy extern_protobuf extern_zlib)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/paddle/fluid/inference/libpaddle_fluid.a)
 
 LIST(APPEND external_project_dependencies paddle)
+
+ADD_LIBRARY(snappystream STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET snappystream PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/snappystream/lib/libsnappystream.a)
+
+ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/xxhash/lib/libxxhash.a)
+
+LIST(APPEND paddle_depend_libs
+        snappystream
+        snappy
+        xxhash)

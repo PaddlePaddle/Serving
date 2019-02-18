@@ -1,0 +1,25 @@
+syntax="proto2";
+import "pds_option.proto";
+import "builtin_format.proto";
+package baidu.paddle_serving.predictor.image_classification;
+
+option cc_generic_services = true;
+
+message ClassifyResponse {
+    repeated baidu.paddle_serving.predictor.format.DensePrediction predictions = 1;
+};
+
+message Request {
+    repeated baidu.paddle_serving.predictor.format.XImageReqInstance instances = 1;
+};
+
+message Response {
+    // Each json string is serialized from ClassifyResponse predictions
+    repeated baidu.paddle_serving.predictor.format.XImageResInstance predictions = 1;
+};
+
+service ImageClassifyService {
+    rpc inference(Request) returns (Response);
+    rpc debug(Request) returns (Response);
+    option (pds.options).generate_impl = true;
+};
