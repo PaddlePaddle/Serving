@@ -102,7 +102,7 @@ namespace comcfg{
 			}
 			++p;
 		}
-		LOG(INFO) << "Config: this=" << this << ", Set _name = " << __name << ", _father = " << __father << "[" << __father->getName() <<"]"; 
+		LOG(INFO) << "Config: this=" << this << ", Set _name = " << __name << ", _father = " << __father << "[" << (__father==NULL?"NULL":__father->getName()) <<"]"; 
 		_name = __name;
 		_father = __father;
 		fieldMap.create(256);

@@ -14,7 +14,6 @@ LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/./xrecord_format.proto
 )
 
-# PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
-PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
+PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
 LIST(APPEND pdserving_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})
 LIST(APPEND pdclient_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})
