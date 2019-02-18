@@ -27,7 +27,8 @@ target_include_directories(pdserving PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../spreg
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
-target_link_libraries(pdserving -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+target_link_libraries(pdserving brpc protobuf boost leveldb bsl 
+        configure ullib spreg mempool -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 add_executable(pdserving_exe ${pdserving_srcs})
 set_source_files_properties(
@@ -63,5 +64,5 @@ target_include_directories(pdclient PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../spreg
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
-target_link_libraries(pdclient -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+target_link_libraries(pdclient protobuf boost brpc -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 

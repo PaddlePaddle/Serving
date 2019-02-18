@@ -39,7 +39,7 @@ ExternalProject_Add(
 IF(WIN32)
   IF(NOT EXISTS "${PCRE_INSTALL_DIR}/lib/libz.lib")
     add_custom_command(TARGET extern_pcre POST_BUILD
-            COMMAND cmake -E copy ${PCRE_INSTALL_DIR}/lib/pcrestatic.lib ${PCRE_INSTALL_DIR}/lib/libz.lib
+            COMMAND cmake -E copy ${PCRE_INSTALL_DIR}/lib/pcrestatic.lib ${PCRE_INSTALL_DIR}/lib/libpcre.lib
             )
   ENDIF()
   SET(PCRE_LIBRARIES "${PCRE_INSTALL_DIR}/lib/libpcre.lib" CACHE FILEPATH "pcre library." FORCE)
