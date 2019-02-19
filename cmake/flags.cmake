@@ -114,6 +114,7 @@ SET(CMAKE_EXTRA_INCLUDE_FILES "")
 # https://github.com/PaddlePaddle/Paddle/issues/12773
 if (NOT WIN32)
 set(COMMON_FLAGS
+    -D__const__=
     -fPIC
     -fno-omit-frame-pointer
     -Wall

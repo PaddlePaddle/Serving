@@ -23,14 +23,14 @@ int ClassifyOp::inference() {
     const TensorVector* in = &reader_out->tensors;
     uint32_t sample_size = in->size();
 
-    TensorVector* out = base::get_object<TensorVector>();
+    TensorVector* out = butil::get_object<TensorVector>();
     if (!out) {
         LOG(ERROR) << "Failed get tls output object failed"; 
         return -1;
     }
 
     if (sample_size <= 0) {
-        LOG(TRACE) << "No samples need to to predicted";
+        LOG(INFO) << "No samples need to to predicted";
         return 0;
     }
 
@@ -80,9 +80,9 @@ int ClassifyOp::inference() {
         (*out)[oi].shape.clear();
     }
     out->clear();
-    base::return_object<TensorVector>(out);
+    butil::return_object<TensorVector>(out);
 
-    LOG(DEBUG) << "Response in image classification:"
+    LOG(INFO) << "Response in image classification:"
         << "length:" << res->ByteSize() << ","
         << "data:" << res->ShortDebugString();
 

@@ -1,0 +1,49 @@
+syntax="proto2";
+package baidu.paddle_serving.predictor.format;
+
+// dense format
+message DenseInstance {
+  repeated float features = 1;
+};
+
+message DensePrediction {
+  repeated float categories = 1;
+};
+
+// sparse format
+message SparseInstance {
+  repeated uint32 keys = 1;
+  repeated uint32 shape = 2;
+  repeated float values = 3;
+};
+
+message SparsePrediction {
+  repeated float categories = 1;
+};
+
+// int64-tensor format
+message Int64TensorInstance {
+  repeated int64 data = 1;
+  repeated uint32 shape = 2;
+};
+
+message Float32TensorPredictor {
+  repeated float data = 1;
+  repeated uint32 shape = 2;
+};
+
+// x-image format
+message XImageReqInstance {
+  required bytes image_binary = 1;
+  required uint32 image_length = 2;
+};
+
+message XImageResInstance {
+  required string response_json = 1;
+};
+
+// x-record format
+message XRecordInstance {
+  // TODO
+  required bytes data = 1;
+};
