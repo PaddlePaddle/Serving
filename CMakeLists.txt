@@ -75,6 +75,7 @@ include(flags)
 include(configure)
 include(generic)
 include(paddlepaddle)
+include(external/opencv)
 
 include_directories("${PADDLE_SERVING_SOURCE_DIR}")
 
@@ -104,3 +105,4 @@ add_subdirectory(mempool)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
 add_subdirectory(serving)
+add_subdirectory(sdk-cpp)

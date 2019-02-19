@@ -4,4 +4,4 @@ LIST(APPEND protofiles
 )
 
 PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
-LIST(APPEND serving_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})
+LIST(APPEND serving_srcs ${PROTO_SRCS})
