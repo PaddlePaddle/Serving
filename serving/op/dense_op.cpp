@@ -1,4 +1,4 @@
-#include "base/iobuf.h"
+// #include "base/iobuf.h"
 #include "op/dense_op.h"
 #include "framework/memory.h"
 #include "framework/infer.h"
@@ -69,7 +69,7 @@ int DenseOp::inference() {
 
     uint32_t tensor_size = req->tensors_size();
     if (tensor_size <= 0) {
-        LOG(TRACE) << "No samples need to to predicted";
+        LOG(INFO) << "No samples need to to predicted";
         return -1;
     }
     for (uint32_t ti = 0; ti < tensor_size; ++ti) {
@@ -139,7 +139,7 @@ int DenseOp::inference() {
         }
     }
 
-    LOG(DEBUG) << "Response in builtin dense format:"
+    LOG(INFO) << "Response in builtin dense format:"
         << "length:" << res->ByteSize() << ","
         << "data:" << res->ShortDebugString() << ","
         << "in: " << _in.size() << ","

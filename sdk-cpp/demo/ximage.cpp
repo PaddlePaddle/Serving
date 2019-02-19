@@ -1,0 +1,180 @@
+/***************************************************************************
+ * 
+ * Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
+ * 
+ **************************************************************************/
+ 
+/**
+ * @file demo.cpp
+ * @author wanlijin01(wanlijin01@baidu.com)
+ * @date 2018/07/09 20:12:44
+ * @brief 
+ *  
+ **/
+
+#include "common.h"
+#include <fstream>
+#include "predictor_sdk.h"
+#include "image_class.pb.h"
+#include "builtin_format.pb.h"
+
+using baidu::paddle_serving::sdk_cpp::Predictor;
+using baidu::paddle_serving::sdk_cpp::PredictorApi;
+using baidu::paddle_serving::predictor::format::XImageReqInstance;
+using baidu::paddle_serving::predictor::format::DensePrediction;
+using baidu::paddle_serving::predictor::image_classification::Request;
+using baidu::paddle_serving::predictor::image_classification::Response;
+
+int create_req(Request& req) {
+    static const char* TEST_IMAGE_PATH = "./data/images/what.jpg";
+
+    FILE* fp = fopen(TEST_IMAGE_PATH, "rb");
+    if (!fp) {
+        LOG(FATAL) << "Failed open image: " << TEST_IMAGE_PATH;
+        return -1;
+    }
+
+    fseek(fp, 0L, SEEK_END);
+    size_t isize = ftell(fp);
+    char* ibuf = new(std::nothrow) char[isize];
+    if (!ibuf) {
+        LOG(FATAL) << "Failed malloc image buffer";
+        fclose(fp);
+        return -1;
+    }
+
+    fseek(fp, 0, SEEK_SET);
+    fread(ibuf, sizeof(ibuf[0]), isize, fp);
+    XImageReqInstance* ins = req.add_instances();
+    if (!ins) {
+        LOG(FATAL) << "Failed create req instance"; 
+        delete[] ibuf;
+        fclose(fp);
+        return -1;
+    }
+
+    ins->set_image_binary(ibuf, isize);
+    ins->set_image_length(isize);
+
+    delete[] ibuf;
+    fclose(fp);
+
+    return 0;
+}
+
+void print_res(
+        const Request& req, 
+        const Response& res, 
+        std::string route_tag,
+        uint64_t elapse_ms) {
+
+    static const char* GT_TEXT_PATH 
+        = "./data/images/groundtruth.txt";
+    std::vector<std::string> gt_labels;
+
+    std::ifstream file(GT_TEXT_PATH);
+    std::string temp_str;
+    while (std::getline(file, temp_str)) {
+        gt_labels.push_back(temp_str);
+    }
+
+    DensePrediction json_msg;
+    uint32_t sample_size = res.predictions_size();
+    std::string err_string;
+    for (uint32_t si = 0; si < sample_size; ++si) {
+        std::string json = res.predictions(si).response_json();
+        butil::IOBuf buf;
+        buf.append(json);
+        butil::IOBufAsZeroCopyInputStream wrapper(buf);
+        if (!json2pb::JsonToProtoMessage(&wrapper, &json_msg, &err_string)) {
+            LOG(FATAL) << "Failed parse json from str:" << json;
+            return ;
+        }
+
+        uint32_t csize = json_msg.categories_size();
+        if (csize <= 0) {
+            LOG(FATAL) << "sample-" << si << "has no" 
+                << "categories props";
+            continue;
+        }
+        float max_prop = json_msg.categories(0);
+        uint32_t max_idx = 0;
+        for (uint32_t ci = 1; ci < csize; ++ci) {
+            if (json_msg.categories(ci) > max_prop) {
+                max_prop = json_msg.categories(ci);
+                max_idx = ci;
+            }
+        }
+
+        LOG(INFO) << "sample-" << si << "'s classify result: "
+            << gt_labels[max_idx] << ", prop: " << max_prop;
+    }
+
+    LOG(INFO) 
+        << "Succ call predictor[ximage], the tag is: " 
+        << route_tag << ", elapse_ms: " << elapse_ms;
+}
+
+int main(int argc, char** argv) {
+    PredictorApi api;
+    
+    if (api.create("./conf", "predictors.conf") != 0) {
+        LOG(FATAL) << "Failed create predictors api!"; 
+        return -1;
+    }
+
+    Request req;
+    Response res;
+
+    api.thrd_initialize();
+
+    while (true) {
+    timeval start;
+    gettimeofday(&start, NULL);
+
+    api.thrd_clear();
+
+    Predictor* predictor = api.fetch_predictor("ximage");
+    if (!predictor) {
+        LOG(FATAL) << "Failed fetch predictor: wasq"; 
+        return -1;
+    }
+
+    req.Clear();
+    res.Clear();
+
+    if (create_req(req) != 0) {
+        return -1;
+    }
+
+    butil::IOBufBuilder debug_os;
+    if (predictor->debug(&req, &res, &debug_os) != 0) {
+        LOG(FATAL) << "failed call predictor with req:"
+            << req.ShortDebugString();
+        return -1;
+    }
+
+    butil::IOBuf debug_buf;
+    debug_os.move_to(debug_buf);
+    LOG(INFO) << "Debug string: " << debug_buf;
+
+    timeval end;
+    gettimeofday(&end, NULL);
+
+    uint64_t elapse_ms = (end.tv_sec * 1000 + end.tv_usec / 1000)
+        - (start.tv_sec * 1000 + start.tv_usec / 1000);
+    
+    print_res(req, res, predictor->tag(), elapse_ms);
+    res.Clear();
+
+    usleep(50);
+
+    } // while (true)
+
+    api.thrd_finalize();
+    api.destroy();
+
+    return 0;
+}
+
+/* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

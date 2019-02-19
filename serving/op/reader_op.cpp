@@ -12,7 +12,7 @@ using baidu::paddle_serving::predictor::image_classification::Request;
 int ReaderOp::inference() {
     const Request* req =
             dynamic_cast<const Request*>(get_request_message());
-    LOG(DEBUG) << "Receive request in dense service:"
+    LOG(INFO) << "Receive request in dense service:"
             << req->ShortDebugString();
 
     ReaderOutput* res = mutable_data<ReaderOutput>();
@@ -80,7 +80,7 @@ int ReaderOp::inference() {
                 _image_8u_tmp = resize_image;
             }
 
-            LOG(TRACE) << "Succ crop one image[CHW=" 
+            LOG(INFO) << "Succ crop one image[CHW=" 
                 << _image_8u_tmp.channels() << ", "
                 << _image_8u_tmp.cols << ", "
                 << _image_8u_tmp.rows << "]"
@@ -109,7 +109,7 @@ int ReaderOp::inference() {
         in_tensor.shape.push_back(W);
         in_tensor.shape.push_back(H);
 
-        LOG(TRACE) << "Succ read one image, C: " <<  C
+        LOG(INFO) << "Succ read one image, C: " <<  C
             << ", W: " << W << ", H: " << H;
 
         // tls resource assignment

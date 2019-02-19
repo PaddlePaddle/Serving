@@ -9,6 +9,9 @@ namespace predictor {
 // __thread bool p_thread_initialized = false;
 
 static void dynamic_resource_deleter(void* d) {
+#if 1
+    LOG(INFO) << "dynamic_resource_delete on " << bthread_self();
+#endif
     delete static_cast<DynamicResource*>(d);
 }
 
@@ -105,8 +108,12 @@ int Resource::thread_initialize() {
         }
 
     }
+#if 0
     LOG(INFO) << "Successfully thread initialized dynamic resource";
+#else
+    LOG(INFO) << bthread_self() << ": Successfully thread initialized dynamic resource " << p_dynamic_resource;
 
+#endif
     return 0;
 }
 
@@ -125,7 +132,11 @@ int Resource::thread_clear() {
 
     DynamicResource* p_dynamic_resource = (DynamicResource*) THREAD_GETSPECIFIC(_tls_bspec_key);
     if (p_dynamic_resource == NULL) {
+#if 0
         LOG(FATAL) << "tls dynamic resource shouldn't be null after thread_initialize"; 
+#else
+        LOG(FATAL) << bthread_self() << ": tls dynamic resource shouldn't be null after thread_initialize"; 
+#endif
         return -1;
     }
     if (p_dynamic_resource->clear() != 0) {
@@ -133,6 +144,7 @@ int Resource::thread_clear() {
         return -1;
     }
 
+     LOG(INFO) << bthread_self() << "Resource::thread_clear success";
     // ...
     return 0;
 }
