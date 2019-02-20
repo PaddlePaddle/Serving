@@ -15,6 +15,7 @@
  **/
 
 #include "common.h"
+#include <stdint.h>
 
 #ifndef  BAIDU_PADDLE_SERVING_SDK_CPP_ENDPOINT_CONFIG_H
 #define  BAIDU_PADDLE_SERVING_SDK_CPP_ENDPOINT_CONFIG_H
@@ -51,6 +52,9 @@ namespace sdk_cpp {
 template<typename T> struct type_traits {
     static type_traits<T> tag;
 };
+
+template<typename T>
+type_traits<T> type_traits<T>::tag;
 
 template<typename T> struct ConfigItem {
     T value;
