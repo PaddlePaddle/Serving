@@ -42,9 +42,12 @@ ExternalProject_Add(
                     -DBUILD_PERF_TESTS=OFF
                     -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
                     -DWITH_EIGEN=OFF
-                    -DWITH_JPEG=OFF
-                    -DWITH_PNG=OFF
-                    -DWITH_TIFF=OFF
+                    -DWITH_JPEG=ON
+                    -DBUILD_JPEG=ON
+                    -DWITH_PNG=ON
+                    -DBUILD_PNG=ON
+                    -DWITH_TIFF=ON
+                    -DBUILD_TIFF=ON
                     -DBUILD_SHARED_LIBS=OFF
                     ${EXTERNAL_OPTIONAL_ARGS}
     CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${OPENCV_INSTALL_DIR}
@@ -106,6 +109,15 @@ SET_PROPERTY(TARGET libjasper PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/
 ADD_LIBRARY(libwebp STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET libwebp PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/lib/liblibwebp.a)
 
+ADD_LIBRARY(libjpeg STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET libjpeg PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/lib/liblibjpeg.a)
+
+ADD_LIBRARY(libpng STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET libpng PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/lib/liblibpng.a)
+
+ADD_LIBRARY(libtiff STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET libtiff PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/lib/liblibtiff.a)
+
 #ADD_LIBRARY(zlib STATIC IMPORTED GLOBAL)
 #SET_PROPERTY(TARGET zlib PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/3rdparty/lib/libzlib.a)
 
@@ -116,4 +128,7 @@ LIST(APPEND opencv_depend_libs
         IlmImf
         libjasper
         libwebp
+        libjpeg
+        libpng
+        libtiff
         zlib)
