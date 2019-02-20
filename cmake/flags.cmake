@@ -115,6 +115,7 @@ SET(CMAKE_EXTRA_INCLUDE_FILES "")
 if (NOT WIN32)
 set(COMMON_FLAGS
     -D__const__=
+    -DUSE_PTHREAD
     -fPIC
     -fno-omit-frame-pointer
     -Wall
