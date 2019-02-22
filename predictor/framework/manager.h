@@ -10,6 +10,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+using configure::WorkflowConf;
+
 class Workflow;
 //class InferService;
 //class ParallelInferService;
@@ -37,11 +39,9 @@ public:
     }
 
     int initialize(const std::string path, const std::string file) {
-        comcfg::Configure conf; 
-        if (conf.load(path.c_str(), file.c_str()) != 0) {
-            LOG(FATAL) 
-                << "Failed load manager<" << typeid(T).name()
-                << "> configure!";
+        WorkflowConf workflow_conf;
+        if (configure::read_proto_conf(path, file, &workflow_conf) != 0) {
+            LOG(FATAL) << "Failed load manager<" << typeid<T>.name() << "> configure!";
             return -1;
         }
 

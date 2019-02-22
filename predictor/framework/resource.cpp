@@ -6,6 +6,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+using configure::ResourceConf;
+
 // __thread bool p_thread_initialized = false;
 
 static void dynamic_resource_deleter(void* d) {
@@ -28,9 +30,9 @@ int DynamicResource::clear() {
 }
 
 int Resource::initialize(const std::string& path, const std::string& file) {
-    comcfg::Configure conf;
-    if (conf.load(path.c_str(), file.c_str()) != 0) {
-        LOG(ERROR) << "Failed initialize resource from: " 
+    ResourceConf resource_conf;
+    if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
+        LOG(ERROR) << "Failed initialize resource from: "
             << path << "/" << file;
         return -1;
     }
@@ -44,13 +46,13 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 
     if (FLAGS_enable_model_toolkit) {
         int err = 0;
-        std::string model_toolkit_path = conf["model_toolkit_path"].to_cstr(&err);
+        std::string model_toolkit_path = resource_conf.model_toolkit_path();
         if (err != 0) {
             LOG(ERROR) << "read model_toolkit_path failed, path["
                     << path << "], file[" << file << "]";
             return -1;
         }
-        std::string model_toolkit_file = conf["model_toolkit_file"].to_cstr(&err);
+        std::string model_toolkit_file = resource_conf.model_toolkit_file();
         if (err != 0) {
             LOG(ERROR) << "read model_toolkit_file failed, path["
                     << path << "], file[" << file << "]";
