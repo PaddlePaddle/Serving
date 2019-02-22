@@ -24,11 +24,6 @@ bool ServerManager::_compare_string_piece_without_case(
 ServerManager::ServerManager() {
     _format_services.clear();
     _options.idle_timeout_sec = FLAGS_idle_timeout_s;
-    if (FLAGS_enable_nshead_protocol) {
-        LOG(INFO) << "FLAGS_enable_nshead_protocol on, try to set FLAGS_nshead_protocol["
-                << FLAGS_nshead_protocol << "] in server side";
-        _set_server_option_by_protocol(FLAGS_nshead_protocol);
-    }
     _options.max_concurrency = FLAGS_max_concurrency;
     _options.num_threads = FLAGS_num_threads;
 }

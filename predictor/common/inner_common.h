@@ -26,7 +26,9 @@
 #include <error.h>
 
 #include "Configure.h"
-// #include <comlog/comlog.h>
+
+#include "configure.pb.h"
+#include "configure_parser.h"
 
 #include "common/utils.h"
 #include "common/types.h"

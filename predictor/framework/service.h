@@ -14,7 +14,7 @@ public:
     typedef OpChannel<google::protobuf::Message> BuiltinChannel;
 
     static const char* tag() {
-        return "Service";
+        return "service";
     }
 
     InferService() :
