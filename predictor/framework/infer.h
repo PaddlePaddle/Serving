@@ -13,12 +13,14 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+using configure::ModelToolkitConf;
+
 class InferEngine {
 public:
 
     virtual ~InferEngine() {}
 
-    virtual int proc_initialize(const comcfg::ConfigUnit& conf, bool version) {
+    virtual int proc_initialize(const configure::EngineDesc& conf, bool version) {
         return proc_initialize_impl(conf, version);
     }
     virtual int proc_finalize() {
@@ -43,7 +45,7 @@ public:
 
     // begin: framework inner call
     virtual int proc_initialize_impl(
-            const comcfg::ConfigUnit& conf, bool version) = 0;
+            const configure::EngineDesc& conf, bool version) = 0;
     virtual int thrd_initialize_impl() = 0;
     virtual int thrd_finalize_impl() = 0;
     virtual int thrd_clear_impl() = 0;
@@ -68,13 +70,13 @@ public:
 
     virtual int load(const std::string& data_path) = 0;
 
-    int proc_initialize_impl(const comcfg::ConfigUnit& conf, bool version) {
-        _reload_tag_file = conf["ReloadableMeta"].to_cstr();
-        _reload_mode_tag = conf["ReloadableType"].to_cstr();
-        _model_data_path = conf["ModelDataPath"].to_cstr();
-        _infer_thread_num = conf["RuntimeThreadNum"].to_uint32();
-        _infer_batch_size = conf["BatchInferSize"].to_uint32();
-        _infer_batch_align = conf["EnableBatchAlign"].to_uint32();
+    int proc_initialize_impl(const configure::EngineDesc& conf, bool version) {
+        _reload_tag_file = conf.reloadable_meta();
+        _reload_mode_tag = conf.reloadable_type();
+        _model_data_path = conf.model_data_path();
+        _infer_thread_num = conf.runtime_thread_num();
+        _infer_batch_size = conf.batch_infer_size();
+        _infer_batch_align = conf.enable_batch_align();
         if (!check_need_reload() || load(_model_data_path) != 0) {
             LOG(FATAL) << "Failed load model_data_path" << _model_data_path;
             return -1;
@@ -89,7 +91,7 @@ public:
         return 0;
     }
 
-    int proc_initialize(const comcfg::ConfigUnit& conf, bool version) {
+    int proc_initialize(const configure::EngineDesc& conf, bool version) {
         if (proc_initialize_impl(conf, version) != 0) {
             LOG(FATAL) << "Failed proc initialize impl";
             return -1;
@@ -178,10 +180,10 @@ public:
     }
 
 private:
-    int parse_version_info(const comcfg::ConfigUnit& config, bool version) {
+    int parse_version_info(const configure::EngineDesc& config, bool version) {
         try {
-            std::string version_file = config["VersionFile"].to_cstr();
-            std::string version_type = config["VersionType"].to_cstr();
+            std::string version_file = config.version_file();
+            std::string version_type = config.version_type();
             
             if (version_type == "abacus_version") {
                 if (parse_abacus_version(version_file) != 0) {
@@ -387,7 +389,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 public:
     virtual ~DBReloadableInferEngine() {}
 
-    int proc_initialize(const comcfg::ConfigUnit& conf, bool version) {
+    int proc_initialize(const configure::EngineDesc& conf, bool version) {
         THREAD_KEY_CREATE(&_skey, NULL);
         THREAD_MUTEX_INIT(&_mutex, NULL);
         return ReloadableInferEngine::proc_initialize(conf, version);
@@ -486,7 +488,7 @@ class CloneDBReloadableInferEngine : public DBReloadableInferEngine<EngineCore> 
 public:
     virtual ~CloneDBReloadableInferEngine() {}
 
-    virtual int proc_initialize(const comcfg::ConfigUnit& conf, bool version) {
+    virtual int proc_initialize(const configure::EngineDesc& conf, bool version) {
         _pd = new (std::nothrow) ModelData<EngineCore>;
         if (!_pd) {
             LOG(FATAL) << "Failed to allocate for ProcData";
@@ -754,30 +756,30 @@ public:
     }
     ~VersionedInferEngine() {}
 
-    int proc_initialize(const comcfg::ConfigUnit& conf) {
-        size_t version_num = conf["Version"].size();
+    int proc_initialize(const configure::VersionedEngine& conf) {
+        size_t version_num = conf.versions_size();
         for (size_t vi = 0; vi < version_num; ++vi) {
-            if (proc_initialize(conf["Version"][vi], true) != 0) {
+            if (proc_initialize(conf.versions(vi), true) != 0) {
                 LOG(FATAL) << "Failed proc initialize version: " 
-                    << vi << ", model: " << conf["Name"].to_cstr();
+                    << vi << ", model: " << conf.name().c_str();
                 return -1;
             }
         }
 
         if (version_num == 0) {
-            if (proc_initialize(conf, false) != 0) {
+            if (proc_initialize(conf.default_version(), false) != 0) {
                 LOG(FATAL) << "Failed proc intialize engine: " 
-                    << conf["Name"].to_cstr();
+                    << conf.name().c_str();
                 return -1;
             }
         }
         LOG(WARNING) 
-            << "Succ proc initialize engine: " << conf["Name"].to_cstr();
+            << "Succ proc initialize engine: " << conf.name().c_str();
         return 0;
     }
 
-    int proc_initialize(const comcfg::ConfigUnit& conf, bool version) {
-        std::string engine_type = conf["Type"].to_cstr();
+    int proc_initialize(const configure::EngineDesc& conf, bool version) {
+        std::string engine_type = conf.type();
         InferEngine* engine
             = StaticInferFactory::instance().generate_object(
                     engine_type);
@@ -938,7 +940,7 @@ public:
     }
 
     // --
-    int proc_initialize_impl(const comcfg::ConfigUnit& conf, bool) { return -1; }
+    int proc_initialize_impl(const configure::EngineDesc& conf, bool) { return -1; }
     int thrd_initialize_impl() { return -1; }
     int thrd_finalize_impl() { return -1; }
     int thrd_clear_impl() { return -1; }
@@ -958,23 +960,23 @@ public:
     }
 
     int proc_initialize(const char* path, const char* file) {
-        comcfg::Configure conf;
-        if (conf.load(path, file) != 0) {
-            LOG(FATAL) << "failed load infer config, path:"
+        ModelToolkitConf model_toolkit_conf;
+        if (configure::read_proto_conf(path, file, &model_toolkit_conf) != 0) {
+            LOG(FATAL) << "failed load infer config, path: "
                 << path << "/" << file;
             return -1;
         }
 
-        size_t engine_num = conf["Engine"].size();
+        size_t engine_num = model_toolkit_conf.engines_size();
         for (size_t ei = 0; ei < engine_num; ++ei) {
-            std::string engine_name = conf["Engine"][ei]["Name"].to_cstr();
+            std::string engine_name = model_toolkit_conf.engines(ei).name();
             VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
             if (!engine) {
                 LOG(FATAL) << "Failed generate versioned engine: " << engine_name;
                 return -1;
             }
 
-            if (engine->proc_initialize(conf["Engine"][ei]) != 0) {
+            if (engine->proc_initialize(model_toolkit_conf.engines(ei)) != 0) {
                 LOG(FATAL) << "Failed initialize version engine, name:"
                     << engine_name;
                 return -1;

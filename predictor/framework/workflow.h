@@ -17,7 +17,7 @@ public:
     Workflow() {}
 
     static const char* tag() {
-        return "Workflow";
+        return "workflow";
     }
 
     // Each workflow object corresponds to an independent

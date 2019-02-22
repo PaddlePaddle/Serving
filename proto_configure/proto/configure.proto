@@ -1,0 +1,66 @@
+syntax="proto2";
+package baidu.paddle_serving.configure;
+
+message EngineDesc {
+        required string type = 1;
+        required string reloadable_meta = 2;
+        required string reloadable_type = 3;
+        required string model_data_path = 4;
+        required uint32 runtime_thread_num = 5;
+        required uint32 batch_infer_size = 6;
+        required uint32 enable_batch_align = 7;
+        optional string version_file = 8;
+        optional string version_type = 9;
+};
+
+message VersionedEngine {
+        required string name = 1;
+        repeated EngineDesc versions = 2;
+        optional EngineDesc default_version = 3;
+};
+
+// model_toolkit conf
+message ModelToolkitConf {
+        repeated VersionedEngine engines = 1;
+};
+
+// reource conf
+message ResourceConf {
+        required string model_toolkit_path = 1;
+        required string model_toolkit_file = 2;
+};
+
+// DAG node depency info
+message DAGNodeDependency {
+        required string name = 1;
+        required string mode = 2;
+};
+
+// DAG Node
+message DAGNode {
+        required string name = 1;
+        required string type = 2;
+        repeated DAGNodeDependency dependencies = 3;
+};
+
+// workflow entry
+message Workflow {
+        required string name = 1;
+        required string workflow_type = 2;
+        repeated DAGNode nodes = 3;
+};
+
+// Workflow conf
+message WorkflowConf {
+        repeated Workflow workflow = 1;
+}
+
+message InferService {
+        required string name = 1;
+        repeated string workflow = 2;
+};
+
+// InferService conf
+message InferServiceConf {
+        repeated InferService service = 1;
+};
