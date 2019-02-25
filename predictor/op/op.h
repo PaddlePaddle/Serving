@@ -148,7 +148,7 @@ public:
     virtual int inference() = 0;
 
     // ------------------ Conf Interface -------------------
-    virtual void* create_config(const comcfg::ConfigUnit& conf) { return NULL; }
+    virtual void* create_config(const configure::DAGNode& conf) { return NULL; }
     
     virtual void delete_config(void* conf) { }
 

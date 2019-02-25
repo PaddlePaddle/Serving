@@ -85,6 +85,7 @@ EdgeMode Dag::parse_mode(std::string& mode) {
 // [.@Depend]
 // name: dnn_inference
 // mode: RO
+#if 0
 int Dag::init(const char* path, const char* file, const std::string& name) {
     comcfg::Configure conf;
     if (conf.load(path, file) != 0) {
@@ -96,26 +97,27 @@ int Dag::init(const char* path, const char* file, const std::string& name) {
 
     return init(conf, name);
 }
+#endif
 
-int Dag::init(const comcfg::Configure& conf, const std::string& name) {
+int Dag::init(const configure::Workflow& conf, const std::string& name) {
     _dag_name = name;
     _index_nodes.clear();
     _name_nodes.clear();
-    for (uint32_t i = 0; i < conf["Node"].size(); i++) {
+    for (uint32_t i = 0; i < conf.nodes_size(); i++) {
         DagNode* node = new (std::nothrow) DagNode();
         if (node == NULL) {
             LOG(ERROR) << "Failed create new dag node";
             return ERR_MEM_ALLOC_FAILURE;
         }
         node->id = i + 1; // 0 is reserved for begginer-op
-        node->name = conf["Node"][i]["name"].to_cstr();
-        node->type = conf["Node"][i]["type"].to_cstr();
-        uint32_t depend_size = conf["Node"][i]["Depend"].size();
+        node->name = conf.nodes(i).name();
+        node->type = conf.nodes(i).type();
+        uint32_t depend_size = conf.nodes(i).dependencies_size();
         for (uint32_t j = 0; j < depend_size; j++) {
-            const comcfg::ConfigUnit& depend = 
-                conf["Node"][i]["Depend"][j];
-            std::string name = depend["name"].to_cstr();
-            std::string mode = depend["mode"].to_cstr();
+            const configure::DAGNodeDependency& depend = 
+                conf.nodes(i).dependencies(j);
+            std::string name = depend.name();
+            std::string mode = depend.mode();
             node->depends.insert(
                     std::make_pair(name, parse_mode(mode)));
         }
@@ -125,7 +127,7 @@ int Dag::init(const comcfg::Configure& conf, const std::string& name) {
             return ERR_INTERNAL_FAILURE;
         }
         // node->conf could be NULL
-        node->conf = op->create_config(conf["Node"][i]);
+        node->conf = op->create_config(conf.nodes(i));
         OpRepository::instance().return_op(node->type, op);
         _name_nodes.insert(std::make_pair(node->name, node));
         _index_nodes.push_back(node);

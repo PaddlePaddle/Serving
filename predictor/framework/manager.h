@@ -11,6 +11,7 @@ namespace paddle_serving {
 namespace predictor {
 
 using configure::WorkflowConf;
+using configure::InferServiceConf;
 
 class Workflow;
 //class InferService;
@@ -30,32 +31,31 @@ inline InferService* create_item_impl<InferService>() {
     } 
 }
 
-template<typename T>
-class Manager {
+class WorkflowManager {
 public:
-    static Manager<T>& instance() {
-        static Manager<T> mgr; 
+    static WorkflowManager& instance() {
+        static WorkflowManager mgr; 
         return mgr;
     }
 
     int initialize(const std::string path, const std::string file) {
         WorkflowConf workflow_conf;
         if (configure::read_proto_conf(path, file, &workflow_conf) != 0) {
-            LOG(FATAL) << "Failed load manager<" << typeid<T>.name() << "> configure!";
+            LOG(FATAL) << "Failed load manager<" << Workflow::tag() << "> configure from " << path << "/" << file;
             return -1;
         }
 
         try {
 
-        uint32_t item_size = conf[T::tag()].size();
+        uint32_t item_size = workflow_conf.workflows_size();
         for (uint32_t ii = 0; ii < item_size; ii++) {
-            std::string name = conf[T::tag()][ii]["name"].to_cstr();
-            T* item = new (std::nothrow) T();
+            std::string name = workflow_conf.workflows(ii).name();
+            Workflow* item = new (std::nothrow) Workflow();
             if (item == NULL) {
-                LOG(FATAL) << "Failed create " << T::tag() << " for: " << name;
+                LOG(FATAL) << "Failed create " << Workflow::tag() << " for: " << name;
                 return -1;
             }
-            if (item->init(conf[T::tag()][ii]) != 0) {
+            if (item->init(workflow_conf.workflows(ii)) != 0) {
                 LOG(FATAL) 
                     << "Failed init item: " << name << " at:"
                     << ii << "!";
@@ -63,7 +63,7 @@ public:
             }
 
             std::pair<
-                typename boost::unordered_map<std::string, T*>::iterator, bool>
+                typename boost::unordered_map<std::string, Workflow*>::iterator, bool>
                 r = _item_map.insert(std::make_pair(name, item));
             if (!r.second) {
                 LOG(FATAL) 
@@ -91,12 +91,12 @@ public:
         return 0;
     }
 
-    T* create_item() {
-        return create_item_impl<T>();
+    Workflow* create_item() {
+        return create_item_impl<Workflow>();
     }
 
-    T* item(const std::string& name) {
-        typename boost::unordered_map<std::string, T*>::iterator it;
+    Workflow* item(const std::string& name) {
+        typename boost::unordered_map<std::string, Workflow*>::iterator it;
         it = _item_map.find(name);
         if (it == _item_map.end()) {
             LOG(WARNING) << "Not found item: " << name << "!";
@@ -106,8 +106,8 @@ public:
         return it->second;
     }
 
-    T& operator[](const std::string& name) {
-        T* i = item(name);
+    Workflow& operator[](const std::string& name) {
+        Workflow* i = item(name);
         if (i == NULL) {
             std::string err = "Not found item in manager for:";
             err += name;
@@ -118,7 +118,7 @@ public:
 
     int reload() {
         int ret = 0;
-        typename boost::unordered_map<std::string, T*>::iterator it
+        typename boost::unordered_map<std::string, Workflow*>::iterator it
             = _item_map.begin();
         for (; it != _item_map.end(); ++it) {
             if (it->second->reload() != 0) {
@@ -129,7 +129,7 @@ public:
 
         LOG(INFO) << "Finish reload " 
             << _item_map.size() 
-            << " " << T::tag() << "(s)";
+            << " " << Workflow::tag() << "(s)";
         return ret;
     }
 
@@ -138,14 +138,124 @@ public:
     }
 
 private:
-    Manager<T>() {}
+    WorkflowManager() {}
 
 private:
-    boost::unordered_map<std::string, T*> _item_map;
+    boost::unordered_map<std::string, Workflow*> _item_map;
 };
 
-typedef Manager<InferService> InferServiceManager;
-typedef Manager<Workflow> WorkflowManager;
+class InferServiceManager {
+public:
+    static InferServiceManager& instance() {
+        static InferServiceManager mgr; 
+        return mgr;
+    }
+
+    int initialize(const std::string path, const std::string file) {
+        InferServiceConf infer_service_conf;
+        if (configure::read_proto_conf(path, file, &infer_service_conf) != 0) {
+            LOG(FATAL) << "Failed load manager<" << InferService::tag() << "> configure!";
+            return -1;
+        }
+
+        try {
+
+        uint32_t item_size = infer_service_conf.services_size();
+        for (uint32_t ii = 0; ii < item_size; ii++) {
+            std::string name = infer_service_conf.services(ii).name();
+            InferService* item = new (std::nothrow) InferService();
+            if (item == NULL) {
+                LOG(FATAL) << "Failed create " << InferService::tag() << " for: " << name;
+                return -1;
+            }
+            if (item->init(infer_service_conf.services(ii)) != 0) {
+                LOG(FATAL) 
+                    << "Failed init item: " << name << " at:"
+                    << ii << "!";
+                return -1;
+            }
+
+            std::pair<
+                typename boost::unordered_map<std::string, InferService*>::iterator, bool>
+                r = _item_map.insert(std::make_pair(name, item));
+            if (!r.second) {
+                LOG(FATAL) 
+                    << "Failed insert item:" << name << " at:"
+                    << ii << "!";
+                return -1;
+            }
+
+            LOG(INFO) 
+                << "Succ init item:" << name << " from conf:"
+                << path << "/" << file << ", at:" << ii << "!";
+        } 
+        
+        } catch (comcfg::ConfigException e) {
+            LOG(FATAL) 
+                << "Config[" << path << "/" << file << "] format "
+                << "invalid, err: " << e.what();
+            return -1;
+        } catch (...) {
+            LOG(FATAL) 
+                << "Config[" << path << "/" << file << "] format "
+                << "invalid, load failed";
+            return -1;
+        }
+        return 0;
+    }
+
+    InferService* create_item() {
+        return create_item_impl<InferService>();
+    }
+
+    InferService* item(const std::string& name) {
+        typename boost::unordered_map<std::string, InferService*>::iterator it;
+        it = _item_map.find(name);
+        if (it == _item_map.end()) {
+            LOG(WARNING) << "Not found item: " << name << "!";
+            return NULL;
+        }
+
+        return it->second;
+    }
+
+    InferService& operator[](const std::string& name) {
+        InferService* i = item(name);
+        if (i == NULL) {
+            std::string err = "Not found item in manager for:";
+            err += name;
+            throw std::overflow_error(err);
+        }
+        return *i;
+    }
+
+    int reload() {
+        int ret = 0;
+        typename boost::unordered_map<std::string, InferService*>::iterator it
+            = _item_map.begin();
+        for (; it != _item_map.end(); ++it) {
+            if (it->second->reload() != 0) {
+                LOG(WARNING) << "failed reload item: " << it->first << "!";
+                ret = -1;
+            }
+        }
+
+        LOG(INFO) << "Finish reload " 
+            << _item_map.size() 
+            << " " << InferService::tag() << "(s)";
+        return ret;
+    }
+
+    int finalize() {
+        return 0;
+    }
+
+private:
+    InferServiceManager() {}
+
+private:
+    boost::unordered_map<std::string, InferService*> _item_map;
+};
 
 } // predictor
 } // paddle_serving

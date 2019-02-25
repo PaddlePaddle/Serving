@@ -18,6 +18,7 @@
 #include "stub.h"
 #include "common.h"
 #include "factory.h"
+#include <google/protobuf/message.h>
 
 namespace baidu {
 namespace paddle_serving {
@@ -35,7 +36,7 @@ public:
     virtual ~EndpointRouterBase() {}
 
     virtual int initialize(
-            const comcfg::ConfigUnit& conf) = 0;
+            const google::protobuf::Message& conf) = 0;
 
     virtual Variant* route(const VariantList&) = 0;
 
@@ -56,7 +57,7 @@ public:
     ~WeightedRandomRender() {}
 
     int initialize(
-            const comcfg::ConfigUnit& conf);
+            const google::protobuf::Message& conf);
 
     Variant* route(const VariantList&);
 

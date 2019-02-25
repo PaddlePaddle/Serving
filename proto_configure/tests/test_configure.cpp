@@ -2,11 +2,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
-#include "configure.pb.h"
+#include "server_configure.pb.h"
+#include "sdk_configure.pb.h"
 #include "configure_parser.h"
 
 using baidu::paddle_serving::configure::EngineDesc;
-using baidu::paddle_serving::configure::VersionedEngine;
 using baidu::paddle_serving::configure::ModelToolkitConf;
 
 using baidu::paddle_serving::configure::ResourceConf;
@@ -19,11 +19,21 @@ using baidu::paddle_serving::configure::WorkflowConf;
 using baidu::paddle_serving::configure::InferService;
 using baidu::paddle_serving::configure::InferServiceConf;
 
+using baidu::paddle_serving::configure::ConnectionConf;
+using baidu::paddle_serving::configure::WeightedRandomRenderConf;
+using baidu::paddle_serving::configure::NamingConf;
+using baidu::paddle_serving::configure::RpcParameter;
+using baidu::paddle_serving::configure::Predictor;
+using baidu::paddle_serving::configure::VariantConf;
+
+using baidu::paddle_serving::configure::SDKConf;
+
 const std::string output_dir = "./conf/";
 const std::string model_toolkit_conf_file = "model_toolkit.prototxt";
 const std::string resource_conf_file = "resource.prototxt";
 const std::string workflow_conf_file = "workflow.prototxt";
 const std::string service_conf_file = "service.prototxt";
+const std::string sdk_conf_file = "predictors.protxt";
 
 int test_write_conf()
 {
@@ -31,38 +41,15 @@ int test_write_conf()
     ModelToolkitConf model_toolkit_conf;
 
     // This engine has a default version
-    VersionedEngine *engine = model_toolkit_conf.add_engines();
+    EngineDesc *engine = model_toolkit_conf.add_engines();
     engine->set_name("image_classification_resnet");
-    EngineDesc *engine_desc = engine->mutable_default_version();
-    engine_desc->set_type("FLUID_CPU_NATIVE_V2");
-    engine_desc->set_reloadable_meta("./data/model/paddle/fluid_time_file");
-    engine_desc->set_reloadable_type("timestamp_ne");
-    engine_desc->set_model_data_path("./data/model/paddle/fluid/SE_ResNeXt50_32x4d");
-    engine_desc->set_runtime_thread_num(0);
-    engine_desc->set_batch_infer_size(0);
-    engine_desc->set_enable_batch_align(0);
-
-    // This engine has two versioned branches
-    engine = model_toolkit_conf.add_engines();
-    engine->set_name("image_classification_resnet_versioned");
-    // Version 1
-    engine_desc = engine->add_versions();
-    engine_desc->set_type("FLUID_CPU_NATIVE_DIR");
-    engine_desc->set_reloadable_meta("./data/model/paddle/fluid_time_file");
-    engine_desc->set_reloadable_type("timestamp_ne");
-    engine_desc->set_model_data_path("./data/model/paddle/fluid/SE_ResNeXt50_32x4d");
-    engine_desc->set_runtime_thread_num(0);
-    engine_desc->set_batch_infer_size(0);
-    engine_desc->set_enable_batch_align(0);
-    // Version 2
-    engine_desc = engine->add_versions();
-    engine_desc->set_type("FLUID_CPU_NATIVE_DIR");
-    engine_desc->set_reloadable_meta("./data/model/paddle/fluid_time_file_2");
-    engine_desc->set_reloadable_type("timestamp_ne_2");
-    engine_desc->set_model_data_path("./data/model/paddle/fluid/SE_ResNeXt50_32x4d_2");
-    engine_desc->set_runtime_thread_num(0);
-    engine_desc->set_batch_infer_size(0);
-    engine_desc->set_enable_batch_align(0);
+    engine->set_type("FLUID_CPU_NATIVE_DIR");
+    engine->set_reloadable_meta("./data/model/paddle/fluid_time_file");
+    engine->set_reloadable_type("timestamp_ne");
+    engine->set_model_data_path("./data/model/paddle/fluid/SE_ResNeXt50_32x4d");
+    engine->set_runtime_thread_num(0);
+    engine->set_batch_infer_size(0);
+    engine->set_enable_batch_align(0);
 
     int ret = baidu::paddle_serving::configure::write_proto_conf(&model_toolkit_conf, output_dir, model_toolkit_conf_file);
     if (ret != 0) {
@@ -72,7 +59,7 @@ int test_write_conf()
     // resource conf
     ResourceConf resource_conf;
     resource_conf.set_model_toolkit_path(output_dir);
-    resource_conf.set_model_toolkit_file("resource.prototxt");
+    resource_conf.set_model_toolkit_file("model_toolkit.prototxt");
     ret = baidu::paddle_serving::configure::write_proto_conf(&resource_conf, output_dir, resource_conf_file);
     if (ret != 0) {
         return ret;
@@ -80,7 +67,7 @@ int test_write_conf()
 
     // workflow entries conf
     WorkflowConf workflow_conf;
-    Workflow *workflow = workflow_conf.add_workflow();
+    Workflow *workflow = workflow_conf.add_workflows();
     workflow->set_name("workflow1");
     workflow->set_workflow_type("Sequence");
 
@@ -102,7 +89,7 @@ int test_write_conf()
     node_dependency->set_name("image_classify_op");
     node_dependency->set_mode("RO");
 
-    workflow = workflow_conf.add_workflow();
+    workflow = workflow_conf.add_workflows();
     workflow->set_name("workflow2");
     workflow->set_workflow_type("Sequence");
 
@@ -116,19 +103,62 @@ int test_write_conf()
     }
 
     InferServiceConf infer_service_conf;
-    InferService *infer_service = infer_service_conf.add_service();
+    infer_service_conf.set_port(0);
+    InferService *infer_service = infer_service_conf.add_services();
     infer_service->set_name("ImageClassifyService");
-    infer_service->add_workflow("workflow1");
-    infer_service->add_workflow("workflow2");
+    infer_service->add_workflows("workflow1");
+    infer_service->add_workflows("workflow2");
 
-    infer_service = infer_service_conf.add_service();
+    infer_service = infer_service_conf.add_services();
     infer_service->set_name("BuiltinDenseFormatService");
-    infer_service->add_workflow("workflow2");
+    infer_service->add_workflows("workflow2");
 
     ret = baidu::paddle_serving::configure::write_proto_conf(&infer_service_conf, output_dir, service_conf_file);
     if (ret != 0) {
         return ret;
     }
+
+    SDKConf sdk_conf;
+    VariantConf *default_variant_conf = sdk_conf.mutable_default_variant_conf();
+    default_variant_conf->set_tag("default");
+
+    ConnectionConf *connection_conf = default_variant_conf->mutable_connection_conf();
+    connection_conf->set_connect_timeout_ms(2000);
+    connection_conf->set_rpc_timeout_ms(20000);
+    connection_conf->set_connect_retry_count(2);
+    connection_conf->set_max_connection_per_host(100);
+    connection_conf->set_hedge_request_timeout_ms(-1);
+    connection_conf->set_hedge_fetch_retry_count(2);
+    connection_conf->set_connection_type("pooled");
+
+    NamingConf *naming_conf = default_variant_conf->mutable_naming_conf();
+    naming_conf->set_cluster_filter_strategy("Default");
+    naming_conf->set_load_balance_strategy("la");
+
+    RpcParameter *rpc_parameter = default_variant_conf->mutable_rpc_parameter();
+    rpc_parameter->set_compress_type(0);
+    rpc_parameter->set_package_size(20);
+    rpc_parameter->set_protocol("baidu_std");
+    rpc_parameter->set_max_channel_per_request(3);
+
+    Predictor *predictor = sdk_conf.add_predictors();
+    predictor->set_name("ximage");
+    predictor->set_service_name("baidu.paddle_serving.predictor.image_classification.ImageClassifyService");
+    predictor->set_endpoint_router("WeightedRandomRender");
+
+    WeightedRandomRenderConf *weighted_random_render_conf = predictor->mutable_weighted_random_render_conf();
+    weighted_random_render_conf->set_variant_weight_list("50");
+
+    VariantConf *variant_conf = predictor->add_variants();
+    variant_conf->set_tag("var1");
+    naming_conf = variant_conf->mutable_naming_conf();
+    naming_conf->set_cluster("list://127.0.0.1:8010");
+
+    ret = baidu::paddle_serving::configure::write_proto_conf(&sdk_conf, output_dir, sdk_conf_file);
+    if (ret != 0) {
+        return ret;
+    }
+
     return 0;
 }
 
@@ -161,6 +191,13 @@ int test_read_conf()
     ret = baidu::paddle_serving::configure::read_proto_conf(output_dir, service_conf_file, &service_conf);
     if (ret != 0) {
         std::cout << "Read conf fail: " << service_conf_file << std::endl;
+        return -1;
+    }
+
+    SDKConf sdk_conf;
+    ret = baidu::paddle_serving::configure::read_proto_conf(output_dir, sdk_conf_file, &sdk_conf);
+    if (ret != 0) {
+        std::cout << "Read conf fail: " << sdk_conf_file << std::endl;
         return -1;
     }
 
