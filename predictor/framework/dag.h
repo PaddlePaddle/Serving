@@ -39,7 +39,7 @@ public:
     
     int init(const char* path, const char* file, const std::string& name);
 
-    int init(const comcfg::Configure& conf, const std::string& name);
+    int init(const configure::Workflow& conf, const std::string& name);
     
     int deinit();
 

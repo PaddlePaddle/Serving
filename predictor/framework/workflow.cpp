@@ -6,20 +6,11 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-int Workflow::init(const comcfg::ConfigUnit& conf) {
-    const std::string& name = conf["name"].to_cstr();
-    const std::string& path = conf["path"].to_cstr();
-    const std::string& file = conf["file"].to_cstr();
-    comcfg::Configure wf_conf;
-    if (wf_conf.load(path.c_str(), file.c_str()) != 0) {
-        LOG(ERROR) 
-            << "Failed load workflow, conf:"
-            << path << "/" << file << "!";
-        return -1;
-    }
-    _type = wf_conf["workflow_type"].to_cstr();
+int Workflow::init(const configure::Workflow& conf) {
+    const std::string& name = conf.name();
+    _type = conf.workflow_type();
     _name = name;
-    if (_dag.init(wf_conf, name) != 0) {
+    if (_dag.init(conf, name) != 0) {
         LOG(ERROR) << "Failed initialize dag: " << _name;
         return -1;
     }

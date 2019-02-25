@@ -1,0 +1,89 @@
+syntax="proto2";
+package baidu.paddle_serving.configure;
+
+message EngineDesc {
+        required string name = 1;
+        required string type = 2;
+        required string reloadable_meta = 3;
+        required string reloadable_type = 4;
+        required string model_data_path = 5;
+        required uint32 runtime_thread_num = 6;
+        required uint32 batch_infer_size = 7;
+        required uint32 enable_batch_align = 8;
+        optional string version_file = 9;
+        optional string version_type = 10;
+};
+
+// model_toolkit conf
+message ModelToolkitConf {
+        repeated EngineDesc engines = 1;
+};
+
+// reource conf
+message ResourceConf {
+        required string model_toolkit_path = 1;
+        required string model_toolkit_file = 2;
+};
+
+// DAG node depency info
+message DAGNodeDependency {
+        required string name = 1;
+        required string mode = 2;
+};
+
+// DAG Node
+message DAGNode {
+        required string name = 1;
+        required string type = 2;
+        repeated DAGNodeDependency dependencies = 3;
+};
+
+// workflow entry
+message Workflow {
+        required string name = 1;
+        required string workflow_type = 2;
+        repeated DAGNode nodes = 3;
+};
+
+// Workflow conf
+message WorkflowConf {
+        repeated Workflow workflows = 1;
+}
+
+
+// request_field_key: specifies use which request field as mapping key (see
+// request_field_key in InferService below)
+//
+// If the value of the user request field specified by `request_field_key`
+// matches the value of `request_field_value` in one of the
+// ValueMappedWorkflows, the request will be directed to the workflow specified
+// in the `workflow` field of that ValueMappedWorkflow
+// 
+message ValueMappedWorkflow {
+        required string request_field_value = 1;
+        required string workflow = 2;
+};
+
+message InferService {
+        required string name = 1;
+        optional string merger = 2;
+
+        optional bool enable_map_request_to_workflow = 3 [default = false];
+
+        // If enable_map_request_to_workfow = true
+        //
+        // Each request will be mapped to a workflow according to the value in
+        // in user request field specified by `request_field_key` (see the
+        // comments for ValueMappedWorkflow above)
+        optional string request_field_key = 4;
+        repeated ValueMappedWorkflow value_mapped_workflows = 5;
+
+        // If enable_map_request_to_workflow = false
+        repeated string workflows = 6;
+};
+
+// InferService conf
+message InferServiceConf {
+        optional uint32 port = 1;
+        repeated InferService services = 2;
+};

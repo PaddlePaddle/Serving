@@ -1,5 +1,6 @@
 LIST(APPEND protofiles
-        ${CMAKE_CURRENT_LIST_DIR}/proto/configure.proto
+        ${CMAKE_CURRENT_LIST_DIR}/proto/server_configure.proto
+        ${CMAKE_CURRENT_LIST_DIR}/proto/sdk_configure.proto
 )
 
 PROTOBUF_GENERATE_CPP(configure_proto_srcs configure_proto_hdrs ${protofiles})

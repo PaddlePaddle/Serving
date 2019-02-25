@@ -20,11 +20,14 @@ namespace sdk_cpp {
 
 
 int WeightedRandomRender::initialize(
-        const comcfg::ConfigUnit& conf) {
+        const google::protobuf::Message& conf) {
     srand((unsigned)time(NULL));
     try {
+        const configure::WeightedRandomRenderConf &weighted_random_render_conf =
+            dynamic_cast<const configure::WeightedRandomRenderConf&>(conf);
+        
         std::string weights 
-            = conf["VariantWeightList"].to_cstr();
+            = weighted_random_render_conf.variant_weight_list();
 
         std::vector<std::string> splits;
         if (str_split(weights, WEIGHT_SEPERATOR, &splits) != 0) {
@@ -57,7 +60,7 @@ int WeightedRandomRender::initialize(
         LOG(INFO) << "Succ read weights list: " << weights
             << ", count: " << _variant_weight_list.size()
             << ", normalized: " << _normalized_sum;
-    } catch (comcfg::ConfigException& e) {
+    } catch (std::bad_cast& e) {
         LOG(FATAL) << "Failed init WeightedRandomRender" 
             << "from configure, err:" << e.what();
         return -1;

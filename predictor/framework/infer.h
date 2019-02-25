@@ -181,119 +181,10 @@ public:
 
 private:
     int parse_version_info(const configure::EngineDesc& config, bool version) {
-        try {
-            std::string version_file = config.version_file();
-            std::string version_type = config.version_type();
-            
-            if (version_type == "abacus_version") {
-                if (parse_abacus_version(version_file) != 0) {
-                    LOG(FATAL) 
-                        << "Failed parse abacus version: " << version_file;
-                    return -1;
-                }
-            } else if (version_type == "corece_uint64") {
-                if (parse_corece_uint64(version_file) != 0) {
-                    LOG(FATAL) 
-                        << "Failed parse corece_uint64: " << version_file;
-                    return -1;
-                }
-            } else {
-                LOG(FATAL) << "Not supported version_type: " << version_type;
-                return -1;
-            }
-        } catch (comcfg::ConfigException e) { // no version file
-            if (version) {
-                LOG(FATAL) << "Cannot parse version engine, err:" 
-                    << e.what();
-                return -1;
-            }
-
-            LOG(WARNING) << "Consistency with non-versioned configure";
-            _version = uint64_t(-1);
-        }
+        _version = uint64_t(-1);
         return 0;
     }
 
-    int parse_abacus_version(const std::string& version_file) {
-        FILE* fp = fopen(version_file.c_str(), "r");
-        if (!fp) {
-            LOG(FATAL) << "Failed open version file:" << version_file; 
-            return -1;
-        }
-
-        bool has_parsed = false;
-        char buffer[1024] = {0};
-        while (fgets(buffer, sizeof(buffer), fp)) {
-            char* begin = NULL;
-            if (strncmp(buffer, "version:", 8) == 0 ||
-                    strncmp(buffer, "Version:", 8) == 0) {
-                begin = buffer + 8;
-            } else if (strncmp(buffer, "version :", 9) == 0 || 
-                    strncmp(buffer, "Version :", 9) == 0) {
-                begin = buffer + 9;
-            } else {
-                LOG(WARNING) << "Not version line: " << buffer; 
-                continue;
-            }
-
-            std::string vstr = begin;
-            boost::algorithm::trim_if(
-                    vstr, boost::algorithm::is_any_of("\n\r "));
-            char* endptr = NULL;
-            _version = strtoull(vstr.c_str(), &endptr, 10);
-            if (endptr == vstr.c_str()) {
-                LOG(FATAL) 
-                    << "Invalid version: [" << buffer << "], end: [" 
-                    << endptr << "]" << ", vstr: [" << vstr << "]";
-                fclose(fp);
-                return -1;
-            }
-            has_parsed = true;
-        }
-
-        if (!has_parsed) {
-            LOG(FATAL) << "Failed parse abacus version: " << version_file; 
-            fclose(fp);
-            return -1;
-        }
-
-        LOG(WARNING) << "Succ parse abacus version: " << _version 
-            << " from: " << version_file;
-        fclose(fp);
-        return 0;
-    }
-
-    int parse_corece_uint64(const std::string& version_file) {
-        FILE* fp = fopen(version_file.c_str(), "r");
-        if (!fp) {
-            LOG(FATAL) << "Failed open version file:" << version_file; 
-            return -1;
-        }
-
-        bool has_parsed = false;
-        char buffer[1024] = {0};
-        if (fgets(buffer, sizeof(buffer), fp)) {
-            char* endptr = NULL;
-            _version = strtoull(buffer, &endptr, 10);
-            if (endptr == buffer) {
-                LOG(FATAL) << "Invalid version: " << buffer;
-                fclose(fp);
-                return -1;
-            }
-            has_parsed = true;
-        }
-
-        if (!has_parsed) {
-            LOG(FATAL) << "Failed parse abacus version: " << version_file; 
-            fclose(fp);
-            return -1;
-        }
-
-        LOG(WARNING) << "Succ parse corece version: " << _version 
-            << " from: " << version_file;
-        fclose(fp);
-        return 0; 
-    }
 
     bool check_need_reload() {
         if (_reload_mode_tag == "timestamp_ne") {
@@ -756,23 +647,13 @@ public:
     }
     ~VersionedInferEngine() {}
 
-    int proc_initialize(const configure::VersionedEngine& conf) {
-        size_t version_num = conf.versions_size();
-        for (size_t vi = 0; vi < version_num; ++vi) {
-            if (proc_initialize(conf.versions(vi), true) != 0) {
-                LOG(FATAL) << "Failed proc initialize version: " 
-                    << vi << ", model: " << conf.name().c_str();
-                return -1;
-            }
+    int proc_initialize(const configure::EngineDesc& conf) {
+        if (proc_initialize(conf, false) != 0) {
+            LOG(FATAL) << "Failed proc intialize engine: " 
+                        << conf.name().c_str();
+            return -1;
         }
 
-        if (version_num == 0) {
-            if (proc_initialize(conf.default_version(), false) != 0) {
-                LOG(FATAL) << "Failed proc intialize engine: " 
-                    << conf.name().c_str();
-                return -1;
-            }
-        }
         LOG(WARNING) 
             << "Succ proc initialize engine: " << conf.name().c_str();
         return 0;

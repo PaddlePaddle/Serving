@@ -27,12 +27,7 @@ namespace sdk_cpp {
 #define PARSE_CONF_ITEM(conf, item, name, fail)             \
     do {                                                    \
         try {                                               \
-            item.set(conf[name]);                           \
-        } catch (comcfg::NoSuchKeyException& e) {           \
-            LOG(INFO) << "Not found key in configue: " << name;\
-        } catch (comcfg::ConfigException& e) {              \
-            LOG(FATAL) << "Error config, key: " << name;    \
-            return fail;                                    \
+            item.set(conf.name());                           \
         } catch (...) {                                     \
             LOG(FATAL) << "Unkown error accurs when load config";\
             return fail;                                    \
@@ -60,54 +55,9 @@ template<typename T> struct ConfigItem {
     T value;
     bool init;
     ConfigItem() : init(false) {}
-    void set(const comcfg::ConfigUnit& unit) {
-        set_impl(type_traits<T>::tag, unit);
+    void set(const T& unit) {
+        value = unit;
         init = true;
-    }
-
-    void set_impl(type_traits<int16_t>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_int16();
-    }
-
-    void set_impl(type_traits<int32_t>&, 
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_int32();
-    }
-
-    void set_impl(type_traits<int64_t>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_int64();
-    }
-
-    void set_impl(type_traits<uint16_t>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_uint16();
-    }
-
-    void set_impl(type_traits<uint32_t>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_uint32();
-    }
-
-    void set_impl(type_traits<uint64_t>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_uint64();
-    }
-
-    void set_impl(type_traits<float>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_float();
-    }
-
-    void set_impl(type_traits<double>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_double();
-    }
-
-    void set_impl(type_traits<std::string>&,
-            const comcfg::ConfigUnit& unit) {
-        value = unit.to_cstr();
     }
 };
 

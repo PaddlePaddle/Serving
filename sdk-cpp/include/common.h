@@ -42,6 +42,8 @@
 #include <json2pb/json_to_pb.h>
 
 #include "Configure.h"
+#include "sdk_configure.pb.h"
+#include "configure_parser.h"
 
 #include "utils.h"
 
