@@ -26,7 +26,7 @@ public:
         _request_to_workflow_map.clear();
     }
 
-    int init(const comcfg::ConfigUnit& conf);
+    int init(const configure::InferService& conf);
 
     int deinit() { return 0; }
 

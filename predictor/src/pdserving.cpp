@@ -29,6 +29,9 @@ using baidu::paddle_serving::predictor::FLAGS_resource_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
 
+using baidu::paddle_serving::configure::InferServiceConf;
+using baidu::paddle_serving::configure::read_proto_conf;
+
 void print_revision(std::ostream& os, void*) {
 #if defined(PDSERVING_VERSION)
     os << PDSERVING_VERSION;
@@ -52,15 +55,14 @@ void pthread_worker_start_fn() {
 }
 
 static void g_change_server_port() {
-    comcfg::Configure conf;
-    if (conf.load(FLAGS_inferservice_path.c_str(), FLAGS_inferservice_file.c_str()) != 0) {
+    InferServiceConf conf;
+    if (read_proto_conf(FLAGS_inferservice_path.c_str(), FLAGS_inferservice_file.c_str(), &conf) != 0) {
         LOG(WARNING) << "failed to load configure[" << FLAGS_inferservice_path
                 << "," << FLAGS_inferservice_file << "].";
         return;
     }
-    uint32_t port = 0;
-    int err = conf["port"].get_uint32(&port, 0);
-    if (err == 0) {
+    uint32_t port = conf.port();
+    if (port != 0) {
         FLAGS_port = port;
         LOG(INFO) << "use configure[" << FLAGS_inferservice_path << "/"
             << FLAGS_inferservice_file << "] port[" << port << "] instead of flags";

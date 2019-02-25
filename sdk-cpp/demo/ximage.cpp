@@ -118,7 +118,7 @@ void print_res(
 int main(int argc, char** argv) {
     PredictorApi api;
     
-    if (api.create("./conf", "predictors.conf") != 0) {
+    if (api.create("./conf", "predictors.prototxt") != 0) {
         LOG(FATAL) << "Failed create predictors api!"; 
         return -1;
     }

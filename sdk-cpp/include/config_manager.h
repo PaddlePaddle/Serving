@@ -62,17 +62,17 @@ public:
 
 private:
     int init_one_variant(
-            const comcfg::ConfigUnit& conf, 
+            const configure::VariantConf& conf, 
             VariantInfo& var);
 
     int init_one_endpoint(
-            const comcfg::ConfigUnit& conf,
+            const configure::Predictor& conf,
             EndpointInfo& ep,
             const VariantInfo& default_var);
 
     int merge_variant(
             const VariantInfo& default_var,
-            const comcfg::ConfigUnit& conf,
+            const configure::VariantConf& conf,
             VariantInfo& merged_var);
 
     int parse_tag_values(

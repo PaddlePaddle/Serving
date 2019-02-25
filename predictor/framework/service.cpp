@@ -13,10 +13,13 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-int InferService::init(const comcfg::ConfigUnit& conf) {
-    _infer_service_format = conf["name"].to_cstr();
-    char merger[256];
-    conf["merger"].get_cstr(merger, sizeof(merger), "default");
+int InferService::init(const configure::InferService& conf) {
+    _infer_service_format = conf.name();
+
+    std::string merger = conf.merger();
+    if (merger == "") {
+        merger = "default";
+    }
     if (!MergerManager::instance().get(merger, _merger)) {
         LOG(ERROR) << "Failed get merger: " << merger;
         return ERR_INTERNAL_FAILURE;
@@ -24,6 +27,7 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
         LOG(WARNING) << "Succ get merger: " << merger << 
             " for service: " << _infer_service_format;
     }
+
     ServerManager& svr_mgr = ServerManager::instance();
     if (svr_mgr.add_service_by_format(_infer_service_format) != 0) {
         LOG(FATAL) 
@@ -32,14 +36,11 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
         return ERR_INTERNAL_FAILURE;
     }
     
-    uint32_t default_value = 0;
-    conf["enable_map_request_to_workflow"].get_uint32(&default_value, 0);
-    _enable_map_request_to_workflow = (default_value != 0);
+    _enable_map_request_to_workflow = conf.enable_map_request_to_workflow();
     LOG(INFO) << "service[" << _infer_service_format
             << "], enable_map_request_to_workflow["
             << _enable_map_request_to_workflow << "].";
 
-    uint32_t flow_size = conf["workflow"].size();
     if (_enable_map_request_to_workflow) {
         if (_request_to_workflow_map.init(
                 MAX_WORKFLOW_NUM_IN_ONE_SERVICE/*load_factor=80*/) != 0) {
@@ -49,31 +50,23 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
             return ERR_INTERNAL_FAILURE;
         }
         int err = 0;
-        const char* pchar = conf["request_field_key"].to_cstr(&err);
-        if (err != 0) {
+        _request_field_key = conf.request_field_key().c_str();
+        if (_request_field_key == "") {
             LOG(FATAL) 
-                << "read request_field_key failed, err_code[" 
-                << err << "].";
+                << "read request_field_key failed, request_field_key[" 
+                << _request_field_key << "].";
             return ERR_INTERNAL_FAILURE;
         }
-        _request_field_key = std::string(pchar); 
+
         LOG(INFO) 
             << "service[" << _infer_service_format
             << "], request_field_key[" 
             << _request_field_key << "].";
-        uint32_t request_field_value_size = conf["request_field_value"].size();
-        if (request_field_value_size != flow_size) {
-            LOG(FATAL) 
-                << "flow_size[" << flow_size 
-                << "] not equal request_field_value_size[" 
-                << request_field_value_size << "].";
-            return ERR_INTERNAL_FAILURE;
-        }
-
-        for (uint32_t fi = 0; fi < flow_size; fi++) {
+        uint32_t value_mapped_workflows_size = conf.value_mapped_workflows_size();
+        for (uint32_t fi = 0; fi < value_mapped_workflows_size; fi++) {
             std::vector<std::string> tokens;
             std::vector<Workflow*> workflows;
-            std::string list = conf["workflow"][fi].to_cstr();
+            std::string list = conf.value_mapped_workflows(fi).workflow();
             boost::split(tokens, list, boost::is_any_of(","));
             uint32_t tsize = tokens.size();
             for (uint32_t ti = 0; ti < tsize; ++ti) {
@@ -89,7 +82,8 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
                 workflow->regist_metric(full_name());
                 workflows.push_back(workflow);
             }
-            const std::string& request_field_value = conf["request_field_value"][fi].to_cstr();
+
+            const std::string& request_field_value = conf.value_mapped_workflows(fi).request_field_value();
             if (_request_to_workflow_map.insert(request_field_value, workflows) == NULL) {
                 LOG(FATAL) 
                     << "insert [" << request_field_value << "," 
@@ -100,9 +94,9 @@ int InferService::init(const comcfg::ConfigUnit& conf) {
                 << "], request_field_value[" << request_field_value << "].";
         }
     } else {
+        uint32_t flow_size = conf.workflows_size();
         for (uint32_t fi = 0; fi < flow_size; fi++) {
-            const std::string& workflow_name = 
-                conf["workflow"][fi].to_cstr();
+            const std::string& workflow_name = conf.workflows(fi);
             Workflow* workflow = 
                 WorkflowManager::instance().item(workflow_name);
             if (workflow == NULL) {

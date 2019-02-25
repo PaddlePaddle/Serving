@@ -23,7 +23,7 @@ public:
     // Each workflow object corresponds to an independent
     // configure file, so you can share the object between
     // different apps.
-    int init(const comcfg::ConfigUnit& conf);
+    int init(const configure::Workflow& conf);
         
     DagView* fetch_dag_view(const std::string& service_name);
 

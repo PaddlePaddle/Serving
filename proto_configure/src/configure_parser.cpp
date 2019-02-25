@@ -15,7 +15,7 @@ int read_proto_conf(const std::string &conf_path,
                     const std::string &conf_file,
                     google::protobuf::Message *conf)
 {
-    std::string file_str = conf_path + conf_file;
+    std::string file_str = conf_path + "/" + conf_file;
     int fd = open(file_str.c_str(), O_RDONLY);
     if (fd == -1) {
         LOG(WARNING) << "File not found: " << file_str.c_str();
@@ -39,7 +39,7 @@ int write_proto_conf(google::protobuf::Message *message,
     std::string binary_str;
     google::protobuf::TextFormat::PrintToString(*message, &binary_str);
 
-    std::string file_str = output_path + output_file;
+    std::string file_str = output_path + "/" + output_file;
     std::ofstream fout_bin((file_str.c_str()));
     if (!fout_bin) {
         LOG(WARNING) << "Open file error: " << file_str.c_str();

@@ -19,6 +19,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
+using configure::SDKConf;
+
 int EndpointConfigManager::create(const char* path, const char* file) {
     _endpoint_config_path = path;
     _endpoint_config_file = file;
@@ -33,10 +35,11 @@ int EndpointConfigManager::create(const char* path, const char* file) {
 
 int EndpointConfigManager::load() {
     try {
-        comcfg::Configure conf;
-        if (conf.load(
+        SDKConf sdk_conf;
+        if (configure::read_proto_conf(
                     _endpoint_config_path.c_str(),
-                    _endpoint_config_file.c_str()) != 0) {
+                    _endpoint_config_file.c_str(),
+                    &sdk_conf) != 0) {
             LOG(FATAL)
                 << "Failed initialize endpoint list"
                 << ", config: " << _endpoint_config_path
@@ -45,16 +48,16 @@ int EndpointConfigManager::load() {
         }
 
         VariantInfo default_var;
-        if (init_one_variant(conf["DefaultVariantInfo"],
+        if (init_one_variant(sdk_conf.default_variant_conf(),
                     default_var) != 0) {
             LOG(FATAL) << "Failed read default var conf";
             return -1;
         }
 
-        uint32_t ep_size = conf["Predictor"].size();
+        uint32_t ep_size = sdk_conf.predictors_size();
         for (uint32_t ei = 0; ei < ep_size; ++ei) {
             EndpointInfo ep;
-            if (init_one_endpoint(conf["Predictor"][ei], ep,
+            if (init_one_endpoint(sdk_conf.predictors(ei), ep,
                         default_var) != 0) {
                 LOG(FATAL) << "Failed read endpoint info at: "
                         << ei;
@@ -88,36 +91,41 @@ int EndpointConfigManager::load() {
 }
 
 int EndpointConfigManager::init_one_endpoint(
-        const comcfg::ConfigUnit& conf, EndpointInfo& ep,
+        const configure::Predictor& conf, EndpointInfo& ep,
         const VariantInfo& dft_var) {
     try {
         // name
-        ep.endpoint_name = conf["name"].to_cstr();
+        ep.endpoint_name = conf.name();
         // stub
-        ep.stub_service = conf["service_name"].to_cstr();
+        ep.stub_service = conf.service_name();
         // abtest
         ConfigItem<std::string> ep_router;
-        PARSE_CONF_ITEM(conf, ep_router, "endpoint_router", -1);
+        PARSE_CONF_ITEM(conf, ep_router, endpoint_router, -1);
         if (ep_router.init) {
-            std::string endpoint_router_info
-                = conf["endpoint_router"].to_cstr();
+            if (ep_router.value != "WeightedRandomRenderConf") {
+                LOG(FATAL) << "endpointer_router unrecognized " << ep_router.value;
+                return -1;
+            }
+
             EndpointRouterBase* router
                 = EndpointRouterFactory::instance().generate_object(
                         ep_router.value);
-            if (!router || router->initialize(
-                        conf[endpoint_router_info.c_str()]) != 0) {
+
+            const configure::WeightedRandomRenderConf &router_conf =
+                conf.weighted_random_render_conf();
+            if (!router || router->initialize(router_conf) != 0) {
                 LOG(FATAL) << "Failed fetch valid ab test strategy"
-                    << ", name:" << endpoint_router_info;
+                    << ", name:" << ep_router.value;
                 return -1;
             }
             ep.ab_test = router;
         }
 
         // varlist
-        uint32_t var_size = conf["VariantInfo"].size();
+        uint32_t var_size = conf.variants_size();
         for (uint32_t vi = 0; vi < var_size; ++vi) {
             VariantInfo var;
-            if (merge_variant(dft_var, conf["VariantInfo"][vi],
+            if (merge_variant(dft_var, conf.variants(vi),
                         var) != 0) {
                 LOG(FATAL) << "Failed merge variant info at: "
                     << vi;
@@ -146,54 +154,54 @@ int EndpointConfigManager::init_one_endpoint(
 }
 
 int EndpointConfigManager::init_one_variant(
-        const comcfg::ConfigUnit& conf, VariantInfo& var) {
+        const configure::VariantConf& conf, VariantInfo& var) {
     try {
     // Connect
-    const comcfg::ConfigUnit& conn = conf["Connection"];
+    const configure::ConnectionConf& conn = conf.connection_conf();
 
     PARSE_CONF_ITEM(conn, var.connection.tmo_conn,
-            "ConnectTimeoutMilliSec", -1);
+            connect_timeout_ms, -1);
     PARSE_CONF_ITEM(conn, var.connection.tmo_rpc,
-            "RpcTimeoutMilliSec", -1);
+            rpc_timeout_ms, -1);
     PARSE_CONF_ITEM(conn, var.connection.tmo_hedge,
-            "HedgeRequestTimeoutMilliSec", -1);
+            hedge_request_timeout_ms, -1);
     PARSE_CONF_ITEM(conn, var.connection.cnt_retry_conn,
-            "ConnectRetryCount", -1);
+            connect_retry_count, -1);
     PARSE_CONF_ITEM(conn, var.connection.cnt_retry_hedge,
-            "HedgeFetchRetryCount", -1);
+            hedge_fetch_retry_count, -1);
     PARSE_CONF_ITEM(conn, var.connection.cnt_maxconn_per_host,
-            "MaxConnectionPerHost", -1);
+            max_connection_per_host, -1);
     PARSE_CONF_ITEM(conn, var.connection.type_conn,
-            "ConnectionType", -1);
+            connection_type, -1);
 
     // Naming
-    const comcfg::ConfigUnit& name = conf["NamingInfo"];
+    const configure::NamingConf& name = conf.naming_conf();
 
     PARSE_CONF_ITEM(name, var.naminginfo.cluster_naming,
-            "Cluster", -1);
+            cluster, -1);
     PARSE_CONF_ITEM(name, var.naminginfo.load_balancer,
-            "LoadBalanceStrategy", -1);
+            load_balance_strategy, -1);
     PARSE_CONF_ITEM(name, var.naminginfo.cluster_filter,
-            "ClusterFilterStrategy", -1);
+            cluster_filter_strategy, -1);
 
     // Rpc
-    const comcfg::ConfigUnit& params = conf["RpcParameter"];
+    const configure::RpcParameter& params = conf.rpc_parameter();
 
     PARSE_CONF_ITEM(params, var.parameters.protocol,
-            "Protocol", -1);
+            protocol, -1);
     PARSE_CONF_ITEM(params, var.parameters.compress_type,
-            "CompressType", -1);
+            compress_type, -1);
     PARSE_CONF_ITEM(params, var.parameters.package_size,
-            "PackageSize", -1);
+            package_size, -1);
     PARSE_CONF_ITEM(params, var.parameters.max_channel,
-            "MaxChannelPerRequest", -1);
+            max_channel_per_request, -1);
     // Split
-    const comcfg::ConfigUnit& splits = conf["SplitInfo"];
+    const configure::SplitConf& splits = conf.split_conf();
 
     PARSE_CONF_ITEM(splits, var.splitinfo.split_tag,
-            "split_tag_name", -1);
+            split_tag_name, -1);
     PARSE_CONF_ITEM(splits, var.splitinfo.tag_cands_str,
-            "tag_candidates", -1);
+            tag_candidates, -1);
     if (parse_tag_values(var.splitinfo) != 0) {
         LOG(FATAL) << "Failed parse tag_values:" <<
             var.splitinfo.tag_cands_str.value;
@@ -202,11 +210,11 @@ int EndpointConfigManager::init_one_variant(
 
     // tag
     PARSE_CONF_ITEM(conf, var.parameters.route_tag,
-            "Tag", -1);
+            tag, -1);
 
     // router
     ConfigItem<std::string> var_router;
-    PARSE_CONF_ITEM(conf, var_router, "variant_router", -1);
+    PARSE_CONF_ITEM(conf, var_router, variant_router, -1);
     if (var_router.init) {
         VariantRouterBase* router
             = VariantRouterFactory::instance().generate_object(
@@ -230,7 +238,7 @@ int EndpointConfigManager::init_one_variant(
 
 int EndpointConfigManager::merge_variant(
         const VariantInfo& default_var,
-        const comcfg::ConfigUnit& conf,
+        const configure::VariantConf& conf,
         VariantInfo& merged_var) {
     merged_var = default_var;
 

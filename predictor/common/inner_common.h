@@ -9,6 +9,8 @@
 #include <strings.h>
 #include <getopt.h>
 
+#include <typeinfo>
+
 #include <google/protobuf/text_format.h>
 #include <boost/unordered_map.hpp>
 #include <boost/function.hpp>
