@@ -98,7 +98,7 @@ endif()
 
 add_subdirectory(bsl)
 add_subdirectory(ullib)
-add_subdirectory(proto_configure)
+add_subdirectory(configure)
 add_subdirectory(mempool)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
