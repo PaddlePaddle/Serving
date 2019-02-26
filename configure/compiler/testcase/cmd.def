@@ -1,7 +1,0 @@
-struct a //asdfasdfsadf
-{
-	int32_t ab = range(0);//adsf
-	int32_t c = a(); 		//adf
-	int32_t def;
-	//dasdf
-};

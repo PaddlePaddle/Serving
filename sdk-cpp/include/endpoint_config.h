@@ -26,11 +26,11 @@ namespace sdk_cpp {
 
 #define PARSE_CONF_ITEM(conf, item, name, fail)             \
     do {                                                    \
-        try {                                               \
-            item.set(conf.name());                           \
-        } catch (...) {                                     \
-            LOG(FATAL) << "Unkown error accurs when load config";\
-            return fail;                                    \
+        if (conf.has_##name()) {                              \
+            item.set(conf.name());                          \
+        }                                                   \
+        else {                                              \
+            LOG(ERROR) << "Not found key in configue: " << #name;\
         }                                                   \
     } while (0)
 
@@ -92,12 +92,11 @@ struct SplitParameters {
 };
 
 struct VariantInfo {
-    VariantInfo() : ab_test(NULL) {}
+    VariantInfo() {}
     Connection connection;
     NamingInfo naminginfo;
     RpcParameters parameters;
     SplitParameters splitinfo;
-    void* ab_test;
 };
 
 struct EndpointInfo {

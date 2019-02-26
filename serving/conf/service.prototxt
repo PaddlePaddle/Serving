@@ -1,0 +1,8 @@
+services {
+  name: "ImageClassifyService"
+  workflows: "workflow1"
+}
+services {
+  name: "BuiltinDenseFormatService"
+  workflows: "workflow2"
+}

@@ -1,0 +1,11 @@
+syntax="proto2";
+package baidu.paddle_serving.configure;
+
+message SigmoidConf {
+        required string dnn_model_path = 1;
+        required string sigmoid_w_file = 2;
+        required string sigmoid_b_file = 3;
+        required float exp_max_input = 4;
+        required float exp_min_input = 5;
+};
+
