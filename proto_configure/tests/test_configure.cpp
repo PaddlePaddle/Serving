@@ -4,6 +4,7 @@
 #include <iostream>
 #include "server_configure.pb.h"
 #include "sdk_configure.pb.h"
+#include "inferencer_configure.pb.h"
 #include "configure_parser.h"
 
 using baidu::paddle_serving::configure::EngineDesc;
@@ -25,15 +26,17 @@ using baidu::paddle_serving::configure::NamingConf;
 using baidu::paddle_serving::configure::RpcParameter;
 using baidu::paddle_serving::configure::Predictor;
 using baidu::paddle_serving::configure::VariantConf;
-
 using baidu::paddle_serving::configure::SDKConf;
+
+using baidu::paddle_serving::configure::SigmoidConf;
 
 const std::string output_dir = "./conf/";
 const std::string model_toolkit_conf_file = "model_toolkit.prototxt";
 const std::string resource_conf_file = "resource.prototxt";
 const std::string workflow_conf_file = "workflow.prototxt";
 const std::string service_conf_file = "service.prototxt";
-const std::string sdk_conf_file = "predictors.protxt";
+const std::string sdk_conf_file = "predictors.prototxt";
+const std::string sigmoid_conf_file = "inferencer.prototxt";
 
 int test_write_conf()
 {
@@ -159,6 +162,18 @@ int test_write_conf()
         return ret;
     }
 
+    SigmoidConf sigmoid_conf;
+    sigmoid_conf.set_dnn_model_path("data/dnn_model");
+    sigmoid_conf.set_sigmoid_w_file("data/dnn_model/_sigmoid_.w_0");
+    sigmoid_conf.set_sigmoid_b_file("data/dnn_model/_sigmoid_.b_0");
+    sigmoid_conf.set_exp_max_input(0.75);
+    sigmoid_conf.set_exp_min_input(0.25);
+
+    ret = baidu::paddle_serving::configure::write_proto_conf(&sigmoid_conf, output_dir, sigmoid_conf_file);
+    if (ret != 0) {
+        return ret;
+    }
+
     return 0;
 }
 
@@ -196,6 +211,13 @@ int test_read_conf()
 
     SDKConf sdk_conf;
     ret = baidu::paddle_serving::configure::read_proto_conf(output_dir, sdk_conf_file, &sdk_conf);
+    if (ret != 0) {
+        std::cout << "Read conf fail: " << sdk_conf_file << std::endl;
+        return -1;
+    }
+
+    SigmoidConf sigmoid_conf;
+    ret = baidu::paddle_serving::configure::read_proto_conf(output_dir, sigmoid_conf_file, &sigmoid_conf);
     if (ret != 0) {
         std::cout << "Read conf fail: " << sdk_conf_file << std::endl;
         return -1;

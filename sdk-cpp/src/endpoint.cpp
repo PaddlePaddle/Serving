@@ -99,6 +99,9 @@ Predictor* Endpoint::get_predictor(
 }
 
 Predictor* Endpoint::get_predictor() {
+#if 1
+    LOG(INFO) << "Endpoint::get_predictor";
+#endif
     if (_variant_list.size() == 1) {
         if (_variant_list[0] == NULL) {
             LOG(FATAL) << "Not valid variant info"; 

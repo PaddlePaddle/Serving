@@ -55,6 +55,9 @@ int EndpointConfigManager::load() {
         }
 
         uint32_t ep_size = sdk_conf.predictors_size();
+#if 1
+        LOG(INFO) << "ep_size: " << ep_size;
+#endif
         for (uint32_t ei = 0; ei < ep_size; ++ei) {
             EndpointInfo ep;
             if (init_one_endpoint(sdk_conf.predictors(ei), ep,
@@ -80,8 +83,8 @@ int EndpointConfigManager::load() {
             }
         }
 
-    } catch (bsl::Exception& e) {
-        LOG(FATAL) << "Failed load configure, err: " << e.what();
+    } catch (std::exception& e) {
+        LOG(FATAL) << "Failed load configure" << e.what();
         return -1;
     }
     LOG(INFO)
@@ -93,6 +96,9 @@ int EndpointConfigManager::load() {
 int EndpointConfigManager::init_one_endpoint(
         const configure::Predictor& conf, EndpointInfo& ep,
         const VariantInfo& dft_var) {
+#if 1
+    LOG(INFO) << "init_one_endpoint " << conf.name().c_str();
+#endif
     try {
         // name
         ep.endpoint_name = conf.name();
@@ -102,7 +108,7 @@ int EndpointConfigManager::init_one_endpoint(
         ConfigItem<std::string> ep_router;
         PARSE_CONF_ITEM(conf, ep_router, endpoint_router, -1);
         if (ep_router.init) {
-            if (ep_router.value != "WeightedRandomRenderConf") {
+            if (ep_router.value != "WeightedRandomRender") {
                 LOG(FATAL) << "endpointer_router unrecognized " << ep_router.value;
                 return -1;
             }
@@ -123,6 +129,9 @@ int EndpointConfigManager::init_one_endpoint(
 
         // varlist
         uint32_t var_size = conf.variants_size();
+#if 1
+        LOG(INFO) << "Variant size: " << var_size;
+#endif
         for (uint32_t vi = 0; vi < var_size; ++vi) {
             VariantInfo var;
             if (merge_variant(dft_var, conf.variants(vi),
@@ -145,7 +154,7 @@ int EndpointConfigManager::init_one_endpoint(
             << "Succ load one endpoint, name: " << ep.endpoint_name
             << ", count of variants: " << ep.vars.size() << ".";
 
-    } catch (bsl::Exception& e) {
+    } catch (std::exception& e) {
         LOG(FATAL) << "Exception acccurs when load endpoint conf"
             << ", message: " << e.what();
         return -1;
@@ -189,6 +198,9 @@ int EndpointConfigManager::init_one_variant(
 
     PARSE_CONF_ITEM(params, var.parameters.protocol,
             protocol, -1);
+#if 1
+    LOG(WARNING) << var.parameters.protocol.value.c_str();
+#endif
     PARSE_CONF_ITEM(params, var.parameters.compress_type,
             compress_type, -1);
     PARSE_CONF_ITEM(params, var.parameters.package_size,
@@ -212,22 +224,6 @@ int EndpointConfigManager::init_one_variant(
     PARSE_CONF_ITEM(conf, var.parameters.route_tag,
             tag, -1);
 
-    // router
-    ConfigItem<std::string> var_router;
-    PARSE_CONF_ITEM(conf, var_router, variant_router, -1);
-    if (var_router.init) {
-        VariantRouterBase* router
-            = VariantRouterFactory::instance().generate_object(
-                    var_router.value);
-        if (!router || router->initialize(
-                    conf[var_router.value.c_str()]) != 0) {
-            LOG(FATAL) << "Failed fetch valid variant router"
-                << ", name:" << var_router.value;
-            return -1;
-        }
-        var.ab_test = router;
-    }
-
     } catch (...) {
         LOG(FATAL) << "Failed load variant from configure unit";
         return -1;
@@ -242,8 +238,9 @@ int EndpointConfigManager::merge_variant(
         VariantInfo& merged_var) {
     merged_var = default_var;
 
-    // VariantRouter cannot be merged!
-    merged_var.ab_test = NULL;
+#if 1
+    LOG(INFO) << "merge_variant " << conf.tag().c_str();
+#endif
     return init_one_variant(conf, merged_var);
 }
 

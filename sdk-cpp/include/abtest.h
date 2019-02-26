@@ -70,22 +70,6 @@ private:
     uint32_t _normalized_sum;
 };
 
-class VariantRouterBase {
-public:
-    typedef std::map<std::string, Stub*> StubMap;
-
-    virtual ~VariantRouterBase() {}
-
-    virtual int initialize(
-            const comcfg::ConfigUnit& conf) = 0;
-
-    virtual Stub* route(const StubMap&) = 0;
-
-    virtual Stub* route(
-            const StubMap&,
-            const void*) = 0;
-};
-
 } // sdk_cpp
 } // paddle_serving
 } // baidu

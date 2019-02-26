@@ -33,5 +33,5 @@ add_library(bsl)
 add_dependencies(bsl utils alloc archive containers pool buffer exception
         check_cast ResourcePool interface var_utils implement)
 target_link_libraries(bsl
-        utils archive pool buffer exception check_cast
+        buffer utils archive pool exception check_cast
         ResourcePool var_utils implement)

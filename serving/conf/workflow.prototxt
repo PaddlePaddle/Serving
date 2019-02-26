@@ -1,0 +1,32 @@
+workflows {
+  name: "workflow1"
+  workflow_type: "Sequence"
+  nodes {
+    name: "image_reader_op"
+    type: "ReaderOp"
+  }
+  nodes {
+    name: "image_classify_op"
+    type: "ClassifyOp"
+    dependencies {
+      name: "image_reader_op"
+      mode: "RO"
+    }
+  }
+  nodes {
+    name: "write_json_op"
+    type: "WriteOp"
+    dependencies {
+      name: "image_classify_op"
+      mode: "RO"
+    }
+  }
+}
+workflows {
+  name: "workflow2"
+  workflow_type: "Sequence"
+  nodes {
+    name: "dense_op"
+    type: "DenseOp"
+  }
+}
