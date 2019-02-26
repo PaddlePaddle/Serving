@@ -96,7 +96,6 @@ if(WITH_MKLDNN)
     list(APPEND EXTERNAL_LIBS ${MKLDNN_LIB})
 endif()
 
-add_subdirectory(ullib)
 add_subdirectory(configure)
 add_subdirectory(mempool)
 add_subdirectory(predictor)
