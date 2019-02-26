@@ -8,7 +8,6 @@ target_include_directories(sdk-cpp PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include
         )
 target_link_libraries(sdk-cpp brpc configure protobuf leveldb)
 
@@ -18,8 +17,7 @@ target_include_directories(ximage PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
 target_link_libraries(ximage sdk-cpp -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
@@ -29,8 +27,7 @@ target_include_directories(mapcnn_dense PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
 target_link_libraries(mapcnn_dense sdk-cpp -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 
@@ -40,8 +37,7 @@ target_include_directories(mapcnn_sparse PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
 target_link_libraries(mapcnn_sparse sdk-cpp -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 

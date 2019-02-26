@@ -36,7 +36,7 @@ set_source_files_properties(
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
 add_dependencies(pdserving_exe
-        protobuf boost brpc leveldb pdcodegen configure bsl
+        protobuf boost brpc leveldb pdcodegen configure 
         ullib mempool)
 
 target_include_directories(pdserving_exe PUBLIC
@@ -46,7 +46,7 @@ target_include_directories(pdserving_exe PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../mempool
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
-target_link_libraries(pdserving_exe brpc protobuf leveldb  bsl
+target_link_libraries(pdserving_exe brpc protobuf leveldb 
         configure ullib mempool -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 
