@@ -1,4 +1,0 @@
-FILE(GLOB buffer_srcs ${CMAKE_CURRENT_LIST_DIR}/*.cpp) 
-add_library(buffer ${CMAKE_CURRENT_LIST_DIR}/AutoBuffer.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/BinBuffer.cpp)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
