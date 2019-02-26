@@ -20,7 +20,7 @@ namespace sdk_cpp {
 
 int PredictorApi::register_all() {
     if (WeightedRandomRender::register_self() != 0) {
-        LOG(FATAL) << "Failed register WeightedRandomRender";
+        LOG(ERROR) << "Failed register WeightedRandomRender";
         return -1;
     }
 
@@ -31,12 +31,12 @@ int PredictorApi::register_all() {
 
 int PredictorApi::create(const char* path, const char* file) {
     if (register_all() != 0) {
-        LOG(FATAL)  << "Failed do register all!";
+        LOG(ERROR)  << "Failed do register all!";
         return -1;
     }
 
     if (_config_manager.create(path, file) != 0) {
-        LOG(FATAL) << "Failed create config manager from conf:" 
+        LOG(ERROR) << "Failed create config manager from conf:" 
             << path << "/" << file;
         return -1;
     }
@@ -48,14 +48,14 @@ int PredictorApi::create(const char* path, const char* file) {
         const EndpointInfo& ep_info = it->second;
         Endpoint* ep = new (std::nothrow) Endpoint();
         if (ep->initialize(ep_info) != 0) {
-            LOG(FATAL) << "Failed intialize endpoint:"
+            LOG(ERROR) << "Failed intialize endpoint:"
                 << ep_info.endpoint_name;
             return -1;
         }
 
         if (_endpoints.find(
                     ep_info.endpoint_name) != _endpoints.end()) {
-            LOG(FATAL) << "Cannot insert duplicated endpoint:"
+            LOG(ERROR) << "Cannot insert duplicated endpoint:"
                 << ep_info.endpoint_name;
             return -1;
         }
@@ -64,7 +64,7 @@ int PredictorApi::create(const char* path, const char* file) {
             = _endpoints.insert(std::make_pair(
                         ep_info.endpoint_name, ep));
         if (!r.second) {
-            LOG(FATAL) << "Failed insert endpoint:" 
+            LOG(ERROR) << "Failed insert endpoint:" 
                 << ep_info.endpoint_name;
             return -1;
         }
@@ -81,7 +81,7 @@ int PredictorApi::thrd_initialize() {
     for (it = _endpoints.begin(); it != _endpoints.end(); ++it) {
         Endpoint* ep = it->second;
         if (ep->thrd_initialize() != 0) {
-            LOG(FATAL) << "Failed thrd initialize endpoint:"
+            LOG(ERROR) << "Failed thrd initialize endpoint:"
                 << it->first;
             return -1;
         }
@@ -97,7 +97,7 @@ int PredictorApi::thrd_clear() {
     for (it = _endpoints.begin(); it != _endpoints.end(); ++it) {
         Endpoint* ep = it->second;
         if (ep->thrd_clear() != 0) {
-            LOG(FATAL) << "Failed thrd clear endpoint:"
+            LOG(ERROR) << "Failed thrd clear endpoint:"
                 << it->first;
             return -1;
         }
@@ -113,7 +113,7 @@ int PredictorApi::thrd_finalize() {
     for (it = _endpoints.begin(); it != _endpoints.end(); ++it) {
         Endpoint* ep = it->second;
         if (ep->thrd_finalize() != 0) {
-            LOG(FATAL) << "Failed thrd finalize endpoint:"
+            LOG(ERROR) << "Failed thrd finalize endpoint:"
                 << it->first;
             return -1;
         }

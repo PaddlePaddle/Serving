@@ -37,7 +37,7 @@ namespace sdk_cpp {
 #define ASSIGN_CONF_ITEM(dest, src, fail)                           \
     do {                                                            \
         if (!src.init) {                                            \
-            LOG(FATAL) << "Cannot assign an unintialized item: "    \
+            LOG(ERROR) << "Cannot assign an unintialized item: "    \
                 << #src << " to dest: " << #dest;                   \
             return fail;                                            \
         }                                                           \

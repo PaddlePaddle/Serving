@@ -30,7 +30,7 @@ int create_req(Request& req) {
 
     FILE* fp = fopen(TEST_IMAGE_PATH, "rb");
     if (!fp) {
-        LOG(FATAL) << "Failed open image: " << TEST_IMAGE_PATH;
+        LOG(ERROR) << "Failed open image: " << TEST_IMAGE_PATH;
         return -1;
     }
 
@@ -38,7 +38,7 @@ int create_req(Request& req) {
     size_t isize = ftell(fp);
     char* ibuf = new(std::nothrow) char[isize];
     if (!ibuf) {
-        LOG(FATAL) << "Failed malloc image buffer";
+        LOG(ERROR) << "Failed malloc image buffer";
         fclose(fp);
         return -1;
     }
@@ -47,7 +47,7 @@ int create_req(Request& req) {
     fread(ibuf, sizeof(ibuf[0]), isize, fp);
     XImageReqInstance* ins = req.add_instances();
     if (!ins) {
-        LOG(FATAL) << "Failed create req instance"; 
+        LOG(ERROR) << "Failed create req instance"; 
         delete[] ibuf;
         fclose(fp);
         return -1;
@@ -87,13 +87,13 @@ void print_res(
         buf.append(json);
         butil::IOBufAsZeroCopyInputStream wrapper(buf);
         if (!json2pb::JsonToProtoMessage(&wrapper, &json_msg, &err_string)) {
-            LOG(FATAL) << "Failed parse json from str:" << json;
+            LOG(ERROR) << "Failed parse json from str:" << json;
             return ;
         }
 
         uint32_t csize = json_msg.categories_size();
         if (csize <= 0) {
-            LOG(FATAL) << "sample-" << si << "has no" 
+            LOG(ERROR) << "sample-" << si << "has no" 
                 << "categories props";
             continue;
         }
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     PredictorApi api;
     
     if (api.create("./conf", "predictors.prototxt") != 0) {
-        LOG(FATAL) << "Failed create predictors api!"; 
+        LOG(ERROR) << "Failed create predictors api!"; 
         return -1;
     }
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 
     Predictor* predictor = api.fetch_predictor("ximage");
     if (!predictor) {
-        LOG(FATAL) << "Failed fetch predictor: wasq"; 
+        LOG(ERROR) << "Failed fetch predictor: wasq"; 
         return -1;
     }
 
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
 
     butil::IOBufBuilder debug_os;
     if (predictor->debug(&req, &res, &debug_os) != 0) {
-        LOG(FATAL) << "failed call predictor with req:"
+        LOG(ERROR) << "failed call predictor with req:"
             << req.ShortDebugString();
         return -1;
     }

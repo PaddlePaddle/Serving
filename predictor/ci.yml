@@ -1,9 +1,0 @@
-Global:
-    tool: bcloud
-Default:
-    profile: [change]
-Profiles:
-    - profile:
-      name: change
-      command: bcloud ut
-      release: true
