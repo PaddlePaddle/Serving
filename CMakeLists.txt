@@ -97,7 +97,6 @@ if(WITH_MKLDNN)
 endif()
 
 add_subdirectory(configure)
-add_subdirectory(mempool)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
 add_subdirectory(serving)

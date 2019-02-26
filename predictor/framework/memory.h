@@ -2,7 +2,7 @@
 #define BAIDU_PADDLE_SERVING_PREDICTOR_MEMORY_H
 
 #include "common/inner_common.h"
-#include "mempool.h"
+#include "mempool/mempool.h"
 
 namespace baidu {
 namespace paddle_serving {
