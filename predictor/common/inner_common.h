@@ -27,7 +27,7 @@
 #include <bthread/bthread.h>
 #include <error.h>
 
-#include "configure.pb.h"
+#include "server_configure.pb.h"
 #include "configure_parser.h"
 
 #include "common/utils.h"
