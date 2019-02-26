@@ -105,7 +105,7 @@ public:
 
                 std::string::size_type kv_delim_pos = kv_pair_str.find(KV_DELIM, 0);
                 if (kv_delim_pos == std::string::npos) {
-                    LOG(FATAL) << "invalid kv pair: " <<  kv_pair_str.c_str();
+                    LOG(ERROR) << "invalid kv pair: " <<  kv_pair_str.c_str();
                     continue;
                 }
 
@@ -167,7 +167,7 @@ public:
     }
 
     void update_average(int64_t acc) {
-        LOG(FATAL) << "Cannot update average to a LatencyRecorder";
+        LOG(ERROR) << "Cannot update average to a LatencyRecorder";
     }
 
 private:
@@ -181,7 +181,7 @@ public:
     }
 
     void update_latency(int64_t acc) {
-        LOG(FATAL) << "Cannot update latency to a AverageWrapper";
+        LOG(ERROR) << "Cannot update latency to a AverageWrapper";
     }
 
     void update_average(int64_t acc) {
@@ -307,7 +307,7 @@ public:
         std::map<std::string, BvarWrapper*>::iterator iter = 
             _avg_bvars.find(AVG_PREFIX + name);
         if (iter == _avg_bvars.end()) {
-            LOG(FATAL) << "Not found average record:avg_" << name;
+            LOG(ERROR) << "Not found average record:avg_" << name;
             return ;
         }
         
@@ -318,7 +318,7 @@ public:
         std::map<std::string, BvarWrapper*>::iterator iter = 
             _ltc_bvars.find(LTC_PREFIX + name);
         if (iter == _ltc_bvars.end()) {
-            LOG(FATAL) << "Not found latency record:ltc_" << name;
+            LOG(ERROR) << "Not found latency record:ltc_" << name;
             return ;
         }
         

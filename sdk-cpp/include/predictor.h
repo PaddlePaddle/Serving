@@ -27,7 +27,7 @@ namespace sdk_cpp {
     do {                                            \
         param = butil::get_object<T>();              \
         if (!param) {                               \
-            LOG(FATAL) << "Failed get object from pool" \
+            LOG(ERROR) << "Failed get object from pool" \
                 << ", arg:" << #param << "type: "   \
                 << #T;                              \
             return err;                             \

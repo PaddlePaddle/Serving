@@ -31,7 +31,7 @@ int WeightedRandomRender::initialize(
 
         std::vector<std::string> splits;
         if (str_split(weights, WEIGHT_SEPERATOR, &splits) != 0) {
-            LOG(FATAL) << "Failed split string:" <<
+            LOG(ERROR) << "Failed split string:" <<
                 weights;
             return -1;
         }
@@ -43,7 +43,7 @@ int WeightedRandomRender::initialize(
             uint32_t ratio = strtoul(
                     splits[wi].c_str(), &end_pos, 10);
             if (end_pos == splits[wi].c_str()) {
-                LOG(FATAL) << "Error ratio(uint32) format:"
+                LOG(ERROR) << "Error ratio(uint32) format:"
                     << splits[wi] << " at " << wi;
                 return -1;
             }
@@ -53,7 +53,7 @@ int WeightedRandomRender::initialize(
         }
 
         if (_normalized_sum <= 0) {
-            LOG(FATAL) << "Zero normalized weight sum";
+            LOG(ERROR) << "Zero normalized weight sum";
             return -1;
         }
 
@@ -61,11 +61,11 @@ int WeightedRandomRender::initialize(
             << ", count: " << _variant_weight_list.size()
             << ", normalized: " << _normalized_sum;
     } catch (std::bad_cast& e) {
-        LOG(FATAL) << "Failed init WeightedRandomRender" 
+        LOG(ERROR) << "Failed init WeightedRandomRender" 
             << "from configure, err:" << e.what();
         return -1;
     } catch (...) {
-        LOG(FATAL) << "Failed init WeightedRandomRender" 
+        LOG(ERROR) << "Failed init WeightedRandomRender" 
             << "from configure, err message is unkown.";
         return -1;
     }
@@ -82,7 +82,7 @@ Variant* WeightedRandomRender::route(
 Variant* WeightedRandomRender::route(
         const VariantList& variants) {
     if (variants.size() != _variant_weight_list.size()) {
-        LOG(FATAL) << "#(Weights) is not equal #(Stubs)"
+        LOG(ERROR) << "#(Weights) is not equal #(Stubs)"
             << ", size: " << _variant_weight_list.size()
             << " vs. " << variants.size();
         return NULL; 
@@ -101,7 +101,7 @@ Variant* WeightedRandomRender::route(
         }
     }
 
-    LOG(FATAL) << "Errors accurs in sampling, sample:"
+    LOG(ERROR) << "Errors accurs in sampling, sample:"
         << sample << ", total: " << _normalized_sum;
 
     return NULL;
