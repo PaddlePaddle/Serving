@@ -1,6 +1,7 @@
 include(proto/CMakeLists.txt)
 include(common/CMakeLists.txt)
 include(op/CMakeLists.txt)
+include(mempool/CMakeLists.txt)
 include(framework/CMakeLists.txt)
 include(plugin/CMakeLists.txt)
 include(src/CMakeLists.txt)
@@ -16,18 +17,16 @@ set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen 
-        configure mempool)
+add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure)
 
 target_include_directories(pdserving PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../mempool)
+        )
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb configure 
-        mempool -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 add_executable(pdserving_exe ${pdserving_srcs})
 set_source_files_properties(
@@ -35,16 +34,16 @@ set_source_files_properties(
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
 add_dependencies(pdserving_exe
-        protobuf boost brpc leveldb pdcodegen configure mempool)
+        protobuf boost brpc leveldb pdcodegen configure)
 
 target_include_directories(pdserving_exe PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../mempool)
+        )
 target_link_libraries(pdserving_exe brpc protobuf leveldb 
-        configure mempool -lpthread -lcrypto -lm -lrt -lssl
+        configure -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 
 add_library(pdclient ${pdclient_srcs})
@@ -59,6 +58,6 @@ target_include_directories(pdclient PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        ${CMAKE_CURRENT_LIST_DIR}/../mempool)
+        )
 target_link_libraries(pdclient protobuf boost brpc -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
