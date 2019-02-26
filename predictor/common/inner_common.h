@@ -27,8 +27,6 @@
 #include <bthread/bthread.h>
 #include <error.h>
 
-#include "Configure.h"
-
 #include "configure.pb.h"
 #include "configure_parser.h"
 

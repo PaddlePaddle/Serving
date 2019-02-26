@@ -7,10 +7,14 @@
 #include <fstream>
 #include "framework/infer.h"
 #include "paddle/fluid/inference/paddle_inference_api.h"
+#include "inferencer_configure.pb.h"
+#include "configure_parser.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace fluid_cpu {
+
+using configure::SigmoidConf;
 
 class AutoLock {
 public:
@@ -366,24 +370,24 @@ public:
         size_t pos = model_path.find_last_of("/\\");
         std::string conf_path = model_path.substr(0, pos);
         std::string conf_file = model_path.substr(pos);
-        comcfg::Configure conf;
-        if (conf.load(conf_path.c_str(), conf_file.c_str()) != 0) {
+        configure::SigmoidConf conf;
+        if (configure::read_proto_conf(conf_path, conf_file, &conf) != 0) {
             LOG(FATAL) << "failed load model path: " << model_path;
             return -1;
         }
 
         _core.reset(new SigmoidFluidModel);
     
-        std::string fluid_model_data_path = conf["dnn_model_path"].to_cstr();
+        std::string fluid_model_data_path = conf.dnn_model_path();
         int ret = load_fluid_model(fluid_model_data_path);
         if (ret < 0) {
             LOG(FATAL) << "fail to load fluid model.";
             return -1;
         }
-        const char* sigmoid_w_file = conf["sigmoid_w_file"].to_cstr();
-        const char* sigmoid_b_file = conf["sigmoid_b_file"].to_cstr();
-        float exp_max = conf["exp_max_input"].to_float();
-        float exp_min = conf["exp_min_input"].to_float();
+        const char* sigmoid_w_file = conf.sigmoid_w_file().c_str();
+        const char* sigmoid_b_file = conf.sigmoid_b_file().c_str();
+        float exp_max = conf.exp_max_input();
+        float exp_min = conf.exp_min_input();
         _core->_sigmoid_core.reset(new SigmoidModel);
         LOG(INFO) << "create sigmoid core[" << _core->_sigmoid_core.get()
                 << "], use count[" << _core->_sigmoid_core.use_count() << "].";

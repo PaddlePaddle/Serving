@@ -77,11 +77,6 @@ public:
                 << path << "/" << file << ", at:" << ii << "!";
         } 
         
-        } catch (comcfg::ConfigException e) {
-            LOG(FATAL) 
-                << "Config[" << path << "/" << file << "] format "
-                << "invalid, err: " << e.what();
-            return -1;
         } catch (...) {
             LOG(FATAL) 
                 << "Config[" << path << "/" << file << "] format "
@@ -190,11 +185,6 @@ public:
                 << path << "/" << file << ", at:" << ii << "!";
         } 
         
-        } catch (comcfg::ConfigException e) {
-            LOG(FATAL) 
-                << "Config[" << path << "/" << file << "] format "
-                << "invalid, err: " << e.what();
-            return -1;
         } catch (...) {
             LOG(FATAL) 
                 << "Config[" << path << "/" << file << "] format "

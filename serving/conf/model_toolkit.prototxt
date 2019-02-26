@@ -1,0 +1,10 @@
+engines {
+  name: "image_classification_resnet"
+  type: "FLUID_CPU_NATIVE_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/SE_ResNeXt50_32x4d"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+}

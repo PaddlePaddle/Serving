@@ -1,24 +1,22 @@
 include(src/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
-add_dependencies(sdk-cpp configure proto_configure)
+add_dependencies(sdk-cpp pdcodegen proto_configure)
 target_include_directories(sdk-cpp PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CMKAE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include
         )
-target_link_libraries(sdk-cpp brpc configure proto_configure protobuf leveldb)
+target_link_libraries(sdk-cpp brpc proto_configure protobuf leveldb)
 
 add_executable(ximage ${CMAKE_CURRENT_LIST_DIR}/demo/ximage.cpp)
 target_include_directories(ximage PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
@@ -30,7 +28,6 @@ target_include_directories(mapcnn_dense PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
@@ -42,7 +39,6 @@ target_include_directories(mapcnn_sparse PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
         ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)

@@ -1,2 +1,0 @@
-for i in FileReloader.cpp ConfigReloader.cpp CmdOption.cpp ConfigError.cpp ConfigGroup.cpp ConfigUnit.cpp Configure.cpp constraint/Constraint.cpp constraint/ConstraintFunction.cpp constraint/cc_default.cpp reader/RawData.cpp reader/Reader.cpp utils/init.cpp utils/trans.cpp cfgext.cpp cfgflag.cpp compiler/src/idl.c compiler/src/idl_lex.c compiler/src/idl_gram.c ; do echo -e "\${CMAKE_CURRENT_LIST_DIR}/$i"; done
-

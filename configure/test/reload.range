@@ -1,9 +1,0 @@
-struct ivar_t {
-        int32_t a = range(3, 65535);
-        string b;
-        uint64_t c;
-};
-
-ivar_t ivar;
-
-

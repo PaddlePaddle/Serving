@@ -16,22 +16,19 @@ set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc leveldb bsl pdcodegen configure
+add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen 
         proto_configure
-        ullib spreg mempool)
+        ullib mempool)
 
 target_include_directories(pdserving PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../mempool
-        ${CMAKE_CURRENT_LIST_DIR}/../spreg
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb bsl configure proto_configure ullib spreg
+        brpc protobuf boost leveldb proto_configure ullib 
         mempool -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 add_executable(pdserving_exe ${pdserving_srcs})
@@ -40,21 +37,18 @@ set_source_files_properties(
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
 add_dependencies(pdserving_exe
-        protobuf boost brpc leveldb bsl pdcodegen configure proto_configure
-        ullib spreg mempool)
+        protobuf boost brpc leveldb pdcodegen proto_configure bsl
+        ullib mempool)
 
 target_include_directories(pdserving_exe PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../mempool
-        ${CMAKE_CURRENT_LIST_DIR}/../spreg
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
-target_link_libraries(pdserving_exe brpc protobuf leveldb bsl configure
-        proto_configure ullib spreg mempool -lpthread -lcrypto -lm -lrt -lssl
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
+target_link_libraries(pdserving_exe brpc protobuf leveldb  bsl
+        proto_configure ullib mempool -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 
 add_library(pdclient ${pdclient_srcs})
@@ -68,11 +62,8 @@ target_include_directories(pdclient PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/../proto_configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../proto_configure/include
         ${CMAKE_CURRENT_LIST_DIR}/../mempool
-        ${CMAKE_CURRENT_LIST_DIR}/../spreg
-        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include
-        ${CMAKE_CURRENT_BINARY_DIR}/../bsl/include)
+        ${CMAKE_CURRENT_LIST_DIR}/../ullib/include)
 target_link_libraries(pdclient protobuf boost brpc -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
