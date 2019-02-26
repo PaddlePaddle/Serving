@@ -6,8 +6,6 @@
 #include <pthread.h>
 #include <new>
 #include <butil/atomicops.h>
-#include <bsl/pool.h> // for bsl::mempool
-#include <bsl/string.h>
 #include <butil/logging.h>
 #include <iostream>
 
@@ -224,7 +222,6 @@ public:
     }
 
     char const* debug_str() const {
-        _debug_str.clear();
         uint32_t alloc_blocks = _free_blocks.allocate_blocks();
         uint32_t free_blocks = _free_blocks.free_blocks();
         uint32_t used_mem_mb = _free_blocks.real_used_size();
@@ -233,11 +230,13 @@ public:
         uint32_t mlc_mem_size = _mlc_mem_size.load(butil::memory_order_relaxed);
         uint32_t mlc_mem_count = _mlc_mem_count.load(butil::memory_order_relaxed);
 
-        _debug_str.appendf("[alloc_blks:%u,free_blks:%u,used_mem_kb:%u,"
-                           "big_mem_kb:%u,big_buf_cnt:%u,mlc_mem_kb:%u,mlc_cnt:%u]",
-                           alloc_blocks, free_blocks, used_mem_mb, big_buf_size >> 10,
-                           big_buf_count, mlc_mem_size >> 10, mlc_mem_count);
-        return _debug_str.c_str();
+        std::ostringstream oss;
+        oss << "[alloc_blks:" << alloc_blocks << ",free_blks:" << free_blocks
+            << ",used_mem_kb:" << used_mem_mb << ",big_mem_kb:" << (big_buf_size >> 10)
+            << ",big_buf_cnt:" << big_buf_count << ",mlc_mem_kb:" << (mlc_mem_size >> 10)
+            << ",mlc_cnt:" << mlc_mem_count << "]";
+
+        return oss.str().c_str();
     }
 
     Region();
@@ -269,8 +268,6 @@ private:
 
     butil::atomic<uint32_t> _mlc_mem_size;
     butil::atomic<uint32_t> _mlc_mem_count;
-
-    bsl::string mutable _debug_str;
 };
 
 }
@@ -396,8 +393,14 @@ private:
 };
 
 extern __thread Mempool* g_mempool;
+class mempool {
+public:
+    virtual void * malloc (size_t size) = 0;
+    virtual void free (void *p, size_t size) = 0;
+    inline virtual ~mempool(){}
+};
 
-class GlobalMempool : public bsl::mempool {
+class GlobalMempool : public mempool {
 public:
     GlobalMempool() {
         // do nothing;

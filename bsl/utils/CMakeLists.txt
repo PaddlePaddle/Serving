@@ -1,2 +1,0 @@
-add_library(utils ${CMAKE_CURRENT_LIST_DIR}/bsl_memcpy.cpp)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
