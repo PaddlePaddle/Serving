@@ -69,7 +69,6 @@ include(external/leveldb)
 include(external/protobuf)
 include(external/snappy)
 include(external/brpc)
-include(external/pcre)
 include(external/boost)
 include(flags)
 include(generic)
@@ -83,7 +82,6 @@ set(EXTERNAL_LIBS
     glog
     protobuf
     paddlepaddle
-    pcre
     brpc
 )
 

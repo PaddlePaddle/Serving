@@ -38,7 +38,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
         const std::string& tag_value = split_info.tag_values[ti];
         if (!stub || stub->initialize(var_info, ep_info.endpoint_name,
                     &split_info.split_tag.value, &tag_value) != 0) {
-            LOG(FATAL) << "Failed init stub from factory"
+            LOG(ERROR) << "Failed init stub from factory"
                 << ", stub name: " << ep_info.stub_service
                 << ", filter tag: " << tag_value;
             return -1;
@@ -48,7 +48,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
         std::map<std::string, Stub*>::iterator iter =
             _stub_map.find(tag_value);
         if (iter != _stub_map.end()) {
-            LOG(FATAL) << "duplicated tag value: "
+            LOG(ERROR) << "duplicated tag value: "
                 << tag_value;
             return -1;
         }
@@ -65,7 +65,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
                 ep_info.stub_service);
     if (!stub || stub->initialize(
                 var_info, _endpoint_name, NULL, NULL) != 0) {
-        LOG(FATAL) << "Failed init stub from factory"
+        LOG(ERROR) << "Failed init stub from factory"
             << ", stub name: " << ep_info.stub_service;
         return -1;
     }
@@ -84,7 +84,7 @@ int Variant::thrd_initialize() {
     for (iter = _stub_map.begin(); iter != _stub_map.end(); ++iter) {
         Stub* stub = iter->second;
         if (!stub || stub->thrd_initialize() != 0) {
-            LOG(FATAL) << "Failed thrd initialize stub: " << iter->first; 
+            LOG(ERROR) << "Failed thrd initialize stub: " << iter->first; 
             return -1;
         }
         LOG(INFO) << "Succ thrd initialize stub:" << iter->first;
@@ -103,7 +103,7 @@ int Variant::thrd_clear() {
     for (iter = _stub_map.begin(); iter != _stub_map.end(); ++iter) {
         Stub* stub = iter->second;
         if (!stub || stub->thrd_clear() != 0) {
-            LOG(FATAL) << "Failed thrd clear stub: " << iter->first; 
+            LOG(ERROR) << "Failed thrd clear stub: " << iter->first; 
             return -1;
         }
     }
@@ -119,7 +119,7 @@ int Variant::thrd_finalize() {
     for (iter = _stub_map.begin(); iter != _stub_map.end(); ++iter) {
         Stub* stub = iter->second;
         if (!stub || stub->thrd_finalize() != 0) {
-            LOG(FATAL) << "Failed thrd finalize stub: " << iter->first; 
+            LOG(ERROR) << "Failed thrd finalize stub: " << iter->first; 
             return -1;
         }
     }

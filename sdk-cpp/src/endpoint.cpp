@@ -29,7 +29,7 @@ int Endpoint::initialize(const EndpointInfo& ep_info) {
         const VariantInfo& var_info = ep_info.vars[vi];
         Variant* var = new (std::nothrow) Variant;
         if (!var || var->initialize(ep_info, var_info) != 0) {
-            LOG(FATAL) << "Failed initialize variant, tag:" 
+            LOG(ERROR) << "Failed initialize variant, tag:" 
                 << var_info.parameters.route_tag.value 
                 << ", endpoint: " << ep_info.endpoint_name 
                 << ", var index: " << vi;
@@ -48,7 +48,7 @@ int Endpoint::thrd_initialize() {
     for (uint32_t vi = 0; vi < var_size; ++vi) {
         Variant* var = _variant_list[vi];
         if (!var || var->thrd_initialize()) {
-            LOG(FATAL) << "Failed thrd initialize var: " << vi;
+            LOG(ERROR) << "Failed thrd initialize var: " << vi;
             return -1;
         }
     }
@@ -61,7 +61,7 @@ int Endpoint::thrd_clear() {
     for (uint32_t vi = 0; vi < var_size; ++vi) {
         Variant* var = _variant_list[vi];
         if (!var || var->thrd_clear()) {
-            LOG(FATAL) << "Failed thrd clear var: " << vi;
+            LOG(ERROR) << "Failed thrd clear var: " << vi;
             return -1;
         }
     }
@@ -74,7 +74,7 @@ int Endpoint::thrd_finalize() {
     for (uint32_t vi = 0; vi < var_size; ++vi) {
         Variant* var = _variant_list[vi];
         if (!var || var->thrd_finalize()) {
-            LOG(FATAL) << "Failed thrd finalize var: " << vi;
+            LOG(ERROR) << "Failed thrd finalize var: " << vi;
             return -1;
         }
     }
@@ -91,7 +91,7 @@ Predictor* Endpoint::get_predictor(
     }
 
     if (!var) {
-        LOG(FATAL) << "get null var from endpoint.";
+        LOG(ERROR) << "get null var from endpoint.";
         return NULL;
     }
 
@@ -104,7 +104,7 @@ Predictor* Endpoint::get_predictor() {
 #endif
     if (_variant_list.size() == 1) {
         if (_variant_list[0] == NULL) {
-            LOG(FATAL) << "Not valid variant info"; 
+            LOG(ERROR) << "Not valid variant info"; 
             return NULL;
         }
         return _variant_list[0]->get_predictor();
@@ -117,7 +117,7 @@ int Endpoint::ret_predictor(Predictor* predictor) {
     const Stub* stub = predictor->stub();
     if (!stub || stub->return_predictor(
                 predictor) != 0) {
-        LOG(FATAL) << "Failed return predictor to pool";
+        LOG(ERROR) << "Failed return predictor to pool";
         return -1;
     }
 

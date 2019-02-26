@@ -50,7 +50,7 @@ public:
         std::map<std::string, Endpoint*>::iterator it
             = _endpoints.find(ep_name);
         if (it == _endpoints.end() || !it->second) {
-            LOG(FATAL) << "Failed fetch predictor:"
+            LOG(ERROR) << "Failed fetch predictor:"
                 << ", ep_name: " << ep_name;
             return NULL;
         }
@@ -62,7 +62,7 @@ public:
         std::map<std::string, Endpoint*>::iterator it
             = _endpoints.find(ep_name);
         if (it == _endpoints.end() || !it->second) {
-            LOG(FATAL) << "Failed fetch predictor:"
+            LOG(ERROR) << "Failed fetch predictor:"
                 << ", ep_name: " << ep_name;
             return NULL;
         }
@@ -72,7 +72,7 @@ public:
     int free_predictor(Predictor* predictor) {
         const Stub* stub = predictor->stub();
         if (!stub || stub->return_predictor(predictor) != 0) {
-            LOG(FATAL) << "Failed return predictor via stub";
+            LOG(ERROR) << "Failed return predictor via stub";
             return -1;
         }
 

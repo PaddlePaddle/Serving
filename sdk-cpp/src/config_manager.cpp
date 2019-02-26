@@ -26,7 +26,7 @@ int EndpointConfigManager::create(const char* path, const char* file) {
     _endpoint_config_file = file;
 
     if (load() != 0) {
-        LOG(FATAL) << "Failed reload endpoint config";
+        LOG(ERROR) << "Failed reload endpoint config";
         return -1;
     }
 
@@ -40,7 +40,7 @@ int EndpointConfigManager::load() {
                     _endpoint_config_path.c_str(),
                     _endpoint_config_file.c_str(),
                     &sdk_conf) != 0) {
-            LOG(FATAL)
+            LOG(ERROR)
                 << "Failed initialize endpoint list"
                 << ", config: " << _endpoint_config_path
                 << "/" << _endpoint_config_file;
@@ -50,7 +50,7 @@ int EndpointConfigManager::load() {
         VariantInfo default_var;
         if (init_one_variant(sdk_conf.default_variant_conf(),
                     default_var) != 0) {
-            LOG(FATAL) << "Failed read default var conf";
+            LOG(ERROR) << "Failed read default var conf";
             return -1;
         }
 
@@ -62,14 +62,14 @@ int EndpointConfigManager::load() {
             EndpointInfo ep;
             if (init_one_endpoint(sdk_conf.predictors(ei), ep,
                         default_var) != 0) {
-                LOG(FATAL) << "Failed read endpoint info at: "
+                LOG(ERROR) << "Failed read endpoint info at: "
                         << ei;
                 return -1;
             }
 
             std::map<std::string, EndpointInfo>::iterator it;
             if (_ep_map.find(ep.endpoint_name) != _ep_map.end()) {
-                LOG(FATAL) << "Cannot insert duplicated endpoint"
+                LOG(ERROR) << "Cannot insert duplicated endpoint"
                     << ", ep name: " << ep.endpoint_name;
             }
 
@@ -77,14 +77,14 @@ int EndpointConfigManager::load() {
                 std::string, EndpointInfo>::iterator, bool> r
                 = _ep_map.insert(std::make_pair(ep.endpoint_name, ep));
             if (!r.second) {
-                LOG(FATAL) << "Failed insert endpoint, name"
+                LOG(ERROR) << "Failed insert endpoint, name"
                     << ep.endpoint_name;
                 return -1;
             }
         }
 
     } catch (std::exception& e) {
-        LOG(FATAL) << "Failed load configure" << e.what();
+        LOG(ERROR) << "Failed load configure" << e.what();
         return -1;
     }
     LOG(INFO)
@@ -109,7 +109,7 @@ int EndpointConfigManager::init_one_endpoint(
         PARSE_CONF_ITEM(conf, ep_router, endpoint_router, -1);
         if (ep_router.init) {
             if (ep_router.value != "WeightedRandomRender") {
-                LOG(FATAL) << "endpointer_router unrecognized " << ep_router.value;
+                LOG(ERROR) << "endpointer_router unrecognized " << ep_router.value;
                 return -1;
             }
 
@@ -120,7 +120,7 @@ int EndpointConfigManager::init_one_endpoint(
             const configure::WeightedRandomRenderConf &router_conf =
                 conf.weighted_random_render_conf();
             if (!router || router->initialize(router_conf) != 0) {
-                LOG(FATAL) << "Failed fetch valid ab test strategy"
+                LOG(ERROR) << "Failed fetch valid ab test strategy"
                     << ", name:" << ep_router.value;
                 return -1;
             }
@@ -136,7 +136,7 @@ int EndpointConfigManager::init_one_endpoint(
             VariantInfo var;
             if (merge_variant(dft_var, conf.variants(vi),
                         var) != 0) {
-                LOG(FATAL) << "Failed merge variant info at: "
+                LOG(ERROR) << "Failed merge variant info at: "
                     << vi;
                 return -1;
             }
@@ -145,7 +145,7 @@ int EndpointConfigManager::init_one_endpoint(
         }
 
         if (ep.vars.size() > 1 && ep.ab_test == NULL) {
-            LOG(FATAL) << "EndpointRouter must be configured, when"
+            LOG(ERROR) << "EndpointRouter must be configured, when"
                 << " #Variants > 1.";
             return -1;
         }
@@ -155,7 +155,7 @@ int EndpointConfigManager::init_one_endpoint(
             << ", count of variants: " << ep.vars.size() << ".";
 
     } catch (std::exception& e) {
-        LOG(FATAL) << "Exception acccurs when load endpoint conf"
+        LOG(ERROR) << "Exception acccurs when load endpoint conf"
             << ", message: " << e.what();
         return -1;
     }
@@ -215,7 +215,7 @@ int EndpointConfigManager::init_one_variant(
     PARSE_CONF_ITEM(splits, var.splitinfo.tag_cands_str,
             tag_candidates, -1);
     if (parse_tag_values(var.splitinfo) != 0) {
-        LOG(FATAL) << "Failed parse tag_values:" <<
+        LOG(ERROR) << "Failed parse tag_values:" <<
             var.splitinfo.tag_cands_str.value;
         return -1;
     }
@@ -225,7 +225,7 @@ int EndpointConfigManager::init_one_variant(
             tag, -1);
 
     } catch (...) {
-        LOG(FATAL) << "Failed load variant from configure unit";
+        LOG(ERROR) << "Failed load variant from configure unit";
         return -1;
     }
 
