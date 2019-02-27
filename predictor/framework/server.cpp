@@ -76,11 +76,11 @@ int ServerManager::start_and_wait() {
   }
   _server.RunUntilAskedToQuit();
 
+  ServerManager::stop_reloader();
   if (_wait_reloader() != 0) {
     LOG(ERROR) << "Failed start reloader";
     return -1;
   }
-
   return 0;
 }
 
