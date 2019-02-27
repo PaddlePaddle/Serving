@@ -18,3 +18,8 @@ target_include_directories(test_configure PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
         )
 target_link_libraries(test_configure configure protobuf)
+
+install(TARGETS configure 
+        ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
+        )
+

@@ -12,7 +12,7 @@ do {                                                            \
     int ret = ::baidu::paddle_serving::predictor::FormatServiceManager::instance().regist_service(\
               svr_name, svr);                                   \
     if (ret != 0) {                                             \
-        LOG(FATAL)                                              \
+        LOG(ERROR)                                              \
             << "Failed regist service["                         \
             << svr_name << "]" << "["                           \
             << typeid(svr).name() << "]"                        \
@@ -32,7 +32,7 @@ public:
 
     int regist_service(const std::string& svr_name, Service* svr) {
         if (_service_map.find(svr_name) != _service_map.end()) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Service[" << svr_name << "]["
                 << typeid(svr).name() << "]"
                 << " already exist!";
@@ -42,7 +42,7 @@ public:
         std::pair<boost::unordered_map<std::string, Service*>::iterator, bool> ret;
         ret = _service_map.insert(std::make_pair(svr_name, svr));
         if (ret.second == false) {
-            LOG(FATAL)
+            LOG(ERROR)
                 << "Service[" << svr_name << "]["
                 << typeid(svr).name() << "]"
                 << " insert failed!";

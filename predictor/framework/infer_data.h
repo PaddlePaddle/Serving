@@ -86,14 +86,14 @@ struct Tensor {
     bool valid() const {
         if (shape.empty()) {
             if (data.data() || data.size()) {
-                LOG(FATAL) << "data should be empty";
+                LOG(ERROR) << "data should be empty";
                 return false;
             }
             return true;
         }
 
         if (!data.data() || !data.size()) {
-            LOG(FATAL) << "data cannot empty";
+            LOG(ERROR) << "data cannot empty";
             return false;
         }
 
@@ -103,7 +103,7 @@ struct Tensor {
         } 
 
         if (byte_size * ele_byte() != data.size()) {
-            LOG(FATAL) << "wrong data size: " << byte_size * ele_byte() << " vs. " << data.size();
+            LOG(ERROR) << "wrong data size: " << byte_size * ele_byte() << " vs. " << data.size();
             return false;
         }
 

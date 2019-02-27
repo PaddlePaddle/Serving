@@ -36,7 +36,7 @@ public:
         pthread_mutex_init(&_mutex, NULL);
         FILE* fp = fopen(file_name.c_str(), "r");
         if (!fp) {
-            LOG(FATAL) << "Failed open data file: " 
+            LOG(ERROR) << "Failed open data file: " 
                 << file_name;
             return -1;
         } 
@@ -58,7 +58,7 @@ public:
         for (size_t ri = 0; ri < buf_size; ri++) {
             Request* req = new Request();
             if (generate_one_req(*req, batch_size) != 0) {
-                LOG(FATAL) << "Failed generate req at: " << ri;
+                LOG(ERROR) << "Failed generate req at: " << ri;
                 fclose(fp);
                 return -1;
             }
@@ -229,7 +229,7 @@ void* work(void* p) {
     while (true) {
         Predictor* predictor = api->fetch_predictor("mapcnn");
         if (!predictor) {
-            LOG(FATAL) << "Failed fetch predictor: wasq"; 
+            LOG(ERROR) << "Failed fetch predictor: wasq"; 
             return NULL;
         }
         Request* req = input->next_req();
@@ -237,7 +237,7 @@ void* work(void* p) {
         timeval start;
         gettimeofday(&start, NULL);
         if (predictor->inference(req, &res) != 0) {
-            LOG(FATAL) << "failed call predictor with req:"
+            LOG(ERROR) << "failed call predictor with req:"
                 << req->ShortDebugString();
             return NULL;
         }
@@ -264,19 +264,19 @@ int main(int argc, char** argv) {
     int qps = atoi(argv[4]);
     PredictorApi api;
     if (api.create("./conf", "predictors.conf") != 0) {
-        LOG(FATAL) << "Failed create predictors api!"; 
+        LOG(ERROR) << "Failed create predictors api!"; 
         return -1;
     }
     InputData data;
     if (data.create(
                 "./data/pure_feature", req_buffer, batch_size, qps) != 0) {
-        LOG(FATAL) << "Failed create inputdata!";
+        LOG(ERROR) << "Failed create inputdata!";
         return -1;
     }
     Arg arg = {&api, &data};
     pthread_t* threads = new pthread_t[thread_num];
     if (!threads) {
-        LOG(FATAL) << "Failed create threads, num:" << thread_num;
+        LOG(ERROR) << "Failed create threads, num:" << thread_num;
         return -1;
     }
     for (int i = 0; i < thread_num; ++i) {

@@ -28,7 +28,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
     }
 
     if (thread_num == 0) {
-        LOG(FATAL) << "cannot init BSF with zero thread";
+        LOG(ERROR) << "cannot init BSF with zero thread";
         return -1;
     }
 
@@ -42,7 +42,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         int rc = THREAD_CREATE(
                 &contexts[i].tid, NULL, &TaskExecutor::thread_entry, &contexts[i]);
         if (rc != 0) {
-            LOG(FATAL) << "failed to create BSF worker thread: index=" << i << ", rc=" << rc << ", errno=" << errno << ":" << strerror(errno);
+            LOG(ERROR) << "failed to create BSF worker thread: index=" << i << ", rc=" << rc << ", errno=" << errno << ":" << strerror(errno);
             return -1;
         }
 
@@ -71,7 +71,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         }
 
         if (has_error) {
-            LOG(FATAL) << "BSF thread init error";
+            LOG(ERROR) << "BSF thread init error";
             return -1;
         }
 
@@ -86,7 +86,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
         init_timeout -= sleep_interval;
     }
 
-    LOG(FATAL) << "BSF thread init timed out";
+    LOG(ERROR) << "BSF thread init timed out";
     return -1;
 }
 
@@ -108,19 +108,19 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
         const InArrayT& in, OutArrayT& out) {
     TaskT* task = butil::get_object<TaskT>();
     if (!task) {
-        LOG(FATAL) << "Failed get TaskT from object pool";
+        LOG(ERROR) << "Failed get TaskT from object pool";
         return TaskHandler<TaskT>::valid_handle();
     }
 
     if (!BatchTasks<TaskT>::check_valid(in, out, _batch_align)) {
-        LOG(FATAL) << "Invalid input & output";
+        LOG(ERROR) << "Invalid input & output";
         return TaskHandler<TaskT>::valid_handle();
     }
 
     int fds[2];
     int rc = pipe(fds);
     if (rc != 0) {
-        LOG(FATAL) << "call pipe() failed, errno=" << errno << ":" << strerror(errno);
+        LOG(ERROR) << "call pipe() failed, errno=" << errno << ":" << strerror(errno);
         return TaskHandler<TaskT>::valid_handle();
     }
 
@@ -149,7 +149,7 @@ bool TaskExecutor<TaskT>::fetch_batch(BatchTasks<TaskT>& batch) {
     }
 
     if (_task_queue.empty()) {
-        LOG(FATAL) << "invalid task queue!";
+        LOG(ERROR) << "invalid task queue!";
         return false;
     }
 
@@ -169,7 +169,7 @@ template<typename TaskT>
 int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     if (_thread_init_fn != NULL) {
         if (_thread_init_fn(context->user_thread_context) != 0) {
-            LOG(FATAL) << "execute thread init thunk failed, BSF thread will exit";
+            LOG(ERROR) << "execute thread init thunk failed, BSF thread will exit";
             context->init_status = -1;
             return -1;
         } else {
@@ -181,7 +181,7 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     while (!_stop) {
         if (_thread_reset_fn != NULL) {
             if (_thread_reset_fn(context->user_thread_context) != 0) {
-                LOG(FATAL) << "execute user thread reset failed";
+                LOG(ERROR) << "execute user thread reset failed";
             }
         }
 
@@ -205,7 +205,7 @@ bool TaskManager<InItemT, OutItemT>::schedule(const InArrayT& in,
         _task_owned = handler;
         return true;
     } else {
-        LOG(FATAL) << "failed to schedule task";
+        LOG(ERROR) << "failed to schedule task";
         return false;
     }
 }

@@ -10,7 +10,7 @@ namespace predictor {
 #ifndef CATCH_ANY_AND_RET
 #define CATCH_ANY_AND_RET(errno)            \
     catch (...) {                           \
-        LOG(FATAL) << "exception catched";  \
+        LOG(ERROR) << "exception catched";  \
         return errno;                       \
     }
 #endif

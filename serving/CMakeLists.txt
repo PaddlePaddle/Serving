@@ -12,3 +12,12 @@ target_link_libraries(image_class opencv_imgcodecs
         ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs}
         ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+
+install(TARGETS image_class
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
+
+

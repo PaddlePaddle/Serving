@@ -84,7 +84,7 @@ int Resource::thread_initialize() {
 
     // infer manager
     if (FLAGS_enable_model_toolkit && InferManager::instance().thrd_initialize() != 0) {
-        LOG(FATAL) << "Failed thrd initialized infer manager"; 
+        LOG(ERROR) << "Failed thrd initialized infer manager"; 
         return -1;
     }
 
@@ -92,18 +92,18 @@ int Resource::thread_initialize() {
     if (p_dynamic_resource == NULL) {
         p_dynamic_resource = new (std::nothrow) DynamicResource;
         if (p_dynamic_resource == NULL) {
-            LOG(FATAL) << "failed to create tls DynamicResource";
+            LOG(ERROR) << "failed to create tls DynamicResource";
             return -1;
         }
         if (p_dynamic_resource->initialize() != 0) {
-            LOG(FATAL) << "DynamicResource initialize failed.";
+            LOG(ERROR) << "DynamicResource initialize failed.";
             delete p_dynamic_resource;
             p_dynamic_resource = NULL;
             return -1;
         }
 
         if (THREAD_SETSPECIFIC(_tls_bspec_key, p_dynamic_resource) != 0) {
-            LOG(FATAL) << "unable to set tls DynamicResource";
+            LOG(ERROR) << "unable to set tls DynamicResource";
             delete p_dynamic_resource;
             p_dynamic_resource = NULL;
             return -1;
@@ -128,21 +128,21 @@ int Resource::thread_clear() {
 
     // infer manager
     if (FLAGS_enable_model_toolkit && InferManager::instance().thrd_clear() != 0) {
-        LOG(FATAL) << "Failed thrd clear infer manager"; 
+        LOG(ERROR) << "Failed thrd clear infer manager"; 
         return -1;
     }
 
     DynamicResource* p_dynamic_resource = (DynamicResource*) THREAD_GETSPECIFIC(_tls_bspec_key);
     if (p_dynamic_resource == NULL) {
 #if 0
-        LOG(FATAL) << "tls dynamic resource shouldn't be null after thread_initialize"; 
+        LOG(ERROR) << "tls dynamic resource shouldn't be null after thread_initialize"; 
 #else
-        LOG(FATAL) << bthread_self() << ": tls dynamic resource shouldn't be null after thread_initialize"; 
+        LOG(ERROR) << bthread_self() << ": tls dynamic resource shouldn't be null after thread_initialize"; 
 #endif
         return -1;
     }
     if (p_dynamic_resource->clear() != 0) {
-        LOG(FATAL) << "Failed to invoke dynamic resource clear"; 
+        LOG(ERROR) << "Failed to invoke dynamic resource clear"; 
         return -1;
     }
 
@@ -153,7 +153,7 @@ int Resource::thread_clear() {
 
 int Resource::reload() {
     if (FLAGS_enable_model_toolkit && InferManager::instance().reload() != 0) {
-        LOG(FATAL) << "Failed reload infer manager"; 
+        LOG(ERROR) << "Failed reload infer manager"; 
         return -1;
     }
     
@@ -163,7 +163,7 @@ int Resource::reload() {
 
 int Resource::finalize() {
     if (FLAGS_enable_model_toolkit && InferManager::instance().proc_finalize() != 0) {
-        LOG(FATAL) << "Failed proc finalize infer manager";
+        LOG(ERROR) << "Failed proc finalize infer manager";
         return -1;
     }
 

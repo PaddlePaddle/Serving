@@ -17,12 +17,12 @@ int DagView::init(Dag* dag, const std::string& service_name) {
     for (uint32_t si = 0; si < stage_size; si++) {
         const DagStage* stage = dag->stage_by_index(si);
         if (stage == NULL) {
-            LOG(FATAL) << "Failed get stage by index:" << si;
+            LOG(ERROR) << "Failed get stage by index:" << si;
             return ERR_INTERNAL_FAILURE;
         }
         ViewStage* vstage = butil::get_object<ViewStage>();
         if (vstage == NULL) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Failed get vstage from object pool" 
                 << "at:" << si;
             return ERR_MEM_ALLOC_FAILURE;
@@ -34,13 +34,13 @@ int DagView::init(Dag* dag, const std::string& service_name) {
             DagNode* node = stage->nodes[ni];
             ViewNode* vnode = butil::get_object<ViewNode>();
             if (vnode == NULL) {
-                LOG(FATAL) << "Failed get vnode at:" << ni;
+                LOG(ERROR) << "Failed get vnode at:" << ni;
                 return ERR_MEM_ALLOC_FAILURE;
             }
             // factory type
             Op* op = OpRepository::instance().get_op(node->type);
             if (op == NULL) {
-                LOG(FATAL) << "Failed get op with type:" 
+                LOG(ERROR) << "Failed get op with type:" 
                     << node->type;
                 return ERR_INTERNAL_FAILURE;
             }
@@ -91,7 +91,7 @@ int DagView::execute(butil::IOBufBuilder* debug_os) {
         int errcode = execute_one_stage(_view[si], debug_os);
         TRACEPRINTF("finish to execute stage[%u]", si);
         if (errcode < 0) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "failed execute stage[" 
                 << _view[si]->debug();
             return errcode;
@@ -115,7 +115,7 @@ int DagView::execute_one_stage(ViewStage* vstage,
         int errcode = op->process(debug_os != NULL);
         TRACEPRINTF("finish to execute op[%s]", op->name());
         if (errcode < 0) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Execute failed, Op:" << op->debug_string();
             return errcode;
         }
@@ -156,14 +156,14 @@ const Channel* DagView::get_response_channel() const {
     // Caller obtains response channel from bus, and
     // writes it to rpc response(protbuf/json)
     if (_view.size() < 1) {
-        LOG(FATAL) << "invalid empty view stage!";
+        LOG(ERROR) << "invalid empty view stage!";
         return NULL;
     }
 
     ViewStage* last_stage = _view[_view.size() - 1];
     if (last_stage->nodes.size() != 1 
                     || last_stage->nodes[0] == NULL) {
-        LOG(FATAL) << "Invalid last stage, size[" 
+        LOG(ERROR) << "Invalid last stage, size[" 
                 << last_stage->nodes.size()
                 << "] != 1";
         return NULL;
@@ -171,7 +171,7 @@ const Channel* DagView::get_response_channel() const {
 
     Op* last_op = last_stage->nodes[0]->op;
     if (last_op == NULL) {
-        LOG(FATAL) << "Last op is NULL";
+        LOG(ERROR) << "Last op is NULL";
         return NULL;
     }
     return last_op->mutable_channel();

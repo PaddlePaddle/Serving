@@ -524,7 +524,7 @@ private:
                 "   LOG(INFO) << \"Failed fetch response from stub handler, new it\";\n"
                 "   cur_res = response->New();\n"
                 "   if (cur_res == NULL) {\n"
-                "       LOG(FATAL) << \"Failed new response item!\";\n"
+                "       LOG(ERROR) << \"Failed new response item!\";\n"
                 "       _stub_handler->update_average(1, \"pack_fail\");\n"
                 "       return brpc::SubCall::Bad();\n"
                 "   }\n"
@@ -548,7 +548,7 @@ private:
                 "   response->MergeFrom(*sub_response);\n"
                 "   return brpc::ResponseMerger::MERGED;\n"
                 "} catch (const std::exception& e) {\n"
-                "   LOG(FATAL) << \"Merge failed.\";\n"
+                "   LOG(ERROR) << \"Merge failed.\";\n"
                 "   _stub_handler->update_average(1, \"pack_fail\");\n"
                 "   return brpc::ResponseMerger::FAIL;\n"
                 "}\n");
@@ -603,7 +603,7 @@ private:
                 printer->Print(
                         "sub_req = dynamic_cast<$req_type$*>(_stub_handler->fetch_request());\n"
                         "if (sub_req == NULL) {\n"
-                        "    LOG(FATAL) << \"failed fetch sub_req from stub.\";\n"
+                        "    LOG(ERROR) << \"failed fetch sub_req from stub.\";\n"
                         "    _stub_handler->update_average(1, \"pack_fail\");\n"
                         "    return brpc::SubCall::Bad();\n"
                         "}\n",
@@ -613,7 +613,7 @@ private:
             } else {
                 printer->Print(
                         "if (req->$field_name$_size() != total_size) {\n"
-                        "    LOG(FATAL) << \"pack field size not consistency: \"\n"
+                        "    LOG(ERROR) << \"pack field size not consistency: \"\n"
                         "               << total_size << \"!=\" << req->$field_name$_size()\n"
                         "               << \", field: $field_name$.\";\n"
                         "    _stub_handler->update_average(1, \"pack_fail\");\n"
@@ -643,7 +643,7 @@ private:
                     "if (sub_req == NULL) { // no packed items\n"
                     "   sub_req = dynamic_cast<$req_type$*>(_stub_handler->fetch_request());\n"
                     "   if (!sub_req) {\n"
-                    "       LOG(FATAL) << \"failed fetch sub_req from stub handler.\";\n"
+                    "       LOG(ERROR) << \"failed fetch sub_req from stub handler.\";\n"
                     "       _stub_handler->update_average(1, \"pack_fail\");\n"
                     "       return brpc::SubCall::Bad();\n"
                     "   }\n"
@@ -681,7 +681,7 @@ private:
         printer->Print(
                 "google::protobuf::Message* sub_res = _stub_handler->fetch_response();\n"
                 "if (sub_res == NULL) {\n"
-                "    LOG(FATAL) << \"failed create sub_res from res.\";\n"
+                "    LOG(ERROR) << \"failed create sub_res from res.\";\n"
                 "    _stub_handler->update_average(1, \"pack_fail\");\n"
                 "    return brpc::SubCall::Bad();\n"
                 "}\n"

@@ -111,23 +111,23 @@ public:
             const InArrayT& in, OutArrayT& out, bool align) {
         if (align) {
             if (out.count() <= 0 || out.size() <= 0) {
-                LOG(FATAL) << "Out tensor is empty, when aligned";
+                LOG(ERROR) << "Out tensor is empty, when aligned";
                 return false;
             }
 
             if (out.size() != in.size()) {
-                LOG(FATAL) << "In/Out tensor size not eq: " << out.size() << "!=" << in.size();
+                LOG(ERROR) << "In/Out tensor size not eq: " << out.size() << "!=" << in.size();
                 return false;
             }
 
             for (size_t fi = 0, shape0 = 0; fi < out.count(); ++fi) {
                 if (!out[fi].valid()) {
-                    LOG(FATAL) << "Out[" << fi << "] tensor not valid";
+                    LOG(ERROR) << "Out[" << fi << "] tensor not valid";
                     return false;
                 }
 
                 if (out.size() != out[fi].shape0()) {
-                    LOG(FATAL) << "Shape0 not consistency, " << out.size() << "!=" << out[fi].shape0() << ", " << fi;
+                    LOG(ERROR) << "Shape0 not consistency, " << out.size() << "!=" << out[fi].shape0() << ", " << fi;
                     return false;
                 }
             }
@@ -231,7 +231,7 @@ public:
             void* data_buf
                 = MempoolWrapper::instance().malloc(tensor_byte);
             if (!data_buf) {
-                LOG(FATAL) << "Malloc failed, size: " << tensor_byte;
+                LOG(ERROR) << "Malloc failed, size: " << tensor_byte;
                 return ;
             }
 
@@ -240,7 +240,7 @@ public:
                 TaskMetaT& tm = _tasks[ti];
                 size_t acc_byte = ins_byte * (tm.end - tm.begin);
                 if (data_byte + acc_byte > tensor_byte) {
-                    LOG(FATAL) << "Invalid bytes: " << data_byte << " + " << acc_byte << " >= " << tensor_byte;
+                    LOG(ERROR) << "Invalid bytes: " << data_byte << " + " << acc_byte << " >= " << tensor_byte;
                     return ;
                 }
 
@@ -252,7 +252,7 @@ public:
             }
 
             if (data_byte != tensor_byte) {
-                LOG(FATAL) << "Invalid tensor byte: " << data_byte << " != " << tensor_byte; 
+                LOG(ERROR) << "Invalid tensor byte: " << data_byte << " != " << tensor_byte; 
                 return ;
             }
 
@@ -270,7 +270,7 @@ public:
 
     void notify_tasks() {
         if (_batch_out.size() != _batch_in.size()) {
-            LOG(FATAL) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
+            LOG(ERROR) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
             return ;
         }
 

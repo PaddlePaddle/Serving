@@ -30,7 +30,7 @@ int InferService::init(const configure::InferService& conf) {
 
     ServerManager& svr_mgr = ServerManager::instance();
     if (svr_mgr.add_service_by_format(_infer_service_format) != 0) {
-        LOG(FATAL) 
+        LOG(ERROR) 
             << "Not found service by format name:"
             << _infer_service_format << "!";
         return ERR_INTERNAL_FAILURE;
@@ -44,7 +44,7 @@ int InferService::init(const configure::InferService& conf) {
     if (_enable_map_request_to_workflow) {
         if (_request_to_workflow_map.init(
                 MAX_WORKFLOW_NUM_IN_ONE_SERVICE/*load_factor=80*/) != 0) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "init request to workflow map failed, bucket_count["
                 << MAX_WORKFLOW_NUM_IN_ONE_SERVICE << "].";
             return ERR_INTERNAL_FAILURE;
@@ -52,7 +52,7 @@ int InferService::init(const configure::InferService& conf) {
         int err = 0;
         _request_field_key = conf.request_field_key().c_str();
         if (_request_field_key == "") {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "read request_field_key failed, request_field_key[" 
                 << _request_field_key << "].";
             return ERR_INTERNAL_FAILURE;
@@ -74,7 +74,7 @@ int InferService::init(const configure::InferService& conf) {
                 Workflow* workflow = 
                     WorkflowManager::instance().item(tokens[ti]);
                 if (workflow == NULL) {
-                    LOG(FATAL) 
+                    LOG(ERROR) 
                         << "Failed get workflow by name:" 
                         << tokens[ti] << ", ti: " << ti;
                     return ERR_INTERNAL_FAILURE;
@@ -85,7 +85,7 @@ int InferService::init(const configure::InferService& conf) {
 
             const std::string& request_field_value = conf.value_mapped_workflows(fi).request_field_value();
             if (_request_to_workflow_map.insert(request_field_value, workflows) == NULL) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "insert [" << request_field_value << "," 
                     << list << "] to _request_to_workflow_map failed.";
                 return ERR_INTERNAL_FAILURE;
@@ -100,7 +100,7 @@ int InferService::init(const configure::InferService& conf) {
             Workflow* workflow = 
                 WorkflowManager::instance().item(workflow_name);
             if (workflow == NULL) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "Failed get workflow by name:" 
                     << workflow_name;
                 return ERR_INTERNAL_FAILURE;
@@ -158,7 +158,7 @@ int InferService::inference(
             int errcode = _execute_workflow(workflow, request, response, debug_os);
             TRACEPRINTF("finish to execute workflow[%s]", workflow->name().c_str());
             if (errcode < 0) {
-                LOG(FATAL) << "Failed execute workflow[" << workflow->name()
+                LOG(ERROR) << "Failed execute workflow[" << workflow->name()
                         << "] in:" << name();
                 return errcode;
             }
@@ -171,7 +171,7 @@ int InferService::inference(
             int errcode = execute_one_workflow(fi, request, response, debug_os);
             TRACEPRINTF("finish to execute one workflow-%lu", fi);
             if (errcode < 0) {
-                LOG(FATAL) << "Failed execute 0-th workflow in:" << name();
+                LOG(ERROR) << "Failed execute 0-th workflow in:" << name();
                 return errcode;
             }
         }
@@ -192,7 +192,7 @@ int InferService::execute_one_workflow(
         google::protobuf::Message* response,
         butil::IOBufBuilder* debug_os) {
     if (index >= _flows.size()) {
-        LOG(FATAL) << "Faield execute workflow, index: "
+        LOG(ERROR) << "Faield execute workflow, index: "
             << index << " >= max:" << _flows.size();
         return ERR_OVERFLOW_FAILURE;
     } 
@@ -217,7 +217,7 @@ int InferService::_execute_workflow(
     // call actual inference interface
     int errcode = dv->execute(debug_os);
     if (errcode < 0) {
-        LOG(FATAL) << "Failed execute dag for workflow:"
+        LOG(ERROR) << "Failed execute dag for workflow:"
             << workflow->name();
         return errcode;
     }
@@ -226,7 +226,7 @@ int InferService::_execute_workflow(
     // create ender channel and copy
     const Channel* res_channel = dv->get_response_channel();
     if (!_merger || !_merger->merge(res_channel->message(), response)) {
-        LOG(FATAL) << "Failed merge channel res to response"; 
+        LOG(ERROR) << "Failed merge channel res to response"; 
         return ERR_INTERNAL_FAILURE;
     }
     TRACEPRINTF("finish to copy from");

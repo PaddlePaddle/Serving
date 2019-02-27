@@ -16,6 +16,7 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(PADDLE_SERVING_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(PADDLE_SERVING_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+SET(PADDLE_SERVING_INSTALL_DIR ${CMAKE_BINARY_DIR}/output)
 
 include(system)
 
@@ -39,12 +40,6 @@ endif()
 
 set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
   "A path setting third party libraries download & build directories.")
-
-set(FLUID_INSTALL_DIR "${CMAKE_BINARY_DIR}/fluid_install_dir" CACHE STRING
-  "A path setting fluid shared and static libraries")
-
-set(FLUID_INFERENCE_INSTALL_DIR "${CMAKE_BINARY_DIR}/fluid_inference_install_dir" CACHE STRING
-  "A path setting fluid inference shared and static libraries")
 
 set(THIRD_PARTY_BUILD_TYPE Release)
 
@@ -99,3 +94,6 @@ add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
 add_subdirectory(serving)
 add_subdirectory(sdk-cpp)
+
+
+
