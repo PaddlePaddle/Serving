@@ -40,3 +40,14 @@ target_include_directories(mapcnn_sparse PUBLIC
 target_link_libraries(mapcnn_sparse sdk-cpp -lpthread -lcrypto -lm -lrt -lssl
         -ldl -lz)
 
+# install
+install(TARGETS sdk-cpp
+        ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
+        )
+
+install(TARGETS ximage
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/)

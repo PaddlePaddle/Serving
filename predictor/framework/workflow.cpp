@@ -24,12 +24,12 @@ DagView* Workflow::fetch_dag_view(const std::string& service_name) {
     } else if (_type == "Parallel") {
         view = butil::get_object<ParallelDagView>();
     } else {
-        LOG(FATAL) 
+        LOG(ERROR) 
             << "Unknown dag type:" << _type << "!";
         return NULL;
     }
     if (view == NULL) {
-        LOG(FATAL) << "create dag view from pool failed!";
+        LOG(ERROR) << "create dag view from pool failed!";
         return NULL;
     }
     view->init(&_dag, service_name);
@@ -44,7 +44,7 @@ void Workflow::return_dag_view(DagView* view) {
         butil::return_object<ParallelDagView>(
             dynamic_cast<ParallelDagView*>(view));
     } else {
-        LOG(FATAL) 
+        LOG(ERROR) 
             << "Unknown dag type:" << _type << "!";
         return ;
     }

@@ -43,7 +43,7 @@ public:
         OpChannel<T>* op_channel = 
             dynamic_cast<OpChannel<T>*>(channel);
         if (!op_channel) {
-            LOG(FATAL) << "Cannot dynamic cast channel of op:" 
+            LOG(ERROR) << "Cannot dynamic cast channel of op:" 
                 << this->name() << " to type: " << typeid(T).name();
             return NULL;
         }
@@ -63,7 +63,7 @@ public:
         const OpChannel<T>* op_channel = 
             dynamic_cast<const OpChannel<T>*>(channel);
         if (!op_channel) {
-            LOG(FATAL) << "Cannot dynamic cast channel of op:" 
+            LOG(ERROR) << "Cannot dynamic cast channel of op:" 
                 << this->name() << " to type: " << typeid(T).name();
             return NULL;
         }
@@ -197,7 +197,7 @@ public:
 
         _channel = butil::get_object<ChannelType>();
         if (!_channel) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Failed mutable channel of type:"
                 << typeid(T).name();
             return NULL;

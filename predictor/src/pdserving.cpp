@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
 
     int errcode = bthread_set_worker_startfn(pthread_worker_start_fn);
     if (errcode != 0) {
-        LOG(FATAL) << "Failed call pthread worker start function, error_code[" << errcode << "]";
+        LOG(ERROR) << "Failed call pthread worker start function, error_code[" << errcode << "]";
         return -1;
     }
     LOG(INFO) << "Succ call pthread worker start function";

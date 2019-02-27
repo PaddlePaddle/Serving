@@ -41,7 +41,7 @@ public:
     int initialize(const std::string path, const std::string file) {
         WorkflowConf workflow_conf;
         if (configure::read_proto_conf(path, file, &workflow_conf) != 0) {
-            LOG(FATAL) << "Failed load manager<" << Workflow::tag() << "> configure from " << path << "/" << file;
+            LOG(ERROR) << "Failed load manager<" << Workflow::tag() << "> configure from " << path << "/" << file;
             return -1;
         }
 
@@ -52,11 +52,11 @@ public:
             std::string name = workflow_conf.workflows(ii).name();
             Workflow* item = new (std::nothrow) Workflow();
             if (item == NULL) {
-                LOG(FATAL) << "Failed create " << Workflow::tag() << " for: " << name;
+                LOG(ERROR) << "Failed create " << Workflow::tag() << " for: " << name;
                 return -1;
             }
             if (item->init(workflow_conf.workflows(ii)) != 0) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "Failed init item: " << name << " at:"
                     << ii << "!";
                 return -1;
@@ -66,7 +66,7 @@ public:
                 typename boost::unordered_map<std::string, Workflow*>::iterator, bool>
                 r = _item_map.insert(std::make_pair(name, item));
             if (!r.second) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "Failed insert item:" << name << " at:"
                     << ii << "!";
                 return -1;
@@ -78,7 +78,7 @@ public:
         } 
         
         } catch (...) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Config[" << path << "/" << file << "] format "
                 << "invalid, load failed";
             return -1;
@@ -149,7 +149,7 @@ public:
     int initialize(const std::string path, const std::string file) {
         InferServiceConf infer_service_conf;
         if (configure::read_proto_conf(path, file, &infer_service_conf) != 0) {
-            LOG(FATAL) << "Failed load manager<" << InferService::tag() << "> configure!";
+            LOG(ERROR) << "Failed load manager<" << InferService::tag() << "> configure!";
             return -1;
         }
 
@@ -160,11 +160,11 @@ public:
             std::string name = infer_service_conf.services(ii).name();
             InferService* item = new (std::nothrow) InferService();
             if (item == NULL) {
-                LOG(FATAL) << "Failed create " << InferService::tag() << " for: " << name;
+                LOG(ERROR) << "Failed create " << InferService::tag() << " for: " << name;
                 return -1;
             }
             if (item->init(infer_service_conf.services(ii)) != 0) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "Failed init item: " << name << " at:"
                     << ii << "!";
                 return -1;
@@ -174,7 +174,7 @@ public:
                 typename boost::unordered_map<std::string, InferService*>::iterator, bool>
                 r = _item_map.insert(std::make_pair(name, item));
             if (!r.second) {
-                LOG(FATAL) 
+                LOG(ERROR) 
                     << "Failed insert item:" << name << " at:"
                     << ii << "!";
                 return -1;
@@ -186,7 +186,7 @@ public:
         } 
         
         } catch (...) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Config[" << path << "/" << file << "] format "
                 << "invalid, load failed";
             return -1;

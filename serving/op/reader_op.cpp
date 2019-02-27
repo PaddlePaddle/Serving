@@ -46,7 +46,7 @@ int ReaderOp::inference() {
         const char* binary = ins.image_binary().c_str();
         size_t length = ins.image_length();
         if (length == 0) {
-            LOG(FATAL) << "Empty image, length is 0"; 
+            LOG(ERROR) << "Empty image, length is 0"; 
             return -1;
         }
 

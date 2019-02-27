@@ -34,7 +34,7 @@ int Dag::deinit() {
             if (conf != NULL) {
                 Op* op = OpRepository::instance().get_op(node->type);
                 if (op == NULL) {
-                    LOG(FATAL) << "Failed to get_op, op type[" << node->type << "]";
+                    LOG(ERROR) << "Failed to get_op, op type[" << node->type << "]";
                     return -1;
                 }
                 op->delete_config(conf);
@@ -89,7 +89,7 @@ EdgeMode Dag::parse_mode(std::string& mode) {
 int Dag::init(const char* path, const char* file, const std::string& name) {
     comcfg::Configure conf;
     if (conf.load(path, file) != 0) {
-        LOG(FATAL) << "Failed load conf from" 
+        LOG(ERROR) << "Failed load conf from" 
             << path << "/" << file << " in dag: "
             << name;
         return ERR_INTERNAL_FAILURE;
@@ -123,7 +123,7 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
         }
         Op* op = OpRepository::instance().get_op(node->type);
         if (op == NULL) {
-            LOG(FATAL) << "Failed to get_op, op type[" << node->type << "]";
+            LOG(ERROR) << "Failed to get_op, op type[" << node->type << "]";
             return ERR_INTERNAL_FAILURE;
         }
         // node->conf could be NULL
@@ -134,7 +134,7 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
     }
 
     if (topo_sort() != 0) {
-        LOG(FATAL) << "Topo sort dag[" << _dag_name << "] failed!";
+        LOG(ERROR) << "Topo sort dag[" << _dag_name << "] failed!";
         return ERR_INTERNAL_FAILURE;
     }
 
@@ -228,7 +228,7 @@ void Dag::regist_metric(const std::string& service_name) {
                     OP_METRIC_PREFIX + service_name + NAME_DELIMITER + node->full_name);
             Op* op = OpRepository::instance().get_op(node->type);
             if (op == NULL) {
-                LOG(FATAL) << "Failed to get_op, op type[" << node->type << "]";
+                LOG(ERROR) << "Failed to get_op, op type[" << node->type << "]";
                 return;
             }
             op->set_full_name(service_name + NAME_DELIMITER + node->full_name);

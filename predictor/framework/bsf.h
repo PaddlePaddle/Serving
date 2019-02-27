@@ -121,7 +121,7 @@ public:
 
     void notify_tasks() {
         if (_batch_out.size() != _batch_in.size()) {
-            LOG(FATAL) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
+            LOG(ERROR) << "batch size not consistency: " << _batch_out.size() << " != " << _batch_in.size();
             return ;
         }
 
@@ -133,7 +133,7 @@ public:
 
             for (size_t oi = begin; oi < end; ++oi, ++bi) {
                 if (bi >= _batch_in.size()) {
-                    LOG(FATAL) << "batch index overflow: " << bi << " > " <<_batch_in.size();
+                    LOG(ERROR) << "batch index overflow: " << bi << " > " <<_batch_in.size();
                     return ;
                 }
                 (*task->out)[oi] = _batch_out[bi];

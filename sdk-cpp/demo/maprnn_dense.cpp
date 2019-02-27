@@ -295,7 +295,7 @@ public:
         _data_record = data;
         /*FILE* fp = fopen(file_name.c_str(), "r");
         if (!fp) {
-            LOG(FATAL) << "Failed open data file: " 
+            LOG(ERROR) << "Failed open data file: " 
                 << file_name;
             return -1;
         } 
