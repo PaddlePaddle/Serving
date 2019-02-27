@@ -78,12 +78,12 @@ public:
         _infer_batch_size = conf.batch_infer_size();
         _infer_batch_align = conf.enable_batch_align();
         if (!check_need_reload() || load(_model_data_path) != 0) {
-            LOG(FATAL) << "Failed load model_data_path" << _model_data_path;
+            LOG(ERROR) << "Failed load model_data_path" << _model_data_path;
             return -1;
         }
 
         if (parse_version_info(conf, version) != 0) {
-            LOG(FATAL) << "Failed parse version info";
+            LOG(ERROR) << "Failed parse version info";
             return -1;
         }
 
@@ -93,7 +93,7 @@ public:
 
     int proc_initialize(const configure::EngineDesc& conf, bool version) {
         if (proc_initialize_impl(conf, version) != 0) {
-            LOG(FATAL) << "Failed proc initialize impl";
+            LOG(ERROR) << "Failed proc initialize impl";
             return -1;
         }
 
@@ -112,7 +112,7 @@ public:
         im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(_infer_batch_align);
         if (im::bsf::TaskExecutor<TaskT>::instance()->start(_infer_thread_num)
                 != 0) {
-            LOG(FATAL) << "Failed start bsf executor, threads:" << _infer_thread_num;
+            LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
             return -1;
         }
 
@@ -152,7 +152,7 @@ public:
 
     int proc_finalize() {
         if (proc_finalize_impl() != 0) {
-            LOG(FATAL) << "Failed proc finalize impl";
+            LOG(ERROR) << "Failed proc finalize impl";
             return -1;
         }
 
@@ -198,7 +198,7 @@ private:
         } else if (_reload_mode_tag == "none") {
             return false;
         } else {
-            LOG(FATAL) << "Not support check type: "
+            LOG(ERROR) << "Not support check type: "
                 << _reload_mode_tag;
             return false;
         }
@@ -207,7 +207,7 @@ private:
     bool check_timestamp_ne() {
         struct stat st;
         if (stat(_reload_tag_file.c_str(), &st) != 0) {
-            LOG(FATAL) << "Failed stat config file:"
+            LOG(ERROR) << "Failed stat config file:"
                 << _reload_tag_file;
             return false;
         }
@@ -224,7 +224,7 @@ private:
     bool check_timestamp_gt() {
         struct stat st;
         if (stat(_reload_tag_file.c_str(), &st) != 0) {
-            LOG(FATAL) << "Failed stat config file:"
+            LOG(ERROR) << "Failed stat config file:"
                 << _reload_tag_file;
             return false;
         }
@@ -293,7 +293,7 @@ public:
 
         for (uint32_t ti = 0; ti < _reload_vec.size(); ++ti) {
             if (load_data(_reload_vec[ti], model_data_dir) != 0) {
-                LOG(FATAL) << "Failed reload engine model: " << ti;
+                LOG(ERROR) << "Failed reload engine model: " << ti;
                 return -1;
             }
         }
@@ -312,7 +312,7 @@ public:
         md->cores[next_idx] = new (std::nothrow) EngineCore;
         if (!md->cores[next_idx]
                 || md->cores[next_idx]->create(data_path) != 0) {
-            LOG(FATAL) << "Failed create model, path: " << data_path;
+            LOG(ERROR) << "Failed create model, path: " << data_path;
             return -1;
         }
         md->current_idx = next_idx;
@@ -322,13 +322,13 @@ public:
     virtual int thrd_initialize_impl() {
         // memory pool to be inited in non-serving-threads
         if (MempoolWrapper::instance().thread_initialize() != 0) {
-            LOG(FATAL) << "Failed thread initialize mempool";
+            LOG(ERROR) << "Failed thread initialize mempool";
             return -1;
         }
         
         ModelData<EngineCore>* md = new(std::nothrow) ModelData<EngineCore>;
         if (!md || load_data(md, _model_data_path) != 0) {
-            LOG(FATAL) << "Failed create thread data from " << _model_data_path;
+            LOG(ERROR) << "Failed create thread data from " << _model_data_path;
             return -1;
         }
 
@@ -341,7 +341,7 @@ public:
     int thrd_clear_impl() {
         // for non-serving-threads
         if (MempoolWrapper::instance().thread_clear() != 0) {
-            LOG(FATAL) << "Failed thread clear mempool";
+            LOG(ERROR) << "Failed thread clear mempool";
             return -1;
         }
         return 0;
@@ -360,7 +360,7 @@ public:
     EngineCore* get_core() {
         ModelData<EngineCore>* md = (ModelData<EngineCore>*)THREAD_GETSPECIFIC(_skey);
         if (!md) {
-            LOG(FATAL) << "Failed get thread specific data";
+            LOG(ERROR) << "Failed get thread specific data";
             return NULL;
         }
         return md->cores[md->current_idx];
@@ -382,7 +382,7 @@ public:
     virtual int proc_initialize(const configure::EngineDesc& conf, bool version) {
         _pd = new (std::nothrow) ModelData<EngineCore>;
         if (!_pd) {
-            LOG(FATAL) << "Failed to allocate for ProcData";
+            LOG(ERROR) << "Failed to allocate for ProcData";
             return -1;
         }
         return DBReloadableInferEngine<EngineCore>::proc_initialize(
@@ -393,7 +393,7 @@ public:
         // 加载进程级模型数据
         if (!_pd || DBReloadableInferEngine<EngineCore>::load_data(
                     _pd, model_data_dir) != 0) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Failed to create common model from [" 
                 << model_data_dir << "].";
             return -1;
@@ -409,7 +409,7 @@ public:
         for (uint32_t ti = 0; ti < DBReloadableInferEngine<EngineCore>::_reload_vec.size(); ++ti) {
             if (load_data(DBReloadableInferEngine<EngineCore>::_reload_vec[ti],
                         _pd->cores[_pd->current_idx]) != 0) {
-                LOG(FATAL) << "Failed reload engine model: " << ti;
+                LOG(ERROR) << "Failed reload engine model: " << ti;
                 return -1;
             }
         }
@@ -431,7 +431,7 @@ public:
         td->cores[next_idx] = new (std::nothrow) EngineCore;
         if (!td->cores[next_idx]
                 || td->cores[next_idx]->clone(pd_core->get()) != 0) {
-            LOG(FATAL) << "Failed clone model from pd_core[ " << pd_core
+            LOG(ERROR) << "Failed clone model from pd_core[ " << pd_core
                     << "], idx[" << next_idx << "]";
             return -1;
         }
@@ -446,13 +446,13 @@ public:
     virtual int thrd_initialize_impl() {
         // memory pool to be inited in non-serving-threads
         if (MempoolWrapper::instance().thread_initialize() != 0) {
-            LOG(FATAL) << "Failed thread initialize mempool";
+            LOG(ERROR) << "Failed thread initialize mempool";
             return -1;
         }
         
         ModelData<EngineCore>* md = new(std::nothrow) ModelData<EngineCore>;
         if (!md || load_data(md, _pd->cores[_pd->current_idx]) != 0) {
-            LOG(FATAL) << "Failed clone thread data, origin_core["
+            LOG(ERROR) << "Failed clone thread data, origin_core["
                     << _pd->cores[_pd->current_idx] << "].";
             return -1;
         }
@@ -477,12 +477,12 @@ public:
         FluidFamilyCore* core
             = DBReloadableInferEngine<FluidFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get fluid core in infer_impl()";
+            LOG(ERROR) << "Failed get fluid core in infer_impl()";
             return -1;
         }
         
         if (!core->Run(in, out)) {
-            LOG(FATAL) << "Failed run fluid family core";
+            LOG(ERROR) << "Failed run fluid family core";
             return -1;
         }
         return 0;
@@ -503,19 +503,19 @@ public:
         TensorrtFamilyCore* core
             = DBReloadableInferEngine<TensorrtFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get fluid core in infer_impl()";
+            LOG(ERROR) << "Failed get fluid core in infer_impl()";
             return -1;
         }
 
         if (!core->Run(in, out, batch_size)) {
-            LOG(FATAL) << "Failed run fluid family core";
+            LOG(ERROR) << "Failed run fluid family core";
             return -1;
         }
         return 0;
     }
 
     int infer_impl2(const BatchTensor& in, BatchTensor& out) {
-        LOG(FATAL) << "Tensortrt donot supports infer_impl2 yet!";
+        LOG(ERROR) << "Tensortrt donot supports infer_impl2 yet!";
         return -1;
     }
 };
@@ -527,12 +527,12 @@ public:
     ~AbacusInferEngine() {}
 
     int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
-        LOG(FATAL) << "Abacus dnn engine must use predict interface";
+        LOG(ERROR) << "Abacus dnn engine must use predict interface";
         return -1;
     }
 
     int infer_impl2(const BatchTensor& in, BatchTensor& out) {
-        LOG(FATAL) << "Abacus dnn engine must use predict interface";
+        LOG(ERROR) << "Abacus dnn engine must use predict interface";
         return -1;
     }
 
@@ -541,7 +541,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in predict()";
+            LOG(ERROR) << "Failed get abacus core in predict()";
             return -1;
         }
 
@@ -551,7 +551,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in predict()";
+            LOG(ERROR) << "Failed get abacus core in predict()";
             return -1;
         }
 
@@ -561,7 +561,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in debug()";
+            LOG(ERROR) << "Failed get abacus core in debug()";
             return -1;
         }
         return core->debug();
@@ -571,7 +571,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in set_serach_id()";
+            LOG(ERROR) << "Failed get abacus core in set_serach_id()";
             return -1;
         }
         return core->set_search_id(sid);
@@ -581,7 +581,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in set_layer_dim()";
+            LOG(ERROR) << "Failed get abacus core in set_layer_dim()";
             return -1;
         }
         return core->set_hidden_layer_dim(dim);
@@ -592,7 +592,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in get_input()";
+            LOG(ERROR) << "Failed get abacus core in get_input()";
             return -1;
         }
         return core->get_input(ins_idx, fea_num, in);
@@ -603,7 +603,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in get_layer_value()";
+            LOG(ERROR) << "Failed get abacus core in get_layer_value()";
             return -1;
         }
         return core->get_layer_value(name, ins_num, fea_dim, out);
@@ -613,7 +613,7 @@ public:
         AbacusFamilyCore* core
                 = CloneDBReloadableInferEngine<AbacusFamilyCore>::get_core();
         if (!core || !core->get()) {
-            LOG(FATAL) << "Failed get abacus core in set_position_idx()";
+            LOG(ERROR) << "Failed get abacus core in set_position_idx()";
             return;
         }
         core->set_position_idx(input, fea, ins_idx);
@@ -628,12 +628,12 @@ public:
     ~PaddleV2InferEngine() {}
     
     int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
-        LOG(FATAL) << "Paddle V2 engine must use predict interface";
+        LOG(ERROR) << "Paddle V2 engine must use predict interface";
         return -1;
     }
 
     int infer_impl2(const BatchTensor& in, BatchTensor& out) {
-        LOG(FATAL) << "Paddle V2 engine must use predict interface";
+        LOG(ERROR) << "Paddle V2 engine must use predict interface";
         return -1;
     }
 };
@@ -649,7 +649,7 @@ public:
 
     int proc_initialize(const configure::EngineDesc& conf) {
         if (proc_initialize(conf, false) != 0) {
-            LOG(FATAL) << "Failed proc intialize engine: " 
+            LOG(ERROR) << "Failed proc intialize engine: " 
                         << conf.name().c_str();
             return -1;
         }
@@ -665,20 +665,20 @@ public:
             = StaticInferFactory::instance().generate_object(
                     engine_type);
         if (!engine) {
-            LOG(FATAL) << "Failed generate engine with type:"
+            LOG(ERROR) << "Failed generate engine with type:"
                 << engine_type;
             return -1;
         }
 
         if (engine->proc_initialize(conf, version) != 0) {
-            LOG(FATAL) << "Failed initialize engine, type:"
+            LOG(ERROR) << "Failed initialize engine, type:"
                 << engine_type;
             return -1;
         }
 
         auto r = _versions.insert(std::make_pair(engine->version(), engine));
         if (!r.second) {
-            LOG(FATAL) << "Failed insert item: " << engine->version() 
+            LOG(ERROR) << "Failed insert item: " << engine->version() 
                 << ", type: " << engine_type;
             return -1;
         }
@@ -690,7 +690,7 @@ public:
     int proc_finalize() {
         for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
             if (iter->second->proc_finalize() != 0) {
-                LOG(FATAL) << "Failed proc finalize version engine: " <<
+                LOG(ERROR) << "Failed proc finalize version engine: " <<
                     iter->first;
             }
             LOG(WARNING) 
@@ -702,7 +702,7 @@ public:
     int thrd_initialize() {
         for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
             if (iter->second->thrd_initialize() != 0) {
-                LOG(FATAL) << "Failed thrd initialize version engine: " <<
+                LOG(ERROR) << "Failed thrd initialize version engine: " <<
                     iter->first;
                 return -1;
             }
@@ -715,7 +715,7 @@ public:
     int thrd_clear() {
         for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
             if (iter->second->thrd_clear() != 0) {
-                LOG(FATAL) << "Failed thrd clear version engine: " << 
+                LOG(ERROR) << "Failed thrd clear version engine: " << 
                     iter->first;
                 return -1;
             }
@@ -727,7 +727,7 @@ public:
     int thrd_finalize() {
         for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
             if (iter->second->thrd_finalize() != 0) {
-                LOG(FATAL) << "Failed thrd finalize version engine: " << 
+                LOG(ERROR) << "Failed thrd finalize version engine: " << 
                     iter->first;
                 return -1;
             }
@@ -739,7 +739,7 @@ public:
     int reload() {
         for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
             if (iter->second->reload() != 0) {
-                LOG(FATAL) << "Failed reload version engine: " << 
+                LOG(ERROR) << "Failed reload version engine: " << 
                     iter->first;
                 return -1;
             }
@@ -760,7 +760,7 @@ public:
     // inference interface
     InferEngine* default_engine() const {
         if (_versions.size() != 1) {
-            LOG(FATAL) << "Ambiguous default engine version:" 
+            LOG(ERROR) << "Ambiguous default engine version:" 
                 << _versions.size();
             return NULL;
         }
@@ -797,7 +797,7 @@ public:
             const void* in, void* out, uint32_t batch_size, uint64_t version) {
         auto iter = _versions.find(version);
         if (iter == _versions.end()) {
-            LOG(FATAL) << "Not found version engine: " << version;
+            LOG(ERROR) << "Not found version engine: " << version;
             return -1;
         }
 
@@ -808,7 +808,7 @@ public:
     T* get_core(uint64_t version) {
         auto iter = _versions.find(version);
         if (iter == _versions.end()) {
-            LOG(FATAL) << "Not found version engine: "  << version;
+            LOG(ERROR) << "Not found version engine: "  << version;
             return NULL;
         }
 
@@ -843,7 +843,7 @@ public:
     int proc_initialize(const char* path, const char* file) {
         ModelToolkitConf model_toolkit_conf;
         if (configure::read_proto_conf(path, file, &model_toolkit_conf) != 0) {
-            LOG(FATAL) << "failed load infer config, path: "
+            LOG(ERROR) << "failed load infer config, path: "
                 << path << "/" << file;
             return -1;
         }
@@ -853,19 +853,19 @@ public:
             std::string engine_name = model_toolkit_conf.engines(ei).name();
             VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
             if (!engine) {
-                LOG(FATAL) << "Failed generate versioned engine: " << engine_name;
+                LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
                 return -1;
             }
 
             if (engine->proc_initialize(model_toolkit_conf.engines(ei)) != 0) {
-                LOG(FATAL) << "Failed initialize version engine, name:"
+                LOG(ERROR) << "Failed initialize version engine, name:"
                     << engine_name;
                 return -1;
             }
 
             auto r = _map.insert(std::make_pair(engine_name, engine));
             if (!r.second) {
-                LOG(FATAL) << "Failed insert item: " << engine_name;
+                LOG(ERROR) << "Failed insert item: " << engine_name;
                 return -1;
             }
             LOG(WARNING) << "Succ proc initialize engine: " << engine_name;
@@ -877,7 +877,7 @@ public:
     int thrd_initialize() {
         for (auto it = _map.begin(); it != _map.end(); ++it) {
             if (it->second->thrd_initialize() != 0) {
-                LOG(FATAL) << "Failed thrd initialize engine, name: "
+                LOG(ERROR) << "Failed thrd initialize engine, name: "
                     << it->first;
                 return -1;
             }
@@ -890,7 +890,7 @@ public:
     int thrd_clear() {
         for (auto it = _map.begin(); it != _map.end(); ++it) {
             if (it->second->thrd_clear() != 0) {
-                LOG(FATAL) << "Failed thrd clear engine, name: "
+                LOG(ERROR) << "Failed thrd clear engine, name: "
                     << it->first;
                 return -1;
             }
@@ -901,7 +901,7 @@ public:
     int reload() {
         for (auto it = _map.begin(); it != _map.end(); ++it) {
             if (it->second->reload() != 0) {
-                LOG(FATAL) << "Failed reload engine, name: "
+                LOG(ERROR) << "Failed reload engine, name: "
                     << it->first;
                 return -1;
             }
@@ -912,7 +912,7 @@ public:
     int thrd_finalize() {
         for (auto it = _map.begin(); it != _map.end(); ++it) {
             if (it->second->thrd_finalize() != 0) {
-                LOG(FATAL) << "Failed thrd finalize engine, name: "
+                LOG(ERROR) << "Failed thrd finalize engine, name: "
                     << it->first;
                 return -1;
             }
@@ -925,7 +925,7 @@ public:
     int proc_finalize() {
         for (auto it = _map.begin(); it != _map.end(); ++it) {
             if (it->second->proc_finalize() != 0) {
-                LOG(FATAL) << "Failed proc finalize engine, name: "
+                LOG(ERROR) << "Failed proc finalize engine, name: "
                     << it->first;
                 return -1;
             }

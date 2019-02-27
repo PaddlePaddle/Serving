@@ -74,7 +74,7 @@ public:
 
     int share_to_bus(Bus* bus) {
         if (bus->regist(_op, this) != 0) {
-            LOG(FATAL) 
+            LOG(ERROR) 
                 << "Failed regist channel[" << _op
                 << "] to bus!";
             return -1;
@@ -128,7 +128,7 @@ public:
     }
 
     google::protobuf::Message* message_impl(derived_from_message<false>) {
-        LOG(FATAL) << "Current type: " << typeid(T).name()
+        LOG(ERROR) << "Current type: " << typeid(T).name()
             << " is not derived from protobuf.";
         return NULL; 
     }
@@ -143,7 +143,7 @@ public:
     }
 
     const google::protobuf::Message* message_impl(derived_from_message<false>) const {
-        LOG(FATAL) << "Current type: " << typeid(T).name()
+        LOG(ERROR) << "Current type: " << typeid(T).name()
             << " is not derived from protobuf.";
         return NULL; 
     }

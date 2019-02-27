@@ -210,7 +210,7 @@ public:
         if (metric != NULL) {
             **metric << latency;
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << metric_name << "].";
         }
     }
     
@@ -219,7 +219,7 @@ public:
         if (metric != NULL) {
             **metric << count;
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << metric_name << "].";
         }
     }
     
@@ -228,7 +228,7 @@ public:
         if (metric != NULL) {
             **metric << value;
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << metric_name << "].";
         }
     }
 
@@ -237,7 +237,7 @@ public:
         if (metric != NULL) {
             **metric << value;
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << metric_name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << metric_name << "].";
         }
     }
 
@@ -246,7 +246,7 @@ public:
         if (metric != NULL) {
             (*metric)->update_lhs(count);
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << name << "].";
         }
     }
     
@@ -255,7 +255,7 @@ public:
         if (metric != NULL) {
             (*metric)->update_rhs(count);
         } else {
-            LOG(FATAL) << "impossible, check if you regist[" << name << "].";
+            LOG(ERROR) << "impossible, check if you regist[" << name << "].";
         }
     }
     

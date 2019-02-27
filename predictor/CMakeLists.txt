@@ -61,3 +61,11 @@ target_include_directories(pdclient PUBLIC
         )
 target_link_libraries(pdclient protobuf boost brpc -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
+# install
+install(TARGETS pdclient pdserving pdcodegen
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin
+        ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
+        LIBRARY DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/so
+        )
+
+

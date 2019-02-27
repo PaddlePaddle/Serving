@@ -7,3 +7,7 @@ target_include_directories(fluid_cpu_engine PUBLIC
 add_dependencies(fluid_cpu_engine pdserving paddle_fluid configure)
 target_link_libraries(fluid_cpu_engine pdserving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
+install(TARGETS fluid_cpu_engine 
+        ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
+        )
+

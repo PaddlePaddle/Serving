@@ -74,7 +74,7 @@ public:
     virtual bool Run(const void* in_data, void* out_data) {
         if (!_core->Run(*(std::vector<paddle::PaddleTensor>*)in_data, 
                     (std::vector<paddle::PaddleTensor>*)out_data)) {
-            LOG(FATAL) << "Failed call Run with paddle predictor";
+            LOG(ERROR) << "Failed call Run with paddle predictor";
             return false;
         }
 
@@ -85,13 +85,13 @@ public:
 
     virtual int clone(void* origin_core) {
         if (origin_core == NULL) {
-            LOG(FATAL) << "origin paddle Predictor is null.";
+            LOG(ERROR) << "origin paddle Predictor is null.";
             return -1;
         }
         paddle::PaddlePredictor* p_predictor = (paddle::PaddlePredictor*)origin_core;
         _core = p_predictor->Clone();
         if (_core.get() == NULL) {
-            LOG(FATAL) << "fail to clone paddle predictor: " << origin_core;
+            LOG(ERROR) << "fail to clone paddle predictor: " << origin_core;
             return -1;
         }
         return 0;
@@ -110,7 +110,7 @@ class FluidCpuAnalysisCore : public FluidFamilyCore {
 public:
     int create(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -125,7 +125,7 @@ public:
         _core = paddle::CreatePaddlePredictor<
             paddle::contrib::AnalysisConfig>(analysis_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }
@@ -139,7 +139,7 @@ class FluidCpuNativeCore : public FluidFamilyCore {
 public:
     int create(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -153,7 +153,7 @@ public:
         _core = paddle::CreatePaddlePredictor<
             paddle::NativeConfig, paddle::PaddleEngineKind::kNative>(native_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }
@@ -167,7 +167,7 @@ class FluidCpuAnalysisDirCore : public FluidFamilyCore {
 public:
     int create(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -181,7 +181,7 @@ public:
         _core = paddle::CreatePaddlePredictor<
             paddle::contrib::AnalysisConfig>(analysis_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }
@@ -196,7 +196,7 @@ class FluidCpuNativeDirCore : public FluidFamilyCore {
 public:
     int create(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -209,7 +209,7 @@ public:
         _core = paddle::CreatePaddlePredictor<
             paddle::NativeConfig, paddle::PaddleEngineKind::kNative>(native_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }
@@ -235,7 +235,7 @@ public:
         _col = col;
         _params = (float*)malloc(_row * _col * sizeof(float));
         if (_params == NULL) {
-            LOG(FATAL) << "Load " << _file_name << " malloc error.";
+            LOG(ERROR) << "Load " << _file_name << " malloc error.";
             return -1;
         }
         LOG(WARNING) << "Load parameter file[" << _file_name << "] success.";
@@ -253,20 +253,20 @@ public:
 
     int load() {
         if (_params == NULL || _row <= 0 || _col <= 0) {
-            LOG(FATAL) << "load parameter error [not inited].";
+            LOG(ERROR) << "load parameter error [not inited].";
             return -1;
         }
 
         FILE* fs = fopen(_file_name.c_str(), "rb");
         if (fs == NULL) {
-            LOG(FATAL) << "load " << _file_name << " fopen error.";
+            LOG(ERROR) << "load " << _file_name << " fopen error.";
             return -1;
         }
         static const uint32_t MODEL_FILE_HEAD_LEN = 16;
         char head[MODEL_FILE_HEAD_LEN] = {0};
         if (fread(head, 1, MODEL_FILE_HEAD_LEN, fs) != MODEL_FILE_HEAD_LEN) {
             destroy();
-            LOG(FATAL) << "Load " << _file_name << " read head error.";
+            LOG(ERROR) << "Load " << _file_name << " read head error.";
             if (fs != NULL) {
                 fclose(fs);
                 fs = NULL;
@@ -283,7 +283,7 @@ public:
             LOG(INFO) << "load " << _file_name << " read ok.";
             return 0;
         } else {
-            LOG(FATAL) << "load " << _file_name << " read error.";
+            LOG(ERROR) << "load " << _file_name << " read error.";
             destroy();
             if (fs != NULL) {
                 fclose(fs);
@@ -309,13 +309,13 @@ public:
             float exp_max, float exp_min) {
         AutoLock lock(GlobalSigmoidCreateMutex::instance());
         if (0 != _sigmoid_w.init(2, 1, sigmoid_w_file) || 0 != _sigmoid_w.load()) {
-            LOG(FATAL) << "load params sigmoid_w failed.";
+            LOG(ERROR) << "load params sigmoid_w failed.";
             return -1;
         }
         LOG(WARNING) << "load sigmoid_w [" << _sigmoid_w._params[0]
                 << "] [" << _sigmoid_w._params[1] << "].";
         if (0 != _sigmoid_b.init(2, 1, sigmoid_b_file) || 0 != _sigmoid_b.load()) {
-            LOG(FATAL) << "load params sigmoid_b failed.";
+            LOG(ERROR) << "load params sigmoid_b failed.";
             return -1;
         }
         LOG(WARNING) << "load sigmoid_b [" << _sigmoid_b._params[0]
@@ -372,7 +372,7 @@ public:
         std::string conf_file = model_path.substr(pos);
         configure::SigmoidConf conf;
         if (configure::read_proto_conf(conf_path, conf_file, &conf) != 0) {
-            LOG(FATAL) << "failed load model path: " << model_path;
+            LOG(ERROR) << "failed load model path: " << model_path;
             return -1;
         }
 
@@ -381,7 +381,7 @@ public:
         std::string fluid_model_data_path = conf.dnn_model_path();
         int ret = load_fluid_model(fluid_model_data_path);
         if (ret < 0) {
-            LOG(FATAL) << "fail to load fluid model.";
+            LOG(ERROR) << "fail to load fluid model.";
             return -1;
         }
         const char* sigmoid_w_file = conf.sigmoid_w_file().c_str();
@@ -393,7 +393,7 @@ public:
                 << "], use count[" << _core->_sigmoid_core.use_count() << "].";
         ret = _core->_sigmoid_core->load(sigmoid_w_file, sigmoid_b_file, exp_max, exp_min);
         if (ret < 0) {
-            LOG(FATAL) << "fail to load sigmoid model.";
+            LOG(ERROR) << "fail to load sigmoid model.";
             return -1;
         }
         return 0;
@@ -402,7 +402,7 @@ public:
     virtual bool Run(const void* in_data, void* out_data) {
         if (!_core->_fluid_core->Run(*(std::vector<paddle::PaddleTensor>*)in_data, 
                     (std::vector<paddle::PaddleTensor>*)out_data)) {
-            LOG(FATAL) << "Failed call Run with paddle predictor";
+            LOG(ERROR) << "Failed call Run with paddle predictor";
             return false;
         }
 
@@ -411,12 +411,12 @@ public:
 
     virtual int clone(SigmoidFluidModel* origin_core) {
         if (origin_core == NULL) {
-            LOG(FATAL) << "origin paddle Predictor is null.";
+            LOG(ERROR) << "origin paddle Predictor is null.";
             return -1;
         }
         _core = origin_core->Clone();
         if (_core.get() == NULL) {
-            LOG(FATAL) << "fail to clone paddle predictor: " << origin_core;
+            LOG(ERROR) << "fail to clone paddle predictor: " << origin_core;
             return -1;
         }
         LOG(INFO) << "clone sigmoid core[" << _core->_sigmoid_core.get()
@@ -442,7 +442,7 @@ class FluidCpuNativeDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
 public:
     int load_fluid_model(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -455,7 +455,7 @@ public:
         _core->_fluid_core = paddle::CreatePaddlePredictor<
             paddle::NativeConfig, paddle::PaddleEngineKind::kNative>(native_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }
@@ -470,7 +470,7 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
 public:
     int load_fluid_model(const std::string& data_path) {
         if (access(data_path.c_str(), F_OK) == -1) {
-            LOG(FATAL) << "create paddle predictor failed, path not exits: "
+            LOG(ERROR) << "create paddle predictor failed, path not exits: "
                 << data_path;
             return -1;
         }
@@ -484,7 +484,7 @@ public:
         _core->_fluid_core = paddle::CreatePaddlePredictor<
             paddle::contrib::AnalysisConfig>(analysis_config);
         if (NULL == _core.get()) {
-            LOG(FATAL) << "create paddle predictor failed, path: "
+            LOG(ERROR) << "create paddle predictor failed, path: "
                 << data_path;
             return -1;
         }

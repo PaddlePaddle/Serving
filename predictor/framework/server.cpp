@@ -32,12 +32,12 @@ int ServerManager::add_service_by_format(const std::string& format) {
   Service* service = 
       FormatServiceManager::instance().get_service(format);
   if (service == NULL) {
-    LOG(FATAL) << "Not found service by format:" << format << "!";
+    LOG(ERROR) << "Not found service by format:" << format << "!";
     return -1;
   }
 
   if (_format_services.find(format) != _format_services.end()) {
-    LOG(FATAL) << "Cannot insert duplicated service by format:" 
+    LOG(ERROR) << "Cannot insert duplicated service by format:" 
         << format << "!";
     return -1;
   }
@@ -45,7 +45,7 @@ int ServerManager::add_service_by_format(const std::string& format) {
   std::pair<boost::unordered_map<std::string, Service*>::iterator, bool> it 
       = _format_services.insert(std::make_pair(format, service));
   if (!it.second) {
-    LOG(FATAL) << "Failed insert service by format:"
+    LOG(ERROR) << "Failed insert service by format:"
         << format << "!";
     return -1;
   }
@@ -126,11 +126,11 @@ void* ServerManager::_reload_worker(void* args) {
     while (ServerManager::reload_starting()) {
         LOG(INFO) << "Begin reload framework...";
         if (Resource::instance().reload() != 0) {
-            LOG(FATAL) << "Failed reload resource!";
+            LOG(ERROR) << "Failed reload resource!";
         }   
 
         if (WorkflowManager::instance().reload() != 0) {
-            LOG(FATAL) << "Failed reload workflows"; 
+            LOG(ERROR) << "Failed reload workflows"; 
         }
 
         usleep(FLAGS_reload_interval_s * 1000000);

@@ -20,7 +20,7 @@ int Op::init(Bus* bus, Dag* dag, uint32_t id, const std::string& name,
 
     _timer = butil::get_object<TimerFlow>();
     if (!_timer) {
-        LOG(FATAL) << "Invalid timerflow in op:"
+        LOG(ERROR) << "Invalid timerflow in op:"
             << this->name();
         return -1;
     }
@@ -31,7 +31,7 @@ int Op::init(Bus* bus, Dag* dag, uint32_t id, const std::string& name,
 
     Channel* channel = mutable_channel();
     if (channel == NULL) {
-        LOG(FATAL) 
+        LOG(ERROR) 
             << "Failed mutable channel in op: " 
             << this->id() << ", " << this->name() << "!";
         return -1;
@@ -50,7 +50,7 @@ int Op::deinit() {
     _timer = NULL;
 
     if (release_channel() != 0) {
-        LOG(FATAL) << "Failed release channel in op:"  
+        LOG(ERROR) << "Failed release channel in op:"  
             << this->id() << ", " << this->name() << "!";
         return -1;
     }
@@ -60,12 +60,12 @@ int Op::deinit() {
 
 int Op::check_time(const char* tag) {
     if (!_timer) {
-        LOG(FATAL) << "Invalid timer in op";
+        LOG(ERROR) << "Invalid timer in op";
         return -1;
     }
 
     if (!_timer->check(tag)) {
-        LOG(FATAL) << "Failed check timer:" << tag;
+        LOG(ERROR) << "Failed check timer:" << tag;
         return -1;
     }
 
@@ -78,7 +78,7 @@ int Op::process(bool debug) {
         _timer->start();
     }
     if (!_has_init) {
-        LOG(FATAL) 
+        LOG(ERROR) 
             << "Make sure op has been init before inference";
         return ERR_INTERNAL_FAILURE;
     }
@@ -93,7 +93,7 @@ int Op::process(bool debug) {
     /*
     DagNode* node = _dag->node_by_name(this->name());
     if (node == NULL) {
-        LOG(FATAL) << "Failed get node of op:" << this->name();
+        LOG(ERROR) << "Failed get node of op:" << this->name();
         return -1;
     }
     boost::unordered_map<std::string, EdgeMode>& depends =
@@ -290,7 +290,7 @@ uint32_t Op::id() const {
 const std::string Op::debug_string() {
     const Channel* channel = get_channel();
     if (!channel) {
-        LOG(FATAL) << "Invalid channel!";
+        LOG(ERROR) << "Invalid channel!";
         return "Invalid channel in OP";
     }
     return channel->debug_string();
