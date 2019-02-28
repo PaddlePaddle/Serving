@@ -28,41 +28,8 @@ target_include_directories(pdserving PUBLIC
 target_link_libraries(pdserving
         brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
-add_executable(pdserving_exe ${pdserving_srcs})
-set_source_files_properties(
-        ${pdserving_srcs}
-        PROPERTIES
-        COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving_exe
-        protobuf boost brpc leveldb pdcodegen configure)
-
-target_include_directories(pdserving_exe PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
-target_link_libraries(pdserving_exe brpc protobuf leveldb 
-        configure -lpthread -lcrypto -lm -lrt -lssl
-        -ldl -lz)
-
-add_library(pdclient ${pdclient_srcs})
-set_source_files_properties(
-        ${pdclient_srcs}
-        PROPERTIES
-        COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdclient protobuf boost brpc pdcodegen configure)
-
-target_include_directories(pdclient PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
-target_link_libraries(pdclient protobuf boost brpc -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
-
 # install
-install(TARGETS pdclient pdserving pdcodegen
+install(TARGETS pdserving pdcodegen
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         LIBRARY DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/so
