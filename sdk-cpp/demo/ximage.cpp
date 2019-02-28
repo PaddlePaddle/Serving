@@ -11,6 +11,9 @@
  * @brief 
  *  
  **/
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "common.h"
 #include <fstream>
@@ -117,7 +120,21 @@ void print_res(
 
 int main(int argc, char** argv) {
     PredictorApi api;
-    
+   
+    // initialize logger instance
+    struct stat st_buf;
+    int ret = 0;
+    if ((ret = stat("./log", &st_buf)) != 0) {
+            mkdir("./log", 0777);
+            ret = stat("./log", &st_buf);
+            if (ret != 0) {
+                    LOG(WARNING) << "Log path ./log not exist, and create fail";
+                    return -1;
+            }
+    }
+    FLAGS_log_dir = "./log";
+    google::InitGoogleLogging(strdup(argv[0]));
+
     if (api.create("./conf", "predictors.prototxt") != 0) {
         LOG(ERROR) << "Failed create predictors api!"; 
         return -1;

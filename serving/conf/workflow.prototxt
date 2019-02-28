@@ -2,6 +2,35 @@ workflows {
   name: "workflow1"
   workflow_type: "Sequence"
   nodes {
+    name: "dense_echo_op"
+    type: "DenseEchoOp"
+  }
+}
+
+workflows {
+  name: "workflow2"
+  workflow_type: "Sequence"
+  nodes {
+    name: "sparse_echo_op"
+    type: "SparseEchoOp"
+    dependencies {
+      name: "startup_op"
+      mode: "RO"
+    }
+  }
+}
+workflows {
+  name: "workflow3"
+  workflow_type: "Sequence"
+  nodes {
+    name: "echo_op"
+    type: "CommonEchoOp"
+  }
+}
+workflows {
+  name: "workflow4"
+  workflow_type: "Sequence"
+  nodes {
     name: "image_reader_op"
     type: "ReaderOp"
   }
@@ -22,11 +51,13 @@ workflows {
     }
   }
 }
+
 workflows {
-  name: "workflow2"
+  name: "workflow5"
   workflow_type: "Sequence"
   nodes {
-    name: "dense_op"
-    type: "DenseOp"
+    name: "int64tensor_echo_op"
+    type: "Int64TensorEchoOp"
   }
 }
+

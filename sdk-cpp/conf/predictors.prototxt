@@ -34,3 +34,63 @@ predictors {
     }
   }
 }
+
+predictors {
+  name: "echo_service"
+  service_name: "baidu.paddle_serving.predictor.echo_service.BuiltinTestEchoService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "dense_service"
+  service_name: "baidu.paddle_serving.predictor.dense_service.BuiltinDenseFormatService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "sparse_service"
+  service_name: "baidu.paddle_serving.predictor.sparse_service.BuiltinSparseFormatService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "int64tensor_service"
+  service_name: "baidu.paddle_serving.predictor.int64tensor_service.BuiltinFluidService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}

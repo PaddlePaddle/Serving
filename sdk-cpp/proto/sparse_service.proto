@@ -1,0 +1,20 @@
+syntax="proto2";
+import "pds_option.proto";
+import "builtin_format.proto";
+package baidu.paddle_serving.predictor.sparse_service;
+
+option cc_generic_services = true;
+
+message Request {
+  repeated baidu.paddle_serving.predictor.format.SparseInstance instances = 1; 
+};
+
+message Response {
+  repeated baidu.paddle_serving.predictor.format.SparsePrediction predictions = 1;
+};
+
+service BuiltinSparseFormatService {
+  rpc inference(Request) returns (Response);
+  rpc debug(Request) returns (Response);
+  option (pds.options).generate_stub = true;
+};

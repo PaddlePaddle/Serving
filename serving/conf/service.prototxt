@@ -1,8 +1,24 @@
 services {
-  name: "ImageClassifyService"
+  name: "BuiltinDenseFormatService"
   workflows: "workflow1"
 }
 services {
-  name: "BuiltinDenseFormatService"
+  name: "BuiltinSparseFormatService"
   workflows: "workflow2"
 }
+
+services {
+  name: "BuiltinTestEchoService"
+  workflows: "workflow3"
+}
+
+services {
+  name: "ImageClassifyService"
+  workflows: "workflow4"
+}
+
+services {
+  name: "BuiltinFluidService"
+  workflows: "workflow5"
+}
+

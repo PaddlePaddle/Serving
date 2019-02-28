@@ -1,0 +1,16 @@
+syntax="proto2";
+import "pds_option.proto";
+package baidu.paddle_serving.predictor.echo_service;
+
+option cc_generic_services = true;
+
+message RequestAndResponse {
+    required int32 a = 1;
+    required float b = 2;
+};
+
+service BuiltinTestEchoService {
+    rpc inference(RequestAndResponse) returns (RequestAndResponse);
+    rpc debug(RequestAndResponse) returns (RequestAndResponse);
+    option (pds.options).generate_stub = true;
+};
