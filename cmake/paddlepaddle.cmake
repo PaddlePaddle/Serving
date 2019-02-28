@@ -14,7 +14,7 @@
 
 INCLUDE(ExternalProject)
 
-SET(PADDLE_SOURCES_DIR ${CMAKE_SOURCE_DIR}/Paddle)
+SET(PADDLE_SOURCES_DIR ${THIRD_PARTY_PATH}/Paddle)
 SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle/)
 SET(PADDLE_INCLUDE_DIR "${PADDLE_INSTALL_DIR}/include" CACHE PATH "PaddlePaddle include directory." FORCE)
 SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a" CACHE FILEPATH "Paddle library." FORCE)
@@ -58,8 +58,8 @@ ExternalProject_Add(
                      -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
-    BUILD_COMMAND  make -j
-    INSTALL_COMMAND make fluid_lib_dist
+    BUILD_COMMAND $(MAKE)
+    INSTALL_COMMAND $(MAKE) fluid_lib_dist
 )
 
 ExternalProject_Get_Property(extern_paddle BINARY_DIR)
