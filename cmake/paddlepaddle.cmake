@@ -58,7 +58,8 @@ ExternalProject_Add(
                      -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
                      -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                      -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
-    INSTALL_COMMAND ""
+    BUILD_COMMAND  make -j
+    INSTALL_COMMAND make fluid_lib_dist
 )
 
 ExternalProject_Get_Property(extern_paddle BINARY_DIR)
