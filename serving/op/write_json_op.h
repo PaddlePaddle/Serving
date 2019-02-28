@@ -2,7 +2,7 @@
 #define BAIDU_PADDLE_SERVING_PREDICTOR_OP_WRITE_JSON_OP_H
 
 #include "builtin_format.pb.h"
-#include "image_classification.pb.h"
+#include "image_class.pb.h"
 #include "common/inner_common.h"
 #include "op/op.h"
 #include "framework/channel.h"
