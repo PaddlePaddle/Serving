@@ -1,20 +1,21 @@
 find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
-add_executable(image_class ${serving_srcs})
-add_dependencies(image_class pdcodegen fluid_cpu_engine pdserving paddle_fluid
+add_executable(serving ${serving_srcs})
+add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid
         opencv_imgcodecs)
-target_include_directories(image_class PUBLIC
+target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/
         ${CMAKE_CURRENT_BINARY_DIR}/
         )
-target_link_libraries(image_class opencv_imgcodecs
+target_link_libraries(serving opencv_imgcodecs
         ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs}
         ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
-install(TARGETS image_class
-        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
+install(TARGETS serving
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION

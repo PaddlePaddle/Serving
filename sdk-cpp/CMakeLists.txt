@@ -17,28 +17,49 @@ target_include_directories(ximage PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
         )
-target_link_libraries(ximage sdk-cpp -lpthread -lcrypto -lm -lrt -lssl -ldl
+target_link_libraries(ximage -Wl,--whole-archive sdk-cpp
+               -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
-add_executable(mapcnn_dense ${CMAKE_CURRENT_LIST_DIR}/demo/mapcnn_dense.cpp)
-target_include_directories(mapcnn_dense PUBLIC
+add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/demo/echo.cpp)
+target_include_directories(echo PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
         )
-target_link_libraries(mapcnn_dense sdk-cpp -lpthread -lcrypto -lm -lrt -lssl
-        -ldl -lz)
+target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
 
-add_executable(mapcnn_sparse ${CMAKE_CURRENT_LIST_DIR}/demo/mapcnn_sparse.cpp)
-target_include_directories(mapcnn_sparse PUBLIC
+add_executable(dense_format ${CMAKE_CURRENT_LIST_DIR}/demo/dense_format.cpp)
+target_include_directories(dense_format PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/../configure
         ${CMAKE_CURRENT_LIST_DIR}/../configure/include
         )
-target_link_libraries(mapcnn_sparse sdk-cpp -lpthread -lcrypto -lm -lrt -lssl
-        -ldl -lz)
+target_link_libraries(dense_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
+
+add_executable(sparse_format ${CMAKE_CURRENT_LIST_DIR}/demo/sparse_format.cpp)
+target_include_directories(sparse_format PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}/../configure
+        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
+        )
+target_link_libraries(sparse_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
+
+add_executable(int64tensor_format ${CMAKE_CURRENT_LIST_DIR}/demo/int64tensor_format.cpp)
+target_include_directories(int64tensor_format PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}/../configure
+        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
+        )
+target_link_libraries(int64tensor_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
 
 # install
 install(TARGETS sdk-cpp
@@ -46,8 +67,33 @@ install(TARGETS sdk-cpp
         )
 
 install(TARGETS ximage
-        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/bin)
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/)
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/)
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/)
+
+install(TARGETS echo
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/)
+
+install(TARGETS dense_format
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/dense_format/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/dense_format/)
+
+install(TARGETS sparse_format
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/sparse_format/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/sparse_format/)
+
+install(TARGETS int64tensor_format
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/int64tensor_format/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/int64tensor_format/)
+

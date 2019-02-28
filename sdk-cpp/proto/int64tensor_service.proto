@@ -12,11 +12,11 @@ message Request {
 
 message Response {
   repeated baidu.paddle_serving.predictor.format.Float32TensorPredictor 
-      predictions = 2;
+      predictions = 1;
 };
 
 service BuiltinFluidService {
   rpc inference(Request) returns (Response);
   rpc debug(Request) returns (Response);
-  option (pds.options).generate_impl = true;
+  option (pds.options).generate_stub = true;
 };
