@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/dag.h"
+#include "predictor/framework/dag.h"
 #include <string>
 #include <vector>
-#include "common/inner_common.h"
-#include "framework/predictor_metric.h"  // PredictorMetric
-#include "op/op.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/predictor_metric.h"  // PredictorMetric
+#include "predictor/op/op.h"
 
 namespace baidu {
 namespace paddle_serving {

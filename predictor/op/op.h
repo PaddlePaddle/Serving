@@ -15,10 +15,10 @@
 #pragma once
 #include <bvar/bvar.h>  // bvar::LatencyRecorder
 #include <string>
-#include "common/inner_common.h"
-#include "framework/channel.h"
-#include "framework/op_repository.h"
-#include "framework/predictor_metric.h"  // PredictorMetric
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/op_repository.h"
+#include "predictor/framework/predictor_metric.h"  // PredictorMetric
 
 namespace baidu {
 namespace paddle_serving {

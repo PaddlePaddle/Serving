@@ -49,7 +49,7 @@
 #include <string>
 // hmmm...
 // #include <google/protobuf/stubs/strutil.h>
-#include "plugin/strutil.h"
+#include "predictor/plugin/strutil.h"
 
 #pragma once
 namespace google {

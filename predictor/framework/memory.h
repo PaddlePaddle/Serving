@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "common/inner_common.h"
-#include "mempool/mempool.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/mempool/mempool.h"
 
 namespace baidu {
 namespace paddle_serving {

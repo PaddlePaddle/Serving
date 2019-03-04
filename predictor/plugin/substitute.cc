@@ -45,10 +45,9 @@
 // Author: kenton@google.com (Kenton Varda)
 
 // #include <google/protobuf/stubs/strutil.h>
-#include "plugin/strutil.h"
-
-#include "plugin/stl_util-inl.h"
-#include "plugin/substitute.h"
+#include "predictor/plugin/substitute.h"
+#include "predictor/plugin/stl_util-inl.h"
+#include "predictor/plugin/strutil.h"
 
 namespace google {
 namespace protobuf {

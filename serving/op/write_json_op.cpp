@@ -16,8 +16,8 @@
 #include <string>
 #include "json2pb/pb_to_json.h"
 
-#include "framework/memory.h"
-#include "op/write_json_op.h"
+#include "predictor/framework/memory.h"
+#include "serving/op/write_json_op.h"
 
 namespace baidu {
 namespace paddle_serving {

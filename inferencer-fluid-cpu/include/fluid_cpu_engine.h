@@ -21,8 +21,8 @@
 #include <vector>
 #include "configure/include/configure_parser.h"
 #include "configure/inferencer_configure.pb.h"
-#include "framework/infer.h"
 #include "paddle/fluid/inference/paddle_inference_api.h"
+#include "predictor/framework/infer.h"
 
 namespace baidu {
 namespace paddle_serving {

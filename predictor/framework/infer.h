@@ -18,10 +18,10 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
-#include "common/inner_common.h"
-#include "framework/bsf.h"
-#include "framework/factory.h"
-#include "framework/infer_data.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/bsf.h"
+#include "predictor/framework/factory.h"
+#include "predictor/framework/infer_data.h"
 
 namespace baidu {
 namespace paddle_serving {

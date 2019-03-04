@@ -5,8 +5,7 @@ add_executable(serving ${serving_srcs})
 add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid
         opencv_imgcodecs)
 target_include_directories(serving PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_BINARY_DIR}/../predictor
         )
 target_link_libraries(serving opencv_imgcodecs
         ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine

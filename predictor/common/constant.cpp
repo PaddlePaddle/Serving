@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "common/constant.h"
+#include "predictor/common/constant.h"
 
 namespace baidu {
 namespace paddle_serving {

@@ -18,7 +18,7 @@
 #include <sys/syscall.h>
 #include <boost/bind.hpp>
 
-#include "common/inner_common.h"
+#include "predictor/common/inner_common.h"
 
 namespace im {
 namespace bsf {
