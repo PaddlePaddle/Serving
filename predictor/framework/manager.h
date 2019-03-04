@@ -15,10 +15,10 @@
 #pragma once
 #include <string>
 #include <utility>
-#include "common/constant.h"
-#include "common/inner_common.h"
-#include "framework/service.h"
-#include "framework/workflow.h"
+#include "predictor/common/constant.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/service.h"
+#include "predictor/framework/workflow.h"
 
 namespace baidu {
 namespace paddle_serving {

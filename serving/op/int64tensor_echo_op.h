@@ -15,10 +15,10 @@
 #pragma once
 #include "serving/int64tensor_service.pb.h"
 
-#include "common/inner_common.h"
-#include "framework/channel.h"
-#include "framework/op_repository.h"
-#include "op/op.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/op_repository.h"
+#include "predictor/op/op.h"
 
 namespace baidu {
 namespace paddle_serving {

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/memory.h"
-#include "common/inner_common.h"
+#include "predictor/framework/memory.h"
+#include "predictor/common/inner_common.h"
 
 namespace baidu {
 namespace paddle_serving {

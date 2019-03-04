@@ -14,9 +14,9 @@
 
 #pragma once
 #include <string>
-#include "common/inner_common.h"
-#include "framework/dag.h"
-#include "framework/dag_view.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/dag.h"
+#include "predictor/framework/dag_view.h"
 
 namespace baidu {
 namespace paddle_serving {

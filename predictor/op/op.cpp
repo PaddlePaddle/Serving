@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "op/op.h"
+#include "predictor/op/op.h"
 #include <butil/time.h>  // butil::Timer
 #include <string>
-#include "common/constant.h"
-#include "common/utils.h"
-#include "framework/channel.h"
-#include "framework/dag.h"
+#include "predictor/common/constant.h"
+#include "predictor/common/utils.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/dag.h"
 
 namespace baidu {
 namespace paddle_serving {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "op/int64tensor_echo_op.h"
+#include "serving/op/int64tensor_echo_op.h"
 
 namespace baidu {
 namespace paddle_serving {

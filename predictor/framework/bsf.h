@@ -19,7 +19,7 @@
 #include <deque>
 #include <vector>
 #include "butil/atomicops.h"
-#include "common/inner_common.h"
+#include "predictor/common/inner_common.h"
 
 #include "boost/function.hpp"
 

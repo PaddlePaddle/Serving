@@ -19,9 +19,9 @@
 #include <algorithm>
 #include <deque>
 #include <vector>
-#include "common/inner_common.h"
-#include "framework/infer_data.h"
-#include "framework/memory.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/infer_data.h"
+#include "predictor/framework/memory.h"
 
 #include <boost/function.hpp>
 

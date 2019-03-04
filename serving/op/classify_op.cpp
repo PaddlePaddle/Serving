@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "op/classify_op.h"
-#include "framework/infer.h"
-#include "framework/memory.h"
-#include "op/reader_op.h"
+#include "serving/op/classify_op.h"
+#include "predictor/framework/infer.h"
+#include "predictor/framework/memory.h"
+#include "serving/op/reader_op.h"
 
 namespace baidu {
 namespace paddle_serving {

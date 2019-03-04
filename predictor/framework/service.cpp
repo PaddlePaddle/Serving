@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/service.h"
+#include "predictor/framework/service.h"
 #include <butil/time.h>  // butil::Timer
 #include <list>
 #include <string>
 #include <vector>
-#include "common/constant.h"
-#include "common/inner_common.h"
-#include "framework/channel.h"
-#include "framework/dag_view.h"
-#include "framework/manager.h"
-#include "framework/predictor_metric.h"  // PredictorMetric
-#include "framework/resource.h"
-#include "framework/server.h"
+#include "predictor/common/constant.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/dag_view.h"
+#include "predictor/framework/manager.h"
+#include "predictor/framework/predictor_metric.h"  // PredictorMetric
+#include "predictor/framework/resource.h"
+#include "predictor/framework/server.h"
 
 namespace baidu {
 namespace paddle_serving {

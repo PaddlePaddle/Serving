@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/op_repository.h"
+#include "predictor/framework/op_repository.h"
 #include <string>
-#include "op/op.h"
+#include "predictor/op/op.h"
 
 namespace baidu {
 namespace paddle_serving {

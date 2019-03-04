@@ -16,10 +16,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
+#include "configure/include/configure_parser.h"
 #include "configure/inferencer_configure.pb.h"
 #include "configure/sdk_configure.pb.h"
 #include "configure/server_configure.pb.h"
-#include "include/configure_parser.h"
 
 using baidu::paddle_serving::configure::EngineDesc;
 using baidu::paddle_serving::configure::ModelToolkitConf;

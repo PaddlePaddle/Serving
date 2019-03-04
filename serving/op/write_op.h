@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #pragma once
-#include "common/inner_common.h"
-#include "framework/channel.h"
-#include "framework/op_repository.h"
-#include "op/op.h"
 #include "predictor/builtin_format.pb.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/op_repository.h"
+#include "predictor/op/op.h"
 #include "serving/image_class.pb.h"
 
 namespace baidu {
