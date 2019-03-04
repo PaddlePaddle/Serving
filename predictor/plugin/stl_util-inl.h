@@ -1,3 +1,17 @@
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
 // http://code.google.com/p/protobuf/
@@ -30,10 +44,9 @@
 
 // from google3/util/gtl/stl_util-inl.h
 
-#ifndef GOOGLE_PROTOBUF_STUBS_STL_UTIL_INL_H__
-#define GOOGLE_PROTOBUF_STUBS_STL_UTIL_INL_H__
-
+#pragma once
 #include <google/protobuf/stubs/common.h>
+#include <string>
 
 namespace google {
 namespace protobuf {
@@ -49,8 +62,7 @@ namespace protobuf {
 // advanced, which could result in the hash function trying to deference a
 // stale pointer.
 template <class ForwardIterator>
-void STLDeleteContainerPointers(ForwardIterator begin,
-                                ForwardIterator end) {
+void STLDeleteContainerPointers(ForwardIterator begin, ForwardIterator end) {
   while (begin != end) {
     ForwardIterator temp = begin;
     ++begin;
@@ -96,7 +108,7 @@ inline char* string_as_array(string* str) {
 // ElementDeleter (defined below), which ensures that your container's elements
 // are deleted when the ElementDeleter goes out of scope.
 template <class T>
-void STLDeleteElements(T *container) {
+void STLDeleteElements(T* container) {
   if (!container) return;
   STLDeleteContainerPointers(container->begin(), container->end());
   container->clear();
@@ -107,7 +119,7 @@ void STLDeleteElements(T *container) {
 // in the case it's given a NULL pointer.
 
 template <class T>
-void STLDeleteValues(T *v) {
+void STLDeleteValues(T* v) {
   if (!v) return;
   for (typename T::iterator i = v->begin(); i != v->end(); ++i) {
     delete i->second;
@@ -117,5 +129,3 @@ void STLDeleteValues(T *v) {
 
 }  // namespace protobuf
 }  // namespace google
-
-#endif  // GOOGLE_PROTOBUF_STUBS_STL_UTIL_INL_H__

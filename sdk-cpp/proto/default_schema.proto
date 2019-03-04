@@ -1,4 +1,18 @@
-syntax="proto2";
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
 import "pds_option.proto";
 package baidu.paddle_serving.fluid_engine;
 
@@ -6,52 +20,40 @@ option cc_generic_services = true;
 
 // default dense request
 message DenseTensor {
-    required string name = 1;
-    repeated uint32 shape = 2;
-    required bytes features = 3;
+  required string name = 1;
+  repeated uint32 shape = 2;
+  required bytes features = 3;
 };
 
-message DenseInstance {
-    repeated DenseTensor tensors = 1;
-};
+message DenseInstance { repeated DenseTensor tensors = 1; };
 
-message DenseRequest {
-    repeated DenseInstance instances = 1;
-};
+message DenseRequest { repeated DenseInstance instances = 1; };
 
 // default sparse request
 message SparseTensor {
-    required string name = 1;
-    repeated uint32 keys = 2;
-    repeated uint32 shape = 3;
-    required bytes features = 4;
+  required string name = 1;
+  repeated uint32 keys = 2;
+  repeated uint32 shape = 3;
+  required bytes features = 4;
 };
 
-message SparseInstance {
-    repeated SparseTensor tensors = 1;
-};
+message SparseInstance { repeated SparseTensor tensors = 1; };
 
-message SparseRequest {
-    repeated SparseInstance instances = 1;
-};
+message SparseRequest { repeated SparseInstance instances = 1; };
 
 // default response
-message Prediction {
-    repeated float categories = 1;
-};
+message Prediction { repeated float categories = 1; };
 
-message Response {
-    repeated Prediction predictions = 1;
-};
+message Response { repeated Prediction predictions = 1; };
 
 service DefaultSparseService {
-    rpc inference(SparseRequest) returns (Response);
-    rpc debug(SparseRequest) returns (Response);
-    option (pds.options).generate_stub = true;
+  rpc inference(SparseRequest) returns (Response);
+  rpc debug(SparseRequest) returns (Response);
+  option (pds.options).generate_stub = true;
 };
 
 service DefaultDenseService {
-    rpc inference(DenseRequest) returns (Response);
-    rpc debug(DenseRequest) returns (Response);
-    option (pds.options).generate_stub = true;
+  rpc inference(DenseRequest) returns (Response);
+  rpc debug(DenseRequest) returns (Response);
+  option (pds.options).generate_stub = true;
 };

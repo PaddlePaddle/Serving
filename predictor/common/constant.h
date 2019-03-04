@@ -1,6 +1,17 @@
-#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_CONSTANT_H
-#define BAIDU_PADDLE_SERVING_PREDICTOR_CONSTANT_H
-
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#pragma once
 #include "common/inner_common.h"
 
 namespace baidu {
@@ -34,26 +45,24 @@ extern const char* START_OP_NAME;
 
 // ERRORCODE
 enum {
-    // internal error
-    ERR_INTERNAL_FAILURE = -5000,
-    ERR_MEM_ALLOC_FAILURE = -5001,
-    ERR_OVERFLOW_FAILURE = -5002,
-    // op error
-    ERR_OP_INFER_FAILURE = -5100,
-    // no error
-    ERR_OK = 0,
-    // internal ignore
-    ERR_IGNORE_FAILURE = 5000,
-    // op ignore
-    ERR_OP_IGNORE_FAILURE = 5100,
+  // internal error
+  ERR_INTERNAL_FAILURE = -5000,
+  ERR_MEM_ALLOC_FAILURE = -5001,
+  ERR_OVERFLOW_FAILURE = -5002,
+  // op error
+  ERR_OP_INFER_FAILURE = -5100,
+  // no error
+  ERR_OK = 0,
+  // internal ignore
+  ERR_IGNORE_FAILURE = 5000,
+  // op ignore
+  ERR_OP_IGNORE_FAILURE = 5100,
 };
 
-static const size_t MAX_WORKFLOW_NUM_IN_ONE_SERVICE = 20; 
+static const size_t MAX_WORKFLOW_NUM_IN_ONE_SERVICE = 20;
 static const uint32_t DEFAULT_CACHE_CAPACITY = 10000;
 static const uint32_t DEFAULT_CACHE_UNITSIZE = 8192;
 
-} // predictor
-} // paddle_serving
-} // baidu
-
-#endif
+}  // namespace predictor
+}  // namespace paddle_serving
+}  // namespace baidu

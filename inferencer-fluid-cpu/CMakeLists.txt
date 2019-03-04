@@ -10,4 +10,3 @@ target_link_libraries(fluid_cpu_engine pdserving paddle_fluid -liomp5 -lmklml_in
 install(TARGETS fluid_cpu_engine 
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         )
-

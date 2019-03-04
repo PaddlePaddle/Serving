@@ -1,5 +1,18 @@
-#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_MEMORY_H
-#define BAIDU_PADDLE_SERVING_PREDICTOR_MEMORY_H
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
 
 #include "common/inner_common.h"
 #include "mempool/mempool.h"
@@ -9,29 +22,27 @@ namespace paddle_serving {
 namespace predictor {
 
 class MempoolWrapper {
-public:
-    MempoolWrapper() {}
+ public:
+  MempoolWrapper() {}
 
-    static MempoolWrapper& instance() {
-        static MempoolWrapper mempool;
-        return mempool;
-    }
+  static MempoolWrapper& instance() {
+    static MempoolWrapper mempool;
+    return mempool;
+  }
 
-    int initialize();
+  int initialize();
 
-    int thread_initialize();
+  int thread_initialize();
 
-    int thread_clear();
+  int thread_clear();
 
-    void* malloc(size_t size);
+  void* malloc(size_t size);
 
-private:
-    im::fugue::memory::Region _region;
-    THREAD_KEY_T _bspec_key;
+ private:
+  im::fugue::memory::Region _region;
+  THREAD_KEY_T _bspec_key;
 };
 
-} // predictor
-} // paddle_serving
-} // baidu
-
-#endif
+}  // namespace predictor
+}  // namespace paddle_serving
+}  // namespace baidu

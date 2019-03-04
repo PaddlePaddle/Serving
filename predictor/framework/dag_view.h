@@ -1,10 +1,24 @@
-#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_DAG_VIEW_H
-#define BAIDU_PADDLE_SERVING_PREDICTOR_DAG_VIEW_H
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include "op/op.h"
+#pragma once
+#include <string>
+#include <vector>
 #include "common/inner_common.h"
 #include "framework/channel.h"
 #include "framework/dag.h"
+#include "op/op.h"
 
 namespace baidu {
 namespace paddle_serving {
@@ -13,7 +27,7 @@ namespace predictor {
 class Op;
 
 struct ViewNode {
-  Op* op; // op->full_name == service_workflow_stageindex_opname
+  Op* op;  // op->full_name == service_workflow_stageindex_opname
   DagNode* conf;
   void reset() {
     op = NULL;
@@ -23,20 +37,16 @@ struct ViewNode {
 
 struct ViewStage {
   std::vector<ViewNode*> nodes;
-  std::string full_name; // service_workflow_stageindex
-  std::string debug() {
-    return "TOBE IMPLEMENTED!";
-  }
+  std::string full_name;  // service_workflow_stageindex
+  std::string debug() { return "TOBE IMPLEMENTED!"; }
 };
 
 class DagView {
-public:
-  DagView() : _bus(NULL) {
-    _view.clear();
-  }
+ public:
+  DagView() : _bus(NULL) { _view.clear(); }
 
   ~DagView() {}
-  
+
   int init(Dag* dag, const std::string& service_name);
 
   int deinit();
@@ -47,21 +57,17 @@ public:
   // You can derive a subclass to implement this func.
   // ParallelDagView maybe the one you want.
   virtual int execute_one_stage(ViewStage* vstage,
-          butil::IOBufBuilder* debug_os);
+                                butil::IOBufBuilder* debug_os);
 
-  int set_request_channel(Channel& request);
+  int set_request_channel(Channel& request);  // NOLINT
 
   const Channel* get_response_channel() const;
 
-  const std::string& name() const {
-    return _name;
-  }
+  const std::string& name() const { return _name; }
 
-  const std::string& full_name() const {
-    return _full_name;
-  }
+  const std::string& full_name() const { return _full_name; }
 
-private:
+ private:
   std::string _name;
   std::string _full_name;
   std::vector<ViewStage*> _view;
@@ -71,14 +77,10 @@ private:
 // The derived DagView supports parallel execution
 // strategy, by implments the execute_one_stage().
 class ParallelDagView : public DagView {
-public:  
-  int execute_one_stage(ViewStage* vstage, butil::IOBufBuilder*) {
-    return 0;
-  }
+ public:
+  int execute_one_stage(ViewStage* vstage, butil::IOBufBuilder*) { return 0; }
 };
 
-} // predictor
-} // paddle_serving
-} // baidu
-
-#endif // BAIDU_PADDLE_SERVING_PREDICTOR_DAG_VIEW_H
+}  // namespace predictor
+}  // namespace paddle_serving
+}  // namespace baidu

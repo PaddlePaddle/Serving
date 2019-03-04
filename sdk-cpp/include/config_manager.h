@@ -1,95 +1,78 @@
-/***************************************************************************
- * 
- * Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
- * 
- **************************************************************************/
- 
- 
- 
-/**
- * @file config_manager.h
- * @author wanlijin01(wanlijin01@baidu.com)
- * @date 2018/07/09 15:28:43
- * @brief 
- *  
- **/
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#ifndef  BAIDU_PADDLE_SERVING_SDK_CPP_CONFIG_MANAGER_H
-#define  BAIDU_PADDLE_SERVING_SDK_CPP_CONFIG_MANAGER_H
-
-#include "common.h"
-#include "endpoint_config.h"
+#pragma once
+#include <map>
+#include <string>
+#include "sdk-cpp/include/common.h"
+#include "sdk-cpp/include/endpoint_config.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
 class EndpointConfigManager {
-public:
-    static EndpointConfigManager& instance() {
-        static EndpointConfigManager singleton;
-        return singleton;
+ public:
+  static EndpointConfigManager& instance() {
+    static EndpointConfigManager singleton;
+    return singleton;
+  }
+
+  EndpointConfigManager()
+      : _last_update_timestamp(0), _current_endpointmap_id(1) {}
+
+  int create(const char* path, const char* file);
+
+  int load();
+
+  bool need_reload() { return false; }
+
+  int reload() {
+    if (!need_reload()) {
+      LOG(INFO) << "Noneed reload endpoin config";
+      return 0;
     }
 
-    EndpointConfigManager() 
-        : _last_update_timestamp(0),
-        _current_endpointmap_id(1) {}
+    return load();
+  }
 
-    int create(const char* path, const char* file);
+  const std::map<std::string, EndpointInfo>& config() { return _ep_map; }
 
-    int load();
+  const std::map<std::string, EndpointInfo>& config() const { return _ep_map; }
 
-    bool need_reload() {
-        return false;
-    }
+ private:
+  int init_one_variant(const configure::VariantConf& conf,
+                       VariantInfo& var);  // NOLINT
 
-    int reload() {
-        if (!need_reload()) {
-            LOG(INFO) << "Noneed reload endpoin config";
-            return 0;
-        }
+  int init_one_endpoint(const configure::Predictor& conf,
+                        EndpointInfo& ep,  // NOLINT
+                        const VariantInfo& default_var);
 
-        return load();
-    }
+  int merge_variant(const VariantInfo& default_var,
+                    const configure::VariantConf& conf,
+                    VariantInfo& merged_var);  // NOLINT
 
-    const std::map<std::string, EndpointInfo>& config() {
-        return _ep_map;
-    }
+  int parse_tag_values(SplitParameters& split);  // NOLINT
 
-    const std::map<std::string, EndpointInfo>& config() const {
-        return _ep_map;
-    }
-
-private:
-    int init_one_variant(
-            const configure::VariantConf& conf, 
-            VariantInfo& var);
-
-    int init_one_endpoint(
-            const configure::Predictor& conf,
-            EndpointInfo& ep,
-            const VariantInfo& default_var);
-
-    int merge_variant(
-            const VariantInfo& default_var,
-            const configure::VariantConf& conf,
-            VariantInfo& merged_var);
-
-    int parse_tag_values(
-            SplitParameters& split);
-    
-private:
-    std::map<std::string, EndpointInfo> _ep_map;
-    std::string _endpoint_config_path;
-    std::string _endpoint_config_file;
-    uint32_t _last_update_timestamp;
-    uint32_t _current_endpointmap_id;
+ private:
+  std::map<std::string, EndpointInfo> _ep_map;
+  std::string _endpoint_config_path;
+  std::string _endpoint_config_file;
+  uint32_t _last_update_timestamp;
+  uint32_t _current_endpointmap_id;
 };
 
-} // sdk_cpp
-} // paddle_serving
-} // baidu
-
-#endif  //BAIDU_PADDLE_SERVING_SDK_CPP_CONFIG_MANAGER_H
-
-/* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */
+}  // namespace sdk_cpp
+}  // namespace paddle_serving
+}  // namespace baidu

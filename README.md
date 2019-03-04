@@ -336,4 +336,3 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
     {:name => 'main', :conf => 'predictor_valid.conf', :target => 'port'}, // valid工具向这个端口发送测试请求，确保服务已正常启动
 ]  
 ```
-

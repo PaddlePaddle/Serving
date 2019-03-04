@@ -96,4 +96,3 @@ install(TARGETS int64tensor_format
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/int64tensor_format/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/int64tensor_format/)
-

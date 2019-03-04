@@ -1,9 +1,16 @@
-################################################################
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 #
-#  Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-################################################################
-
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
 This module provide http requests demo in json/proto/image sceneras.
 
@@ -22,16 +29,18 @@ import proto.image_class_pb2 as image_class_pb2
 from google.protobuf.text_format import MessageToString
 from google.protobuf.text_format import Merge
 
-
 url = 'http://127.0.0.1:8010'
+
 #url = 'http://10.88.157.15:8015'
 #url = 'http://10.88.158.21:8010'
 #url = 'http://st01-rdqa-dev055-wanlijin01.epc.baidu.com:8010'
+
 
 def http_json():
     """send json format"""
     reqdata = '{"instances": [{"data": [15, 160, 140, 230, 32, 128], \
             "shape": [2, 3]}, {"data": [1, 2, 3], "shape": [3, 1]}]}'
+
     requrl = '%s/BuiltinFluidService/inference' % url
     return reqdata, requrl, 'json'
 
@@ -80,12 +89,13 @@ def http_image():
 def parse_image(res, method):
     """parse pb response format(image)"""
     file_name = './images/groundtruth.txt'
-    
+
     if method == 'debug':
         return res
 
     with open(file_name, 'r') as fp:
-        gt = map(lambda x:x.strip().split(',')[1], fp.read().strip().split('\n'));
+        gt = map(lambda x: x.strip().split(',')[1],
+                 fp.read().strip().split('\n'))
 
     resimage = image_class_pb2.Response()
     resimage.ParseFromString(res)
@@ -98,16 +108,17 @@ def parse_image(res, method):
 
 def send_http(content_type):
     """send&recv runtine"""
-    reqdata, requrl, type = getattr(
-            sys.modules[__name__], "http_%s" % content_type)()
-    req = urllib2.Request(url=requrl, data=reqdata, headers={
-        "Content-Type": 'application/%s' % type})
+    reqdata, requrl, type = getattr(sys.modules[__name__],
+                                    "http_%s" % content_type)()
+    req = urllib2.Request(
+        url=requrl,
+        data=reqdata,
+        headers={"Content-Type": 'application/%s' % type})
 
     res_data = urllib2.urlopen(req)
     method = requrl.split('/')[-1]
-    print getattr(
-            sys.modules[__name__], 
-            "parse_%s" % content_type)(res_data.read(), method)
+    print getattr(sys.modules[__name__],
+                  "parse_%s" % content_type)(res_data.read(), method)
 
 
 if __name__ == '__main__':
@@ -117,4 +128,4 @@ if __name__ == '__main__':
     ctype = sys.argv[1]
     if ctype not in ['json', 'proto', 'image']:
         raise Exception("Invalid content type, must be:[json, proto, image]")
-    send_http(ctype) 
+    send_http(ctype)
