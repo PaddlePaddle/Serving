@@ -1,59 +1,70 @@
-syntax="proto2";
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
 package baidu.paddle_serving.configure;
 
 message ConnectionConf {
-        required uint32 connect_timeout_ms = 1;
-        required uint32 rpc_timeout_ms = 2;
-        required uint32 connect_retry_count = 3;
-        required uint32 max_connection_per_host = 4;
-        required uint32 hedge_request_timeout_ms = 5;
-        required uint32 hedge_fetch_retry_count = 6;
-        required string connection_type = 7;
+  required uint32 connect_timeout_ms = 1;
+  required uint32 rpc_timeout_ms = 2;
+  required uint32 connect_retry_count = 3;
+  required uint32 max_connection_per_host = 4;
+  required uint32 hedge_request_timeout_ms = 5;
+  required uint32 hedge_fetch_retry_count = 6;
+  required string connection_type = 7;
 };
 
 message NamingConf {
-        optional string cluster_filter_strategy = 1;
-        optional string load_balance_strategy = 2;
-        optional string cluster = 3;
+  optional string cluster_filter_strategy = 1;
+  optional string load_balance_strategy = 2;
+  optional string cluster = 3;
 };
 
 message RpcParameter {
-        // 0-NONE, 1-SNAPPY, 2-GZIP, 3-ZLIB, 4-LZ4
-        required uint32 compress_type = 1;
-        required uint32 package_size = 2;
-        required string protocol = 3;
-        required uint32 max_channel_per_request = 4;
+  // 0-NONE, 1-SNAPPY, 2-GZIP, 3-ZLIB, 4-LZ4
+  required uint32 compress_type = 1;
+  required uint32 package_size = 2;
+  required string protocol = 3;
+  required uint32 max_channel_per_request = 4;
 };
 
-message SplitConf{
-        optional string split_tag_name = 1;
-        optional string tag_candidates = 2;
+message SplitConf {
+  optional string split_tag_name = 1;
+  optional string tag_candidates = 2;
 };
 
 message VariantConf {
-        required string tag = 1;
-        optional ConnectionConf connection_conf = 2;
-        optional NamingConf naming_conf = 3;
-        optional RpcParameter rpc_parameter = 4;
-        optional SplitConf split_conf = 5;
-        optional string variant_router = 6;
+  required string tag = 1;
+  optional ConnectionConf connection_conf = 2;
+  optional NamingConf naming_conf = 3;
+  optional RpcParameter rpc_parameter = 4;
+  optional SplitConf split_conf = 5;
+  optional string variant_router = 6;
 };
 
-message WeightedRandomRenderConf {
-        required string variant_weight_list = 1;
-};
+message WeightedRandomRenderConf { required string variant_weight_list = 1; };
 
 message Predictor {
-        required string name = 1;
-        required string service_name = 2;
-        required string endpoint_router = 3;
-        required WeightedRandomRenderConf weighted_random_render_conf = 4;
-        repeated VariantConf variants = 5;
+  required string name = 1;
+  required string service_name = 2;
+  required string endpoint_router = 3;
+  required WeightedRandomRenderConf weighted_random_render_conf = 4;
+  repeated VariantConf variants = 5;
 };
 
 // SDK conf
 message SDKConf {
-        required VariantConf default_variant_conf = 1;
-        repeated Predictor predictors = 2;
+  required VariantConf default_variant_conf = 1;
+  repeated Predictor predictors = 2;
 };
-

@@ -1,6 +1,19 @@
-#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_RESOURCE_H
-#define BAIDU_PADDLE_SERVING_PREDICTOR_RESOURCE_H
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+#pragma once
+#include <string>
 #include "common/inner_common.h"
 #include "framework/memory.h"
 
@@ -10,52 +23,47 @@ namespace predictor {
 
 class BaseRdDict;
 struct DynamicResource {
-    DynamicResource();
-    
-    ~DynamicResource();
-    
-    int initialize();
-    
-    int clear();
+  DynamicResource();
+
+  ~DynamicResource();
+
+  int initialize();
+
+  int clear();
 };
 
 class Resource {
-public:
+ public:
+  Resource() {}
 
-    Resource() {}
+  ~Resource() { finalize(); }
 
-    ~Resource() { finalize(); }
+  static Resource& instance() {
+    static Resource ins;
+    return ins;
+  }
 
-    static Resource& instance() {
-        static Resource ins;
-        return ins;
-    }
+  int initialize(const std::string& path, const std::string& file);
 
-    int initialize(const std::string& path, const std::string& file);
+  int thread_initialize();
 
-    int thread_initialize();
+  int thread_clear();
 
-    int thread_clear();
+  int reload();
 
-    int reload();
+  int finalize();
 
-    int finalize();
+  DynamicResource* get_dynamic_resource() {
+    return reinterpret_cast<DynamicResource*>(
+        THREAD_GETSPECIFIC(_tls_bspec_key));
+  }
 
-    DynamicResource* get_dynamic_resource() {
-        return (DynamicResource*) THREAD_GETSPECIFIC(_tls_bspec_key);
-    }
+ private:
+  int thread_finalize() { return 0; }
 
-private:
-    int thread_finalize() {
-        return 0; 
-    }
-
-    THREAD_KEY_T _tls_bspec_key;
-    
+  THREAD_KEY_T _tls_bspec_key;
 };
 
-} // predictor
-} // paddle_serving
-} // baidu
-
-#endif
+}  // namespace predictor
+}  // namespace paddle_serving
+}  // namespace baidu

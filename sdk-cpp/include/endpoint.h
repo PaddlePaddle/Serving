@@ -1,74 +1,66 @@
-/***************************************************************************
- * 
- * Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
- * 
- **************************************************************************/
- 
-/**
- * @file include/resource.h
- * @author wanlijin(wanlijin01@baidu.com)
- * @date 2018/07/06 17:06:25
- * @brief 
- *  
- **/
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#ifndef  BAIDU_PADDLE_SERVING_SDK_ENDPOINT_H
-#define  BAIDU_PADDLE_SERVING_SDK_ENDPOINT_H
+#pragma once
 
-#include "common.h"
-#include "endpoint_config.h"
-#include "stub.h"
-#include "variant.h"
-#include "predictor.h"
+#include <string>
+#include <vector>
+#include "sdk-cpp/include/common.h"
+#include "sdk-cpp/include/endpoint_config.h"
+#include "sdk-cpp/include/predictor.h"
+#include "sdk-cpp/include/stub.h"
+#include "sdk-cpp/include/variant.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
 class Endpoint {
-friend class EndpointRouterBase;
-public:
+  friend class EndpointRouterBase;
 
-    virtual ~Endpoint() {}
+ public:
+  virtual ~Endpoint() {}
 
-    Endpoint() {
-        _variant_list.clear();
-    }
+  Endpoint() { _variant_list.clear(); }
 
-    int initialize(const EndpointInfo& ep_info);
+  int initialize(const EndpointInfo& ep_info);
 
-    int thrd_initialize();
+  int thrd_initialize();
 
-    int thrd_clear();
+  int thrd_clear();
 
-    int thrd_finalize();
+  int thrd_finalize();
 
-    Predictor* get_predictor(const void* params);
+  Predictor* get_predictor(const void* params);
 
-    Predictor* get_predictor();
+  Predictor* get_predictor();
 
-    int ret_predictor(Predictor* predictor);
+  int ret_predictor(Predictor* predictor);
 
-    const std::string& endpoint_name() const {
-        return _endpoint_name;
-    }
+  const std::string& endpoint_name() const { return _endpoint_name; }
 
-private:
-    int initialize_variant(
-            const VariantInfo& var_info,
-            const std::string& service,
-            const std::string& ep_name,
-            std::vector<Stub*>& stubs);
+ private:
+  int initialize_variant(const VariantInfo& var_info,
+                         const std::string& service,
+                         const std::string& ep_name,
+                         std::vector<Stub*>& stubs);  // NOLINT
 
-private:
-    std::string       _endpoint_name;
-    std::vector<Variant*> _variant_list;
+ private:
+  std::string _endpoint_name;
+  std::vector<Variant*> _variant_list;
 };
 
-} // sdk_cpp
-} // paddle_serving
-} // baidu
-
-#endif  //BAIDU_PADDLE_SERVING_SDK_CPPRESOURCE_H
-
-/* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */
+}  // namespace sdk_cpp
+}  // namespace paddle_serving
+}  // namespace baidu

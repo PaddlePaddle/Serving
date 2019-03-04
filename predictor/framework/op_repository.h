@@ -1,70 +1,80 @@
-#ifndef BAIDU_PADDLE_SERVING_PREDICTOR_OP_REPOSITORY_H
-#define BAIDU_PADDLE_SERVING_PREDICTOR_OP_REPOSITORY_H
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+#pragma once
+#include <string>
 #include "common/inner_common.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-#define REGISTER_OP(op)                                                 \
-    ::baidu::paddle_serving::predictor::OpRepository::instance().regist_op<op>(#op)
+#define REGISTER_OP(op)                                                       \
+  ::baidu::paddle_serving::predictor::OpRepository::instance().regist_op<op>( \
+      #op)
 
 class Op;
 
 class Factory {
-public:
-    virtual Op* get_op() = 0;
-    virtual void return_op(Op* op) = 0;
+ public:
+  virtual Op* get_op() = 0;
+  virtual void return_op(Op* op) = 0;
 };
 
-template<typename OP_TYPE>
+template <typename OP_TYPE>
 class OpFactory : public Factory {
-public:
-    Op* get_op() {
-        return butil::get_object<OP_TYPE>();
-    }
+ public:
+  Op* get_op() { return butil::get_object<OP_TYPE>(); }
 
-    void return_op(Op* op) {
-        butil::return_object<OP_TYPE>(dynamic_cast<OP_TYPE*>(op));
-    }
+  void return_op(Op* op) {
+    butil::return_object<OP_TYPE>(dynamic_cast<OP_TYPE*>(op));
+  }
 
-    static OpFactory<OP_TYPE>& instance() {
-        static OpFactory<OP_TYPE> ins; 
-        return ins;
-    }
+  static OpFactory<OP_TYPE>& instance() {
+    static OpFactory<OP_TYPE> ins;
+    return ins;
+  }
 };
 
 class OpRepository {
-public:
-    typedef boost::unordered_map<std::string, Factory*> ManagerMap;
+ public:
+  typedef boost::unordered_map<std::string, Factory*> ManagerMap;
 
-    OpRepository() {}
-    ~OpRepository() {}
+  OpRepository() {}
+  ~OpRepository() {}
 
-    static OpRepository& instance() {
-        static OpRepository repo;
-        return repo;
-    }
+  static OpRepository& instance() {
+    static OpRepository repo;
+    return repo;
+  }
 
-    template<typename OP_TYPE>
-    void regist_op(std::string op_type) {
-        _repository[op_type] = &OpFactory<OP_TYPE>::instance();
-        LOG(INFO) << "Succ regist op: " << op_type << "!";
-    }
+  template <typename OP_TYPE>
+  void regist_op(std::string op_type) {
+    _repository[op_type] = &OpFactory<OP_TYPE>::instance();
+    LOG(INFO) << "Succ regist op: " << op_type << "!";
+  }
 
-    Op* get_op(std::string op_type);
+  Op* get_op(std::string op_type);
 
-    void return_op(Op* op);
+  void return_op(Op* op);
 
-    void return_op(const std::string& op_type, Op* op);
+  void return_op(const std::string& op_type, Op* op);
 
-private:
-    ManagerMap _repository;
+ private:
+  ManagerMap _repository;
 };
 
-} // predictor
-} // paddle_serving
-} // baidu
-
-#endif
+}  // namespace predictor
+}  // namespace paddle_serving
+}  // namespace baidu

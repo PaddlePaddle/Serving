@@ -1,51 +1,43 @@
-/***************************************************************************
- * 
- * Copyright (c) 2018 Baidu.com, Inc. All Rights Reserved
- * 
- **************************************************************************/
- 
- 
- 
-/**
- * @file common.h
- * @author wanlijin01(wanlijin01@baidu.com)
- * @date 2018/07/09 20:24:19
- * @brief 
- *  
- **/
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#ifndef  BAIDU_PADDLE_SERVING_CPP_SDK_COMMON_H
-#define  BAIDU_PADDLE_SERVING_CPP_SDK_COMMON_H
-
+#pragma once
+#include <error.h>
+#include <getopt.h>
+#include <pthread.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <strings.h>
-#include <getopt.h>
 #include <exception>
 
-#include <google/protobuf/message.h>
-#include <boost/unordered_map.hpp>
-#include <gflags/gflags.h>
+#include "boost/unordered_map.hpp"
+#include "gflags/gflags.h"
+#include "google/protobuf/message.h"
 
-#include <bvar/bvar.h>
-#include <butil/logging.h>
-#include <butil/time.h>
-#include <butil/object_pool.h>
-#include <brpc/channel.h>
-#include <brpc/parallel_channel.h>
-#include <brpc/traceprintf.h>
-#include <bthread/bthread.h>
-#include <error.h>
-#include <json2pb/json_to_pb.h>
+#include "brpc/channel.h"
+#include "brpc/parallel_channel.h"
+#include "brpc/traceprintf.h"
+#include "bthread/bthread.h"
+#include "butil/logging.h"
+#include "butil/object_pool.h"
+#include "butil/time.h"
+#include "bvar/bvar.h"
+#include "json2pb/json_to_pb.h"
 
-#include "sdk_configure.pb.h"
-#include "configure_parser.h"
+#include "configure/include/configure_parser.h"
+#include "configure/sdk_configure.pb.h"
 
-#include "utils.h"
-
-#endif  //BAIDU_PADDLE_SERVING_CPP_SDK_COMMON_H
-
-/* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */
+#include "sdk-cpp/include/utils.h"

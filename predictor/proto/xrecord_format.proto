@@ -1,50 +1,64 @@
-syntax="proto2";
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
 package aialgs.data;
 
 message Float32Tensor {
-    repeated float values = 1;
-    repeated uint64 keys = 2;
-    repeated uint64 shape = 3;
+  repeated float values = 1;
+  repeated uint64 keys = 2;
+  repeated uint64 shape = 3;
 };
 
 message Float64Tensor {
-    repeated double values = 1;
-    repeated uint64 keys = 2;
-    repeated uint64 shape = 3;
+  repeated double values = 1;
+  repeated uint64 keys = 2;
+  repeated uint64 shape = 3;
 };
 
 message Int32Tensor {
-    repeated int32 values = 1;
-    repeated uint64 keys = 2;
-    repeated uint64 shape = 3;
+  repeated int32 values = 1;
+  repeated uint64 keys = 2;
+  repeated uint64 shape = 3;
 };
 
 message Bytes {
-    repeated bytes value = 1;
-    optional string content_type = 2;
+  repeated bytes value = 1;
+  optional string content_type = 2;
 };
 
 message Value {
-    optional Float32Tensor float32_tensor = 2;
-    optional Float64Tensor float64_tensor = 3;
-    optional Int32Tensor int32_tensor = 7;
-    optional Bytes bytes = 9;
+  optional Float32Tensor float32_tensor = 2;
+  optional Float64Tensor float64_tensor = 3;
+  optional Int32Tensor int32_tensor = 7;
+  optional Bytes bytes = 9;
 };
 
 message Record {
-    message FeaturesEntry {
-        optional string key = 1;
-        optional Value value = 2;
-    };
+  message FeaturesEntry {
+    optional string key = 1;
+    optional Value value = 2;
+  };
 
-    message LabelEntry {
-        optional string key = 1;
-        optional Value value = 2; 
-    };
+  message LabelEntry {
+    optional string key = 1;
+    optional Value value = 2;
+  };
 
-    repeated FeaturesEntry features = 1;
-    repeated LabelEntry label = 2;
-    optional string uid = 3;
-    optional string metadata = 4;
-    optional string configuration = 5;
+  repeated FeaturesEntry features = 1;
+  repeated LabelEntry label = 2;
+  optional string uid = 3;
+  optional string metadata = 4;
+  optional string configuration = 5;
 };
