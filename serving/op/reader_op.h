@@ -1,18 +1,32 @@
-#ifndef BAIDU_PADDLE_SERVING_SERVING_OP_READER_OP_H
-#define BAIDU_PADDLE_SERVING_SERVING_OP_READER_OP_H
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include "builtin_format.pb.h"
-#include "image_class.pb.h"
+#pragma once
+#include <string>
+#include <vector>
 #include "common/inner_common.h"
-#include "op/op.h"
 #include "framework/channel.h"
 #include "framework/op_repository.h"
+#include "op/op.h"
+#include "predictor/builtin_format.pb.h"
+#include "serving/image_class.pb.h"
 
 // opencv
 #include "opencv/cv.h"
-#include "opencv/highgui.h"
-#include "opencv/cxcore.h"
 #include "opencv/cv.hpp"
+#include "opencv/cxcore.h"
+#include "opencv/highgui.h"
 
 #include "paddle/fluid/inference/paddle_inference_api.h"
 
@@ -21,38 +35,34 @@ namespace paddle_serving {
 namespace serving {
 
 struct ReaderOutput {
-    std::vector<paddle::PaddleTensor> tensors;
+  std::vector<paddle::PaddleTensor> tensors;
 
-    void Clear() {
-        size_t tensor_count = tensors.size();
-        for (size_t ti = 0; ti < tensor_count; ++ti) {
-            tensors[ti].shape.clear();
-        }
-        tensors.clear();
+  void Clear() {
+    size_t tensor_count = tensors.size();
+    for (size_t ti = 0; ti < tensor_count; ++ti) {
+      tensors[ti].shape.clear();
     }
+    tensors.clear();
+  }
 
-    std::string ShortDebugString() const {
-        return "Not implemented!";
-    }
+  std::string ShortDebugString() const { return "Not implemented!"; }
 };
 
-class ReaderOp : public baidu::paddle_serving::predictor::OpWithChannel<
-                 ReaderOutput> {
-public: 
-    typedef std::vector<paddle::PaddleTensor> TensorVector;
+class ReaderOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<ReaderOutput> {
+ public:
+  typedef std::vector<paddle::PaddleTensor> TensorVector;
 
-    DECLARE_OP(ReaderOp);
+  DECLARE_OP(ReaderOp);
 
-    int inference();
+  int inference();
 
-private:
-    cv::Mat _image_8u_tmp;
-    cv::Mat _image_8u_rgb;
-    std::vector<char> _image_vec_tmp;
+ private:
+  cv::Mat _image_8u_tmp;
+  cv::Mat _image_8u_rgb;
+  std::vector<char> _image_vec_tmp;
 };
 
-} // serving
-} // paddle_serving
-} // baidu
-
-#endif
+}  // namespace serving
+}  // namespace paddle_serving
+}  // namespace baidu

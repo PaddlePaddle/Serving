@@ -34,5 +34,3 @@ install(TARGETS pdserving pdcodegen
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         LIBRARY DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/so
         )
-
-

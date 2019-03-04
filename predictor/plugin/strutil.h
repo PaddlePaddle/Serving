@@ -1,3 +1,17 @@
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
 // http://code.google.com/p/protobuf/
@@ -30,18 +44,17 @@
 
 // from google3/strings/strutil.h
 
-#ifndef GOOGLE_PROTOBUF_STUBS_STRUTIL_H__
-#define GOOGLE_PROTOBUF_STUBS_STRUTIL_H__
-
-#include <stdlib.h>
-#include <vector>
+#pragma once
 #include <google/protobuf/stubs/common.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
 
 namespace google {
 namespace protobuf {
 
 #ifdef _MSC_VER
-#define strtoll  _strtoi64
+#define strtoll _strtoi64
 #define strtoull _strtoui64
 #elif defined(__DECCXX) && defined(__osf__)
 // HP C++ on Tru64 does not have strtoll, but strtol is already 64-bit.
@@ -60,14 +73,11 @@ namespace protobuf {
 // ----------------------------------------------------------------------
 
 inline bool ascii_isalnum(char c) {
-  return ('a' <= c && c <= 'z') ||
-         ('A' <= c && c <= 'Z') ||
+  return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
          ('0' <= c && c <= '9');
 }
 
-inline bool ascii_isdigit(char c) {
-  return ('0' <= c && c <= '9');
-}
+inline bool ascii_isdigit(char c) { return ('0' <= c && c <= '9'); }
 
 // ----------------------------------------------------------------------
 // HasPrefixString()
@@ -77,8 +87,7 @@ inline bool ascii_isdigit(char c) {
 //    prefix string if the prefix matches, otherwise the original
 //    string.
 // ----------------------------------------------------------------------
-inline bool HasPrefixString(const string& str,
-                            const string& prefix) {
+inline bool HasPrefixString(const string& str, const string& prefix) {
   return str.size() >= prefix.size() &&
          str.compare(0, prefix.size(), prefix) == 0;
 }
@@ -99,8 +108,7 @@ inline string StripPrefixString(const string& str, const string& prefix) {
 //    suffix string if the suffix matches, otherwise the original
 //    string.
 // ----------------------------------------------------------------------
-inline bool HasSuffixString(const string& str,
-                            const string& suffix) {
+inline bool HasSuffixString(const string& str, const string& suffix) {
   return str.size() >= suffix.size() &&
          str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
@@ -120,7 +128,8 @@ inline string StripSuffixString(const string& str, const string& suffix) {
 //    Good for keeping html characters or protocol characters (\t) out
 //    of places where they might cause a problem.
 // ----------------------------------------------------------------------
-LIBPROTOBUF_EXPORT void StripString(string* s, const char* remove,
+LIBPROTOBUF_EXPORT void StripString(string* s,
+                                    const char* remove,
                                     char replacewith);
 
 // ----------------------------------------------------------------------
@@ -132,7 +141,7 @@ LIBPROTOBUF_EXPORT void StripString(string* s, const char* remove,
 //    strings.
 // ----------------------------------------------------------------------
 
-inline void LowerString(string * s) {
+inline void LowerString(string* s) {
   string::iterator end = s->end();
   for (string::iterator i = s->begin(); i != end; ++i) {
     // tolower() changes based on locale.  We don't want this!
@@ -140,7 +149,7 @@ inline void LowerString(string * s) {
   }
 }
 
-inline void UpperString(string * s) {
+inline void UpperString(string* s) {
   string::iterator end = s->end();
   for (string::iterator i = s->begin(); i != end; ++i) {
     // toupper() changes based on locale.  We don't want this!
@@ -156,8 +165,10 @@ inline void UpperString(string * s) {
 //    happened or not.
 // ----------------------------------------------------------------------
 
-LIBPROTOBUF_EXPORT string StringReplace(const string& s, const string& oldsub,
-                                        const string& newsub, bool replace_all);
+LIBPROTOBUF_EXPORT string StringReplace(const string& s,
+                                        const string& oldsub,
+                                        const string& newsub,
+                                        bool replace_all);
 
 // ----------------------------------------------------------------------
 // SplitStringUsing()
@@ -165,7 +176,8 @@ LIBPROTOBUF_EXPORT string StringReplace(const string& s, const string& oldsub,
 //    to 'result'.  If there are consecutive delimiters, this function skips
 //    over all of them.
 // ----------------------------------------------------------------------
-LIBPROTOBUF_EXPORT void SplitStringUsing(const string& full, const char* delim,
+LIBPROTOBUF_EXPORT void SplitStringUsing(const string& full,
+                                         const char* delim,
                                          vector<string>* res);
 
 // ----------------------------------------------------------------------
@@ -177,10 +189,10 @@ LIBPROTOBUF_EXPORT void SplitStringUsing(const string& full, const char* delim,
 //    target string is cleared and overwritten.
 // ----------------------------------------------------------------------
 LIBPROTOBUF_EXPORT void JoinStrings(const vector<string>& components,
-                                    const char* delim, string* result);
+                                    const char* delim,
+                                    string* result);
 
-inline string JoinStrings(const vector<string>& components,
-                          const char* delim) {
+inline string JoinStrings(const vector<string>& components, const char* delim) {
   string result;
   JoinStrings(components, delim, &result);
   return result;
@@ -218,8 +230,9 @@ inline string JoinStrings(const vector<string>& components,
 //    ----------------------------------------------------------------------
 
 LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest);
-LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest,
-                                                vector<string> *errors);
+LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source,
+                                                char* dest,
+                                                vector<string>* errors);
 
 // ----------------------------------------------------------------------
 // UnescapeCEscapeString()
@@ -237,8 +250,9 @@ LIBPROTOBUF_EXPORT int UnescapeCEscapeSequences(const char* source, char* dest,
 // ----------------------------------------------------------------------
 
 LIBPROTOBUF_EXPORT int UnescapeCEscapeString(const string& src, string* dest);
-LIBPROTOBUF_EXPORT int UnescapeCEscapeString(const string& src, string* dest,
-                                             vector<string> *errors);
+LIBPROTOBUF_EXPORT int UnescapeCEscapeString(const string& src,
+                                             string* dest,
+                                             vector<string>* errors);
 LIBPROTOBUF_EXPORT string UnescapeCEscapeString(const string& src);
 
 // ----------------------------------------------------------------------
@@ -251,8 +265,10 @@ LIBPROTOBUF_EXPORT string UnescapeCEscapeString(const string& src);
 //
 //    Currently only \n, \r, \t, ", ', \ and !isprint() chars are escaped.
 // ----------------------------------------------------------------------
-LIBPROTOBUF_EXPORT int CEscapeString(const char* src, int src_len,
-                                     char* dest, int dest_len);
+LIBPROTOBUF_EXPORT int CEscapeString(const char* src,
+                                     int src_len,
+                                     char* dest,
+                                     int dest_len);
 
 // ----------------------------------------------------------------------
 // CEscape()
@@ -281,20 +297,22 @@ LIBPROTOBUF_EXPORT string CHexEscape(const string& src);
 //    platforms, so using these is safer, from the point of view of
 //    overflow behavior, than using the standard libc functions.
 // ----------------------------------------------------------------------
-LIBPROTOBUF_EXPORT int32 strto32_adaptor(const char *nptr, char **endptr,
+LIBPROTOBUF_EXPORT int32 strto32_adaptor(const char* nptr,
+                                         char** endptr,
                                          int base);
-LIBPROTOBUF_EXPORT uint32 strtou32_adaptor(const char *nptr, char **endptr,
+LIBPROTOBUF_EXPORT uint32 strtou32_adaptor(const char* nptr,
+                                           char** endptr,
                                            int base);
 
-inline int32 strto32(const char *nptr, char **endptr, int base) {
-  if (sizeof(int32) == sizeof(long))
+inline int32 strto32(const char* nptr, char** endptr, int base) {
+  if (sizeof(int32) == sizeof(long))  // NOLINT
     return strtol(nptr, endptr, base);
   else
     return strto32_adaptor(nptr, endptr, base);
 }
 
-inline uint32 strtou32(const char *nptr, char **endptr, int base) {
-  if (sizeof(uint32) == sizeof(unsigned long))
+inline uint32 strtou32(const char* nptr, char** endptr, int base) {
+  if (sizeof(uint32) == sizeof(unsigned long))  // NOLINT
     return strtoul(nptr, endptr, base);
   else
     return strtou32_adaptor(nptr, endptr, base);
@@ -302,14 +320,14 @@ inline uint32 strtou32(const char *nptr, char **endptr, int base) {
 
 // For now, long long is 64-bit on all the platforms we care about, so these
 // functions can simply pass the call to strto[u]ll.
-inline int64 strto64(const char *nptr, char **endptr, int base) {
-  GOOGLE_COMPILE_ASSERT(sizeof(int64) == sizeof(long long),
+inline int64 strto64(const char* nptr, char** endptr, int base) {
+  GOOGLE_COMPILE_ASSERT(sizeof(int64) == sizeof(long long),  // NOLINT
                         sizeof_int64_is_not_sizeof_long_long);
   return strtoll(nptr, endptr, base);
 }
 
-inline uint64 strtou64(const char *nptr, char **endptr, int base) {
-  GOOGLE_COMPILE_ASSERT(sizeof(uint64) == sizeof(unsigned long long),
+inline uint64 strtou64(const char* nptr, char** endptr, int base) {
+  GOOGLE_COMPILE_ASSERT(sizeof(uint64) == sizeof(unsigned long long),  // NOLINT
                         sizeof_uint64_is_not_sizeof_long_long);
   return strtoull(nptr, endptr, base);
 }
@@ -350,20 +368,20 @@ LIBPROTOBUF_EXPORT char* FastHex32ToBuffer(uint32 i, char* buffer);
 
 // at least 22 bytes long
 inline char* FastIntToBuffer(int i, char* buffer) {
-  return (sizeof(i) == 4 ?
-          FastInt32ToBuffer(i, buffer) : FastInt64ToBuffer(i, buffer));
+  return (sizeof(i) == 4 ? FastInt32ToBuffer(i, buffer)
+                         : FastInt64ToBuffer(i, buffer));
 }
 inline char* FastUIntToBuffer(unsigned int i, char* buffer) {
-  return (sizeof(i) == 4 ?
-          FastUInt32ToBuffer(i, buffer) : FastUInt64ToBuffer(i, buffer));
+  return (sizeof(i) == 4 ? FastUInt32ToBuffer(i, buffer)
+                         : FastUInt64ToBuffer(i, buffer));
 }
-inline char* FastLongToBuffer(long i, char* buffer) {
-  return (sizeof(i) == 4 ?
-          FastInt32ToBuffer(i, buffer) : FastInt64ToBuffer(i, buffer));
+inline char* FastLongToBuffer(long i, char* buffer) {  // NOLINT
+  return (sizeof(i) == 4 ? FastInt32ToBuffer(i, buffer)
+                         : FastInt64ToBuffer(i, buffer));
 }
-inline char* FastULongToBuffer(unsigned long i, char* buffer) {
-  return (sizeof(i) == 4 ?
-          FastUInt32ToBuffer(i, buffer) : FastUInt64ToBuffer(i, buffer));
+inline char* FastULongToBuffer(unsigned long i, char* buffer) {  // NOLINT
+  return (sizeof(i) == 4 ? FastUInt32ToBuffer(i, buffer)
+                         : FastUInt64ToBuffer(i, buffer));
 }
 
 // ----------------------------------------------------------------------
@@ -405,10 +423,10 @@ inline char* FastUInt64ToBuffer(uint64 i, char* buffer) {
 // ----------------------------------------------------------------------
 LIBPROTOBUF_EXPORT string SimpleItoa(int i);
 LIBPROTOBUF_EXPORT string SimpleItoa(unsigned int i);
-LIBPROTOBUF_EXPORT string SimpleItoa(long i);
-LIBPROTOBUF_EXPORT string SimpleItoa(unsigned long i);
-LIBPROTOBUF_EXPORT string SimpleItoa(long long i);
-LIBPROTOBUF_EXPORT string SimpleItoa(unsigned long long i);
+LIBPROTOBUF_EXPORT string SimpleItoa(long i);                // NOLINT
+LIBPROTOBUF_EXPORT string SimpleItoa(unsigned long i);       // NOLINT
+LIBPROTOBUF_EXPORT string SimpleItoa(long long i);           // NOLINT
+LIBPROTOBUF_EXPORT string SimpleItoa(unsigned long long i);  // NOLINT
 
 // ----------------------------------------------------------------------
 // SimpleDtoa()
@@ -451,7 +469,3 @@ LIBPROTOBUF_EXPORT double NoLocaleStrtod(const char* text, char** endptr);
 
 }  // namespace protobuf
 }  // namespace google
-
-#endif  // GOOGLE_PROTOBUF_STUBS_STRUTIL_H__
-
-

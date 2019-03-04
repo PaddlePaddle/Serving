@@ -11,6 +11,9 @@ list(APPEND configure_srcs ${CMAKE_CURRENT_LIST_DIR}/src/configure_parser.cpp)
 
 add_library(configure ${configure_srcs})
 add_dependencies(configure brpc)
+target_include_directories(configure PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/
+        )
 
 add_executable(test_configure
         ${CMAKE_CURRENT_LIST_DIR}/tests/test_configure.cpp)
@@ -23,4 +26,3 @@ target_link_libraries(test_configure configure protobuf)
 install(TARGETS configure 
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         )
-

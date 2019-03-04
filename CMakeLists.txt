@@ -70,7 +70,8 @@ include(generic)
 include(paddlepaddle)
 include(external/opencv)
 
-include_directories("${PADDLE_SERVING_SOURCE_DIR}")
+include_directories(${PADDLE_SERVING_SOURCE_DIR})
+include_directories(${PADDLE_SERVING_BINARY_DIR})
 
 set(EXTERNAL_LIBS
     gflags
@@ -94,6 +95,3 @@ add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
 add_subdirectory(serving)
 add_subdirectory(sdk-cpp)
-
-
-
