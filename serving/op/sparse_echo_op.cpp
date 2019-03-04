@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "op/sparse_echo_op.h"
+#include "serving/op/sparse_echo_op.h"
 
 namespace baidu {
 namespace paddle_serving {

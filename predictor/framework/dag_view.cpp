@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/dag_view.h"
+#include "predictor/framework/dag_view.h"
 #include <brpc/traceprintf.h>  // TRACEPRINTF
 #include <string>
-#include "common/inner_common.h"
-#include "framework/op_repository.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/op_repository.h"
 
 namespace baidu {
 namespace paddle_serving {

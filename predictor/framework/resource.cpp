@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/resource.h"
+#include "predictor/framework/resource.h"
 #include <string>
-#include "common/inner_common.h"
-#include "framework/infer.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/infer.h"
 
 namespace baidu {
 namespace paddle_serving {

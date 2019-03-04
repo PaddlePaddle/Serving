@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "inferencer-fluid-cpu/include/fluid_cpu_engine.h"
-#include "framework/factory.h"
+#include "predictor/framework/factory.h"
 
 namespace baidu {
 namespace paddle_serving {

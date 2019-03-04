@@ -20,13 +20,13 @@
 #include <fstream>
 #include <iostream>
 #include "butil/logging.h"
-#include "common/constant.h"
-#include "common/inner_common.h"
-#include "framework/manager.h"
-#include "framework/resource.h"
-#include "framework/server.h"
-#include "framework/service.h"
-#include "framework/workflow.h"
+#include "predictor/common/constant.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/manager.h"
+#include "predictor/framework/resource.h"
+#include "predictor/framework/server.h"
+#include "predictor/framework/service.h"
+#include "predictor/framework/workflow.h"
 
 using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;

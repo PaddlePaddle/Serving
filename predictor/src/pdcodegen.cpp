@@ -20,9 +20,9 @@
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/io/printer.h"
 #include "google/protobuf/io/zero_copy_stream.h"
-#include "plugin/strutil.h"
-#include "plugin/substitute.h"
 #include "predictor/pds_option.pb.h"
+#include "predictor/plugin/strutil.h"
+#include "predictor/plugin/substitute.h"
 using std::string;
 using google::protobuf::Descriptor;
 using google::protobuf::FileDescriptor;
@@ -110,16 +110,16 @@ class PdsCodeGenerator : public CodeGenerator {
             context->OpenForInsert(header, "includes"));
         google::protobuf::io::Printer printer(output.get(), '$');
         if (generate_impl) {
-          printer.Print("#include \"common/inner_common.h\"\n");
-          printer.Print("#include \"framework/service.h\"\n");
-          printer.Print("#include \"framework/manager.h\"\n");
-          printer.Print("#include \"framework/service_manager.h\"\n");
+          printer.Print("#include \"predictor/common/inner_common.h\"\n");
+          printer.Print("#include \"predictor/framework/service.h\"\n");
+          printer.Print("#include \"predictor/framework/manager.h\"\n");
+          printer.Print("#include \"predictor/framework/service_manager.h\"\n");
         }
         if (generate_stub) {
           printer.Print("#include <brpc/parallel_channel.h>\n");
-          printer.Print("#include \"factory.h\"\n");
-          printer.Print("#include \"stub.h\"\n");
-          printer.Print("#include \"stub_impl.h\"\n");
+          printer.Print("#include \"sdk-cpp/include/factory.h\"\n");
+          printer.Print("#include \"sdk-cpp/include/stub.h\"\n");
+          printer.Print("#include \"sdk-cpp/include/stub_impl.h\"\n");
         }
         include_inserted = true;
       }

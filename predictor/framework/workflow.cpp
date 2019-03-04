@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/workflow.h"
+#include "predictor/framework/workflow.h"
 #include <string>
-#include "common/inner_common.h"
-#include "framework/predictor_metric.h"  // PredictorMetric
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/predictor_metric.h"  // PredictorMetric
 
 namespace baidu {
 namespace paddle_serving {

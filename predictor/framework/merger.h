@@ -15,7 +15,7 @@
 #pragma once
 #include <map>
 #include <string>
-#include "common/inner_common.h"
+#include "predictor/common/inner_common.h"
 
 namespace baidu {
 namespace paddle_serving {

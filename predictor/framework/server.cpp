@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "framework/server.h"
+#include "predictor/framework/server.h"
 #include <brpc/policy/nova_pbrpc_protocol.h>     // NovaServiceAdaptor
 #include <brpc/policy/nshead_mcpack_protocol.h>  // NsheadMcpackAdaptor
 #include <brpc/policy/public_pbrpc_protocol.h>   // PublicPbrpcServiceAdaptor
 #include <string>
 #include <utility>
-#include "common/inner_common.h"
-#include "framework/manager.h"
-#include "framework/resource.h"
-#include "framework/service_manager.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/manager.h"
+#include "predictor/framework/resource.h"
+#include "predictor/framework/service_manager.h"
 
 namespace baidu {
 namespace paddle_serving {

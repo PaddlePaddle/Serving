@@ -16,9 +16,9 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "common/inner_common.h"
-#include "framework/merger.h"
-#include "framework/workflow.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/merger.h"
+#include "predictor/framework/workflow.h"
 
 namespace baidu {
 namespace paddle_serving {

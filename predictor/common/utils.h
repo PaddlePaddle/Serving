@@ -14,8 +14,8 @@
 
 #pragma once
 #include <string>
-#include "common/inner_common.h"
-#include "common/macros.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/common/macros.h"
 
 namespace baidu {
 namespace paddle_serving {

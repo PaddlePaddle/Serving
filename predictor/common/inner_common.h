@@ -42,6 +42,6 @@
 #include "configure/include/configure_parser.h"
 #include "configure/server_configure.pb.h"
 
-#include "common/constant.h"
-#include "common/types.h"
-#include "common/utils.h"
+#include "predictor/common/constant.h"
+#include "predictor/common/types.h"
+#include "predictor/common/utils.h"

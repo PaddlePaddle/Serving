@@ -2,62 +2,26 @@ include(src/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
 add_dependencies(sdk-cpp pdcodegen configure)
-target_include_directories(sdk-cpp PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMKAE_CURRENT_BINARY_DIR}/
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(sdk-cpp brpc configure protobuf leveldb)
 
 add_executable(ximage ${CMAKE_CURRENT_LIST_DIR}/demo/ximage.cpp)
-target_include_directories(ximage PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(ximage -Wl,--whole-archive sdk-cpp
                -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/demo/echo.cpp)
-target_include_directories(echo PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(dense_format ${CMAKE_CURRENT_LIST_DIR}/demo/dense_format.cpp)
-target_include_directories(dense_format PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(dense_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(sparse_format ${CMAKE_CURRENT_LIST_DIR}/demo/sparse_format.cpp)
-target_include_directories(sparse_format PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(sparse_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(int64tensor_format ${CMAKE_CURRENT_LIST_DIR}/demo/int64tensor_format.cpp)
-target_include_directories(int64tensor_format PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/../configure
-        ${CMAKE_CURRENT_LIST_DIR}/../configure/include
-        )
 target_link_libraries(int64tensor_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
