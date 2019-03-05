@@ -16,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include "sdk-cpp/include/abtest.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/endpoint_config.h"
 #include "sdk-cpp/include/predictor.h"
@@ -59,6 +60,7 @@ class Endpoint {
  private:
   std::string _endpoint_name;
   std::vector<Variant*> _variant_list;
+  EndpointRouterBase* _abtest_router;
 };
 
 }  // namespace sdk_cpp

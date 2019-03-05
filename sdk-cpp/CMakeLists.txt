@@ -3,26 +3,29 @@ include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
 add_dependencies(sdk-cpp pdcodegen configure)
 target_link_libraries(sdk-cpp brpc configure protobuf leveldb)
+target_include_directories(sdk-cpp PUBLIC
+        ${CMAKE_BINARY_DIR}/predictor/)
 
 add_executable(ximage ${CMAKE_CURRENT_LIST_DIR}/demo/ximage.cpp)
 target_link_libraries(ximage -Wl,--whole-archive sdk-cpp
-               -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+               -Wl,--no-whole-archive pdserving -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/demo/echo.cpp)
-target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
+        pdserving -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(dense_format ${CMAKE_CURRENT_LIST_DIR}/demo/dense_format.cpp)
-target_link_libraries(dense_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+target_link_libraries(dense_format pdserving -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(sparse_format ${CMAKE_CURRENT_LIST_DIR}/demo/sparse_format.cpp)
-target_link_libraries(sparse_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+target_link_libraries(sparse_format pdserving -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 add_executable(int64tensor_format ${CMAKE_CURRENT_LIST_DIR}/demo/int64tensor_format.cpp)
-target_link_libraries(int64tensor_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+target_link_libraries(int64tensor_format pdserving -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
 # install
