@@ -6,3 +6,5 @@
 [Design](DESIGN.md)
 
 [Getting Started](GETTING_STARTED.md)
+
+[Installation](INSTALL.md)
