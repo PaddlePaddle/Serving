@@ -22,6 +22,7 @@ namespace sdk_cpp {
 int Endpoint::initialize(const EndpointInfo& ep_info) {
   _variant_list.clear();
   _endpoint_name = ep_info.endpoint_name;
+  _abtest_router = static_cast<EndpointRouterBase*>(ep_info.ab_test);
   uint32_t var_size = ep_info.vars.size();
   for (uint32_t vi = 0; vi < var_size; ++vi) {
     const VariantInfo& var_info = ep_info.vars[vi];
@@ -80,25 +81,7 @@ int Endpoint::thrd_finalize() {
   return 0;
 }
 
-// 带全流量分层实验路由信息
-Predictor* Endpoint::get_predictor(const void* params) {
-  Variant* var = NULL;
-  if (_variant_list.size() == 1) {
-    var = _variant_list[0];
-  }
-
-  if (!var) {
-    LOG(ERROR) << "get null var from endpoint.";
-    return NULL;
-  }
-
-  return var->get_predictor(params);
-}
-
 Predictor* Endpoint::get_predictor() {
-#if 1
-  LOG(INFO) << "Endpoint::get_predictor";
-#endif
   if (_variant_list.size() == 1) {
     if (_variant_list[0] == NULL) {
       LOG(ERROR) << "Not valid variant info";
@@ -107,7 +90,18 @@ Predictor* Endpoint::get_predictor() {
     return _variant_list[0]->get_predictor();
   }
 
-  return NULL;
+  if (_abtest_router == NULL) {
+    LOG(FATAL) << "Not valid abtest_router!";
+    return NULL;
+  }
+
+  Variant* var = _abtest_router->route(_variant_list);
+  if (!var) {
+    LOG(FATAL) << "get null var from endpoint";
+    return NULL;
+  }
+
+  return var->get_predictor();
 }
 
 int Endpoint::ret_predictor(Predictor* predictor) {

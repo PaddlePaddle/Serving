@@ -44,7 +44,7 @@ workflows {
   }
   nodes {
     name: "write_json_op"
-    type: "WriteOp"
+    type: "WriteJsonOp"
     dependencies {
       name: "image_classify_op"
       mode: "RO"

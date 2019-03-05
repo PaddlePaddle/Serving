@@ -16,12 +16,12 @@ syntax = "proto2";
 package baidu.paddle_serving.configure;
 
 message ConnectionConf {
-  required uint32 connect_timeout_ms = 1;
-  required uint32 rpc_timeout_ms = 2;
-  required uint32 connect_retry_count = 3;
-  required uint32 max_connection_per_host = 4;
-  required uint32 hedge_request_timeout_ms = 5;
-  required uint32 hedge_fetch_retry_count = 6;
+  required int32 connect_timeout_ms = 1;
+  required int32 rpc_timeout_ms = 2;
+  required int32 connect_retry_count = 3;
+  required int32 max_connection_per_host = 4;
+  required int32 hedge_request_timeout_ms = 5;
+  required int32 hedge_fetch_retry_count = 6;
   required string connection_type = 7;
 };
 
@@ -33,10 +33,10 @@ message NamingConf {
 
 message RpcParameter {
   // 0-NONE, 1-SNAPPY, 2-GZIP, 3-ZLIB, 4-LZ4
-  required uint32 compress_type = 1;
-  required uint32 package_size = 2;
+  required int32 compress_type = 1;
+  required int32 package_size = 2;
   required string protocol = 3;
-  required uint32 max_channel_per_request = 4;
+  required int32 max_channel_per_request = 4;
 };
 
 message SplitConf {

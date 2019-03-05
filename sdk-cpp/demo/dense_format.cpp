@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #include <fstream>
-#include "sdk-cpp/builtin_format.pb.h"
+#include "predictor/builtin_format.pb.h"
 #include "sdk-cpp/dense_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"

@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #include <fstream>
-#include "sdk-cpp/builtin_format.pb.h"
+#include "predictor/builtin_format.pb.h"
 #include "sdk-cpp/image_class.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
 
     Predictor* predictor = api.fetch_predictor("ximage");
     if (!predictor) {
-      LOG(ERROR) << "Failed fetch predictor: wasq";
+      LOG(ERROR) << "Failed fetch predictor: ximage";
       return -1;
     }
 
