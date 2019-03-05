@@ -21,9 +21,9 @@ message EngineDesc {
   required string reloadable_meta = 3;
   required string reloadable_type = 4;
   required string model_data_path = 5;
-  required uint32 runtime_thread_num = 6;
-  required uint32 batch_infer_size = 7;
-  required uint32 enable_batch_align = 8;
+  required int32 runtime_thread_num = 6;
+  required int32 batch_infer_size = 7;
+  required int32 enable_batch_align = 8;
   optional string version_file = 9;
   optional string version_type = 10;
 };

@@ -5,7 +5,7 @@ default_variant_conf {
     rpc_timeout_ms: 20000
     connect_retry_count: 2
     max_connection_per_host: 100
-    hedge_request_timeout_ms: 4294967295
+    hedge_request_timeout_ms: -1
     hedge_fetch_retry_count: 2
     connection_type: "pooled"
   }

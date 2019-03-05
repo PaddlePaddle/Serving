@@ -107,15 +107,18 @@ int main(int argc, char** argv) {
   g_change_server_port();
 
   // initialize logger instance
-  FLAGS_log_dir = "./log";
+  if (FLAGS_log_dir == "") {
+    FLAGS_log_dir = "./log";
+  }
 
   struct stat st_buf;
   int ret = 0;
-  if ((ret = stat("./log", &st_buf)) != 0) {
-    mkdir("./log", 0777);
-    ret = stat("./log", &st_buf);
+  if ((ret = stat(FLAGS_log_dir.c_str(), &st_buf)) != 0) {
+    mkdir(FLAGS_log_dir.c_str(), 0777);
+    ret = stat(FLAGS_log_dir.c_str(), &st_buf);
     if (ret != 0) {
-      LOG(WARNING) << "Log path ./log not exist, and create fail";
+      LOG(WARNING) << "Log path " << FLAGS_log_dir
+                   << " not exist, and create fail";
       return -1;
     }
   }
