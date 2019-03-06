@@ -143,9 +143,12 @@ LOG(INFO) << "Operator FC is taking " << num_inputs << "inputs."
 When we run a Paddle Serving application or test, we can specify a logging level.  For example:
 
 ```bash
-GLOG_minloglevel=0 GLOG_maxloglevel=3 bin/serving
+GLOG_minloglevel=1 bin/serving
 ```
 0 - INFO
+
 1 - WARNING
+
 2 -ERROR
+
 3 - FATAL (Be careful as FATAL log will generate a coredump)

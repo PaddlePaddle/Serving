@@ -1,6 +1,6 @@
 # Client side configuration
 
-Paddle-serving C++ client SDK主配置文件为conf/predictors.prototxt。其中一个示例如下：
+Paddle Serving C++ client SDK主配置文件为conf/predictors.prototxt。其中一个示例如下：
 
 ## 1. Sample conf
 
@@ -68,7 +68,7 @@ predictors {
 ## 2. 名词解释
 - 预测服务 (Predictor)：对一个Paddle预测服务的封装
 - 端点（Endpoit）：对一个预测需求的逻辑抽象，通常包含一到多个服务变体，以方便多版本模型管理；
-- 变体（Variant）：一套同质化的Paddle-serving集群服务，每个实例起一个Paddle-serving进程；
+- 变体（Variant）：一套同质化的Paddle Serving集群服务，每个实例起一个Paddle Serving进程；
 
 ## 3. 配置项解释
 
