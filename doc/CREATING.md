@@ -4,7 +4,7 @@
 
 图像分类是根据图像的语义信息将不同类别图像区分开来，是计算机视觉中重要的基本问题，也是图像检测、图像分割、物体跟踪、行为分析等其他高层视觉任务的基础。图像分类在很多领域有广泛应用，包括安防领域的人脸识别和智能视频分析等，交通领域的交通场景识别，互联网领域基于内容的图像检索和相册自动归类，医学领域的图像识别等。
 
-paddle-serving已经提供了一个基于ResNet的模型预测服务，按照INSTALL.md中所述步骤，编译paddle-serving，然后按GETTING_STARTED.md所述步骤启动client端和server端即可看到预测服务运行效果。
+Paddle Serving已经提供了一个基于ResNet的模型预测服务，按照INSTALL.md中所述步骤，编译Paddle Serving，然后按GETTING_STARTED.md所述步骤启动client端和server端即可看到预测服务运行效果。
 
 本文接下来以图像分类任务为例，介绍从零搭建一个模型预测服务的步骤。
 
@@ -14,7 +14,7 @@ paddle-serving已经提供了一个基于ResNet的模型预测服务，按照INS
 ### 2.1 定义预测接口
 
 **添加文件：serving/proto/image_class.proto**
-Paddle-serving服务端与客户端通过brpc进行通信，通信协议和格式可以自定，我们选择baidu_std协议。这是一种以protobuf为基本数据交换格式的协议，其说明可参考[BRPC文档: baidu_std](https://github.com/apache/incubator-brpc/blob/master/docs/cn/baidu_std.md)。
+Paddle Serving服务端与客户端通过brpc进行通信，通信协议和格式可以自定，我们选择baidu_std协议。这是一种以protobuf为基本数据交换格式的协议，其说明可参考[BRPC文档: baidu_std](https://github.com/apache/incubator-brpc/blob/master/docs/cn/baidu_std.md)。
 
 
 我们编写图像分类任务预测接口的protobuf如下：
@@ -147,11 +147,11 @@ engines {
 Serving端代码包含如下部分：
 - protobuf接口文件，需要编译成.pb.cc及.pb.h文件并链接到最终可执行文件
 - OP算子实现，需要链接到最终可执行文件
-- Paddle-serving框架代码，封装在libpdserving.a中，需要链接到最终可执行文件
-- Paddle-serving封装paddle-fluid预测库的代码，在inferencer-fluid-cpu/目录产出的libfluid_cpu_engine.a中
+- Paddle serving框架代码，封装在libpdserving.a中，需要链接到最终可执行文件
+- Paddle serving封装paddle-fluid预测库的代码，在inferencer-fluid-cpu/目录产出的libfluid_cpu_engine.a中
 - 其他第三方依赖库：paddle预测库，brpc, opencv等
 
-1) protobuf接口文件编译: 不能用protoc默认插件编译，需要编译成paddle-serving定制的.pb.cc及.pb.h文件。具体命令是
+1) protobuf接口文件编译: 不能用protoc默认插件编译，需要编译成paddle serving定制的.pb.cc及.pb.h文件。具体命令是
 ```shell
 $ protoc --cpp_out=/path/to/paddle-serving/build/serving/ --pdcodegen_out=/path/to/paddle-serving/ --plugin=protoc-gen-pdcodegen=/path/to/paddle-serving/build/predictor/pdcodegen --proto_path=/path/to/paddle-serving/predictor/proto
 ```
@@ -161,7 +161,7 @@ $ protoc --cpp_out=/path/to/paddle-serving/build/serving/ --pdcodegen_out=/path/
 predictor/proto目录下有serving端和client端都要包含的builtin_format.proto和pds_option.proto
 
 **NOTE**
-上述protoc命令在paddle-serving编译系统中被封装成一个CMake函数了，在cmake/generic.cmake::PROTOBUF_GENERATE_SERVING_CPP
+上述protoc命令在Paddle serving编译系统中被封装成一个CMake函数了，在cmake/generic.cmake::PROTOBUF_GENERATE_SERVING_CPP
 CMakeLists.txt中调用函数的方法为：
 ```shell
 PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS xxx.proto)
@@ -170,13 +170,13 @@ PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS xxx.proto)
 2) OP
 serving/op/目录下OP对应的.cpp文件
 
-3) Paddle-serving框架代码，封装在predictor目录产出的libpdserving.a中
+3) Paddle Serving框架代码，封装在predictor目录产出的libpdserving.a中
 
-4) Paddle-serving封装paddle-fluid预测库的代码，在inference-fluid-cpu/目录产出的libfluid_cpu_engine.a中
+4) Paddle Serving封装paddle-fluid预测库的代码，在inference-fluid-cpu/目录产出的libfluid_cpu_engine.a中
 
 5) serving端main函数
 
-为简化用户编写初始化代码的工作量，serving端必须的初始化过程已经由paddle-serving框架提供，请参考predictor/src/pdserving.cpp。该文件中包含了完整的初始化过程，用户只需提供合适的配置文件列表即可(请参考2.2.2节)，不必编写main函数
+为简化用户编写初始化代码的工作量，serving端必须的初始化过程已经由paddle Serving框架提供，请参考predictor/src/pdserving.cpp。该文件中包含了完整的初始化过程，用户只需提供合适的配置文件列表即可(请参考2.2.2节)，不必编写main函数
 
 6) 第三方依赖库
 
@@ -238,7 +238,7 @@ service ImageClassifyService {
 
 ### 3.2 Client端逻辑
 
-Paddle-serving提供的C++ SDK在sdk-cpp/目录中，入口为sdk-cpp/include/predictor_sdk.h中的`class PredictorApi`类。
+Paddle Serving提供的C++ SDK在sdk-cpp/目录中，入口为sdk-cpp/include/predictor_sdk.h中的`class PredictorApi`类。
 
 该类的主要接口：
 ```C++
@@ -306,7 +306,7 @@ api.thrd_finalize();
 api.destroy();
 ```
 
-具体实现可参考paddle-serving提供的例子sdk-cpp/demo/ximage.cpp
+具体实现可参考paddle Serving提供的例子sdk-cpp/demo/ximage.cpp
 
 ### 3.3 链接
 
@@ -324,7 +324,7 @@ $ protoc --cpp_out=/path/to/paddle-serving/build/serving/ --pdcodegen_out=/path/
 `pdcodegen`是由predictor/src/pdcodegen.cpp编译成的protobuf编译插件, --proto_path用来指定去哪里寻找`import`语句需要的protobuf文件
 
 **NOTE**
-上述protoc命令在paddle-serving编译系统中被封装成一个CMake函数了，在cmake/generic.cmake::PROTOBUF_GENERATE_SERVING_CPP
+上述protoc命令在Paddle Serving编译系统中被封装成一个CMake函数了，在cmake/generic.cmake::PROTOBUF_GENERATE_SERVING_CPP
 CMakeLists.txt中调用函数的方法为：
 ```shell
 PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS xxx.proto)
