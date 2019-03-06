@@ -13,7 +13,7 @@ paddle-serving已经提供了一个基于ResNet的模型预测服务，按照INS
 
 ### 2.1 定义预测接口
 
-** 添加文件：serving/proto/image_class.proto **
+**添加文件：serving/proto/image_class.proto**
 Paddle-serving服务端与客户端通过brpc进行通信，通信协议和格式可以自定，我们选择baidu_std协议。这是一种以protobuf为基本数据交换格式的协议，其说明可参考[BRPC文档: baidu_std](https://github.com/apache/incubator-brpc/blob/master/docs/cn/baidu_std.md)。
 
 
@@ -64,7 +64,7 @@ service ImageClassifyService {
 
 #### 2.2.1 定制Op算子
 
-** 在serving/op/目录下添加reader_op.cpp, classify_op.cpp, write_json_op.cpp **
+**在serving/op/目录下添加reader_op.cpp, classify_op.cpp, write_json_op.cpp**
 
 - 预处理算子(ReaderOp, serving/op/reader_op.cpp)：从Request中读取图像字节流，通过opencv解码，填充tensor对象并输出到channel；
 - 预测调用算子(ClassifyOp, serving/op/classify_op.cpp)：从ImageReaderOp的channel获得输入tensor，临时申请输出tensor，调用ModelToolkit进行预测，并将输出tensor写入channel
@@ -79,7 +79,7 @@ service ImageClassifyService {
 
 - 配置文件示例：
 
-** 添加文件 serving/conf/service.prototxt ** 
+**添加文件 serving/conf/service.prototxt** 
 
 ```shell
 services {
@@ -88,7 +88,7 @@ services {
 }
 ```
 
-** 添加文件 serving/conf/workflow.prototxt **
+**添加文件 serving/conf/workflow.prototxt**
 
 ```shell
 workflows {
@@ -119,14 +119,14 @@ workflows {
 
 以下配置文件为模型加载配置
 
-** 添加文件 serving/conf/resource.prototxt **
+**添加文件 serving/conf/resource.prototxt**
 
 ```shell
 model_manager_path: ./conf
 model_manager_file: model_toolkit.prototxt
 ```
 
-** 添加文件 serving/conf/model_toolkit.prototxt **
+**添加文件 serving/conf/model_toolkit.prototxt**
 
 ```shell
 engines {
@@ -221,7 +221,7 @@ target_link_libraries(serving opencv_imgcodecs
 
 ### 3.1 定义预测接口
 
-** 在sdk-cpp/proto添加image_class.proto **
+**在sdk-cpp/proto添加image_class.proto**
 
 与serving端预测接口protobuf文件基本一致，只要将`generate_impl=true`改为`generate_stub=true`
 
@@ -266,7 +266,7 @@ class Predictor {
 
 #### 3.2.1 请求逻辑
 
-** 增加sdk-cpp/demo/ximage.cpp **
+**增加sdk-cpp/demo/ximage.cpp**
 
 ```c++
 // 进程级初始化
@@ -323,7 +323,7 @@ $ protoc --cpp_out=/path/to/paddle-serving/build/serving/ --pdcodegen_out=/path/
 其中
 `pdcodegen`是由predictor/src/pdcodegen.cpp编译成的protobuf编译插件, --proto_path用来指定去哪里寻找`import`语句需要的protobuf文件
 
-** NOTE **
+**NOTE**
 上述protoc命令在paddle-serving编译系统中被封装成一个CMake函数了，在cmake/generic.cmake::PROTOBUF_GENERATE_SERVING_CPP
 CMakeLists.txt中调用函数的方法为：
 ```shell
@@ -347,7 +347,7 @@ target_link_libraries(ximage -Wl,--whole-archive sdk-cpp
 
 ### 3.4 连接配置
 
-** 增加配置文件sdk/conf/predictors.prototxt **
+**增加配置文件sdk/conf/predictors.prototxt**
 
 ```shell
 ## 默认配置共享

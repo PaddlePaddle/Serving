@@ -2,7 +2,7 @@
 
 Paddle-serving C++ client SDK主配置文件为conf/predictors.prototxt。其中一个示例如下：
 
-## Sample conf
+## 1. Sample conf
 
 ```shell
 default_variant_conf {
@@ -65,14 +65,14 @@ predictors {
 
 ```
 
-## 名词解释
+## 2. 名词解释
 - 预测服务 (Predictor)：对一个Paddle预测服务的封装
 - 端点（Endpoit）：对一个预测需求的逻辑抽象，通常包含一到多个服务变体，以方便多版本模型管理；
 - 变体（Variant）：一套同质化的Paddle-serving集群服务，每个实例起一个Paddle-serving进程；
 
-## 配置项解释
+## 3. 配置项解释
 
-### default_variant_conf
+### 3.1 default_variant_conf
 
 ```shell
 default_variant_conf {
@@ -110,7 +110,7 @@ compress_type: 0-None, 1-Snappy, 2-gzip, 3-zlib, 4-lz4, see [BRPC DOC: compress_
 
 protocol: Maybe baidu_std/http/h2/h2:grpc/thrift/memcache/redis... see [BRPC DOC: protocol](https://github.com/apache/incubator-brpc/blob/master/docs/cn/client.md#%E5%8D%8F%E8%AE%AE) 
 
-### Predictors
+### 3.2 Predictors
 
 可以为客户端配置多个predictor，每个predictor代表一个要访问的预测服务
 
