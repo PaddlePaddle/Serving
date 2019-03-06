@@ -73,7 +73,7 @@ service ImageClassifyService {
 具体实现可参考demo中的源代码
 
 
-#### 2.2.2 示例配置([conf目录](http://icode.baidu.com/repos/baidu/personal-code/paddle-serving/tree/master:serving/conf))
+#### 2.2.2 示例配置
 
 以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[设计文档](DESIGN.md))
 
