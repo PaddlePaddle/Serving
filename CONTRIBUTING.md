@@ -61,7 +61,7 @@ Paddle Serving uses this [Git branching model](http://nvie.com/posts/a-successfu
 
 1. Build and test
 
-   Users can build PaddlePaddle natively on Linux, see the [BUILD steps](doc/INSTALL.md).
+   Users can build Paddle Serving natively on Linux, see the [BUILD steps](doc/INSTALL.md).
 
 1. Keep pulling
 
@@ -80,7 +80,7 @@ Paddle Serving uses this [Git branching model](http://nvie.com/posts/a-successfu
    git push origin my-cool-stuff
    ```
 
-   The push allows you to create a pull request, requesting owners of this [official repo](https://github.com/PaddlePaddle/servin) to pull your change into the official one.
+   The push allows you to create a pull request, requesting owners of this [official repo](https://github.com/PaddlePaddle/serving) to pull your change into the official one.
 
    To create a pull request, please follow [these steps](https://help.github.com/articles/creating-a-pull-request/).
 
@@ -140,7 +140,7 @@ We use LOG() for general logging
 LOG(INFO) << "Operator FC is taking " << num_inputs << "inputs."
 ```
 
-When we run a PaddlePaddle application or test, we can specify a logging level.  For example:
+When we run a Paddle Serving application or test, we can specify a logging level.  For example:
 
 ```bash
 GLOG_minloglevel=0 GLOG_maxloglevel=3 bin/serving
