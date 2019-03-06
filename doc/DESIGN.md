@@ -19,9 +19,10 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 - Channel 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
 - Bus 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
 - Stage Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
+- Node 由某个Op算子类结合参数配置组成的Op算子实例，也是Workflow中的一个执行单元
 - Workflow 按照DAG描述的拓扑，有序执行每个OP的inference接口
-- App 对workflow的逻辑封装，框架加载每套workflow配置时，会生成一个App实例，可并行管理多个App
-- Service 对多个App组成的复杂调度拓扑的逻辑封装，同一个service内的App之间可能存在依赖关系；服务框架可加载多套service配置，并行管理多套service，一次请求只能访问一个service。
+- DAG/Workflow 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点Op通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象
+- Service 对一次pv的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
 
 ## 3. Paddle Serving总体框架
 
@@ -65,6 +66,11 @@ class FluidFamilyCore {
 
 关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](CREATING.md)的相关章节
 
+服务端实例透视图
+
+![服务端实例透视图](https://paddle-serving.bj.bcebos.com/doc/server-side.png)
+
+
 #### 3.2.2 Paddle Serving的多服务机制
 
 ![Paddle Serving的多服务机制](https://paddle-serving.bj.bcebos.com/doc/multi-service.png)
@@ -80,6 +86,7 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 一个Service对应一个预测模型，模型下有1个endpoint。模型的不同版本，通过endpoint下多个variant概念实现：
 同一个模型预测服务，可以配置多个variant，每个variant有自己的下游IP列表。客户端代码可以对各个variant配置相对权重，以达到调节流量比例的关系（参考[客户端配置](CLIENT_CONFIGURE.md)第3.2节中关于variant_weight_list的说明）。
 
+![Client端proxy功能](https://paddle-serving.bj.bcebos.com/doc/client-side-proxy.png)
 
 ## 4. 用户接口
 
