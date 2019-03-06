@@ -1,6 +1,8 @@
 
 # Getting Started
 
+请先按照[编译安装说明](INSTALL.md)完成编译
+
 ## 运行示例
 说明：Imagenet图像分类模型，默认采用CPU模式（GPU模式当前版本暂未提供支持）
 
