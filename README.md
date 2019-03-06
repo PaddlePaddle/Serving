@@ -4,22 +4,12 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 
 # 框架简介
 
-![图片](http://agroup-bos.cdn.bcebos.com/63a5076471e96a08124b89101e12c1a0ec7b642a)
+![图片](https://paddle-serving.bj.bcebos.com/doc/framework.png)
 
 - 基础框架：屏蔽一个RPC服务所需的所有元素，让用户只关注自己的业务算子的开发；
 - 业务框架：基于Protobuf定制请求接口，基于有限DAG定制业务逻辑，并行化调度；
 - 模型框架：CPU/FPGA/GPU等硬件异构，多模型间异步优先级调度，新引擎灵活扩展，配置化驱动；
 - 用户接口：搭建服务=定义proto文件+实现/复用Op+撰写配置，支持sdk/http请求；
-
-## 名词解释
-- 预测引擎：对PaddlePaddle预测Lib的封装，屏蔽预测模型动态Reload细节，对上层暴露统一的预测接口；
-- 预测模型：由离线训练框架生成、在线预测引擎加载的数据文件或目录，以PaddleFluid模型为例，通常包括拓扑文件和参数文件；
-- Op 算子：Paddle-serving对在线(预处理/后处理等)业务逻辑的最小粒度封装，框架提供OpWithChannel和OpWithChannelAndConf这两种常用的Op基类；框架默认实现通用Op算子；
-- Node：由某个Op算子类结合参数配置组成的Op算子实例，也是Workflow中的一个执行单元；
-- DAG/Workflow：由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点Op通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象；
-- Service：对一次pv的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
-
-![图片](http://agroup-bos.cdn.bcebos.com/2e5e3cdcc9426d16e2090e64e7d33098ae5ad826)
 
 ## 主要功能
 
@@ -40,10 +30,13 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 - RPC：底层通过Baidu-rpc封装网络交互，Server端可配置化启动多个独立Service，框架会搜集Service粒度的详细业务指标，并按照BVar接口对接到Noah等监控平台；
 - SDK：基于Baidu-rpc的client进行封装，提供多下游连接管理、可扩展路由策略、可定制参数实验、自动分包等机制，支持同步、半同步、纯异步等交互模式，以及多种兼容协议，所有连接策略均通过配置驱动
 
-## 名词解释
-- 端点（Endpoit）：对一个预测需求的逻辑抽象，通常包含一到多个服务变体，以方便多版本模型管理；
-- 变体（Variant）：一套同质化的Paddle-serving集群服务，每个实例起一个Paddle-serving进程；
 
-# 设计文档
+# 文档
 
 [设计文档](doc/DESIGN.md)
+
+[从零开始写一个预测服务](doc/CREATING.md)
+
+[编译安装](doc/INSTALL.md)
+
+[FAQ](doc/FAQ.md)
