@@ -1,10 +1,10 @@
-# Paddle-Serving设计方案
+# Paddle Serving设计方案
 
 ## 1. 项目背景
 
 PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle-serving设计方案。
 
-1. 模型是Paddle-Serving预测的核心，包括模型数据和推理计算的管理；
+1. 模型是Paddle Serving预测的核心，包括模型数据和推理计算的管理；
 2. 预测框架封装模型推理计算，对外提供RPC接口，对接不同上游；
 3. 预测服务SDK提供一套接入框架
 
@@ -15,7 +15,7 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 - baidu-rpc 百度官方开源RPC框架，支持多种常见通信协议，提供基于protobuf的自定义接口体验
 - Variant Paddle-serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
 - Endpoint 多个Variant组成一个Endpoint，逻辑上看，Endpoint代表一个model，Endpoint内部的Variant代表不同的版本
-- OP PaddlePaddle用来封装一种数值计算的算子，Paddle-Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
+- OP PaddlePaddle用来封装一种数值计算的算子，Paddle Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
 - Channel 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
 - Bus 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
 - Stage Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
@@ -23,7 +23,7 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 - App 对workflow的逻辑封装，框架加载每套workflow配置时，会生成一个App实例，可并行管理多个App
 - Service 对多个App组成的复杂调度拓扑的逻辑封装，同一个service内的App之间可能存在依赖关系；服务框架可加载多套service配置，并行管理多套service，一次请求只能访问一个service。
 
-## 3. Paddle-Serving总体框架
+## 3. Paddle Serving总体框架
 
 ![Paddle-Serging总体框图](https://paddle-serving.bj.bcebos.com/doc/framework.png)
 
@@ -65,15 +65,15 @@ class FluidFamilyCore {
 
 关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](CREATING.md)的相关章节
 
-#### 3.2.2 Paddle-Serving的多服务机制
+#### 3.2.2 Paddle Serving的多服务机制
 
-![Paddle-Serving的多服务机制](https://paddle-serving.bj.bcebos.com/doc/multi-service.png)
+![Paddle Serving的多服务机制](https://paddle-serving.bj.bcebos.com/doc/multi-service.png)
 
-Paddle-Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../serving/conf/service.prototxt)了解如何为serving实例配置多个service
+Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
 #### 3.2.3 业务调度层级关系
 
-从客户端看，一个Paddle-Serving service从顶向下可分为Service, Endpoint, Variant等3个层级
+从客户端看，一个Paddle Serving service从顶向下可分为Service, Endpoint, Variant等3个层级
 
 ![调用层级关系](https://paddle-serving.bj.bcebos.com/doc/multi-variants.png)
 
@@ -83,11 +83,11 @@ Paddle-Serving实例可以同时加载多个模型，每个模型用一个Servic
 
 ## 4. 用户接口
 
-在满足一定的接口规范前提下，服务框架不对用户数据字段做任何约束，以应对各种预测服务的不同业务接口。Baidu-rpc继承了Protobuf serice的接口，用户按照Protobuf语法规范描述Request和Response业务接口。Paddle-Serving基于Baidu-rpc框架搭建，默认支持该特性。
+在满足一定的接口规范前提下，服务框架不对用户数据字段做任何约束，以应对各种预测服务的不同业务接口。Baidu-rpc继承了Protobuf serice的接口，用户按照Protobuf语法规范描述Request和Response业务接口。Paddle Serving基于Baidu-rpc框架搭建，默认支持该特性。
 
 无论通信协议如何变化，框架只需确保Client和Server间通信协议和业务数据两种信息的格式同步，即可保证正常通信。这些信息又可细分如下：
 
-- 协议：Server和Client之间事先约定的、确保相互识别数据格式的包头信息。Paddle-Serving用Protobuf作为基础通信格式
+- 协议：Server和Client之间事先约定的、确保相互识别数据格式的包头信息。Paddle Serving用Protobuf作为基础通信格式
 - 数据：用来描述Request和Response的接口，例如待预测样本数据，和预测返回的打分。包括：
   - 数据字段：请求包Request和返回包Response两种数据结构包含的字段定义
   - 描述接口：跟协议接口类似，默认支持Protobuf

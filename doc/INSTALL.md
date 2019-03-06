@@ -10,8 +10,8 @@ python
 
 ## 编译
 ```shell
-$ git clone ssh://wangguibao@icode.baidu.com:8235/baidu/personal-code/paddle-serving
-$ cd paddle-serving
+$ git clone https://github.com/PaddlePaddle/serving.git
+$ cd serving
 $ mkdir build
 $ cd build
 $ cmake ..
@@ -55,3 +55,12 @@ $ make install
 ```
 
 如要编写新的预测服务，请参考[从零开始写一个预测服务](CREATING.md)
+
+# CMake编译选项说明
+
+因Paddle Serving依托于PaddlePaddle项目进行构建，以下编译选项其实是传递给PaddlePaddle的编译选项：
+
+| 编译选项 | 说明|
+|----------|-----|
+| WITH_AVX | Compile PaddlePaddle with AVX intrinsics |
+| WITH_MKL | Compile PaddlePaddle with MKLML library |
