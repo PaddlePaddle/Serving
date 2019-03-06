@@ -8,7 +8,7 @@
 
 Step1：启动Server端：
 ```shell
-cd paddle-serving/output/demo/serving/ && ./bin/serving &
+cd /path/to/paddle-serving/output/demo/serving/ && ./bin/serving &
 ```
 
 默认启动后日志写在./log/下，可tail日志查看serving端接收请求的日志：
@@ -18,7 +18,7 @@ tail -f log/serving.INFO
 
 Step2：启动Client端：
 ```shell
-cd paddle-serving/output/demo/client/image_class &&  ./bin/ximage &
+cd path/to/paddle-serving/output/demo/client/image_class &&  ./bin/ximage &
 ```
 
 默认启动后日志写在./log/下，可tail日志查看分类结果：

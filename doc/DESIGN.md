@@ -2,7 +2,7 @@
 
 ## 1. 项目背景
 
-PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle-serving设计方案。
+PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle Serving设计方案。
 
 1. 模型是Paddle Serving预测的核心，包括模型数据和推理计算的管理；
 2. 预测框架封装模型推理计算，对外提供RPC接口，对接不同上游；
@@ -13,7 +13,7 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 ## 2. 名词解释
 
 - baidu-rpc 百度官方开源RPC框架，支持多种常见通信协议，提供基于protobuf的自定义接口体验
-- Variant Paddle-serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
+- Variant Paddle Serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
 - Endpoint 多个Variant组成一个Endpoint，逻辑上看，Endpoint代表一个model，Endpoint内部的Variant代表不同的版本
 - OP PaddlePaddle用来封装一种数值计算的算子，Paddle Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
 - Channel 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互

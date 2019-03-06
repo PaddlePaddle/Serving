@@ -23,7 +23,7 @@ $ make install
 
 ```
 .
-|-- bin                             # Paddle-serving protobuf编译插件pdcodegen所在目录
+|-- bin                             # Paddle Serving protobuf编译插件pdcodegen所在目录
 |-- demo                            # demo总目录
 |   |-- client
 |   |   |-- dense_format            # dense_format客户端
@@ -51,7 +51,7 @@ $ make install
 |       |       `-- paddle
 |       |           `-- fluid
 |       |               `-- SE_ResNeXt50_32x4d  # image_classification模型
-`-- lib                             # Paddle-serving产出的静态库文件: libpdseving.a, libsdk-cpp.a, libconfigure.a, libfluid_cpu_engine.a
+`-- lib                             # Paddle Serving产出的静态库文件: libpdseving.a, libsdk-cpp.a, libconfigure.a, libfluid_cpu_engine.a
 ```
 
 如要编写新的预测服务，请参考[从零开始写一个预测服务](CREATING.md)
