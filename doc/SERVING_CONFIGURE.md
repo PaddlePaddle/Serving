@@ -140,6 +140,7 @@ Analysis API在模型加载过程中，会对模型计算逻辑进行多种优�
 
 reloadable_meta: 目前实际内容无意义，用来通过对该文件的mtime判断是否超过reload时间阈值
 reloadable_type: 检查reload条件：timestamp_ne/timestamp_gt/md5sum/revision/none
+
 |reloadable_type|含义|
 |---------------|----|
 |timestamp_ne|reloadable_meta所指定文件的mtime时间戳发生变化|
