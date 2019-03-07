@@ -10,3 +10,5 @@
 [Getting Started](GETTING_STARTED.md)
 
 [Installation](INSTALL.md)
+
+[Server Side Configuration](SERVING_CONFIGURE.md)
