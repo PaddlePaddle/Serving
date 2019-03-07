@@ -53,9 +53,6 @@ int EndpointConfigManager::load() {
     }
 
     uint32_t ep_size = sdk_conf.predictors_size();
-#if 1
-    LOG(INFO) << "ep_size: " << ep_size;
-#endif
     for (uint32_t ei = 0; ei < ep_size; ++ei) {
       EndpointInfo ep;
       if (init_one_endpoint(sdk_conf.predictors(ei), ep, default_var) != 0) {
@@ -88,9 +85,6 @@ int EndpointConfigManager::load() {
 int EndpointConfigManager::init_one_endpoint(const configure::Predictor& conf,
                                              EndpointInfo& ep,
                                              const VariantInfo& dft_var) {
-#if 1
-  LOG(INFO) << "init_one_endpoint " << conf.name().c_str();
-#endif
   try {
     // name
     ep.endpoint_name = conf.name();
@@ -120,9 +114,6 @@ int EndpointConfigManager::init_one_endpoint(const configure::Predictor& conf,
 
     // varlist
     uint32_t var_size = conf.variants_size();
-#if 1
-    LOG(INFO) << "Variant size: " << var_size;
-#endif
     for (uint32_t vi = 0; vi < var_size; ++vi) {
       VariantInfo var;
       if (merge_variant(dft_var, conf.variants(vi), var) != 0) {
@@ -180,9 +171,6 @@ int EndpointConfigManager::init_one_variant(const configure::VariantConf& conf,
     const configure::RpcParameter& params = conf.rpc_parameter();
 
     PARSE_CONF_ITEM(params, var.parameters.protocol, protocol, -1);
-#if 1
-    LOG(WARNING) << var.parameters.protocol.value.c_str();
-#endif
     PARSE_CONF_ITEM(params, var.parameters.compress_type, compress_type, -1);
     PARSE_CONF_ITEM(params, var.parameters.package_size, package_size, -1);
     PARSE_CONF_ITEM(
@@ -213,9 +201,6 @@ int EndpointConfigManager::merge_variant(const VariantInfo& default_var,
                                          VariantInfo& merged_var) {
   merged_var = default_var;
 
-#if 1
-  LOG(INFO) << "merge_variant " << conf.tag().c_str();
-#endif
   return init_one_variant(conf, merged_var);
 }
 
