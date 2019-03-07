@@ -1,6 +1,8 @@
 
 [Client Configure](CLIENT_CONFIGURE.md)
 
+[How to Configure a Clustered Service](CLUSTERING.md)
+
 [Creating a Prediction Service](CREATING.md)
 
 [Design](DESIGN.md)
