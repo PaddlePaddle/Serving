@@ -1,4 +1,4 @@
-#搭建预测服务集群
+# 搭建预测服务集群
 
 从[客户端配置](CLIENT_CONFIGURE.md)中我们已经知道，通过在客户端SDK的配置文件predictors.prototxt适当配置，可以搭建多副本和多Variant的预测集群。以下以图像分类任务为例，在单机上模拟搭建单Variant的多副本、和多Variant的预测集群
 
