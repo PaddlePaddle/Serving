@@ -75,6 +75,8 @@ service ImageClassifyService {
 
 #### 2.2.2 示例配置
 
+关于Serving端的配置的详细信息，可以参考[Serving端配置](SERVING_CONFIGURE.md)
+
 以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[设计文档](DESIGN.md))
 
 - 配置文件示例：
@@ -209,6 +211,8 @@ target_link_libraries(serving opencv_imgcodecs
 |enable_model_toolkit|true|模型管理|
 |enable_protocol_list|baidu_std|brpc 通信协议列表|
 |log_dir|./log|log dir|
+|num_threads|brpc server使用的系统线程数，默认为CPU核数|
+|max_concurrency|并发处理的请求数，设为<=0则为不予限制，若大于0则限定brpc server端同时处理的请求数上限|
 
 可以通过在serving/conf/gflags.conf覆盖默认值，例如
 ```

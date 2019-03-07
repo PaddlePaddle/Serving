@@ -1,6 +1,8 @@
 # Client side configuration
 
-Paddle Serving C++ client SDK主配置文件为conf/predictors.prototxt。其中一个示例如下：
+Paddle Serving C++ client SDK的配置文件格式用protobuf定义，全部在configure/proto/sdk_configure.proto中。如果要增加配置字段，需要先在该protobuf文件中增加相应字段，才能被Serving SDK读取和解析。
+
+Paddle Serving主配置文件为conf/predictors.prototxt。其中一个示例如下：
 
 ## 1. Sample conf
 
