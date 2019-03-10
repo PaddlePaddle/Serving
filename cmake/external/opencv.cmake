@@ -49,6 +49,7 @@ ExternalProject_Add(
                     -DWITH_TIFF=ON
                     -DBUILD_TIFF=ON
                     -DBUILD_SHARED_LIBS=OFF
+                    -DENABLE_PRECOMPILED_HEADERS=OFF
                     ${EXTERNAL_OPTIONAL_ARGS}
     CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${OPENCV_INSTALL_DIR}
                      -DCMAKE_INSTALL_LIBDIR:PATH=${OPENCV_INSTALL_DIR}/lib
