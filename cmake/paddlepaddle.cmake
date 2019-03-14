@@ -30,7 +30,7 @@ ExternalProject_Add(
     ${EXTERNAL_PROJECT_LOG_ARGS}
     # TODO(wangguibao): change to de newst repo when they changed.
     GIT_REPOSITORY  "https://github.com/PaddlePaddle/Paddle"
-    GIT_TAG         "v1.2.0"
+    GIT_TAG         "v1.3.0"
     PREFIX          ${PADDLE_SOURCES_DIR}
     UPDATE_COMMAND  ""
     BINARY_DIR ${CMAKE_BINARY_DIR}/Paddle

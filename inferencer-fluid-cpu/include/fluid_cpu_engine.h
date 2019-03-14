@@ -118,15 +118,15 @@ class FluidCpuAnalysisCore : public FluidFamilyCore {
       return -1;
     }
 
-    paddle::contrib::AnalysisConfig analysis_config;
-    analysis_config.param_file = data_path + "/__params__";
-    analysis_config.prog_file = data_path + "/__model__";
-    analysis_config.use_gpu = false;
-    analysis_config.device = 0;
-    analysis_config.specify_input_name = true;
+    paddle::AnalysisConfig analysis_config;
+    analysis_config.SetParamsFile(data_path + "/__params__");
+    analysis_config.SetProgFile(data_path + "/__model__");
+    analysis_config.DisableGpu();
+    analysis_config.SetCpuMathLibraryNumThreads(1);
+    analysis_config.SwitchSpecifyInputNames(true);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
-    _core = paddle::CreatePaddlePredictor<paddle::contrib::AnalysisConfig>(
-        analysis_config);
+    _core =
+        paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
     if (NULL == _core.get()) {
       LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
       return -1;
@@ -174,14 +174,14 @@ class FluidCpuAnalysisDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    paddle::contrib::AnalysisConfig analysis_config;
-    analysis_config.model_dir = data_path;
-    analysis_config.use_gpu = false;
-    analysis_config.device = 0;
-    analysis_config.specify_input_name = true;
+    paddle::AnalysisConfig analysis_config;
+    analysis_config.SetModel(data_path);
+    analysis_config.DisableGpu();
+    analysis_config.SwitchSpecifyInputNames(true);
+    analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
-    _core = paddle::CreatePaddlePredictor<paddle::contrib::AnalysisConfig>(
-        analysis_config);
+    _core =
+        paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
     if (NULL == _core.get()) {
       LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
       return -1;
@@ -478,15 +478,14 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
       return -1;
     }
 
-    paddle::contrib::AnalysisConfig analysis_config;
-    analysis_config.model_dir = data_path;
-    analysis_config.use_gpu = false;
-    analysis_config.device = 0;
-    analysis_config.specify_input_name = true;
+    paddle::AnalysisConfig analysis_config;
+    analysis_config.SetModel(data_path);
+    analysis_config.DisableGpu();
+    analysis_config.SwitchSpecifyInputNames(true);
+    analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
-        paddle::CreatePaddlePredictor<paddle::contrib::AnalysisConfig>(
-            analysis_config);
+        paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
     if (NULL == _core.get()) {
       LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
       return -1;

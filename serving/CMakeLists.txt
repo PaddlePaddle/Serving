@@ -1,3 +1,17 @@
+if (NOT EXISTS
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/text_classification_lstm)
+        execute_process(COMMAND wget
+                --no-check-certificate https://paddle-serving.bj.bcebos.com/data/text_classification/text_classification_lstm.tar.gz
+                --output-document
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/text_classification_lstm.tar.gz)
+
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf
+                "${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/text_classification_lstm.tar.gz"
+                WORKING_DIRECTORY
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid
+                )
+endif()
+
 find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)

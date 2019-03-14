@@ -123,6 +123,8 @@ int main(int argc, char** argv) {
     }
   }
   google::InitGoogleLogging(strdup(argv[0]));
+  FLAGS_logbufsecs = 0;
+  FLAGS_logbuflevel = -1;
 
   LOG(INFO) << "Succ initialize logger";
 
