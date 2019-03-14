@@ -22,3 +22,8 @@ services {
   workflows: "workflow5"
 }
 
+services {
+  name: "TextClassificationService"
+  workflows: "workflow6"
+}
+

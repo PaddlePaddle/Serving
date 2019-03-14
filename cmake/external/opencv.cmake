@@ -42,6 +42,7 @@ ExternalProject_Add(
                     -DBUILD_PERF_TESTS=OFF
                     -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
                     -DWITH_EIGEN=OFF
+                    -DWITH_CUDA=OFF
                     -DWITH_JPEG=ON
                     -DBUILD_JPEG=ON
                     -DWITH_PNG=ON
