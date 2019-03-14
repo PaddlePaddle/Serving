@@ -51,13 +51,20 @@ workflows {
     }
   }
 }
-
 workflows {
   name: "workflow5"
   workflow_type: "Sequence"
   nodes {
     name: "int64tensor_echo_op"
     type: "Int64TensorEchoOp"
+  }
+}
+workflows {
+  name: "workflow6"
+  workflow_type: "Sequence"
+  nodes {
+    name: "text_classify_op"
+    type: "TextClassificationOp"
   }
 }
 

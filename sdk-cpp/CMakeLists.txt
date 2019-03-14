@@ -1,3 +1,17 @@
+if (NOT EXISTS
+                ${CMAKE_CURRENT_LIST_DIR}/data/text_classification/test_set.txt)
+        execute_process(COMMAND wget
+                --no-check-certificate
+                https://paddle-serving.bj.bcebos.com/data/text_classification/test_set.tar.gz
+                --output-document
+                ${CMAKE_CURRENT_LIST_DIR}/data/text_classification/test_set.tar.gz)
+
+            execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf
+                "${CMAKE_CURRENT_LIST_DIR}/data/text_classification/test_set.tar.gz"
+                WORKING_DIRECTORY
+                ${CMAKE_CURRENT_LIST_DIR}/data/text_classification
+                )
+endif()
 include(src/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
@@ -43,8 +57,8 @@ install(TARGETS ximage
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/images DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/data)
 
 install(TARGETS echo
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/bin)
@@ -74,3 +88,5 @@ install(TARGETS text_classification
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
