@@ -85,13 +85,21 @@ workflows {
 }
 ```
 以上样例配置了2个workflow：`workflow1`和`workflow2`。以`workflow1`为例：
+
 name: workflow名称，用于从service.prototxt索引到具体的workflow
+
 workflow_type: 可选"Sequence", "Parallel"，表示本workflow下节点所代表的OP是否可并行。**当前只支持Sequence类型，如配置了Parallel类型，则该workflow不会被执行**
+
 nodes: 用于串联成workflow的所有节点，可配置多个nodes。nodes间通过配置dependencies串联起来
+
 node.name: 随意，建议取一个能代表当前node所执行OP的类
+
 node.type: 当前node所执行OP的类名称，与serving/op/下每个具体的OP类的名称对应
+
 node.dependencies: 依赖的上游node列表
+
 node.dependencies.name: 与workflow内节点的name保持一致
+
 node.dependencies.mode: RO-Read Only, RW-Read Write
 
 # 3. resource.prototxt
@@ -125,6 +133,7 @@ engines {
 其中
 
 name: 模型名称。InferManager通过此名称，找到要使用的模型和预测引擎。可参考serving/op/classify_op.h与serving/op/classify_op.cpp的InferManager::instance().infer()方法的参数来了解。
+
 type: 预测引擎的类型。可在inferencer-fluid-cpu/src/fluid_cpu_engine.cpp找到当前注册的预测引擎列表
 
 |预测引擎|含义|
@@ -139,6 +148,7 @@ type: 预测引擎的类型。可在inferencer-fluid-cpu/src/fluid_cpu_engine.cp
 Analysis API在模型加载过程中，会对模型计算逻辑进行多种优化，包括但不限于zero copy tensor，相邻OP的fuse等
 
 reloadable_meta: 目前实际内容无意义，用来通过对该文件的mtime判断是否超过reload时间阈值
+
 reloadable_type: 检查reload条件：timestamp_ne/timestamp_gt/md5sum/revision/none
 
 |reloadable_type|含义|
@@ -149,8 +159,11 @@ reloadable_type: 检查reload条件：timestamp_ne/timestamp_gt/md5sum/revision/
 |revision|目前无用，配置后用于不reload|
 
 model_data_path: 模型文件路径
+
 runtime_thread_num: 若大于0， 则启用bsf多线程调度框架，在每个预测bthread worker内启动多线程预测。
+
 batch_infer_size: 启用bsf多线程预测时，每个预测线程的batch size
+
 enable_batch_align:
 
 ## 5. 命令行配置参数
