@@ -1,5 +1,7 @@
 if (NOT EXISTS
                 ${CMAKE_CURRENT_LIST_DIR}/data/text_classification/test_set.txt)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${CMAKE_CURRENT_LIST_DIR}/data/text_classification)
         execute_process(COMMAND wget
                 --no-check-certificate
                 https://paddle-serving.bj.bcebos.com/data/text_classification/test_set.tar.gz
@@ -47,6 +49,11 @@ add_executable(text_classification
 target_link_libraries(text_classification -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
+add_executable(text_classification_press
+        ${CMAKE_CURRENT_LIST_DIR}/demo/text_classification_press.cpp)
+target_link_libraries(text_classification_press -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
+
 # install
 install(TARGETS sdk-cpp
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
@@ -83,7 +90,7 @@ install(TARGETS int64tensor_format
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/int64tensor_format/)
 
-install(TARGETS text_classification
+install(TARGETS text_classification text_classification_press
         RUNTIME DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
