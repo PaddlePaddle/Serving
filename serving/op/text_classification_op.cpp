@@ -27,6 +27,43 @@ using baidu::paddle_serving::predictor::text_classification::Response;
 using baidu::paddle_serving::predictor::text_classification::TextReqInstance;
 using baidu::paddle_serving::predictor::text_classification::Request;
 
+int inference_real(TextClassificationOp::TensorVector *in,
+                   TextClassificationOp::TensorVector *out,
+                   int sample_size) {
+  if (predictor::InferManager::instance().infer(
+          TEXT_CLASSIFICATION_MODEL_NAME, in, out, sample_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: "
+               << TEXT_CLASSIFICATION_MODEL_NAME;
+    return -1;
+  }
+
+  return 0;
+}
+
+int inference_fake(TextClassificationOp::TensorVector *in,
+                   TextClassificationOp::TensorVector *out,
+                   int sample_size) {
+  paddle::PaddleTensor lod_tensor;
+  lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
+  lod_tensor.data.Resize(sample_size * sizeof(float) * 2);
+
+  float *data_ptr = reinterpret_cast<float *>(lod_tensor.data.data());
+  for (int i = 0; i < sample_size; ++i) {
+    *(data_ptr + i * 2) = 0.500;
+    *(data_ptr + i * 2 + 1) = 0.500;
+  }
+
+  lod_tensor.lod.resize(1);
+  lod_tensor.lod[0].push_back(0);
+  lod_tensor.lod[0].push_back(sample_size);
+
+  lod_tensor.shape.push_back(sample_size);
+  lod_tensor.shape.push_back(2);
+
+  out->push_back(lod_tensor);
+  return 0;
+}
+
 int TextClassificationOp::inference() {
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
@@ -72,10 +109,8 @@ int TextClassificationOp::inference() {
   }
 
   // call paddle fluid model for inferencing
-  if (predictor::InferManager::instance().infer(
-          TEXT_CLASSIFICATION_MODEL_NAME, in, out, sample_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: "
-               << TEXT_CLASSIFICATION_MODEL_NAME;
+
+  if (inference_fake(in, out, sample_size) != 0) {
     return -1;
   }
 

@@ -203,6 +203,7 @@ int main(int argc, char **argv) {
   api.thrd_initialize();
 
   uint64_t elapse_ms = 0;
+  int batch_count = 0;
   while (true) {
     api.thrd_clear();
 
@@ -218,6 +219,8 @@ int main(int argc, char **argv) {
     if (create_req(local_feed, req) != 0) {
       break;
     }
+
+    ++batch_count;
 
     timeval start;
     gettimeofday(&start, NULL);
@@ -251,9 +254,10 @@ int main(int argc, char **argv) {
   }
 
   LOG(INFO) << "Elapse ms " << elapse_ms;
+  LOG(INFO) << "Exe ms per batch " << elapse_ms / batch_count;
   double qps = (static_cast<double>(g_pred_labels.size()) / elapse_ms) * 1000;
 
-  LOG(INFO) << "QPS: " << qps << "/s";
+  LOG(INFO) << "QPS: " << qps / FLAGS_batch_size << "/s";
   LOG(INFO) << "Accuracy "
             << static_cast<double>(correct) / g_pred_labels.size();
 
