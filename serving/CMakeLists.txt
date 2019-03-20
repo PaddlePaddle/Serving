@@ -33,3 +33,9 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
+if (${WITH_MKL})
+        install(FILES ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_intel.so
+                ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_gnu.so
+                ${THIRD_PARTY_PATH}/install/mklml/lib/libiomp5.so DESTINATION
+                ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
+endif()
