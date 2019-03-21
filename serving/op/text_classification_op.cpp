@@ -110,7 +110,7 @@ int TextClassificationOp::inference() {
 
   // call paddle fluid model for inferencing
 
-  if (inference_fake(in, out, sample_size) != 0) {
+  if (inference_real(in, out, sample_size) != 0) {
     return -1;
   }
 
