@@ -793,7 +793,7 @@ function(brpc_library TARGET_NAME)
   cc_library("${TARGET_NAME}" SRCS "${brpc_library_SRCS}" DEPS "${TARGET_NAME}_proto" "${brpc_library_DEPS}")
 endfunction()
 
-function(PROTOBUF_GENERATE_SERVING_CPP SRCS HDRS)
+function(PROTOBUF_GENERATE_SERVING_CPP FOR_SERVING_SIDE SRCS HDRS )
   if(NOT ARGN)
     message(SEND_ERROR "Error: PROTOBUF_GENERATE_SERVING_CPP() called without any proto files")
     return()
@@ -832,18 +832,33 @@ function(PROTOBUF_GENERATE_SERVING_CPP SRCS HDRS)
     list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc")
     list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h")
 
-    add_custom_command(
-      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
-             "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-      COMMAND  ${Protobuf_PROTOC_EXECUTABLE}
-      ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-           --pdcodegen_out=${CMAKE_CURRENT_BINARY_DIR}
-           --plugin=protoc-gen-pdcodegen=${CMAKE_BINARY_DIR}/predictor/pdcodegen
-           --proto_path=${CMAKE_SOURCE_DIR}/predictor/proto
-           ${_protobuf_include_path} ${ABS_FIL}
-      DEPENDS ${ABS_FIL} ${Protobuf_PROTOC_EXECUTABLE}
-      COMMENT "Running Paddle-serving C++ protocol buffer compiler on ${FIL}"
-      VERBATIM)
+    message("For serving side " ${FOR_SERVING_SIDE})
+    if (${FOR_SERVING_SIDE})
+        add_custom_command(
+            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
+                   "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
+            COMMAND  ${Protobuf_PROTOC_EXECUTABLE}
+                ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+                --pdcodegen_out=${CMAKE_CURRENT_BINARY_DIR}
+                --plugin=protoc-gen-pdcodegen=${CMAKE_BINARY_DIR}/pdcodegen/pdcodegen
+                --proto_path=${CMAKE_SOURCE_DIR}/predictor/proto
+                ${_protobuf_include_path} ${ABS_FIL}
+            DEPENDS ${ABS_FIL} ${Protobuf_PROTOC_EXECUTABLE}
+            COMMENT "Running Paddle-serving C++ protocol buffer compiler on ${FIL}"
+            VERBATIM)
+    else()
+        add_custom_command(
+            OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
+                   "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
+            COMMAND  ${Protobuf_PROTOC_EXECUTABLE}
+                ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+                --pdcodegen_out=${CMAKE_CURRENT_BINARY_DIR}
+                --plugin=protoc-gen-pdcodegen=${CMAKE_BINARY_DIR}/pdcodegen/pdcodegen
+                ${_protobuf_include_path} ${ABS_FIL}
+            DEPENDS ${ABS_FIL} ${Protobuf_PROTOC_EXECUTABLE}
+            COMMENT "Running Paddle-serving C++ protocol buffer compiler on ${FIL}"
+            VERBATIM)
+    endif()
   endforeach()
 
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)

@@ -3,11 +3,8 @@ include(common/CMakeLists.txt)
 include(op/CMakeLists.txt)
 include(mempool/CMakeLists.txt)
 include(framework/CMakeLists.txt)
-include(plugin/CMakeLists.txt)
+#include(plugin/CMakeLists.txt)
 include(src/CMakeLists.txt)
-
-add_executable(pdcodegen ${pdcodegen_srcs})
-target_link_libraries(pdcodegen protobuf ${PROTOBUF_PROTOC_LIBRARY})
 
 add_library(pdserving ${pdserving_srcs})
 set_source_files_properties(
@@ -20,7 +17,7 @@ target_link_libraries(pdserving
         brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 # install
-install(TARGETS pdserving pdcodegen
+install(TARGETS pdserving
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         LIBRARY DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/so

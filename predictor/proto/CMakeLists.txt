@@ -1,7 +1,7 @@
 PROTOBUF_GENERATE_CPP(pdcodegen_proto_srcs pdcodegen_proto_hdrs
         ${CMAKE_CURRENT_LIST_DIR}/pds_option.proto)
 
-LIST(APPEND pdcodegen_srcs ${pdcodegen_proto_srcs})
+LIST(APPEND pdserving_srcs ${pdcodegen_proto_srcs})
 
 LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/./builtin_format.proto
@@ -9,5 +9,5 @@ LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/./xrecord_format.proto
 )
 
-PROTOBUF_GENERATE_SERVING_CPP(PROTO_SRCS PROTO_HDRS ${protofiles})
+PROTOBUF_GENERATE_SERVING_CPP(TRUE PROTO_SRCS PROTO_HDRS ${protofiles})
 LIST(APPEND pdserving_srcs ${PROTO_SRCS} ${pdcodegen_proto_srcs})
