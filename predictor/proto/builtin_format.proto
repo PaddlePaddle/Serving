@@ -13,7 +13,6 @@
 // limitations under the License.
 
 syntax = "proto2";
-import "pds_option.proto";
 package baidu.paddle_serving.predictor.format;
 
 // dense format
