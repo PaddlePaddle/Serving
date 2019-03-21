@@ -18,7 +18,7 @@ include(src/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
 add_dependencies(sdk-cpp pdcodegen configure)
-target_link_libraries(sdk-cpp pdserving brpc configure protobuf leveldb)
+target_link_libraries(sdk-cpp brpc configure protobuf leveldb)
 target_include_directories(sdk-cpp PUBLIC
         ${CMAKE_BINARY_DIR}/predictor/)
 
@@ -97,3 +97,6 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
+
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/)
