@@ -43,8 +43,10 @@ set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
 
 set(THIRD_PARTY_BUILD_TYPE Release)
 
-option(WITH_AVX         "Compile PaddlePaddle with AVX intrinsics"      ${AVX_FOUND})
-option(WITH_MKL         "Compile PaddlePaddle with MKL support."        ${AVX_FOUND})
+option(WITH_AVX         "Compile Paddle Serving with AVX intrinsics"      ${AVX_FOUND})
+option(WITH_MKL         "Compile Paddle Serving with MKL support."        ${AVX_FOUND})
+option(CLIENT_ONLY      "Compile client libraries and demos only"
+        FALSE)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)
@@ -56,19 +58,22 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
-include(external/mklml)
+include(external/leveldb)
 include(external/zlib)
+include(external/boost)
+include(external/protobuf)
+include(external/brpc)
 include(external/gflags)
 include(external/glog)
-include(external/leveldb)
-include(external/protobuf)
 include(external/snappy)
-include(external/brpc)
-include(external/boost)
-include(flags)
 include(generic)
+include(flags)
+
+if (NOT CLIENT_ONLY)
+include(external/mklml)
 include(paddlepaddle)
 include(external/opencv)
+endif()
 
 include_directories(${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_BINARY_DIR})
@@ -81,6 +86,7 @@ set(EXTERNAL_LIBS
     brpc
 )
 
+
 if(WITH_MKLML)
     list(APPEND EXTERNAL_LIBS ${MKLML_IOMP_LIB})
 endif()
@@ -90,9 +96,17 @@ if(WITH_MKLDNN)
     list(APPEND EXTERNAL_LIBS ${MKLDNN_LIB})
 endif()
 
+if (NOT CLIENT_ONLY)
+    list(APPEND EXTERNAL_LIBS paddlepaddle)
+    list(APPEND EXTERNAL_LIBS opencv)
+endif()
+
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
+add_subdirectory(sdk-cpp)
+
+if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
 add_subdirectory(serving)
-add_subdirectory(sdk-cpp)
+endif()

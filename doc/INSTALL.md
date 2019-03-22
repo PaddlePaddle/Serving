@@ -60,7 +60,8 @@ $ make install
 
 因Paddle Serving依托于PaddlePaddle项目进行构建，以下编译选项其实是传递给PaddlePaddle的编译选项：
 
-| 编译选项 | 说明|
-|----------|-----|
+| 编译选项 | 说明 |
+|----------|------|
 | WITH_AVX | Compile PaddlePaddle with AVX intrinsics |
 | WITH_MKL | Compile PaddlePaddle with MKLML library |
+| CLINET_ONLY | Compile client libraries and demos only |
