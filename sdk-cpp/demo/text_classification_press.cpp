@@ -19,7 +19,7 @@
 #include <atomic>
 #include <fstream>
 #include <thread>  // NOLINT
-#include "predictor/builtin_format.pb.h"
+#include "sdk-cpp/builtin_format.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
 #include "sdk-cpp/text_classification.pb.h"
@@ -328,18 +328,26 @@ int main(int argc, char **argv) {
   LOG(INFO) << "Total requests: " << round_times.size();
   LOG(INFO) << "Max concurrency: " << FLAGS_concurrency;
   LOG(INFO) << "Elapse ms (wall-time): " << elapse_ms;
-  double qps = (static_cast<double>(count) / elapse_ms) * 1000;
+
+  double qps = 0.0;
+  if (elapse_ms != 0) {
+    qps = (static_cast<double>(count) / elapse_ms) * 1000;
+  }
 
   LOG(INFO) << "QPS: " << qps / FLAGS_batch_size << "/s";
   LOG(INFO) << "Accuracy " << static_cast<double>(correct) / count;
 
   LOG(INFO) << "Latency statistics: ";
-  LOG(INFO) << "Average ms: " << total_ms / round_times.size();
-  LOG(INFO) << "50 percent ms: " << round_times[percent_pos_50];
-  LOG(INFO) << "80 percent ms: " << round_times[percent_pos_80];
-  LOG(INFO) << "90 percent ms: " << round_times[percent_pos_90];
-  LOG(INFO) << "99 percent ms: " << round_times[percent_pos_99];
-  LOG(INFO) << "99.9 percent ms: " << round_times[percent_pos_999];
+  if (round_times.size() != 0) {
+    LOG(INFO) << "Average ms: " << total_ms / round_times.size();
+    LOG(INFO) << "50 percent ms: " << round_times[percent_pos_50];
+    LOG(INFO) << "80 percent ms: " << round_times[percent_pos_80];
+    LOG(INFO) << "90 percent ms: " << round_times[percent_pos_90];
+    LOG(INFO) << "99 percent ms: " << round_times[percent_pos_99];
+    LOG(INFO) << "99.9 percent ms: " << round_times[percent_pos_999];
+  } else {
+    LOG(INFO) << "N/A";
+  }
 
   return 0;
 }
