@@ -14,7 +14,12 @@
 
 #pragma once
 
+#ifdef BCLOUD
+#include <base/atomicops.h>
+#else
 #include <butil/atomicops.h>
+#endif
+
 #include <sys/syscall.h>
 #include <boost/bind.hpp>
 

@@ -16,10 +16,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef BCLOUD
+#include <bthread_unstable.h>  // bthread_set_worker_startfn
+#else
 #include <bthread/unstable.h>  // bthread_set_worker_startfn
+#endif
+
 #include <fstream>
 #include <iostream>
-#include "butil/logging.h"
+
 #include "predictor/common/constant.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/manager.h"
@@ -107,6 +112,21 @@ int main(int argc, char** argv) {
   g_change_server_port();
 
   // initialize logger instance
+#ifdef BCLOUD
+  logging::LoggingSettings settings;
+  settings.logging_dest = logging::LOG_TO_FILE;
+
+  std::string filename(argv[0]);
+  filename = filename.substr(filename.find_last_of('/') + 1);
+  settings.log_file = (std::string("./log/") + filename + ".log").c_str();
+  settings.delete_old = logging::DELETE_OLD_LOG_FILE;
+  logging::InitLogging(settings);
+
+  logging::ComlogSinkOptions cso;
+  cso.process_name = filename;
+  cso.enable_wf_device = true;
+  logging::ComlogSink::GetInstance()->Setup(&cso);
+#else
   if (FLAGS_log_dir == "") {
     FLAGS_log_dir = "./log";
   }
@@ -125,7 +145,7 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(strdup(argv[0]));
   FLAGS_logbufsecs = 0;
   FLAGS_logbuflevel = -1;
-
+#endif
   LOG(INFO) << "Succ initialize logger";
 
   // initialize resource manager
@@ -181,7 +201,10 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Failed finalize resource manager";
   }
 
+#ifdef BCLOUD
+#else
   google::ShutdownGoogleLogging();
+#endif
   LOG(INFO) << "Paddle Inference Server exit successfully!";
   return 0;
 }

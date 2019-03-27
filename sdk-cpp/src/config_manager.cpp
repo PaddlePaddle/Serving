@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #include "sdk-cpp/include/config_manager.h"
+#ifdef BCLOUD
+#include "baidu/rpc/server.h"
+#else
 #include "brpc/server.h"
+#endif
 #include "sdk-cpp/include/abtest.h"
 
 namespace baidu {

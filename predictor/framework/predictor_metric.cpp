@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #include "predictor/framework/predictor_metric.h"
+#ifdef BCLOUD
+#include "base/memory/singleton.h"
+#else
 #include "butil/memory/singleton.h"
+#endif
 
 namespace baidu {
 namespace paddle_serving {

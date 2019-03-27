@@ -22,6 +22,10 @@
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
 
+#ifndef BCLOUD
+using json2pb::JsonToProtoMessage;
+#endif
+
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 using baidu::paddle_serving::predictor::format::XImageReqInstance;
@@ -87,7 +91,7 @@ void print_res(const Request& req,
     butil::IOBuf buf;
     buf.append(json);
     butil::IOBufAsZeroCopyInputStream wrapper(buf);
-    if (!json2pb::JsonToProtoMessage(&wrapper, &json_msg, &err_string)) {
+    if (!JsonToProtoMessage(&wrapper, &json_msg, &err_string)) {
       LOG(ERROR) << "Failed parse json from str:" << json;
       return;
     }
@@ -119,6 +123,21 @@ int main(int argc, char** argv) {
   PredictorApi api;
 
   // initialize logger instance
+#ifdef BCLOUD
+  logging::LoggingSettings settings;
+  settings.logging_dest = logging::LOG_TO_FILE;
+
+  std::string filename(argv[0]);
+  filename = filename.substr(filename.find_last_of('/') + 1);
+  settings.log_file = (std::string("./log/") + filename + ".log").c_str();
+  settings.delete_old = logging::DELETE_OLD_LOG_FILE;
+  logging::InitLogging(settings);
+
+  logging::ComlogSinkOptions cso;
+  cso.process_name = filename;
+  cso.enable_wf_device = true;
+  logging::ComlogSink::GetInstance()->Setup(&cso);
+#else
   struct stat st_buf;
   int ret = 0;
   if ((ret = stat("./log", &st_buf)) != 0) {
@@ -131,6 +150,7 @@ int main(int argc, char** argv) {
   }
   FLAGS_log_dir = "./log";
   google::InitGoogleLogging(strdup(argv[0]));
+#endif
 
   if (api.create("./conf", "predictors.prototxt") != 0) {
     LOG(ERROR) << "Failed create predictors api!";

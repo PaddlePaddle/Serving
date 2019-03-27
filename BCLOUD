@@ -1,0 +1,19 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../')
+
+#gcc version, default 'gcc'
+COMPILER('gcc482')
+
+CONFIGS('third-64/protobuf@protobuf_3-2-0-6274_PD_BL')
+CONFIGS('baidu/third-party/mklml@v20180406@git_branch')
+NEED_OUTPUT('baidu/third-party/mklml')
+
+#sub directory
+Directory('pdcodegen')
+Directory('configure')
+Directory('predictor')
+Directory('inferencer-fluid-cpu')
+Directory('serving')
+Directory('sdk-cpp')

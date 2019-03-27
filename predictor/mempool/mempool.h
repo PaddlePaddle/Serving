@@ -13,8 +13,15 @@
 // limitations under the License.
 
 #pragma once
+
+#ifdef BCLOUD
+#include <base/atomicops.h>
+#include <base/logging.h>
+#else
 #include <butil/atomicops.h>
 #include <butil/logging.h>
+#endif
+
 #include <execinfo.h>
 #include <pthread.h>
 #include <iostream>
@@ -24,6 +31,10 @@
 
 namespace im {
 namespace fugue {
+
+#ifdef BCLOUD
+namespace butil = base;
+#endif
 
 namespace lockfree {
 

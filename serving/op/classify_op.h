@@ -14,7 +14,11 @@
 
 #pragma once
 #include <vector>
+#ifdef BCLOUD
+#include "paddle/fluid/inference/api/paddle_inference_api.h"
+#else
 #include "paddle/fluid/inference/paddle_inference_api.h"
+#endif
 #include "serving/image_class.pb.h"
 
 namespace baidu {

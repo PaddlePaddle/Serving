@@ -13,7 +13,12 @@
 // limitations under the License.
 
 #include "predictor/framework/service.h"
+#ifdef BCLOUD
+#include <base/time.h>  // butil::Timer
+#else
 #include <butil/time.h>  // butil::Timer
+#endif
+
 #include <list>
 #include <string>
 #include <vector>

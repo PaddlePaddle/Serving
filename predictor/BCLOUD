@@ -1,0 +1,34 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../../')
+
+#Preprocessor flags.
+CPPFLAGS(r'-D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD')
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C++ flags.
+CXXFLAGS('-g -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare -std=c++11')
+
+ImportConfigsFrom('..')
+
+INCPATHS('$INC')
+INCPATHS('../')
+INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+
+CONFIGS('baidu/base/baidu-rpc@ci-base')
+
+cpp_source_dirs = []
+cpp_source_dirs.append('common/*.cpp')
+cpp_source_dirs.append('op/*.cpp')
+cpp_source_dirs.append('framework/*.cpp')
+cpp_source_dirs.append('mempool/*.cpp')
+cpp_source_dirs.append('proto/*.proto')
+
+HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/predictor/')
+HEADERS('common/*.h', '$INC/predictor/common')
+HEADERS('framework/*.h', '$INC/predictor/framework')
+HEADERS('mempool/*.h', '$INC/predictor/mempool')
+
+#.a
+StaticLibrary('pdserving', Sources(GLOB(' '.join(cpp_source_dirs)), 'src/pdserving.cpp'))
