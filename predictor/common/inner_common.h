@@ -31,7 +31,6 @@
 
 #include "gflags/gflags.h"
 
-
 #ifdef BCLOUD
 #include "bthread.h"
 #include "baidu/rpc/channel.h"
