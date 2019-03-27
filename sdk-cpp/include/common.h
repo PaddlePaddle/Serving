@@ -27,6 +27,16 @@
 #include "gflags/gflags.h"
 #include "google/protobuf/message.h"
 
+#ifdef BCLOUD
+#include "baidu/rpc/channel.h"
+#include "baidu/rpc/parallel_channel.h"
+#include "baidu/rpc/traceprintf.h"
+#include "bthread.h"
+#include "base/logging.h"
+#include "base/comlog_sink.h"
+#include "base/object_pool.h"
+#include "base/time.h"
+#else
 #include "brpc/channel.h"
 #include "brpc/parallel_channel.h"
 #include "brpc/traceprintf.h"
@@ -34,10 +44,22 @@
 #include "butil/logging.h"
 #include "butil/object_pool.h"
 #include "butil/time.h"
+#endif
+
 #include "bvar/bvar.h"
+
+#ifdef BCLOUD
+#include "json_to_pb.h"
+#else
 #include "json2pb/json_to_pb.h"
+#endif
 
 #include "configure/include/configure_parser.h"
 #include "configure/sdk_configure.pb.h"
 
 #include "sdk-cpp/include/utils.h"
+
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+namespace butil = base;
+#endif

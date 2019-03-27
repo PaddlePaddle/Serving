@@ -13,9 +13,15 @@
 // limitations under the License.
 
 #include "predictor/framework/server.h"
+#ifdef BCLOUD
+#include <baidu/rpc/policy/nova_pbrpc_protocol.h>     // NovaServiceAdaptor
+#include <baidu/rpc/policy/nshead_mcpack_protocol.h>  // NsheadMcpackAdaptor
+#include <baidu/rpc/policy/public_pbrpc_protocol.h>   // PublicPbrpcServiceAdaptor
+#else
 #include <brpc/policy/nova_pbrpc_protocol.h>     // NovaServiceAdaptor
 #include <brpc/policy/nshead_mcpack_protocol.h>  // NsheadMcpackAdaptor
 #include <brpc/policy/public_pbrpc_protocol.h>   // PublicPbrpcServiceAdaptor
+#endif
 #include <string>
 #include <utility>
 #include "predictor/common/inner_common.h"
@@ -26,6 +32,10 @@
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
+
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#endif
 
 volatile bool ServerManager::_s_reload_starting = true;
 

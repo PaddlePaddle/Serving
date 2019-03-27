@@ -21,7 +21,11 @@
 #include <vector>
 #include "configure/include/configure_parser.h"
 #include "configure/inferencer_configure.pb.h"
+#ifdef BCLOUD
+#include "paddle/fluid/inference/api/paddle_inference_api.h"
+#else
 #include "paddle/fluid/inference/paddle_inference_api.h"
+#endif
 #include "predictor/framework/infer.h"
 
 namespace baidu {

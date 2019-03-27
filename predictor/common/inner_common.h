@@ -31,13 +31,25 @@
 
 #include "gflags/gflags.h"
 
+
+#ifdef BCLOUD
+#include "bthread.h"
+#include "baidu/rpc/channel.h"
+#include "baidu/rpc/policy/giano_authenticator.h"
+#include "baidu/rpc/server.h"
+#include "base/logging.h"
+#include "base/comlog_sink.h"
+#include "base/object_pool.h"
+#include "base/time.h"
+#else
+#include "bthread/bthread.h"
 #include "brpc/channel.h"
 #include "brpc/policy/giano_authenticator.h"
 #include "brpc/server.h"
-#include "bthread/bthread.h"
 #include "butil/logging.h"
 #include "butil/object_pool.h"
 #include "butil/time.h"
+#endif
 
 #include "configure/include/configure_parser.h"
 #include "configure/server_configure.pb.h"
@@ -45,3 +57,8 @@
 #include "predictor/common/constant.h"
 #include "predictor/common/types.h"
 #include "predictor/common/utils.h"
+
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+namespace butil = base;
+#endif

@@ -21,6 +21,10 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+#ifdef BCLOUD
+namespace butil = base;
+#endif
+
 class TimerFlow {
  public:
   static const int MAX_SIZE = 1024;

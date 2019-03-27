@@ -28,7 +28,11 @@
 #include "opencv/cxcore.h"
 #include "opencv/highgui.h"
 
+#ifdef BCLOUD
+#include "paddle/fluid/inference/api/paddle_inference_api.h"
+#else
 #include "paddle/fluid/inference/paddle_inference_api.h"
+#endif
 
 namespace baidu {
 namespace paddle_serving {

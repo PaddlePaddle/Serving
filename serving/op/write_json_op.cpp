@@ -14,10 +14,19 @@
 
 #include <google/protobuf/text_format.h>
 #include <string>
+
+#ifdef BCLOUD
+#include "pb_to_json.h"
+#else
 #include "json2pb/pb_to_json.h"
+#endif
 
 #include "predictor/framework/memory.h"
 #include "serving/op/write_json_op.h"
+
+#ifndef BCLOUD
+using json2pb::ProtoMessageToJson;
+#endif
 
 namespace baidu {
 namespace paddle_serving {
@@ -53,7 +62,7 @@ int WriteJsonOp::inference() {
       return -1;
     }
     std::string* text = ins->mutable_response_json();
-    if (!json2pb::ProtoMessageToJson(
+    if (!ProtoMessageToJson(
             classify_out->predictions(si), text, &err_string)) {
       LOG(ERROR) << "Failed convert message["
                  << classify_out->predictions(si).ShortDebugString()

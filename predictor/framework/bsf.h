@@ -18,7 +18,13 @@
 #include <algorithm>
 #include <deque>
 #include <vector>
+
+#ifdef BCLOUD
+#include "base/atomicops.h"
+#else
 #include "butil/atomicops.h"
+#endif
+
 #include "predictor/common/inner_common.h"
 
 #include "boost/function.hpp"
