@@ -1,0 +1,15 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../../')
+ImportConfigsFrom('..')
+
+INCPATHS('$INC')
+INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+
+HEADERS('include/configure_parser.h', '$INC/configure/include')
+HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/configure/')
+configure_sources = GLOB('proto/*.proto src/*.cpp')
+
+#.a
+StaticLibrary('pdconfigure', Sources(configure_sources))

@@ -17,6 +17,9 @@
 namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
+#ifdef BCLOUD
+namespace butil = base;
+#endif
 
 template <typename T, typename C, typename R, typename I, typename O>
 int StubImpl<T, C, R, I, O>::initialize(const VariantInfo& var,

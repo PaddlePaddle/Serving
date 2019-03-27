@@ -13,11 +13,23 @@
 // limitations under the License.
 
 #pragma once
+
+#ifdef BCLOUD
+#include <base/containers/flat_map.h>  // FlatMap
+#include <base/memory/singleton.h>     // DefaultSingletonTraits
+#include <base/scoped_lock.h>          // BAIDU_SCOPED_LOCK
+#else
 #include <butil/containers/flat_map.h>  // FlatMap
 #include <butil/memory/singleton.h>     // DefaultSingletonTraits
 #include <butil/scoped_lock.h>          // BAIDU_SCOPED_LOCK
+#endif
+
 #include <bvar/bvar.h>                  // bvar
 #include <string>
+
+#ifdef BCLOUD
+namespace butil = base;
+#endif
 
 namespace baidu {
 namespace paddle_serving {

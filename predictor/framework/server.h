@@ -20,6 +20,10 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#endif
+
 class ServerManager {
  public:
   typedef google::protobuf::Service Service;

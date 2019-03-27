@@ -249,6 +249,21 @@ int main(int argc, char **argv) {
   PredictorApi api;
 
   // initialize logger instance
+#ifdef BCLOUD
+  logging::LoggingSettings settings;
+  settings.logging_dest = logging::LOG_TO_FILE;
+
+  std::string filename(argv[0]);
+  filename = filename.substr(filename.find_last_of('/') + 1);
+  settings.log_file = (std::string("./log/") + filename + ".log").c_str();
+  settings.delete_old = logging::DELETE_OLD_LOG_FILE;
+  logging::InitLogging(settings);
+
+  logging::ComlogSinkOptions cso;
+  cso.process_name = filename;
+  cso.enable_wf_device = true;
+  logging::ComlogSink::GetInstance()->Setup(&cso);
+#else
   struct stat st_buf;
   int ret = 0;
   if ((ret = stat("./log", &st_buf)) != 0) {
@@ -264,6 +279,7 @@ int main(int argc, char **argv) {
   google::InitGoogleLogging(strdup(argv[0]));
   FLAGS_logbufsecs = 0;
   FLAGS_logbuflevel = -1;
+#endif
 
   g_pred_labels.resize(FLAGS_concurrency);
   g_correct.resize(FLAGS_concurrency);

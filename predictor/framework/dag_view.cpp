@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #include "predictor/framework/dag_view.h"
+#ifdef BCLOUD
+#include <baidu/rpc/traceprintf.h>  // TRACEPRINTF
+#else
 #include <brpc/traceprintf.h>  // TRACEPRINTF
+#endif
 #include <string>
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/op_repository.h"

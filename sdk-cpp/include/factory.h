@@ -24,6 +24,10 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#endif
+
 #define INLINE_REGIST_OBJECT(D, B, E)                                    \
   do {                                                                   \
     Factory<D, B>* factory = new (std::nothrow) Factory<D, B>();         \

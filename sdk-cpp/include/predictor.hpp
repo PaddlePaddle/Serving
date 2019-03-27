@@ -18,6 +18,10 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
+#ifdef BCLOUD
+namespace butil = base;
+#endif
+
 class MetricScope;
 class Stub;
 template <typename T, typename C, typename R, typename I, typename O>

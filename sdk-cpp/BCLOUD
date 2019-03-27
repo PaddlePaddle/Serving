@@ -1,0 +1,66 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../../')
+
+#Preprocessor flags.
+CPPFLAGS(r'-D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD')
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C++ flags.
+CXXFLAGS('-g -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare -std=c++11')
+
+#link flags
+LDFLAGS('-lpthread -lcrypto -lrt -lssl -ldl -lz -std=c++11')
+
+ImportConfigsFrom('..')
+
+INCPATHS('$INC')
+INCPATHS('$INC/sdk-cpp')
+INCPATHS('$INC/sdk-cpp/include')
+INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+
+LIBS('$OUT/lib/libpdconfigure.a')
+
+CONFIGS('baidu/base/baidu-rpc@ci-base')
+CONFIGS('baidu/third-party/gflags@v2.0.0@git_branch')
+CONFIGS('baidu/third-party/glog@v0.3.x@git_branch')
+CONFIGS('baidu/third-party/opencv@master@git_branch')
+
+DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf.a')
+DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf-lite.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/third-64/glog/output/lib/libglog.a')
+DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags.a')
+DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags_nothreads.a')
+
+PROTOFLAGS(
+        '--plugin=protoc-gen-pdcodegen=../pdcodegen/plugin/pdcodegen',
+        '--pdcodegen_out proto --proto_path=.',
+        '--proto_path=../predictor/proto')
+
+HEADERS(GLOB_GEN_SRCS('../configure/proto/sdk_configure.pb.h'), '$INC/sdk-cpp')
+HEADERS(GLOB_GEN_SRCS('../predictor/proto/builtin_format.pb.h'), '$INC/sdk-cpp')
+HEADERS(GLOB_GEN_SRCS('../predictor/proto/pds_option.pb.h'), '$INC/sdk-cpp')
+HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/sdk-cpp')
+
+HEADERS('include/*.h', '$INC/sdk-cpp/include')
+HEADERS('include/*.hpp', '$INC/sdk-cpp/include')
+
+user_sources=GLOB("src/*.cpp proto/*.proto")
+user_sources += ' ../predictor/proto/builtin_format.proto ../predictor/proto/pds_option.proto'
+
+# .a
+StaticLibrary('pdsdk-cpp', Sources(user_sources))
+
+# Application
+#bin
+Application('ximage', Sources('demo/ximage.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('echo', Sources('demo/echo.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('dense_format', Sources('demo/dense_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('sparse_format', Sources('demo/sparse_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('int64tensor_format', Sources('demo/int64tensor_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('text_classification', Sources('demo/text_classification.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('text_classification_press', Sources('demo/text_classification_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+
+OUTPUT('conf', '$OUT/demo/client')
+OUTPUT('data', '$OUT/demo/client')

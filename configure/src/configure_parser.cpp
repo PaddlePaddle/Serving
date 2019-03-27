@@ -17,7 +17,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
+
+#ifdef BCLOUD
+#include "base/logging.h"
+#else
 #include "butil/logging.h"
+#endif
 
 #include "google/protobuf/io/zero_copy_stream_impl.h"
 #include "google/protobuf/text_format.h"
