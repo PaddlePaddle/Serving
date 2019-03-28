@@ -19,3 +19,9 @@ target_link_libraries(test_configure configure protobuf)
 install(TARGETS configure 
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         )
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/include/configure_parser.h
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/configure/include)
+
+FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
+install(FILES ${inc}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/configure)
