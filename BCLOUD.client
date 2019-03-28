@@ -11,6 +11,7 @@ CONFIGS('baidu/base/baidu-rpc@ci-base')
 CONFIGS('baidu/third-party/gflags@v2.0.0@git_branch')
 CONFIGS('baidu/third-party/glog@v0.3.x@git_branch')
 CONFIGS('baidu/third-party/opencv@master@git_branch')
+CONFIGS('baidu/third-party/protobuf@2b7430d96aeff2bb624c8d52182ff5e4b9f7f18a@git_branch')
 
 #sub directory
 Directory('pdcodegen')
