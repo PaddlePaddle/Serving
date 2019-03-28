@@ -22,3 +22,14 @@ install(TARGETS pdserving
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         LIBRARY DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/so
         )
+
+FILE(GLOB inc_common ${CMAKE_CURRENT_LIST_DIR}/common/*.h)
+install(FILES ${inc_common}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/predictor/common)
+
+FILE(GLOB inc_framework ${CMAKE_CURRENT_LIST_DIR}/framework/*.h)
+install(FILES ${inc_framework}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/predictor/framework)
+
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/mempool/mempool.h
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/predictor/mempool)

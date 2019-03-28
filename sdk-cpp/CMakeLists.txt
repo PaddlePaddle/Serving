@@ -99,4 +99,8 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
 
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include
-        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/)
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/sdk-cpp/)
+
+FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
+install(FILES ${inc}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/sdk-cpp)
