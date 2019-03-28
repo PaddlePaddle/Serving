@@ -16,8 +16,6 @@ INCPATHS('$INC')
 INCPATHS('../')
 INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
 
-CONFIGS('baidu/base/baidu-rpc@ci-base')
-
 cpp_source_dirs = []
 cpp_source_dirs.append('common/*.cpp')
 cpp_source_dirs.append('op/*.cpp')
@@ -29,6 +27,7 @@ HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/predictor/')
 HEADERS('common/*.h', '$INC/predictor/common')
 HEADERS('framework/*.h', '$INC/predictor/framework')
 HEADERS('mempool/*.h', '$INC/predictor/mempool')
+HEADERS('op/*.h', '$INC/predictor/op')
 
 #.a
 StaticLibrary('pdserving', Sources(GLOB(' '.join(cpp_source_dirs)), 'src/pdserving.cpp'))

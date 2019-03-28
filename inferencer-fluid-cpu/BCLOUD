@@ -17,9 +17,6 @@ INCPATHS('$INC')
 INCPATHS('../')
 INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
 
-PROTOC('third-64/protobuf/output/bin/protoc')
-CONFIGS('baidu/paddlepaddle/paddle@v1.3.0_pb32@git_branch')
-
 HEADERS('include/fluid_cpu_engine.h', '$INC/inferencer-fluid-cpu/include')
 
 inferencer_fluid_cpu_sources = 'src/fluid_cpu_engine.cpp'
