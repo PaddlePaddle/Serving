@@ -30,11 +30,6 @@ LIBS('$OUT_ROOT/baidu/third-party/mklml/output/so/libmklml_intel.so')
 LIBS('$OUT_ROOT/baidu/third-party/mklml/output/so/libmklml_gnu.so')
 LIBS('$OUT_ROOT/baidu/third-party/mklml/output/so/libiomp5.so')
 
-CONFIGS('baidu/base/baidu-rpc@ci-base')
-CONFIGS('baidu/third-party/gflags@v2.0.0@git_branch')
-CONFIGS('baidu/third-party/glog@v0.3.x@git_branch')
-CONFIGS('baidu/third-party/opencv@master@git_branch')
-
 cpp_source_dirs = []
 cpp_source_dirs.append('op/*.cpp')
 cpp_source_dirs.append('proto/*.proto')
