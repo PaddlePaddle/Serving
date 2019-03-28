@@ -15,8 +15,9 @@
 #include "predictor/op/op.h"
 
 #ifdef BCLOUD
-#else
 #include <base/time.h>  // base::Timer
+#else
+#include <butil/time.h>
 #endif
 
 #include <string>
