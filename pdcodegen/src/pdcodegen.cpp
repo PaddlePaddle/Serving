@@ -95,40 +95,38 @@ class PdsCodeGenerator : public CodeGenerator {
     const string body = strip_proto(file->name()) + ".pb.cc";
     bool include_inserted = false;
     for (int i = 0; i < file->service_count(); ++i) {
-        const ServiceDescriptor* descriptor = file->service(i);
-        if (!descriptor) {
-            *error = "get descriptor failed";
-            return false;
+      const ServiceDescriptor* descriptor = file->service(i);
+      if (!descriptor) {
+        *error = "get descriptor failed";
+        return false;
+      }
+      pds::PaddleServiceOption options =
+          descriptor->options().GetExtension(pds::options);
+      bool generate_impl = options.generate_impl();
+      bool generate_stub = options.generate_stub();
+      if (!generate_impl && !generate_stub) {
+        return true;
+      }
+      if (!include_inserted) {
+        boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
+            context->OpenForInsert(header, "includes"));
+        google::protobuf::io::Printer printer(output.get(), '$');
+        if (generate_impl) {
+          printer.Print("#include \"predictor/common/inner_common.h\"\n");
+          printer.Print("#include \"predictor/framework/service.h\"\n");
+          printer.Print("#include \"predictor/framework/manager.h\"\n");
+          printer.Print("#include \"predictor/framework/service_manager.h\"\n");
         }
-        pds::PaddleServiceOption options =
-            descriptor->options().GetExtension(pds::options);
-        bool generate_impl = options.generate_impl();
-        bool generate_stub = options.generate_stub();
-        if (!generate_impl && !generate_stub) {
-            return true;
+        if (generate_stub) {
+          printer.Print("#include <baidu/rpc/parallel_channel.h>\n");
+          printer.Print("#include \"sdk-cpp/include/factory.h\"\n");
+          printer.Print("#include \"sdk-cpp/include/stub.h\"\n");
+          printer.Print("#include \"sdk-cpp/include/stub_impl.h\"\n");
         }
-
-        if (!include_inserted) {
-            boost::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> output(
-                context->OpenForInsert(header, "includes"));
-            google::protobuf::io::Printer printer(output.get(), '$');
-            if (generate_impl) {
-                printer.Print("#include \"predictor/common/inner_common.h\"\n");
-                printer.Print("#include \"predictor/framework/service.h\"\n");
-                printer.Print("#include \"predictor/framework/manager.h\"\n");
-                printer.Print("#include \"predictor/framework/service_manager.h\"\n");
-            }
-            if (generate_stub) {
-                printer.Print("#include <baidu/rpc/parallel_channel.h>\n");
-                printer.Print("#include \"sdk-cpp/include/factory.h\"\n");
-                printer.Print("#include \"sdk-cpp/include/stub.h\"\n");
-                printer.Print("#include \"sdk-cpp/include/stub_impl.h\"\n");
-            }
-            include_inserted = true;
-        }
-
-        const std::string& class_name = descriptor->name();
-        const std::string& service_name = descriptor->name();
+        include_inserted = true;
+      }
+      const std::string& class_name = descriptor->name();
+      const std::string& service_name = descriptor->name();
       // xxx.ph.h
       {
         if (generate_impl) {
