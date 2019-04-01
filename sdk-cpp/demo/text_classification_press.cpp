@@ -205,7 +205,7 @@ void thread_worker(PredictorApi *api, int thread_id) {
     }
     g_concurrency++;
 #if 1
-    LOG(INFO) << "Currenent concurrency " << g_concurrency.load();
+    LOG(INFO) << "Current concurrency " << g_concurrency.load();
 #endif
 
     timeval start;
@@ -228,9 +228,6 @@ void thread_worker(PredictorApi *api, int thread_id) {
 #if 1
     LOG(INFO) << "Done. Current concurrency " << g_concurrency.load();
 #endif
-
-    // res will be returned in callback
-    usleep(50);
   }  // while (true)
 
   std::vector<int> *truth_label = local_feed->get_labels();
@@ -248,7 +245,7 @@ int main(int argc, char **argv) {
 
   PredictorApi api;
 
-  // initialize logger instance
+// initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
@@ -347,7 +344,7 @@ int main(int argc, char **argv) {
 
   double qps = 0.0;
   if (elapse_ms != 0) {
-    qps = (static_cast<double>(count) / elapse_ms) * 1000;
+    qps = (static_cast<double>(count) / (elapse_ms / FLAGS_concurrency)) * 1000;
   }
 
   LOG(INFO) << "QPS: " << qps / FLAGS_batch_size << "/s";
@@ -355,7 +352,8 @@ int main(int argc, char **argv) {
 
   LOG(INFO) << "Latency statistics: ";
   if (round_times.size() != 0) {
-    LOG(INFO) << "Average ms: " << total_ms / round_times.size();
+    LOG(INFO) << "Average ms: "
+              << static_cast<float>(total_ms) / round_times.size();
     LOG(INFO) << "50 percent ms: " << round_times[percent_pos_50];
     LOG(INFO) << "80 percent ms: " << round_times[percent_pos_80];
     LOG(INFO) << "90 percent ms: " << round_times[percent_pos_90];
