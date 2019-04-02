@@ -341,10 +341,11 @@ int main(int argc, char **argv) {
   LOG(INFO) << "Total requests: " << round_times.size();
   LOG(INFO) << "Max concurrency: " << FLAGS_concurrency;
   LOG(INFO) << "Elapse ms (wall-time): " << elapse_ms;
+  LOG(INFO) << "Total ms (absolute time): " << total_ms;
 
   double qps = 0.0;
   if (elapse_ms != 0) {
-    qps = (static_cast<double>(count) / (elapse_ms / FLAGS_concurrency)) * 1000;
+    qps = (static_cast<double>(count) / (total_ms / FLAGS_concurrency)) * 1000;
   }
 
   LOG(INFO) << "QPS: " << qps / FLAGS_batch_size << "/s";
