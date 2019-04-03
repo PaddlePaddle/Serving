@@ -10,7 +10,7 @@
 
 下图是一个对serving请求的耗时阶段的不完整分析。图中对brpc的开销，只列出了bthread创建和启动开销。
 
-![](http://wiki.baidu.com/download/attachments/724028035/serving-timings.png?version=1&modificationDate=1553657169000&api=v2)
+![](http://paddle-serving.bj.bcebos.com/doc/serving-timings.png)
 
 试与单机模式对比：
 
