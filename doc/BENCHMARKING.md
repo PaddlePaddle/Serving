@@ -1,6 +1,6 @@
 本文以文本分类任务为例搭建Serving预测服务，给出Serving框架性能数据：
 
-1) 不同模型下预测服务响应时间、QPS、准确率等指标和单机模式的对比
+1) 不同模型下预测服务单线程响应时间、QPS、准确率等指标和单机模式的对比
 
 2) 不同模型下Serving扩展能力对比
 
@@ -10,7 +10,9 @@
 
 下图是一个对serving请求的耗时阶段的不完整分析。图中对brpc的开销，只列出了bthread创建和启动开销。
 
-![](http://wiki.baidu.com/download/attachments/724028035/serving-timings.png?version=1&modificationDate=1553657169000&api=v2)
+![](http://paddle-serving.bj.bcebos.com/doc/serving-timings.png)
+
+(右键在新窗口中浏览大图)
 
 试与单机模式对比：
 
@@ -40,7 +42,16 @@
 
 **为了验证上述假设，文本分类任务的serving模式测试，需要在几个不同模型上分别进行，分别记录serving模式下，client端吞吐量的变化情况。**
 
-# 2. 测试环境
+# 2. 测试任务和测试环境
+
+## 2.1 测试任务
+
+文本分类的三种常见模型：BOW, CNN, LSTM
+
+**Batch Size: 本实验中所有请求的batch size均为50**
+
+## 2.2 测试环境
+
 
 | | CPU型号、核数 | 内存 |
 | --- | --- | --- |
@@ -48,6 +59,7 @@
 | Client所在机器 | Intel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz 40核 | 128G |
 
 Serving端与Client端通信时延：0.102 ms
+
 
 # 3. 预测服务单线程响应时间、QPS、准确率等指标与单机模式的对比
 
@@ -270,6 +282,8 @@ Serving扩展能力的测试是指，在不同模型上：
 
 ![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-bow.png)
 
+(右键在新窗口中浏览大图)
+
 ## 4.2 CNN模型
 
 ### Serving 4线程
@@ -425,6 +439,8 @@ Serving扩展能力的测试是指，在不同模型上：
 下图是Paddle Serving在CNN模型上QPS随serving端线程数增加而变化的图表。可以看出，随着线程数变大，Serving QPS有较为明显的线性增长关系。可以这样解释此图表：例如，线程数为16时，基本在20个并发时达到最大QPS，此后再增加并发压力QPS基本保持稳定；当线程能够数为24线程时，基本在28并发时达到最大QPS，此后再增大并发压力qps基本保持稳定。
 
 ![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-cnn.png)
+
+(右键在新窗口中浏览大图)
 
 ## 4.3 LSTM模型
 
@@ -582,6 +598,8 @@ Serving扩展能力的测试是指，在不同模型上：
 
 ![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-lstm.png)
 
+(右键在新窗口中浏览大图)
+
 # 6. 净开销测试
 
 本测试是为了描画引入Serving框架后，在Serving端空转的情况下，每query消耗的时间，也就是框架引入的开销。
@@ -593,3 +611,22 @@ Serving扩展能力的测试是指，在不同模型上：
 | BOW | 1 |
 | CNN | 1 |
 | LSTM | 1 |
+
+# 7.结论
+
+## 7.1 单线程模式下准确率和QPS等指标与单机模式对比
+
+准确率：Serving模式下与单机模式下预测准确率一致
+
+QPS：与模型特点有关：当模型预测时间极短时，Serving框架本身的开销和网络通信固定时间在单次请求中的时间占比占了绝大部分，这导致Serving模式下的QPS与单机模式相比下降明显；当预测时间较长，Serving框架开销和网络通信时间在单次请求中的占比较小，Serving模式下QPS与单机模式下相差不多。
+
+## 7.2 Serving扩展能力
+
+当模型较为复杂时（以上述实验中CNN和LSTM模型为例），Paddle Serving能够提供较好的线性扩展能力；当模型是简单模型（以上述实验中BOW模型为例），随着serving端线程数的增加，qps的增长趋势较为杂乱，看不出明显的线性趋势。猜测是因为预测时间较短，而线程切换、框架本身的开销等占了大头，导致虽然随着线程数增加，qps也有增长，但当并发数增大时，qps反而出现下降。
+
+## 7.3 净开销测试
+
+本测试用来估计框架本身带来的时间消耗。
+
+在Serving模式下，框架引入的时间开销较小，约为1ms。
+
