@@ -13,26 +13,32 @@
 // limitations under the License.
 
 #pragma once
-#include "serving/dense_service.pb.h"
-
-#include "predictor/common/inner_common.h"
-#include "predictor/framework/channel.h"
-#include "predictor/framework/op_repository.h"
-#include "predictor/op/op.h"
+#include <vector>
+#ifdef BCLOUD
+#include "paddle/fluid/inference/api/paddle_inference_api.h"
+#else
+#include "paddle/fluid/inference/paddle_inference_api.h"
+#endif
+#include "demo-serving/image_class.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace predictor {
+namespace serving {
 
-class DenseEchoOp
-    : public OpWithChannel<
-          baidu::paddle_serving::predictor::dense_service::Response> {
+static const char* IMAGE_CLASSIFICATION_MODEL_NAME =
+    "image_classification_resnet";
+
+class ClassifyOp : public baidu::paddle_serving::predictor::OpWithChannel<
+                       baidu::paddle_serving::predictor::image_classification::
+                           ClassifyResponse> {
  public:
-  DECLARE_OP(DenseEchoOp);
+  typedef std::vector<paddle::PaddleTensor> TensorVector;
+
+  DECLARE_OP(ClassifyOp);
 
   int inference();
 };
 
-}  // namespace predictor
+}  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

@@ -21,8 +21,8 @@
 #include "json2pb/pb_to_json.h"
 #endif
 
+#include "demo-serving/op/write_json_op.h"
 #include "predictor/framework/memory.h"
-#include "serving/op/write_op.h"
 
 #ifndef BCLOUD
 using json2pb::ProtoMessageToJson;
@@ -30,13 +30,13 @@ using json2pb::ProtoMessageToJson;
 
 namespace baidu {
 namespace paddle_serving {
-namespace serving {
+namespace predictor {
 
 using baidu::paddle_serving::predictor::format::XImageResInstance;
 using baidu::paddle_serving::predictor::image_classification::ClassifyResponse;
 using baidu::paddle_serving::predictor::image_classification::Response;
 
-int WriteOp::inference() {
+int WriteJsonOp::inference() {
   const ClassifyResponse* classify_out =
       get_depend_argument<ClassifyResponse>("image_classify_op");
   if (!classify_out) {
@@ -48,7 +48,7 @@ int WriteOp::inference() {
   Response* res = mutable_data<Response>();
   if (!res) {
     LOG(ERROR) << "Failed mutable output response in op:"
-               << "WriteOp";
+               << "WriteJsonOp";
     return -1;
   }
 
@@ -62,8 +62,7 @@ int WriteOp::inference() {
       return -1;
     }
     std::string* text = ins->mutable_response_json();
-    if (!ProtoMessageToJson(
-            classify_out->predictions(si), text, &err_string)) {
+    if (!ProtoMessageToJson(classify_out->predictions(si), text, &err_string)) {
       LOG(ERROR) << "Failed convert message["
                  << classify_out->predictions(si).ShortDebugString()
                  << "], err: " << err_string;
@@ -76,8 +75,8 @@ int WriteOp::inference() {
   return 0;
 }
 
-DEFINE_OP(WriteOp);
+DEFINE_OP(WriteJsonOp);
 
-}  // namespace serving
+}  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu

@@ -13,29 +13,58 @@
 // limitations under the License.
 
 #pragma once
+#include <string>
 #include <vector>
+#include "demo-serving/image_class.pb.h"
+#include "predictor/builtin_format.pb.h"
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/op_repository.h"
+#include "predictor/op/op.h"
+
+// opencv
+#include "opencv/cv.h"
+#include "opencv/cv.hpp"
+#include "opencv/cxcore.h"
+#include "opencv/highgui.h"
+
 #ifdef BCLOUD
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
 #else
 #include "paddle/fluid/inference/paddle_inference_api.h"
 #endif
-#include "serving/text_classification.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-static const char* TEXT_CLASSIFICATION_MODEL_NAME = "text_classification_bow";
+struct ReaderOutput {
+  std::vector<paddle::PaddleTensor> tensors;
 
-class TextClassificationOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::text_classification::Response> {
+  void Clear() {
+    size_t tensor_count = tensors.size();
+    for (size_t ti = 0; ti < tensor_count; ++ti) {
+      tensors[ti].shape.clear();
+    }
+    tensors.clear();
+  }
+
+  std::string ShortDebugString() const { return "Not implemented!"; }
+};
+
+class ReaderOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<ReaderOutput> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
-  DECLARE_OP(TextClassificationOp);
+  DECLARE_OP(ReaderOp);
 
   int inference();
+
+ private:
+  cv::Mat _image_8u_tmp;
+  cv::Mat _image_8u_rgb;
+  std::vector<char> _image_vec_tmp;
 };
 
 }  // namespace serving

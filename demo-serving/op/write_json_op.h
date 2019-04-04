@@ -13,8 +13,7 @@
 // limitations under the License.
 
 #pragma once
-#include "serving/int64tensor_service.pb.h"
-
+#include "demo-serving/image_class.pb.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
@@ -24,11 +23,11 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class Int64TensorEchoOp
+class WriteJsonOp
     : public OpWithChannel<
-          baidu::paddle_serving::predictor::int64tensor_service::Response> {
+          baidu::paddle_serving::predictor::image_classification::Response> {
  public:
-  DECLARE_OP(Int64TensorEchoOp);
+  DECLARE_OP(WriteJsonOp);
 
   int inference();
 };

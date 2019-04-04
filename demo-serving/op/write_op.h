@@ -13,58 +13,24 @@
 // limitations under the License.
 
 #pragma once
-#include <string>
-#include <vector>
+#include "demo-serving/image_class.pb.h"
 #include "predictor/builtin_format.pb.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
 #include "predictor/op/op.h"
-#include "serving/image_class.pb.h"
-
-// opencv
-#include "opencv/cv.h"
-#include "opencv/cv.hpp"
-#include "opencv/cxcore.h"
-#include "opencv/highgui.h"
-
-#ifdef BCLOUD
-#include "paddle/fluid/inference/api/paddle_inference_api.h"
-#else
-#include "paddle/fluid/inference/paddle_inference_api.h"
-#endif
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-struct ReaderOutput {
-  std::vector<paddle::PaddleTensor> tensors;
-
-  void Clear() {
-    size_t tensor_count = tensors.size();
-    for (size_t ti = 0; ti < tensor_count; ++ti) {
-      tensors[ti].shape.clear();
-    }
-    tensors.clear();
-  }
-
-  std::string ShortDebugString() const { return "Not implemented!"; }
-};
-
-class ReaderOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<ReaderOutput> {
+class WriteOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<
+          baidu::paddle_serving::predictor::image_classification::Response> {
  public:
-  typedef std::vector<paddle::PaddleTensor> TensorVector;
-
-  DECLARE_OP(ReaderOp);
+  DECLARE_OP(WriteOp);
 
   int inference();
-
- private:
-  cv::Mat _image_8u_tmp;
-  cv::Mat _image_8u_rgb;
-  std::vector<char> _image_vec_tmp;
 };
 
 }  // namespace serving

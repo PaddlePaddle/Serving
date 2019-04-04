@@ -12,30 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "serving/op/dense_echo_op.h"
+#include "demo-serving/op/sparse_echo_op.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-using baidu::paddle_serving::predictor::format::DensePrediction;
-using baidu::paddle_serving::predictor::dense_service::Request;
-using baidu::paddle_serving::predictor::dense_service::Response;
-
-int DenseEchoOp::inference() {
+int SparseEchoOp::inference() {
+  // Every op can obtain request message by:
+  // get_request_message()
   const Request* req = dynamic_cast<const Request*>(get_request_message());
+
+  // Each op can obtain self-writable-data by:
+  // mutable_data()
   Response* res = mutable_data<Response>();
-  LOG(INFO) << "Receive request in dense service:" << req->ShortDebugString();
+
+  // You can get the channel/data of depended ops by:
+  // get/mutable_depend_argment()
+  // ...
+
+  LOG(INFO) << "Receive request in sparse service:" << req->ShortDebugString();
   uint32_t sample_size = req->instances_size();
   for (uint32_t si = 0; si < sample_size; si++) {
-    DensePrediction* dense_res = res->mutable_predictions()->Add();
-    dense_res->add_categories(100.0 + si * 0.1);
-    dense_res->add_categories(200.0 + si * 0.1);
+    SparsePrediction* sparse_res = res->mutable_predictions()->Add();
+    sparse_res->add_categories(100.0 + si * 0.1);
+    sparse_res->add_categories(200.0 + si * 0.1);
   }
   return 0;
 }
 
-DEFINE_OP(DenseEchoOp);
+DEFINE_OP(SparseEchoOp);
 
 }  // namespace predictor
 }  // namespace paddle_serving
