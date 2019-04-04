@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #pragma once
-#include "serving/sparse_service.pb.h"
+#include "demo-serving/int64tensor_service.pb.h"
 
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
@@ -24,16 +24,11 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class SparseEchoOp
+class Int64TensorEchoOp
     : public OpWithChannel<
-          baidu::paddle_serving::predictor::sparse_service::Response> {
+          baidu::paddle_serving::predictor::int64tensor_service::Response> {
  public:
-  DECLARE_OP(SparseEchoOp);
-
-  typedef baidu::paddle_serving::predictor::sparse_service::Request Request;
-  typedef baidu::paddle_serving::predictor::sparse_service::Response Response;
-  typedef baidu::paddle_serving::predictor::format::SparsePrediction
-      SparsePrediction;
+  DECLARE_OP(Int64TensorEchoOp);
 
   int inference();
 };

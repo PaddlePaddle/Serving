@@ -13,32 +13,31 @@
 // limitations under the License.
 
 #pragma once
-#include <vector>
-#ifdef BCLOUD
-#include "paddle/fluid/inference/api/paddle_inference_api.h"
-#else
-#include "paddle/fluid/inference/paddle_inference_api.h"
-#endif
-#include "serving/image_class.pb.h"
+#include "demo-serving/sparse_service.pb.h"
+
+#include "predictor/common/inner_common.h"
+#include "predictor/framework/channel.h"
+#include "predictor/framework/op_repository.h"
+#include "predictor/op/op.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace serving {
+namespace predictor {
 
-static const char* IMAGE_CLASSIFICATION_MODEL_NAME =
-    "image_classification_resnet";
-
-class ClassifyOp : public baidu::paddle_serving::predictor::OpWithChannel<
-                       baidu::paddle_serving::predictor::image_classification::
-                           ClassifyResponse> {
+class SparseEchoOp
+    : public OpWithChannel<
+          baidu::paddle_serving::predictor::sparse_service::Response> {
  public:
-  typedef std::vector<paddle::PaddleTensor> TensorVector;
+  DECLARE_OP(SparseEchoOp);
 
-  DECLARE_OP(ClassifyOp);
+  typedef baidu::paddle_serving::predictor::sparse_service::Request Request;
+  typedef baidu::paddle_serving::predictor::sparse_service::Response Response;
+  typedef baidu::paddle_serving::predictor::format::SparsePrediction
+      SparsePrediction;
 
   int inference();
 };
 
-}  // namespace serving
+}  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu

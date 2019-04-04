@@ -13,26 +13,38 @@
 // limitations under the License.
 
 #pragma once
-#include "predictor/builtin_format.pb.h"
+#include "demo-serving/echo_service.pb.h"
+
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
 #include "predictor/op/op.h"
-#include "serving/image_class.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace serving {
+namespace predictor {
 
-class WriteOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::image_classification::Response> {
+class CommonEchoOp
+    : public OpWithChannel<
+          baidu::paddle_serving::predictor::echo_service::RequestAndResponse> {
  public:
-  DECLARE_OP(WriteOp);
+  typedef baidu::paddle_serving::predictor::echo_service::RequestAndResponse
+      RequestAndResponse;
 
-  int inference();
+  DECLARE_OP(CommonEchoOp);
+
+  int inference() {
+    const RequestAndResponse* req =
+        dynamic_cast<const RequestAndResponse*>(get_request_message());
+
+    RequestAndResponse* data = mutable_data<RequestAndResponse>();
+
+    data->CopyFrom(*req);
+
+    return 0;
+  }
 };
 
-}  // namespace serving
+}  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu

@@ -41,6 +41,22 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 |   |-- proto
 |   |-- src
 |   `-- tests
+|-- demo-client                         # Client端示例；包括如文本分类、图像分类等任务的例子
+|   |-- conf                            # conf目录
+|   |-- data                            # data目录
+|   |   \-- images
+|   `-- src                             # src目录
+|-- demo-serving                        # Serving示例。该目录下代码与libpdserving.a联编，产出一个可执行的serving二进制
+|   |-- conf                            # Serving示例的Conf目录
+|   |-- data                            # Serving示例的data目录
+|   |   `-- model
+|   |       `-- paddle
+|   |           `-- fluid
+|   |               |-- SE_ResNeXt50_32x4d
+|   |               `-- text_classification_lstm
+|   |-- op                              # Serving示例OP
+|   |-- proto                           # Serving示例的proto文件
+|   `-- scripts
 |-- doc                                 # 文档
 |-- inferencer-fluid-cpu                # 与PaddlePaddle CPU预测库的接口代码
 |   |-- include
@@ -51,6 +67,8 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 |-- predictor                           # Serving端库: libpdserving.a
 |   |-- common
 |   |-- conf
+|   |-- cts
+|   |   `-- lib
 |   |-- framework
 |   |-- mempool
 |   |-- op
@@ -60,23 +78,10 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 |   |-- src
 |   `-- unittest
 |-- sdk-cpp                             # Client端库: libpdsdk-cpp.a
-|   |-- conf                            # Client端示例的conf目录
-|   |-- data                            # Client端示例的data目录
-|   |   `-- images
-|   |-- demo                            # Client端示例代码；包括如文本分类、图像分类等任务的例子
-|   |-- include                         # Client端库的头文件
-|   |-- proto                           # Client端示例的proto文件
-|   `-- src                             # Client端库的源代码文件
-|-- serving                             # Serving示例。该目录下代码与libpdserving.a联编，产出一个可执行的serving二进制
-|   |-- conf                            # Serving示例的Conf目录
-|   |-- data                            # Serving示例的data目录
-|   |   `-- model
-|   |       `-- paddle
-|   |           `-- fluid
-|   |               `-- SE_ResNeXt50_32x4d
-|   |-- op                              # Serving示例OP
-|   |-- proto                           # Serving示例的proto文件
-|   `-- scripts
+|   |-- include
+|   |-- plugin
+|   |-- proto
+|   `-- src
 `-- tools                               # CI工具
     `-- codestyle
 ```

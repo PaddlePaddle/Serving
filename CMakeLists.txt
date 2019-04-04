@@ -86,7 +86,6 @@ set(EXTERNAL_LIBS
     brpc
 )
 
-
 if(WITH_MKLML)
     list(APPEND EXTERNAL_LIBS ${MKLML_IOMP_LIB})
 endif()
@@ -104,9 +103,10 @@ endif()
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
+add_subdirectory(demo-client)
 
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
-add_subdirectory(serving)
+add_subdirectory(demo-serving)
 endif()
