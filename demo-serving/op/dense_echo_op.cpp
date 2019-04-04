@@ -12,38 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-#include "serving/echo_service.pb.h"
-
-#include "predictor/common/inner_common.h"
-#include "predictor/framework/channel.h"
-#include "predictor/framework/op_repository.h"
-#include "predictor/op/op.h"
+#include "demo-serving/op/dense_echo_op.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class CommonEchoOp
-    : public OpWithChannel<
-          baidu::paddle_serving::predictor::echo_service::RequestAndResponse> {
- public:
-  typedef baidu::paddle_serving::predictor::echo_service::RequestAndResponse
-      RequestAndResponse;
+using baidu::paddle_serving::predictor::format::DensePrediction;
+using baidu::paddle_serving::predictor::dense_service::Request;
+using baidu::paddle_serving::predictor::dense_service::Response;
 
-  DECLARE_OP(CommonEchoOp);
-
-  int inference() {
-    const RequestAndResponse* req =
-        dynamic_cast<const RequestAndResponse*>(get_request_message());
-
-    RequestAndResponse* data = mutable_data<RequestAndResponse>();
-
-    data->CopyFrom(*req);
-
-    return 0;
+int DenseEchoOp::inference() {
+  const Request* req = dynamic_cast<const Request*>(get_request_message());
+  Response* res = mutable_data<Response>();
+  LOG(INFO) << "Receive request in dense service:" << req->ShortDebugString();
+  uint32_t sample_size = req->instances_size();
+  for (uint32_t si = 0; si < sample_size; si++) {
+    DensePrediction* dense_res = res->mutable_predictions()->Add();
+    dense_res->add_categories(100.0 + si * 0.1);
+    dense_res->add_categories(200.0 + si * 0.1);
   }
-};
+  return 0;
+}
+
+DEFINE_OP(DenseEchoOp);
 
 }  // namespace predictor
 }  // namespace paddle_serving

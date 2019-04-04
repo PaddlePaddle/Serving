@@ -18,34 +18,51 @@
 
 #include <fstream>
 #include "sdk-cpp/builtin_format.pb.h"
-#include "sdk-cpp/echo_service.pb.h"
+#include "sdk-cpp/dense_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
-using baidu::paddle_serving::predictor::echo_service::RequestAndResponse;
+using baidu::paddle_serving::predictor::dense_service::Request;
+using baidu::paddle_serving::predictor::dense_service::Response;
+using baidu::paddle_serving::predictor::format::DensePrediction;
+using baidu::paddle_serving::predictor::format::DenseInstance;
 
-int create_req(RequestAndResponse& req) {  // NOLINT
-  req.set_a(1);
-  req.set_b(0.1);
+int create_req(Request& req) {  // NOLINT
+  DenseInstance* ins = req.mutable_instances()->Add();
+  ins->add_features(1.5);
+  ins->add_features(16.0);
+  ins->add_features(14.0);
+
+  ins = req.mutable_instances()->Add();
+  ins->add_features(1.0);
+  ins->add_features(2.0);
+  ins->add_features(3.0);
   return 0;
 }
 
-void print_res(const RequestAndResponse& req,
-               const RequestAndResponse& res,
+void print_res(const Request& req,
+               const Response& res,
                std::string route_tag,
                uint64_t elapse_ms) {
-  LOG(INFO) << "Reqeive result: a = " << res.a() << ", b = " << res.b();
+  for (uint32_t i = 0; i < res.predictions_size(); ++i) {
+    const DensePrediction& prediction = res.predictions(i);
+    std::ostringstream oss;
+    for (uint32_t j = 0; j < prediction.categories_size(); ++j) {
+      oss << prediction.categories(j) << " ";
+    }
+    LOG(INFO) << "Receive result " << oss.str();
+  }
 
-  LOG(INFO) << "Succ call predictor[echo_service], the tag is: " << route_tag
+  LOG(INFO) << "Succ call predictor[dense_format], the tag is: " << route_tag
             << ", elapse_ms: " << elapse_ms;
 }
 
 int main(int argc, char** argv) {
   PredictorApi api;
 
-  // initialize logger instance
+// initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
@@ -80,8 +97,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  RequestAndResponse req;
-  RequestAndResponse res;
+  Request req;
+  Response res;
 
   api.thrd_initialize();
 
@@ -91,9 +108,9 @@ int main(int argc, char** argv) {
 
     api.thrd_clear();
 
-    Predictor* predictor = api.fetch_predictor("echo_service");
+    Predictor* predictor = api.fetch_predictor("dense_service");
     if (!predictor) {
-      LOG(ERROR) << "Failed fetch predictor: echo_service";
+      LOG(ERROR) << "Failed fetch predictor: dense_service";
       return -1;
     }
 
@@ -132,7 +149,6 @@ int main(int argc, char** argv) {
 #ifndef BCLOUD
   google::ShutdownGoogleLogging();
 #endif
-
   return 0;
 }
 

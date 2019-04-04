@@ -18,63 +18,34 @@
 
 #include <fstream>
 #include "sdk-cpp/builtin_format.pb.h"
+#include "sdk-cpp/echo_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
-#include "sdk-cpp/int64tensor_service.pb.h"
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
-using baidu::paddle_serving::predictor::int64tensor_service::Request;
-using baidu::paddle_serving::predictor::int64tensor_service::Response;
-using baidu::paddle_serving::predictor::format::Float32TensorPredictor;
-using baidu::paddle_serving::predictor::format::Int64TensorInstance;
+using baidu::paddle_serving::predictor::echo_service::RequestAndResponse;
 
-int create_req(Request& req) {  // NOLINT
-  Int64TensorInstance* ins = req.mutable_instances()->Add();
-  ins->add_data(1);
-  ins->add_data(2);
-  ins->add_data(3);
-  ins->add_data(4);
-  ins->add_shape(2);
-  ins->add_shape(2);
-
-  ins = req.mutable_instances()->Add();
-  ins->add_data(5);
-  ins->add_data(6);
-  ins->add_data(7);
-  ins->add_data(8);
-  ins->add_data(9);
-  ins->add_shape(5);
-  ins->add_shape(1);
+int create_req(RequestAndResponse& req) {  // NOLINT
+  req.set_a(1);
+  req.set_b(0.1);
   return 0;
 }
 
-void print_res(const Request& req,
-               const Response& res,
+void print_res(const RequestAndResponse& req,
+               const RequestAndResponse& res,
                std::string route_tag,
                uint64_t elapse_ms) {
-  for (uint32_t i = 0; i < res.predictions_size(); ++i) {
-    const Float32TensorPredictor& prediction = res.predictions(i);
-    std::ostringstream oss1;
-    for (uint32_t j = 0; j < prediction.data_size(); ++j) {
-      oss1 << prediction.data(j) << " ";
-    }
+  LOG(INFO) << "Reqeive result: a = " << res.a() << ", b = " << res.b();
 
-    std::ostringstream oss2;
-    for (uint32_t j = 0; j < prediction.shape_size(); ++j) {
-      oss2 << prediction.shape(j) << " ";
-    }
-    LOG(INFO) << "Receive result " << oss1.str() << ", shape " << oss2.str();
-  }
-
-  LOG(INFO) << "Succ call predictor[int64tensor_format], the tag is: "
-            << route_tag << ", elapse_ms: " << elapse_ms;
+  LOG(INFO) << "Succ call predictor[echo_service], the tag is: " << route_tag
+            << ", elapse_ms: " << elapse_ms;
 }
 
 int main(int argc, char** argv) {
   PredictorApi api;
 
-  // initialize logger instance
+// initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
@@ -109,8 +80,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  Request req;
-  Response res;
+  RequestAndResponse req;
+  RequestAndResponse res;
 
   api.thrd_initialize();
 
@@ -120,9 +91,9 @@ int main(int argc, char** argv) {
 
     api.thrd_clear();
 
-    Predictor* predictor = api.fetch_predictor("int64tensor_service");
+    Predictor* predictor = api.fetch_predictor("echo_service");
     if (!predictor) {
-      LOG(ERROR) << "Failed fetch predictor: int64tensor_service";
+      LOG(ERROR) << "Failed fetch predictor: echo_service";
       return -1;
     }
 

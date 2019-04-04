@@ -13,21 +13,22 @@
 // limitations under the License.
 
 #pragma once
+#include "demo-serving/dense_service.pb.h"
+
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
 #include "predictor/op/op.h"
-#include "serving/image_class.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class WriteJsonOp
+class DenseEchoOp
     : public OpWithChannel<
-          baidu::paddle_serving::predictor::image_classification::Response> {
+          baidu::paddle_serving::predictor::dense_service::Response> {
  public:
-  DECLARE_OP(WriteJsonOp);
+  DECLARE_OP(DenseEchoOp);
 
   int inference();
 };

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "serving/op/common_echo_op.h"
+#include "demo-serving/op/common_echo_op.h"
 
 namespace baidu {
 namespace paddle_serving {

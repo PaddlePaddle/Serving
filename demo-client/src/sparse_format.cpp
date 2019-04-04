@@ -72,7 +72,7 @@ void print_res(const Request& req,
 int main(int argc, char** argv) {
   PredictorApi api;
 
-  // initialize logger instance
+// initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;

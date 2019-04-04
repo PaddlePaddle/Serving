@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "serving/op/reader_op.h"
+#include "demo-serving/op/reader_op.h"
 #include <algorithm>
 #include "predictor/framework/memory.h"
 
