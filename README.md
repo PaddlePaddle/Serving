@@ -42,10 +42,10 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 |   |-- src
 |   `-- tests
 |-- demo-client                         # Client端示例；包括如文本分类、图像分类等任务的例子
-|   |-- conf                            # conf目录
-|   |-- data                            # data目录
+|   |-- conf                            # Client示例的conf目录
+|   |-- data                            # Client示例的data目录
 |   |   \-- images
-|   `-- src                             # src目录
+|   `-- src                             # Client示例的src目录
 |-- demo-serving                        # Serving示例。该目录下代码与libpdserving.a联编，产出一个可执行的serving二进制
 |   |-- conf                            # Serving示例的Conf目录
 |   |-- data                            # Serving示例的data目录

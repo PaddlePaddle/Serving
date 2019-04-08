@@ -44,8 +44,15 @@ HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/sdk-cpp')
 HEADERS('include/*.h', '$INC/sdk-cpp/include')
 HEADERS('include/*.hpp', '$INC/sdk-cpp/include')
 
-user_sources=GLOB("src/*.cpp proto/*.proto")
-user_sources += ' ../predictor/proto/builtin_format.proto ../predictor/proto/pds_option.proto'
+# Application
+#bin
+Application('ximage', Sources('src/ximage.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('echo', Sources('src/echo.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('dense_format', Sources('src/dense_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('sparse_format', Sources('src/sparse_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('int64tensor_format', Sources('src/int64tensor_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('text_classification', Sources('src/text_classification.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('text_classification_press', Sources('src/text_classification_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
 
-# .a
-StaticLibrary('pdsdk-cpp', Sources(user_sources))
+OUTPUT('conf', '$OUT/demo/client')
+OUTPUT('data', '$OUT/demo/client')
