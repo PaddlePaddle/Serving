@@ -46,8 +46,7 @@ PROTOFLAGS(
         '--pdcodegen_out proto --proto_path=.',
         '--proto_path=../predictor/proto')
 
-HEADERS(GLOB_GEN_SRCS('../configure/proto/server_configure.pb.h'), '$INC/serving')
-HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/serving')
+HEADERS(GLOB_GEN_SRCS('proto/*.pb.h'), '$INC/demo-serving')
 
 # Application
 Application('serving', Sources(GLOB(' '.join(cpp_source_dirs))), WholeArchives('$OUT/lib/libinferencer-fluid-cpu.a'))
