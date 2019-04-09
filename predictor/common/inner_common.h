@@ -32,23 +32,25 @@
 #include "gflags/gflags.h"
 
 #ifdef BCLOUD
-#include "bthread.h"
 #include "baidu/rpc/channel.h"
 #include "baidu/rpc/policy/giano_authenticator.h"
 #include "baidu/rpc/server.h"
-#include "base/logging.h"
 #include "base/comlog_sink.h"
+#include "base/logging.h"
 #include "base/object_pool.h"
 #include "base/time.h"
+#include "bthread.h"  // NOLINT
 #else
-#include "bthread/bthread.h"
 #include "brpc/channel.h"
 #include "brpc/policy/giano_authenticator.h"
 #include "brpc/server.h"
+#include "bthread/bthread.h"
 #include "butil/logging.h"
 #include "butil/object_pool.h"
 #include "butil/time.h"
 #endif
+
+#include "glog/raw_logging.h"
 
 #include "configure/include/configure_parser.h"
 #include "configure/server_configure.pb.h"
