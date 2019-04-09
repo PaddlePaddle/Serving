@@ -62,7 +62,7 @@ class OpRepository {
   template <typename OP_TYPE>
   void regist_op(std::string op_type) {
     _repository[op_type] = &OpFactory<OP_TYPE>::instance();
-    LOG(INFO) << "Succ regist op: " << op_type << "!";
+    RAW_LOG_INFO("Succ regist op: %s", op_type.c_str());
   }
 
   Op* get_op(std::string op_type);
