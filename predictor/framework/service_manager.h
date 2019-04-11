@@ -27,13 +27,13 @@ namespace predictor {
         ::baidu::paddle_serving::predictor::FormatServiceManager::instance() \
             .regist_service(svr_name, svr);                                  \
     if (ret != 0) {                                                          \
-      LOG(ERROR) << "Failed regist service[" << svr_name << "]"              \
-                 << "[" << typeid(svr).name() << "]"                         \
-                 << "!";                                                     \
+      RAW_LOG_ERROR("Failed regist service[%s][%s]",                         \
+                    svr_name.c_str(),                                        \
+                    typeid(svr).name());                                     \
     } else {                                                                 \
-      LOG(INFO) << "Success regist service[" << svr_name << "]["             \
-                << typeid(svr).name() << "]"                                 \
-                << "!";                                                      \
+      RAW_LOG_INFO("Success regist service[%s][%s]",                         \
+                   svr_name.c_str(),                                         \
+                   typeid(svr).name());                                      \
     }                                                                        \
   } while (0)
 
@@ -43,29 +43,30 @@ class FormatServiceManager {
 
   int regist_service(const std::string& svr_name, Service* svr) {
     if (_service_map.find(svr_name) != _service_map.end()) {
-      LOG(ERROR) << "Service[" << svr_name << "][" << typeid(svr).name() << "]"
-                 << " already exist!";
+      RAW_LOG_ERROR("Service[%s][%s] already exist!",
+                    svr_name.c_str(),
+                    typeid(svr).name());
       return -1;
     }
 
     std::pair<boost::unordered_map<std::string, Service*>::iterator, bool> ret;
     ret = _service_map.insert(std::make_pair(svr_name, svr));
     if (ret.second == false) {
-      LOG(ERROR) << "Service[" << svr_name << "][" << typeid(svr).name() << "]"
-                 << " insert failed!";
+      RAW_LOG_ERROR("Service[%s][%s] insert failed!",
+                    svr_name.c_str(),
+                    typeid(svr).name());
       return -1;
     }
 
-    LOG(INFO) << "Service[" << svr_name << "] insert successfully!";
+    RAW_LOG_INFO("Service[] insert successfully!", svr_name.c_str());
     return 0;
   }
 
   Service* get_service(const std::string& svr_name) {
     boost::unordered_map<std::string, Service*>::iterator res;
     if ((res = _service_map.find(svr_name)) == _service_map.end()) {
-      LOG(WARNING) << "Service[" << svr_name << "] "
-                   << "not found in service manager"
-                   << "!";
+      RAW_LOG_WARNING("Service[%s] not found in service manager!",
+                      svr_name.c_str());
       return NULL;
     }
     return (*res).second;
