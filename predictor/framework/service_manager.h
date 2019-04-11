@@ -58,7 +58,7 @@ class FormatServiceManager {
       return -1;
     }
 
-    RAW_LOG_INFO("Service[] insert successfully!", svr_name.c_str());
+    RAW_LOG_INFO("Service[%s] insert successfully!", svr_name.c_str());
     return 0;
   }
 
