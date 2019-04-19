@@ -129,7 +129,7 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetParamsFile(data_path + "/__params__");
     analysis_config.SetProgFile(data_path + "/__model__");
-    analysis_config.DisableGpu();
+    analysis_config.EnableUseGpu(100, 0);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     analysis_config.SwitchSpecifyInputNames(true);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -158,6 +158,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
     native_config.param_file = data_path + "/__params__";
     native_config.prog_file = data_path + "/__model__";
     native_config.use_gpu = true;
+    native_config.fraction_of_gpu_memory = 0.9;
     native_config.device = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
@@ -184,7 +185,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.DisableGpu();
+    analysis_config.EnableUseGpu(100, 0);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -212,6 +213,7 @@ class FluidGpuNativeDirCore : public FluidFamilyCore {
     paddle::NativeConfig native_config;
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
+    native_config.fraction_of_gpu_memory = 0.9;
     native_config.device = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
@@ -461,6 +463,7 @@ class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
     paddle::NativeConfig native_config;
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
+    native_config.fraction_of_gpu_memory = 0.9;
     native_config.device = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
@@ -488,7 +491,7 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.DisableGpu();
+    analysis_config.EnableUseGpu(100, 0);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
