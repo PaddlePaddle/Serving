@@ -29,7 +29,7 @@ pdcodegen_sources = GLOB('plugin/*.cc')
 pdcodegen_sources += ' ../predictor/proto/pds_option.proto'
 pdcodegen_sources += ' src/pdcodegen.cpp'
 
-DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf.a')
-DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf-lite.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf-lite.a')
 
 Application('pdcodegen', Sources(pdcodegen_sources))
