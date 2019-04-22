@@ -32,6 +32,8 @@
 #endif
 #include "predictor/framework/infer.h"
 
+DECLARE_int32(gpuid);
+
 namespace baidu {
 namespace paddle_serving {
 namespace fluid_gpu {
@@ -129,7 +131,7 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetParamsFile(data_path + "/__params__");
     analysis_config.SetProgFile(data_path + "/__model__");
-    analysis_config.EnableUseGpu(100, 0);
+    analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     analysis_config.SwitchSpecifyInputNames(true);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -159,7 +161,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
     native_config.prog_file = data_path + "/__model__";
     native_config.use_gpu = true;
     native_config.fraction_of_gpu_memory = 0.9;
-    native_config.device = 0;
+    native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                           paddle::PaddleEngineKind::kNative>(
@@ -185,7 +187,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.EnableUseGpu(100, 0);
+    analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -214,7 +216,7 @@ class FluidGpuNativeDirCore : public FluidFamilyCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
     native_config.fraction_of_gpu_memory = 0.9;
-    native_config.device = 0;
+    native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                           paddle::PaddleEngineKind::kNative>(
@@ -464,7 +466,7 @@ class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
     native_config.fraction_of_gpu_memory = 0.9;
-    native_config.device = 0;
+    native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::NativeConfig,
@@ -491,7 +493,7 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.EnableUseGpu(100, 0);
+    analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
