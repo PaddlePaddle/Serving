@@ -15,6 +15,8 @@
 #include "inferencer-fluid-gpu/include/fluid_gpu_engine.h"
 #include "predictor/framework/factory.h"
 
+DEFINE_int32(gpuid, 0, "GPU device id to use");
+
 namespace baidu {
 namespace paddle_serving {
 namespace fluid_gpu {
