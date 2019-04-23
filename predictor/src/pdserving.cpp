@@ -69,7 +69,15 @@ DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
 DECLARE_string(flagfile);
 
-void pthread_worker_start_fn() { Resource::instance().thread_initialize(); }
+namespace bthread {
+extern pthread_mutex_t g_task_control_mutex;
+}
+
+void pthread_worker_start_fn() {
+  while (pthread_mutex_lock(&bthread::g_task_control_mutex) != 0) {}
+  Resource::instance().thread_initialize();
+  pthread_mutex_unlock(&bthread::g_task_control_mutex);
+}
 
 static void g_change_server_port() {
   InferServiceConf conf;
