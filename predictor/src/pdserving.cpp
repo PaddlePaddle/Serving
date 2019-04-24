@@ -70,13 +70,26 @@ DEFINE_bool(g, false, "user defined gflag path");
 DECLARE_string(flagfile);
 
 namespace bthread {
-extern pthread_mutex_t g_task_control_mutex;
+  extern pthread_mutex_t g_task_control_mutex;
 }
+pthread_mutex_t g_worker_start_fn_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void pthread_worker_start_fn() {
-  while (pthread_mutex_lock(&bthread::g_task_control_mutex) != 0) {}
+  while (pthread_mutex_lock(&g_worker_start_fn_mutex) != 0) {}
+
+  // Try to avoid deadlock in bthread
+  int lock_status = pthread_mutex_trylock(&bthread::g_task_control_mutex);
+  if (lock_status == EBUSY || lock_status == EAGAIN) {
+    pthread_mutex_unlock(&bthread::g_task_control_mutex);
+  }
   Resource::instance().thread_initialize();
-  pthread_mutex_unlock(&bthread::g_task_control_mutex);
+
+  // Try to avoid deadlock in bthread
+  if (lock_status == EBUSY || lock_status == EAGAIN) {
+    while (pthread_mutex_lock(&bthread::g_task_control_mutex) != 0) {}
+  }
+
+  pthread_mutex_unlock(&g_worker_start_fn_mutex);
 }
 
 static void g_change_server_port() {
