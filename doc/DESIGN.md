@@ -75,7 +75,7 @@ class FluidFamilyCore {
 
 ![Paddle Serving的多服务机制](https://paddle-serving.bj.bcebos.com/doc/multi-service.png)
 
-Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../serving/conf/service.prototxt)了解如何为serving实例配置多个service
+Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
 #### 3.2.3 业务调度层级关系
 
