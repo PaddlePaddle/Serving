@@ -160,7 +160,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
     native_config.param_file = data_path + "/__params__";
     native_config.prog_file = data_path + "/__model__";
     native_config.use_gpu = true;
-    native_config.fraction_of_gpu_memory = 0.9;
+    native_config.fraction_of_gpu_memory = 0.01;
     native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
@@ -212,10 +212,12 @@ class FluidGpuNativeDirCore : public FluidFamilyCore {
       return -1;
     }
 
+    LOG(WARNING) << "load model without fluid";
+
     paddle::NativeConfig native_config;
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
-    native_config.fraction_of_gpu_memory = 0.9;
+    native_config.fraction_of_gpu_memory = 0.01;
     native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
@@ -465,9 +467,10 @@ class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
     paddle::NativeConfig native_config;
     native_config.model_dir = data_path;
     native_config.use_gpu = true;
-    native_config.fraction_of_gpu_memory = 0.9;
+    native_config.fraction_of_gpu_memory = 0.01;
     native_config.device = FLAGS_gpuid;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
+    LOG(WARNING) << "load model with fluid core";
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                       paddle::PaddleEngineKind::kNative>(
