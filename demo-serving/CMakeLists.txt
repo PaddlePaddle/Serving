@@ -16,11 +16,19 @@ find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid
+add_dependencies(serving pdcodegen fluid_cpu_engine fluid_gpu_engine pdserving paddle_fluid
         opencv_imgcodecs)
+if (WITH_GPU)
+    add_dependencies(serving fluid_gpu_engine)
+endif()
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../predictor
         )
+
+if(WITH_GPU)
+    target_link_libraries(serving ${CUDA_LIBRARIES} -Wl,--whole-archive fluid_gpu_engine
+            -Wl,--no-whole-archive)
+endif()
 target_link_libraries(serving opencv_imgcodecs
         ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs}
