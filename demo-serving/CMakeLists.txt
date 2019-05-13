@@ -16,7 +16,7 @@ find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen fluid_cpu_engine fluid_gpu_engine pdserving paddle_fluid
+add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid
         opencv_imgcodecs)
 if (WITH_GPU)
     add_dependencies(serving fluid_gpu_engine)
