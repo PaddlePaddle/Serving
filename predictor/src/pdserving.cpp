@@ -206,6 +206,8 @@ int main(int argc, char** argv) {
   }
   LOG(INFO) << "Succ call pthread worker start function";
 
+  FLAGS_logtostderr = false;
+
   if (ServerManager::instance().start_and_wait() != 0) {
     LOG(ERROR) << "Failed start server and wait!";
     return -1;
