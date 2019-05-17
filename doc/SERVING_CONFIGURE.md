@@ -142,6 +142,11 @@ type: 预测引擎的类型。可在inferencer-fluid-cpu/src/fluid_cpu_engine.cp
 |FLUID_CPU_ANALYSIS_DIR|使用fluid Analysis API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
 |FLUID_CPU_NATIVE|使用fluid Native API；模型所有参数保存在一个文件|
 |FLUID_CPU_NATIVE_DIR|使用fluid Native API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
+|FLUID_GPU_ANALYSIS|GPU预测，使用fluid Analysis API；模型所有参数保存在一个文件|
+|FLUID_GPU_ANALYSIS_DIR|GPU预测，使用fluid Analysis API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
+|FLUID_GPU_NATIVE|GPU预测，使用fluid Native API；模型所有参数保存在一个文件|
+|FLUID_GPU_NATIVE_DIR|GPU预测，使用fluid Native API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
+
 
 **fluid Analysis API和fluid Native API的区别**
 

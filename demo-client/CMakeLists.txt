@@ -20,6 +20,11 @@ target_link_libraries(ximage -Wl,--whole-archive sdk-cpp
                -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
+add_executable(ximage_press ${CMAKE_CURRENT_LIST_DIR}/src/ximage_press.cpp)
+target_link_libraries(ximage_press -Wl,--whole-archive sdk-cpp
+               -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
+
 add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/src/echo.cpp)
 target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
         -lpthread -lcrypto -lm -lrt -lssl -ldl
@@ -49,6 +54,9 @@ target_link_libraries(text_classification_press -Wl,--whole-archive sdk-cpp -Wl,
 
 # install
 install(TARGETS ximage
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/bin)
+install(TARGETS ximage_press
         RUNTIME DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
