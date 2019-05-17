@@ -267,6 +267,7 @@ int main(int argc, char** argv) {
     total_ms += x;
   }
 
+  LOG(INFO) << "Batch size: " << FLAGS_batch_size;
   LOG(INFO) << "Total requests: " << round_times.size();
   LOG(INFO) << "Max concurrency: " << FLAGS_concurrency;
   LOG(INFO) << "Total ms (absolute time): " << total_ms / FLAGS_concurrency;
