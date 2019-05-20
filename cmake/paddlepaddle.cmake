@@ -24,6 +24,8 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/Paddle/fluid_install_dir)
 # Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
 
+message( "WITH_GPU = ${WITH_GPU}")
+
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
 ExternalProject_Add(
     extern_paddle
@@ -47,7 +49,7 @@ ExternalProject_Add(
                     -DWITH_MKL=${WITH_MKL}
                     -DWITH_AVX=${WITH_AVX}
                     -DWITH_MKLDNN=OFF
-                    -DWITH_GPU=OFF
+                    -DWITH_GPU=${WITH_GPU}
                     -DWITH_FLUID_ONLY=ON
                     -DWITH_TESTING=OFF
                     -DWITH_DISTRIBUTE=OFF
