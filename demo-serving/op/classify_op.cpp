@@ -35,7 +35,6 @@ int ClassifyOp::inference() {
   }
 
   const TensorVector* in = &reader_out->tensors;
-  uint32_t sample_size = in->size();
 
   TensorVector* out = butil::get_object<TensorVector>();
   if (!out) {
@@ -43,20 +42,21 @@ int ClassifyOp::inference() {
     return -1;
   }
 
-  if (sample_size <= 0) {
-    LOG(INFO) << "No samples need to to predicted";
-    return 0;
+  if (in->size() != 1) {
+    LOG(ERROR) << "Samples should have been packed into a single tensor";
+    return -1;
   }
 
+  int batch_size = in->at(0).shape[0];
   // call paddle fluid model for inferencing
   if (InferManager::instance().infer(
-          IMAGE_CLASSIFICATION_MODEL_NAME, in, out, sample_size)) {
+          IMAGE_CLASSIFICATION_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: "
                << IMAGE_CLASSIFICATION_MODEL_NAME;
     return -1;
   }
 
-  if (out->size() != sample_size) {
+  if (out->size() != in->size()) {
     LOG(ERROR) << "Output size not eq input size: " << in->size()
                << out->size();
     return -1;
@@ -64,24 +64,35 @@ int ClassifyOp::inference() {
 
   // copy output tensor into response
   ClassifyResponse* res = mutable_data<ClassifyResponse>();
+  const paddle::PaddleTensor& out_tensor = (*out)[0];
+
+#if 0
+  int out_shape_size = out_tensor.shape.size();
+  LOG(ERROR) << "out_tensor.shpae";
+  for (int i = 0; i < out_shape_size; ++i) {
+    LOG(ERROR) << out_tensor.shape[i] << ":";
+  }
+
+  if (out_shape_size != 2) {
+    return -1;
+  }
+#endif
+
+  int sample_size = out_tensor.shape[0];
+#if 0
+  LOG(ERROR) << "Output sample size " << sample_size;
+#endif
   for (uint32_t si = 0; si < sample_size; si++) {
-    const paddle::PaddleTensor& out_tensor = (*out)[si];
     DensePrediction* ins = res->add_predictions();
     if (!ins) {
       LOG(ERROR) << "Failed append new out tensor";
       return -1;
     }
 
-    uint32_t shape_size = out_tensor.shape.size();
-    if (out_tensor.shape.size() != 2 || out_tensor.shape[0] != 1) {
-      LOG(ERROR) << "Not valid classification out shape"
-                 << ", shape size: " << out_tensor.shape.size();
-      return -1;
-    }
-
     // assign output data
-    uint32_t data_size = out_tensor.data.length() / sizeof(float);
-    float* data = reinterpret_cast<float*>(out_tensor.data.data());
+    uint32_t data_size = out_tensor.shape[1];
+    float* data = reinterpret_cast<float*>(out_tensor.data.data() +
+                                           si * sizeof(float) * data_size);
     for (uint32_t di = 0; di < data_size; ++di) {
       ins->add_categories(data[di]);
     }
@@ -94,10 +105,6 @@ int ClassifyOp::inference() {
   }
   out->clear();
   butil::return_object<TensorVector>(out);
-
-  LOG(INFO) << "Response in image classification:"
-            << "length:" << res->ByteSize() << ","
-            << "data:" << res->ShortDebugString();
 
   return 0;
 }

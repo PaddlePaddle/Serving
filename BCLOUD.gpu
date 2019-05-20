@@ -87,6 +87,12 @@ HEADERS('predictor/op/*.h', '$INC/predictor/op')
 StaticLibrary('pdserving', Sources(GLOB(' '.join(predictor_sources)), 'predictor/src/pdserving.cpp'))
 
 # Sub directory
+
+# inferencer-fluid-cpu
+INCPATHS('.')
+inferencer_fluid_cpu_sources = 'inferencer-fluid-cpu/src/fluid_cpu_engine.cpp'
+StaticLibrary('inferencer-fluid-cpu', Sources(inferencer_fluid_cpu_sources))
+
 Directory('inferencer-fluid-gpu')
 Directory('sdk-cpp')
 
@@ -100,16 +106,17 @@ HEADERS(GLOB_GEN_SRCS('predictor/proto/builtin_format.pb.h'), '$INC/sdk-cpp')
 HEADERS(GLOB_GEN_SRCS('predictor/proto/pds_option.pb.h'), '$INC/sdk-cpp')
 HEADERS(GLOB_GEN_SRCS('demo-client/proto/*.pb.h'), '$INC/sdk-cpp')
 
-#Application('ximage', Sources('demo-client/src/ximage.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('echo', Sources('demo-client/src/echo.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('dense_format', Sources('demo-client/src/dense_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('sparse_format', Sources('demo-client/src/sparse_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('int64tensor_format', Sources('demo-client/src/int64tensor_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('text_classification', Sources('demo-client/src/text_classification.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-#Application('text_classification_press', Sources('demo-client/src/text_classification_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
-
-#OUTPUT('demo-client/conf', '$OUT/demo/client')
-#OUTPUT('demo-client/data', '$OUT/demo/client')
+LIBS('$OUT/lib/libpdconfigure.a')
+Application('ximage', Sources('demo-client/src/ximage.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('ximage_press', Sources('demo-client/src/ximage_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('echo', Sources('demo-client/src/echo.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('dense_format', Sources('demo-client/src/dense_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('sparse_format', Sources('demo-client/src/sparse_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('int64tensor_format', Sources('demo-client/src/int64tensor_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+Application('text_classification', Sources('demo-client/src/text_classification.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('text_classification_press', Sources('demo-client/src/text_classification_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'), Libs('$OUT/lib/libpdconfigure.a'))
+OUTPUT('demo-client/conf', '$OUT/demo/client')
+OUTPUT('demo-client/data', '$OUT/demo/client')
 
 # demo-serving
 INCPATHS('$INC')
@@ -130,7 +137,7 @@ serving_sources.append('demo-serving/op/*.cpp')
 serving_sources.append('demo-serving/proto/*.proto')
 
 HEADERS(GLOB_GEN_SRCS('demo-serving/proto/*.pb.h'), '$INC/demo-serving')
-Application('serving', Sources(GLOB(' '.join(serving_sources))), WholeArchives('$OUT/lib/libinferencer-fluid-gpu.a $OUT/lib/libpdserving.a $OUT/lib/libpdconfigure.a'))
+Application('serving', Sources(GLOB(' '.join(serving_sources))), WholeArchives('$OUT/lib/libinferencer-fluid-gpu.a $OUT/lib/libinferencer-fluid-cpu.a $OUT/lib/libpdserving.a $OUT/lib/libpdconfigure.a'))
 
 OUTPUT('demo-serving/conf', '$OUT/demo/serving/')
 OUTPUT('demo-serving/data', '$OUT/demo/serving')

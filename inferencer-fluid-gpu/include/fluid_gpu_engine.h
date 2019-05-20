@@ -135,6 +135,7 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     analysis_config.SetCpuMathLibraryNumThreads(1);
     analysis_config.EnableMemoryOptim(false, false);
     analysis_config.SwitchSpecifyInputNames(true);
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
@@ -192,6 +193,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
     analysis_config.EnableMemoryOptim(false, false);
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
@@ -213,7 +215,6 @@ class FluidGpuNativeDirCore : public FluidFamilyCore {
                  << data_path;
       return -1;
     }
-
 
     paddle::NativeConfig native_config;
     native_config.model_dir = data_path;

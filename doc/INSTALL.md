@@ -58,10 +58,9 @@ $ make install
 
 # CMake编译选项说明
 
-因Paddle Serving依托于PaddlePaddle项目进行构建，以下编译选项其实是传递给PaddlePaddle的编译选项：
-
 | 编译选项 | 说明 |
 |----------|------|
-| WITH_AVX | Compile PaddlePaddle with AVX intrinsics |
-| WITH_MKL | Compile PaddlePaddle with MKLML library |
+| WITH_AVX | For configuring PaddlePaddle. Compile PaddlePaddle with AVX intrinsics |
+| WITH_MKL | For configuring PaddlePaddle. Compile PaddlePaddle with MKLML library |
+| WITH_GPU | For configuring PaddlePaddle. Compile PaddlePaddle with NVIDIA GPU |
 | CLINET_ONLY | Compile client libraries and demos only |
