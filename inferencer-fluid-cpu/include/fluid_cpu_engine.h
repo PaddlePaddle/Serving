@@ -22,7 +22,11 @@
 #include "configure/include/configure_parser.h"
 #include "configure/inferencer_configure.pb.h"
 #ifdef BCLOUD
+#ifdef WITH_GPU
+#include "paddle/paddle_inference_api.h"
+#else
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
+#endif
 #else
 #include "paddle/fluid/inference/paddle_inference_api.h"
 #endif
@@ -155,6 +159,8 @@ class FluidCpuNativeCore : public FluidFamilyCore {
     native_config.prog_file = data_path + "/__model__";
     native_config.use_gpu = false;
     native_config.device = 0;
+    native_config.fraction_of_gpu_memory = 0;
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                           paddle::PaddleEngineKind::kNative>(
@@ -209,6 +215,7 @@ class FluidCpuNativeDirCore : public FluidFamilyCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = false;
     native_config.device = 0;
+    native_config.fraction_of_gpu_memory = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                           paddle::PaddleEngineKind::kNative>(
@@ -458,6 +465,7 @@ class FluidCpuNativeDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = false;
     native_config.device = 0;
+    native_config.fraction_of_gpu_memory = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::NativeConfig,

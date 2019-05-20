@@ -46,6 +46,7 @@ HEADERS('include/*.hpp', '$INC/sdk-cpp/include')
 # Application
 #bin
 Application('ximage', Sources('src/ximage.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
+Application('ximage_press', Sources('src/ximage_press.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
 Application('echo', Sources('src/echo.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
 Application('dense_format', Sources('src/dense_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
 Application('sparse_format', Sources('src/sparse_format.cpp'), WholeArchives('$OUT/lib/libpdsdk-cpp.a'))
