@@ -16,7 +16,7 @@
 #include <string>
 
 #ifdef BCLOUD
-#include "pb_to_json.h"
+#include "pb_to_json.h"  // NOLINT
 #else
 #include "json2pb/pb_to_json.h"
 #endif
@@ -70,7 +70,7 @@ int WriteJsonOp::inference() {
     }
   }
 
-  LOG(INFO) << "Succ write json:" << classify_out->ShortDebugString();
+  LOG(INFO) << "Succ write json";
 
   return 0;
 }
