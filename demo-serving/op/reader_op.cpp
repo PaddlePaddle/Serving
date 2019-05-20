@@ -51,6 +51,26 @@ int ReaderOp::inference() {
   resize.height = iresize[0];
   resize.width = iresize[1];
 
+  paddle::PaddleTensor in_tensor;
+  in_tensor.name = "tensor";
+  in_tensor.dtype = paddle::FLOAT32;
+  // shape assignment
+  in_tensor.shape.push_back(sample_size);  // batch_size
+  in_tensor.shape.push_back(3);
+  in_tensor.shape.push_back(resize.width);
+  in_tensor.shape.push_back(resize.height);
+
+  // tls resource assignment
+  size_t dense_capacity = 3 * resize.width * resize.height;
+  size_t len = dense_capacity * sizeof(float) * sample_size;
+  float* data =
+      reinterpret_cast<float*>(MempoolWrapper::instance().malloc(len));
+  if (data == NULL) {
+    LOG(ERROR) << "Failed create temp float array, "
+               << "size=" << dense_capacity * sample_size * sizeof(float);
+    return -1;
+  }
+
   for (uint32_t si = 0; si < sample_size; si++) {
     // parse image object from x-image
     const XImageReqInstance& ins = req->instances(si);
@@ -103,50 +123,31 @@ int ReaderOp::inference() {
     const int H = _image_8u_rgb.rows;
     const int W = _image_8u_rgb.cols;
     const int C = _image_8u_rgb.channels();
-    size_t dense_capacity = H * W * C;
-
-    paddle::PaddleTensor in_tensor;
-    in_tensor.name = "tensor";
-    in_tensor.dtype = paddle::FLOAT32;
-
-    // shape assignment
-    in_tensor.shape.push_back(1);  // batch_size
-
-    // accoreding to training stage, the instance shape should be
-    // in order of C-W-H.
-    in_tensor.shape.push_back(C);
-    in_tensor.shape.push_back(W);
-    in_tensor.shape.push_back(H);
+    if (H != resize.height || W != resize.width || C != 3) {
+      LOG(ERROR) << "Image " << si << " has incompitable size";
+      return -1;
+    }
 
     LOG(INFO) << "Succ read one image, C: " << C << ", W: " << W
               << ", H: " << H;
 
-    // tls resource assignment
-    size_t len = dense_capacity * sizeof(float);
-    float* data =
-        reinterpret_cast<float*>(MempoolWrapper::instance().malloc(len));
-    if (data == NULL) {
-      LOG(ERROR) << "Failed create temp float array, "
-                 << "size=" << dense_capacity;
-      return -1;
-    }
-
+    float* data_ptr = data + dense_capacity * si;
     for (int h = 0; h < H; h++) {
       // p points to a new line
       unsigned char* p = _image_8u_rgb.ptr<unsigned char>(h);
       for (int w = 0; w < W; w++) {
         for (int c = 0; c < C; c++) {
           // HWC(row,column,channel) -> CWH
-          data[W * H * c + W * h + w] = (p[C * w + c] - pmean[c]) * scale[c];
+          data_ptr[W * H * c + W * h + w] =
+              (p[C * w + c] - pmean[c]) * scale[c];
         }
       }
     }
-
-    paddle::PaddleBuf pbuf(data, len);
-    in_tensor.data = pbuf;
-
-    in->push_back(in_tensor);
   }
+  paddle::PaddleBuf pbuf(data, len);
+  in_tensor.data = pbuf;
+
+  in->push_back(in_tensor);
 
   return 0;
 }
