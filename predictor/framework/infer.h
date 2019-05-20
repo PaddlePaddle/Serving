@@ -461,7 +461,7 @@ class CloneDBReloadableInferEngine
 };
 
 template <typename FluidFamilyCore>
-class FluidInferEngine : public DBReloadableInferEngine<FluidFamilyCore> {
+class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
  public:
   FluidInferEngine() {}
   ~FluidInferEngine() {}
