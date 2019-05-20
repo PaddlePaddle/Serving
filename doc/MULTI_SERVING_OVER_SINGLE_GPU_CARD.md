@@ -1,18 +1,24 @@
-# FAQ
-## 1. 如何修改端口配置？
-使用该框架搭建的服务需要申请一个端口，可以通过以下方式修改端口号：
+# Multiple Serving Instances over Single GPU Card
 
-- 如果在inferservice_file里指定了port:xxx，那么就去申请该端口号；
-- 否则，如果在gflags.conf里指定了--port:xxx，那就去申请该端口号；
-- 否则，使用程序里指定的默认端口号：8010。
+Paddle Serving依托PaddlePaddle预测库执行实际的预测计算。由于当前GPU预测库的限制，单个Serving实例只可以绑定1张GPU卡，且进程内所有worker线程共用1个GPU stream。也就是说，不管Serving启动多少个worker线程，所有的请求在GPU是严格串行计算的，起不到加速作用。这会带来一个问题，就是如果模型计算量不大，那么Serving进程实际上不会用满GPU的算力。
 
-## 2. GPU预测中为何请求的响应时间波动会非常大？
-PaddleServing依托PaddlePaddle预测库执行预测计算；在GPU设备上，由于同一个进程内目前共用1个GPU stream，进程内的多个请求的预测计算会被严格串行。所以如果有2个请求同时到达某个Serving实例，不管该实例启动时创建了多少个worker线程，都不能起到加速作用，后到的请求会被排队，直到前面请求计算完成。
+为了充分利用GPU卡的算力，考虑在单张卡上启动多个Serving实例，通过多个GPU stream，力争用满GPU的算力。启动命令可以如下所示：
 
-## 3. 如何充分利用GPU卡的计算能力？
-如问题2所说，由于预测库的限制，单个Serving进程只能绑定单张GPU卡，且进程内共用1个GPU stream，所有请求必须串行计算。
+```
+bin/serving --gpuid=0 --bthread_concurrency=4 --bthread_min_concurrency=4 --port=8010&
+bin/serving --gpuid=0 --bthread_concurrency=4 --bthread_min_concurrency=4 --port=8011&
+```
 
-为提高GPU卡使用率，目前可以想到的方法是：在单张GPU卡上启动多个Serving进程，每个进程绑定一个GPU stream，多个stream并行计算。这种方法是否能起到加速作用，受限于多个因素，主要有：
+上述2条命令，启动2个Serving实例，分别监听8010端口和8011端口。但他们都绑定同一张卡 (gpuid = 0)。
+
+命令行参数含义：
+```
+-gpuid=N：用于指定所绑定的GPU卡ID
+-bthread_concurrency和bthread_min_concurrency共同限制该进程启动的worker数：由于在GPU预测模式下，增加worker线程数并不能提高并发能力，为了节省部分资源，干脆将他们限制掉；均设为4，是因为这是bthread允许的最小值。
+-port xxx：Serving实例监听的端口
+```
+
+但是，上述方式究竟是否能在不影响响应时间等其他指标的前提下，起到提高GPU使用率作用，受到多个限制因素的制约，具体的：
 
 1. 单个stream占用GPU算力；假如单个stream已经将GPU算力占用超过50%，那么增加stream很可能会导致2个stream的job分别排队，拖慢各自的响应时间
 2. GPU显存：Serving进程需要将模型参数加载到显存中，并且计算时要在GPU显存池分配临时变量；假如单个Serving进程已经用掉超过50%的显存，则增加Serving进程会造成显存不足，导致进程报错退出
