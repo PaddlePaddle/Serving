@@ -25,7 +25,6 @@ LIBS('$OUT/lib/libpdconfigure.a')
 CONFIGS('baidu/base/baidu-rpc@ci-base')
 CONFIGS('baidu/third-party/gflags@v2.0.0@git_branch')
 CONFIGS('baidu/third-party/glog@v0.3.x@git_branch')
-CONFIGS('baidu/third-party/opencv@master@git_branch')
 
 # DELETE_AUTO_LIBS('$OUT_ROOT/third-64/glog/output/lib/libglog.a')
 DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags.a')
