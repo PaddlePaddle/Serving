@@ -9,6 +9,7 @@ mv bin/sparse_format demo/client/bin
 mv bin/text_classification demo/client/bin
 mv bin/text_classification_press demo/client/bin
 mv bin/ximage demo/client/bin
+mv bin/ximage_press demo/client/bin
 
 cp baidu_third-party_mklml/so/* demo/serving/bin/
 rm -rf baidu_third-party_mklml

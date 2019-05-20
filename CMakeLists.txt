@@ -28,6 +28,7 @@ message(STATUS "C compiler: ${CMAKE_C_COMPILER}, version: "
 
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
+find_package(CUDA QUIET)
 
 include(simd)
 
@@ -43,10 +44,10 @@ set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
 
 set(THIRD_PARTY_BUILD_TYPE Release)
 
-option(WITH_AVX         "Compile Paddle Serving with AVX intrinsics"      ${AVX_FOUND})
-option(WITH_MKL         "Compile Paddle Serving with MKL support."        ${AVX_FOUND})
-option(CLIENT_ONLY      "Compile client libraries and demos only"
-        FALSE)
+option(WITH_AVX     "Compile Paddle Serving with AVX intrinsics"    ${AVX_FOUND})
+option(WITH_MKL     "Compile Paddle Serving with MKL support."      ${AVX_FOUND})
+option(WITH_GPU     "Compile Paddle Serving with NVIDIA GPU"        ${CUDA_FOUND})
+option(CLIENT_ONLY  "Compile client libraries and demos only"       FALSE)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)
@@ -108,5 +109,8 @@ add_subdirectory(demo-client)
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
 add_subdirectory(inferencer-fluid-cpu)
+if (WITH_GPU)
+add_subdirectory(inferencer-fluid-gpu)
+endif()
 add_subdirectory(demo-serving)
 endif()
