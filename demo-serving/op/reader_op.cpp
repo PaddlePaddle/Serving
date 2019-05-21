@@ -63,9 +63,11 @@ int ReaderOp::inference() {
   // tls resource assignment
   size_t dense_capacity = 3 * resize.width * resize.height;
   size_t len = dense_capacity * sizeof(float) * sample_size;
-  float* data =
-      reinterpret_cast<float*>(MempoolWrapper::instance().malloc(len));
-  if (data == NULL) {
+
+  // Allocate buffer in PaddleTensor, so that buffer will be managed by the Tensor
+  in_tensor.data.Resize(len);
+  float *data = reinterpret_cast<float *>(in_tensor.data.data());
+  if (in_tensor.data.data() == NULL) {
     LOG(ERROR) << "Failed create temp float array, "
                << "size=" << dense_capacity * sample_size * sizeof(float);
     return -1;
@@ -144,8 +146,6 @@ int ReaderOp::inference() {
       }
     }
   }
-  paddle::PaddleBuf pbuf(data, len);
-  in_tensor.data = pbuf;
 
   in->push_back(in_tensor);
 

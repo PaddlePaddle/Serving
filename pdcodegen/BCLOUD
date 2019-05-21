@@ -1,0 +1,35 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../../')
+COMPILER('gcc482')
+
+#Preprocessor flags.
+CPPFLAGS(r'-D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD')
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C flags.
+#CFLAGS('-g -pipe -W -Wall -fPIC')
+
+#C++ flags.
+CXXFLAGS('-g -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare -std=c++11')
+
+#link flags
+LDFLAGS('-lpthread -lcrypto -lrt -lssl -ldl -lz')
+
+ImportConfigsFrom('..')
+
+INCPATHS('$INC')
+INCPATHS('../')
+INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+
+HEADERS(GLOB_GEN_SRCS('../predictor/proto/pds_option.pb.h'), '$INC/pdcodegen')
+
+pdcodegen_sources = GLOB('plugin/*.cc')
+pdcodegen_sources += ' ../predictor/proto/pds_option.proto'
+pdcodegen_sources += ' src/pdcodegen.cpp'
+
+# DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf-lite.a')
+
+Application('pdcodegen', Sources(pdcodegen_sources))

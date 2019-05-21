@@ -1,0 +1,26 @@
+#edit-mode: -*- python -*-
+#coding:utf-8
+
+WORKROOT('../../../../')
+
+#Preprocessor flags.
+CPPFLAGS(r'-D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__const__= -Dtypeof=__typeof__ -DUSE_PTHREAD -DPYBIND_AVX_MKLML')
+
+#CPPFLAGS(r'-DVERSION=\"%s\"' % SVN_LAST_CHANGED_REV())
+
+#C++ flags.
+CXXFLAGS('-g -O2 -pipe -W -Wall -fPIC -fno-omit-frame-pointer -Wno-deprecated -Wno-unused-parameter -Wno-unused-variable -Wno-unused-local-typedefs -Wno-sign-compare -std=c++11')
+
+ImportConfigsFrom('..')
+
+INCPATHS('$INC')
+INCPATHS('../')
+INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+
+HEADERS('include/fluid_cpu_engine.h', '$INC/inferencer-fluid-cpu/include')
+
+inferencer_fluid_cpu_sources = 'src/fluid_cpu_engine.cpp'
+#.a
+StaticLibrary('inferencer-fluid-cpu',
+              Sources(inferencer_fluid_cpu_sources))
+

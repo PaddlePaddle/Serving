@@ -133,8 +133,9 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     analysis_config.SetProgFile(data_path + "/__model__");
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SetCpuMathLibraryNumThreads(1);
+    analysis_config.EnableMemoryOptim(false, false);
     analysis_config.SwitchSpecifyInputNames(true);
-    analysis_config.EnableMemoryOptim();
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
@@ -191,7 +192,8 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
-    analysis_config.EnableMemoryOptim();
+    analysis_config.EnableMemoryOptim(false, false);
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
@@ -498,7 +500,7 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
-    analysis_config.EnableMemoryOptim();
+    analysis_config.EnableMemoryOptim(false, false);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
