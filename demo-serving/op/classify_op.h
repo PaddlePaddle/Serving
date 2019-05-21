@@ -15,7 +15,11 @@
 #pragma once
 #include <vector>
 #ifdef BCLOUD
+#ifdef WITH_GPU
+#include "paddle/paddle_inference_api.h"
+#else
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
+#endif
 #else
 #include "paddle/fluid/inference/paddle_inference_api.h"
 #endif
