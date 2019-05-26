@@ -67,4 +67,11 @@ workflows {
     type: "TextClassificationOp"
   }
 }
-
+workflows {
+  name: "workflow7"
+  workflow_type: "Sequence"
+  nodes {
+    name: "echo_kvdb_service_op"
+    type: "KVDBEchoOp"
+  } 
+}
