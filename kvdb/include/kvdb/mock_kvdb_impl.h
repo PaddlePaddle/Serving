@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
+#pragma once
 #include "kvdb_impl.h"
 #include "paddle_rocksdb.h"
 class RocksKVDB: public AbstractKVDB {

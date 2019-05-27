@@ -30,7 +30,7 @@ void MockDictReader::SetFileName(std::string filename) {
 std::string MockDictReader::GetMD5() {
    auto getCmdOut = [] (std::string cmd) {
         std::string data;
-        FILE *stream;
+        FILE *stream = nullptr;
         const int max_buffer = 256;
         char buffer[max_buffer];
         cmd.append(" 2>&1");
@@ -110,12 +110,12 @@ bool MockParamDict::InsertSparseValue(int64_t feasign, int64_t slot, const std::
 
 bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, const std::vector<float>& values) {
     auto FloatToBytes = [](float fvalue, uint8_t *arr){
-        unsigned char  *pf;
-        unsigned char *px;
-        unsigned char i;
+        unsigned char  *pf = nullptr;
+        unsigned char *px = nullptr;
+        unsigned char i = 0;
         pf =(unsigned char *)&fvalue;
         px = arr;
-        for(i=0;i<4;i++)
+        for (i = 0; i < 4; i++)
         {
             *(px+i)=*(pf+i);
         }
@@ -128,7 +128,7 @@ bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, con
         FloatToBytes(values[i], values_ptr + 4 * i);
     }
     char* raw_values_ptr = reinterpret_cast<char*>(values_ptr);
-    for (size_t i = 0; i < values.size()*4 ; i++) {
+    for (size_t i = 0; i < values.size()*4; i++) {
         value.push_back(raw_values_ptr[i]);
     }
     back_db->Set(key, value);
