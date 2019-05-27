@@ -1,7 +1,5 @@
 
-include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/gtest-1.7.0/fused-src
-                            ${CMAKE_CURRENT_LIST_DIR}/include)
-add_subdirectory(./gtest-1.7.0/fused-src/gtest)
+include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/include)
 
 set(SRC_LIST ${CMAKE_CURRENT_LIST_DIR}/src/test_rocksdb.cpp 
             ${CMAKE_CURRENT_LIST_DIR}/src/rockskvdb_impl.cpp
