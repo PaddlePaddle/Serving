@@ -35,8 +35,8 @@ std::string MockDictReader::GetMD5() {
         char buffer[max_buffer];
         cmd.append(" 2>&1");
         stream = popen(cmd.c_str(), "r");
-        if(stream) {
-            if(fgets(buffer, max_buffer, stream) != NULL) {
+        if (stream) {
+            if (fgets(buffer, max_buffer, stream) != NULL) {
                 data.append(buffer);
             }
         }
@@ -62,8 +62,8 @@ std::chrono::system_clock::time_point MockDictReader::GetTimeStamp() {
 void MockDictReader::Read(std::vector<std::string>& res) {
     std::string line;
     std::ifstream infile(this->filename_);
-    if(infile.is_open()) {
-        while(getline(infile, line)) {
+    if (infile.is_open()) {
+        while (getline(infile, line)) {
             res.push_back(line);
         }
     }
@@ -90,10 +90,10 @@ std::vector<float> MockParamDict::GetSparseValue(std::string feasign, std::strin
     //TODO: the concatation of feasign and slot is TBD.
     std::string result = front_db->Get(feasign + slot);
     std::vector<float> value;
-    if(result == "NOT_FOUND") 
+    if (result == "NOT_FOUND") 
         return value;
     uint8_t* raw_values_ptr = reinterpret_cast<uint8_t *>(&result[0]);
-    for(size_t i = 0; i < result.size(); i += 4) {
+    for (size_t i = 0; i < result.size(); i += 4) {
         float temp = BytesToFloat(raw_values_ptr + i);
         value.push_back(temp);
     }
@@ -124,11 +124,11 @@ bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, con
     std::string key = feasign + slot;
     uint8_t* values_ptr = new uint8_t[values.size() * 4];
     std::string value;
-    for(size_t i = 0; i < values.size(); i++) {
+    for (size_t i = 0; i < values.size(); i++) {
         FloatToBytes(values[i], values_ptr + 4 * i);
     }
     char* raw_values_ptr = reinterpret_cast<char*>(values_ptr);
-    for(size_t i = 0; i < values.size()*4 ; i++) {
+    for (size_t i = 0; i < values.size()*4 ; i++) {
         value.push_back(raw_values_ptr[i]);
     }
     back_db->Set(key, value);
@@ -138,16 +138,16 @@ bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, con
 
 void MockParamDict::UpdateBaseModel() {
    std::thread t([&] () {
-        for(AbsDictReaderPtr dict_reader: this->dict_reader_lst_) {
-            if(dict_reader->CheckDiff()) {
+        for (AbsDictReaderPtr dict_reader: this->dict_reader_lst_) {
+            if (dict_reader->CheckDiff()) {
                 std::vector<std::string> strs;
                 dict_reader->Read(strs);
-                for(const std::string& str: strs) {
+                for (const std::string& str: strs) {
                     std::vector<std::string> arr;
                     std::istringstream in(str);
                     copy(std::istream_iterator<std::string>(in), std::istream_iterator<std::string>(), back_inserter(arr));
                     std::vector<float> nums;
-                    for(size_t i = 2; i < arr.size(); i++) {
+                    for (size_t i = 2; i < arr.size(); i++) {
                         nums.push_back(std::stof(arr[i]));
                     }
                     this->InsertSparseValue(arr[0], arr[1], nums);

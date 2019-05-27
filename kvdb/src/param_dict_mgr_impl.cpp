@@ -15,7 +15,7 @@
 #include "kvdb/kvdb_impl.h"
 
 void ParamDictMgr::UpdateAll() {
-    for(auto it = this->ParamDictMap.begin(); it!= this->ParamDictMap.end(); ++it) {
+    for (auto it = this->ParamDictMap.begin(); it!= this->ParamDictMap.end(); ++it) {
         it->second->UpdateBaseModel();
     }
 

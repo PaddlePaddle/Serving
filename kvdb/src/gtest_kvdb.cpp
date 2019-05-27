@@ -49,10 +49,10 @@ void UpdateTestIn(std::string);
 TEST_F(KVDBTest, AbstractKVDB_Unit_Test) {
     kvdb->CreateDB();
     kvdb->SetDBName("test_kvdb");
-    for(int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         kvdb->Set(std::to_string(i), std::to_string(i * 2));
     }
-    for(int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         std::string val = kvdb->Get(std::to_string(i));
         ASSERT_EQ(val, std::to_string(i * 2));
     }
@@ -101,15 +101,15 @@ TEST_F(KVDBTest, MockParamDict_Unit_Test) {
 
 void GenerateTestIn(std::string filename) {
     std::ifstream in_file(filename);
-    if(in_file.good()) {
+    if (in_file.good()) {
         in_file.close();
         std::string cmd = "rm -rf "+ filename;
         system(cmd.c_str());
     }
     std::ofstream out_file(filename);
-    for(size_t i = 0; i < 100000; i++) {
+    for (size_t i = 0; i < 100000; i++) {
         out_file << i << " " << i << " ";
-        for(size_t j = 0; j < 3; j++) {
+        for (size_t j = 0; j < 3; j++) {
             out_file << i << " ";
         }
         out_file << std::endl;
@@ -119,15 +119,15 @@ void GenerateTestIn(std::string filename) {
 
 void UpdateTestIn(std::string filename) {
     std::ifstream in_file(filename);
-    if(in_file.good()) {
+    if (in_file.good()) {
         in_file.close();
         std::string cmd = "rm -rf " + filename;
         system(cmd.c_str());
     }
     std::ofstream out_file(filename);
-    for(size_t i = 0; i < 10000; i++) {
+    for (size_t i = 0; i < 10000; i++) {
         out_file << i << " " << i << " ";
-        for(size_t j = 0; j < 3; j++) {
+        for (size_t j = 0; j < 3; j++) {
             out_file << i + 1 << " ";
         }
         out_file << std::endl;
