@@ -26,10 +26,10 @@ void test_rockskvdb() {
 
 void test_rocksdbwrapper() {
     std::shared_ptr<RocksDBWrapper> db = RocksDBWrapper::RocksDBWrapperFactory("TEST");
-    for(size_t i = 0; i < 1000; i++) {
+    for (size_t i = 0; i < 1000; i++) {
         db->Put(std::to_string(i), std::to_string(i * 2));
     } 
-    for(size_t i = 0; i < 1000; i++) {
+    for (size_t i = 0; i < 1000; i++) {
         std::string res = db->Get(std::to_string(i));
         std::cout << res << " ";
     }

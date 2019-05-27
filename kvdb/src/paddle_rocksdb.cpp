@@ -28,7 +28,7 @@ std::string RocksDBWrapper::Get(std::string key) {
     options.verify_checksums = true;
     std::string result;
     rocksdb::Status s = db_->Get(options, key, &result);
-    if(s.IsNotFound()) {
+    if (s.IsNotFound()) {
         result = "NOT_FOUND";
     }
     return result;
@@ -37,7 +37,7 @@ std::string RocksDBWrapper::Get(std::string key) {
 bool RocksDBWrapper::Put(std::string key, std::string value) {
     rocksdb::WriteOptions options;
     rocksdb::Status s = db_->Put(options, key, value);
-    if(s.ok()) {
+    if (s.ok()) {
         return true;
     } else {
         return false;

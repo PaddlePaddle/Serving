@@ -33,16 +33,16 @@ int KVDBEchoOp::debug() {
     const Request* req = dynamic_cast<const Request*>(get_request_message());
     Response* res = mutable_data<Response>();
     LOG(INFO) << "Receive request in KVDB echo service: " << req->ShortDebugString();
-    for(size_t i = 0; i < req->reqs_size(); i++) {
+    for (size_t i = 0; i < req->reqs_size(); i++) {
         auto kvdbreq = req->reqs(i);
         std::string op = kvdbreq.op();
         std::string key = kvdbreq.key();
         std::string val = kvdbreq.value();
-        if(op == "SET") {
+        if (op == "SET") {
             db->Put(key, val);
             KVDBRes* kvdb_value_res = res->mutable_ress()->Add();
             kvdb_value_res -> set_value("OK");
-        } else if(op == "GET") {
+        } else if (op == "GET") {
             std::string getvalue = db->Get(key);
             KVDBRes* kvdb_value_res = res->mutable_ress()->Add();
             kvdb_value_res -> set_value(getvalue);
@@ -52,7 +52,7 @@ int KVDBEchoOp::debug() {
 }
 
 void KVDBEchoOp::DBInit() {
-    if(db.get() == nullptr) {
+    if (db.get() == nullptr) {
         db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
     }
 }
