@@ -27,8 +27,10 @@ protected:
     }
     
     static void SetUpTestCase() {
+
     }
-    
+
+    ~KVDBTest() {} 
 
 };
 int my_argc;

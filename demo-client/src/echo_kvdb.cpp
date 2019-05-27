@@ -38,7 +38,7 @@ int create_req(Request& req) {  // NOLINT
   key = req.mutable_reqs()->Add();
   key->set_op("GET");
   key->set_key(std::to_string(global_key));
-  global_key ++;
+  global_key++;
   return 0;
 }
 
@@ -47,7 +47,7 @@ void print_res(const Request& req,
                std::string route_tag,
                uint64_t elapse_ms) {
   LOG(INFO) << "Receive Response size: " << res.ress_size();
-  for (size_t i = 0;  i < res.ress_size(); i++) {
+  for (size_t i = 0; i < res.ress_size(); i++) {
       KVDBRes val  = res.ress(i);
       LOG(INFO) << "Receive value from demo-server: " << val.value();
 }
@@ -99,9 +99,9 @@ int main(int argc, char** argv) {
   api.thrd_initialize();
 
   while (true) {
-
-    if (global_key > 10000) 
+    if (global_key > 10000) {
         break;
+    }
     timeval start;
     gettimeofday(&start, NULL);
 
