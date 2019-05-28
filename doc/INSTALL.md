@@ -70,7 +70,9 @@ $ make install
 
 Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选项用于检测系统上CUDA/CUDNN等基础库，如检测到合适版本，在编译PaddlePaddle时就会编译出GPU版本的OP Kernel。
 
-这里要注意的是，**编译Serving所在的系统上所安装的CUDA/CUDNN等基础库版本，需要兼容实际的GPU设备。例如，Tesla V100卡至少要CUDA 9.0。如果编译时所用CUDA等基础库版本过低，由于生成的GPU代码和实际硬件设备不兼容，会导致Serving进程无法启动，或出现coredump等严重问题**。
+这里要注意的是：
+1) 编译Serving所在的系统上所安装的CUDA/CUDNN等基础库版本，需要兼容实际的GPU设备。例如，Tesla V100卡至少要CUDA 9.0。如果编译时所用CUDA等基础库版本过低，由于生成的GPU代码和实际硬件设备不兼容，会导致Serving进程无法启动，或出现coredump等严重问题。
+2) 运行Paddle Serving的系统上安装与实际GPU设备兼容的CUDA driver，并安装与编译期所用的CUDA/CuDNN等版本兼容的基础库。如运行Paddle Serving的系统上安装的CUDA/CuDNN的版本低于编译时所用版本，可能会导致奇怪的cuda函数调用失败等问题。
 
 在裸机上编译Paddle Serving GPU版本，需要安装这些基础库：
 
@@ -93,7 +95,7 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 $ pwd
 /path/to/paddle-serving
 
-$ mkdir build & cd build
+$ mkdir build && cd build
 $ cmake -DWITH_GPU=ON -DCUDNN_ROOT=/path/to/cudnn/cudnn_v7/cuda ..
 ```
 
