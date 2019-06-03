@@ -16,6 +16,7 @@ CONFIGS('baidu/third-party/opencv@master@git_branch')
 CONFIGS('baidu/third-party/rocksdb@6.2.fb@git_branch')
 CONFIGS('baidu/third-party/snappy@v1.1.7@git_branch')
 
+
 PROTOC('third-64/protobuf/output/bin/protoc')
 CONFIGS('baidu/paddlepaddle/paddle@v1.3.0_pb32@git_branch')
 

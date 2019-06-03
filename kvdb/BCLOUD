@@ -12,6 +12,8 @@ INCPATHS('$INC')
 INCPATHS('./include')
 INCPATHS('$OUT_ROOT/baidu/third-party/rocksdb/output/include')
 
+CONFIGS('baidu/third-party/gtest@v1.8@git_branch')
+
 LIBS('$OUT_ROOT/baidu/third-party/rocksdb/output/lib/librocksdb.a')
 LIBS('$OUT_ROOT/baidu/third-party/snappy/output/lib/libsnappy.a')
 
