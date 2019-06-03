@@ -3,7 +3,8 @@
 
 WORKROOT('../../../../')
 
-LDFLAGS()
+CXXFLAGS('-g -pipe -W -Wall -fPIC -std=c++11')
+LDFLAGS('-lpthread -lbz2 -lsnappy -lzlib')
 
 ImportConfigsFrom('..')
 
