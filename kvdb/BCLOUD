@@ -15,15 +15,19 @@ LIBS('$OUT_ROOT/baidu//third-party/rocksdb/output/lib/librocksdb.a')
 cpp_base_source_files = [
 'mock_param_dict_impl.cpp', 'paddle_rocksdb.cpp', 'param_dict_mgr_impl.cpp', 'rockskvdb_impl.cpp'
 ]
+cpp_db_func_files = list(cpp_base_source_files)
+cpp_db_thread_files = list(cpp_base_source_files)
+cpp_kvdb_test_files = list(cpp_base_source_files)
 
-cpp_db_func_files = cpp_base_source_files.append('gtest_db_func.cpp')
-cpp_db_thread_files = cpp_base_source_files.append('gtest_db_thread.cpp')
-cpp_kvdb_test_files = cpp_base_source_files.append('gtest_kvdb.cpp')
+cpp_db_func_files.append('gtest_db_func.cpp')
+cpp_db_thread_files.append('gtest_db_thread.cpp')
+cpp_kvdb_test_files.append('gtest_kvdb.cpp')
 
 # Application
 
 HEADERS('./include/kvdb/*.h', '$INC/kvdb/')
 
+StaticLibrary('kvdb', Sources(GLOB(' '.join(cpp_base_source_files))));
 Application('kvdb_test', Sources(GLOB(' '.join(cpp_kvdb_test_files))))
 Application('db_func', Sources(GLOB(' '.join(cpp_db_func_files))))
 Application('db_thread', Sources(GLOB(' '.join(cpp_db_thread_files))))
