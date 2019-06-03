@@ -13,15 +13,15 @@ INCPATHS('./include')
 LIBS('$OUT_ROOT/baidu//third-party/rocksdb/output/lib/librocksdb.a')
 
 cpp_base_source_files = [
-'mock_param_dict_impl.cpp', 'paddle_rocksdb.cpp', 'param_dict_mgr_impl.cpp', 'rockskvdb_impl.cpp'
+'./src/mock_param_dict_impl.cpp', './src/paddle_rocksdb.cpp', './src/aram_dict_mgr_impl.cpp', './src/rockskvdb_impl.cpp'
 ]
 cpp_db_func_files = list(cpp_base_source_files)
 cpp_db_thread_files = list(cpp_base_source_files)
 cpp_kvdb_test_files = list(cpp_base_source_files)
 
-cpp_db_func_files.append('gtest_db_func.cpp')
-cpp_db_thread_files.append('gtest_db_thread.cpp')
-cpp_kvdb_test_files.append('gtest_kvdb.cpp')
+cpp_db_func_files.append('./src/gtest_db_func.cpp')
+cpp_db_thread_files.append('./src/gtest_db_thread.cpp')
+cpp_kvdb_test_files.append('./src/gtest_kvdb.cpp')
 
 # Application
 
