@@ -25,7 +25,7 @@ ExternalProject_Add(
     ${EXTERNAL_PROJECT_LOG_ARGS}
     PREFIX ${ROCKSDB_SOURCES_DIR}
     GIT_REPOSITORY "https://github.com/facebook/rocksdb"
-    GIT_TAG 6.1.fb
+    GIT_TAG 6.2.fb
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND CXXFLAGS=-fPIC make -j ${NUM_OF_PROCESSOR} static_lib
