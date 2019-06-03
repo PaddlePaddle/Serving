@@ -4,14 +4,16 @@
 WORKROOT('../../../../')
 
 CXXFLAGS('-g -pipe -W -Wall -fPIC -std=c++11')
-LDFLAGS('-lpthread -lbz2 -lsnappy')
+LDFLAGS('-lpthread -lbz2')
 
 ImportConfigsFrom('..')
 
 INCPATHS('$INC')
 INCPATHS('./include')
+INCPATHS('$OUT_ROOT/baidu/third-party/rocksdb/output/include')
 
-LIBS('$OUT_ROOT/baidu//third-party/rocksdb/output/lib/librocksdb.a')
+LIBS('$OUT_ROOT/baidu/third-party/rocksdb/output/lib/librocksdb.a')
+LIBS('$OUT_ROOT/baidu/third-party/snappy/output/lib/libsnappy.a')
 
 cpp_base_source_files = [
 './src/mock_param_dict_impl.cpp', './src/paddle_rocksdb.cpp', './src/aram_dict_mgr_impl.cpp', './src/rockskvdb_impl.cpp'
