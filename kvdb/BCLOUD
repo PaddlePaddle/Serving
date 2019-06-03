@@ -4,7 +4,7 @@
 WORKROOT('../../../../')
 
 CXXFLAGS('-g -pipe -W -Wall -fPIC -std=c++11')
-LDFLAGS('-lpthread -lbz2 -lsnappy -lzlib')
+LDFLAGS('-lpthread -lbz2 -lsnappy')
 
 ImportConfigsFrom('..')
 
