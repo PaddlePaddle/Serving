@@ -22,11 +22,11 @@ CONFIGS('baidu/paddlepaddle/paddle@v1.3.0_pb32@git_branch')
 NEED_OUTPUT('baidu/third-party/mklml')
 
 #sub directory
+Directory('kvdb')
 Directory('pdcodegen')
 Directory('configure')
 Directory('predictor')
 Directory('inferencer-fluid-cpu')
 Directory('demo-serving')
 Directory('sdk-cpp')
-Directory('kvdb')
 Directory('demo-client')
