@@ -32,9 +32,10 @@ public:
     virtual void SetDBName(std::string) = 0;
     virtual void Set(std::string key, std::string value) = 0;
     virtual std::string Get(std::string key) = 0;
-    virtual ~AbstractKVDB() = 0;
+    inline virtual ~AbstractKVDB() = 0;
 };
 
+inline  AbstractKVDB::~AbstractKVDB() {}
 // TODO: Implement RedisKVDB
 //class RedisKVDB;
 
@@ -52,6 +53,8 @@ protected:
     std::string last_md5_val_;
     std::chrono::system_clock::time_point time_stamp_;
 };
+
+inline  AbstractDictReader::~AbstractDictReader() {}
 
 class AbstractParamDict {
 public:
@@ -76,6 +79,8 @@ protected:
     std::vector<AbsDictReaderPtr> dict_reader_lst_;
     AbsKVDBPtr front_db, back_db;
 };
+
+inline  AbstractParamDict::~AbstractParamDict() {}
 
 
 class ParamDictMgr {
