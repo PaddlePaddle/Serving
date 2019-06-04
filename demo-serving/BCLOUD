@@ -37,8 +37,8 @@ cpp_source_dirs.append('proto/*.proto')
 # DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf.a')
 # DELETE_AUTO_LIBS('$OUT_ROOT/baidu/third-party/protobuf/output/lib/libprotobuf-lite.a')
 # DELETE_AUTO_LIBS('$OUT_ROOT/third-64/glog/output/lib/libglog.a')
-DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags.a')
-DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags_nothreads.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags.a')
+# DELETE_AUTO_LIBS('$OUT_ROOT/third-64/gflags/output/lib/libgflags_nothreads.a')
 DELETE_AUTO_LIBS('$OUT_ROOT/baidu/paddlepaddle/paddle/output/lib/libpaddle_fluid_noavx_openblas.a')
 
 PROTOFLAGS(
