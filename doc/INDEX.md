@@ -16,4 +16,6 @@
 
 [Benchmarking](BENCHMARKING.md)
 
+[GPU Benchmarking](GPU_BENCHMARKING.md)
+
 [FAQ](FAQ.md)
