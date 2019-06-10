@@ -18,7 +18,7 @@ LIBS('$OUT_ROOT/baidu/third-party/rocksdb/output/lib/librocksdb.a')
 LIBS('$OUT_ROOT/baidu/third-party/snappy/output/lib/libsnappy.a')
 
 cpp_base_source_files = [
-'./src/mock_param_dict_impl.cpp', './src/paddle_rocksdb.cpp', './src/aram_dict_mgr_impl.cpp', './src/rockskvdb_impl.cpp'
+'./src/mock_param_dict_impl.cpp', './src/paddle_rocksdb.cpp', './src/param_dict_mgr_impl.cpp', './src/rockskvdb_impl.cpp'
 ]
 cpp_db_func_files = list(cpp_base_source_files)
 cpp_db_thread_files = list(cpp_base_source_files)
