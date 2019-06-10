@@ -4,6 +4,7 @@ mv bin/serving demo/serving/bin
 mkdir -p demo/client/bin
 mv bin/dense_format demo/client/bin/
 mv bin/echo demo/client/bin
+mv bin/echo_kvdb demo/client/bin
 mv bin/int64tensor_format demo/client/bin
 mv bin/sparse_format demo/client/bin
 mv bin/text_classification demo/client/bin
