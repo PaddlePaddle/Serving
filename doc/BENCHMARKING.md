@@ -10,7 +10,7 @@
 
 下图是一个对serving请求的耗时阶段的不完整分析。图中对brpc的开销，只列出了bthread创建和启动开销。
 
-![](http://paddle-serving.bj.bcebos.com/doc/serving-timings.png)
+![](serving-timings.png)
 
 (右键在新窗口中浏览大图)
 
@@ -280,7 +280,7 @@ Serving扩展能力的测试是指，在不同模型上：
 
 下图是Paddle Serving在BOW模型上QPS随serving端线程数增加而变化的图表。可以看出当线程数较少时(4线程/8线程/12线程)，QPS的变化规律非常杂乱；当线程数较多时，QPS曲线又基本趋于一致，基本无线性增长关系。
 
-![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-bow.png)
+![](qps-threads-bow.png)
 
 (右键在新窗口中浏览大图)
 
@@ -438,7 +438,7 @@ Serving扩展能力的测试是指，在不同模型上：
 
 下图是Paddle Serving在CNN模型上QPS随serving端线程数增加而变化的图表。可以看出，随着线程数变大，Serving QPS有较为明显的线性增长关系。可以这样解释此图表：例如，线程数为16时，基本在20个并发时达到最大QPS，此后再增加并发压力QPS基本保持稳定；当线程能够数为24线程时，基本在28并发时达到最大QPS，此后再增大并发压力qps基本保持稳定。
 
-![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-cnn.png)
+![](qps-threads-cnn.png)
 
 (右键在新窗口中浏览大图)
 
@@ -596,7 +596,7 @@ Serving扩展能力的测试是指，在不同模型上：
 
 下图是Paddle Serving在LSTM模型上QPS随serving端线程数增加而变化的图表。可以看出，随着线程数变大，Serving QPS有较为明显的线性增长关系。可以这样解释此图表：例如，线程数为16时，基本在20个并发时达到最大QPS，此后再增加并发压力QPS基本保持稳定；当线程能够数为24线程时，基本在28并发时达到最大QPS，此后再增大并发压力qps基本保持稳定。
 
-![](https://paddle-serving.bj.bcebos.com/doc/qps-threads-lstm.png)
+![](qps-threads-lstm.png)
 
 (右键在新窗口中浏览大图)
 
