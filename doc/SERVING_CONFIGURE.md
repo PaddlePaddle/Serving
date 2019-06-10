@@ -165,7 +165,7 @@ reloadable_type: 检查reload条件：timestamp_ne/timestamp_gt/md5sum/revision/
 
 model_data_path: 模型文件路径
 
-runtime_thread_num: 若大于0， 则启用bsf多线程调度框架，在每个预测bthread worker内启动多线程预测。
+runtime_thread_num: 若大于0， 则启用bsf多线程调度框架，在每个预测bthread worker内启动多线程预测。要注意的是，当启用worker内多线程预测，workflow中OP需要用Serving框架的BatchTensor类做预测的输入和输出 (predictor/framework/infer_data.h, `class BatchTensor`)。
 
 batch_infer_size: 启用bsf多线程预测时，每个预测线程的batch size
 
