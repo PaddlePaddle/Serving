@@ -19,6 +19,17 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+struct MempoolRegion {
+  MempoolRegion(im::fugue::memory::Region *region,
+                im::Mempool *mempool) :
+      _region(region), _mempool(mempool){}
+  im::fugue::memory::Region *region() {return _region;}
+  im::Mempool *mempool() {return _mempool;}
+
+  im::fugue::memory::Region* _region;
+  im::Mempool* _mempool;
+};
+
 int MempoolWrapper::initialize() {
   if (THREAD_KEY_CREATE(&_bspec_key, NULL) != 0) {
     LOG(ERROR) << "unable to create thread_key of thrd_data";
@@ -33,16 +44,19 @@ int MempoolWrapper::initialize() {
 }
 
 int MempoolWrapper::thread_initialize() {
-  _region.init();
-  im::Mempool* p_mempool = new (std::nothrow) im::Mempool(&_region);
-  if (p_mempool == NULL) {
+  im::fugue::memory::Region *region = new im::fugue::memory::Region();
+  region->init();
+  im::Mempool* mempool = new (std::nothrow) im::Mempool(region);
+  MempoolRegion *mempool_region = new MempoolRegion(region, mempool);
+  if (mempool == NULL) {
     LOG(ERROR) << "Failed create thread mempool";
     return -1;
   }
 
-  if (THREAD_SETSPECIFIC(_bspec_key, p_mempool) != 0) {
+  if (THREAD_SETSPECIFIC(_bspec_key, mempool_region) != 0) {
     LOG(ERROR) << "unable to set the thrd_data";
-    delete p_mempool;
+    delete region;
+    delete mempool;
     return -1;
   }
 
@@ -51,23 +65,34 @@ int MempoolWrapper::thread_initialize() {
 }
 
 int MempoolWrapper::thread_clear() {
-  im::Mempool* p_mempool = (im::Mempool*)THREAD_GETSPECIFIC(_bspec_key);
-  if (p_mempool) {
-    p_mempool->release_block();
-    _region.reset();
+  MempoolRegion* mempool_region = (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  if (mempool_region == NULL) {
+    LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
+    return -1;
   }
-
+  im::Mempool* mempool = mempool_region->mempool();
+  im::fugue::memory::Region* region = mempool_region->region();
+  if (mempool) {
+    mempool->release_block();
+    region->reset();
+  }
   return 0;
 }
 
 void* MempoolWrapper::malloc(size_t size) {
-  im::Mempool* p_mempool = (im::Mempool*)THREAD_GETSPECIFIC(_bspec_key);
-  if (!p_mempool) {
+  MempoolRegion* mempool_region = (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  if (mempool_region == NULL) {
+    LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
+    return NULL;
+  }
+
+  im::Mempool* mempool = mempool_region->mempool();
+  if (!mempool) {
     LOG(WARNING) << "Cannot malloc memory:" << size
                  << ", since mempool is not thread initialized";
     return NULL;
   }
-  return p_mempool->malloc(size);
+  return mempool->malloc(size);
 }
 
 }  // namespace predictor
