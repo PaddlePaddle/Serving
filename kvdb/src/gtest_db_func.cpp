@@ -58,7 +58,7 @@ TEST_F(KVDBTest, AbstractKVDB_Func_Test) {
         kvdb->Set(strs[0], strs[1]);
     }
 
-    for (std::string line; getline(set_file, line); ) {
+    for (std::string line; getline(get_file, line); ) {
         std::vector<std::string> strs = StringSplit(line, ' ');
         std::string val = kvdb->Get(strs[0]);
         ASSERT_EQ(val, strs[1]);
