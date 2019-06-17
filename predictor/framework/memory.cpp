@@ -28,6 +28,16 @@ struct MempoolRegion {
 
   im::fugue::memory::Region* _region;
   im::Mempool* _mempool;
+  ~MempoolRegion() {
+    if (_region) {
+      delete _region;
+      _region = NULL;
+    }
+    if (_mempool) {
+      delete _mempool;
+      _mempool = NULL;
+    }
+  }
 };
 
 int MempoolWrapper::initialize() {
@@ -57,6 +67,7 @@ int MempoolWrapper::thread_initialize() {
     LOG(ERROR) << "unable to set the thrd_data";
     delete region;
     delete mempool;
+    delete mempool_region;
     return -1;
   }
 
