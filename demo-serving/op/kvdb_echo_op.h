@@ -14,7 +14,7 @@
 
 #pragma once
 #include "demo-serving/echo_kvdb_service.pb.h"
-
+#include "predictor/framework/resource.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
@@ -30,9 +30,6 @@ class KVDBEchoOp: public OpWithChannel<baidu::paddle_serving::predictor::echo_kv
       DECLARE_OP(KVDBEchoOp);
       int inference();
       int debug();
-  protected:
-      static std::shared_ptr<RocksDBWrapper> db;
-      void DBInit();
       
 };
 }  //  namespace predictor
