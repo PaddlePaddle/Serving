@@ -16,74 +16,22 @@
 #include <thread>
 #include <iterator>
 #include <fstream>
+#include <algorithm>
 #include <sstream>
-std::string RocksDBDictReader::GetFileName() {
-    return this->filename_;
+
+std::vector<FileReaderPtr> ParamDict::GetDictReaderLst() {
+    return this->file_reader_lst_;
 }
 
-void RocksDBDictReader::SetFileName(std::string filename) {
-    this->filename_ = filename;
-    this->last_md5_val_ = this->GetMD5();
-    this->time_stamp_ = std::chrono::system_clock::now();
-}
-
-std::string RocksDBDictReader::GetMD5() {
-   auto getCmdOut = [] (std::string cmd) {
-        std::string data;
-        FILE *stream = nullptr;
-        const int max_buffer = 256;
-        char buffer[max_buffer];
-        cmd.append(" 2>&1");
-        stream = popen(cmd.c_str(), "r");
-        if (stream) {
-            if (fgets(buffer, max_buffer, stream) != NULL) {
-                data.append(buffer);
-            }
-        }
-        return data;
-   }; 
-    std::string cmd = "md5sum " + this->filename_;
-//TODO: throw exception if error occurs during execution of shell command
-    std::string md5val = getCmdOut(cmd);
-    this->time_stamp_ = md5val == this->last_md5_val_? this->time_stamp_: std::chrono::system_clock::now();
-    this->last_md5_val_ = md5val;
-    return md5val;
-}
-
-bool RocksDBDictReader::CheckDiff() {
-    return this->GetMD5() == this->last_md5_val_;
-}
-
-std::chrono::system_clock::time_point RocksDBDictReader::GetTimeStamp() {
-    return this->time_stamp_;  
-}
-
-void RocksDBDictReader::Read(AbstractParamDict* param_dict) {
-    std::string line;
-    std::ifstream infile(this->filename_);
-    if (infile.is_open()) {
-        while (getline(infile, line)) {
-            //TODO: Write String Parse Here
-            // param_dict->InsertSparseValue();
-        }
+void ParamDict::SetFileReaderLst(std::vector<std::string> lst) {
+    for (size_t i = 0; i < lst.size(); i++) {
+        FileReaderPtr fr = std::make_shared<FileReader>();
+        fr->SetFileName(lst[i]);
+        this->file_reader_lst_.push_back(fr);
     }
-    infile.close();
 }
 
-RocksDBDictReader::~RocksDBDictReader() {
-//TODO: I imageine nothing to do here
-}
-
-
-std::vector<AbsDictReaderPtr> RocksDBParamDict::GetDictReaderLst() {
-    return this->dict_reader_lst_;
-}
-
-void RocksDBParamDict::SetDictReaderLst(std::vector<AbsDictReaderPtr> lst) {
-    this->dict_reader_lst_ = lst;
-}
-
-std::vector<float> RocksDBParamDict::GetSparseValue(std::string feasign, std::string slot) {
+std::vector<float> ParamDict::GetSparseValue(std::string feasign, std::string slot) {
     auto BytesToFloat = [](uint8_t* byteArray){
         return *((float*)byteArray);
     };
@@ -100,15 +48,19 @@ std::vector<float> RocksDBParamDict::GetSparseValue(std::string feasign, std::st
     return value;
 }
 
-std::vector<float> RocksDBParamDict::GetSparseValue(int64_t feasign, int64_t slot) {
+void ParamDict::SetReader(std::function<std::pair<Key, Value>(std::string)> func) {
+    read_func_ = func;
+}
+
+std::vector<float> ParamDict::GetSparseValue(int64_t feasign, int64_t slot) {
     return this->GetSparseValue(std::to_string(feasign), std::to_string(slot));
 }
 
-bool RocksDBParamDict::InsertSparseValue(int64_t feasign, int64_t slot, const std::vector<float>& values) {
+bool ParamDict::InsertSparseValue(int64_t feasign, int64_t slot, const std::vector<float>& values) {
     return this->InsertSparseValue(std::to_string(feasign), std::to_string(slot), values);       
 }
 
-bool RocksDBParamDict::InsertSparseValue(std::string feasign, std::string slot, const std::vector<float>& values) {
+bool ParamDict::InsertSparseValue(std::string feasign, std::string slot, const std::vector<float>& values) {
     auto FloatToBytes = [](float fvalue, uint8_t *arr){
         unsigned char  *pf = nullptr;
         unsigned char *px = nullptr;
@@ -136,23 +88,29 @@ bool RocksDBParamDict::InsertSparseValue(std::string feasign, std::string slot, 
     return true;
 }
 
-void RocksDBParamDict::UpdateBaseModel() {
+void ParamDict::UpdateBaseModel() {
+    auto is_number = [] (const std::string& s)
+    {
+        return !s.empty() && std::find_if(s.begin(), 
+                        s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+    };
    std::thread t([&] () {
-        for (AbsDictReaderPtr dict_reader: this->dict_reader_lst_) {
-            if (dict_reader->CheckDiff()) {
-                std::vector<std::string> strs;
-                dict_reader->Read(this);
-                for (const std::string& str: strs) {
-                    std::vector<std::string> arr;
-                    std::istringstream in(str);
-                    copy(std::istream_iterator<std::string>(in), std::istream_iterator<std::string>(), back_inserter(arr));
+        for (FileReaderPtr file_reader: this->file_reader_lst_) {
+            std::string line;
+            std::ifstream infile(file_reader->GetFileName());
+            if (infile.is_open()) {
+                while (getline(infile, line)) {
+                    std::pair<Key, Value> kvpair = read_func_(line);
                     std::vector<float> nums;
-                    for (size_t i = 2; i < arr.size(); i++) {
-                        nums.push_back(std::stof(arr[i]));
+                    for (size_t i = 0; i < kvpair.second.size(); i++) {
+                        if (is_number(kvpair.second[i])) {
+                            nums.push_back(std::stof(kvpair.second[i]));
+                        }
                     }
-                    this->InsertSparseValue(arr[0], arr[1], nums);
+                    this->InsertSparseValue(kvpair.first, "", nums);
                 }
             }
+            infile.close();
         }
         AbsKVDBPtr temp = front_db;
         front_db = back_db;
@@ -162,27 +120,27 @@ void RocksDBParamDict::UpdateBaseModel() {
 }
 
 
-void RocksDBParamDict::UpdateDeltaModel() {
+void ParamDict::UpdateDeltaModel() {
     UpdateBaseModel();
 }
 
-std::pair<AbsKVDBPtr, AbsKVDBPtr> RocksDBParamDict::GetKVDB()  {
+std::pair<AbsKVDBPtr, AbsKVDBPtr> ParamDict::GetKVDB()  {
     return {front_db, back_db};
 }
 
-void RocksDBParamDict::SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr> kvdbs) {
+void ParamDict::SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr> kvdbs) {
     this->front_db = kvdbs.first;
     this->back_db = kvdbs.second;
 }
 
-void RocksDBParamDict::CreateKVDB() {
+void ParamDict::CreateKVDB() {
     this->front_db = std::make_shared<RocksKVDB>();
     this->back_db = std::make_shared<RocksKVDB>();
     this->front_db->CreateDB();
     this->back_db->CreateDB();
 }
 
-RocksDBParamDict::~RocksDBParamDict() {
+ParamDict::~ParamDict() {
 
 }
 

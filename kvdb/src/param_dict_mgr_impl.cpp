@@ -21,10 +21,8 @@ void ParamDictMgr::UpdateAll() {
 
 }
 
-void ParamDictMgr::InsertParamDict(std::string key, AbsParamDictPtr value) {
+void ParamDictMgr::InsertParamDict(std::string key, ParamDictPtr value) {
     this->ParamDictMap.insert(std::make_pair(key, value));
 }
 
 AbstractKVDB::~AbstractKVDB() {}
-AbstractDictReader::~AbstractDictReader() {}
-AbstractParamDict::~AbstractParamDict() {}

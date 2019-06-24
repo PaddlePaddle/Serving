@@ -19,12 +19,12 @@
 #include <memory>
 #include <chrono>
 class AbstractKVDB;
-class AbstractDictReader;
-class AbstractParamDict;
+class FileReader;
+class ParamDict;
 
 typedef std::shared_ptr<AbstractKVDB> AbsKVDBPtr;
-typedef std::shared_ptr<AbstractDictReader> AbsDictReaderPtr;
-typedef std::shared_ptr<AbstractParamDict> AbsParamDictPtr;
+typedef std::shared_ptr<FileReader> FileReaderPtr;
+typedef std::shared_ptr<ParamDict> ParamDictPtr;
 
 class AbstractKVDB {
 public:
@@ -38,15 +38,50 @@ public:
 // TODO: Implement RedisKVDB
 //class RedisKVDB;
 
-class AbstractDictReader {
+class FileReader {
 public:
-    virtual std::string GetFileName() = 0;
-    virtual void SetFileName(std::string) = 0;
-    virtual std::string GetMD5() = 0;
-    virtual bool CheckDiff() = 0;
-    virtual std::chrono::system_clock::time_point GetTimeStamp() = 0;
-    virtual void Read(AbstractParamDict*) = 0;
-    virtual ~AbstractDictReader() = 0;
+    inline virtual std::string GetFileName() {
+        return this->filename_;
+    }
+    
+    inline virtual void SetFileName(std::string filename) {
+        this->filename_ = filename;
+        this->last_md5_val_ = this->GetMD5();
+        this->time_stamp_ = std::chrono::system_clock::now();
+    }
+    
+    inline virtual std::string GetMD5() {
+        auto getCmdOut = [] (std::string cmd) {
+            std::string data;
+            FILE *stream = nullptr;
+            const int max_buffer = 256;
+            char buffer[max_buffer];
+            cmd.append(" 2>&1");
+            stream = popen(cmd.c_str(), "r");
+            if (stream) {
+                if (fgets(buffer, max_buffer, stream) != NULL) {
+                    data.append(buffer);
+                }
+            }
+            return data;
+        };
+        std::string cmd = "md5sum " + this->filename_;
+        //TODO: throw exception if error occurs during execution of shell command
+        std::string md5val = getCmdOut(cmd);
+        this->time_stamp_ = md5val == this->last_md5_val_? this->time_stamp_: std::chrono::system_clock::now();
+        this->last_md5_val_ = md5val;
+        return md5val;
+    }
+    
+    inline virtual bool CheckDiff() {
+        return this->GetMD5() == this->last_md5_val_;
+    }
+
+    inline virtual std::chrono::system_clock::time_point GetTimeStamp() {
+        return this->time_stamp_; 
+    } 
+
+    inline virtual ~FileReader() {};
 protected:
     std::string filename_;
     std::string last_md5_val_;
@@ -54,27 +89,31 @@ protected:
 };
 
 
-class AbstractParamDict {
+class ParamDict {
+    typedef std::string Key;
+    typedef std::vector<std::string> Value;
 public:
-    virtual std::vector<AbsDictReaderPtr> GetDictReaderLst() = 0;
-    virtual void SetDictReaderLst(std::vector<AbsDictReaderPtr>) = 0;
+    virtual std::vector<FileReaderPtr> GetDictReaderLst();
+    virtual void SetFileReaderLst(std::vector<std::string> lst);
 
-    virtual std::vector<float> GetSparseValue(int64_t, int64_t) = 0;
-    virtual std::vector<float> GetSparseValue(std::string, std::string) = 0;
+    virtual std::vector<float> GetSparseValue(int64_t, int64_t);
+    virtual std::vector<float> GetSparseValue(std::string, std::string);
     
-    virtual bool InsertSparseValue(int64_t, int64_t, const std::vector<float>&) = 0;
-    virtual bool  InsertSparseValue(std::string, std::string, const std::vector<float>&) = 0;
+    virtual bool InsertSparseValue(int64_t, int64_t, const std::vector<float>&);
+    virtual bool InsertSparseValue(std::string, std::string, const std::vector<float>&);
 
-    virtual void UpdateBaseModel() = 0;
-    virtual void UpdateDeltaModel() = 0;
+    virtual void SetReader(std::function<std::pair<Key, Value>(std::string)>);
+    virtual void UpdateBaseModel();
+    virtual void UpdateDeltaModel();
 
-    virtual std::pair<AbsKVDBPtr, AbsKVDBPtr> GetKVDB() = 0;
-    virtual void SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr>) = 0;
-    virtual void CreateKVDB() = 0;
-
-    virtual ~AbstractParamDict() = 0;
+    virtual std::pair<AbsKVDBPtr, AbsKVDBPtr> GetKVDB();
+    virtual void SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr>);
+    virtual void CreateKVDB();
+    
+    virtual ~ParamDict();
 protected:
-    std::vector<AbsDictReaderPtr> dict_reader_lst_;
+    std::function<std::pair<Key, Value>(std::string)> read_func_;
+    std::vector<FileReaderPtr> file_reader_lst_;
     AbsKVDBPtr front_db, back_db;
 };
 
@@ -83,9 +122,9 @@ protected:
 class ParamDictMgr {
 public:
     void UpdateAll();
-    void InsertParamDict(std::string, AbsParamDictPtr);
+    void InsertParamDict(std::string, ParamDictPtr);
 
 protected:
-    std::unordered_map<std::string, AbsParamDictPtr> ParamDictMap;
+    std::unordered_map<std::string, ParamDictPtr> ParamDictMap;
 };
 

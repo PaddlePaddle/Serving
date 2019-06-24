@@ -30,36 +30,6 @@ public:
     static int db_count;
 };
 
-class RocksDBDictReader : public AbstractDictReader{
-public:
-    std::string GetFileName();
-    void SetFileName(std::string);
-    std::string GetMD5();
-    bool CheckDiff();
-    std::chrono::system_clock::time_point GetTimeStamp();
-    void Read(AbstractParamDict*);
-    ~RocksDBDictReader();
-};
 
-class RocksDBParamDict : public AbstractParamDict{
-public:
-    std::vector<AbsDictReaderPtr> GetDictReaderLst();
-    void SetDictReaderLst(std::vector<AbsDictReaderPtr>);
-
-    std::vector<float> GetSparseValue(int64_t, int64_t);
-    std::vector<float> GetSparseValue(std::string, std::string);
-
-    bool InsertSparseValue(int64_t, int64_t, const std::vector<float>&);
-    bool InsertSparseValue(std::string, std::string, const std::vector<float>&);
-
-    void UpdateBaseModel();
-    void UpdateDeltaModel();
-
-    std::pair<AbsKVDBPtr, AbsKVDBPtr> GetKVDB();
-    void SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr>);
-    void CreateKVDB();
-
-    ~RocksDBParamDict();
-};
 
 
