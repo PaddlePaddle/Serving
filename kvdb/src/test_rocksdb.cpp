@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kvdb/mock_kvdb_impl.h"
+#include "kvdb/rocksdb_impl.h"
 #include "kvdb/paddle_rocksdb.h"
 #include <iostream>
 void test_rockskvdb() {

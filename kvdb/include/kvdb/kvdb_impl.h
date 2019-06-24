@@ -45,7 +45,7 @@ public:
     virtual std::string GetMD5() = 0;
     virtual bool CheckDiff() = 0;
     virtual std::chrono::system_clock::time_point GetTimeStamp() = 0;
-    virtual void Read(std::vector<std::string>&) = 0;
+    virtual void Read(AbstractParamDict*) = 0;
     virtual ~AbstractDictReader() = 0;
 protected:
     std::string filename_;

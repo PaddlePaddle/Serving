@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kvdb/mock_kvdb_impl.h"
+#include "kvdb/rocksdb_impl.h"
 #include "kvdb/kvdb_impl.h"
 #include "kvdb/paddle_rocksdb.h"
 #include <gtest/gtest.h>
@@ -28,8 +28,8 @@ protected:
     
     static void SetUpTestCase() {
         kvdb = std::make_shared<RocksKVDB>();
-        dict_reader = std::make_shared<MockDictReader>();
-        param_dict = std::make_shared<MockParamDict>();
+        dict_reader = std::make_shared<RocksDBDictReader>();
+        param_dict = std::make_shared<RocksDBParamDict>();
     }
     
     static AbsKVDBPtr kvdb;
@@ -81,7 +81,7 @@ TEST_F(KVDBTest, AbstractDictReader_Unit_Test) {
     ASSERT_NE(timestamp_2, timestamp_3);   
 }
 #include <cmath>
-TEST_F(KVDBTest, MockParamDict_Unit_Test) {
+TEST_F(KVDBTest, RocksDBParamDict_Unit_Test) {
     std::string test_in_filename = "abs_dict_reader_test_in.txt";
     param_dict->SetDictReaderLst({dict_reader});
     param_dict->CreateKVDB();

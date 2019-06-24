@@ -30,18 +30,18 @@ public:
     static int db_count;
 };
 
-class MockDictReader : public AbstractDictReader{
+class RocksDBDictReader : public AbstractDictReader{
 public:
     std::string GetFileName();
     void SetFileName(std::string);
     std::string GetMD5();
     bool CheckDiff();
     std::chrono::system_clock::time_point GetTimeStamp();
-    void Read(std::vector<std::string>&);
-    ~MockDictReader();
+    void Read(AbstractParamDict*);
+    ~RocksDBDictReader();
 };
 
-class MockParamDict : public AbstractParamDict{
+class RocksDBParamDict : public AbstractParamDict{
 public:
     std::vector<AbsDictReaderPtr> GetDictReaderLst();
     void SetDictReaderLst(std::vector<AbsDictReaderPtr>);
@@ -59,7 +59,7 @@ public:
     void SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr>);
     void CreateKVDB();
 
-    ~MockParamDict();
+    ~RocksDBParamDict();
 };
 
 
