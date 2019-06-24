@@ -23,13 +23,13 @@ using baidu::paddle_serving::predictor::format::KVDBRes;
 using baidu::paddle_serving::predictor::echo_kvdb_service::Request;
 using baidu::paddle_serving::predictor::echo_kvdb_service::Response;
 
-std::shared_ptr<RocksDBWrapper> KVDBEchoOp::db;
 int KVDBEchoOp::inference() {
     debug();
 }
 int KVDBEchoOp::debug() {
    //TODO: implement DEBUG mode
-    this->DBInit();
+    baidu::paddle_serving::predictor::Resource& resource = baidu::paddle_serving::predictor::Resource::instance();
+    std::shared_ptr<RocksDBWrapper> db = resource.getDB();
     const Request* req = dynamic_cast<const Request*>(get_request_message());
     Response* res = mutable_data<Response>();
     LOG(INFO) << "Receive request in KVDB echo service: " << req->ShortDebugString();
@@ -51,11 +51,7 @@ int KVDBEchoOp::debug() {
     return 0;
 }
 
-void KVDBEchoOp::DBInit() {
-    if (db.get() == nullptr) {
-        db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
-    }
-}
+
 
 DEFINE_OP(KVDBEchoOp);
 }

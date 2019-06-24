@@ -36,7 +36,13 @@ DynamicResource::DynamicResource() {}
 
 DynamicResource::~DynamicResource() {}
 
-int DynamicResource::initialize() { return 0; }
+int DynamicResource::initialize() { 
+    return 0;
+}
+
+std::shared_ptr<RocksDBWrapper> Resource::getDB() {
+    return db;
+}
 
 int DynamicResource::clear() { return 0; }
 
@@ -80,6 +86,11 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     LOG(ERROR) << "unable to create tls_bthread_key of thrd_data";
     return -1;
   }
+    //init rocksDB instance
+  if (db.get() == nullptr) {
+    db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
+  }
+
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
   return 0;
 }
