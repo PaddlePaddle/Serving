@@ -32,7 +32,7 @@ if(WITH_GPU)
 endif()
 target_link_libraries(serving opencv_imgcodecs
         ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine
-        -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs} rocksdb_impl rocksdb
+        -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs} kvdb rocksdb
         ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving

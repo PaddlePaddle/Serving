@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kvdb/mock_kvdb_impl.h"
+#include "kvdb/rocksdb_impl.h"
 #include <thread>
 #include <iterator>
 #include <fstream>
 #include <sstream>
-std::string MockDictReader::GetFileName() {
+std::string RocksDBDictReader::GetFileName() {
     return this->filename_;
 }
 
-void MockDictReader::SetFileName(std::string filename) {
+void RocksDBDictReader::SetFileName(std::string filename) {
     this->filename_ = filename;
     this->last_md5_val_ = this->GetMD5();
     this->time_stamp_ = std::chrono::system_clock::now();
 }
 
-std::string MockDictReader::GetMD5() {
+std::string RocksDBDictReader::GetMD5() {
    auto getCmdOut = [] (std::string cmd) {
         std::string data;
         FILE *stream = nullptr;
@@ -50,40 +50,40 @@ std::string MockDictReader::GetMD5() {
     return md5val;
 }
 
-bool MockDictReader::CheckDiff() {
+bool RocksDBDictReader::CheckDiff() {
     return this->GetMD5() == this->last_md5_val_;
 }
 
-std::chrono::system_clock::time_point MockDictReader::GetTimeStamp() {
-//TODO: Implement Get Time Stamp of dict file
+std::chrono::system_clock::time_point RocksDBDictReader::GetTimeStamp() {
     return this->time_stamp_;  
 }
 
-void MockDictReader::Read(std::vector<std::string>& res) {
+void RocksDBDictReader::Read(AbstractParamDict* param_dict) {
     std::string line;
     std::ifstream infile(this->filename_);
     if (infile.is_open()) {
         while (getline(infile, line)) {
-            res.push_back(line);
+            //TODO: Write String Parse Here
+            // param_dict->InsertSparseValue();
         }
     }
     infile.close();
 }
 
-MockDictReader::~MockDictReader() {
+RocksDBDictReader::~RocksDBDictReader() {
 //TODO: I imageine nothing to do here
 }
 
 
-std::vector<AbsDictReaderPtr> MockParamDict::GetDictReaderLst() {
+std::vector<AbsDictReaderPtr> RocksDBParamDict::GetDictReaderLst() {
     return this->dict_reader_lst_;
 }
 
-void MockParamDict::SetDictReaderLst(std::vector<AbsDictReaderPtr> lst) {
+void RocksDBParamDict::SetDictReaderLst(std::vector<AbsDictReaderPtr> lst) {
     this->dict_reader_lst_ = lst;
 }
 
-std::vector<float> MockParamDict::GetSparseValue(std::string feasign, std::string slot) {
+std::vector<float> RocksDBParamDict::GetSparseValue(std::string feasign, std::string slot) {
     auto BytesToFloat = [](uint8_t* byteArray){
         return *((float*)byteArray);
     };
@@ -100,15 +100,15 @@ std::vector<float> MockParamDict::GetSparseValue(std::string feasign, std::strin
     return value;
 }
 
-std::vector<float> MockParamDict::GetSparseValue(int64_t feasign, int64_t slot) {
+std::vector<float> RocksDBParamDict::GetSparseValue(int64_t feasign, int64_t slot) {
     return this->GetSparseValue(std::to_string(feasign), std::to_string(slot));
 }
 
-bool MockParamDict::InsertSparseValue(int64_t feasign, int64_t slot, const std::vector<float>& values) {
+bool RocksDBParamDict::InsertSparseValue(int64_t feasign, int64_t slot, const std::vector<float>& values) {
     return this->InsertSparseValue(std::to_string(feasign), std::to_string(slot), values);       
 }
 
-bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, const std::vector<float>& values) {
+bool RocksDBParamDict::InsertSparseValue(std::string feasign, std::string slot, const std::vector<float>& values) {
     auto FloatToBytes = [](float fvalue, uint8_t *arr){
         unsigned char  *pf = nullptr;
         unsigned char *px = nullptr;
@@ -136,12 +136,12 @@ bool MockParamDict::InsertSparseValue(std::string feasign, std::string slot, con
     return true;
 }
 
-void MockParamDict::UpdateBaseModel() {
+void RocksDBParamDict::UpdateBaseModel() {
    std::thread t([&] () {
         for (AbsDictReaderPtr dict_reader: this->dict_reader_lst_) {
             if (dict_reader->CheckDiff()) {
                 std::vector<std::string> strs;
-                dict_reader->Read(strs);
+                dict_reader->Read(this);
                 for (const std::string& str: strs) {
                     std::vector<std::string> arr;
                     std::istringstream in(str);
@@ -162,27 +162,27 @@ void MockParamDict::UpdateBaseModel() {
 }
 
 
-void MockParamDict::UpdateDeltaModel() {
+void RocksDBParamDict::UpdateDeltaModel() {
     UpdateBaseModel();
 }
 
-std::pair<AbsKVDBPtr, AbsKVDBPtr> MockParamDict::GetKVDB()  {
+std::pair<AbsKVDBPtr, AbsKVDBPtr> RocksDBParamDict::GetKVDB()  {
     return {front_db, back_db};
 }
 
-void MockParamDict::SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr> kvdbs) {
+void RocksDBParamDict::SetKVDB(std::pair<AbsKVDBPtr, AbsKVDBPtr> kvdbs) {
     this->front_db = kvdbs.first;
     this->back_db = kvdbs.second;
 }
 
-void MockParamDict::CreateKVDB() {
+void RocksDBParamDict::CreateKVDB() {
     this->front_db = std::make_shared<RocksKVDB>();
     this->back_db = std::make_shared<RocksKVDB>();
     this->front_db->CreateDB();
     this->back_db->CreateDB();
 }
 
-MockParamDict::~MockParamDict() {
+RocksDBParamDict::~RocksDBParamDict() {
 
 }
 
