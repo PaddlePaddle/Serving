@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
 
   std::string filename(argv[0]);
   filename = filename.substr(filename.find_last_of('/') + 1);
-  settings.log_file = (std::string("./log/") + filename + ".log").c_str();
+  settings.log_file = strdup((std::string("./log/") + filename + ".log").c_str());
   settings.delete_old = logging::DELETE_OLD_LOG_FILE;
   logging::InitLogging(settings);
 
