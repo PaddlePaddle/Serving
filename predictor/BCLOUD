@@ -15,6 +15,9 @@ ImportConfigsFrom('..')
 INCPATHS('$INC')
 INCPATHS('../')
 INCPATHS('$OUT_ROOT/third-64/protobuf/output/include')
+INCPATHS('../kvdb/include/')
+
+LIBS('$OUT/lib/libkvdb.a')
 
 cpp_source_dirs = []
 cpp_source_dirs.append('common/*.cpp')
