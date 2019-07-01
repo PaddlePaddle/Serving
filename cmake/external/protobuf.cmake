@@ -122,6 +122,9 @@ macro(PROMPT_PROTOBUF_LIB)
     # make `protobuf_generate_cpp` happy.
     SET(Protobuf_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE})
 
+    # For CMake 3.9 and above
+    add_executable(protobuf::protoc ALIAS protoc)
+
     FOREACH(dep ${protobuf_DEPS})
         ADD_DEPENDENCIES(protobuf ${dep})
         ADD_DEPENDENCIES(protobuf_lite ${dep})
