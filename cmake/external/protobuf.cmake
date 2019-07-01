@@ -123,7 +123,13 @@ macro(PROMPT_PROTOBUF_LIB)
     SET(Protobuf_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE})
 
     # For CMake 3.9 and above
-    add_executable(protobuf::protoc ALIAS protoc)
+    if(NOT TARGET protobuf::protoc)
+        add_executable(protobuf::protoc IMPORTED)
+        if(EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
+            set_target_properties(protobuf::protoc PROPERTIES
+                IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}")
+        endif()
+    endif()
 
     FOREACH(dep ${protobuf_DEPS})
         ADD_DEPENDENCIES(protobuf ${dep})
