@@ -47,7 +47,7 @@ if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
 target_link_libraries(serving ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread
-        -lcrypto -lm -lrt -lssl -ldl -lz lbz2)
+        -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
         RUNTIME DESTINATION
