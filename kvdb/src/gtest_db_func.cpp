@@ -12,65 +12,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kvdb/rocksdb_impl.h"
-#include "kvdb/kvdb_impl.h"
-#include "kvdb/paddle_rocksdb.h"
 #include <gtest/gtest.h>
-#include <string>
+#include <chrono>
 #include <fstream>
 #include <sstream>
-#include <chrono>
+#include <string>
 #include <thread>
+#include "kvdb/kvdb_impl.h"
+#include "kvdb/paddle_rocksdb.h"
+#include "kvdb/rocksdb_impl.h"
 class KVDBTest : public ::testing::Test {
-protected:
-    void SetUp() override{
-                
-    }
-    
-    static void SetUpTestCase() {
-    }
-    
+ protected:
+  void SetUp() override {}
 
+  static void SetUpTestCase() {}
 };
 int my_argc;
 char** my_argv;
 
 std::vector<std::string> StringSplit(std::string str, char split) {
-    std::vector<std::string> strs;
-    std::istringstream f(str);
-    std:: string s;
-    while (getline(f, s, split)) {
-        strs.push_back(s);
-    }
-    return strs;
+  std::vector<std::string> strs;
+  std::istringstream f(str);
+  std::string s;
+  while (getline(f, s, split)) {
+    strs.push_back(s);
+  }
+  return strs;
 }
 
 TEST_F(KVDBTest, AbstractKVDB_Func_Test) {
-    AbsKVDBPtr kvdb = std::make_shared<RocksKVDB>();
-    kvdb->CreateDB();
-    std::string set_list = "setlist.txt";
-    std::string get_list = "getlist.txt";
-    std::ifstream set_file(set_list);
-    std::ifstream get_file(get_list);
-    for (std::string line; getline(set_file, line); )
-    {
-        std::vector<std::string> strs = StringSplit (line, ' ');
-        kvdb->Set(strs[0], strs[1]);
-    }
+  AbsKVDBPtr kvdb = std::make_shared<RocksKVDB>();
+  kvdb->CreateDB();
+  std::string set_list = "setlist.txt";
+  std::string get_list = "getlist.txt";
+  std::ifstream set_file(set_list);
+  std::ifstream get_file(get_list);
+  for (std::string line; getline(set_file, line);) {
+    std::vector<std::string> strs = StringSplit(line, ' ');
+    kvdb->Set(strs[0], strs[1]);
+  }
 
-    for (std::string line; getline(get_file, line); ) {
-        std::vector<std::string> strs = StringSplit(line, ' ');
-        std::string val = kvdb->Get(strs[0]);
-        ASSERT_EQ(val, strs[1]);
-    }
+  for (std::string line; getline(get_file, line);) {
+    std::vector<std::string> strs = StringSplit(line, ' ');
+    std::string val = kvdb->Get(strs[0]);
+    ASSERT_EQ(val, strs[1]);
+  }
 }
-
-
 
 int main(int argc, char** argv) {
-    my_argc = argc;
-    my_argv = argv;
-    ::testing::InitGoogleTest(&argc, argv);
-     return RUN_ALL_TESTS();
+  my_argc = argc;
+  my_argv = argv;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-

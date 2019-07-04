@@ -38,6 +38,7 @@ ExternalProject_Add(
                     -DCMAKE_INSTALL_PREFIX=${OPENCV_INSTALL_DIR}
                     -DCMAKE_INSTALL_LIBDIR=${OPENCV_INSTALL_DIR}/lib
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+                    -DWITH_GTK=OFF
                     -DBUILD_TESTS=OFF
                     -DBUILD_PERF_TESTS=OFF
                     -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
