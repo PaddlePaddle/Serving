@@ -64,9 +64,10 @@ int ReaderOp::inference() {
   size_t dense_capacity = 3 * resize.width * resize.height;
   size_t len = dense_capacity * sizeof(float) * sample_size;
 
-  // Allocate buffer in PaddleTensor, so that buffer will be managed by the Tensor
+  // Allocate buffer in PaddleTensor, so that buffer will be managed by the
+  // Tensor
   in_tensor.data.Resize(len);
-  float *data = reinterpret_cast<float *>(in_tensor.data.data());
+  float* data = reinterpret_cast<float*>(in_tensor.data.data());
   if (in_tensor.data.data() == NULL) {
     LOG(ERROR) << "Failed create temp float array, "
                << "size=" << dense_capacity * sample_size * sizeof(float);
