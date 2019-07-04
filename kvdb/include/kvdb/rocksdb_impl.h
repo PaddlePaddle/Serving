@@ -13,23 +13,19 @@
 // limitations under the License.
 
 #pragma once
-#include "kvdb_impl.h"
-#include "paddle_rocksdb.h"
-class RocksKVDB: public AbstractKVDB {
-public:
-    void CreateDB();
-    void SetDBName(std::string);
-    void Set(std::string key, std::string value);
-    std::string Get(std::string key);
-    ~RocksKVDB();
+#include "kvdb/kvdb_impl.h"
+#include "kvdb/paddle_rocksdb.h"
+class RocksKVDB : public AbstractKVDB {
+ public:
+  void CreateDB();
+  void SetDBName(std::string);
+  void Set(std::string key, std::string value);
+  std::string Get(std::string key);
+  ~RocksKVDB();
 
-protected:
-    std::shared_ptr<RocksDBWrapper> db_;
+ private:
+  std::shared_ptr<RocksDBWrapper> db_;
 
-public:
-    static int db_count;
+ public:
+  static int db_count;
 };
-
-
-
-
