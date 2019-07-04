@@ -16,29 +16,22 @@
 
 int RocksKVDB::db_count;
 void RocksKVDB::CreateDB() {
-    this->db_ = RocksDBWrapper::RocksDBWrapperFactory("RocksDB_" + std::to_string(RocksKVDB::db_count));
-    RocksKVDB::db_count ++;
-    return;
+  this->db_ = RocksDBWrapper::RocksDBWrapperFactory(
+      "RocksDB_" + std::to_string(RocksKVDB::db_count));
+  RocksKVDB::db_count++;
+  return;
 }
 
 void RocksKVDB::SetDBName(std::string db_name) {
-    this->db_->SetDBName(db_name);
-    return;
+  this->db_->SetDBName(db_name);
+  return;
 }
 
 void RocksKVDB::Set(std::string key, std::string value) {
-    this->db_->Put(key, value);
-    return;
+  this->db_->Put(key, value);
+  return;
 }
 
-std::string RocksKVDB::Get(std::string key) {
-    return this->db_->Get(key);
-}
+std::string RocksKVDB::Get(std::string key) { return this->db_->Get(key); }
 
-RocksKVDB::~RocksKVDB() {
-    
-}
-
-
-
-
+RocksKVDB::~RocksKVDB() {}

@@ -15,26 +15,25 @@
 #pragma once
 #include <memory>
 #include <string>
+#include "rocksdb/compaction_filter.h"
 #include "rocksdb/db.h"
+#include "rocksdb/filter_policy.h"
 #include "rocksdb/options.h"
 #include "rocksdb/slice.h"
 #include "rocksdb/sst_file_writer.h"
 #include "rocksdb/table.h"
-#include "rocksdb/compaction_filter.h"
-#include "rocksdb/filter_policy.h"
-
 
 class RocksDBWrapper {
-public:
-    RocksDBWrapper(std::string db_name);
-    std::string Get(std::string key);
+ public:
+  RocksDBWrapper(std::string db_name);
+  std::string Get(std::string key);
 
-    bool Put(std::string key, std::string value);
-    void SetDBName(std::string db_name);
-    static std::shared_ptr<RocksDBWrapper> RocksDBWrapperFactory(std::string db_name = "SparseMatrix");
+  bool Put(std::string key, std::string value);
+  void SetDBName(std::string db_name);
+  static std::shared_ptr<RocksDBWrapper> RocksDBWrapperFactory(
+      std::string db_name = "SparseMatrix");
 
-protected:
-    rocksdb::DB *db_;
-    std::string db_name_;
+ private:
+  rocksdb::DB *db_;
+  std::string db_name_;
 };
-

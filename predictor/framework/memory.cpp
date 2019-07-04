@@ -20,11 +20,10 @@ namespace paddle_serving {
 namespace predictor {
 
 struct MempoolRegion {
-  MempoolRegion(im::fugue::memory::Region *region,
-                im::Mempool *mempool) :
-      _region(region), _mempool(mempool){}
-  im::fugue::memory::Region *region() {return _region;}
-  im::Mempool *mempool() {return _mempool;}
+  MempoolRegion(im::fugue::memory::Region* region, im::Mempool* mempool)
+      : _region(region), _mempool(mempool) {}
+  im::fugue::memory::Region* region() { return _region; }
+  im::Mempool* mempool() { return _mempool; }
 
   im::fugue::memory::Region* _region;
   im::Mempool* _mempool;
@@ -54,10 +53,10 @@ int MempoolWrapper::initialize() {
 }
 
 int MempoolWrapper::thread_initialize() {
-  im::fugue::memory::Region *region = new im::fugue::memory::Region();
+  im::fugue::memory::Region* region = new im::fugue::memory::Region();
   region->init();
   im::Mempool* mempool = new (std::nothrow) im::Mempool(region);
-  MempoolRegion *mempool_region = new MempoolRegion(region, mempool);
+  MempoolRegion* mempool_region = new MempoolRegion(region, mempool);
   if (mempool == NULL) {
     LOG(ERROR) << "Failed create thread mempool";
     return -1;
@@ -76,7 +75,8 @@ int MempoolWrapper::thread_initialize() {
 }
 
 int MempoolWrapper::thread_clear() {
-  MempoolRegion* mempool_region = (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  MempoolRegion* mempool_region =
+      (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
   if (mempool_region == NULL) {
     LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
     return -1;
@@ -91,7 +91,8 @@ int MempoolWrapper::thread_clear() {
 }
 
 void* MempoolWrapper::malloc(size_t size) {
-  MempoolRegion* mempool_region = (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  MempoolRegion* mempool_region =
+      (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
   if (mempool_region == NULL) {
     LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
     return NULL;
