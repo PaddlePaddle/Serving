@@ -484,7 +484,8 @@ class PdsCodeGenerator : public CodeGenerator {
           "response);\n"
           "}\n"
           "tt.stop();\n"
-          "if (ret.flags != baidu::rpc::SKIP_SUB_CHANNEL && ret.method != NULL) {\n"
+          "if (ret.flags != baidu::rpc::SKIP_SUB_CHANNEL && ret.method != "
+          "NULL) {\n"
           "   _stub_handler->update_latency(tt.u_elapsed(), \"pack_map\");\n"
           "}\n"
           "return ret;\n");
@@ -498,7 +499,8 @@ class PdsCodeGenerator : public CodeGenerator {
 
     ////////////////////////////////////////////////////////////////
     printer->Print(
-        "class $name$_StubResponseMerger : public baidu::rpc::ResponseMerger {\n"
+        "class $name$_StubResponseMerger : public baidu::rpc::ResponseMerger "
+        "{\n"
         "private:\n"
         "   uint32_t _package_size;\n"
         "   baidu::paddle_serving::sdk_cpp::Stub* _stub_handler;\n"
@@ -600,7 +602,8 @@ class PdsCodeGenerator : public CodeGenerator {
         "}\n");
     "LOG(INFO) \n"
     "   << \"[default] Succ map, channel_index: \" << channel_index;\n";
-    printer->Print("return baidu::rpc::SubCall(method, request, cur_res, 0);\n");
+    printer->Print(
+        "return baidu::rpc::SubCall(method, request, cur_res, 0);\n");
     return true;
   }
   bool generate_paddle_serving_stub_default_merger(
