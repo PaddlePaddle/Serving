@@ -30,6 +30,11 @@ target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
         -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
+add_executable(echo_kvdb ${CMAKE_CURRENT_LIST_DIR}/src/echo_kvdb.cpp)
+target_link_libraries(echo_kvdb -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
+        -lpthread -lcrypto -lm -lrt -lssl -ldl
+         -lz)
+
 add_executable(dense_format ${CMAKE_CURRENT_LIST_DIR}/src/dense_format.cpp)
 target_link_libraries(dense_format -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
@@ -68,6 +73,11 @@ install(TARGETS echo
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/)
+
+install(TARGETS echo_kvdb
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo_kvdb/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo_kvdb/)
 
 install(TARGETS dense_format
         RUNTIME DESTINATION
