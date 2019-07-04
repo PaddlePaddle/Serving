@@ -27,3 +27,7 @@ services {
   workflows: "workflow6"
 }
 
+services {
+  name: "EchoKVDBService"
+  workflows: "workflow7"
+}
