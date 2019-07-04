@@ -15,14 +15,14 @@
 #include "kvdb/kvdb_impl.h"
 
 void ParamDictMgr::UpdateAll() {
-    for (auto it = this->ParamDictMap.begin(); it!= this->ParamDictMap.end(); ++it) {
-        it->second->UpdateBaseModel();
-    }
-
+  for (auto it = this->ParamDictMap.begin(); it != this->ParamDictMap.end();
+       ++it) {
+    it->second->UpdateBaseModel();
+  }
 }
 
 void ParamDictMgr::InsertParamDict(std::string key, ParamDictPtr value) {
-    this->ParamDictMap.insert(std::make_pair(key, value));
+  this->ParamDictMap.insert(std::make_pair(key, value));
 }
 
 AbstractKVDB::~AbstractKVDB() {}
