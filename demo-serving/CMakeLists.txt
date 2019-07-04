@@ -12,6 +12,7 @@ if (NOT EXISTS
                 )
 endif()
 
+include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
 find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
@@ -26,13 +27,27 @@ target_include_directories(serving PUBLIC
         )
 
 if(WITH_GPU)
-    target_link_libraries(serving ${CUDA_LIBRARIES} -Wl,--whole-archive fluid_gpu_engine
+    target_link_libraries(serving -Wl,--whole-archive fluid_gpu_engine
             -Wl,--no-whole-archive)
 endif()
+
+target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
+        -Wl,--no-whole-archive)
+
+target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
+
 target_link_libraries(serving opencv_imgcodecs
-        ${opencv_depend_libs} -Wl,--whole-archive fluid_cpu_engine
-        -Wl,--no-whole-archive pdserving paddle_fluid ${paddle_depend_libs}
-        ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+        ${opencv_depend_libs})
+
+target_link_libraries(serving pdserving)
+
+target_link_libraries(serving kvdb rocksdb)
+
+if(WITH_GPU)
+    target_link_libraries(serving ${CUDA_LIBRARIES})
+endif()
+target_link_libraries(serving ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread
+        -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
         RUNTIME DESTINATION

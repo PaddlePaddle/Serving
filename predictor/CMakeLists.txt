@@ -6,15 +6,17 @@ include(framework/CMakeLists.txt)
 #include(plugin/CMakeLists.txt)
 include(src/CMakeLists.txt)
 
+include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
+
 add_library(pdserving ${pdserving_srcs})
 set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure)
+add_dependencies(pdserving protobuf kvdb boost brpc leveldb pdcodegen configure)
 
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+        brpc protobuf boost leveldb configure kvdb -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 
 # install
 install(TARGETS pdserving
