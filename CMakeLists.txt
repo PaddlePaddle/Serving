@@ -47,7 +47,7 @@ set(THIRD_PARTY_BUILD_TYPE Release)
 
 option(WITH_AVX     "Compile Paddle Serving with AVX intrinsics"    ${AVX_FOUND})
 option(WITH_MKL     "Compile Paddle Serving with MKL support."      ${AVX_FOUND})
-#option(WITH_GPU     "Compile Paddle Serving with NVIDIA GPU"        ${CUDA_FOUND})
+option(WITH_GPU     "Compile Paddle Serving with NVIDIA GPU"        ${CUDA_FOUND})
 option(CLIENT_ONLY  "Compile client libraries and demos only"       FALSE)
 
 set(WITH_MKLML ${WITH_MKL})
@@ -70,7 +70,6 @@ include(external/gflags)
 include(external/glog)
 include(external/snappy)
 include(external/gtest)
-#include(external/redis++)
 include(generic)
 include(flags)
 
@@ -86,7 +85,6 @@ include_directories(${PADDLE_SERVING_BINARY_DIR})
 set(EXTERNAL_LIBS
     gflags
     rocksdb
-    #  redis++
     glog
     protobuf
     paddlepaddle
