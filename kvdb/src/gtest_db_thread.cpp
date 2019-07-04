@@ -12,63 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "kvdb/rocksdb_impl.h"
+#include <gtest/gtest.h>
+#include <chrono>
+#include <fstream>
+#include <string>
+#include <thread>
 #include "kvdb/kvdb_impl.h"
 #include "kvdb/paddle_rocksdb.h"
-#include <gtest/gtest.h>
-#include <string>
-#include <fstream>
-#include <chrono>
-#include <thread>
+#include "kvdb/rocksdb_impl.h"
 class KVDBTest : public ::testing::Test {
-protected:
-    void SetUp() override{
-                
-    }
-    
-    static void SetUpTestCase() {
+ protected:
+  void SetUp() override {}
 
-    }
+  static void SetUpTestCase() {}
 };
+
 int my_argc;
 char** my_argv;
 
-
 void db_thread_test(AbsKVDBPtr kvdb, int size) {
-    for (int i = 0; i < size; i++) {
-        kvdb->Set(std::to_string(i), std::to_string(i));
-        kvdb->Get(std::to_string(i));
-    }
+  for (int i = 0; i < size; i++) {
+    kvdb->Set(std::to_string(i), std::to_string(i));
+    kvdb->Get(std::to_string(i));
+  }
 }
 
 TEST_F(KVDBTest, AbstractKVDB_Thread_Test) {
-    if (my_argc != 3) {
-        std::cerr << "illegal input! should be db_thread ${num_of_thread} ${num_of_ops_each_thread}" << std::endl;
-        return;
-    }
-    int num_of_thread = atoi(my_argv[1]);
-    int nums_of_ops_each_thread = atoi(my_argv[2]);
-    std::vector<AbsKVDBPtr> kvdbptrs;
-    for (int i= 0; i < num_of_thread; i++) {
-        kvdbptrs.push_back(std::make_shared<RocksKVDB>());
-        kvdbptrs[i]->CreateDB();
-    }
-    std::vector<std::thread> tarr;
-    for (int i = 0; i< num_of_thread; i++) {
-        tarr.push_back(std::thread(db_thread_test, kvdbptrs[i], nums_of_ops_each_thread));
-    }
-    for (int i = 0; i< num_of_thread; i++) {
-        tarr[i].join();
-    }
+  if (my_argc != 3) {
+    std::cerr << "illegal input! should be db_thread ${num_of_thread} "
+                 "${num_of_ops_each_thread}"
+              << std::endl;
     return;
+  }
+  int num_of_thread = atoi(my_argv[1]);
+  int nums_of_ops_each_thread = atoi(my_argv[2]);
+  std::vector<AbsKVDBPtr> kvdbptrs;
+  for (int i = 0; i < num_of_thread; i++) {
+    kvdbptrs.push_back(std::make_shared<RocksKVDB>());
+    kvdbptrs[i]->CreateDB();
+  }
+  std::vector<std::thread> tarr;
+  for (int i = 0; i < num_of_thread; i++) {
+    tarr.push_back(
+        std::thread(db_thread_test, kvdbptrs[i], nums_of_ops_each_thread));
+  }
+  for (int i = 0; i < num_of_thread; i++) {
+    tarr[i].join();
+  }
+  return;
 }
-
-
 
 int main(int argc, char** argv) {
-    my_argc = argc;
-    my_argv = argv;
-    ::testing::InitGoogleTest(&argc, argv);
-     return RUN_ALL_TESTS();
+  my_argc = argc;
+  my_argv = argv;
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-
