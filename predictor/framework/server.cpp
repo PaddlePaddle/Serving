@@ -16,7 +16,7 @@
 #ifdef BCLOUD
 #include <baidu/rpc/policy/nova_pbrpc_protocol.h>     // NovaServiceAdaptor
 #include <baidu/rpc/policy/nshead_mcpack_protocol.h>  // NsheadMcpackAdaptor
-#include <baidu/rpc/policy/public_pbrpc_protocol.h>   // PublicPbrpcServiceAdaptor
+#include <baidu/rpc/policy/public_pbrpc_protocol.h>  // PublicPbrpcServiceAdaptor
 #else
 #include <brpc/policy/nova_pbrpc_protocol.h>     // NovaServiceAdaptor
 #include <brpc/policy/nshead_mcpack_protocol.h>  // NsheadMcpackAdaptor
