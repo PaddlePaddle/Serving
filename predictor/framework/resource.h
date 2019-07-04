@@ -16,6 +16,7 @@
 #include <string>
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/memory.h"
+#include "kvdb/paddle_rocksdb.h"
 
 namespace baidu {
 namespace paddle_serving {
@@ -30,6 +31,7 @@ struct DynamicResource {
   int initialize();
 
   int clear();
+
 };
 
 class Resource {
@@ -53,6 +55,8 @@ class Resource {
 
   int finalize();
 
+  std::shared_ptr<RocksDBWrapper> getDB();
+
   DynamicResource* get_dynamic_resource() {
     return reinterpret_cast<DynamicResource*>(
         THREAD_GETSPECIFIC(_tls_bspec_key));
@@ -60,7 +64,8 @@ class Resource {
 
  private:
   int thread_finalize() { return 0; }
-
+  std::shared_ptr<RocksDBWrapper> db;
+  
   THREAD_KEY_T _tls_bspec_key;
 };
 

@@ -26,6 +26,7 @@ message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER}, version: "
 message(STATUS "C compiler: ${CMAKE_C_COMPILER}, version: "
         "${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 
+    
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CUDA QUIET)
@@ -60,6 +61,7 @@ if (NOT DEFINED WITH_MKLDNN)
 endif()
 
 include(external/leveldb)
+include(external/rocksdb)
 include(external/zlib)
 include(external/boost)
 include(external/protobuf)
@@ -67,6 +69,7 @@ include(external/brpc)
 include(external/gflags)
 include(external/glog)
 include(external/snappy)
+include(external/gtest)
 include(generic)
 include(flags)
 
@@ -81,6 +84,7 @@ include_directories(${PADDLE_SERVING_BINARY_DIR})
 
 set(EXTERNAL_LIBS
     gflags
+    rocksdb
     glog
     protobuf
     paddlepaddle
@@ -105,6 +109,7 @@ add_subdirectory(configure)
 add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
 add_subdirectory(demo-client)
+add_subdirectory(kvdb)
 
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
