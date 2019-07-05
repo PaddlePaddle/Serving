@@ -28,7 +28,7 @@ ExternalProject_Add(
     GIT_TAG 6.2.fb
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND CXXFLAGS=-fPIC make -j ${NUM_OF_PROCESSOR} static_lib
+    BUILD_COMMAND CXXFLAGS=-fPIC make static_lib
     INSTALL_COMMAND mkdir -p ${ROCKSDB_INSTALL_DIR}/lib/ 
         && cp ${ROCKSDB_SOURCES_DIR}/src/extern_rocksdb/librocksdb.a ${ROCKSDB_LIBRARIES}
         && cp -r ${ROCKSDB_SOURCES_DIR}/src/extern_rocksdb/include ${ROCKSDB_INSTALL_DIR}/
