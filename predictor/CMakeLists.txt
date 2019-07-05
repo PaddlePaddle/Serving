@@ -37,3 +37,4 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/mempool/mempool.h
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/predictor/mempool)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/op/op.h
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/predictor/op)
+

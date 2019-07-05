@@ -24,7 +24,7 @@
 #include <butil/scoped_lock.h>          // BAIDU_SCOPED_LOCK
 #endif
 
-#include <bvar/bvar.h>  // bvar
+#include <bvar/bvar.h>                  // bvar
 #include <string>
 
 #ifdef BCLOUD

@@ -12,34 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <iostream>
-#include "kvdb/paddle_rocksdb.h"
 #include "kvdb/rocksdb_impl.h"
+#include "kvdb/paddle_rocksdb.h"
+#include <iostream>
 void test_rockskvdb() {
-  RocksKVDB db;
-  db.CreateDB();
-  db.SetDBName("Sparse Matrix");
-  db.Set("1", "One");
-  std::cout << db.Get("1") << std::endl;
-  return;
+    RocksKVDB db;
+    db.CreateDB();
+    db.SetDBName("Sparse Matrix");
+    db.Set("1", "One");
+    std::cout << db.Get("1") << std::endl;
+    return ;
 }
 
 void test_rocksdbwrapper() {
-  std::shared_ptr<RocksDBWrapper> db =
-      RocksDBWrapper::RocksDBWrapperFactory("TEST");
-  for (size_t i = 0; i < 1000; i++) {
-    db->Put(std::to_string(i), std::to_string(i * 2));
-  }
-  for (size_t i = 0; i < 1000; i++) {
-    std::string res = db->Get(std::to_string(i));
-    std::cout << res << " ";
-  }
-  std::cout << std::endl;
+    std::shared_ptr<RocksDBWrapper> db = RocksDBWrapper::RocksDBWrapperFactory("TEST");
+    for (size_t i = 0; i < 1000; i++) {
+        db->Put(std::to_string(i), std::to_string(i * 2));
+    } 
+    for (size_t i = 0; i < 1000; i++) {
+        std::string res = db->Get(std::to_string(i));
+        std::cout << res << " ";
+    }
+    std::cout << std::endl;
 }
 
 #ifdef RAW_TEST
 int main() {
-  test_rockskvdb();
-  test_rocksdbwrapper();
+    test_rockskvdb();   
+    test_rocksdbwrapper();
 }
 #endif
+
+
+
+

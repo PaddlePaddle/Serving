@@ -16,12 +16,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <algorithm>
 #include <fstream>
 #include "sdk-cpp/builtin_format.pb.h"
 #include "sdk-cpp/echo_kvdb_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
+#include <algorithm>
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 using baidu::paddle_serving::predictor::echo_kvdb_service::Request;
@@ -48,11 +48,11 @@ void print_res(const Request& req,
                uint64_t elapse_ms) {
   LOG(INFO) << "Receive Response size: " << res.ress_size();
   for (size_t i = 0; i < res.ress_size(); i++) {
-    KVDBRes val = res.ress(i);
-    LOG(INFO) << "Receive value from demo-server: " << val.value();
-  }
-  LOG(INFO) << "Succ call predictor[echo_kvdb_service], the tag is: "
-            << route_tag << ", elapse_ms: " << elapse_ms;
+      KVDBRes val  = res.ress(i);
+      LOG(INFO) << "Receive value from demo-server: " << val.value();
+}
+  LOG(INFO) << "Succ call predictor[echo_kvdb_service], the tag is: " << route_tag
+            << ", elapse_ms: " << elapse_ms;
 }
 
 int main(int argc, char** argv) {
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 
   while (true) {
     if (global_key > 10000) {
-      break;
+        break;
     }
     timeval start;
     gettimeofday(&start, NULL);

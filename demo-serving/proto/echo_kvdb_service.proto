@@ -20,15 +20,15 @@ package baidu.paddle_serving.predictor.echo_kvdb_service;
 option cc_generic_services = true;
 
 message Request {
-  repeated baidu.paddle_serving.predictor.format.KVDBReq reqs = 1;
+    repeated baidu.paddle_serving.predictor.format.KVDBReq reqs = 1;
 };
 
 message Response {
-  repeated baidu.paddle_serving.predictor.format.KVDBRes ress = 1;
+    repeated baidu.paddle_serving.predictor.format.KVDBRes ress = 1;
 };
 
 service EchoKVDBService {
-  rpc inference(Request) returns (Response);
-  rpc debug(Request) returns (Response);
-  option (pds.options).generate_impl = true;
+    rpc inference(Request) returns (Response);
+    rpc debug(Request) returns (Response);
+    option (pds.options).generate_impl = true;
 };

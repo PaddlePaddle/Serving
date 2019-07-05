@@ -31,11 +31,11 @@
 #include "baidu/rpc/channel.h"
 #include "baidu/rpc/parallel_channel.h"
 #include "baidu/rpc/traceprintf.h"
-#include "base/comlog_sink.h"
+#include "bthread.h"
 #include "base/logging.h"
+#include "base/comlog_sink.h"
 #include "base/object_pool.h"
 #include "base/time.h"
-#include "bthread.h"
 #else
 #include "brpc/channel.h"
 #include "brpc/parallel_channel.h"

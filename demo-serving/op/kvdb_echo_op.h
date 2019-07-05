@@ -14,24 +14,23 @@
 
 #pragma once
 #include "demo-serving/echo_kvdb_service.pb.h"
-#include "kvdb/paddle_rocksdb.h"
+#include "predictor/framework/resource.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/channel.h"
 #include "predictor/framework/op_repository.h"
-#include "predictor/framework/resource.h"
 #include "predictor/op/op.h"
+#include "kvdb/paddle_rocksdb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class KVDBEchoOp
-    : public OpWithChannel<
-          baidu::paddle_serving::predictor::echo_kvdb_service::Response> {
- public:
-  DECLARE_OP(KVDBEchoOp);
-  int inference();
-  int debug();
+class KVDBEchoOp: public OpWithChannel<baidu::paddle_serving::predictor::echo_kvdb_service::Response> {
+  public:
+      DECLARE_OP(KVDBEchoOp);
+      int inference();
+      int debug();
+      
 };
 }  //  namespace predictor
 }  //  namespace paddle_serving
