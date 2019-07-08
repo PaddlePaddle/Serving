@@ -125,10 +125,8 @@ macro(PROMPT_PROTOBUF_LIB)
     # For CMake 3.9 and above
     if(NOT TARGET protobuf::protoc)
         add_executable(protobuf::protoc IMPORTED)
-        if(EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
-            set_target_properties(protobuf::protoc PROPERTIES
+        set_target_properties(protobuf::protoc PROPERTIES
                 IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}")
-        endif()
     endif()
 
     FOREACH(dep ${protobuf_DEPS})
