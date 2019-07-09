@@ -49,6 +49,8 @@ Paddle Serving依赖PaddlePaddle预测库进行实际的计算，因此Serving�
 
 网络时延：2.63毫秒
 
+模型：SE_ResNeXt50_32x4d
+
 # 2. 单机性能测试
 在进行Serving的性能测试前，先要摸清图像分类GPU单机预测的性能
 
