@@ -116,7 +116,7 @@ class OpChannel : public Channel {
   }
 
   google::protobuf::Message* message_impl(derived_from_message<true>) {
-    return dynamic_cast<const google::protobuf::Message*>(&_data);
+    return dynamic_cast<google::protobuf::Message*>(&_data);
   }
 
   google::protobuf::Message* message_impl(derived_from_message<false>) {
