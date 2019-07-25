@@ -17,7 +17,7 @@ Paddle Serving uses this [Git branching model](http://nvie.com/posts/a-successfu
    To make a copy of your fork to your local computers, please run
 
    ```bash
-   git clone https://github.com/PaddlePaddle/serving
+   git clone https://github.com/your-github-account/serving
    cd serving
    ```
 
