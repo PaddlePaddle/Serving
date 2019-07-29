@@ -75,3 +75,11 @@ workflows {
     type: "KVDBEchoOp"
   } 
 }
+workflows {
+  name: "workflow8"
+  workflow_type: "Sequence"
+  nodes {
+    name: "ctr_prediction_service_op"
+    type: "CTRPredictionOp"
+  } 
+}
