@@ -150,7 +150,7 @@ type: 预测引擎的类型。可在inferencer-fluid-cpu/src/fluid_cpu_engine.cp
 
 **fluid Analysis API和fluid Native API的区别**
 
-Analysis API在模型加载过程中，会对模型计算逻辑进行多种优化，包括但不限于zero copy tensor，相邻OP的fuse等
+Analysis API在模型加载过程中，会对模型计算逻辑进行多种优化，包括但不限于zero copy tensor，相邻OP的fuse等。**但优化逻辑不是一定对所有模型都有加速作用，有时甚至会有反作用，请以实测结果为准**。
 
 reloadable_meta: 目前实际内容无意义，用来通过对该文件的mtime判断是否超过reload时间阈值
 
