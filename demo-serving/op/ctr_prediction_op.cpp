@@ -28,6 +28,8 @@ using baidu::paddle_serving::predictor::ctr_prediction::Response;
 using baidu::paddle_serving::predictor::ctr_prediction::CTRReqInstance;
 using baidu::paddle_serving::predictor::ctr_prediction::Request;
 
+const int VARIABLE_NAME_LEN = 256;
+
 // Total 26 sparse input + 1 dense input
 const int CTR_PREDICTION_INPUT_SLOTS = 27;
 
@@ -44,8 +46,8 @@ struct CubeValue {
   int error;
   std::string buff;
 };
-
 #endif
+
 void fill_response_with_message(Response *response,
                                 int err_code,
                                 std::string err_msg) {
@@ -69,11 +71,11 @@ int CTRPredictionOp::inference() {
   if (sample_size <= 0) {
     LOG(WARNING) << "No instances need to inference!";
     fill_response_with_message(res, -1, "Sample size invalid");
-    return -1;
+    return 0;
   }
 
   paddle::PaddleTensor lod_tensors[CTR_PREDICTION_INPUT_SLOTS];
-  for (int i = 0; i < CTR_PREDICTION_SPARSE_SLOTS; ++i) {
+  for (int i = 0; i < CTR_PREDICTION_INPUT_SLOTS; ++i) {
     lod_tensors[i].dtype = paddle::PaddleDType::FLOAT32;
     std::vector<std::vector<size_t>> &lod = lod_tensors[i].lod;
     lod.resize(1);
@@ -86,11 +88,11 @@ int CTRPredictionOp::inference() {
 
   for (uint32_t si = 0; si < sample_size; ++si) {
     const CTRReqInstance &req_instance = req->instances(si);
-    if (req_instance.sparse_ids_size() != CTR_PREDICTION_DENSE_DIM) {
+    if (req_instance.sparse_ids_size() != CTR_PREDICTION_SPARSE_SLOTS) {
       std::ostringstream iss;
-      iss << "dense input size != " << CTR_PREDICTION_DENSE_DIM;
+      iss << "Sparse input size != " << CTR_PREDICTION_SPARSE_SLOTS;
       fill_response_with_message(res, -1, iss.str());
-      return -1;
+      return 0;
     }
 
     for (int i = 0; i < req_instance.sparse_ids_size(); ++i) {
@@ -110,15 +112,21 @@ int CTRPredictionOp::inference() {
   float buff[CTR_PREDICTION_EMBEDDING_SIZE] = {
       0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.00};
   for (int i = 0; i < keys.size(); ++i) {
-    values[i].error = 0;
-    values[i].buff = std::string(reinterpret_cast<char *>(buff), sizeof(buff));
+    CubeValue value;
+    value.error = 0;
+    value.buff = std::string(reinterpret_cast<char *>(buff), sizeof(buff));
+    values.push_back(value);
   }
 #endif
 
   // Sparse embeddings
   for (int i = 0; i < CTR_PREDICTION_SPARSE_SLOTS; ++i) {
-    paddle::PaddleTensor lod_tensor = lod_tensors[i];
+    paddle::PaddleTensor &lod_tensor = lod_tensors[i];
     std::vector<std::vector<size_t>> &lod = lod_tensor.lod;
+
+    char name[VARIABLE_NAME_LEN];
+    snprintf(name, VARIABLE_NAME_LEN, "embedding_%d.tmp_0", i);
+    lod_tensor.name = std::string(name);
 
     for (uint32_t si = 0; si < sample_size; ++si) {
       const CTRReqInstance &req_instance = req->instances(si);
@@ -140,7 +148,7 @@ int CTRPredictionOp::inference() {
         LOG(ERROR) << "Embedding vector size not expected";
         fill_response_with_message(
             res, -1, "Embedding vector size not expected");
-        return -1;
+        return 0;
       }
 
       memcpy(data_ptr, values[idx].buff.data(), values[idx].buff.size());
@@ -151,9 +159,10 @@ int CTRPredictionOp::inference() {
   }
 
   // Dense features
-  paddle::PaddleTensor lod_tensor = lod_tensors[CTR_PREDICTION_DENSE_SLOT_ID];
-  lod_tensor.dtype = paddle::PaddleDType::INT64;
+  paddle::PaddleTensor &lod_tensor = lod_tensors[CTR_PREDICTION_DENSE_SLOT_ID];
+  lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
   std::vector<std::vector<size_t>> &lod = lod_tensor.lod;
+  lod_tensor.name = std::string("dense_input");
 
   for (uint32_t si = 0; si < sample_size; ++si) {
     const CTRReqInstance &req_instance = req->instances(si);
@@ -161,22 +170,23 @@ int CTRPredictionOp::inference() {
       std::ostringstream iss;
       iss << "dense input size != " << CTR_PREDICTION_DENSE_DIM;
       fill_response_with_message(res, -1, iss.str());
-      return -1;
+      return 0;
     }
     lod[0].push_back(lod[0].back() + req_instance.dense_ids_size());
   }
 
-  lod_tensor.shape = {lod[0].back(), CTR_PREDICTION_DENSE_DIM};
-  lod_tensor.data.Resize(lod[0].back() * sizeof(int64_t));
+  lod_tensor.shape = {lod[0].back() / CTR_PREDICTION_DENSE_DIM,
+                      CTR_PREDICTION_DENSE_DIM};
+  lod_tensor.data.Resize(lod[0].back() * sizeof(float));
 
   int offset = 0;
   for (uint32_t si = 0; si < sample_size; ++si) {
-    int64_t *data_ptr = static_cast<int64_t *>(lod_tensor.data.data()) + offset;
+    float *data_ptr = static_cast<float *>(lod_tensor.data.data()) + offset;
     const CTRReqInstance &req_instance = req->instances(si);
     int id_count = req_instance.dense_ids_size();
     memcpy(data_ptr,
            req_instance.dense_ids().data(),
-           sizeof(int64_t) * req_instance.dense_ids_size());
+           sizeof(float) * req_instance.dense_ids_size());
     offset += req_instance.dense_ids_size();
   }
 
@@ -186,7 +196,7 @@ int CTRPredictionOp::inference() {
   if (!out) {
     LOG(ERROR) << "Failed get tls output object";
     fill_response_with_message(res, -1, "Failed get thread local resource");
-    return -1;
+    return 0;
   }
 
   // call paddle fluid model for inferencing
@@ -195,13 +205,13 @@ int CTRPredictionOp::inference() {
     LOG(ERROR) << "Failed do infer in fluid model: "
                << CTR_PREDICTION_MODEL_NAME;
     fill_response_with_message(res, -1, "Failed do infer in fluid model");
-    return -1;
+    return 0;
   }
 
-  if (out->size() != in->size()) {
+  if (out->size() != sample_size) {
     LOG(ERROR) << "Output tensor size not equal that of input";
     fill_response_with_message(res, -1, "Output size != input size");
-    return -1;
+    return 0;
   }
 
   for (size_t i = 0; i < out->size(); ++i) {
@@ -211,7 +221,7 @@ int CTRPredictionOp::inference() {
     if (out->at(i).dtype != paddle::PaddleDType::FLOAT32) {
       LOG(ERROR) << "Expected data type float";
       fill_response_with_message(res, -1, "Expected data type float");
-      return -1;
+      return 0;
     }
 
     float *data = static_cast<float *>(out->at(i).data.data());
