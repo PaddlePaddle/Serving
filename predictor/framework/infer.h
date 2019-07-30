@@ -760,6 +760,7 @@ class InferManager {
       }
       LOG(WARNING) << "Succ proc finalize engine, name: " << it->first;
     }
+    _map.clear();
     return 0;
   }
 

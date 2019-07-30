@@ -31,7 +31,11 @@ message CTRResInstance {
   required float prob1 = 2;
 };
 
-message Response { repeated CTRResInstance predictions = 1; };
+message Response {
+  repeated CTRResInstance predictions = 1;
+  required int64 err_code = 2;
+  optional string err_msg = 3;
+};
 
 service CTRPredictionService {
   rpc inference(Request) returns (Response);
