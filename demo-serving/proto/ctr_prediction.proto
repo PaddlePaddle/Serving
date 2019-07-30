@@ -21,7 +21,7 @@ option cc_generic_services = true;
 
 message CTRReqInstance {
   repeated int64 sparse_ids = 1;
-  repeated int64 dense_ids = 2;
+  repeated float dense_ids = 2;
 };
 
 message Request { repeated CTRReqInstance instances = 1; };
