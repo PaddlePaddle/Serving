@@ -162,7 +162,7 @@ void thread_worker(PredictorApi* api,
     g_concurrency++;
     LOG(INFO) << "Current concurrency " << g_concurrency.load();
     int data_index = turns * batch_size;
-    if (create_req(req, data_list, data_index, batch_size) != 0) {
+    if (create_req(&req, data_list, data_index, batch_size) != 0) {
       return;
     }
     timeval start_run;
