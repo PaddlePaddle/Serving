@@ -117,8 +117,7 @@ int Resource::cube_initialize(const std::string& path,
                << cube_config_file << "]";
     return -1;
   }
-  err = CubeAPI::instance()->init(cube_config_path.c_str(),
-                                  cube_config_file.c_str());
+  err = CubeAPI::instance()->init(cube_config_file.c_str());
   if (err != 0) {
     LOG(ERROR) << "failed initialize cube, config: " << cube_config_path << "/"
                << cube_config_file << " error code : " << err;
