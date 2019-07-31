@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cube/meta.h"
+#include "cube/cube-api/include/meta.h"
 
 #include <google/protobuf/descriptor.h>
 #include <string.h>
@@ -20,7 +20,7 @@
 #include <new>
 #include <sstream>
 
-#include "cube-api/cube.pb.h"
+#include "cube/cube-api/cube.pb.h"
 
 namespace {
 static ::rec::mcube::Meta* g_ins = NULL;

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cube/cube_api.h"
+#include "cube/cube-api/include/cube_api.h"
 #include <brpc/channel.h>
 #include <brpc/parallel_channel.h>
 #include <google/protobuf/descriptor.h>
-#include "cube/cube_api_bvar.h"
+#include "cube/cube-api/include/cube_api_bvar.h"
 
-#include "cube/error.h"
-#include "cube/meta.h"
+#include "cube/cube-api/include/error.h"
+#include "cube/cube-api/include/meta.h"
 
 namespace {
 static ::rec::mcube::CubeAPI* g_ins = NULL;
