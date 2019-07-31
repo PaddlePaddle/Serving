@@ -15,7 +15,7 @@
 #include <gflags/gflags.h>
 #include <atomic>
 
-#include "cube/cube_api.h"
+#include "cube/cube-api/include/cube_api.h"
 
 #define TIME_FLAG(flag) \
   struct timeval flag;  \

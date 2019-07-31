@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "brpc/server.h"
-#include "cube-api/cube.pb.h"
-#include "cube/meta.h"
+#include "cube/cube-api/cube.pb.h"
+#include "cube/cube-api/include/meta.h"
 
 namespace rec {
 namespace mcube {

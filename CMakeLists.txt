@@ -105,12 +105,12 @@ if (NOT CLIENT_ONLY)
     list(APPEND EXTERNAL_LIBS opencv)
 endif()
 
+add_subdirectory(cube)
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
 add_subdirectory(demo-client)
 add_subdirectory(kvdb)
-add_subdirectory(cube)
 
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)

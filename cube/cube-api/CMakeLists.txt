@@ -25,9 +25,6 @@ execute_process(
 
 set(CMAKE_PREFIX_PATH ${OUTPUT_PATH})
 
-include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/include)
-include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR}/../)
-
 include(FindThreads)
 include(FindProtobuf)
 protobuf_generate_cpp(PROTO_SRC PROTO_HEADER idl/cube.proto idl/control.proto)
@@ -91,12 +88,11 @@ if (NOT CRYPTO_LIB)
     message(FATAL_ERROR "Fail to find crypto")
 endif()
 
-add_executable(cube_cli src/cube_cli.cpp src/cube_api.cpp src/meta.cpp
+add_executable(cube-cli src/cube_cli.cpp src/cube_api.cpp src/meta.cpp
     ${PROTO_SRC} ${PROTO_HEADER})
 
-add_library(cube_api STATIC src/cube_api.cpp src/meta.cpp
+add_library(cube-api STATIC src/cube_api.cpp src/meta.cpp
     ${PROTO_SRC} ${PROTO_HEADER})
-install(TARGETS cube_api ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib/)
 
 set(DYNAMIC_LIB
     ${CMAKE_THREAD_LIBS_INIT}
@@ -122,10 +118,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         "-Wl,-U,_ProfilerStop")
 endif()
 
-target_link_libraries(cube_cli ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
-target_link_libraries(cube_api ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
+target_link_libraries(cube-cli ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
+target_link_libraries(cube-api ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
 
-file(GLOB cube_api_headers "${CMAKE_CURRENT_LIST_DIR}/src/*.h")
-install(FILES ${cube_api_headers} DESTINATION
-      ${PADDLE_SERVING_INSTALL_DIR}/include/cube_api/)
-message(STATUS "CUBE_API_INSTALL_DIR: ${PADDLE_SERVING_INSTALL_DIR}/include/cube_api/")
+# install
+install(TARGETS cube-api
+        ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
+        )
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/)
+
+FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
+install(FILES ${inc}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/cube-api)
