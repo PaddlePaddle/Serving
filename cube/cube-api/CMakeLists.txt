@@ -12,42 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-cmake_minimum_required(VERSION 2.8.10)
-project(CubeAPI C CXX)
-
-option(CUBE_API_LINK_SO "Whether cube are linked dynamically" OFF)
-
-execute_process(
-    COMMAND bash -c "find ${PROJECT_SOURCE_DIR}/../.. -type d -regex \".*output/include$\" | head -n1 | xargs dirname | tr -d '\n'"
-    OUTPUT_VARIABLE OUTPUT_PATH
-)
-
-
-set(CMAKE_PREFIX_PATH ${OUTPUT_PATH})
-
-include(FindThreads)
-include(FindProtobuf)
 protobuf_generate_cpp(PROTO_SRC PROTO_HEADER idl/cube.proto idl/control.proto)
 # include PROTO_HEADER
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# Search for libthrift* by best effort. If it is not found and brpc is
-# compiled with thrift protocol enabled, a link error would be reported.
-find_library(THRIFT_LIB NAMES thrift)
-if (NOT THRIFT_LIB)
-    set(THRIFT_LIB "")
-endif()
-find_library(THRIFTNB_LIB NAMES thriftnb)
-if (NOT THRIFTNB_LIB)
-    set(THRIFTNB_LIB "")
-endif()
-
-find_path(GFLAGS_INCLUDE_PATH gflags/gflags.h)
-find_library(GFLAGS_LIBRARY NAMES gflags libgflags)
-if((NOT GFLAGS_INCLUDE_PATH) OR (NOT GFLAGS_LIBRARY))
-    message(FATAL_ERROR "Fail to find gflags")
-endif()
-include_directories(${GFLAGS_INCLUDE_PATH})
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     include(CheckFunctionExists)
@@ -71,23 +38,6 @@ else()
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-find_path(LEVELDB_INCLUDE_PATH NAMES leveldb/db.h)
-find_library(LEVELDB_LIB NAMES leveldb)
-if ((NOT LEVELDB_INCLUDE_PATH) OR (NOT LEVELDB_LIB))
-    message(FATAL_ERROR "Fail to find leveldb")
-endif()
-include_directories(${LEVELDB_INCLUDE_PATH})
-
-find_library(SSL_LIB NAMES ssl)
-if (NOT SSL_LIB)
-    message(FATAL_ERROR "Fail to find ssl")
-endif()
-
-find_library(CRYPTO_LIB NAMES crypto)
-if (NOT CRYPTO_LIB)
-    message(FATAL_ERROR "Fail to find crypto")
-endif()
-
 add_executable(cube-cli src/cube_cli.cpp src/cube_api.cpp src/meta.cpp
     ${PROTO_SRC} ${PROTO_HEADER})
 
@@ -95,14 +45,11 @@ add_library(cube-api STATIC src/cube_api.cpp src/meta.cpp
     ${PROTO_SRC} ${PROTO_HEADER})
 
 set(DYNAMIC_LIB
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${GFLAGS_LIBRARY}
-    ${PROTOBUF_LIBRARIES}
-    ${LEVELDB_LIB}
-    ${SSL_LIB}
-    ${CRYPTO_LIB}
-    ${THRIFT_LIB}
-    ${THRIFTNB_LIB}
+    gflags
+    protobuf
+    leveldb
+    -lssl
+    -lcrypto
     )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -118,7 +65,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         "-Wl,-U,_ProfilerStop")
 endif()
 
-target_link_libraries(cube-cli ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
+target_link_libraries(cube-cli brpc ${DYNAMIC_LIB} -lpthread -ldl -lz)
 target_link_libraries(cube-api ${DYNAMIC_LIB} brpc -lpthread -ldl -lz)
 
 # install
