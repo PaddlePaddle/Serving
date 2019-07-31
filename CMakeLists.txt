@@ -105,6 +105,7 @@ if (NOT CLIENT_ONLY)
     list(APPEND EXTERNAL_LIBS opencv)
 endif()
 
+add_subdirectory(cube)
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
