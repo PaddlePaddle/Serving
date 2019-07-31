@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #pragma once
+#include <memory>
 #include <string>
+#include "include/cube/cube_api.h"
 #include "kvdb/paddle_rocksdb.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/memory.h"
@@ -45,7 +47,7 @@ class Resource {
   }
 
   int initialize(const std::string& path, const std::string& file);
-
+  int cube_initialize(const std::string& path, const std::string& file);
   int thread_initialize();
 
   int thread_clear();

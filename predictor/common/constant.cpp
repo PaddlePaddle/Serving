@@ -40,6 +40,7 @@ DEFINE_int32(
 DEFINE_int32(reload_interval_s, 10, "");
 DEFINE_bool(enable_model_toolkit, false, "enable model toolkit");
 DEFINE_string(enable_protocol_list, "baidu_std", "set protocol list");
+DEFINE_bool(enable_cube, false, "enable cube");
 
 const char* START_OP_NAME = "startup_op";
 }  // namespace predictor
