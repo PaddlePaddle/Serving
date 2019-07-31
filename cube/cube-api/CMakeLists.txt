@@ -126,7 +126,7 @@ install(TARGETS cube-api
         ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib
         )
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include
-        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/)
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/cube-api)
 
 FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
 install(FILES ${inc}
