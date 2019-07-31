@@ -110,6 +110,7 @@ add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
 add_subdirectory(demo-client)
 add_subdirectory(kvdb)
+add_subdirectory(cube)
 
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
