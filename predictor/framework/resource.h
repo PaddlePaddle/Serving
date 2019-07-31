@@ -15,7 +15,7 @@
 #pragma once
 #include <memory>
 #include <string>
-#include "include/cube/cube_api.h"
+#include "cube/cube-api/include/cube_api.h"
 #include "kvdb/paddle_rocksdb.h"
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/memory.h"
