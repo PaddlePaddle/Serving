@@ -124,3 +124,18 @@ predictors {
     }
   }
 }
+
+predictors {
+  name: "ctr_prediction_service"
+  service_name: "baidu.paddle_serving.predictor.ctr_prediction.CTRPredictionService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+        cluster: "list://127.0.0.1:8010"
+    }
+  }
+}

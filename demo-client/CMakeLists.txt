@@ -57,6 +57,10 @@ add_executable(text_classification_press
 target_link_libraries(text_classification_press -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
+add_executable(ctr_prediction
+        ${CMAKE_CURRENT_LIST_DIR}/src/ctr_prediction.cpp)
+target_link_libraries(ctr_prediction -Wl,--whole-archive sdk-cpp
+        -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 # install
 install(TARGETS ximage
         RUNTIME DESTINATION
@@ -104,3 +108,11 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
+
+install(TARGETS ctr_prediction
+        RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/bin)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/ctr_prediction DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/data)

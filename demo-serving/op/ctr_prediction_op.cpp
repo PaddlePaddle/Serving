@@ -102,37 +102,28 @@ int CTRPredictionOp::inference() {
     }
   }
 
-#if 1
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   predictor::KVManager &kv_manager = predictor::KVManager::instance();
   const predictor::KVInfo *kvinfo =
       kv_manager.get_kv_info(CTR_PREDICTION_MODEL_NAME);
-  std::string table_name;
-  if (kvinfo->sparse_param_service_type != configure::EngineDesc::NONE) {
-    std::string table_name = kvinfo->sparse_param_service_table_name;
-  }
+  if (kvinfo != NULL) {
+    std::string table_name;
+    if (kvinfo->sparse_param_service_type != configure::EngineDesc::NONE) {
+      std::string table_name = kvinfo->sparse_param_service_table_name;
+    }
 
-  if (kvinfo->sparse_param_service_type == configure::EngineDesc::LOCAL) {
-    // Query local KV service
-  } else if (kvinfo->sparse_param_service_type ==
-             configure::EngineDesc::REMOTE) {
-    int ret = cube->seek(table_name, keys, &values);
-    if (ret != 0) {
-      fill_response_with_message(res, -1, "Query cube for embeddings error");
-      LOG(ERROR) << "Query cube for embeddings error";
-      return -1;
+    if (kvinfo->sparse_param_service_type == configure::EngineDesc::LOCAL) {
+      // Query local KV service
+    } else if (kvinfo->sparse_param_service_type ==
+               configure::EngineDesc::REMOTE) {
+      int ret = cube->seek(table_name, keys, &values);
+      if (ret != 0) {
+        fill_response_with_message(res, -1, "Query cube for embeddings error");
+        LOG(ERROR) << "Query cube for embeddings error";
+        return -1;
+      }
     }
   }
-#else
-  float buff[CTR_PREDICTION_EMBEDDING_SIZE] = {
-      0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.00};
-  for (int i = 0; i < keys.size(); ++i) {
-    CubeValue value;
-    value.error = 0;
-    value.buff = std::string(reinterpret_cast<char *>(buff), sizeof(buff));
-    values.push_back(value);
-  }
-#endif
 
   // Sparse embeddings
   for (int i = 0; i < CTR_PREDICTION_SPARSE_SLOTS; ++i) {

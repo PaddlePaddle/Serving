@@ -49,6 +49,8 @@ message ModelToolkitConf { repeated EngineDesc engines = 1; };
 message ResourceConf {
   required string model_toolkit_path = 1;
   required string model_toolkit_file = 2;
+  optional string cube_config_path = 3;
+  optional string cube_config_file = 4;
 };
 
 // DAG node depency info
