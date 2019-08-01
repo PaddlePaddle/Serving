@@ -109,7 +109,7 @@ int CTRPredictionOp::inference() {
   if (kvinfo != NULL) {
     std::string table_name;
     if (kvinfo->sparse_param_service_type != configure::EngineDesc::NONE) {
-      std::string table_name = kvinfo->sparse_param_service_table_name;
+      table_name = kvinfo->sparse_param_service_table_name;
     }
 
     if (kvinfo->sparse_param_service_type == configure::EngineDesc::LOCAL) {
