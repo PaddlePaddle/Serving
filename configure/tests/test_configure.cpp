@@ -66,6 +66,8 @@ int test_write_conf() {
   engine->set_runtime_thread_num(0);
   engine->set_batch_infer_size(0);
   engine->set_enable_batch_align(0);
+  engine->set_sparse_param_service_type(EngineDesc::LOCAL);
+  engine->set_sparse_param_service_table_name("local_kv");
 
   int ret = baidu::paddle_serving::configure::write_proto_conf(
       &model_toolkit_conf, output_dir, model_toolkit_conf_file);

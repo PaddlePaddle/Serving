@@ -16,7 +16,7 @@
 #include <string>
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/infer.h"
-
+#include "predictor/framework/kv_manager.h"
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -75,6 +75,12 @@ int Resource::initialize(const std::string& path, const std::string& file) {
       LOG(ERROR) << "failed proc initialize modeltoolkit, config: "
                  << model_toolkit_path << "/" << model_toolkit_file;
       return -1;
+    }
+
+    if (KVManager::instance().proc_initialize(
+            model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+      LOG(ERROR) << "Failed proc initialize kvmanager, config: "
+                 << model_toolkit_path << "/" << model_toolkit_file;
     }
   }
 

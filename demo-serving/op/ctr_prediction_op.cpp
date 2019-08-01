@@ -15,7 +15,9 @@
 #include "demo-serving/op/ctr_prediction_op.h"
 #include <algorithm>
 #include <string>
+#include "cube/cube-api/include/cube_api.h"
 #include "predictor/framework/infer.h"
+#include "predictor/framework/kv_manager.h"
 #include "predictor/framework/memory.h"
 
 namespace baidu {
@@ -41,13 +43,6 @@ const int CTR_PREDICTION_DENSE_SLOT_ID = 26;
 const int CTR_PREDICTION_DENSE_DIM = 13;
 const int CTR_PREDICTION_EMBEDDING_SIZE = 10;
 
-#if 1
-struct CubeValue {
-  int error;
-  std::string buff;
-};
-#endif
-
 void fill_response_with_message(Response *response,
                                 int err_code,
                                 std::string err_msg) {
@@ -59,6 +54,13 @@ void fill_response_with_message(Response *response,
   response->set_err_code(err_code);
   response->set_err_msg(err_msg);
   return;
+}
+
+std::string str_tolower(std::string s) {
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+    return std::tolower(c);
+  });
+  return s;
 }
 
 int CTRPredictionOp::inference() {
@@ -83,8 +85,8 @@ int CTRPredictionOp::inference() {
   }
 
   // Query cube API for sparse embeddings
-  std::vector<int64_t> keys;
-  std::vector<CubeValue> values;
+  std::vector<uint64_t> keys;
+  std::vector<rec::mcube::CubeValue> values;
 
   for (uint32_t si = 0; si < sample_size; ++si) {
     const CTRReqInstance &req_instance = req->instances(si);
@@ -100,13 +102,26 @@ int CTRPredictionOp::inference() {
     }
   }
 
-#if 0
-  mCube::CubeAPI* cube = CubeAPI::instance();
-  int ret = cube->seek(keys, values);
-  if (ret != 0) {
-    fill_response_with_message(res, -1, "Query cube for embeddings error");
-    LOG(ERROR) << "Query cube for embeddings error";
-    return -1;
+#if 1
+  rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+  predictor::KVManager &kv_manager = predictor::KVManager::instance();
+  const predictor::KVInfo *kvinfo =
+      kv_manager.get_kv_info(CTR_PREDICTION_MODEL_NAME);
+  std::string table_name;
+  if (kvinfo->sparse_param_service_type != configure::EngineDesc::NONE) {
+    std::string table_name = kvinfo->sparse_param_service_table_name;
+  }
+
+  if (kvinfo->sparse_param_service_type == configure::EngineDesc::LOCAL) {
+    // Query local KV service
+  } else if (kvinfo->sparse_param_service_type ==
+             configure::EngineDesc::REMOTE) {
+    int ret = cube->seek(table_name, keys, &values);
+    if (ret != 0) {
+      fill_response_with_message(res, -1, "Query cube for embeddings error");
+      LOG(ERROR) << "Query cube for embeddings error";
+      return -1;
+    }
   }
 #else
   float buff[CTR_PREDICTION_EMBEDDING_SIZE] = {
