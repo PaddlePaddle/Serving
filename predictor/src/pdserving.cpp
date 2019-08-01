@@ -209,6 +209,14 @@ int main(int argc, char** argv) {
   }
   LOG(INFO) << "Succ call pthread worker start function";
 
+  if (Resource::instance().cube_initialize(FLAGS_resource_path,
+                                           FLAGS_resource_file) != 0) {
+    LOG(ERROR) << "Failed initialize cube, conf: " << FLAGS_resource_path << "/"
+               << FLAGS_resource_file;
+    return -1;
+  }
+  LOG(INFO) << "Succ initialize cube";
+
   FLAGS_logtostderr = false;
 
   if (ServerManager::instance().start_and_wait() != 0) {

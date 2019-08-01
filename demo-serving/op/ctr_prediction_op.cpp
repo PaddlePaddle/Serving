@@ -15,6 +15,7 @@
 #include "demo-serving/op/ctr_prediction_op.h"
 #include <algorithm>
 #include <string>
+#include "cube/cube-api/include/cube_api.h"
 #include "predictor/framework/infer.h"
 #include "predictor/framework/memory.h"
 
@@ -41,12 +42,8 @@ const int CTR_PREDICTION_DENSE_SLOT_ID = 26;
 const int CTR_PREDICTION_DENSE_DIM = 13;
 const int CTR_PREDICTION_EMBEDDING_SIZE = 10;
 
-#if 1
-struct CubeValue {
-  int error;
-  std::string buff;
-};
-#endif
+// dict name
+const char dict_name[] = "dict";
 
 void fill_response_with_message(Response *response,
                                 int err_code,
@@ -83,8 +80,8 @@ int CTRPredictionOp::inference() {
   }
 
   // Query cube API for sparse embeddings
-  std::vector<int64_t> keys;
-  std::vector<CubeValue> values;
+  std::vector<uint64_t> keys;
+  std::vector<rec::mcube::CubeValue> values;
 
   for (uint32_t si = 0; si < sample_size; ++si) {
     const CTRReqInstance &req_instance = req->instances(si);
@@ -100,24 +97,13 @@ int CTRPredictionOp::inference() {
     }
   }
 
-#if 0
-  mCube::CubeAPI* cube = CubeAPI::instance();
-  int ret = cube->seek(keys, values);
+  rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+  int ret = cube->seek(dict_name, keys, &values);
   if (ret != 0) {
     fill_response_with_message(res, -1, "Query cube for embeddings error");
     LOG(ERROR) << "Query cube for embeddings error";
     return -1;
   }
-#else
-  float buff[CTR_PREDICTION_EMBEDDING_SIZE] = {
-      0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.00};
-  for (int i = 0; i < keys.size(); ++i) {
-    CubeValue value;
-    value.error = 0;
-    value.buff = std::string(reinterpret_cast<char *>(buff), sizeof(buff));
-    values.push_back(value);
-  }
-#endif
 
   // Sparse embeddings
   for (int i = 0; i < CTR_PREDICTION_SPARSE_SLOTS; ++i) {
