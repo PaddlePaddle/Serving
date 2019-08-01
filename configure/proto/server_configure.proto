@@ -26,6 +26,20 @@ message EngineDesc {
   required int32 enable_batch_align = 8;
   optional string version_file = 9;
   optional string version_type = 10;
+
+  /*
+   * Sparse Parameter Service type. Valid types are:
+   * "None": not use sparse parameter service
+   * "Local": Use local kv service (rocksdb library & API)
+   * "Remote": Use remote kv service (cube)
+   */
+  enum SparseParamServiceType {
+    NONE = 0;
+    LOCAL = 1;
+    REMOTE = 2;
+  }
+  optional SparseParamServiceType sparse_param_service_type = 11;
+  optional string sparse_param_service_table_name = 12;
 };
 
 // model_toolkit conf
