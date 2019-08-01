@@ -133,7 +133,7 @@ int CTRPredictionOp::inference() {
 
       for (int j = 0; j < values[i].buff.size(); ++j) {
         oss << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-            << (reinterpret_cast<int>(value[j]) & 0xff);
+            << (static_cast<int>(value[j]) & 0xff);
       }
 
       LOG(INFO) << oss.str().c_str();
