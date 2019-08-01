@@ -60,6 +60,7 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
+include(external/jsoncpp)
 include(external/leveldb)
 include(external/rocksdb)
 include(external/zlib)
@@ -83,6 +84,7 @@ include_directories(${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_BINARY_DIR})
 
 set(EXTERNAL_LIBS
+    jsoncpp
     gflags
     rocksdb
     glog
