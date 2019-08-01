@@ -15,6 +15,9 @@
 #include "demo-serving/op/ctr_prediction_op.h"
 #include <algorithm>
 #include <string>
+#if 1
+#include <iomanip>
+#endif
 #include "cube/cube-api/include/cube_api.h"
 #include "predictor/framework/infer.h"
 #include "predictor/framework/kv_manager.h"
@@ -54,13 +57,6 @@ void fill_response_with_message(Response *response,
   response->set_err_code(err_code);
   response->set_err_msg(err_msg);
   return;
-}
-
-std::string str_tolower(std::string s) {
-  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
-    return std::tolower(c);
-  });
-  return s;
 }
 
 int CTRPredictionOp::inference() {
@@ -123,6 +119,26 @@ int CTRPredictionOp::inference() {
         return -1;
       }
     }
+
+#if 1
+    for (int i = 0; i < keys.size(); ++i) {
+      std::ostringstream oss;
+      oss << keys[i] << ": ";
+      const char *value = (values[i].buff.data());
+      if (values[i].buff.size() !=
+          sizeof(float) * CTR_PREDICTION_EMBEDDING_SIZE) {
+        LOG(WARNING) << "Key " << keys[i] << " has values less than "
+                     << CTR_PREDICTION_EMBEDDING_SIZE;
+      }
+
+      for (int j = 0; j < values[i].buff.size(); ++j) {
+        oss << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+            << (reinterpret_cast<int>(value[j]) & 0xff);
+      }
+
+      LOG(INFO) << oss.str().c_str();
+    }
+#endif
   }
 
   // Sparse embeddings

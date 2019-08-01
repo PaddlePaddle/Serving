@@ -18,6 +18,7 @@
 #include "cube/cube-api/include/cube_api.h"
 #include "kvdb/paddle_rocksdb.h"
 #include "predictor/common/inner_common.h"
+#include "predictor/framework/infer.h"
 #include "predictor/framework/memory.h"
 
 namespace baidu {
@@ -37,7 +38,13 @@ struct DynamicResource {
 
 class Resource {
  public:
-  Resource() {}
+  Resource() {
+    // Reference InferManager::instance() explicitly, to make sure static
+    // instance of InferManager is constructed before that of Resource, and
+    // destruct after that of Resource
+    // See https://stackoverflow.com/a/335746/1513460
+    InferManager::instance();
+  }
 
   ~Resource() { finalize(); }
 

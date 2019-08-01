@@ -15,7 +15,6 @@
 #include "predictor/framework/resource.h"
 #include <string>
 #include "predictor/common/inner_common.h"
-#include "predictor/framework/infer.h"
 #include "predictor/framework/kv_manager.h"
 namespace baidu {
 namespace paddle_serving {
