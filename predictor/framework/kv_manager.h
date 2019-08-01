@@ -66,6 +66,9 @@ class KVManager {
         LOG(ERROR) << "Failed insert item: " << engine_name;
         return -1;
       }
+
+      LOG(WARNING) << engine_name << ": "
+                   << kvinfo->sparse_param_service_table_name;
       LOG(WARNING) << "Succ proc initialize kvmanager for engine: "
                    << engine_name;
     }
