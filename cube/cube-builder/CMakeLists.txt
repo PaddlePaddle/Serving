@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-project(cube-builder)
-
 set(CMAKE_CXX_STANDARD 11)
 
 add_compile_options(-std=c++11)
@@ -22,12 +20,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR}/../)
 
-find_path(JSONCPP_INCLUDE_DIR json/json.h)
-set(JSONCPP_LIBRARY ${JSONCPP_INCLUDE_DIR}/../lib/libjsoncpp.a)
-message(STATUS "jsoncpp include: ${JSONCPP_INCLUDE_DIR}")
-include_directories(${JSONCPP_INCLUDE_DIR})
-
-
 find_library(CURL_LIB NAMES curl)
 if (NOT CURL_LIB)
     message(FATAL_ERROR "Fail to find curl")
@@ -35,9 +27,11 @@ endif()
 
 add_executable(cube-builder src/main.cpp include/cube-builder/util.h src/util.cpp src/builder_job.cpp include/cube-builder/builder_job.h include/cube-builder/define.h src/seqfile_reader.cpp include/cube-builder/seqfile_reader.h include/cube-builder/raw_reader.h include/cube-builder/vtext.h src/crovl_builder_increment.cpp include/cube-builder/crovl_builder_increment.h src/curl_simple.cpp include/cube-builder/curl_simple.h)
 
+add_dependencies(cube-builder jsoncpp)
+
 set(DYNAMIC_LIB
     gflags
-    ${JSONCPP_LIBRARY}
+    jsoncpp
     -lssl
     -lcrypto
     ${CURL_LIB}
