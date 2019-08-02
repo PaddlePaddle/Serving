@@ -20,12 +20,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(SYSTEM ${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR}/../)
 
-#find_path(JSONCPP_INCLUDE_DIR json/json.h)
-#set(JSONCPP_LIBRARY ${JSONCPP_INCLUDE_DIR}/../lib/libjsoncpp.a)
-#message(STATUS "jsoncpp include: ${JSONCPP_INCLUDE_DIR}")
-#include_directories(${JSONCPP_INCLUDE_DIR})
-
-
 find_library(CURL_LIB NAMES curl)
 if (NOT CURL_LIB)
     message(FATAL_ERROR "Fail to find curl")
