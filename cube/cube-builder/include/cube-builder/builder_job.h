@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_BUILDER_JOB_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_BUILDER_JOB_H_
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -56,5 +55,3 @@ class Job {
 void mapFileLocal(Job job,
                   string file,
                   vector<CROVLBuilderIncremental*> reduces);
-
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_BUILDER_JOB_H_

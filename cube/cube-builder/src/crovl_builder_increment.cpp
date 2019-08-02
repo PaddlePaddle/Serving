@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cube-builder/crovl_builder_increment.h"
+#include "cube-builder/crovl_builder_increment.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fstream>
 #include <iostream>
-#include "../include/cube-builder/curl_simple.h"
-#include "../include/cube-builder/define.h"
-#include "../include/cube-builder/util.h"
 #include "boost/lexical_cast.hpp"
+#include "cube-builder/curl_simple.h"
+#include "cube-builder/define.h"
+#include "cube-builder/util.h"
 #include "json/json.h"
 
 static const uint64_t MB = 1048576;

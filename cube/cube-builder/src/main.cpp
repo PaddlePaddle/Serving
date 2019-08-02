@@ -16,10 +16,10 @@
 #include <time.h>
 #include <iostream>
 #include <vector>
-#include "../include/cube-builder/builder_job.h"
-#include "../include/cube-builder/crovl_builder_increment.h"
-#include "../include/cube-builder/util.h"
 #include "butil/logging.h"
+#include "cube-builder/builder_job.h"
+#include "cube-builder/crovl_builder_increment.h"
+#include "cube-builder/util.h"
 
 DEFINE_string(dict_name, "", "dict name, no need");
 DEFINE_string(input_path, "", "source data input path");

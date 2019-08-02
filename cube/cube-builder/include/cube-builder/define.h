@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_DEFINE_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_DEFINE_H_
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -60,5 +60,4 @@ class RecordReader {
 
   virtual int next(Record* record) = 0;
   virtual int close() = 0;
-};      // class RecordReader
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_DEFINE_H_
+};  // class RecordReader

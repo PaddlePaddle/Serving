@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cube-builder/util.h"
+#include "cube-builder/util.h"
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
