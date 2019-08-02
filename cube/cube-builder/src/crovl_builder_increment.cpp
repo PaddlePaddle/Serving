@@ -156,10 +156,6 @@ bool CROVLBuilderIncremental::Init(int index_type,
     if (_master_address == "") {
       if (!read_last_meta_from_local()) {
         LOG(ERROR) << "read last meta from db error! ";
-        // if (!read_last_meta_from_hdfs()) {
-        //    fprintf(stderr, "read last meta from hdfs error\n");
-        //    return false;
-        //}
         return false;
       }
     } else {
@@ -182,7 +178,7 @@ bool CROVLBuilderIncremental::flush_data() {
   }
 
   char file[MAX_DATA_DIR_LEN * 2];
-  snprintf(file, sizeof(file), "%s/data.%llu", _data_dir, _data_file);
+  snprintf(file, sizeof(file), "%s/data.%lu", _data_dir, _data_file);
   FILE *fp;
   if ((fp = fopen(file, "wb")) == NULL) {
     LOG(ERROR) << "open file failed! " << file;
@@ -390,7 +386,7 @@ bool CROVLBuilderIncremental::done() {
 
     // fix empty data bug
     // if the version no data, filter this version, index_file_num no add
-    // only can patch is null, not bae
+    // only can patch is null, not base
     if (_cur_count > 0) {
       *reinterpret_cast<uint32_t *>(buffer) = ++_index_file_num;
     } else {

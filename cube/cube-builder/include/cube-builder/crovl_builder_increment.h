@@ -27,7 +27,6 @@ class CROVLBuilderIncremental {
   static const uint32_t INDEX_BUFFER = 4194304;
   int _index_type;
   uint32_t _data_file_len;
-  // hdfs _index_file;
   uint64_t _data_file;
   uint32_t _data_buf_len;
   uint32_t _index_buf_len;
@@ -38,12 +37,6 @@ class CROVLBuilderIncremental {
   bool _fix;
   uint32_t _fix_len;
   uint32_t _rec_size;
-
-  // hdfsFS _fs;
-  // hdfsFile _file;
-
-  // AfsFileSystem* _afs_conn;
-  // Writer* _index_writer;
 
   uint64_t* _index;
   char* _data;
@@ -74,14 +67,11 @@ class CROVLBuilderIncremental {
   std::string _id;
   std::string _key;
   std::string _extra;
-  // std::string _afs_regin;
 
  public:
   CROVLBuilderIncremental();
 
   ~CROVLBuilderIncremental();
-
-  // bool set_sort_arg(uint64_t inner_sort_size, uint64_t memory_quota);
 
   bool Init(int index_type,
             uint32_t data_file_len,

@@ -44,8 +44,6 @@ int main(int argc, char *argv[]) {
 
   LOG(INFO) << "start";
 
-  // string f = "/";
-  // string output_path = argv[7] + f + depend_version + "_" + cur_version;
   string last_version = std::to_string(FLAGS_last_version);
   string cur_version = std::to_string(FLAGS_cur_version);
   string depend_version = std::to_string(FLAGS_depend_version);

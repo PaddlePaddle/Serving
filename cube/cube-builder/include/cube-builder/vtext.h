@@ -32,33 +32,6 @@ class VInt {
   static bool is_negative_vint(const char &value) {
     return value < -120 || (value >= -112 && value < 0);
   }
-  // todo
-  /*static int32_t writeVInt(OutputStream& os, int i) {
-      int32_t rc = 0;
-      if (i >= -112 && i <= 127) {
-          rc = os.write((char*)&i, (int64_t)sizeof(char));
-          return rc;
-      }
-      int len = -112;
-      if (i < 0) {
-          i ^= -1L; // take one's complement'
-          len = -120;
-      }
-      int32_t tmp = i;
-      while (tmp != 0) {
-          tmp = tmp >> 8;
-          len--;
-      }
-      os.write((char*)&len, sizeof(char));
-      len = (len < -120) ? -(len + 120) : -(len + 112);
-      for (int idx = len - 1; idx >= 0; idx--) {
-          int32_t shiftbits = idx * 8;
-          int mask = 0xFFL << shiftbits;
-          int val = (i & mask) >> shiftbits;
-          os.write((char*)&val, sizeof(char));
-      }
-      return rc;
-  }*/
   static bool read_vint(RawReader *reader, int32_t *vint) {
     char first_byte;
     if (reader->read(&first_byte) <= 0) {
