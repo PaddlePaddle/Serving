@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cube-builder/seqfile_reader.h"
+#include "cube-builder/seqfile_reader.h"
 #include <arpa/inet.h>
-#include "../include/cube-builder/vtext.h"
 #include "butil/logging.h"
+#include "cube-builder/vtext.h"
 
 int SequenceFileRecordReader::open() {
   if (_raw_reader->open() != 0) {

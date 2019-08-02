@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_RAW_READER_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_RAW_READER_H_
+#pragma once
+
 #include <fstream>
 #include <string>
 #include "butil/logging.h"
@@ -122,4 +122,3 @@ class FileRawReader : public RawReader {
   std::string _path{""};
   std::ifstream _reader;
 };
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_RAW_READER_H_

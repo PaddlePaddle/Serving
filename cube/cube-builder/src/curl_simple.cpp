@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cube-builder/curl_simple.h"
+#include "cube-builder/curl_simple.h"
 #include <json/json.h>
 #include <stdio.h>
 #include <stdlib.h>

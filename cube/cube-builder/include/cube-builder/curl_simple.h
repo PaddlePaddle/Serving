@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CURL_SIMPLE_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CURL_SIMPLE_H_
+#pragma once
+
 #include <curl/curl.h>
 #include <stdio.h>
 #include <map>
@@ -67,5 +67,3 @@ class CurlSimple {
  private:
   CURL *_p_curl;
 };
-
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CURL_SIMPLE_H_

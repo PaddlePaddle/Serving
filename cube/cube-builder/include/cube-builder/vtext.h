@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_VTEXT_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_VTEXT_H_
+#pragma once
 
 #include <string>
 #include "cube-builder/define.h"
@@ -86,5 +85,3 @@ class VString {
     return true;
   }
 };
-
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_VTEXT_H_

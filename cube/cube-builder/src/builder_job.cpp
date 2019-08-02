@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "../include/cube-builder/builder_job.h"
+#include "cube-builder/builder_job.h"
 #include <stdio.h>
 #include <iostream>
-#include "../include/cube-builder/seqfile_reader.h"
-#include "../include/cube-builder/util.h"
 #include "butil/logging.h"
+#include "cube-builder/seqfile_reader.h"
+#include "cube-builder/util.h"
 using std::string;
 void Job::set_shard_num(int num) { shard_num = num; }
 

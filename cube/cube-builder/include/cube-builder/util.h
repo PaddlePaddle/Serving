@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_UTIL_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_UTIL_H_
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -30,5 +29,3 @@ bool checkDirectory(const std::string folder);
 void CmdTarfiles(const std::string folder);
 
 void CmdMd5sum(const std::string folder);
-
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_UTIL_H_

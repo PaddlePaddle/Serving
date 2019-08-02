@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_SEQFILE_READER_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_SEQFILE_READER_H_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -44,4 +43,3 @@ class SequenceFileRecordReader : public RecordReader {
 };
 
 typedef std::shared_ptr<SequenceFileRecordReader> SequenceFileRecordReaderPtr;
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_SEQFILE_READER_H_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CROVL_BUILDER_INCREMENT_H_
-#define CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CROVL_BUILDER_INCREMENT_H_
+#pragma once
+
 #include <string>
 #include <vector>
 
@@ -111,5 +111,3 @@ class CROVLBuilderIncremental {
 
   bool write_cur_meta_to_local();
 };
-
-#endif  // CUBE_CUBE_BUILDER_INCLUDE_CUBE_BUILDER_CROVL_BUILDER_INCREMENT_H_
