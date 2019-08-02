@@ -22,11 +22,6 @@
 class SequenceFileRecordReader : public RecordReader {
  public:
   SequenceFileRecordReader() {}
-  //    SequenceFileRecordReader(const std::string& path, AfsFileSystemPtr fs) {
-  //        _path = path;
-  //        _fs = fs;
-  //        _raw_reader = new AFsRawReader(_path, _fs);
-  //    }
   explicit SequenceFileRecordReader(const std::string& path) {
     _path = path;
     _raw_reader = new FileRawReader(_path);
@@ -44,7 +39,6 @@ class SequenceFileRecordReader : public RecordReader {
 
  private:
   std::string _path{""};
-  // AfsFileSystemPtr _fs {nullptr};
   RawReader* _raw_reader{nullptr};
   Header _header;
 };

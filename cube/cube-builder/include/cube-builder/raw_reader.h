@@ -82,7 +82,7 @@ class FileRawReader : public RawReader {
       return -1;
   }
   virtual int64_t read(char* v) {
-    _reader.read(reinterpret_cast<char*>(*v), sizeof(char));
+    _reader.read(reinterpret_cast<char*>(v), sizeof(char));
     if (_reader.good())
       return sizeof(char);
     else if (_reader.eof())

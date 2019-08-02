@@ -143,9 +143,6 @@ std::string CurlSimple::curl_post(
     if (res != CURLE_OK) {
       std::cerr << "curl_easy_perform() failed:" << curl_easy_strerror(res)
                 << std::endl;
-      // return "";
-      // fprintf(stderr, "curl_easy_perform() failed: %s\n",
-      // curl_easy_strerror(res));
     } else {
       /*
        * Now, our chunk.memory points to a memory block that is chunk.size

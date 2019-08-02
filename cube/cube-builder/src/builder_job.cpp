@@ -61,11 +61,6 @@ void mapFileLocal(Job job,
     uint64_t key =
         *reinterpret_cast<uint64_t *>(const_cast<char *>(record.key.data()));
 
-    // printf("key:%lu yu:%lu value:%s \n", key, key%job.get_shard_num(),
-    // string_to_hex(record.value).c_str());
-    // printf("key_length:%llu value_length:%llu \n", record.key.length(),
-    // record.value.length());
-    // fprintf(stdout, "key:%lu value:%s\n", key, record.value.c_str());
     total_count++;
     int part = key % job.get_shard_num();
     int64_t value_length = record.record_len - record.key_len;
