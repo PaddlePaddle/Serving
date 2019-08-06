@@ -15,7 +15,7 @@
 #include "demo-serving/op/ctr_prediction_op.h"
 #include <algorithm>
 #include <string>
-#if 1
+#if 0
 #include <iomanip>
 #endif
 #include "cube/cube-api/include/cube_api.h"
@@ -120,7 +120,7 @@ int CTRPredictionOp::inference() {
       }
     }
 
-#if 1
+#if 0
     for (int i = 0; i < keys.size(); ++i) {
       std::ostringstream oss;
       oss << keys[i] << ": ";
