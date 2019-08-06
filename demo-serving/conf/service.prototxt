@@ -31,3 +31,8 @@ services {
   name: "EchoKVDBService"
   workflows: "workflow7"
 }
+
+services {
+  name: "CTRPredictionService"
+  workflows: "workflow8"
+}
