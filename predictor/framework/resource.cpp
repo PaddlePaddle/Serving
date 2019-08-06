@@ -15,14 +15,13 @@
 #include "predictor/framework/resource.h"
 #include <string>
 #include "predictor/common/inner_common.h"
-#include "predictor/framework/infer.h"
-
+#include "predictor/framework/kv_manager.h"
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
 using configure::ResourceConf;
-
+using rec::mcube::CubeAPI;
 // __thread bool p_thread_initialized = false;
 
 static void dynamic_resource_deleter(void* d) {
@@ -76,6 +75,12 @@ int Resource::initialize(const std::string& path, const std::string& file) {
                  << model_toolkit_path << "/" << model_toolkit_file;
       return -1;
     }
+
+    if (KVManager::instance().proc_initialize(
+            model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+      LOG(ERROR) << "Failed proc initialize kvmanager, config: "
+                 << model_toolkit_path << "/" << model_toolkit_file;
+    }
   }
 
   if (THREAD_KEY_CREATE(&_tls_bspec_key, dynamic_resource_deleter) != 0) {
@@ -88,6 +93,44 @@ int Resource::initialize(const std::string& path, const std::string& file) {
   }
 
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
+  return 0;
+}
+
+int Resource::cube_initialize(const std::string& path,
+                              const std::string& file) {
+  // cube
+  if (!FLAGS_enable_cube) {
+    return 0;
+  }
+
+  ResourceConf resource_conf;
+  if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
+    LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
+    return -1;
+  }
+
+  int err = 0;
+  std::string cube_config_path = resource_conf.cube_config_path();
+  if (err != 0) {
+    LOG(ERROR) << "reade cube_config_path failed, path[" << path << "], file["
+               << cube_config_path << "]";
+    return -1;
+  }
+  std::string cube_config_file = resource_conf.cube_config_file();
+  if (err != 0) {
+    LOG(ERROR) << "reade cube_config_file failed, path[" << path << "], file["
+               << cube_config_file << "]";
+    return -1;
+  }
+  err = CubeAPI::instance()->init(cube_config_file.c_str());
+  if (err != 0) {
+    LOG(ERROR) << "failed initialize cube, config: " << cube_config_path << "/"
+               << cube_config_file << " error code : " << err;
+    return -1;
+  }
+
+  LOG(INFO) << "Successfully initialize cube";
+
   return 0;
 }
 
@@ -192,7 +235,10 @@ int Resource::finalize() {
     LOG(ERROR) << "Failed proc finalize infer manager";
     return -1;
   }
-
+  if (CubeAPI::instance()->destroy() != 0) {
+    LOG(ERROR) << "Destory cube api failed ";
+    return -1;
+  }
   THREAD_KEY_DELETE(_tls_bspec_key);
 
   return 0;
