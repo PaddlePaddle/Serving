@@ -26,7 +26,7 @@
 
 第1) - 第5)步裁剪完毕后的模型网络配置如下：
 
-![Pruned CTR prediction network](doc/pruned-ctr-network.png)
+![Pruned CTR prediction network](pruned-ctr-network.png)
 
 
 整个裁剪过程具体说明如下：
