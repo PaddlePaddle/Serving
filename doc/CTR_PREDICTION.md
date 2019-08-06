@@ -1,41 +1,41 @@
-# CTRÔ¤¹ÀÄ£ĞÍ
+# CTRé¢„ä¼°æ¨¡å‹
 
-## 1. ±³¾°
+## 1. èƒŒæ™¯
 
-ÔÚËÑË÷¡¢ÍÆ¼ö¡¢ÔÚÏß¹ã¸æµÈÒµÎñ³¡¾°ÖĞ£¬embedding²ÎÊıµÄ¹æÄ£³£³£·Ç³£ÅÓ´ó£¬´ïµ½Êı°ÙGBÉõÖÁT¼¶±ğ£»ÑµÁ·Èç´Ë¹æÄ£µÄÄ£ĞÍĞèÒªÓÃµ½¶à»ú·Ö²¼Ê½ÑµÁ·ÄÜÁ¦£¬½«²ÎÊı·ÖÆ¬¸üĞÂºÍ±£´æ£»ÁíÒ»·½Ãæ£¬ÑµÁ·ºÃµÄÄ£ĞÍ£¬ÒªÓ¦ÓÃÓÚÔÚÏßÒµÎñ£¬Ò²ÄÑÒÔµ¥»ú¼ÓÔØ¡£Paddle ServingÌá¹©´ó¹æÄ£Ï¡Êè²ÎÊı¶ÁĞ´·şÎñ£¬ÓÃ»§¿ÉÒÔ·½±ãµØ½«³¬´ó¹æÄ£µÄÏ¡Êè²ÎÊıÒÔkvĞÎÊ½ÍĞ¹Üµ½²ÎÊı·şÎñ£¬ÔÚÏßÔ¤²âÖ»Ğè½«ËùĞèÒªµÄ²ÎÊı×Ó¼¯´Ó²ÎÊı·şÎñ¶ÁÈ¡»ØÀ´£¬ÔÙÖ´ĞĞºóĞøµÄÔ¤²âÁ÷³Ì¡£
+åœ¨æœç´¢ã€æ¨èã€åœ¨çº¿å¹¿å‘Šç­‰ä¸šåŠ¡åœºæ™¯ä¸­ï¼Œembeddingå‚æ•°çš„è§„æ¨¡å¸¸å¸¸éå¸¸åºå¤§ï¼Œè¾¾åˆ°æ•°ç™¾GBç”šè‡³Tçº§åˆ«ï¼›è®­ç»ƒå¦‚æ­¤è§„æ¨¡çš„æ¨¡å‹éœ€è¦ç”¨åˆ°å¤šæœºåˆ†å¸ƒå¼è®­ç»ƒèƒ½åŠ›ï¼Œå°†å‚æ•°åˆ†ç‰‡æ›´æ–°å’Œä¿å­˜ï¼›å¦ä¸€æ–¹é¢ï¼Œè®­ç»ƒå¥½çš„æ¨¡å‹ï¼Œè¦åº”ç”¨äºåœ¨çº¿ä¸šåŠ¡ï¼Œä¹Ÿéš¾ä»¥å•æœºåŠ è½½ã€‚Paddle Servingæä¾›å¤§è§„æ¨¡ç¨€ç–å‚æ•°è¯»å†™æœåŠ¡ï¼Œç”¨æˆ·å¯ä»¥æ–¹ä¾¿åœ°å°†è¶…å¤§è§„æ¨¡çš„ç¨€ç–å‚æ•°ä»¥kvå½¢å¼æ‰˜ç®¡åˆ°å‚æ•°æœåŠ¡ï¼Œåœ¨çº¿é¢„æµ‹åªéœ€å°†æ‰€éœ€è¦çš„å‚æ•°å­é›†ä»å‚æ•°æœåŠ¡è¯»å–å›æ¥ï¼Œå†æ‰§è¡Œåç»­çš„é¢„æµ‹æµç¨‹ã€‚
 
-ÎÒÃÇÒÔCTRÔ¤¹ÀÄ£ĞÍÎªÀı£¬ÑİÊ¾Paddle ServingÖĞÈçºÎÊ¹ÓÃ´ó¹æÄ£Ï¡Êè²ÎÊı·şÎñ¡£¹ØÓÚÄ£ĞÍÏ¸½ÚÇë²Î¿¼[Ô­Ê¼Ä£ĞÍ](https://github.com/PaddlePaddle/models/tree/v1.5/PaddleRec/ctr)
+æˆ‘ä»¬ä»¥CTRé¢„ä¼°æ¨¡å‹ä¸ºä¾‹ï¼Œæ¼”ç¤ºPaddle Servingä¸­å¦‚ä½•ä½¿ç”¨å¤§è§„æ¨¡ç¨€ç–å‚æ•°æœåŠ¡ã€‚å…³äºæ¨¡å‹ç»†èŠ‚è¯·å‚è€ƒ[åŸå§‹æ¨¡å‹](https://github.com/PaddlePaddle/models/tree/v1.5/PaddleRec/ctr)
 
-¸ù¾İ[¶ÔÊı¾İ¼¯µÄÃèÊö](https://www.kaggle.com/c/criteo-display-ad-challenge/data)£¬¸ÃÄ£ĞÍÔ­Ê¼ÊäÈëÎª13Î¬integer featuresºÍ26Î¬categorical features¡£ÔÚÎÒÃÇµÄÄ£ĞÍÖĞ£¬13Î¬integer feature×÷Îªdense featureÕûÌåfeedµ½Ò»¸ödata layer£¬¶ø26Î¬categorical features¸÷×Ô×÷ÎªÒ»¸öfeature·Ö±ğfeedµ½Ò»¸ödata layer¡£³ı´ËÖ®Íâ£¬Îª¼ÆËãaucÖ¸±ê£¬»¹½«label×÷ÎªÒ»¸öfeatureÊäÈë¡£
+æ ¹æ®[å¯¹æ•°æ®é›†çš„æè¿°](https://www.kaggle.com/c/criteo-display-ad-challenge/data)ï¼Œè¯¥æ¨¡å‹åŸå§‹è¾“å…¥ä¸º13ç»´integer featureså’Œ26ç»´categorical featuresã€‚åœ¨æˆ‘ä»¬çš„æ¨¡å‹ä¸­ï¼Œ13ç»´integer featureä½œä¸ºdense featureæ•´ä½“feedåˆ°ä¸€ä¸ªdata layerï¼Œè€Œ26ç»´categorical featureså„è‡ªä½œä¸ºä¸€ä¸ªfeatureåˆ†åˆ«feedåˆ°ä¸€ä¸ªdata layerã€‚é™¤æ­¤ä¹‹å¤–ï¼Œä¸ºè®¡ç®—aucæŒ‡æ ‡ï¼Œè¿˜å°†labelä½œä¸ºä¸€ä¸ªfeatureè¾“å…¥ã€‚
 
-Èô°´È±Ê¡ÑµÁ·²ÎÊı£¬±¾Ä£ĞÍµÄembedding dimÎª100w£¬sizeÎª10£¬Ò²¾ÍÊÇ²ÎÊı¾ØÕóÎª1000000 x 10µÄfloatĞÍ¾ØÕó£¬Êµ¼ÊÕ¼ÓÃÄÚ´æ¹²1000000 x 10 x sizeof(float) = 39MB£»**Êµ¼Ê³¡¾°ÖĞ£¬embedding²ÎÊıÒª´óµÄ¶à£»Òò´Ë¸Ãdemo½öÎªÑİÊ¾Ê¹ÓÃ**¡£
+è‹¥æŒ‰ç¼ºçœè®­ç»ƒå‚æ•°ï¼Œæœ¬æ¨¡å‹çš„embedding dimä¸º100wï¼Œsizeä¸º10ï¼Œä¹Ÿå°±æ˜¯å‚æ•°çŸ©é˜µä¸º1000000 x 10çš„floatå‹çŸ©é˜µï¼Œå®é™…å ç”¨å†…å­˜å…±1000000 x 10 x sizeof(float) = 39MBï¼›**å®é™…åœºæ™¯ä¸­ï¼Œembeddingå‚æ•°è¦å¤§çš„å¤šï¼›å› æ­¤è¯¥demoä»…ä¸ºæ¼”ç¤ºä½¿ç”¨**ã€‚
 
 
-## 2. Ä£ĞÍ²Ã¼ô
+## 2. æ¨¡å‹è£å‰ª
 
-ÔÚĞ´±¾ÎÄµµÊ±([v1.5](https://github.com/PaddlePaddle/models/tree/v1.5))£¬ÑµÁ·½Å±¾ÓÃPaddlePaddle py_reader¼ÓËÙÑùÀı¶ÁÈ¡ËÙ¶È£¬programÖĞ´øÓĞpy_readerÏà¹ØOP£¬ÇÒÑµÁ·¹ı³ÌÖĞÖ»±£´æÁËÄ£ĞÍ²ÎÊı£¬Ã»ÓĞ±£´æprogram£¬±£´æµÄ²ÎÊıÃ»·¨Ö±½ÓÓÃÔ¤²â¿â¼ÓÔØ£»ÁíÍâÔ­Ê¼ÍøÂçÖĞ×îÖÕÊä³öµÄtensorÊÇaucºÍbatch_auc£¬¶øÊµ¼ÊÄ£ĞÍÓÃÓÚÔ¤²âÊ±Ö»ĞèÒªÃ¿¸öÑùÀıµÄpredict£¬ĞèÒª¸ÄµôÄ£ĞÍµÄÊä³ötensorÎªpredict¡£ÔÙÓĞ£¬ÎªÁËÑİÊ¾Ï¡Êè²ÎÊı·şÎñµÄÊ¹ÓÃ£¬ÎÒÃÇÒªÓĞÒâ½«embedding layer°üº¬µÄlookup_table OP´ÓÔ¤²âprogramÖĞÄÃµô£¬ÒÔembedding layerµÄoutput variable×÷ÎªÍøÂçµÄÊäÈë£¬È»ºóÔÙÌí¼Ó¶ÔÓ¦µÄfeed OP£¬Ê¹µÃÎÒÃÇÄÜ¹»ÔÚÔ¤²âÊ±´ÓÏ¡Êè²ÎÊı·şÎñ»ñÈ¡µ½embeddingÏòÁ¿ºó£¬½«Êı¾İÖ±½Ófeedµ½¸÷¸öembeddingµÄoutput variable¡£
+åœ¨å†™æœ¬æ–‡æ¡£æ—¶([v1.5](https://github.com/PaddlePaddle/models/tree/v1.5))ï¼Œè®­ç»ƒè„šæœ¬ç”¨PaddlePaddle py_readeråŠ é€Ÿæ ·ä¾‹è¯»å–é€Ÿåº¦ï¼Œprogramä¸­å¸¦æœ‰py_readerç›¸å…³OPï¼Œä¸”è®­ç»ƒè¿‡ç¨‹ä¸­åªä¿å­˜äº†æ¨¡å‹å‚æ•°ï¼Œæ²¡æœ‰ä¿å­˜programï¼Œä¿å­˜çš„å‚æ•°æ²¡æ³•ç›´æ¥ç”¨é¢„æµ‹åº“åŠ è½½ï¼›å¦å¤–åŸå§‹ç½‘ç»œä¸­æœ€ç»ˆè¾“å‡ºçš„tensoræ˜¯aucå’Œbatch_aucï¼Œè€Œå®é™…æ¨¡å‹ç”¨äºé¢„æµ‹æ—¶åªéœ€è¦æ¯ä¸ªæ ·ä¾‹çš„predictï¼Œéœ€è¦æ”¹æ‰æ¨¡å‹çš„è¾“å‡ºtensorä¸ºpredictã€‚å†æœ‰ï¼Œä¸ºäº†æ¼”ç¤ºç¨€ç–å‚æ•°æœåŠ¡çš„ä½¿ç”¨ï¼Œæˆ‘ä»¬è¦æœ‰æ„å°†embedding layeråŒ…å«çš„lookup_table OPä»é¢„æµ‹programä¸­æ‹¿æ‰ï¼Œä»¥embedding layerçš„output variableä½œä¸ºç½‘ç»œçš„è¾“å…¥ï¼Œç„¶åå†æ·»åŠ å¯¹åº”çš„feed OPï¼Œä½¿å¾—æˆ‘ä»¬èƒ½å¤Ÿåœ¨é¢„æµ‹æ—¶ä»ç¨€ç–å‚æ•°æœåŠ¡è·å–åˆ°embeddingå‘é‡åï¼Œå°†æ•°æ®ç›´æ¥feedåˆ°å„ä¸ªembeddingçš„output variableã€‚
 
-»ùÓÚÒÔÉÏ¼¸·½Ãæ¿¼ÂÇ£¬ÎÒÃÇĞèÒª¶ÔÔ­Ê¼program½øĞĞ²Ã¼ô¡£´óÖÂ¹ı³ÌÎª£º
+åŸºäºä»¥ä¸Šå‡ æ–¹é¢è€ƒè™‘ï¼Œæˆ‘ä»¬éœ€è¦å¯¹åŸå§‹programè¿›è¡Œè£å‰ªã€‚å¤§è‡´è¿‡ç¨‹ä¸ºï¼š
 
-1) È¥µôpy_readerÏà¹Ø´úÂë£¬¸ÄÎªÓÃfluid×Ô´øµÄreaderºÍDataFeed
-2) ĞŞ¸ÄÔ­Ê¼ÍøÂçÅäÖÃ£¬½«predict±äÁ¿×÷Îªfetch target
-3) ĞŞ¸ÄÔ­Ê¼ÍøÂçÅäÖÃ£¬½«26¸öÏ¡Êè²ÎÊıµÄembedding layerµÄoutput×÷Îªfeed target£¬ÒÔÓëºóĞøÏ¡Êè²ÎÊı·şÎñÅäºÏÊ¹ÓÃ
-4) ĞŞ¸ÄºóµÄÍøÂç£¬±¾µØtrain 1¸öbatchºó£¬µ÷ÓÃ`fluid.io.save_inference_model()`£¬»ñµÃ²Ã¼ôºóµÄÄ£ĞÍprogram
-5) ²Ã¼ôºóµÄprogram£¬ÓÃpythonÔÙ´Î´¦Àí£¬È¥µôembedding layerµÄlookup_table OP¡£ÕâÊÇÒòÎª£¬µ±Ç°Paddle FluidÔÚµÚ4²½`save_inference_model()`Ê±Ã»ÓĞ²Ã¼ô¸É¾»£¬»¹±£ÁôÁËembeddingµÄlookup_table OP£»Èç¹ûÕâĞ©OP²»È¥³ıµô£¬ÄÇÃ´embeddingµÄoutput variable¾Í»áÓĞ2¸öÊäÈëOP£ºÒ»¸öÊÇfeed OP£¨ÎÒÃÇÒªÌí¼ÓµÄ£©£¬Ò»¸öÊÇlookup_table£»¶ølookup_tableÓÖÃ»ÓĞÊäÈë£¬ËüµÄÊä³ö»áÓëfeed OPµÄÊä³ö»¥Ïà¸²¸Ç£¬µ¼ÖÂ´íÂÒ
-6) µÚ4²½ÄÃµ½µÄprogram£¬Óë·Ö²¼Ê½ÑµÁ·±£´æµÄÄ£ĞÍ²ÎÊı£¨³ıembeddingÖ®Íâ£©±£´æµ½Ò»Æğ£¬ĞÎ³ÉÍêÕûµÄÔ¤²âÄ£ĞÍ
+1) å»æ‰py_readerç›¸å…³ä»£ç ï¼Œæ”¹ä¸ºç”¨fluidè‡ªå¸¦çš„readerå’ŒDataFeed
+2) ä¿®æ”¹åŸå§‹ç½‘ç»œé…ç½®ï¼Œå°†predictå˜é‡ä½œä¸ºfetch target
+3) ä¿®æ”¹åŸå§‹ç½‘ç»œé…ç½®ï¼Œå°†26ä¸ªç¨€ç–å‚æ•°çš„embedding layerçš„outputä½œä¸ºfeed targetï¼Œä»¥ä¸åç»­ç¨€ç–å‚æ•°æœåŠ¡é…åˆä½¿ç”¨
+4) ä¿®æ”¹åçš„ç½‘ç»œï¼Œæœ¬åœ°train 1ä¸ªbatchåï¼Œè°ƒç”¨`fluid.io.save_inference_model()`ï¼Œè·å¾—è£å‰ªåçš„æ¨¡å‹program
+5) è£å‰ªåçš„programï¼Œç”¨pythonå†æ¬¡å¤„ç†ï¼Œå»æ‰embedding layerçš„lookup_table OPã€‚è¿™æ˜¯å› ä¸ºï¼Œå½“å‰Paddle Fluidåœ¨ç¬¬4æ­¥`save_inference_model()`æ—¶æ²¡æœ‰è£å‰ªå¹²å‡€ï¼Œè¿˜ä¿ç•™äº†embeddingçš„lookup_table OPï¼›å¦‚æœè¿™äº›OPä¸å»é™¤æ‰ï¼Œé‚£ä¹ˆembeddingçš„output variableå°±ä¼šæœ‰2ä¸ªè¾“å…¥OPï¼šä¸€ä¸ªæ˜¯feed OPï¼ˆæˆ‘ä»¬è¦æ·»åŠ çš„ï¼‰ï¼Œä¸€ä¸ªæ˜¯lookup_tableï¼›è€Œlookup_tableåˆæ²¡æœ‰è¾“å…¥ï¼Œå®ƒçš„è¾“å‡ºä¼šä¸feed OPçš„è¾“å‡ºäº’ç›¸è¦†ç›–ï¼Œå¯¼è‡´é”™ä¹±ã€‚å¦å¤–ç½‘ç»œä¸­è¿˜ä¿ç•™äº†SparseFeatFactorsè¿™ä¸ªvariable(å…¨å±€å…±äº«çš„embeddingçŸ©é˜µå¯¹åº”çš„å˜é‡)ï¼Œè¿™ä¸ªvariableä¹Ÿè¦å»æ‰ï¼Œå¦åˆ™ç½‘ç»œåŠ è½½æ—¶è¿˜ä¼šå°è¯•ä»ç£ç›˜è¯»å–embeddingå‚æ•°ï¼Œå°±å¤±å»äº†æˆ‘ä»¬è¿™ä¸ªdemoçš„æ„ä¹‰ã€‚
+6) ç¬¬4æ­¥æ‹¿åˆ°çš„programï¼Œä¸åˆ†å¸ƒå¼è®­ç»ƒä¿å­˜çš„æ¨¡å‹å‚æ•°ï¼ˆé™¤embeddingä¹‹å¤–ï¼‰ä¿å­˜åˆ°ä¸€èµ·ï¼Œå½¢æˆå®Œæ•´çš„é¢„æµ‹æ¨¡å‹
 
-µÚ1) - µÚ5)²½²Ã¼ôÍê±ÏºóµÄÄ£ĞÍÍøÂçÅäÖÃÈçÏÂ£º
+ç¬¬1) - ç¬¬5)æ­¥è£å‰ªå®Œæ¯•åçš„æ¨¡å‹ç½‘ç»œé…ç½®å¦‚ä¸‹ï¼š
 
 ![Pruned CTR prediction network](doc/pruned-ctr-network.png)
 
 
-Õû¸ö²Ã¼ô¹ı³Ì¾ßÌåËµÃ÷ÈçÏÂ£º
+æ•´ä¸ªè£å‰ªè¿‡ç¨‹å…·ä½“è¯´æ˜å¦‚ä¸‹ï¼š
 
-### 2.1 ÍøÂçÅäÖÃÖĞÈ¥³ıpy_reader
+### 2.1 ç½‘ç»œé…ç½®ä¸­å»é™¤py_reader
 
-Inference programµ÷ÓÃctr_dnn_model()º¯ÊıÊ±Ìí¼Ó`user_py_reader=False`²ÎÊı¡£Õâ»áÔÚctr_dnn_model¶¨ÒåÖĞ½«py_readerÏà¹ØµÄ´úÂëÈ¥µô
+Inference programè°ƒç”¨ctr_dnn_model()å‡½æ•°æ—¶æ·»åŠ `user_py_reader=False`å‚æ•°ã€‚è¿™ä¼šåœ¨ctr_dnn_modelå®šä¹‰ä¸­å°†py_readerç›¸å…³çš„ä»£ç å»æ‰
 
-ĞŞ¸ÄÇ°£º
+ä¿®æ”¹å‰ï¼š
 ```python
 def train():
     args = parse_args()
@@ -47,7 +47,7 @@ def train():
     ...
 ```
 
-ĞŞ¸Äºó£º
+ä¿®æ”¹åï¼š
 ```python
 def train():
     args = parse_args()
@@ -60,14 +60,14 @@ def train():
 ```
 
 
-### 2.2 ÍøÂçÅäÖÃÖĞĞŞ¸Äfeed targetsºÍfetch targets
+### 2.2 ç½‘ç»œé…ç½®ä¸­ä¿®æ”¹feed targetså’Œfetch targets
 
-ÈçµÚ2½Ú¿ªÍ·ËùÊö£¬ÎªÁËÊ¹programÊÊºÏÓÚÑİÊ¾Ï¡Êè²ÎÊıµÄÊ¹ÓÃ£¬ÎÒÃÇÒª²Ã¼ôprogram£¬½«`ctr_dnn_model`ÖĞfeed variable listºÍfetch variable·Ö±ğ¸Äµô£º
+å¦‚ç¬¬2èŠ‚å¼€å¤´æ‰€è¿°ï¼Œä¸ºäº†ä½¿programé€‚åˆäºæ¼”ç¤ºç¨€ç–å‚æ•°çš„ä½¿ç”¨ï¼Œæˆ‘ä»¬è¦è£å‰ªprogramï¼Œå°†`ctr_dnn_model`ä¸­feed variable listå’Œfetch variableåˆ†åˆ«æ”¹æ‰ï¼š
 
-1) Inference programÖĞ26Î¬Ï¡ÊèÌØÕ÷µÄÊäÈë¸ÄÎªÃ¿¸öÌØÕ÷µÄembedding layerµÄoutput variable
-2) fetch targetsÖĞ·µ»ØµÄÊÇpredict£¬È¡´úauc_varºÍbatch_auc_var
+1) Inference programä¸­26ç»´ç¨€ç–ç‰¹å¾çš„è¾“å…¥æ”¹ä¸ºæ¯ä¸ªç‰¹å¾çš„embedding layerçš„output variable
+2) fetch targetsä¸­è¿”å›çš„æ˜¯predictï¼Œå–ä»£auc_varå’Œbatch_auc_var
 
-½ØÖÁĞ´±¾ÎÄÊ±£¬Ô­Ê¼µÄÍøÂçÅäÖÃ (network_conf.pyÖĞ)`ctr_dnn_model`¶¨ÒåÈçÏÂ£º
+æˆªè‡³å†™æœ¬æ–‡æ—¶ï¼ŒåŸå§‹çš„ç½‘ç»œé…ç½® (network_conf.pyä¸­)`ctr_dnn_model`å®šä¹‰å¦‚ä¸‹ï¼š
 
 ```python
 def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
@@ -82,7 +82,7 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
             size=[sparse_feature_dim, embedding_size],
             param_attr=fluid.ParamAttr(name="SparseFeatFactors",
                                        initializer=fluid.initializer.Uniform()))
-        return fluid.layers.sequence_pool(input=emb, pool_type='average')    # ĞèĞŞ¸Ä1
+        return fluid.layers.sequence_pool(input=emb, pool_type='average')    # éœ€ä¿®æ”¹1
 
     dense_input = fluid.layers.data(
         name="dense_input", shape=[dense_feature_dim], dtype='float32')
@@ -103,7 +103,7 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
                                                           use_double_buffer=True)
         words = fluid.layers.read_file(py_reader)
 
-    sparse_embed_seq = list(map(embedding_layer, words[1:-1]))              # ĞèĞŞ¸Ä2
+    sparse_embed_seq = list(map(embedding_layer, words[1:-1]))              # éœ€ä¿®æ”¹2
     concated = fluid.layers.concat(sparse_embed_seq + words[0:1], axis=1)
 
     fc1 = fluid.layers.fc(input=concated, size=400, act='relu',
@@ -125,10 +125,10 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
     auc_var, batch_auc_var, auc_states = \
         fluid.layers.auc(input=predict, label=words[-1], num_thresholds=2 ** 12, slide_steps=20)
 
-    return avg_cost, auc_var, batch_auc_var, py_reader, words              # ĞèĞŞ¸Ä3
+    return avg_cost, auc_var, batch_auc_var, py_reader, words              # éœ€ä¿®æ”¹3
 ```
 
-ĞŞ¸Äºó
+ä¿®æ”¹å
 
 ```python
 def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
@@ -143,7 +143,7 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
             param_attr=fluid.ParamAttr(name="SparseFeatFactors",
                                        initializer=fluid.initializer.Uniform()))
         seq = fluid.layers.sequence_pool(input=emb, pool_type='average')
-        return emb, seq                                                   # ¶ÔÓ¦ÉÏÎÄĞŞ¸Ä´¦1
+        return emb, seq                                                   # å¯¹åº”ä¸Šæ–‡ä¿®æ”¹å¤„1
     dense_input = fluid.layers.data(
         name="dense_input", shape=[dense_feature_dim], dtype='float32')
     sparse_input_ids = [
@@ -153,12 +153,12 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
     words = [dense_input] + sparse_input_ids + [label]
     sparse_embed_and_seq = list(map(embedding_layer, words[1:-1]))
     
-    emb_list = [x[0] for x in sparse_embed_and_seq]                       # ¶ÔÓ¦ÉÏÎÄĞŞ¸Ä´¦2
+    emb_list = [x[0] for x in sparse_embed_and_seq]                       # å¯¹åº”ä¸Šæ–‡ä¿®æ”¹å¤„2
     sparse_embed_seq = [x[1] for x in sparse_embed_and_seq]
     
     concated = fluid.layers.concat(sparse_embed_seq + words[0:1], axis=1)
     
-    train_feed_vars = words                                              # ¶ÔÓ¦ÉÏÎÄĞŞ¸Ä´¦2
+    train_feed_vars = words                                              # å¯¹åº”ä¸Šæ–‡ä¿®æ”¹å¤„2
     inference_feed_vars = emb_list + words[0:1]
     
     fc1 = fluid.layers.fc(input=concated, size=400, act='relu',
@@ -180,30 +180,30 @@ def ctr_dnn_model(embedding_size, sparse_feature_dim, use_py_reader=True):
         fluid.layers.auc(input=predict, label=words[-1], num_thresholds=2 ** 12, slide_steps=20)
     fetch_vars = [predict]
     
-    # ¶ÔÓ¦ÉÏÎÄĞŞ¸Ä´¦3
+    # å¯¹åº”ä¸Šæ–‡ä¿®æ”¹å¤„3
     return avg_cost, auc_var, batch_auc_var, train_feed_vars, inference_feed_vars, fetch_vars
 ```
 
-ËµÃ÷£º
+è¯´æ˜ï¼š
 
-1) ĞŞ¸Ä´¦1£¬ÎÒÃÇ½«embedding layerµÄÊä³ö±äÁ¿·µ»Ø
-2) ĞŞ¸Ä´¦2£¬ÎÒÃÇ½«embedding layerµÄÊä³ö±äÁ¿±£´æµ½`emb_list`£¬ºóÕß½øÒ»²½±£´æµ½`inference_feed_vars`£¬ÓÃÀ´½«À´ÔÚ`save_inference_model()`Ê±Ö¸¶¨feed variable list¡£
-3) ĞŞ¸Ä´¦3£¬ÎÒÃÇ½«`words`±äÁ¿×÷ÎªÑµÁ·Ê±µÄfeed variable list (`train_feed_vars`)£¬½«embedding layerµÄoutput variable×÷ÎªinferÊ±µÄfeed variable list (`inference_feed_vars`)£¬½«`predict`×÷Îªfetch target (`fetch_vars`)£¬·Ö±ğ·µ»Ø¡£`inference_feed_vars`ºÍ`fetch_vars`ÓÃÓÚ`fluid.io.save_inference_model()`Ê±Ö¸¶¨feed variable listºÍfetch target list
+1) ä¿®æ”¹å¤„1ï¼Œæˆ‘ä»¬å°†embedding layerçš„è¾“å‡ºå˜é‡è¿”å›
+2) ä¿®æ”¹å¤„2ï¼Œæˆ‘ä»¬å°†embedding layerçš„è¾“å‡ºå˜é‡ä¿å­˜åˆ°`emb_list`ï¼Œåè€…è¿›ä¸€æ­¥ä¿å­˜åˆ°`inference_feed_vars`ï¼Œç”¨æ¥å°†æ¥åœ¨`save_inference_model()`æ—¶æŒ‡å®šfeed variable listã€‚
+3) ä¿®æ”¹å¤„3ï¼Œæˆ‘ä»¬å°†`words`å˜é‡ä½œä¸ºè®­ç»ƒæ—¶çš„feed variable list (`train_feed_vars`)ï¼Œå°†embedding layerçš„output variableä½œä¸ºinferæ—¶çš„feed variable list (`inference_feed_vars`)ï¼Œå°†`predict`ä½œä¸ºfetch target (`fetch_vars`)ï¼Œåˆ†åˆ«è¿”å›ã€‚`inference_feed_vars`å’Œ`fetch_vars`ç”¨äº`fluid.io.save_inference_model()`æ—¶æŒ‡å®šfeed variable listå’Œfetch target list
 
 
-### 2.3 fluid.io.save_inference_model()±£´æ²Ã¼ôºóµÄprogram
+### 2.3 fluid.io.save_inference_model()ä¿å­˜è£å‰ªåçš„program
 
-`fluid.io.save_inference_model()`²»½ö±£´æÄ£ĞÍ²ÎÊı£¬»¹ÄÜ¹»¸ù¾İfeed variable listºÍfetch target list²ÎÊı£¬¶Ôprogram½øĞĞ²Ã¼ô£¬ĞÎ³ÉÊÊºÏinferenceÓÃµÄprogram¡£´óÖÂÔ­ÀíÊÇ£¬¸ù¾İÇ°ÏòÍøÂçÅäÖÃ£¬´Ófetch target list¿ªÊ¼£¬·´Ïò²éÕÒÆäËùÒÀÀµµÄOPÁĞ±í£¬²¢½«Ã¿¸öOPµÄÊäÈë¼ÓÈëÄ¿±êvariable list£¬ÔÙ´Îµİ¹éµØ·´ÏòÕÒµ½ËùÓĞÒÀÀµOPºÍvariable list¡£
+`fluid.io.save_inference_model()`ä¸ä»…ä¿å­˜æ¨¡å‹å‚æ•°ï¼Œè¿˜èƒ½å¤Ÿæ ¹æ®feed variable listå’Œfetch target listå‚æ•°ï¼Œå¯¹programè¿›è¡Œè£å‰ªï¼Œå½¢æˆé€‚åˆinferenceç”¨çš„programã€‚å¤§è‡´åŸç†æ˜¯ï¼Œæ ¹æ®å‰å‘ç½‘ç»œé…ç½®ï¼Œä»fetch target listå¼€å§‹ï¼Œåå‘æŸ¥æ‰¾å…¶æ‰€ä¾èµ–çš„OPåˆ—è¡¨ï¼Œå¹¶å°†æ¯ä¸ªOPçš„è¾“å…¥åŠ å…¥ç›®æ ‡variable listï¼Œå†æ¬¡é€’å½’åœ°åå‘æ‰¾åˆ°æ‰€æœ‰ä¾èµ–OPå’Œvariable listã€‚
 
-ÔÚ2.2½ÚÖĞÎÒÃÇÒÑ¾­ÄÃµ½ËùĞèµÄ`inference_feed_vars`ºÍ`fetch_vars`£¬½ÓÏÂÀ´Ö»ÒªÔÚÑµÁ·¹ı³ÌÖĞÃ¿´Î±£´æÄ£ĞÍ²ÎÊıÊ±¸ÄÎªµ÷ÓÃ`fluid.io.save_inference_model()`£º
+åœ¨2.2èŠ‚ä¸­æˆ‘ä»¬å·²ç»æ‹¿åˆ°æ‰€éœ€çš„`inference_feed_vars`å’Œ`fetch_vars`ï¼Œæ¥ä¸‹æ¥åªè¦åœ¨è®­ç»ƒè¿‡ç¨‹ä¸­æ¯æ¬¡ä¿å­˜æ¨¡å‹å‚æ•°æ—¶æ”¹ä¸ºè°ƒç”¨`fluid.io.save_inference_model()`ï¼š
 
-ĞŞ¸ÄÇ°£º
+ä¿®æ”¹å‰ï¼š
 
 ```python
 def train_loop(args, train_program, py_reader, loss, auc_var, batch_auc_var,
                trainer_num, trainer_id):
     
-...Ê¡ÂÔ
+...çœç•¥
     for pass_id in range(args.num_passes):
         pass_start = time.time()
         batch_id = 0
@@ -227,23 +227,23 @@ def train_loop(args, train_program, py_reader, loss, auc_var, batch_auc_var,
         except fluid.core.EOFException:
             py_reader.reset()
         print("pass_id: %d, pass_time_cost: %f" % (pass_id, time.time() - pass_start))
-...Ê¡ÂÔ
+...çœç•¥
 ```
 
-ĞŞ¸Äºó
+ä¿®æ”¹å
 
 ```python
 def train_loop(args,
                train_program,
                train_feed_vars,
-               inference_feed_vars,  # ²Ã¼ôprogramÓÃµÄfeed variable list
-               fetch_vars,           # ²Ã¼ôprogramÓÃµÄfetch variable list
+               inference_feed_vars,  # è£å‰ªprogramç”¨çš„feed variable list
+               fetch_vars,           # è£å‰ªprogramç”¨çš„fetch variable list
                loss,
                auc_var,
                batch_auc_var,
                trainer_num,
                trainer_id):
-    # ÒòÎªÒÑ¾­½«py_readerÈ¥µô£¬ÕâÀïÓÃfluid×Ô´øµÄDataFeeder
+    # å› ä¸ºå·²ç»å°†py_readerå»æ‰ï¼Œè¿™é‡Œç”¨fluidè‡ªå¸¦çš„DataFeeder
     dataset = reader.CriteoDataset(args.sparse_feature_dim)
     train_reader = paddle.batch(
         paddle.reader.shuffle(
@@ -272,7 +272,7 @@ def train_loop(args,
                                       fetch_vars,
                                       exe,
                                       fluid.default_main_program())
-        break # ÎÒÃÇÖ»Òª²Ã¼ôºóµÄprogram£¬²»ĞèÒªÄ£ĞÍ²ÎÊı£¬Òò´ËÖ»trainÒ»¸öbatch¾ÍÍ£Ö¹ÁË
+        break # æˆ‘ä»¬åªè¦è£å‰ªåçš„programï¼Œä¸éœ€è¦æ¨¡å‹å‚æ•°ï¼Œå› æ­¤åªtrainä¸€ä¸ªbatchå°±åœæ­¢äº†
     loss_val = np.mean(loss_val)
     auc_val = np.mean(auc_val)
     batch_auc_val = np.mean(batch_auc_val)
@@ -280,47 +280,55 @@ def train_loop(args,
                       .format(pass_id, batch_id, loss_val/args.batch_size, auc_val, batch_auc_val))
 ```
 
-### 2.4 ÓÃpythonÔÙ´Î´¦Àíinference program£¬È¥³ılookup_table OP
+### 2.4 ç”¨pythonå†æ¬¡å¤„ç†inference programï¼Œå»é™¤lookup_table OPå’ŒSparseFeatFactorså˜é‡
 
-ÕâÒ»²½ÊÇÒòÎª`fluid.io.save_inference_model()`²Ã¼ô³öµÄprogramÃ»ÓĞ½«lookup_table OPÈ¥³ı¡£Î´À´Èç¹û`save_inference_model`½Ó¿ÚÍêÉÆ£¬±¾½Ú¿ÉÌø¹ı
+è¿™ä¸€æ­¥æ˜¯å› ä¸º`fluid.io.save_inference_model()`è£å‰ªå‡ºçš„programæ²¡æœ‰å°†lookup_table OPå»é™¤ã€‚æœªæ¥å¦‚æœ`save_inference_model`æ¥å£å®Œå–„ï¼Œæœ¬èŠ‚å¯è·³è¿‡
 
-Ö÷Òª´úÂë£º
+ä¸»è¦ä»£ç ï¼š
 
 ```python
-ef prune_program():
-    # ´Ó´ÅÅÌ¶ÁÈëinference program
+def prune_program():
     args = parse_args()
+    
+    # ä»ç£ç›˜æ‰“å¼€ç½‘ç»œé…ç½®æ–‡ä»¶å¹¶ååºåˆ—åŒ–æˆprotobuf message
     model_dir = args.model_output_dir + "/inference_only"
     model_file = model_dir + "/__model__"
     with open(model_file, "rb") as f:
         protostr = f.read()
     f.close()
-    
-    # ·´ĞòÁĞ»¯Îªprotobuf message
     proto = framework_pb2.ProgramDesc.FromString(six.binary_type(protostr))
     
-    # ±éÀúËùÓĞOP£¬È¥³ılookup_table
+    # å»é™¤lookup_table OP
     block = proto.blocks[0]
     kept_ops = [op for op in block.ops if op.type != "lookup_table"]
     del block.ops[:]
     block.ops.extend(kept_ops)
     
-    # ±£´æĞŞ¸ÄºóµÄprogram
+    # å»é™¤SparseFeatFactors var
+    kept_vars = [var for var in block.vars if var.name != "SparseFeatFactors"]
+    del block.vars[:]
+    block.vars.extend(kept_vars)
+    
+    # å†™å›ç£ç›˜æ–‡ä»¶
     with open(model_file + ".pruned", "wb") as f:
         f.write(proto.SerializePartialToString())
     f.close()
+    with open(model_file + ".prototxt.pruned", "w") as f:
+        f.write(text_format.MessageToString(proto))
+    f.close()
 ```
-### 2.5 ²Ã¼ô¹ı³Ì´®µ½Ò»Æğ
 
-ÎÒÃÇÌá¹©ÁËÍêÕûµÄ²Ã¼ôCTRÔ¤¹ÀÄ£ĞÍµÄ½Å±¾ÎÄ¼şsave_program.py£¬Í¬[CTR·Ö²¼Ê½ÑµÁ·ÈÎÎñ](doc/DISTRIBUTED_TRAINING_AND_SERVING.md)Ò»Æğ·¢²¼£¬¿ÉÒÔÔÚtrainerºÍpserverÈİÆ÷µÄÑµÁ·½Å±¾Ä¿Â¼ÏÂÕÒµ½
+### 2.5 è£å‰ªè¿‡ç¨‹ä¸²åˆ°ä¸€èµ·
 
-## 3. Õû¸öÔ¤²â¼ÆËãÁ÷³Ì
+æˆ‘ä»¬æä¾›äº†å®Œæ•´çš„è£å‰ªCTRé¢„ä¼°æ¨¡å‹çš„è„šæœ¬æ–‡ä»¶save_program.pyï¼ŒåŒ[CTRåˆ†å¸ƒå¼è®­ç»ƒä»»åŠ¡](doc/DISTRIBUTED_TRAINING_AND_SERVING.md)ä¸€èµ·å‘å¸ƒï¼Œå¯ä»¥åœ¨trainerå’Œpserverå®¹å™¨çš„è®­ç»ƒè„šæœ¬ç›®å½•ä¸‹æ‰¾åˆ°
 
-Client¶Ë£º
-1) Dense feature: ´ÓdatasetÃ¿ÌõÑùÀı¶ÁÈ¡13¸öinteger features£¬ĞÎ³É1¸ödense feature
-2) Sparse feature: ´ÓdatasetÃ¿ÌõÑùÀı¶ÁÈ¡26¸öcategorical feature£¬·Ö±ğ¾­¹ıhash(str(feature_index) + feature_string)Ç©Ãû£¬µÃµ½Ã¿¸öfeatureµÄid£¬ĞÎ³É26¸ösparse feature
+## 3. æ•´ä¸ªé¢„æµ‹è®¡ç®—æµç¨‹
 
-Serving¶Ë:
-1) Dense feature: dense feature¹²13¸öfloatĞÍÊı×Ö£¬Ò»Æğfeedµ½ÍøÂçdense_inputÕâ¸övariable¶ÔÓ¦µÄLodTensor
-2) Sparse feature: 26¸ösparse feature id£¬·Ö±ğ·ÃÎÊkv·şÎñ»ñÈ¡¶ÔÓ¦µÄembeddingÏòÁ¿£¬feedµ½¶ÔÓ¦µÄ26¸öembedding layerµÄoutput variable¡£ÔÚÎÒÃÇ²Ã¼ô³öÀ´µÄÍøÂçÖĞ£¬ÕâĞ©variable·Ö±ğ¶ÔÓ¦µÄ±äÁ¿ÃûÎªembedding_0.tmp_0, embedding_1.tmp_0, ... embedding_25.tmp_0
-3) Ö´ĞĞÔ¤²â£¬»ñÈ¡Ô¤²â½á¹û¡£
+Clientç«¯ï¼š
+1) Dense feature: ä»datasetæ¯æ¡æ ·ä¾‹è¯»å–13ä¸ªinteger featuresï¼Œå½¢æˆ1ä¸ªdense feature
+2) Sparse feature: ä»datasetæ¯æ¡æ ·ä¾‹è¯»å–26ä¸ªcategorical featureï¼Œåˆ†åˆ«ç»è¿‡hash(str(feature_index) + feature_string)ç­¾åï¼Œå¾—åˆ°æ¯ä¸ªfeatureçš„idï¼Œå½¢æˆ26ä¸ªsparse feature
+
+Servingç«¯:
+1) Dense feature: dense featureå…±13ä¸ªfloatå‹æ•°å­—ï¼Œä¸€èµ·feedåˆ°ç½‘ç»œdense_inputè¿™ä¸ªvariableå¯¹åº”çš„LodTensor
+2) Sparse feature: 26ä¸ªsparse feature idï¼Œåˆ†åˆ«è®¿é—®kvæœåŠ¡è·å–å¯¹åº”çš„embeddingå‘é‡ï¼Œfeedåˆ°å¯¹åº”çš„26ä¸ªembedding layerçš„output variableã€‚åœ¨æˆ‘ä»¬è£å‰ªå‡ºæ¥çš„ç½‘ç»œä¸­ï¼Œè¿™äº›variableåˆ†åˆ«å¯¹åº”çš„å˜é‡åä¸ºembedding_0.tmp_0, embedding_1.tmp_0, ... embedding_25.tmp_0
+3) æ‰§è¡Œé¢„æµ‹ï¼Œè·å–é¢„æµ‹ç»“æœã€‚

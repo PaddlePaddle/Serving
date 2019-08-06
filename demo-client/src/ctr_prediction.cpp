@@ -57,6 +57,15 @@ std::vector<std::string> split(const std::string& str,
   return res;
 }
 
+/**
+ * Simulate CPython hash function on string objects
+ *
+ * Our model training process use this function to convert string objects to
+ * unique ids.
+ *
+ * See string_hash() in
+ * https://svn.python.org/projects/python/trunk/Objects/stringobject.c
+ */
 int64_t hash(std::string str) {
   int64_t len;
   unsigned char* p;
@@ -121,7 +130,7 @@ void print_res(const Request& req,
   for (uint32_t i = 0; i < res.predictions_size(); ++i) {
     const CTRResInstance& res_ins = res.predictions(i);
     std::ostringstream oss;
-    oss << res_ins.prob0() << " ";
+    oss << "[" << res_ins.prob0() << " " << res_ins.prob1() << "]";
     LOG(INFO) << "Receive result " << oss.str();
   }
   LOG(INFO) << "Succ call predictor[ctr_prediction_service], the tag is: "
@@ -141,7 +150,6 @@ void thread_worker(PredictorApi* api,
   std::string line;
   int turns = 0;
   while (turns < 1000) {
-    ///
     timeval start;
     gettimeofday(&start, NULL);
     api->thrd_clear();
