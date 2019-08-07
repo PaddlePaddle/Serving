@@ -76,3 +76,5 @@ target_link_libraries(cube_test brpc ${DYNAMIC_LIB} gtest -lpthread -ldl -lz)
 install(TARGETS cube
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin
         )
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR})
