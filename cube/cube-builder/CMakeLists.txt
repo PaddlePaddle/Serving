@@ -47,3 +47,5 @@ target_link_libraries(cube-builder ${DYNAMIC_LIB})
 
 # install
 install(TARGETS cube-builder RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin)
+
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/tool DESTINATION ${PADDLE_SERVING_INSTALL_DIR})
