@@ -121,6 +121,7 @@ int CTRPredictionOp::inference() {
                  << CTR_PREDICTION_MODEL_NAME;
       fill_response_with_message(
           res, -1, "sparse_param_service_table_name not specified");
+      return 0;
     }
   }
 
