@@ -12,7 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
+set(CMAKE_Go_COMPILER_WORKS 1 CACHE INTERNAL "")

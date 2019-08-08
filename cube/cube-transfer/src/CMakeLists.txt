@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
+set(SOURCE_FILE cube-transfer.go)
+add_go_executable(cube-transfer ${SOURCE_FILE})
+add_dependencies(cube-transfer docopt-go)
+add_dependencies(cube-transfer rfw)
+add_dependencies(cube-transfer logex)

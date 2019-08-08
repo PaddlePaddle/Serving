@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(cmake/golang.cmake)
+
+ExternalGoProject_Add(docopt-go github.com/docopt/docopt-go)
+ExternalGoProject_Add(rfw github.com/mipearson/rfw)
+ExternalGoProject_Add(logex github.com/Badangel/logex)
+
+add_subdirectory(src)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION ${PADDLE_SERVING_INSTALL_DIR})
