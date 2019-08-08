@@ -1,9 +1,30 @@
-# paddle serving 大规模稀疏参数流程化部署
+# PaddlePaddle分布式训练和Serving流程化部署
+
 * [环境配置](#环境配置)
 * [分布式训练](#分布式训练)
     * [1、集群配置](#1、集群配置)
         * [1.1 创建集群](#1.1 创建集群)
         * [1.2 配置集群环境](# 1.2 配置集群环境)
+
+在搜索、推荐、在线广告等业务场景中，embedding参数的规模常常非常庞大，达到数百GB甚至T级别；训练如此规模的模型需要用到多机分布式训练能力，将参数分片更新和保存；另一方面，训练好的模型，要应用于在线业务，也难以单机加载。Paddle Serving提供大规模稀疏参数读写服务，用户可以方便地将超大规模的稀疏参数以kv形式托管到参数服务，在线预测只需将所需要的参数子集从参数服务读取回来，再执行后续的预测流程。
+
+本文以CTR预估任务为例，提供一个完整的基于PaddlePaddle的分布式训练和Serving的流程化部署过程。基于此流程，用户可定制自己的端到端深度学习训练和应用解决方案。
+
+本文演示的基于PaddlePaddle的分布式训练和Serving流程化部署，基于CTR预估任务，原始模型可参见[PaddlePaddle公开模型github repo](https://github.com/PaddlePaddle/models/tree/develop/PaddleRec/ctr)。 整体拓扑架构如下图所示：
+
+![PaddlePaddle分布式训练和Serving流程化部署拓扑](./deploy/ctr-prediction-end-to-end-deployment.png)
+
+其中：
+1) 分布式训练集群在百度云k8s集群上搭建，并通过[volcano](https://volcano.sh/)提交分布式训练任务和资源管理
+2) 分布式训练产出dense参数和ProgramDesc，通过http服务直接下载到Serving端，给Serving加载
+3) 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
+4) 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
+
+以下从3部分分别介绍上图中各个组件：
+1) 分布式训练集群和训练任务提交
+2) 稀疏参数服务部署与使用
+3) Paddle Serving的部署
+4) 客户端访问Paddle Serving完成CTR预估任务预测请求
 
 ## 环境配置
 
@@ -213,6 +234,147 @@ python dumper.py --model_path=xxx --output_data_path=xxx
 ```
 
 **注意事项：**文档中使用的CTR模型训练镜像中已经包含了模型裁剪以及稀疏参数产出的脚本，并且搭建了一个http服务用于从外部获取产出的dense模型以及稀疏参数文件。
+
+## 大规模稀疏参数服务Cube的部署和使用
+
+Cube大规模稀疏参数服务服务组件，用于承载超大规模稀疏参数的查询、更新等各功能。上述分布式训练产出的稀疏参数，在k8s中以http文件服务的形式提供下载；cube则负责将稀疏参数读取、加工，切分成多个分片，灌入稀疏参数服务集群，提供对外访问。
+
+Cube一共拆分成三个组件，共同完成上述工作：
+
+1) cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端
+2) cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，配送到由多个物理节点组成的稀疏参数服务集群
+3) cube-server 每个单独的cube服务承载一个分片的cube数据
+
+关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。本文仅描述从头部署Cube服务的流程。
+
+### 1. 编译
+
+Cube是Paddle Serving内置的组件，只要按常规步骤编译Serving即可。要注意的是，编译Cube需要Go语言编译器。
+
+```bash
+$ git clone https://github.com/PaddlePaddle/Serving.git
+$ cd Serving
+$ makedir build
+$ cd build
+$ cmake -DWITH_GPU=OFF .. # 不需要GPU
+$ make -jN                # 这里可修改并发编译线程数
+$ make install
+$ cd output/
+$ ls bin
+cube  cube-builder  cube-transfer  pdcodegen
+$ ls conf
+gflags.conf  transfer.conf
+```
+
+其中：
+1) bin/cube, bin/cube-builder, bin/cube-transfer是上述3个组件的可执行文件。**bin/cube是cube-server的可执行文件**
+2) conf/gflags.conf是配合bin/cube使用的配置文件，主要包括端口配置等等
+3) conf/transfer.conf是配合bin/cube-transfer使用的配置文件，主要包括要监听的上游数据地址等等
+
+接下来我们按cube server, cube-builder, cube-transfer的顺序，介绍Cube的完整部署流程
+
+
+
+### 2. 分片cube server部署
+
+
+#### 2.1 配置文件修改
+
+首先修改cube server的配置文件，将端口改为我们需要的端口：
+
+```
+--port=8000
+--dict_split=1
+--in_mem=true
+```
+
+#### 2.2 拷贝可执行文件和配置文件到物理机
+
+将bin/cube和conf/gflags.conf拷贝到多个物理机上。假设拷贝好的文件结构如下：
+
+```
+$ tree
+.
+|-- bin
+|   `-- cube
+`-- conf
+    `-- gflags.conf
+```
+
+#### 2.3 启动 cube server
+
+```bash
+nohup bin/cube &
+```
+
+### 3. cube-builder部署
+
+#### 3.1 配置文件修改
+
+cube-builder配置项说明：
+
+TOBE FILLED
+
+修改如下：
+
+```
+下游节点地址列表
+TOBE FILLED
+```
+
+
+#### 3.2 拷贝可执行文件到物理机
+
+部署完成后目录结构如下：
+```
+TOBE FILLED
+```
+
+#### 3.3 启动cube-builder
+
+```
+启动cube-builder命令
+```
+
+### 4. cube-transfer部署
+
+#### 4.1 cube-transfer配置修改
+
+cube-transfer配置文件是conf/transfer.conf，配置比较复杂；各个配置项含义如下：
+
+1) TOBE FILLED
+2) TOBE FILLED
+...
+
+我们要将上游数据地址配置到配置文件中：
+
+```
+cube-transfer配置文件修改地方：TOBE FILLED
+```
+
+#### 4.2 拷贝cube-transfer到物理机
+
+拷贝完成后，目录结构如下：
+
+```
+TOBE FILLED
+```
+
+#### 4.3 启动cube-transfer
+
+```
+启动cube-transfer命令
+```
+
+### 4.4 验证
+
+一旦cube-transfer部署完成，它就不断监听我们配置好的数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
+
+在上述过程中，经常遇到如下问题，可自行排查解决：
+1) TOBE FILLED
+2) TOBE FILLED
+3) TOBE FILLED
+
 
 ## 预测服务部署
 
