@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
+if(NOT CMAKE_Go_COMPILE_OBJECT)
+  set(CMAKE_Go_COMPILE_OBJECT "go tool compile -l -N -o <OBJECT> <SOURCE> ")
+endif()
+
+if(NOT CMAKE_Go_LINK_EXECUTABLE)
+  set(CMAKE_Go_LINK_EXECUTABLE "go tool link -o <TARGET> <OBJECTS>  ")
+endif()
