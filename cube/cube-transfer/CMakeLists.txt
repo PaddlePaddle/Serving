@@ -14,8 +14,6 @@
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-project(cube-transfer Go)
-
 include(cmake/golang.cmake)
 
 ExternalGoProject_Add(docopt-go github.com/docopt/docopt-go)
