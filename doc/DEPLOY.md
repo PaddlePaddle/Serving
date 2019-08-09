@@ -31,7 +31,7 @@
 		* [4.2 拷贝cube-transfer到物理机](#head27)
 		* [4.3 启动cube-transfer](#head28)
 		* [4.4 cube-transfer支持查询接口](#head281)
-		* [4.5 donefile格式协议](#head29)
+	        * [4.5 donefile格式协议](#head29)
 * [ 预测服务部署](#head30)
 	* [ 1、Server端](#head31)
 		* [1.1 Cube服务](#head32)
@@ -62,7 +62,7 @@
 3. 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
 4. 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
 
-以下从3部分分别介绍上图中各个组件：
+以下从4部分分别介绍上图中各个组件：
 1. 分布式训练集群和训练任务提交
 2. 稀疏参数服务部署与使用
 3. Paddle Serving的部署
@@ -256,25 +256,27 @@ kubectl apply -f volcano-ctr-demo-baiduyun.yaml
 
 ### <span id="head12"> 5、模型产出</span>
 
-CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务器，dense网络部分加载到serving服务中。
+CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务，dense网络部分加载到serving服务中。在本文中使用的CTR模型训练镜像中已经包含了模型裁剪和稀疏参数产出的脚本，以下简述其原理和工作过程。
 
-#### <span id="head13">5.1 模型裁剪</span>
+#### <span id="head13">5.1 模型裁剪，产出预测ProgramDesc和dense参数</span>
 
-产出用于paddle serving预测服务的dense模型需要对保存的原始模型进行裁剪操作，修改模型的输入以及内部结构。具体操作请参考文档[模型裁剪]([https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md#2-%E6%A8%A1%E5%9E%8B%E8%A3%81%E5%89%AA](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md#2-模型裁剪))。
+产出用于paddle serving预测服务的dense模型需要对保存的原始模型进行裁剪操作，修改模型的输入以及内部结构。具体原理和操作流程请参考文档[改造CTR预估模型用于大规模稀疏参数服务演示](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
+
+在trainer镜像中，模型裁剪的主要交互流程是：
+
+1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
+2. 调用save_program.py，生成一个适用于预测的ProgramDesc保存到models/inference_only目录，并将所需参数一并保存到该子目录下
+3. 调用replace_params.py，用models/pass-1000目录下参数文件替换models/inference_only目录下同名参数文件
+4. 打包models/inference_only生成ctr_model.tar.gz，放到HTTP服务目录下，供外部用户手动下载，并替换到Serving的data/models/paddle/fluid/ctr_prediction目录中 (详见本文“预测服务部署”一节)
 
 #### <span id="head14">5.2 稀疏参数产出</span>
 
-分布式稀疏参数服务器由paddle serving的cube模块实现。cube服务器中加载的数据格式为seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
+分布式稀疏参数服务由paddle serving的Cube模块实现。Cube服务接受的原始数据格式为Hadoop seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
 
-可以通过[格式转换脚本](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/dumper.py)
+在trainer镜像中，将模型参数转换为seqfile的主要流程是：
 
-使用方法：
-
-```bash
-python dumper.py --model_path=xxx --output_data_path=xxx
-```
-
-**注意事项：**文档中使用的CTR模型训练镜像中已经包含了模型裁剪以及稀疏参数产出的脚本，并且搭建了一个http服务用于从外部获取产出的dense模型以及稀疏参数文件。
+1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
+2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下，供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
 
 ## <span id="head15"> 大规模稀疏参数服务Cube的部署和使用</span>
 
@@ -528,7 +530,7 @@ cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
 
-将bin/cube-transfer和conf/transfer.conf拷贝到物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
+将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
 假设拷贝好的文件结构如下：
 ```
 $ tree
