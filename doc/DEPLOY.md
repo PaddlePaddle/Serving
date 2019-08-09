@@ -528,7 +528,7 @@ cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
 
-将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
+将bin/cube-transfer和conf/transfer.conf拷贝到物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
 假设拷贝好的文件结构如下：
 ```
 $ tree
