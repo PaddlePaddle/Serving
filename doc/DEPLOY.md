@@ -1,4 +1,4 @@
-# paddle serving 大规模稀疏参数流程化部署
+# PaddlePaddle分布式训练和Serving流程化部署
 
 * [ 环境配置](#head0)
 * [ 分布式训练](#head1)
