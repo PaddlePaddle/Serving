@@ -280,10 +280,10 @@ Cube大规模稀疏参数服务服务组件，用于承载超大规模稀疏参�
 
 Cube一共拆分成四个组件，共同完成上述工作：
 
-1) cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端，然后将建库的数据配送到由多个物理节点组成的稀疏参数服务集群
-2) cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，完成建库工作
-3) cube-server 每个单独的cube服务承载一个分片的cube数据
-4) cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
+1. cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端，然后将建库的数据配送到由多个物理节点组成的稀疏参数服务集群
+2. cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，完成建库工作
+3. cube-server 每个单独的cube服务承载一个分片的cube数据
+4. cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
 
 关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。本文仅描述从头部署Cube服务的流程。
 
