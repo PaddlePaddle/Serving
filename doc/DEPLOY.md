@@ -377,9 +377,9 @@ Flags from /home/work/dangyifei/open-builder/src/main.cpp:
 
 ```
 #### <span id="head23">3.2 拷贝可执行文件到物理机</span>
-需要将bin/cube-builder拷贝到物理机上。
-只利用builder工具建立索引无特殊位置要求，如果介入配送环节使用必须和cube-transfer同机部署。
-假设单独使用builder工具，文件结构如下：
+需要将bin/cube-builder拷贝到物理机上。  
+只利用builder工具建立索引无特殊位置要求，如果接入配送环节使用必须和cube-transfer同机部署。  
+假设单独使用builder工具，文件结构如下：  
 
 ```
 $ tree
@@ -391,10 +391,10 @@ $ tree
 
 #### <span id="head24">3.3 启动cube-builder</span>
 ##### 3.3.1接入配送流程
-拷贝bin/cube-builder和cube-transfer程序同机器
-相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可
+拷贝bin/cube-builder和cube-transfer程序同机器。  
+相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可。  
 ##### 3.3.2单机builder，假设分片数为2，词典名为test
-base模式
+######base模式  
 ```
 启动cube-builder命令
 ./open_builder -input_path=./source -output_path=./output -shard_num=2 -dict_name=test
@@ -425,9 +425,9 @@ $ tree
         |-- 1565323045_1565323045_0_0.json
         `-- 1565323045_1565323045_1_0.json
 ```
-test_part0.tar和test_part0.tar.md5是shard0分片的数据和md5校验，1565323045_1565323045_0_0.json是0号分片的索引长度和数量，在对应版本的delta建库中需要
-delta模式
-需要依赖于上次的base或者delta的id和key，1565323045_1565323045_0_0.json前一个时间戳是id，后一个是key（和分片数据的目录key_id相反），对应cube-builder输入参数-last_version和-depend_version，保持output和dict_name不变（builder会寻找上一轮的index meta信息）
+test_part0.tar和test_part0.tar.md5是shard0分片的数据和md5校验，1565323045_1565323045_0_0.json是0号分片的索引长度和数量，在对应版本的delta建库中需要。  
+######delta模式
+需要依赖于上次的base或者delta的id和key，1565323045_1565323045_0_0.json前一个时间戳是id，后一个是key（和分片数据的目录key_id相反），对应cube-builder输入参数-last_version和-depend_version，保持output和dict_name不变（builder会寻找上一轮的index meta信息）。  
 ```
 启动cube-builder命令
 -input_path=./source -output_path=./output -shard_num=2 -depend_version=1565323045 -last_version=1565323045 -job_mode=delta -dict_name=test
@@ -476,8 +476,8 @@ $ tree
         `-- 1565326078_1565323045_1_0.json
 ```
 #### <span id="head241">3.4 seqfile工具</span>
-builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制
-提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py
+builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制。  
+提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py。  
 kvtool.py 是读seqfile工具，会输出读到的kv信息，参数是文件地址假设在/home/work/test下的seqfile，运行方式如下：
 ```
 python kvtool.py /home/work/test/seqfile
@@ -526,7 +526,8 @@ cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
 
-将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。假设拷贝好的文件结构如下：
+将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
+假设拷贝好的文件结构如下：
 ```
 $ tree
 .
@@ -541,7 +542,7 @@ $ tree
 ```
 ./cube-transfer -p 8099 -l 4 --config conf/transfer.conf
 ```
-### <span id="head281">4.4 cube-transfer支持查询接口</span>
+#### <span id="head281">4.4 cube-transfer支持查询接口</span>
 > 获取当前词典状态  
 >http://10.10.10.5:8099/dict/info  
 
@@ -551,10 +552,10 @@ $ tree
 > 获取配送历史从最近的base到当前正在配送的delta  
 >http://10.10.10.5:8099/dict/deploy/history 
 
-### <span id="head29">4.5 donefile格式协议</span>
+#### <span id="head29">4.5 donefile格式协议</span>
 
-一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
-id最好使用版本产出时间戳，base和patch每产出一条直接在donefile文件最后加一行即可，文件名固定base.txt、patch.txt
+一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。  
+id最好使用版本产出时间戳，base和patch每产出一条直接在donefile文件最后加一行即可，文件名固定base.txt、patch.txt  
 >base.txt每行一条，id和key相同，目录下可有多个文件，不能有文件夹
 >```
 >{"id":"1562000400","key":"1562000400","input":"/home/work/test_data/input/seqfile"}
