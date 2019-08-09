@@ -565,9 +565,9 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 ```bash
 $ cd data/model/paddle/fluid
 $ wget ${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
-$ tar zxvf ctr_model.tar.gz # 假设解压出一个pass-1000目录
+$ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
 $ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
-$ cp -r pass-1000/* ctr_prediction
+$ cp -r inference_only/* ctr_prediction
 $ cd ../../../../           # 切换至serving所在目录
 $ ls
 bin  conf  data  kvdb  log
