@@ -572,7 +572,7 @@ id最好使用版本产出时间戳，base和patch每产出一条直接在donefi
 通过wget命令从集群获取dense部分模型用于Server端。
 
 ```bash
-wget "${公网ip}:/path/to/models"
+wget "http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/path/to/models"
 ```
 
 K8s集群上CTR预估任务训练完成后，模型参数分成2部分：一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
@@ -713,7 +713,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
 ```bash
 $ cd data/model/paddle/fluid
-$ wget ${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
+$ wget http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
 $ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
 $ cp -r inference_only/* ctr_prediction
