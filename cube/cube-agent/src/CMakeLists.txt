@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
-add_subdirectory(cube-agent)
+set(SOURCE_FILE cube-agent.go)
+add_go_executable(cube-agent ${SOURCE_FILE})
+add_dependencies(cube-agent agent-docopt-go)
+add_dependencies(cube-agent agent-logex)
+add_dependencies(cube-agent agent-pipeline)
