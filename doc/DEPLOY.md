@@ -555,7 +555,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载下来的，其制作方法为：
 1. 分布式训练CTR预估任务，保存模型program和参数文件
 2. 用save_program.py保存一份用于预测的program (文件名为**model**)。save_program.py随trainer docker image发布
-3. 第2步中保存的program (**model**) 覆盖到第1)步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
+3. 第2步中保存的program (**model**) 覆盖到第1步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
 
 如果只是为了验证demo流程，serving此时已经可以用自带的CTR模型加载模型并提供预测服务能力。
 
