@@ -61,10 +61,10 @@
 4. 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
 
 以下从3部分分别介绍上图中各个组件：
-1) 分布式训练集群和训练任务提交
-2) 稀疏参数服务部署与使用
-3) Paddle Serving的部署
-4) 客户端访问Paddle Serving完成CTR预估任务预测请求
+1. 分布式训练集群和训练任务提交
+2. 稀疏参数服务部署与使用
+3. Paddle Serving的部署
+4. 客户端访问Paddle Serving完成CTR预估任务预测请求
 ## <span id="head0"> 环境配置</span>
 
 **环境要求** ：helm、kubectl、go
@@ -281,9 +281,9 @@ Cube大规模稀疏参数服务服务组件，用于承载超大规模稀疏参�
 
 Cube一共拆分成三个组件，共同完成上述工作：
 
-1) cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端
-2) cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，配送到由多个物理节点组成的稀疏参数服务集群
-3) cube-server 每个单独的cube服务承载一个分片的cube数据
+1. cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端
+2. cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，配送到由多个物理节点组成的稀疏参数服务集群
+3. cube-server 每个单独的cube服务承载一个分片的cube数据
 
 关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。本文仅描述从头部署Cube服务的流程。
 
@@ -307,9 +307,9 @@ gflags.conf  transfer.conf
 ```
 
 其中：
-1) bin/cube, bin/cube-builder, bin/cube-transfer是上述3个组件的可执行文件。**bin/cube是cube-server的可执行文件**
-2) conf/gflags.conf是配合bin/cube使用的配置文件，主要包括端口配置等等
-3) conf/transfer.conf是配合bin/cube-transfer使用的配置文件，主要包括要监听的上游数据地址等等
+1. bin/cube, bin/cube-builder, bin/cube-transfer是上述3个组件的可执行文件。**bin/cube是cube-server的可执行文件**
+2. conf/gflags.conf是配合bin/cube使用的配置文件，主要包括端口配置等等
+3. conf/transfer.conf是配合bin/cube-transfer使用的配置文件，主要包括要监听的上游数据地址等等
 
 接下来我们按cube server, cube-builder, cube-transfer的顺序，介绍Cube的完整部署流程
 
@@ -382,8 +382,8 @@ TOBE FILLED
 
 cube-transfer配置文件是conf/transfer.conf，配置比较复杂；各个配置项含义如下：
 
-1) TOBE FILLED
-2) TOBE FILLED
+1. TOBE FILLED
+2. TOBE FILLED
 ...
 
 我们要将上游数据地址配置到配置文件中：
@@ -411,9 +411,9 @@ TOBE FILLED
 一旦cube-transfer部署完成，它就不断监听我们配置好的数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
 
 在上述过程中，经常遇到如下问题，可自行排查解决：
-1) TOBE FILLED
-2) TOBE FILLED
-3) TOBE FILLED
+1. TOBE FILLED
+2. TOBE FILLED
+3. TOBE FILLED
 
 
 ## <span id="head30"> 预测服务部署</span>
@@ -552,7 +552,10 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 
 ##### <span id="head38">1.3.4 模型文件</span>
 
-Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载下来的，其制作方法为： 1) 分布式训练CTR预估任务，保存模型program和参数文件 2) 用save_program.py保存一份用于预测的program (文件名为**model**)。save_program.py随trainer docker image发布 3) 第2步中保存的program (**model**) 覆盖到第1)步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
+Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载下来的，其制作方法为：
+1. 分布式训练CTR预估任务，保存模型program和参数文件
+2. 用save_program.py保存一份用于预测的program (文件名为**model**)。save_program.py随trainer docker image发布
+3. 第2步中保存的program (**model**) 覆盖到第1)步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
 
 如果只是为了验证demo流程，serving此时已经可以用自带的CTR模型加载模型并提供预测服务能力。
 
