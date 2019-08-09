@@ -55,10 +55,10 @@
 ![PaddlePaddle分布式训练和Serving流程化部署拓扑](./deploy/ctr-prediction-end-to-end-deployment.png)
 
 其中：
-1) 分布式训练集群在百度云k8s集群上搭建，并通过[volcano](https://volcano.sh/)提交分布式训练任务和资源管理
-2) 分布式训练产出dense参数和ProgramDesc，通过http服务直接下载到Serving端，给Serving加载
-3) 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
-4) 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
+1. 分布式训练集群在百度云k8s集群上搭建，并通过[volcano](https://volcano.sh/)提交分布式训练任务和资源管理
+2. 分布式训练产出dense参数和ProgramDesc，通过http服务直接下载到Serving端，给Serving加载
+3. 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
+4. 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
 
 以下从3部分分别介绍上图中各个组件：
 1) 分布式训练集群和训练任务提交
