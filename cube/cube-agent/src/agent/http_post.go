@@ -2,14 +2,14 @@
 package agent
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"github.com/Badangel/logex"
 )
 
 func initPostHandlers() {
 	postHandler = map[string]handlerFunc{
-		"/agent/cmd":           PostCmd,
+		"/agent/cmd": PostCmd,
 	}
 }
 
@@ -25,7 +25,7 @@ func PostCmd(subpath string, m map[string]string, b []byte) (string, string, err
 		logex.Warningf("Another work with same token is doing. Token(%s)", work.Token())
 		return quote(""), "", fmt.Errorf("Another work with same key is doing.", err)
 	}
-	
+
 	CmdWorkFilter.Store(work.Token(), true)
 	err = work.DoWork()
 	CmdWorkFilter.Delete(work.Token())

@@ -3,8 +3,8 @@ package agent
 import (
 	"errors"
 	"fmt"
-	"sync/atomic"
 	"sync"
+	"sync/atomic"
 )
 
 type (

@@ -417,7 +417,7 @@ func (work *Work) CheckToReload() bool {
 }
 
 func (work *Work) Reload() (err error) {
-	if (work.Port == "") {
+	if work.Port == "" {
 		err = errors.New("Reload with invalid port.")
 		return
 	}
@@ -544,8 +544,8 @@ func (work *Work) Check() (err error) {
 		work.clearPatchData()
 		work.clearPatchLink()
 		master_host, master_port, _ := GetMaster(work.MasterAddress)
-		cmd := fmt.Sprintf("cd %s && export STRATEGY_DIR=%s && ./downloader -h %s -p %s -d %s -s %d", 
-				work.DeployPath, work.DeployPath, master_host, master_port, work.DictName, work.ShardSeq)
+		cmd := fmt.Sprintf("cd %s && export STRATEGY_DIR=%s && ./downloader -h %s -p %s -d %s -s %d",
+			work.DeployPath, work.DeployPath, master_host, master_port, work.DictName, work.ShardSeq)
 		_, _, err = RetryCmd(cmd, RETRY_TIMES)
 	}
 
@@ -632,7 +632,7 @@ func (work *Work) Pop() (err error) {
 func writeStateFile(dictName string, shardSeq int, service, state string) {
 	stateFile := fmt.Sprintf(".state_%s_%d", dictName, shardSeq)
 	if service != "" {
-		stateFile = stateFile + "_" + service;
+		stateFile = stateFile + "_" + service
 	}
 
 	cmd := fmt.Sprintf("echo '%s' > %s/state/%s", state, Dir, stateFile)
@@ -644,7 +644,7 @@ func writeStateFile(dictName string, shardSeq int, service, state string) {
 func RemoveStateFile(dictName string, shardSeq int, service string) {
 	stateFile := fmt.Sprintf(".state_%s_%d", dictName, shardSeq)
 	if service != "" {
-		stateFile = stateFile + "_" + service;
+		stateFile = stateFile + "_" + service
 	}
 
 	cmd := fmt.Sprintf("rm -f %s/state/%s", Dir, stateFile)

@@ -39,7 +39,7 @@ func StartHttp(addr string) error {
 func handleRest(w http.ResponseWriter, r *http.Request) {
 	var (
 		req_log string
-		status int32
+		status  int32
 	)
 	time_begin := time.Now()
 
@@ -82,7 +82,7 @@ func handleRest(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"success":"%v", "message":"wrong api", "method":"%s", "api":"%s", "api_list":"%v"}`,
 			status, r.Method, api, key_list)
 
-		logex.Noticef(`%v, time=%v, status=%v`, 
+		logex.Noticef(`%v, time=%v, status=%v`,
 			req_log, time.Now().Sub(time_begin).Nanoseconds()/1000000, status)
 		return
 	}
@@ -94,23 +94,23 @@ func handleRest(w http.ResponseWriter, r *http.Request) {
 		s = fmt.Sprintf(`{"success":"%v", "message":"query ok", "data":%s}`, status, rst)
 	} else {
 		status = 255
-		s = fmt.Sprintf(`{"success":"%v", "message":%v, "data":%s}`, 
+		s = fmt.Sprintf(`{"success":"%v", "message":%v, "data":%s}`,
 			status, quote(err.Error()), rst)
 	}
 
 	if isJsonDict(s) {
 		fmt.Fprintln(w, s)
-	}else {
+	} else {
 		logex.Fatalf("invalid json: %v", s)
 	}
 
 	if err == nil {
-		logex.Noticef(`%v, time=%v, status=%v, handle_log=%v`, 
-			req_log, time.Now().Sub(time_begin).Nanoseconds()/1000000, 
+		logex.Noticef(`%v, time=%v, status=%v, handle_log=%v`,
+			req_log, time.Now().Sub(time_begin).Nanoseconds()/1000000,
 			status, quote(handle_log))
 	} else {
-		logex.Noticef(`%v, time=%v, status=%v, err=%v, handle_log=%v`, 
-			req_log, time.Now().Sub(time_begin).Nanoseconds()/1000000, 
+		logex.Noticef(`%v, time=%v, status=%v, err=%v, handle_log=%v`,
+			req_log, time.Now().Sub(time_begin).Nanoseconds()/1000000,
 			status, quote(err.Error()), quote(handle_log))
 	}
 }
@@ -126,9 +126,9 @@ func parseHttpKv(r *http.Request) map[string]string {
 			m[k] = v[0]
 		}
 	}
-	
+
 	// allow passing hostname for debug
-	if _, ok := m["hostname"]; !ok{
+	if _, ok := m["hostname"]; !ok {
 		ip := r.RemoteAddr[:strings.Index(r.RemoteAddr, ":")]
 		m["hostname"], _ = getHostname(ip)
 	}
