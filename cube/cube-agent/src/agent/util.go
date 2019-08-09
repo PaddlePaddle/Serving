@@ -154,21 +154,21 @@ func GetLocalHostnameCmd() (hostname string, err error) {
 
 // quote quotes string for json output. eg: s="123", quote(s)=`"123"`
 func quote(s string) string {
-    return fmt.Sprintf("%q", s)
+	return fmt.Sprintf("%q", s)
 }
 
 // quoteb quotes byte array for json output.
 func quoteb(b []byte) string {
-    return quote(string(b))
+	return quote(string(b))
 }
 
 // quotea quotes string array for json output
 func quotea(a []string) string {
-    b, _ := json.Marshal(a)
-    return string(b)
+	b, _ := json.Marshal(a)
+	return string(b)
 }
 
 func isJsonDict(s string) bool {
-    var js map[string]interface{}
-    return json.Unmarshal([]byte(s), &js) == nil
+	var js map[string]interface{}
+	return json.Unmarshal([]byte(s), &js) == nil
 }

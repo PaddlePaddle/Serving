@@ -3,8 +3,8 @@ package main
 import (
 	"agent"
 	"fmt"
-	"github.com/docopt/docopt-go"
 	"github.com/Badangel/logex"
+	"github.com/docopt/docopt-go"
 	"os"
 	"path/filepath"
 	"runtime"
