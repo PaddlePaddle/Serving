@@ -4,11 +4,16 @@
 
 OS: Linux
 
-CMake: 3.2
+CMake: (验证过的版本：3.2)
 
-python
+C++编译器 (验证过的版本：GCC 4.8.2/5.4.0)
+
+python (验证过的版本：2.7)
+
+Go编译器 (验证过的版本：1.9.2)
 
 ## 编译
+
 ```shell
 $ git clone https://github.com/PaddlePaddle/serving.git
 $ cd serving
