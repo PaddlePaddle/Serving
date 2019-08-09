@@ -561,7 +561,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 
 如果只是为了验证demo流程，serving此时已经可以用自带的CTR模型加载模型并提供预测服务能力。
 
-为了应用重新训练的模型，只需要从k8s集群暴露的ftp服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
+为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
 ```bash
 $ cd data/model/paddle/fluid
 $ wget ${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
@@ -575,7 +575,7 @@ $ killall serving           # 杀死旧的serving进程
 $ bin/serving &             # 重启serving
 ```
 
-从K8S集群暴露的ftp服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
+从K8S集群暴露的http服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
 
 #### <span id="head39">1.4 启动Serving</span>
 
