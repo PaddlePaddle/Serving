@@ -55,16 +55,16 @@
 ![PaddlePaddle分布式训练和Serving流程化部署拓扑](./deploy/ctr-prediction-end-to-end-deployment.png)
 
 其中：
-1) 分布式训练集群在百度云k8s集群上搭建，并通过[volcano](https://volcano.sh/)提交分布式训练任务和资源管理
-2) 分布式训练产出dense参数和ProgramDesc，通过http服务直接下载到Serving端，给Serving加载
-3) 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
-4) 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
+1. 分布式训练集群在百度云k8s集群上搭建，并通过[volcano](https://volcano.sh/)提交分布式训练任务和资源管理
+2. 分布式训练产出dense参数和ProgramDesc，通过http服务直接下载到Serving端，给Serving加载
+3. 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
+4. 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
 
 以下从3部分分别介绍上图中各个组件：
-1) 分布式训练集群和训练任务提交
-2) 稀疏参数服务部署与使用
-3) Paddle Serving的部署
-4) 客户端访问Paddle Serving完成CTR预估任务预测请求
+1. 分布式训练集群和训练任务提交
+2. 稀疏参数服务部署与使用
+3. Paddle Serving的部署
+4. 客户端访问Paddle Serving完成CTR预估任务预测请求
 ## <span id="head0"> 环境配置</span>
 
 **环境要求** ：helm、kubectl、go
@@ -274,16 +274,16 @@ python dumper.py --model_path=xxx --output_data_path=xxx
 
 **注意事项：**文档中使用的CTR模型训练镜像中已经包含了模型裁剪以及稀疏参数产出的脚本，并且搭建了一个http服务用于从外部获取产出的dense模型以及稀疏参数文件。
 
-
 ## <span id="head15"> 大规模稀疏参数服务Cube的部署和使用</span>
 
 Cube大规模稀疏参数服务服务组件，用于承载超大规模稀疏参数的查询、更新等各功能。上述分布式训练产出的稀疏参数，在k8s中以http文件服务的形式提供下载；cube则负责将稀疏参数读取、加工，切分成多个分片，灌入稀疏参数服务集群，提供对外访问。
 
-Cube一共拆分成三个组件，共同完成上述工作：
+Cube一共拆分成四个组件，共同完成上述工作：
 
-1) cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端
-2) cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，配送到由多个物理节点组成的稀疏参数服务集群
-3) cube-server 每个单独的cube服务承载一个分片的cube数据
+1. cube-transfer 负责监听上游数据产出，当判断到数据更新时，将数据下载到cube-builder建库端，然后将建库的数据配送到由多个物理节点组成的稀疏参数服务集群
+2. cube-builder 负责从上游数据构建cube内部索引格式，并切分成多个分片，完成建库工作
+3. cube-server 每个单独的cube服务承载一个分片的cube数据
+4. cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
 
 关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。本文仅描述从头部署Cube服务的流程。
 
@@ -307,20 +307,20 @@ gflags.conf  transfer.conf
 ```
 
 其中：
-1) bin/cube, bin/cube-builder, bin/cube-transfer是上述3个组件的可执行文件。**bin/cube是cube-server的可执行文件**
+1) bin/cube, bin/cube-agent, bin/cube-builder, bin/cube-transfer是上述3个组件的可执行文件。**bin/cube是cube-server的可执行文件**
 2) conf/gflags.conf是配合bin/cube使用的配置文件，主要包括端口配置等等
 3) conf/transfer.conf是配合bin/cube-transfer使用的配置文件，主要包括要监听的上游数据地址等等
 
-接下来我们按cube server, cube-builder, cube-transfer的顺序，介绍Cube的完整部署流程
+接下来我们按cube server/agent, cube-builder, cube-transfer的顺序，介绍Cube的完整部署流程
 
 
 
-### <span id="head17">2. 分片cube server部署</span>
+### <span id="head17">2. 分片cube server/agent部署</span>
 
 
 #### <span id="head18">2.1 配置文件修改</span>
 
-首先修改cube server的配置文件，将端口改为我们需要的端口：
+首先修改cube server的配置文件，将port改为我们需要的端口号，(当本机内存资源紧张时，将in_mem修改为false将以磁盘访问的模式启动cube server):
 
 ```
 --port=8000
@@ -330,22 +330,25 @@ gflags.conf  transfer.conf
 
 #### <span id="head19">2.2 拷贝可执行文件和配置文件到物理机</span>
 
-将bin/cube和conf/gflags.conf拷贝到多个物理机上。假设拷贝好的文件结构如下：
+将bin/cube,bin/cube-agent和conf/gflags.conf拷贝到多个物理机上。假设拷贝好的文件结构如下：
 
 ```
 $ tree
 .
 |-- bin
 |   `-- cube
-`-- conf
-`-- gflags.conf
+|   `-- cube-agent
+|-- conf
+|   `-- gflags.conf
 ```
 
-#### <span id="head20">2.3 启动 cube server</span>
+#### <span id="head20">2.3 启动 cube server/agent</span>
 
 ```bash
 nohup bin/cube &
+nohup bin/cube-agent -P 8001 &
 ```
+其中cube-agent在启动命令中使用 -P 参数指定监听端口号
 
 ### <span id="head21">3. cube-builder部署</span>
 
@@ -353,68 +356,214 @@ nohup bin/cube &
 
 cube-builder配置项说明：
 
-TOBE FILLED
+均在启动参数中提交
 
-修改如下：
+参数项如下：
 
 ```
-下游节点地址列表
-TOBE FILLED
+open_builder: Usage : ./open_build --help
+
+Flags from /home/work/dangyifei/open-builder/src/main.cpp:
+-cur_version (current version, no need) type: int32 default: 0                //单机builder模式下不需要
+-depend_version (depend version, job mode delta need) type: int32 default: 0  //单机builder base模式下不需要，patch模式找到meta_info里的base的key
+-dict_name (dict name, no need) type: string default: ""                      //词典名，单机builder模式下不加默认空，用来和版本拼接生成索引文件名
+-input_path (source data input path) type: string default: ""               //必须，源数据所在路径，仅支持本地路径
+-job_mode (job mode base/delta default:base) type: string default: "base"    //默认base模式，delta模式：-job_mode=delta
+-last_version (last version, job mode delta need) type: int32 default: 0     //单机builder base模式下不需要，patch模式找到meta_info里的base的id
+-master_address (master address, no need) type: string default: ""           //单机builder模式不需要，会把index meta信息写到本地output/meta_info目录下
+-only_build (wheather build need transfer) type: bool default: true         //单机builder模式不需要，代表是不是单机builder，如果false会向master_address发送请求，将index meta信息写到远程
+-output_path (source data input path) type: string default: ""       //必须，索引建库数据的输出路径，仅支持本地路径
+-shard_num (shard num) type: int32 default: -1             //必须，数据切分的分片数量
+
 ```
-
-
 #### <span id="head23">3.2 拷贝可执行文件到物理机</span>
+需要将bin/cube-builder拷贝到物理机上。
+只利用builder工具建立索引无特殊位置要求，如果介入配送环节使用必须和cube-transfer同机部署。
+假设单独使用builder工具，文件结构如下：
 
-部署完成后目录结构如下：
 ```
-TOBE FILLED
+$ tree
+`-- cube-builder
+|-- source
+|   `-- test_seqfile
+|-- output
 ```
 
 #### <span id="head24">3.3 启动cube-builder</span>
-
+##### 3.3.1接入配送流程
+拷贝bin/cube-builder和cube-transfer程序同机器
+相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可
+##### 3.3.2单机builder，假设分片数为2，词典名为test
+base模式
 ```
 启动cube-builder命令
+./open_builder -input_path=./source -output_path=./output -shard_num=2 -dict_name=test
+```
+运行后会根据当前时间戳自动生成建库索引文件夹1565323045_1565323045和meta信息文件夹meta_info结构如下：
+```
+$ tree
+`-- cube-builder
+|-- source
+|   `-- test_seqfile
+`-- output
+    |-- 1565323045_1565323045
+    |   |-- test_part0
+    |   |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part0.tar
+    |   |-- test_part0.tar.md5
+    |   |-- test_part1
+    |   |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part1.tar
+    |   `-- test_part1.tar.md5
+    `-- meta_info
+        |-- 1565323045_1565323045_0_0.json
+        `-- 1565323045_1565323045_1_0.json
+```
+test_part0.tar和test_part0.tar.md5是shard0分片的数据和md5校验，1565323045_1565323045_0_0.json是0号分片的索引长度和数量，在对应版本的delta建库中需要
+delta模式
+需要依赖于上次的base或者delta的id和key，1565323045_1565323045_0_0.json前一个时间戳是id，后一个是key（和分片数据的目录key_id相反），对应cube-builder输入参数-last_version和-depend_version，保持output和dict_name不变（builder会寻找上一轮的index meta信息）
+```
+启动cube-builder命令
+-input_path=./source -output_path=./output -shard_num=2 -depend_version=1565323045 -last_version=1565323045 -job_mode=delta -dict_name=test
+```
+运行后会根据当前时间戳自动生成delta建库索引文件夹1565323045_1565326078和meta信息文件夹meta_info结构如下：
+```
+$ tree
+`-- cube-builder
+|-- source
+|   `-- test_seqfile
+`-- output
+    |-- 1565323045_1565323045
+    |   |-- test_part0
+    |   |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part0.tar
+    |   |-- test_part0.tar.md5
+    |   |-- test_part1
+    |   |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part1.tar
+    |   `-- test_part1.tar.md5
+    |-- 1565323045_1565326078
+    |   |-- test_part0
+    |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part0.tar
+    |   |-- test_part0.tar.md5
+    |   |-- test_part1
+    |   |   |-- data.0
+    |   |   |-- data.n
+    |   |   |-- index.0
+    |   |   `-- index.n
+    |   |-- test_part1.tar
+    |   `-- test_part1.tar.md5
+    `-- meta_info
+        |-- 1565323045_1565323045_0_0.json
+        |-- 1565323045_1565323045_0_0.json
+        |-- 1565326078_1565323045_0_0.json
+        `-- 1565326078_1565323045_1_0.json
+```
+#### <span id="head241">3.4 seqfile工具</span>
+builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制
+提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py
+kvtool.py 是读seqfile工具，会输出读到的kv信息，参数是文件地址假设在/home/work/test下的seqfile，运行方式如下：
+```
+python kvtool.py /home/work/test/seqfile
+```
+kv_to_seqfile.py是明文转seqfile工具，依赖于kvtool.py，会将明文kv转为seqfile文件存储，并输出donefile，在kv_to_seqfile.py的27和30行修改输入和donefile路径：
 ```
 
+BASE_DONEFILE = DATA_PATH + "donefile/base.txt"  #base donefile文件地址
+SOURCE_FILE = './source/file.txt' #明文源数据路径
+```
+要求明文txt内的格式，每行一对kv，用:分割，示例如下：
+```
+1:1
+2:2
+10:10 11 12
+11:this is eleven
+12:value can string
+1676869128226002114:48241    37064        91    -539    114    51    -122    269    229    -134    -282
+1657749292782759014:167    40        98    27    117    10    -29    15    74    67    -54
+```
 ### <span id="head25">4. cube-transfer部署</span>
 
 #### <span id="head26">4.1 cube-transfer配置修改</span>
 
 cube-transfer配置文件是conf/transfer.conf，配置比较复杂；各个配置项含义如下：
-
-1) TOBE FILLED
-2) TOBE FILLED
-...
-
-我们要将上游数据地址配置到配置文件中：
-
 ```
-cube-transfer配置文件修改地方：TOBE FILLED
+[default]
+dict_name: test_dict                                    //词典名
+mode: base_delta                                    //配送模式base_only/base_delta
+storage_place: LOCAL                                    //默认LOCAL，表示使用单机builder工具
+buildtool_local: /home/work/test-builder/build/cube-builder            //build工具位置，必须在本地，绝对路径
+donefile_address: /home/work/test-transfer/test_data/donefile            //donefile位置支持本地路径和远程ftp或者http服务(ftp://或者http://)，只到最后文件夹，文件夹内最多2个文件base.txt patch.txt
+output_address: /home/work/test-transfer/test_data/output            //build后数据索引输出位置
+tmp_address: /home/work/test-transfer/test_data/tmp                //transfer工具运行中临时文件存放位置
+shard_num: 1                                        //分片数
+copy_num: 2                                        //每片副本数
+deploy_path: /home/work/test_dict                      //不用修改                          
+transfer_address: 10.10.10.5                             //cube-transfer本机的ip
+
+[cube_agent]
+agent0_0: 10.10.220.15:8001                        //0号分片0号副本的agent ip:port
+cube0_0: 10.10.220.15:8000:/ssd2/cube_open                //0号分片0号副本的cube ip:port:deploy_path
+agent0_1: 10.10.180.40:8001                        //0号分片1号副本的agent ip:port
+cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副本的cube ip:port:deploy_path
 ```
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
 
-拷贝完成后，目录结构如下：
-
+将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。假设拷贝好的文件结构如下：
 ```
-TOBE FILLED
+$ tree
+.
+|-- cube-transfer
+|-- output
+|-- tmp
+`-- conf
+    |-- transfer.conf
 ```
-
 #### <span id="head28">4.3 启动cube-transfer</span>
-
+假设启动服务端口8099，-l参数是log等级 --config是配置文件位置
 ```
-启动cube-transfer命令
+./cube-transfer -p 8099 -l 4 --config conf/transfer.conf
 ```
+### <span id="head281">4.4 cube-transfer支持查询接口</span>
+> 获取当前词典状态  
+>http://10.10.10.5:8099/dict/info  
 
-### <span id="head29">4.4 验证</span>
+> 获取实例当前状态  
+>http://10.10.10.5:8099/instance/status  
 
-一旦cube-transfer部署完成，它就不断监听我们配置好的数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
+> 获取配送历史从最近的base到当前正在配送的delta  
+>http://10.10.10.5:8099/dict/deploy/history 
 
-在上述过程中，经常遇到如下问题，可自行排查解决：
-1) TOBE FILLED
-2) TOBE FILLED
-3) TOBE FILLED
+### <span id="head29">4.5 donefile格式协议</span>
 
+一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
+id最好使用版本产出时间戳，base和patch每产出一条直接在donefile文件最后加一行即可，文件名固定base.txt、patch.txt
+>base.txt每行一条，id和key相同，目录下可有多个文件，不能有文件夹
+>```
+>{"id":"1562000400","key":"1562000400","input":"/home/work/test_data/input/seqfile"}
+>```
+>patch.txt每行一条，key为base的id
+>```
+>{"id":"1562000401","key":"1562000400","input":"/home/work/test_data/input/seqfile"}
+>{"id":"1562000402","key":"1562000400","input":"/home/work/test_data/input/seqfile"}
+>```
 
 ## <span id="head30"> 预测服务部署</span>
 
@@ -467,6 +616,8 @@ $ cmake -DWITH_GPU=OFF .. # 不需要GPU
 $ make -jN                # 这里可修改并发编译线程数
 $ make install
 $ cd output/demo/serving
+$ ls
+bin  conf  data  kvdb  log
 ```
 
 #### <span id="head34">1.3 配置修改</span>
@@ -552,11 +703,28 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 
 ##### <span id="head38">1.3.4 模型文件</span>
 
-Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载下来的，其制作方法为： 1) 分布式训练CTR预估任务，保存模型program和参数文件 2) 用save_program.py保存一份用于预测的program (文件名为**model**)。save_program.py随trainer docker image发布 3) 第2步中保存的program (**model**) 覆盖到第1)步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
+Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载下来的，其制作方法为：
+1. 分布式训练CTR预估任务，保存模型program和参数文件
+2. 用save_program.py保存一份用于预测的program (文件名为**model**)。save_program.py随trainer docker image发布
+3. 第2步中保存的program (**model**) 覆盖到第1步保存的模型文件夹中**model**文件，打包成.tar.gz上传到BCE
 
 如果只是为了验证demo流程，serving此时已经可以用自带的CTR模型加载模型并提供预测服务能力。
 
-为了应用重新训练的模型，只需要从k8s集群暴露的ftp服务下载新的.tar.gz，解压到data/model/paddle/fluid下，覆盖原来的ctr_prediction目录即可。从K8S集群暴露的ftp服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
+为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
+```bash
+$ cd data/model/paddle/fluid
+$ wget ${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
+$ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
+$ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
+$ cp -r inference_only/* ctr_prediction
+$ cd ../../../../           # 切换至serving所在目录
+$ ls
+bin  conf  data  kvdb  log
+$ killall serving           # 杀死旧的serving进程
+$ bin/serving &             # 重启serving
+```
+
+从K8S集群暴露的http服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
 
 #### <span id="head39">1.4 启动Serving</span>
 
