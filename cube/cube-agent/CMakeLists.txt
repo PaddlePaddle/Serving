@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
-add_subdirectory(cube-agent)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+project(cube-agent Go)
+
+include(cmake/golang.cmake)
+
+ExternalGoProject_Add(agent-docopt-go github.com/docopt/docopt-go)
+ExternalGoProject_Add(agent-logex github.com/Badangel/logex)
+ExternalGoProject_Add(agent-pipeline github.com/Badangel/pipeline)
+
+add_subdirectory(src)

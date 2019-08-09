@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-add_subdirectory(cube-server)
-add_subdirectory(cube-api)
-add_subdirectory(cube-builder)
-add_subdirectory(cube-transfer)
-add_subdirectory(cube-agent)
+set(CMAKE_Go_COMPILER "@CMAKE_Go_COMPILER@")
+set(CMAKE_Go_COMPILER_LOADED 1)
+
+set(CMAKE_Go_SOURCE_FILE_EXTENSIONS go)
+set(CMAKE_Go_LINKER_PREFERENCE 40)
+set(CMAKE_Go_OUTPUT_EXTENSION .o)
+set(CMAKE_Go_OUTPUT_EXTENSION_REPLACE 1)
+set(CMAKE_Go_COMPILER_ENV_VAR "GO_COMPILER")
