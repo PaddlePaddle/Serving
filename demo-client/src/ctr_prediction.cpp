@@ -30,7 +30,7 @@ using baidu::paddle_serving::predictor::ctr_prediction::Response;
 using baidu::paddle_serving::predictor::ctr_prediction::CTRReqInstance;
 using baidu::paddle_serving::predictor::ctr_prediction::CTRResInstance;
 
-int batch_size = 1;
+int batch_size = 16;
 int sparse_num = 26;
 int dense_num = 13;
 int thread_num = 1;
@@ -95,8 +95,12 @@ int create_req(Request* req,
       return -1;
     }
     // add data
-    std::vector<std::string> feature_list =
-        split(data_list[data_index + i], "\t");
+    // avoid out of boundary
+    int cur_index = data_index + i;
+    if (cur_index >= data_list.size()) {
+      cur_index = cur_index % data_list.size();
+    }
+    std::vector<std::string> feature_list = split(data_list[cur_index], "\t");
     for (int fi = 0; fi < dense_num; fi++) {
       if (feature_list[fi] == "") {
         ins->add_dense_ids(0.0);
