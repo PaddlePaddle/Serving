@@ -263,28 +263,51 @@ int CTRPredictionOp::inference() {
     return 0;
   }
 
-  if (out->size() != sample_size) {
-    LOG(ERROR) << "Output tensor size not equal that of input";
-    fill_response_with_message(res, -1, "Output size != input size");
+  if (out->size() != 1) {
+    LOG(ERROR) << "Model returned number of fetch tensor more than 1";
+    fill_response_with_message(
+        res, -1, "Model returned number of fetch tensor more than 1");
     return 0;
   }
 
-  for (size_t i = 0; i < out->size(); ++i) {
-    int dim1 = out->at(i).shape[0];
-    int dim2 = out->at(i).shape[1];
+  int output_shape_dim = out->at(0).shape.size();
+  if (output_shape_dim != 2) {
+    LOG(ERROR) << "Fetch LoDTensor should be shape of [sample_size, 2]";
+    fill_response_with_message(
+        res, -1, "Fetch LoDTensor should be shape of [sample_size, 2]");
+    return 0;
+  }
 
-    if (out->at(i).dtype != paddle::PaddleDType::FLOAT32) {
-      LOG(ERROR) << "Expected data type float";
-      fill_response_with_message(res, -1, "Expected data type float");
-      return 0;
-    }
+  if (out->at(0).dtype != paddle::PaddleDType::FLOAT32) {
+    LOG(ERROR) << "Fetch LoDTensor data type should be FLOAT32";
+    fill_response_with_message(
+        res, -1, "Fetch LoDTensor data type should be FLOAT32");
+    return 0;
+  }
 
-    float *data = static_cast<float *>(out->at(i).data.data());
-    for (int j = 0; j < dim1; ++j) {
-      CTRResInstance *res_instance = res->add_predictions();
-      res_instance->set_prob0(data[j * dim2]);
-      res_instance->set_prob1(data[j * dim2 + 1]);
-    }
+  int dim1 = out->at(0).shape[0];
+  int dim2 = out->at(0).shape[1];
+
+  if (dim1 != sample_size) {
+    LOG(ERROR) << "Returned result count not equal to sample_size";
+    fill_response_with_message(
+        res, -1, "Returned result count not equal to sample size");
+    return 0;
+  }
+
+  if (dim2 != 2) {
+    LOG(ERROR) << "Returned result is not expected, should be 2 floats for "
+                  "each sample";
+    fill_response_with_message(
+        res, -1, "Retunred result is not 2 floats for each sample");
+    return 0;
+  }
+
+  float *data = static_cast<float *>(out->at(0).data.data());
+  for (int i = 0; i < dim1; ++i) {
+    CTRResInstance *res_instance = res->add_predictions();
+    res_instance->set_prob0(data[i * dim2]);
+    res_instance->set_prob1(data[i * dim2 + 1]);
   }
 
   for (size_t i = 0; i < in->size(); ++i) {

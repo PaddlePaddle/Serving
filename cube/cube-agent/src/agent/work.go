@@ -834,9 +834,17 @@ func GetFileName(source string) (fileName string) {
 }
 
 func checkMd5(file string, fileMd5 string) (err error) {
-	md5Cmd := fmt.Sprintf("./scripts/md5_checker %s %s", file, fileMd5)
+	cmd := fmt.Sprintf("md5sum %s | awk '{print $1}'", file)
+	stdout, _, _ := pipeline.Run(exec.Command("/bin/sh", "-c", cmd))
+	real_md5 := stdout.String()
+	cmd = fmt.Sprintf("cat %s | awk '{print $1}'", fileMd5)
+	stdout, _, _ = pipeline.Run(exec.Command("/bin/sh", "-c", cmd))
+	given_md5 := stdout.String()
 
-	_, _, err = pipeline.Run(exec.Command("/bin/sh", "-c", md5Cmd))
+	if real_md5 != given_md5 {
+		logex.Warningf("checkMd5 failed real_md5[%s] given_md5[%s]", real_md5, given_md5)
+		err = errors.New("checkMd5 failed")
+	}
 
 	return
 }
