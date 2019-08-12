@@ -25,11 +25,13 @@
 		* [3.1 配置文件修改](#head22)
 		* [3.2 拷贝可执行文件到物理机](#head23)
 		* [3.3 启动cube-builder](#head24)
+		* [3.4 seqfile工具](#head241)
 	* [4. cube-transfer部署](#head25)
 		* [4.1 cube-transfer配置修改](#head26)
 		* [4.2 拷贝cube-transfer到物理机](#head27)
 		* [4.3 启动cube-transfer](#head28)
-	* [4.4 验证](#head29)
+		* [4.4 cube-transfer支持查询接口](#head281)
+	        * [4.5 donefile格式协议](#head29)
 * [ 预测服务部署](#head30)
 	* [ 1、Server端](#head31)
 		* [1.1 Cube服务](#head32)
@@ -60,7 +62,7 @@
 3. 分布式训练产出sparse embedding，由于体积太大，通过cube稀疏参数服务提供给serving访问
 4. 在线预测时，Serving通过访问cube集群获取embedding数据，与dense参数配合完成预测计算过程
 
-以下从3部分分别介绍上图中各个组件：
+以下从4部分分别介绍上图中各个组件：
 1. 分布式训练集群和训练任务提交
 2. 稀疏参数服务部署与使用
 3. Paddle Serving的部署
@@ -254,25 +256,27 @@ kubectl apply -f volcano-ctr-demo-baiduyun.yaml
 
 ### <span id="head12"> 5、模型产出</span>
 
-CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务器，dense网络部分加载到serving服务中。
+CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务，dense网络部分加载到serving服务中。在本文中使用的CTR模型训练镜像中已经包含了模型裁剪和稀疏参数产出的脚本，以下简述其原理和工作过程。
 
-#### <span id="head13">5.1 模型裁剪</span>
+#### <span id="head13">5.1 模型裁剪，产出预测ProgramDesc和dense参数</span>
 
-产出用于paddle serving预测服务的dense模型需要对保存的原始模型进行裁剪操作，修改模型的输入以及内部结构。具体操作请参考文档[模型裁剪]([https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md#2-%E6%A8%A1%E5%9E%8B%E8%A3%81%E5%89%AA](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md#2-模型裁剪))。
+产出用于paddle serving预测服务的dense模型需要对保存的原始模型进行裁剪操作，修改模型的输入以及内部结构。具体原理和操作流程请参考文档[改造CTR预估模型用于大规模稀疏参数服务演示](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
+
+在trainer镜像中，模型裁剪的主要交互流程是：
+
+1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
+2. 调用save_program.py，生成一个适用于预测的ProgramDesc保存到models/inference_only目录，并将所需参数一并保存到该子目录下
+3. 调用replace_params.py，用models/pass-1000目录下参数文件替换models/inference_only目录下同名参数文件
+4. 打包models/inference_only生成ctr_model.tar.gz，放到HTTP服务目录下，供外部用户手动下载，并替换到Serving的data/models/paddle/fluid/ctr_prediction目录中 (详见本文“预测服务部署”一节)
 
 #### <span id="head14">5.2 稀疏参数产出</span>
 
-分布式稀疏参数服务器由paddle serving的cube模块实现。cube服务器中加载的数据格式为seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
+分布式稀疏参数服务由paddle serving的Cube模块实现。Cube服务接受的原始数据格式为Hadoop seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
 
-可以通过[格式转换脚本](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/dumper.py)
+在trainer镜像中，将模型参数转换为seqfile的主要流程是：
 
-使用方法：
-
-```bash
-python dumper.py --model_path=xxx --output_data_path=xxx
-```
-
-**注意事项：**文档中使用的CTR模型训练镜像中已经包含了模型裁剪以及稀疏参数产出的脚本，并且搭建了一个http服务用于从外部获取产出的dense模型以及稀疏参数文件。
+1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
+2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下，供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
 
 ## <span id="head15"> 大规模稀疏参数服务Cube的部署和使用</span>
 
@@ -377,9 +381,9 @@ Flags from /home/work/dangyifei/open-builder/src/main.cpp:
 
 ```
 #### <span id="head23">3.2 拷贝可执行文件到物理机</span>
-需要将bin/cube-builder拷贝到物理机上。
-只利用builder工具建立索引无特殊位置要求，如果介入配送环节使用必须和cube-transfer同机部署。
-假设单独使用builder工具，文件结构如下：
+需要将bin/cube-builder拷贝到物理机上。  
+只利用builder工具建立索引无特殊位置要求，如果接入配送环节使用必须和cube-transfer同机部署。  
+假设单独使用builder工具，文件结构如下：  
 
 ```
 $ tree
@@ -391,10 +395,10 @@ $ tree
 
 #### <span id="head24">3.3 启动cube-builder</span>
 ##### 3.3.1接入配送流程
-拷贝bin/cube-builder和cube-transfer程序同机器
-相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可
+拷贝bin/cube-builder和cube-transfer程序同机器。  
+相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可。  
 ##### 3.3.2单机builder，假设分片数为2，词典名为test
-base模式
+######base模式  
 ```
 启动cube-builder命令
 ./open_builder -input_path=./source -output_path=./output -shard_num=2 -dict_name=test
@@ -425,9 +429,9 @@ $ tree
         |-- 1565323045_1565323045_0_0.json
         `-- 1565323045_1565323045_1_0.json
 ```
-test_part0.tar和test_part0.tar.md5是shard0分片的数据和md5校验，1565323045_1565323045_0_0.json是0号分片的索引长度和数量，在对应版本的delta建库中需要
-delta模式
-需要依赖于上次的base或者delta的id和key，1565323045_1565323045_0_0.json前一个时间戳是id，后一个是key（和分片数据的目录key_id相反），对应cube-builder输入参数-last_version和-depend_version，保持output和dict_name不变（builder会寻找上一轮的index meta信息）
+test_part0.tar和test_part0.tar.md5是shard0分片的数据和md5校验，1565323045_1565323045_0_0.json是0号分片的索引长度和数量，在对应版本的delta建库中需要。  
+######delta模式
+需要依赖于上次的base或者delta的id和key，1565323045_1565323045_0_0.json前一个时间戳是id，后一个是key（和分片数据的目录key_id相反），对应cube-builder输入参数-last_version和-depend_version，保持output和dict_name不变（builder会寻找上一轮的index meta信息）。  
 ```
 启动cube-builder命令
 -input_path=./source -output_path=./output -shard_num=2 -depend_version=1565323045 -last_version=1565323045 -job_mode=delta -dict_name=test
@@ -476,8 +480,8 @@ $ tree
         `-- 1565326078_1565323045_1_0.json
 ```
 #### <span id="head241">3.4 seqfile工具</span>
-builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制
-提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py
+builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制。  
+提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py。  
 kvtool.py 是读seqfile工具，会输出读到的kv信息，参数是文件地址假设在/home/work/test下的seqfile，运行方式如下：
 ```
 python kvtool.py /home/work/test/seqfile
@@ -526,7 +530,8 @@ cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
 
-将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。假设拷贝好的文件结构如下：
+将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
+假设拷贝好的文件结构如下：
 ```
 $ tree
 .
@@ -541,7 +546,7 @@ $ tree
 ```
 ./cube-transfer -p 8099 -l 4 --config conf/transfer.conf
 ```
-### <span id="head281">4.4 cube-transfer支持查询接口</span>
+#### <span id="head281">4.4 cube-transfer支持查询接口</span>
 > 获取当前词典状态  
 >http://10.10.10.5:8099/dict/info  
 
@@ -551,10 +556,10 @@ $ tree
 > 获取配送历史从最近的base到当前正在配送的delta  
 >http://10.10.10.5:8099/dict/deploy/history 
 
-### <span id="head29">4.5 donefile格式协议</span>
+#### <span id="head29">4.5 donefile格式协议</span>
 
-一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。
-id最好使用版本产出时间戳，base和patch每产出一条直接在donefile文件最后加一行即可，文件名固定base.txt、patch.txt
+一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。  
+id最好使用版本产出时间戳，base和patch每产出一条直接在donefile文件最后加一行即可，文件名固定base.txt、patch.txt  
 >base.txt每行一条，id和key相同，目录下可有多个文件，不能有文件夹
 >```
 >{"id":"1562000400","key":"1562000400","input":"/home/work/test_data/input/seqfile"}
@@ -572,7 +577,7 @@ id最好使用版本产出时间戳，base和patch每产出一条直接在donefi
 通过wget命令从集群获取dense部分模型用于Server端。
 
 ```bash
-wget "${公网ip}:/path/to/models"
+wget "http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/path/to/models"
 ```
 
 K8s集群上CTR预估任务训练完成后，模型参数分成2部分：一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
@@ -713,7 +718,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
 ```bash
 $ cd data/model/paddle/fluid
-$ wget ${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
+$ wget http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
 $ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
 $ cp -r inference_only/* ctr_prediction
