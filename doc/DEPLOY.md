@@ -31,7 +31,7 @@
 		* [4.2 拷贝cube-transfer到物理机](#head27)
 		* [4.3 启动cube-transfer](#head28)
 		* [4.4 cube-transfer支持查询接口](#head281)
-	        * [4.5 donefile格式协议](#head29)
+        * [4.5 donefile格式协议](#head29)
 * [ 预测服务部署](#head30)
 	* [ 1、Server端](#head31)
 		* [1.1 Cube服务](#head32)
