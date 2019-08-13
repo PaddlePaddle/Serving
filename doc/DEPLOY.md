@@ -749,7 +749,7 @@ sparse_param_service_table_name: "dict"
 
 ##### <span id="head43">3.1.3.3 conf/cube.conf</span>
 
-conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes列表为真实的物理节点IP:port列表即可。例如 （与第1节cube配置文件内容一致）：
+conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes列表为真实的物理节点IP:port列表即可。例如 （与第3.1.1节cube配置文件内容一致）：
 
 ```json
 [{
@@ -769,7 +769,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 }]
 ```
 
-**注意事项：** 如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
+**注意事项：** 如果修改了`dict_name`，需要同步修改3.1.3.2节中`sparse_param_service_table_name`字段
 
 ##### <span id="head44">3.1.3.4 模型文件</span>
 
