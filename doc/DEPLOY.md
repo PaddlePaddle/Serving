@@ -743,7 +743,7 @@ sparse_param_service_table_name: "dict"
 
 **注意事项：** ctr_prediction model有如下2行配置：
 
-```json
+```
 sparse_param_service_type: REMOTE
 sparse_param_service_table_name: "dict"
 ```
