@@ -115,9 +115,7 @@ KubeCtl可以实现在本地开发机上连接百度智能云的Kubernets集群�
 
 建议参考[Helm官方安装文档](https://helm.sh/docs/using_helm/#installing-helm)进行安装。
 
-**注意事项：**
-
-开发机上的kubectl与helm的版本需要与集群上的版本相一致，目前百度智能云为集群安装的helm版本为2.12.3，kubectl版本为1.13.4。
+**注意事项：** 开发机上的kubectl与helm的版本需要与集群上的版本相一致，目前百度智能云为集群安装的helm版本为2.12.3，kubectl版本为1.13.4。
 
 #### <span id="head8">2.3 配置文件</span>
 
@@ -618,7 +616,7 @@ K8s集群上CTR预估任务训练完成后，模型参数分成2部分：一是e
 
 上述例子中，cube提供外部访问的表名是`dict`，有2个物理分片，分别在192.168.1.1:8000和192.168.1.2:8000
 
-**注意事项：**nodes中的ipport_list需要按照分片的顺序(参考cube-transfer配置文件)填写。
+**注意事项：** nodes中的ipport_list需要按照分片的顺序(参考cube-transfer配置文件)填写。
 
 #### <span id="head33">1.2 Serving编译</span>
 
@@ -716,7 +714,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 }]
 ```
 
-**注意事项**:如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
+**注意事项：** 如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
 
 ##### <span id="head38">1.3.4 模型文件</span>
 
