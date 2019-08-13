@@ -10,13 +10,15 @@ Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz
 
 
 | qps | 10w | 50w | 100w | 
-| --- | --- | --- | --- |
+|---|---|---|---|
 |kps|10w|50w|100w|
 |cpu(top)| 6.5% | 38.3% | 71.4% | 
 |client端延迟|  avg            196 us<br>50%            160 us<br>70%            188 us<br>90%            292 us<br>95%            419 us<br>97%            547 us<br>99%            835 us<br>99.9%         1556 us<br>99.99%        1779 us|  avg            563 us<br>50%            342 us<br>70%            502 us<br>90%           1063 us<br>95%           1703 us<br>97%           2399 us<br> 99%           4036 us<br>99.9%         7195 us<br>99.99%        7340 us|    avg           4234 us<br>50%           3120 us<br>70%           5459 us<br>90%          10657 us<br>95%          14074 us<br>97%          16215 us<br> 99%          19434 us<br>99.9%        29398 us<br>99.99%       33921 us|
 
 ## 高kps场景
 生产环境下，预估服务更多的会以batch形式访问cube server，这类情况kps相对qps能更准确的判断服务性能。我们以单次100key为例，给出不同kps下cube server的相关性能指标。
+
+
 | qps | 2w | 10w | 20w | 
 |---|---|---|---|
 |kps|200w|1000w|2000w|
@@ -29,6 +31,8 @@ Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz
 测试条件:
 cube分片数:10 
 client机器ping下游server机器约0.06ms
+
+
 | batch size | 100 | 500 | 1000 | 
 |---|---|---|---|
 |qps|100|100|100|
