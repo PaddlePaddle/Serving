@@ -524,16 +524,16 @@ buildtool_local: /home/work/test-builder/build/cube-builder            //build�
 donefile_address: /home/work/test-transfer/test_data/donefile            //donefile位置支持本地路径和远程ftp或者http服务(ftp://或者http://)，只到最后文件夹，文件夹内最多2个文件base.txt patch.txt
 output_address: /home/work/test-transfer/test_data/output            //build后数据索引输出位置
 tmp_address: /home/work/test-transfer/test_data/tmp                //transfer工具运行中临时文件存放位置
-shard_num: 1                                        //分片数
-copy_num: 2                                        //每片副本数
+shard_num: 2                                        //分片数
+copy_num: 1                                        //每片副本数
 deploy_path: /home/work/test_dict                      //不用修改                          
 transfer_address: 10.10.10.5                             //cube-transfer本机的ip
 
 [cube_agent]
 agent0_0: 10.10.220.15:8001                        //0号分片0号副本的agent ip:port
 cube0_0: 10.10.220.15:8000:/ssd2/cube_open                //0号分片0号副本的cube，该路径下会存放配送的数据 ip:port:deploy_path
-agent0_1: 10.10.180.40:8001                        //0号分片1号副本的agent ip:port
-cube0_1: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
+agent1_0: 10.10.180.40:8001                        //0号分片1号副本的agent ip:port
+cube1_0: 10.10.180.40:8000:/home/disk1/cube_open             //0号分片1号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
 ```
 
 #### <span id="head27">4.2 拷贝cube-transfer到物理机</span>
