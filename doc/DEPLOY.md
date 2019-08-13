@@ -182,6 +182,7 @@ tar zxvf go1.12.7.linux-amd64.tar.gz -C /usr/local/
 
 ```bash
 export GOPATH=/usr/local/go
+export PATH=/usr/local/go/bin:$PATH
 ```
 
 ### <span id="head9"> 1.3 安装volcano</span>
