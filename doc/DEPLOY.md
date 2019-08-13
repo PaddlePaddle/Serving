@@ -391,7 +391,7 @@ $ tree
 nohup bin/cube &
 nohup bin/cube-agent -P 8001 &
 ```
-其中cube-agent在启动命令中使用 -P 参数指定监听端口号，在log文件夹可以查看cube server的日志。
+其中cube-agent在启动命令中使用 -P 参数指定监听端口号，在./log文件夹可以查看cube server的日志。
 
 ### <span id="head21">3. cube-builder部署</span>
 
