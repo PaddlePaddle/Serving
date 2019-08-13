@@ -687,7 +687,7 @@ sparse_param_service_table_name: "dict"
 }
 ```
 
-注意ctr_prediction model有如下2行配置：
+**注意事项：** ctr_prediction model有如下2行配置：
 
 ```json
 sparse_param_service_type: REMOTE
@@ -716,7 +716,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 }]
 ```
 
-**注意事项：**如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
+**注意事项**:如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
 
 ##### <span id="head38">1.3.4 模型文件</span>
 
