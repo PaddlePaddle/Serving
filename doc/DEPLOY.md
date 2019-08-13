@@ -278,6 +278,43 @@ CTR预估模型包含了embedding部分以及dense神经网络两部分，其中
 1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
 2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下，供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
 
+#### <span id="head14">5.3 搭建HTTP File Server服务</span>
+
+无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配速给Cube大规模稀疏参数服务器。
+
+配送的方式是通过K8S集群建立一个Http file server的pod，再通过注册负载均衡 load balancer service，映射file server的port给load balancer，最终可以直接通过公网IP：Port的方式来访问HTTP File Server。
+
+具体步骤如下
+
+执行
+
+```bash
+kubectl apply -f fileserver.yaml 
+```
+
+fileserver.yaml 一同包含两个部分，第一个是file server pod的配置，这样可以启动file server的docker镜像，并暴露文件服务端口。第二个是load balancer的配置，这样可以启动load balancer分配公网IP并且映射文件服务端口给公网。
+
+两项配置都执行成功之后，执行
+```bash
+kubectl get pod
+```
+会显示file-server，如下图所示。
+![file_server](./deploy/file_server.png)
+
+```bash
+kubectl get service 
+```
+
+会显示load balancer，如下图所示。
+![load_balancer](./deploy/load_balancer.png)
+
+其中External IP就是文件服务的公网IP，我们可以在任意一台可以连接公网的计算机上，输入wget http://IP:Port 。例如图片中的示例，输入wget http://180.76.113.149:8080 。
+
+如果显示下载了 index.html
+![wget_example](./deploy/wget_example.png)
+
+就说明服务搭建成功。
+
 ## <span id="head15"> 大规模稀疏参数服务Cube的部署和使用</span>
 
 Cube大规模稀疏参数服务服务组件，用于承载超大规模稀疏参数的查询、更新等各功能。上述分布式训练产出的稀疏参数，在k8s中以http文件服务的形式提供下载；cube则负责将稀疏参数读取、加工，切分成多个分片，灌入稀疏参数服务集群，提供对外访问。
