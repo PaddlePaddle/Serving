@@ -391,7 +391,7 @@ $ tree
 nohup bin/cube &
 nohup bin/cube-agent -P 8001 &
 ```
-其中cube-agent在启动命令中使用 -P 参数指定监听端口号
+其中cube-agent在启动命令中使用 -P 参数指定监听端口号，在./log文件夹可以查看cube server的日志。
 
 ### <span id="head21">3. cube-builder部署</span>
 
@@ -435,7 +435,7 @@ $ tree
 #### <span id="head24">3.3 启动cube-builder</span>
 ##### 3.3.1接入配送流程
 拷贝bin/cube-builder和cube-transfer程序到同一机器。  
-相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可，  执行cube-transfer时会通过配置文件中的路径调用cube-builder，所以通常不需要手动执行cube-builder。
+相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可， 执行cube-transfer时会通过配置文件中的路径调用cube-builder，所以通常不需要手动执行cube-builder。
 
 ##### 3.3.2单机builder
 
@@ -530,6 +530,7 @@ $ tree
 builder输入数据的源格式必须为seqfile，key为uint64（输入必须为二进制8个字节），value为序列化的二进制。   
 提供明文转seqfile工具和读seqfile工具，位置在output/tool里kvtool.py和kv_to_seqfile.py。  
 kvtool.py 是读seqfile工具，会输出读到的kv信息，参数是文件地址假设在/home/work/test下的seqfile，运行方式如下：
+
 ```
 python kvtool.py /home/work/test/seqfile
 ```
@@ -594,7 +595,16 @@ $ tree
 ```bash
 ./cube-transfer -p 8099 -l 4 --config conf/transfer.conf
 ```
+配送完毕cube-transfer会进入监听数据更新的状态，日志以及命令行会输出以下信息
+
+![wait-update](./deploy/wait-update.png)
+
+
+
+
+
 #### <span id="head281">4.4 cube-transfer支持查询接口</span>
+
 > 获取当前词典状态  
 > http://10.10.10.5:8099/dict/info  
 
