@@ -1,7 +1,7 @@
 # PaddlePaddle分布式训练和Serving流程化部署
 
-* [ 1.分布式训练](#head0)
-	* [ 1.1集群配置](#head1)
+* [ 1. 分布式训练](#head0)
+	* [ 1.1 集群配置](#head1)
 		* [1.1.1 创建集群](#head2)
 		* [1.2.1 配置集群环境](#head3)
 	* [1.2 配置开发机环境](#head4)
@@ -26,9 +26,9 @@
 		* [2.3.2 拷贝可执行文件到物理机](#head23)
 		* [2.3.3 启动cube-builder](#head24)
 			* [2.3.3.1 接入配送流程](#head25)
-			* [ 2.3.3.2单机builder](#head26)
-					* [base模式  ](#head27)
-					* [ delta模式](#head28)
+			* [2.3.3.2 单机builder](#head26)
+					* [base模式 ](#head27)
+					* [delta模式](#head28)
 		* [2.3.4 seqfile工具](#head29)
 	* [2.4 cube-transfer部署](#head30)
 		* [2.4.1 cube-transfer配置修改](#head31)
@@ -51,7 +51,7 @@
 		* [3.2.2 Client编译与部署](#head48)
 			* [3.2.2.1 配置修改](#head49)
 			* [3.2.2.2 运行服务](#head50)
-
+---
 
 在搜索、推荐、在线广告等业务场景中，embedding参数的规模常常非常庞大，达到数百GB甚至T级别；训练如此规模的模型需要用到多机分布式训练能力，将参数分片更新和保存；另一方面，训练好的模型，要应用于在线业务，也难以单机加载。Paddle Serving提供大规模稀疏参数读写服务，用户可以方便地将超大规模的稀疏参数以kv形式托管到参数服务，在线预测只需将所需要的参数子集从参数服务读取回来，再执行后续的预测流程。
 
@@ -75,11 +75,11 @@
 
 
 
-## <span id="head0"> 1.分布式训练</span>
+## <span id="head0"> 1. 分布式训练</span>
 
 分布式训练采用[volcano](https://github.com/volcano-sh/volcano)开源框架以及云平台实现，文档中以[百度智能云](https://cloud.baidu.com/?from=console)以及CTR预估模型为例，演示如何实现大规模稀疏参数模型的分布式训练。
 
-### <span id="head1"> 1.1集群配置</span>
+### <span id="head1"> 1.1 集群配置</span>
 
 #### <span id="head2">1.1.1 创建集群</span>
 
@@ -440,11 +440,11 @@ $ tree
 拷贝bin/cube-builder和cube-transfer程序到同一机器。  
 相关参数已经封装好，只需要在cube-transfer的conf/transfer.conf里配置好cube-builder的地址、源数据和建库数据output的地址即可， 执行cube-transfer时会通过配置文件中的路径调用cube-builder，所以通常不需要手动执行cube-builder。
 
-##### <span id="head26"> 2.3.3.2单机builder</span>
+##### <span id="head26"> 2.3.3.2 单机builder</span>
 
 **假设分片数为2，词典名为test**
 
-###### <span id="head27">base模式  </span>
+###### <span id="head27"> base模式</span>
 
 启动cube-builder命令，参数中的路径需要为绝对路径
 
