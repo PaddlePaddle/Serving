@@ -282,6 +282,7 @@ kubectl get service
 
 就说明服务搭建成功。
 
+**本节中获得的file server IP PORT将在下文中第2.4.1节和3.1.3.4节应用，请记住此file server地址**
 
 ### <span id="head10">1.5 执行训练</span>
 
@@ -355,6 +356,14 @@ CTR预估模型包含了embedding部分以及dense神经网络两部分，其中
 3. 调用replace_params.py，用models/pass-1000目录下参数文件替换models/inference_only目录下同名参数文件
 4. 打包models/inference_only生成ctr_model.tar.gz，放到HTTP服务目录下(详见本文"1.4 搭建HTTP File Server服务"一节），供外部用户手动下载，并替换到Serving的data/models/paddle/fluid/ctr_prediction目录中 (详见本文“预测服务部署”一节)
 
+产出的dense参数是一个.tar.gz压缩包，路径为：
+
+```
+http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
+```
+
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
+
 #### <span id="head13">1.6.2 稀疏参数产出</span>
 
 分布式稀疏参数服务由paddle serving的Cube模块实现。Cube服务接受的原始数据格式为Hadoop seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
@@ -364,6 +373,15 @@ CTR预估模型包含了embedding部分以及dense神经网络两部分，其中
 1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
 2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下(详见本文"1.4 搭建HTTP File Server服务"一节），供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
 
+产出的稀疏参数是一个目录，通过一个donefile来描述整个文件夹结构：
+
+```
+http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/base.txt
+```
+
+Donefile的格式请参考2.4.5节。
+
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 
 ## <span id="head15">2. 大规模稀疏参数服务Cube的部署和使用</span>
 
@@ -607,25 +625,26 @@ SOURCE_FILE = './source/file.txt' #明文源数据路径
 #### <span id="head31">2.4.1 cube-transfer配置修改</span>
 
 cube-transfer配置文件是conf/transfer.conf，配置比较复杂，配置文件中的路径需要为绝对路径，各个配置项含义如下：
+
 ```
 [default]
-dict_name: test_dict                                    //词典名
-mode: base_delta                                    //配送模式base_only/base_delta
-storage_place: LOCAL                                    //默认LOCAL，表示使用单机builder工具
-buildtool_local: /home/work/test-builder/build/cube-builder            //build工具位置，必须在本地，绝对路径
-donefile_address: /home/work/test-transfer/test_data/donefile            //donefile位置支持本地路径和远程ftp或者http服务(ftp://或者http://)，只到最后文件夹，文件夹内最多2个文件base.txt patch.txt
-output_address: /home/work/test-transfer/test_data/output            //build后数据索引输出位置
-tmp_address: /home/work/test-transfer/test_data/tmp                //transfer工具运行中临时文件存放位置
-shard_num: 2                                        //分片数
-copy_num: 1                                        //每片副本数
-deploy_path: /home/work/test_dict                      //不用修改                          
-transfer_address: 10.10.10.5                             //cube-transfer本机的ip
+dict_name: test_dict                                # 词典名
+mode: base_delta                                    # 配送模式base_only/base_delta
+storage_place: LOCAL                                    # 默认LOCAL，表示使用单机builder工具
+buildtool_local: /home/work/test-builder/build/cube-builder    # build工具位置，必须在本地，绝对路径
+donefile_address: http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/ # donefile路径，${FILE_SERVER_IP}:${FILE_SERVER_PORT}为1.4节搭建的file server地址。文件夹内包含base.txt, patch.txt和一批Hadoop SequenceFile文件
+output_address: /home/work/test-transfer/test_data/output      # build后数据索引输出位置
+tmp_address: /home/work/test-transfer/test_data/tmp            # transfer工具运行中临时文件存放位置
+shard_num: 2                                        # 分片数
+copy_num: 1                                         # 每片副本数
+deploy_path: /home/work/test_dict                   # 不用修改                          
+transfer_address: 10.10.10.5                        # cube-transfer本机的ip
 
 [cube_agent]
-agent0_0: 10.10.220.15:8001                        //0号分片0号副本的agent ip:port
-cube0_0: 10.10.220.15:8000:/ssd2/cube_open                //0号分片0号副本的cube，该路径下会存放配送的数据 ip:port:deploy_path
-agent1_0: 10.10.180.40:8001                        //1号分片0号副本的agent ip:port
-cube1_0: 10.10.180.40:8000:/home/disk1/cube_open             //1号分片0号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
+agent0_0: 10.10.220.15:8001                         # 0号分片0号副本的agent ip:port
+cube0_0: 10.10.220.15:8000:/ssd2/cube_open          # 0号分片0号副本的cube，该路径下会存放配送的数据 ip:port:deploy_path
+agent1_0: 10.10.180.40:8001                         # 1号分片0号副本的agent ip:port
+cube1_0: 10.10.180.40:8000:/home/disk1/cube_open    # 1号分片0号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
 ```
 
 #### <span id="head32">2.4.2 拷贝cube-transfer到物理机</span>
@@ -685,13 +704,17 @@ id最好使用版本产出时间戳，base和patch每产出一条直接在donefi
 
 ### <span id="head37">3.1 Server端</span>
 
-通过wget命令从集群获取dense部分模型用于Server端。
+K8s集群上CTR预估任务训练完成后，模型参数分成2部分：
+
+一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；Cube服务搭建整体流程详见第2节。
+
+二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。Dense参数存放在k8s集群中，可通过集群的file server获取：
 
 ```bash
-wget "http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/path/to/models"
+wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 ```
 
-K8s集群上CTR预估任务训练完成后，模型参数分成2部分：一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 
 本文介绍Serving使用上述模型参数和program加载模型提供预测服务的流程。
 
@@ -831,7 +854,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
 ```bash
 $ cd data/model/paddle/fluid
-$ wget http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
+$ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz # `FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
 $ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
 $ cp -r inference_only/* ctr_prediction
@@ -841,8 +864,6 @@ bin  conf  data  kvdb  log
 $ killall serving           # 杀死旧的serving进程
 $ bin/serving &             # 重启serving
 ```
-
-从K8S集群暴露的http服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
 
 #### <span id="head45">3.1.4 启动Serving</span>
 
