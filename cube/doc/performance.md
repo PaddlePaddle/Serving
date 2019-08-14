@@ -7,6 +7,8 @@ Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz
 
 ## 单Key高qps访问场景
 一般来说实际预估服务生产环境下，单key访问场景较少，不过单机qps依然是一个比较重要的性能指标，故在下表提供了不同qps下单机Cube server性能指标。
+
+
 | qps | 10w | 50w | 100w | 
 |---|---|---|---|
 |kps|10w|50w|100w|
@@ -15,6 +17,8 @@ Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz
 
 ## 高kps场景
 生产环境下，预估服务更多的会以batch形式访问cube server，这类情况kps相对qps能更准确的判断服务性能。我们以单次100key为例，给出不同kps下cube server的相关性能指标。
+
+
 | qps | 2w | 10w | 20w | 
 |---|---|---|---|
 |kps|200w|1000w|2000w|
@@ -27,6 +31,8 @@ Intel(R) Xeon(R) CPU E5-2650 v4 @ 2.20GHz
 测试条件:
 cube分片数:10 
 client机器ping下游server机器约0.06ms
+
+
 | batch size | 100 | 500 | 1000 | 
 |---|---|---|---|
 |qps|100|100|100|
