@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: file-server
+  labels:
+    app: file-server
+spec:
+  volumes:
+  - hostPath:
+      path: /home/work
+      type: ""
+    name: file-home
+  containers:
+  - name: file-server
+    image: halverneus/static-file-server
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - mountPath: /web
+      name: file-home
+  nodeSelector:
+    nodeType: model
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+    - name: file-server
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: file-server
