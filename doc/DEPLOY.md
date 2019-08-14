@@ -51,6 +51,8 @@
 		* [3.2.2 Client编译与部署](#head48)
 			* [3.2.2.1 配置修改](#head49)
 			* [3.2.2.2 运行服务](#head50)
+			
+			  
 	
 ---
 
@@ -474,9 +476,9 @@ cube-builder配置项说明：
 参数项如下：
 
 ```
-open_builder: Usage : ./open_build --help
+cube-builder: Usage : ./cube-builder --help
 
-Flags from /home/work/dangyifei/open-builder/src/main.cpp:
+Flags from /home/work/cube-builder/src/main.cpp:
 -cur_version (current version, no need) type: int32 default: 0                //单机builder模式下不需要
 -depend_version (depend version, job mode delta need) type: int32 default: 0  //单机builder base模式下不需要，patch模式找到meta_info里的base的key
 -dict_name (dict name, no need) type: string default: ""                      //词典名，单机builder模式下不加默认空，用来和版本拼接生成索引文件名
@@ -630,21 +632,21 @@ cube-transfer配置文件是conf/transfer.conf，配置比较复杂，配置文�
 [default]
 dict_name: test_dict                                # 词典名
 mode: base_delta                                    # 配送模式base_only/base_delta
-storage_place: LOCAL                                    # 默认LOCAL，表示使用单机builder工具
-buildtool_local: /home/work/test-builder/build/cube-builder    # build工具位置，必须在本地，绝对路径
+storage_place: LOCAL                                # 默认LOCAL，表示使用单机builder工具
+buildtool_local: /path/to/cube-builder              # builder工具位置，必须在本地，绝对路径
 donefile_address: http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/ # donefile路径，${FILE_SERVER_IP}:${FILE_SERVER_PORT}为1.4节搭建的file server地址。文件夹内包含base.txt, patch.txt和一批Hadoop SequenceFile文件
-output_address: /home/work/test-transfer/test_data/output      # build后数据索引输出位置
-tmp_address: /home/work/test-transfer/test_data/tmp            # transfer工具运行中临时文件存放位置
+output_address: /some/path/to/output      # builder产出的数据索引输出位置
+tmp_address: /some/path/to/tmp            # transfer工具运行中临时文件存放位置
 shard_num: 2                                        # 分片数
 copy_num: 1                                         # 每片副本数
 deploy_path: /home/work/test_dict                   # 不用修改                          
 transfer_address: 10.10.10.5                        # cube-transfer本机的ip
 
 [cube_agent]
-agent0_0: 10.10.220.15:8001                         # 0号分片0号副本的agent ip:port
-cube0_0: 10.10.220.15:8000:/ssd2/cube_open          # 0号分片0号副本的cube，该路径下会存放配送的数据 ip:port:deploy_path
-agent1_0: 10.10.180.40:8001                         # 1号分片0号副本的agent ip:port
-cube1_0: 10.10.180.40:8000:/home/disk1/cube_open    # 1号分片0号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
+agent0_0: 10.10.220.15:8001                       # 0号分片0号副本的agent ip:port
+cube0_0: 10.10.220.15:8000:/path/to/cube          # 0号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
+agent1_0: 10.10.180.40:8001                       # 1号分片0号副本的agent ip:port
+cube1_0: 10.10.180.40:8000:/path/to/cube          # 1号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
 ```
 
 #### <span id="head32">2.4.2 拷贝cube-transfer到物理机</span>
@@ -684,6 +686,10 @@ $ tree
 
 > 获取配送历史从最近的base到当前正在配送的delta  
 > http://10.10.10.5:8099/dict/deploy/history 
+
+
+
+这里`10.10.10.5:8099`是cube-transfer所在的IP地址和端口，参考2.4.1节配置项`transfer_address`
 
 #### <span id="head35">2.4.5 donefile格式协议</span>
 
