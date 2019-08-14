@@ -10,11 +10,11 @@
 		* [1.2.3 配置文件](#head7)
 		* [1.2.4 安装Go](#head8)
 	* [ 1.3 安装volcano](#head9)
-	* [1.4 执行训练](#head10)
-	* [1.5 模型产出](#head11)
-		* [1.5.1 模型裁剪，产出预测ProgramDesc和dense参数](#head12)
-		* [1.5.2 稀疏参数产出](#head13)
-		* [1.5.3 搭建HTTP File Server服务](#head14)
+	* [1.4 搭建HTTP File Server服务](#head91)
+	* [1.5 执行训练](#head10)
+	* [1.6 模型产出](#head11)
+		* [1.6.1 模型裁剪，产出预测ProgramDesc和dense参数](#head12)
+		* [1.6.2 稀疏参数产出](#head13)
 * [2. 大规模稀疏参数服务Cube的部署和使用](#head15)
 	* [2.1 编译](#head16)
 	* [2.2 分片cube server/agent部署](#head17)
@@ -50,8 +50,11 @@
 		* [3.2.1 测试数据](#head47)
 		* [3.2.2 Client编译与部署](#head48)
 			* [3.2.2.1 配置修改](#head49)
+			
 			* [3.2.2.2 运行服务](#head50)
-
+			
+			  
+	
 ---
 
 在搜索、推荐、在线广告等业务场景中，embedding参数的规模常常非常庞大，达到数百GB甚至T级别；训练如此规模的模型需要用到多机分布式训练能力，将参数分片更新和保存；另一方面，训练好的模型，要应用于在线业务，也难以单机加载。Paddle Serving提供大规模稀疏参数读写服务，用户可以方便地将超大规模的稀疏参数以kv形式托管到参数服务，在线预测只需将所需要的参数子集从参数服务读取回来，再执行后续的预测流程。
@@ -182,6 +185,7 @@ tar zxvf go1.12.7.linux-amd64.tar.gz -C /usr/local/
 
 ```bash
 export GOPATH=/usr/local/go
+export PATH=/usr/local/go/bin:$PATH
 ```
 
 ### <span id="head9"> 1.3 安装volcano</span>
@@ -200,7 +204,90 @@ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/ins
 
 ![volcano](./deploy/volcano.png)
 
-### <span id="head10">1.4 执行训练</span>
+### <span id="head91">1.4 搭建HTTP File Server服务</span>
+
+无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配速给Cube大规模稀疏参数服务器。
+
+配送的方式是通过K8S集群建立一个Http file server的pod，再通过注册负载均衡 load balancer service，映射file server的port给load balancer，最终可以直接通过公网IP：Port的方式来访问HTTP File Server。
+
+
+
+fileserver.yaml 一同包含两个部分，第一个是file server pod的配置，这样可以启动file server的docker镜像，并暴露文件服务端口。第二个是load balancer的配置，这样可以启动load balancer分配公网IP并且映射文件服务端口给公网。 [fileserver.yaml](./resource/fileserver.yaml) 文件示例如下：
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: file-server
+  labels:
+    app: file-server
+spec:
+  volumes:
+  - hostPath:
+      path: /home/work
+      type: ""
+    name: file-home
+  containers:
+  - name: file-server
+    image: halverneus/static-file-server
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+    - mountPath: /web
+      name: file-home
+  nodeSelector:
+    nodeType: model
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+    - name: file-server
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: file-server
+```
+
+具体步骤如下
+
+执行
+
+```bash
+kubectl apply -f fileserver.yaml 
+```
+
+两项配置都执行成功之后，执行
+
+```bash
+kubectl get pod
+```
+
+会显示file-server，如下图所示。
+
+![file_server](./deploy/file_server.png)
+
+```bash
+kubectl get service 
+```
+
+会显示load balancer，如下图所示。
+
+![load_balancer](./deploy/load_balancer.png)
+
+其中External IP就是文件服务的公网IP，我们可以在任意一台可以连接公网的计算机上，输入wget http://IP:Port 。例如图片中的示例，输入wget http://180.76.113.149:8080 。
+
+如果显示下载了 index.html
+
+![wget_example](./deploy/wget_example.png)
+
+就说明服务搭建成功。
+
+**本节中获得的file server IP PORT将在下文中第2.4.1节和3.1.3.4节应用，请记住此file server地址**
+
+### <span id="head10">1.5 执行训练</span>
 
 创建cluster role和service account，[defaultserviceaccountclusterrole.yaml](./resource/defaultserviceaccountclusterrole.yaml) 文件示例如下：
 
@@ -257,11 +344,11 @@ kubectl apply -f volcano-ctr-demo-baiduyun.yaml
 
 ![工作负载](./deploy/workload.png)
 
-### <span id="head11">1.5 模型产出</span>
+### <span id="head11">1.6 模型产出</span>
 
-CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务，dense网络部分加载到serving服务中。在本文中使用的CTR模型训练镜像中已经包含了模型裁剪和稀疏参数产出的脚本，以下简述其原理和工作过程。
+CTR预估模型包含了embedding部分以及dense神经网络两部分，其中embedding部分包含的稀疏参数较多，在某些场景下单机的资源难以加载整个模型，因此需要将这两部分分割开来，稀疏参数部分放在分布式的稀疏参数服务，dense网络部分加载到serving服务中，稀疏参数和dense网络都需要通过http file server服务来进行配送（详见本文"1.4 搭建HTTP File Server服务"一节）。在本文中使用的CTR模型训练镜像中已经包含了模型裁剪和稀疏参数产出的脚本，以下简述其原理和工作过程。
 
-#### <span id="head12">1.5.1 模型裁剪，产出预测ProgramDesc和dense参数</span>
+#### <span id="head12">1.6.1 模型裁剪，产出预测ProgramDesc和dense参数</span>
 
 产出用于paddle serving预测服务的dense模型需要对保存的原始模型进行裁剪操作，修改模型的输入以及内部结构。具体原理和操作流程请参考文档[改造CTR预估模型用于大规模稀疏参数服务演示](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
 
@@ -270,56 +357,34 @@ CTR预估模型包含了embedding部分以及dense神经网络两部分，其中
 1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
 2. 调用save_program.py，生成一个适用于预测的ProgramDesc保存到models/inference_only目录，并将所需参数一并保存到该子目录下
 3. 调用replace_params.py，用models/pass-1000目录下参数文件替换models/inference_only目录下同名参数文件
-4. 打包models/inference_only生成ctr_model.tar.gz，放到HTTP服务目录下，供外部用户手动下载，并替换到Serving的data/models/paddle/fluid/ctr_prediction目录中 (详见本文“预测服务部署”一节)
+4. 打包models/inference_only生成ctr_model.tar.gz，放到HTTP服务目录下(详见本文"1.4 搭建HTTP File Server服务"一节），供外部用户手动下载，并替换到Serving的data/models/paddle/fluid/ctr_prediction目录中 (详见本文“预测服务部署”一节)
 
-#### <span id="head13">1.5.2 稀疏参数产出</span>
+产出的dense参数是一个.tar.gz压缩包，路径为：
+
+```
+http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
+```
+
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
+
+#### <span id="head13">1.6.2 稀疏参数产出</span>
 
 分布式稀疏参数服务由paddle serving的Cube模块实现。Cube服务接受的原始数据格式为Hadoop seqfile格式，因此需要对paddle保存出的模型文件进行格式转换。
 
 在trainer镜像中，将模型参数转换为seqfile的主要流程是：
 
 1. 监视训练脚本所在目录的models文件夹，当发现有子目录`pass-1000`时，表示训练任务完成 (默认训练轮次为1000)
-2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下，供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
+2. 调用dumper.py，将models/pass-1000/SparseFeatFactors文件转换成seqfile格式，同时生成一个用于让下游cube-transfer下载完整数据的donefile文件，整个目录结构放到HTTP服务目录下(详见本文"1.4 搭建HTTP File Server服务"一节），供下游cube-transfer监听进程检测和下载 (详见本文“大规模稀疏参数服务Cube的部署和使用”一节)
 
-#### <span id="head14">1.5.3 搭建HTTP File Server服务</span>
+产出的稀疏参数是一个目录，通过一个donefile来描述整个文件夹结构：
 
-无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配速给Cube大规模稀疏参数服务器。
-
-配送的方式是通过K8S集群建立一个Http file server的pod，再通过注册负载均衡 load balancer service，映射file server的port给load balancer，最终可以直接通过公网IP：Port的方式来访问HTTP File Server。
-
-具体步骤如下
-
-执行
-
-```bash
-kubectl apply -f fileserver.yaml 
+```
+http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/base.txt
 ```
 
-fileserver.yaml 一同包含两个部分，第一个是file server pod的配置，这样可以启动file server的docker镜像，并暴露文件服务端口。第二个是load balancer的配置，这样可以启动load balancer分配公网IP并且映射文件服务端口给公网。
+Donefile的格式请参考2.4.5节。
 
-两项配置都执行成功之后，执行
-
-```bash
-kubectl get pod
-```
-
-会显示file-server，如下图所示。
-
-![file_server](./deploy/file_server.png)
-
-```bash
-kubectl get service 
-```
-
-会显示load balancer，如下图所示。
-![load_balancer](./deploy/load_balancer.png)
-
-其中External IP就是文件服务的公网IP，我们可以在任意一台可以连接公网的计算机上，输入wget http://IP:Port 。例如图片中的示例，输入wget http://180.76.113.149:8080 。
-
-如果显示下载了 index.html
-![wget_example](./deploy/wget_example.png)
-
-就说明服务搭建成功。
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 
 ## <span id="head15">2. 大规模稀疏参数服务Cube的部署和使用</span>
 
@@ -332,7 +397,11 @@ Cube一共拆分成四个组件，共同完成上述工作：
 3. cube-server 每个单独的cube服务承载一个分片的cube数据
 4. cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
 
-关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。本文仅描述从头部署Cube服务的流程。
+关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。
+
+关于Cube的性能数据，请参考[Cube Benchmark](https://github.com/PaddlePaddle/Serving/blob/develop/cube/doc/performance.md)
+
+本文仅描述从头部署Cube服务的流程。
 
 ### <span id="head16">2.1 编译</span>
 
@@ -395,7 +464,7 @@ $ tree
 nohup bin/cube &
 nohup bin/cube-agent -P 8001 &
 ```
-其中cube-agent在启动命令中使用 -P 参数指定监听端口号，在log文件夹可以查看cube server的日志。
+其中cube-agent在启动命令中使用 -P 参数指定监听端口号，在./log文件夹可以查看cube server的日志。
 
 ### <span id="head21">2.3 cube-builder部署</span>
 
@@ -408,9 +477,9 @@ cube-builder配置项说明：
 参数项如下：
 
 ```
-open_builder: Usage : ./open_build --help
+cube-builder: Usage : ./cube-builder --help
 
-Flags from /home/work/dangyifei/open-builder/src/main.cpp:
+Flags from /home/work/cube-builder/src/main.cpp:
 -cur_version (current version, no need) type: int32 default: 0                //单机builder模式下不需要
 -depend_version (depend version, job mode delta need) type: int32 default: 0  //单机builder base模式下不需要，patch模式找到meta_info里的base的key
 -dict_name (dict name, no need) type: string default: ""                      //词典名，单机builder模式下不加默认空，用来和版本拼接生成索引文件名
@@ -559,25 +628,26 @@ SOURCE_FILE = './source/file.txt' #明文源数据路径
 #### <span id="head31">2.4.1 cube-transfer配置修改</span>
 
 cube-transfer配置文件是conf/transfer.conf，配置比较复杂，配置文件中的路径需要为绝对路径，各个配置项含义如下：
+
 ```
 [default]
-dict_name: test_dict                                    //词典名
-mode: base_delta                                    //配送模式base_only/base_delta
-storage_place: LOCAL                                    //默认LOCAL，表示使用单机builder工具
-buildtool_local: /home/work/test-builder/build/cube-builder            //build工具位置，必须在本地，绝对路径
-donefile_address: /home/work/test-transfer/test_data/donefile            //donefile位置支持本地路径和远程ftp或者http服务(ftp://或者http://)，只到最后文件夹，文件夹内最多2个文件base.txt patch.txt
-output_address: /home/work/test-transfer/test_data/output            //build后数据索引输出位置
-tmp_address: /home/work/test-transfer/test_data/tmp                //transfer工具运行中临时文件存放位置
-shard_num: 2                                        //分片数
-copy_num: 1                                        //每片副本数
-deploy_path: /home/work/test_dict                      //不用修改                          
-transfer_address: 10.10.10.5                             //cube-transfer本机的ip
+dict_name: test_dict                                # 词典名
+mode: base_delta                                    # 配送模式base_only/base_delta
+storage_place: LOCAL                                # 默认LOCAL，表示使用单机builder工具
+buildtool_local: /path/to/cube-builder              # builder工具位置，必须在本地，绝对路径
+donefile_address: http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/ # donefile路径，${FILE_SERVER_IP}:${FILE_SERVER_PORT}为1.4节搭建的file server地址。文件夹内包含base.txt, patch.txt和一批Hadoop SequenceFile文件
+output_address: /some/path/to/output      # builder产出的数据索引输出位置
+tmp_address: /some/path/to/tmp            # transfer工具运行中临时文件存放位置
+shard_num: 2                                        # 分片数
+copy_num: 1                                         # 每片副本数
+deploy_path: /home/work/test_dict                   # 不用修改                          
+transfer_address: 10.10.10.5                        # cube-transfer本机的ip
 
 [cube_agent]
-agent0_0: 10.10.220.15:8001                        //0号分片0号副本的agent ip:port
-cube0_0: 10.10.220.15:8000:/ssd2/cube_open                //0号分片0号副本的cube，该路径下会存放配送的数据 ip:port:deploy_path
-agent1_0: 10.10.180.40:8001                        //1号分片0号副本的agent ip:port
-cube1_0: 10.10.180.40:8000:/home/disk1/cube_open             //1号分片0号副本的cube ，该路径下会存放配送的数据 ip:port:deploy_path
+agent0_0: 10.10.220.15:8001                       # 0号分片0号副本的agent ip:port
+cube0_0: 10.10.220.15:8000:/path/to/cube          # 0号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
+agent1_0: 10.10.180.40:8001                       # 1号分片0号副本的agent ip:port
+cube1_0: 10.10.180.40:8000:/path/to/cube          # 1号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
 ```
 
 #### <span id="head32">2.4.2 拷贝cube-transfer到物理机</span>
@@ -618,6 +688,10 @@ $ tree
 > 获取配送历史从最近的base到当前正在配送的delta  
 > http://10.10.10.5:8099/dict/deploy/history 
 
+
+
+这里`10.10.10.5:8099`是cube-transfer所在的IP地址和端口，参考2.4.1节配置项`transfer_address`
+
 #### <span id="head35">2.4.5 donefile格式协议</span>
 
 一旦cube-transfer部署完成，它就不断监听我们配置好的donefile数据位置，发现有数据更新后，即启动数据下载，然后通知cube-builder执行建库和配送流程，将新数据配送给各个分片的cube-server。  
@@ -637,13 +711,17 @@ id最好使用版本产出时间戳，base和patch每产出一条直接在donefi
 
 ### <span id="head37">3.1 Server端</span>
 
-通过wget命令从集群获取dense部分模型用于Server端。
+K8s集群上CTR预估任务训练完成后，模型参数分成2部分：
+
+一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；Cube服务搭建整体流程详见第2节。
+
+二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。Dense参数存放在k8s集群中，可通过集群的file server获取：
 
 ```bash
-wget "http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/path/to/models"
+wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 ```
 
-K8s集群上CTR预估任务训练完成后，模型参数分成2部分：一是embedding数据，经过dumper.py已经转成hadoop SequenceFile格式，传输给cube建库流程构建索引和灌cube；二是除embedding之外的参数文件，连同save_program.py裁剪后的program，一起配合传输给Serving加载。save_program.py裁剪原始模型的具体背景和详细步骤请参考文档[Paddle Serving CTR预估模型说明](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CTR_PREDICTION.md)。
+`FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 
 本文介绍Serving使用上述模型参数和program加载模型提供预测服务的流程。
 
@@ -742,14 +820,14 @@ sparse_param_service_table_name: "dict"
 
 **注意事项：** ctr_prediction model有如下2行配置：
 
-```json
+```
 sparse_param_service_type: REMOTE
 sparse_param_service_table_name: "dict"
 ```
 
 ##### <span id="head43">3.1.3.3 conf/cube.conf</span>
 
-conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes列表为真实的物理节点IP:port列表即可。例如 （与第1节cube配置文件内容一致）：
+conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes列表为真实的物理节点IP:port列表即可。例如 （与第3.1.1节cube配置文件内容一致）：
 
 ```json
 [{
@@ -769,7 +847,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 }]
 ```
 
-**注意事项：** 如果修改了`dict_name`，需要同步修改1.3.2节中`sparse_param_service_table_name`字段
+**注意事项：** 如果修改了`dict_name`，需要同步修改3.1.3.2节中`sparse_param_service_table_name`字段
 
 ##### <span id="head44">3.1.3.4 模型文件</span>
 
@@ -783,7 +861,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 为了应用重新训练的模型，只需要从k8s集群暴露的http服务下载新的ctr_model.tar.gz，解压到data/model/paddle/fluid下，并将内容移至原来的ctr_prediction目录即可：
 ```bash
 $ cd data/model/paddle/fluid
-$ wget http://${HTTP_SERVICE_IP}:${HTTP_SERVICE_PORT}/data/ctr_model.tar.gz
+$ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz # `FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
 $ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
 $ cp -r inference_only/* ctr_prediction
@@ -793,8 +871,6 @@ bin  conf  data  kvdb  log
 $ killall serving           # 杀死旧的serving进程
 $ bin/serving &             # 重启serving
 ```
-
-从K8S集群暴露的http服务下载训练模型，请参考文档[PaddlePaddle分布式训练和Serving流程化部署](http://icode.baidu.com/repos/baidu/personal-code/wangguibao/blob/master:ctr-embedding-to-sequencefile/path/to/doc/DISTRIBUTED_TRANING_AND_SERVING.md)
 
 #### <span id="head45">3.1.4 启动Serving</span>
 
