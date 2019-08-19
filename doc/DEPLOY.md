@@ -643,10 +643,10 @@ deploy_path: /home/work/test_dict                   # 不用修改
 transfer_address: 10.10.10.5                        # cube-transfer本机的ip
 
 [cube_agent]
-agent0_0: 10.10.220.15:8001                       # 0号分片0号副本的agent ip:port
-cube0_0: 10.10.220.15:8000:/path/to/cube          # 0号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
-agent1_0: 10.10.180.40:8001                       # 1号分片0号副本的agent ip:port
-cube1_0: 10.10.180.40:8000:/path/to/cube          # 1号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
+agent0_0: 192.168.1.1:8001                       # 0号分片0号副本的agent ip:port
+cube0_0: 192.168.1.1:8000:/path/to/cube          # 0号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
+agent1_0: 192.168.1.2:8001                       # 1号分片0号副本的agent ip:port
+cube1_0: 192.168.1.2:8000:/path/to/cube          # 1号分片0号副本的cube，该路径下会存放配送的数据 格式：ip:port:deploy_path
 ```
 
 #### <span id="head32">2.4.2 拷贝cube-transfer到物理机</span>
