@@ -233,8 +233,6 @@ spec:
     volumeMounts:
     - mountPath: /web
       name: file-home
-  nodeSelector:
-    nodeType: model
 ---
 kind: Service
 apiVersion: v1
