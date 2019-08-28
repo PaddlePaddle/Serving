@@ -100,7 +100,7 @@
 
 ![concole](./deploy/concole.png)
 
-点击"命名空间"选择kube-system，点击"容器组"，查看tiller开头的节点。
+点击"命名空间"选择kube-system，点击"容器组"，查看tiller开头的节点IP，根据节点IP可以在集群的节点列表找到对应的节点名称。
 
 ![tiller](./deploy/tiller.png)
 
@@ -108,7 +108,7 @@
 
 ![eip](./deploy/eip.png)
 
-创建弹性公网实例，完成后选择创建的实例，点击"更多操作>绑定到BCC"，填写tiller开头的节点信息进行绑定。
+创建弹性公网实例，完成后选择创建的实例，点击"更多操作>绑定到BCC"，选择上一步找到的的节点名称。
 
 ### <span id="head4">1.2 配置开发机环境</span>
 
@@ -203,13 +203,19 @@ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/ins
 
 ![volcano](./deploy/volcano.png)
 
+**注意事项:**  由于与dockerhub官网的网络连接不稳定，可能会出现安装失败的情况。如果安装失败，使用`kubectl describe pods --namespace volcano-system`命令进行错误检查，确定为拉取镜像失败后请执行
+
+```bash
+kubectl delete -f https://raw.githubusercontent.com/volcano-sh/volcano/master/installer/volcano-development.yaml
+```
+
+然后重新安装。
+
 ### <span id="head91">1.4 搭建HTTP File Server服务</span>
 
 无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配速给Cube大规模稀疏参数服务器。
 
 配送的方式是通过K8S集群建立一个Http file server的pod，再通过注册负载均衡 load balancer service，映射file server的port给load balancer，最终可以直接通过公网IP：Port的方式来访问HTTP File Server。
-
-
 
 fileserver.yaml 一同包含两个部分，第一个是file server pod的配置，这样可以启动file server的docker镜像，并暴露文件服务端口。第二个是load balancer的配置，这样可以启动load balancer分配公网IP并且映射文件服务端口给公网。 [fileserver.yaml](./resource/fileserver.yaml) 文件示例如下：
 ```yaml
