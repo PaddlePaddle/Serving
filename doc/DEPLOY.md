@@ -174,18 +174,20 @@ export HELM_TLS_KEY=/etc/kubernetes/pki/admin-key.pem
 wget https://studygolang.com/dl/golang/go1.12.7.linux-amd64.tar.gz --no-check-certificate
 ```
 
-解压到 /usr/local/路径下
+解压到某一路径下，**注意事项：** 若已安装过其他版本的go，请不要放在同一路径下或清空该路径再安装。
 
 ```bash
-tar zxvf go1.12.7.linux-amd64.tar.gz -C /usr/local/
+tar zxvf go1.12.7.linux-amd64.tar.gz -C /path/to/go
 ```
 
 设置环境变量
 
 ```bash
-export GOPATH=/usr/local/go
-export PATH=/usr/local/go/bin:$PATH
+export GOROOT=/path/to/go
+export PATH=/path/to/go/bin:$PATH
 ```
+创建一个文件夹并设置为GOPATH。
+
 
 ### <span id="head9"> 1.3 安装volcano</span>
 
