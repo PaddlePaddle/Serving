@@ -215,7 +215,7 @@ kubectl delete -f https://raw.githubusercontent.com/volcano-sh/volcano/master/in
 
 ### <span id="head91">1.4 搭建HTTP File Server服务</span>
 
-无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配速给Cube大规模稀疏参数服务器。
+无论是dense参数还是Sparse参数，在生成之后，都需要以某种方式将文件服务暴露出来。dense参数需要配送给Paddle Serving，稀疏参数需要配送给Cube大规模稀疏参数服务器。
 
 配送的方式是通过K8S集群建立一个Http file server的pod，再通过注册负载均衡 load balancer service，映射file server的port给load balancer，最终可以直接通过公网IP：Port的方式来访问HTTP File Server。
 
@@ -415,7 +415,7 @@ Cube是Paddle Serving内置的组件，只要按常规步骤编译Serving即可�
 ```bash
 $ git clone https://github.com/PaddlePaddle/Serving.git
 $ cd Serving
-$ makedir build
+$ mkdir build
 $ cd build
 $ cmake -DWITH_GPU=OFF .. # 不需要GPU
 $ make -jN                # 这里可修改并发编译线程数
@@ -763,7 +763,7 @@ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 ```bash
 $ git clone https://github.com/PaddlePaddle/Serving.git
 $ cd Serving
-$ makedir build
+$ mkdir build
 $ cd build
 $ cmake -DWITH_GPU=OFF .. # 不需要GPU
 $ make -jN                # 这里可修改并发编译线程数
