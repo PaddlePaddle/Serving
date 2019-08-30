@@ -128,6 +128,9 @@ engines {
   enable_batch_align: 0
   sparse_param_service_type: LOCAL
   sparse_param_service_table_name: "local_kv"
+  enable_memory_optimization: true
+  static_optimization: false
+  force_update_static_cache: false
 }
 ```
 
@@ -175,6 +178,9 @@ Analysis API在模型加载过程中，会对模型计算逻辑进行多种优�
 |REMOTE|分布式大规模稀疏参数服务，以Cube作为引擎|
 
 - sparse_param_service_table_name: 可选参数，大规模稀疏参数服务承载本模型所用参数的表名。
+- enable_memory_optimization: bool类型，可选参数，是否启用内存优化。只在使用fluid Analysis预测API时有意义。需要说明的是，在GPU预测时，会执行显存优化
+- static_optimization: bool类型，是否执行静态优化。只有当启用内存优化时有意义。
+- force_update_static_cache: bool类型，是否强制更新静态优化cache。只有当启用内存优化时有意义。
 
 ## 5. 命令行配置参数
 
