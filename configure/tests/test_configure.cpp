@@ -68,6 +68,9 @@ int test_write_conf() {
   engine->set_enable_batch_align(0);
   engine->set_sparse_param_service_type(EngineDesc::LOCAL);
   engine->set_sparse_param_service_table_name("local_kv");
+  engine->set_enable_memory_optimization(true);
+  engine->set_static_optimization(false);
+  engine->set_force_update_static_cache(false);
 
   int ret = baidu::paddle_serving::configure::write_proto_conf(
       &model_toolkit_conf, output_dir, model_toolkit_conf_file);
@@ -79,6 +82,7 @@ int test_write_conf() {
   ResourceConf resource_conf;
   resource_conf.set_model_toolkit_path(output_dir);
   resource_conf.set_model_toolkit_file("model_toolkit.prototxt");
+  resource_conf.set_cube_config_file("./conf/cube.conf");
   ret = baidu::paddle_serving::configure::write_proto_conf(
       &resource_conf, output_dir, resource_conf_file);
   if (ret != 0) {
