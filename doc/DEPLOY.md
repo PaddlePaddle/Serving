@@ -638,7 +638,8 @@ cube-transfer配置文件是conf/transfer.conf，配置比较复杂，配置文�
 [default]
 dict_name: test_dict                                # 词典名
 mode: base_delta                                    # 配送模式base_only/base_delta
-storage_place: LOCAL                                # 默认LOCAL，表示使用单机builder工具
+download_mode: http																	# 配送方式，可以选择http或ftp
+wget_port: 80																				# http服务的端口
 buildtool_local: /path/to/cube-builder              # builder工具位置，必须在本地，绝对路径
 donefile_address: http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/ # donefile路径，${FILE_SERVER_IP}:${FILE_SERVER_PORT}为1.4节搭建的file server地址。文件夹内包含base.txt, patch.txt和一批Hadoop SequenceFile文件
 output_address: /some/path/to/output      # builder产出的数据索引输出位置
@@ -658,6 +659,9 @@ cube1_0: 192.168.1.2:8000:/path/to/cube          # 1号分片0号副本的cube�
 #### <span id="head32">2.4.2 拷贝cube-transfer到物理机</span>
 
 将bin/cube-transfer和conf/transfer.conf拷贝到多个物理机上，构建output和tmp文件夹用来存放配送的中间文件。  
+
+**注意事项：** 请在transfer所在的物理机上启动http服务或ftp服务，确保cube-agent所在的物理机可以通过配置文件中的`${transfer_address}:{wget_port}/${output_address} `下载目录下的数据。
+
 假设拷贝好的文件结构如下：
 
 ```
