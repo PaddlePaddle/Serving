@@ -24,7 +24,8 @@ type DictInfo struct {
 	DonefileAddress    string            `json:"donefile_addr"`
 	OutputAddress      string            `json:"output_addr"`
 	TmpAddress         string            `json:"tmp_addr"`
-	StoragePlace       string            `json:"storage_place"`
+	DownloadMode       string            `json:"download_mode"`
+	WgetPort           string            `json:"wget_port"`
 	DownloadSuccInsts  int               `json:"download_inst"`
 	ReloadSuccInsts    int               `json:"reload_insts"`
 	EnableSuccInsts    int               `json:"enable_insts"`
