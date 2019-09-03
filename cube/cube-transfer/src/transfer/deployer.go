@@ -72,7 +72,7 @@ func CmdInstsDownload() {
 				json_params.Mode = Dict.WaitVersionInfo.Mode
 				json_params.ShardSeq = inst.Shard
 				json_params.Port = strconv.Itoa(inst.Port)
-				json_params.Source = dict.GetFileHead(Dict.StoragePlace, TransferAddr) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
+				json_params.Source = dict.GetFileHead(Dict.DownloadMode, TransferAddr, Dict.WgetPort) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
 				var address = fmt.Sprintf("http://%v:%v/agent/cmd", inst.AgentIp, inst.AgentPort)
 				logex.Noticef("[download cmd]%v:%v", address, json_params)
 				go nonBlockSendJsonReq("POST2", address, 120, &json_params, &keyAndRespSlice[i], chs[i])
@@ -121,7 +121,7 @@ func CmdInstsReload() {
 				json_params.Mode = Dict.WaitVersionInfo.Mode
 				json_params.ShardSeq = inst.Shard
 				json_params.Port = strconv.Itoa(inst.Port)
-				json_params.Source = dict.GetFileHead(Dict.StoragePlace, TransferAddr) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
+				json_params.Source = dict.GetFileHead(Dict.DownloadMode, TransferAddr, Dict.WgetPort) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
 
 				var address = fmt.Sprintf("http://%v:%v/agent/cmd", inst.AgentIp, inst.AgentPort)
 				logex.Noticef("[reload cmd]%v:%v", address, json_params)
@@ -170,7 +170,7 @@ func CmdInstsEnable() {
 				json_params.Mode = Dict.WaitVersionInfo.Mode
 				json_params.ShardSeq = inst.Shard
 				json_params.Port = strconv.Itoa(inst.Port)
-				json_params.Source = dict.GetFileHead(Dict.StoragePlace, TransferAddr) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
+				json_params.Source = dict.GetFileHead(Dict.DownloadMode, TransferAddr, Dict.WgetPort) + Dict.WaitVersionInfo.Output + "/" + json_params.DictName + "_part" + strconv.Itoa(inst.Shard) + ".tar"
 
 				var address = fmt.Sprintf("http://%v:%v/agent/cmd", inst.AgentIp, inst.AgentPort)
 				logex.Noticef("[enable cmd]%v:%v", address, json_params)
