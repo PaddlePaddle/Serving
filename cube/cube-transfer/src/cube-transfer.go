@@ -96,7 +96,7 @@ Log options:
 	logex.Notice(">>> Mode:", transfer.Dict.DictMode)
 
 	transfer.Dict.DownloadMode = configMgr.Read("default", "download_mode")
-	if transfer.Dict.DownloadMode != "http" || transfer.Dict.DownloadMode != "ftp" {
+	if transfer.Dict.DownloadMode != "http" && transfer.Dict.DownloadMode != "ftp" {
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] download_mode in config_file! only support ftp or http")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
