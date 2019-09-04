@@ -329,6 +329,14 @@ apiGroup: rbac.authorization.k8s.io
 kubectl create -f defaultserviceaccountclusterrole.yaml 
 ```
 
+在本次训练任务中，产出的模型文件会存放在trainer0的node上，为了使file server服务可以找到产出的模型文件，需要通过`kubectl get node`查看当前的node列表，通过以下命令指定某个node的nodeType为model
+
+```bash
+kubectl label node ${NODE NAME} nodeType=model
+```
+
+这样trainer0与file server服务都会被绑定到该node，即可以通过file server服务下载产出的模型文件。
+
 CTR模型的训练镜像存放在[dockerhub](https://hub.docker.com/)网站，通过kubectl加载yaml文件启动训练任务，CTR预估模型训练任务的yaml文件为[volcano-ctr-demo-baiduyun.yaml](./resource/volcano-ctr-demo-baiduyun.yaml)。
 
 执行
