@@ -26,14 +26,14 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: sivanzcw/edldemo:v1
+            - image: wangjiawei1993/edldemo:v12
               command:
                 - paddle_k8s
                 - start_fluid
               imagePullPolicy: IfNotPresent
               name: pserver
               volumeMounts:
-              - mountPath: /mnt/seqdata
+              - mountPath: /data
                 name: seqdata
               resources:
                 limits:
@@ -88,7 +88,7 @@ spec:
                 - name: ENTRY
                   value: cd /workspace/ctr && python train.py --is_local 0 --cloud_train 1
                 - name: PADDLE_PORT
-                  value: "30236"
+                  value: "30240"
                 - name: LD_LIBRARY_PATH
                   value: /usr/local/lib:/usr/local/nvidia/lib64:/usr/local/rdma/lib64:/usr/lib64/mlnx_ofed/valgrind
                 - name: PADDLE_TRAINING_ROLE
@@ -106,22 +106,24 @@ spec:
           labels:
             paddle-job: fluid-ctr
         spec:
+          nodeSelector:
+            nodeType: model
           imagePullSecrets:
             - name: default-secret
           volumes:
           - hostPath:
-              path: /home/work/
+              path: /home/work/data
               type: ""
             name: seqdata
           containers:
-            - image: sivanzcw/edldemo:v1
+            - image: wangjiawei1993/edldemo:v12
               command:
                 - paddle_k8s
                 - start_fluid
               imagePullPolicy: IfNotPresent
               name: trainer
               volumeMounts:
-              - mountPath: /mnt/seqdata
+              - mountPath: /data
                 name: seqdata
               resources:
                 limits:
@@ -171,7 +173,7 @@ spec:
                 - name: FLAGS_rpc_deadline
                   value: "36000000"
                 - name: PADDLE_PORT
-                  value: "30236"
+                  value: "30240"
                 - name: PADDLE_PSERVERS_NUM
                   value: "2"
                 - name: PADDLE_TRAINERS_NUM
@@ -183,5 +185,5 @@ spec:
                 - name: LD_LIBRARY_PATH
                   value: /usr/local/lib:/usr/local/nvidia/lib64:/usr/local/rdma/lib64:/usr/lib64/mlnx_ofed/valgrind
                 - name: ENTRY
-                  value: cd /workspace/ctr && python train.py --is_local 0 --cloud_train 1
+                  value: (/postprocess &) && cd /workspace/ctr && python train.py --is_local 0 --cloud_train 1
           restartPolicy: OnFailure
