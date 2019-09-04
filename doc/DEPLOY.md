@@ -639,7 +639,7 @@ cube-transfer配置文件是conf/transfer.conf，配置比较复杂，配置文�
 dict_name: test_dict                                # 词典名
 mode: base_delta                                    # 配送模式base_only/base_delta
 download_mode: http									# 配送方式，可以选择http或ftp
-wget_port: 80										# http服务的端口
+wget_port: 80                                       # http服务的端口
 buildtool_local: /path/to/cube-builder              # builder工具位置，必须在本地，绝对路径
 donefile_address: http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_cube/donefile/ # donefile路径，${FILE_SERVER_IP}:${FILE_SERVER_PORT}为1.4节搭建的file server地址。文件夹内包含base.txt, patch.txt和一批Hadoop SequenceFile文件
 output_address: /some/path/to/output      # builder产出的数据索引输出位置
