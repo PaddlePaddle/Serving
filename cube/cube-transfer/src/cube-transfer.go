@@ -95,13 +95,27 @@ Log options:
 	}
 	logex.Notice(">>> Mode:", transfer.Dict.DictMode)
 
-	transfer.Dict.StoragePlace = configMgr.Read("default", "storage_place")
-	if transfer.Dict.StoragePlace == "" || transfer.Dict.StoragePlace != "LOCAL" {
-		fmt.Fprintln(os.Stderr, "ERROR: nead [default] StoragePlace in config_file! only support Local")
+	transfer.Dict.DownloadMode = configMgr.Read("default", "download_mode")
+	if transfer.Dict.DownloadMode != "http" && transfer.Dict.DownloadMode != "ftp" {
+		fmt.Fprintln(os.Stderr, "ERROR: nead [default] download_mode in config_file! only support ftp or http")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
 	}
-	logex.Notice(">>> StoragePlace:", transfer.Dict.StoragePlace)
+	logex.Notice(">>> DownloadMode:", transfer.Dict.DownloadMode)
+
+    transfer.Dict.WgetPort = configMgr.Read("default", "wget_port")
+    if transfer.Dict.WgetPort == "" {
+        fmt.Fprintln(os.Stderr, "ERROR: nead [default] wget_port in config_file!")
+        fmt.Fprintln(os.Stderr, usage)
+        os.Exit(1)
+    }
+    var wget_port int
+    wget_port, err = strconv.Atoi(transfer.Dict.WgetPort)
+    if err != nil {
+        logex.Fatal("wget_port form is not right need int")
+        os.Exit(1)
+    }
+    logex.Notice(">>> WgetPort:", wget_port)
 
 	transfer.BuildToolLocal = configMgr.Read("default", "buildtool_local")
 	if transfer.BuildToolLocal == "" {

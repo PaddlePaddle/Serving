@@ -132,7 +132,7 @@ func getHostname(ip string) (hostname string, err error) {
 		//logex.Warningf("cannot find the hostname of ip (%s), error (%v)", ip, err)
 	} else {
 		if len(hostnames) > 0 {
-			hostname = hostnames[0][:strings.LastIndex(hostnames[0], ".baidu.com.")]
+			hostname = hostnames[0]
 		} else {
 			hostname = ip
 		}

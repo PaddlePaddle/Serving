@@ -36,7 +36,7 @@ type DictShardInfo struct {
 	IsActive       bool   `json:"is_active,omitempty"`
 }
 
-func GetDictShardScaler(shard int, dictVersionInfo DictVersionInfo, storagePlace string, transferaddr string)(info DictShardInfo){
+func GetDictShardScaler(shard int, dictVersionInfo DictVersionInfo, downloadMode string, transferAddr string, wgetPort string)(info DictShardInfo){
 	info.Name = dictVersionInfo.DictName
 	info.Version = strconv.Itoa(dictVersionInfo.Version)
 	info.Depend = strconv.Itoa(dictVersionInfo.Depend)
@@ -44,16 +44,17 @@ func GetDictShardScaler(shard int, dictVersionInfo DictVersionInfo, storagePlace
 	info.Key = strconv.Itoa(dictVersionInfo.Key)
 	info.Mode = dictVersionInfo.Mode
 	info.Shard = shard
-	info.Source = GetFileHead(storagePlace, transferaddr) + dictVersionInfo.Output+ "/" + info.Version + "/" + info.Name + "_part" + strconv.Itoa(shard) + ".tar"
+	info.Source = GetFileHead(downloadMode, transferAddr, wgetPort) + dictVersionInfo.Output+ "/" + info.Version + "/" + info.Name + "_part" + strconv.Itoa(shard) + ".tar"
 	return
 }
 
 
-func GetFileHead(storagePlace string, transferaddr string) string {
-	if storagePlace == "LOCAL"{
-		return "ftp://" + transferaddr
+func GetFileHead(downloadMode string, transferAddr string, wgetPort string) string {
+	if downloadMode == "http" {
+		return HTTP_HEADER + transferAddr + ":" + wgetPort
+	} else if downloadMode == "ftp" {
+		return FTP_HEADER + transferAddr + ":" + wgetPort
 	} else {
 		return ""
 	}
-
 }

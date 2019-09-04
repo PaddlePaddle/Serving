@@ -17,9 +17,6 @@ package agent
 import (
 	"errors"
 	_ "github.com/Badangel/logex"
-	"github.com/Badangel/pipeline"
-	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -88,27 +85,4 @@ func GetMaster(master string) (host, port string, err error) {
 	} else {
 		return MasterHost[0], MasterPort[0], nil
 	}
-}
-
-func init() {
-	dfCmd := "df -h | grep -E '/home|/ssd'"
-	stdout, _, err := pipeline.Run(exec.Command("/bin/bash", "-c", dfCmd))
-
-	if err == nil && stdout.String() != "" {
-		t := strings.TrimSpace(stdout.String())
-		diskLi := strings.Split(t, "\n")
-		for _, diskStr := range diskLi {
-			disk := strings.Fields(diskStr)
-			usedPercent, _ := strconv.Atoi(strings.TrimRight(disk[4], "%"))
-			if usedPercent <= 40 {
-				disks = append(disks, disk[5])
-			}
-		}
-	}
-
-	if len(disks) == 0 {
-		disks = append(disks, "/home")
-	}
-
-	//logex.Debugf("available disks found: (%+v)", disks)
 }
