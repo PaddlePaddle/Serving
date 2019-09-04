@@ -110,12 +110,6 @@ int Resource::cube_initialize(const std::string& path,
   }
 
   int err = 0;
-  std::string cube_config_path = resource_conf.cube_config_path();
-  if (err != 0) {
-    LOG(ERROR) << "reade cube_config_path failed, path[" << path << "], file["
-               << cube_config_path << "]";
-    return -1;
-  }
   std::string cube_config_file = resource_conf.cube_config_file();
   if (err != 0) {
     LOG(ERROR) << "reade cube_config_file failed, path[" << path << "], file["
@@ -124,8 +118,8 @@ int Resource::cube_initialize(const std::string& path,
   }
   err = CubeAPI::instance()->init(cube_config_file.c_str());
   if (err != 0) {
-    LOG(ERROR) << "failed initialize cube, config: " << cube_config_path << "/"
-               << cube_config_file << " error code : " << err;
+    LOG(ERROR) << "failed initialize cube, config: " << cube_config_file
+               << " error code : " << err;
     return -1;
   }
 
