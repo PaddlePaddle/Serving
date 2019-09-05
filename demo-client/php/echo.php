@@ -34,6 +34,7 @@ function http_post($url, $data) {
     curl_close($ch);
     return $result;
 }
+
 //key value 数组，如果多，后面用逗号分开key =>value ,key1 => value1 ,....
 echo http_post('http://127.0.0.1:8010/BuiltinTestEchoService/inference', array("a" => 1, "b" => 0.5));
 ?>
