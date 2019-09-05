@@ -228,6 +228,8 @@ metadata:
   labels:
     app: file-server
 spec:
+  nodeSelector:
+    nodeType: model
   volumes:
   - hostPath:
       path: /home/work
