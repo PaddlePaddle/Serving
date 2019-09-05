@@ -100,8 +100,6 @@ $labels = array();
 read_data($argv[1], $samples, $labels);
 echo count($samples) . "\n";
 
-// key value 数组，如果多，后面用逗号分开key =>value ,key1 => value1 ,....
-
 $ch = &http_connect('http://127.0.0.1:8010/TextClassificationService/inference');
 
 $count = 0;
