@@ -72,7 +72,7 @@ for i in range(0, len(samples) - BATCH_SIZE, BATCH_SIZE):
         print e.reason
 ```
 
-完整示例请参考[text_classification.py](demo-client/python/text_classification.py)
+完整示例请参考[text_classification.py](../demo-client/python/text_classification.py)
 
 ## 3. PHP访问HTTP Serving
 
@@ -128,4 +128,4 @@ for ($i = 0; $i < count($samples) - BATCH_SIZE; $i += BATCH_SIZE) {
 curl_close($ch);
 ```
 
-完整代码请参考[text_classification.php](demo-client/php/text_classification.php)
+完整代码请参考[text_classification.php](../demo-client/php/text_classification.php)
