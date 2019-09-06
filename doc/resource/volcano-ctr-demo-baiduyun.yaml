@@ -116,7 +116,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v12
+            - image: wangjiawei1993/edldemo:v14
               command:
                 - paddle_k8s
                 - start_fluid
