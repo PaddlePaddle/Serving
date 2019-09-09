@@ -882,8 +882,8 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 $ cd data/model/paddle/fluid
 $ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz # `FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
-$ rm -rf ctr_prediction     # 删除旧的ctr_prediction目录下内容
-$ cp -r inference_only/* ctr_prediction
+$ rm -rf ctr_prediction/*     # 删除旧的ctr_prediction目录下内容
+$ cp inference_only/* ctr_prediction/
 $ cd ../../../../           # 切换至serving所在目录
 $ ls
 bin  conf  data  kvdb  log
@@ -907,7 +907,7 @@ CTR预估任务样例使用的数据来自于[原始模型](https://github.com/P
 
 #### <span id="head48">3.2.2 Client编译与部署</span>
 
-按照1.2Serving编译部分完成编译后，client端文件在output/demo/client/ctr_prediction路径下。
+按照3.1.2 Serving编译部分完成编译后，client端文件在output/demo/client/ctr_prediction路径下。
 
 ##### <span id="head49">3.2.2.1 配置修改</span>
 
