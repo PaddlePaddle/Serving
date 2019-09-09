@@ -750,7 +750,7 @@ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 
 ```json
 [{
-"dict_name": "dict",
+"dict_name": "test_dict",
 "shard": 2,
 "dup": 1,
 "timeout": 200,
@@ -766,9 +766,9 @@ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 }]
 ```
 
-上述例子中，cube提供外部访问的表名是`dict`，有2个物理分片，分别在192.168.1.1:8000和192.168.1.2:8000
+上述例子中，cube提供外部访问的表名是`test_dict`，有2个物理分片，分别在192.168.1.1:8000和192.168.1.2:8000
 
-**注意事项：** nodes中的ipport_list需要按照分片的顺序(参考cube-transfer配置文件)填写。
+**注意事项：** 配置文件填写请参考cube-transfer的配置文件，其中"dict_name"、"shard"、"dup"字段信息应当分别与cube-transfer配置文件中的"dict_name"、"shard_num"、"copy_num"字段相同，"nodes"中的ipport_list需要按照与cube-transfer中的"cube"字段的ip、端口相同的顺序填写。
 
 #### <span id="head39">3.1.2 Serving编译</span>
 
@@ -833,7 +833,7 @@ runtime_thread_num: 0
 batch_infer_size: 0
 enable_batch_align: 0
 sparse_param_service_type: REMOTE
-sparse_param_service_table_name: "dict"
+sparse_param_service_table_name: "test_dict"
 }
 ```
 
@@ -841,7 +841,7 @@ sparse_param_service_table_name: "dict"
 
 ```
 sparse_param_service_type: REMOTE
-sparse_param_service_table_name: "dict"
+sparse_param_service_table_name: "test_dict"
 ```
 
 ##### <span id="head43">3.1.3.3 conf/cube.conf</span>
@@ -850,7 +850,7 @@ conf/cube.conf是一个完整的cube配置文件模板，其中只要修改nodes
 
 ```json
 [{
-"dict_name": "dict",
+"dict_name": "test_dict",
 "shard": 2,
 "dup": 1,
 "timeout": 200,
@@ -882,7 +882,7 @@ Paddle Serving自带了一个可以工作的CTR预估模型，是从BCE上下载
 $ cd data/model/paddle/fluid
 $ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz # `FILE_SERVER_IP`与`FILE_SERVER_PORT`请参考1.4节获取。
 $ tar zxvf ctr_model.tar.gz # 假设解压出一个inference_only目录
-$ rm -rf ctr_prediction/*     # 删除旧的ctr_prediction目录下内容
+$ rm -rf ctr_prediction/*   # 删除旧的ctr_prediction目录下内容
 $ cp inference_only/* ctr_prediction/
 $ cd ../../../../           # 切换至serving所在目录
 $ ls
