@@ -897,7 +897,7 @@ $ bin/serving &             # 重启serving
 
 ### <span id="head46">3.2 Client端</span>
 
-参考[从零开始写一个预测服务：client端]([https://github.com/PaddlePaddle/Serving/blob/develop/doc/CREATING.md#3-client%E7%AB%AF](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CREATING.md#3-client端))文档，实现client端代码。
+参考[从零开始写一个预测服务：client端](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CREATING.md#3-client端)文档，实现client端代码。
 
 文档中使用的CTR预估任务client端代码存放在Serving代码库demo-client路径下，链接[ctr_prediction.cpp](https://github.com/PaddlePaddle/Serving/blob/develop/demo-client/src/ctr_prediction.cpp)。
 
@@ -934,4 +934,4 @@ cluster: "list://127.0.0.1:8010"
 
 ##### <span id="head50">3.2.2.2 运行服务</span>
 
-执行`./bin/ctr_predictoin`启动client端，在./log路径下可以看到client端执行的日志。
+执行`./bin/ctr_prediction`启动client端，在./log路径下可以看到client端执行的日志。
