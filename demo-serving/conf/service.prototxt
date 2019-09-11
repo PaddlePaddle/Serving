@@ -36,3 +36,8 @@ services {
   name: "CTRPredictionService"
   workflows: "workflow8"
 }
+
+services {
+  name: "BertService"
+  workflows: "workflow9"
+}
