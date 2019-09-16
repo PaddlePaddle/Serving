@@ -52,7 +52,16 @@ func GetDoneFileInfo(addr string) (version dict.DictVersionInfo, err error) {
 	} else {
 		contentss := string(contents)
 		lines := strings.Split(contentss, "\n")
-		index := len(lines) - 2
+		index := len(lines) - 1
+		//one line length smaller than 3 maybe blank or return
+		for len(lines[index]) < 3 {
+			index--
+		}
+		if index < 0 {
+			logex.Noticef("[trigrer]get base donfile info error")
+			err = fmt.Errorf("[trigrer]get base donfile info error")
+			return
+		}
 		var donefileInfo dict.DonefileInfo
 		fmt.Printf("line %v: %v\n", index, lines[index])
 		if err = json.Unmarshal([]byte(lines[index]), &donefileInfo); err != nil {
@@ -83,7 +92,13 @@ func GetDoneFileInfo(addr string) (version dict.DictVersionInfo, err error) {
 		} else {
 			contentss := string(contents)
 			lines := strings.Split(contentss, "\n")
+
 			for index := 0; index < len(lines)-1; index++ {
+				if len(lines[index]) < 3 {
+					logex.Noticef("[trigrer]get patch donfile info error")
+					err = fmt.Errorf("[trigrer]get patch donfile info error")
+					return
+				}
 				var donefileInfo dict.DonefileInfo
 				if err = json.Unmarshal([]byte(lines[index]), &donefileInfo); err != nil {
 					return
