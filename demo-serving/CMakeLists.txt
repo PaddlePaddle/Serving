@@ -25,7 +25,12 @@ if (NOT EXISTS
 endif()
 
 include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
-find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
+
+find_library(MKLML_LIB NAMES libmklml_intel.so PATHS                                
+    ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/)                      
+find_library(MKLML_IOMP_LIB NAMES libiomp5.so PATHS                                 
+    ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib)
+
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
@@ -75,8 +80,7 @@ install(FILES ${inc}
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/serving)
 
 if (${WITH_MKL})
-        install(FILES ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_intel.so
-                ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_gnu.so
-                ${THIRD_PARTY_PATH}/install/mklml/lib/libiomp5.so DESTINATION
+    install(FILES ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libmklml_intel.so
+                ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libiomp5.so DESTINATION
                 ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
