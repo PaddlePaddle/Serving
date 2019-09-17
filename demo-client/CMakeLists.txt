@@ -83,6 +83,10 @@ install(TARGETS echo
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/python/echo.py
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/python)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/php/echo.php
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/php)
 
 install(TARGETS echo_kvdb
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo_kvdb/bin)
@@ -114,6 +118,14 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/python/text_classification.py
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/python)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/php/text_classification.php
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/php)
+
+
 
 install(TARGETS ctr_prediction
         RUNTIME DESTINATION

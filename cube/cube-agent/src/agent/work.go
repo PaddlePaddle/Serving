@@ -725,7 +725,7 @@ func DoDownloadIndividual(source, downloadDir string, isService bool, timeOut in
 func checkSources(source string) ([]string, error) {
 	sources := strings.Split(source, ";")
 	for i := 0; i < len(sources); i++ {
-		if sources[i] == "" || !strings.HasPrefix(sources[i], "ftp://") {
+		if sources[i] == "" || (!strings.HasPrefix(sources[i], "ftp://") && !strings.HasPrefix(sources[i], "http://")) {
 			return sources, errors.New("Invalid sources")
 		}
 	}
