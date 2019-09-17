@@ -95,7 +95,7 @@ class FluidFamilyCore {
     return true;
   }
 
-  virtual int create(const std::string& data_path) = 0;
+  virtual int create(const predictor::InferEngineCreationParams& params) = 0;
 
   virtual int clone(void* origin_core) {
     if (origin_core == NULL) {
@@ -121,7 +121,8 @@ class FluidFamilyCore {
 // infer interface
 class FluidGpuAnalysisCore : public FluidFamilyCore {
  public:
-  int create(const std::string& data_path) {
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -133,7 +134,12 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     analysis_config.SetProgFile(data_path + "/__model__");
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SetCpuMathLibraryNumThreads(1);
-    analysis_config.EnableMemoryOptim(false, false);
+
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim(params.static_optimization(),
+                                        params.force_update_static_cache());
+    }
+
     analysis_config.SwitchSpecifyInputNames(true);
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -151,7 +157,8 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
 
 class FluidGpuNativeCore : public FluidFamilyCore {
  public:
-  int create(const std::string& data_path) {
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -180,7 +187,8 @@ class FluidGpuNativeCore : public FluidFamilyCore {
 
 class FluidGpuAnalysisDirCore : public FluidFamilyCore {
  public:
-  int create(const std::string& data_path) {
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -192,7 +200,11 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
-    analysis_config.EnableMemoryOptim(false, false);
+
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim(params.static_optimization(),
+                                        params.force_update_static_cache());
+    }
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
@@ -209,7 +221,8 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
 
 class FluidGpuNativeDirCore : public FluidFamilyCore {
  public:
-  int create(const std::string& data_path) {
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -385,7 +398,8 @@ class FluidGpuWithSigmoidCore : public FluidFamilyCore {
   virtual ~FluidGpuWithSigmoidCore() {}
 
  public:
-  int create(const std::string& model_path) {
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string model_path = params.get_path();
     size_t pos = model_path.find_last_of("/\\");
     std::string conf_path = model_path.substr(0, pos);
     std::string conf_file = model_path.substr(pos);
@@ -398,7 +412,9 @@ class FluidGpuWithSigmoidCore : public FluidFamilyCore {
     _core.reset(new SigmoidFluidModel);
 
     std::string fluid_model_data_path = conf.dnn_model_path();
-    int ret = load_fluid_model(fluid_model_data_path);
+    predictor::InferEngineCreationParams new_params(params);
+    new_params.set_path(fluid_model_data_path);
+    int ret = load_fluid_model(new_params);
     if (ret < 0) {
       LOG(ERROR) << "fail to load fluid model.";
       return -1;
@@ -447,7 +463,8 @@ class FluidGpuWithSigmoidCore : public FluidFamilyCore {
 
   virtual SigmoidFluidModel* get() { return _core.get(); }
 
-  virtual int load_fluid_model(const std::string& data_path) = 0;
+  virtual int load_fluid_model(
+      const predictor::InferEngineCreationParams& params) = 0;
 
   int softmax(float x, double& o) {  // NOLINT
     return _core->_sigmoid_core->softmax(x, o);
@@ -459,7 +476,8 @@ class FluidGpuWithSigmoidCore : public FluidFamilyCore {
 
 class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
  public:
-  int load_fluid_model(const std::string& data_path) {
+  int load_fluid_model(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -488,7 +506,8 @@ class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
 
 class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
  public:
-  int load_fluid_model(const std::string& data_path) {
+  int load_fluid_model(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
     if (access(data_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
                  << data_path;
@@ -500,7 +519,12 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
-    analysis_config.EnableMemoryOptim(false, false);
+
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim(params.static_optimization(),
+                                        params.force_update_static_cache());
+    }
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
