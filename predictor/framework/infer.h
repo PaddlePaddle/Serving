@@ -29,6 +29,55 @@ namespace predictor {
 
 using configure::ModelToolkitConf;
 
+class InferEngineCreationParams {
+ public:
+  InferEngineCreationParams() {
+    _path = "";
+    _enable_memory_optimization = false;
+    _static_optimization = false;
+    _force_update_static_cache = false;
+  }
+
+  void set_path(const std::string& path) { _path = path; }
+
+  void set_enable_memory_optimization(bool enable_memory_optimization) {
+    _enable_memory_optimization = enable_memory_optimization;
+  }
+
+  bool enable_memory_optimization() const {
+    return _enable_memory_optimization;
+  }
+
+  void set_static_optimization(bool static_optimization = false) {
+    _static_optimization = static_optimization;
+  }
+
+  void set_force_update_static_cache(bool force_update_static_cache = false) {
+    _force_update_static_cache = force_update_static_cache;
+  }
+
+  bool static_optimization() const { return _static_optimization; }
+
+  bool force_update_static_cache() const { return _force_update_static_cache; }
+
+  std::string get_path() const { return _path; }
+
+  void dump() const {
+    LOG(INFO) << "InferEngineCreationParams: "
+              << "model_path = " << _path << ", "
+              << "enable_memory_optimization = " << _enable_memory_optimization
+              << ", "
+              << "static_optimization = " << _static_optimization << ", "
+              << "force_update_static_cache = " << _force_update_static_cache;
+  }
+
+ private:
+  std::string _path;
+  bool _enable_memory_optimization;
+  bool _static_optimization;
+  bool _force_update_static_cache;
+};
+
 class InferEngine {
  public:
   virtual ~InferEngine() {}
@@ -75,7 +124,7 @@ class ReloadableInferEngine : public InferEngine {
 
   typedef im::bsf::Task<Tensor, Tensor> TaskT;
 
-  virtual int load(const std::string& data_path) = 0;
+  virtual int load(const InferEngineCreationParams& params) = 0;
 
   int proc_initialize_impl(const configure::EngineDesc& conf, bool version) {
     _reload_tag_file = conf.reloadable_meta();
@@ -84,7 +133,31 @@ class ReloadableInferEngine : public InferEngine {
     _infer_thread_num = conf.runtime_thread_num();
     _infer_batch_size = conf.batch_infer_size();
     _infer_batch_align = conf.enable_batch_align();
-    if (!check_need_reload() || load(_model_data_path) != 0) {
+
+    bool enable_memory_optimization = false;
+    if (conf.has_enable_memory_optimization()) {
+      enable_memory_optimization = conf.enable_memory_optimization();
+    }
+
+    bool static_optimization = false;
+    if (conf.has_static_optimization()) {
+      static_optimization = conf.static_optimization();
+    }
+
+    bool force_update_static_cache = false;
+    if (conf.has_force_update_static_cache()) {
+      force_update_static_cache = conf.force_update_static_cache();
+    }
+
+    _infer_engine_params.set_path(_model_data_path);
+    if (enable_memory_optimization) {
+      _infer_engine_params.set_enable_memory_optimization(true);
+      _infer_engine_params.set_static_optimization(static_optimization);
+      _infer_engine_params.set_force_update_static_cache(
+          force_update_static_cache);
+    }
+
+    if (!check_need_reload() || load(_infer_engine_params) != 0) {
       LOG(ERROR) << "Failed load model_data_path" << _model_data_path;
       return -1;
     }
@@ -175,7 +248,7 @@ class ReloadableInferEngine : public InferEngine {
   int reload() {
     if (check_need_reload()) {
       LOG(WARNING) << "begin reload model[" << _model_data_path << "].";
-      return load(_model_data_path);
+      return load(_infer_engine_params);
     }
     return 0;
   }
@@ -243,6 +316,7 @@ class ReloadableInferEngine : public InferEngine {
 
  protected:
   std::string _model_data_path;
+  InferEngineCreationParams _infer_engine_params;
 
  private:
   std::string _reload_tag_file;
@@ -281,32 +355,35 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     return ReloadableInferEngine::proc_initialize(conf, version);
   }
 
-  virtual int load(const std::string& model_data_dir) {
+  virtual int load(const InferEngineCreationParams& params) {
     if (_reload_vec.empty()) {
       return 0;
     }
 
     for (uint32_t ti = 0; ti < _reload_vec.size(); ++ti) {
-      if (load_data(_reload_vec[ti], model_data_dir) != 0) {
+      if (load_data(_reload_vec[ti], params) != 0) {
         LOG(ERROR) << "Failed reload engine model: " << ti;
         return -1;
       }
     }
 
-    LOG(WARNING) << "Succ load engine, path: " << model_data_dir;
+    LOG(WARNING) << "Succ load engine, path: " << params.get_path();
 
     return 0;
   }
 
-  int load_data(ModelData<EngineCore>* md, const std::string& data_path) {
+  int load_data(ModelData<EngineCore>* md,
+                const InferEngineCreationParams& params) {
     uint32_t next_idx = (md->current_idx + 1) % 2;
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
     }
 
     md->cores[next_idx] = new (std::nothrow) EngineCore;
-    if (!md->cores[next_idx] || md->cores[next_idx]->create(data_path) != 0) {
-      LOG(ERROR) << "Failed create model, path: " << data_path;
+
+    params.dump();
+    if (!md->cores[next_idx] || md->cores[next_idx]->create(params) != 0) {
+      LOG(ERROR) << "Failed create model, path: " << params.get_path();
       return -1;
     }
     md->current_idx = next_idx;
@@ -321,8 +398,9 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     }
 
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
-    if (!md || load_data(md, _model_data_path) != 0) {
-      LOG(ERROR) << "Failed create thread data from " << _model_data_path;
+    if (!md || load_data(md, _infer_engine_params) != 0) {
+      LOG(ERROR) << "Failed create thread data from "
+                 << _infer_engine_params.get_path();
       return -1;
     }
 
@@ -383,17 +461,16 @@ class CloneDBReloadableInferEngine
     return DBReloadableInferEngine<EngineCore>::proc_initialize(conf, version);
   }
 
-  virtual int load(const std::string& model_data_dir) {
+  virtual int load(const InferEngineCreationParams& params) {
     // 加载进程级模型数据
     if (!_pd ||
-        DBReloadableInferEngine<EngineCore>::load_data(_pd, model_data_dir) !=
-            0) {
-      LOG(ERROR) << "Failed to create common model from [" << model_data_dir
+        DBReloadableInferEngine<EngineCore>::load_data(_pd, params) != 0) {
+      LOG(ERROR) << "Failed to create common model from [" << params.get_path()
                  << "].";
       return -1;
     }
     LOG(WARNING) << "Succ load common model[" << _pd->cores[_pd->current_idx]
-                 << "], path[" << model_data_dir << "].";
+                 << "], path[" << params.get_path() << "].";
 
     if (DBReloadableInferEngine<EngineCore>::_reload_vec.empty()) {
       return 0;
@@ -409,7 +486,7 @@ class CloneDBReloadableInferEngine
       }
     }
 
-    LOG(WARNING) << "Succ load clone model, path[" << model_data_dir << "]";
+    LOG(WARNING) << "Succ load clone model, path[" << params.get_path() << "]";
 
     return 0;
   }
