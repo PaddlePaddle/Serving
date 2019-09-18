@@ -31,7 +31,7 @@ using baidu::paddle_serving::predictor::bert_service::BertResInstance;
 using baidu::paddle_serving::predictor::bert_service::BertReqInstance;
 using baidu::paddle_serving::predictor::bert_service::Embedding_values;
 
-int batch_size = 1;
+int batch_size = 49;
 int max_seq_len = 82;
 int layer_num = 12;
 int emb_size = 768;
@@ -95,7 +95,54 @@ int create_req(Request* req,
 }
 */
 
+int create_req(Request* req,
+               const std::vector<std::string>& data_list,
+               int data_index,
+               int batch_size) {
+  // add data
+  // avoid out of boundary
+  int cur_index = data_index;
+  if (cur_index >= data_list.size()) {
+    cur_index = cur_index % data_list.size();
+  }
 
+  std::vector<std::string> feature_list = split(data_list[cur_index], ";");
+
+  std::vector<std::string> src_field = split(feature_list[0], ":");
+  std::vector<std::string> src_ids = split(src_field[1], " ");
+
+  std::vector<std::string> pos_field = split(feature_list[1], ":");
+  std::vector<std::string> pos_ids = split(pos_field[1], " ");
+
+  std::vector<std::string> sent_field = split(feature_list[2], ":");
+  std::vector<std::string> sent_ids = split(sent_field[1], " ");
+
+  std::vector<std::string> mask_field = split(feature_list[3], ":");
+  std::vector<std::string> input_mask = split(mask_field[1], " ");
+
+  std::vector<int> shape;
+  std::vector<std::string> shapes = split(src_field[0], " ");
+  for (auto x: shapes) {
+    shape.push_back(std::stoi(x));
+  }
+
+  for (int i = 0; i < batch_size && i < shape[0]; ++i) {
+    BertReqInstance* ins = req->add_instances();
+    if (!ins) {
+      LOG(ERROR) << "Failed create req instance";
+      return -1;
+    }
+    for (int fi = 0; fi < max_seq_len; fi++) {
+      ins->add_token_ids(std::stoi(src_ids[i * max_seq_len + fi]));
+      ins->add_position_ids(std::stoi(pos_ids[i * max_seq_len + fi]));
+      ins->add_sentence_type_ids(std::stoi(sent_ids[i * max_seq_len + fi]));
+      ins->add_input_masks(std::stof(input_mask[i * max_seq_len + fi]));
+    }
+  }
+  return 0;
+}
+
+#if 0
 int create_req(Request* req,
                const std::vector<std::string>& data_list,
                int data_index,
@@ -120,11 +167,11 @@ int create_req(Request* req,
     std::vector<std::string> seg_list = split(feature_list[3], " ");
     std::vector<std::string> mask_list = split(feature_list[4], " ");
     for (int fi = 0; fi < max_seq_len; fi++) {
-      if (fi < token_list.size()) {
-        ins->add_token_ids(std::stoi(token_list[fi]));
-        ins->add_sentence_type_ids(std::stoll(seg_list[fi]));
-        ins->add_position_ids(std::stoll(pos_list[fi]));
-        ins->add_input_masks(std::stof(mask_list[fi]));
+      if (fi < std::stoi(shape_list[1])) {
+        ins->add_token_ids(std::stoi(token_list[fi + (i * max_seq_len)]));
+        ins->add_sentence_type_ids(std::stoll(seg_list[fi + (i * max_seq_len)]));
+        ins->add_position_ids(std::stoll(pos_list[fi + (i * max_seq_len)]));
+        ins->add_input_masks(std::stof(mask_list[fi + (i * max_seq_len)]));
       } else {
         ins->add_token_ids(0);
         ins->add_sentence_type_ids(0);
@@ -135,6 +182,7 @@ int create_req(Request* req,
   }
   return 0;
 }
+#endif
 
 void print_res(const Request& req,
                const Response& res,
@@ -184,11 +232,17 @@ void thread_worker(PredictorApi* api,
     }
     g_concurrency++;
     LOG(INFO) << "Current concurrency " << g_concurrency.load();
+#if 0
     int data_index = turns * batch_size;
     if (create_req(&req, data_list, data_index, batch_size) != 0) {
       return;
     }
-    if (predictor->inference(&req, &res) != 0) {
+#else
+    if (create_req(&req, data_list, turns, batch_size) != 0) {
+      return;
+    }
+#endif
+   if (predictor->inference(&req, &res) != 0) {
       LOG(ERROR) << "failed call predictor with req:" << req.ShortDebugString();
       return;
     }
