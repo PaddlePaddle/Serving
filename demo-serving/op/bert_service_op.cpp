@@ -17,6 +17,9 @@
 #include <string>
 #include "predictor/framework/infer.h"
 #include "predictor/framework/memory.h"
+#if 1
+#include <sstream>
+#endif
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
@@ -28,7 +31,7 @@ using baidu::paddle_serving::predictor::bert_service::BertReqInstance;
 using baidu::paddle_serving::predictor::bert_service::Request;
 using baidu::paddle_serving::predictor::bert_service::Embedding_values;
 
-const uint32_t MAX_SEQ_LEN = 64;
+const uint32_t MAX_SEQ_LEN = 82;
 const bool POOLING = true;
 const int LAYER_NUM = 12;
 const int EMB_SIZE = 768;
@@ -105,24 +108,51 @@ int BertServiceOp::inference() {
     index += MAX_SEQ_LEN;
   }
 
+#if 0
+  int64_t *src_data = static_cast<int64_t *>(src_ids.data.data());
+  std::ostringstream oss;
+  oss << "src_ids: ";
+  for (int i = 0; i < MAX_SEQ_LEN * batch_size; ++i) {
+    oss << src_data[i] << " ";
+  }
+  LOG(INFO) << oss.str();
+
+#endif
   in->push_back(src_ids);
   in->push_back(pos_ids);
   in->push_back(seg_ids);
   in->push_back(input_masks);
 
   TensorVector *out = butil::get_object<TensorVector>();
+//  TensorVector out;
+/*
   if (!out) {
     LOG(ERROR) << "Failed get tls output object";
     return -1;
   }
-
+*/
     LOG(INFO) << "batch_size : " << batch_size;
-    LOG(INFO) << "MAX_SEQ_LEN : " << (*in)[0].shape[1];
-    float* example = (float*)(*in)[3].data.data();
-    for(uint32_t i = 0; i < MAX_SEQ_LEN; i++){
-        LOG(INFO) << *(example + i);
+    for (int j = 0; j < 3; j ++) {
+        LOG(INFO) << "name : " << (*in)[j].name << " shape : " << (*in)[j].shape[0]
+            << " " <<  (*in)[j].shape[1] << " " << (*in)[j].shape[2];
+        int64_t* example = (int64_t*)(*in)[j].data.data();
+        std::ostringstream oss;
+        for(uint32_t i = MAX_SEQ_LEN * (batch_size - 1); i < MAX_SEQ_LEN * batch_size; i++){
+            oss << *(example + i);
+        }
+        LOG(INFO) << "data : " << oss.str();
     }
 
+    for (int j =3; j < 4; j++) {
+        LOG(INFO) << "name : " << (*in)[j].name << " shape : " << (*in)[j].shape[0]
+            << " " <<  (*in)[j].shape[1] << " " << (*in)[j].shape[2];
+        float* example = (float*)(*in)[j].data.data();
+        std::ostringstream oss;
+        for(uint32_t i = MAX_SEQ_LEN * (batch_size - 1); i < MAX_SEQ_LEN * batch_size; i++){
+            oss << *(example + i);
+        }
+        LOG(INFO) << "data : " << oss.str();
+    }
 
   if (predictor::InferManager::instance().infer(
           BERT_MODEL_NAME, in, out, batch_size)) {
@@ -130,6 +160,13 @@ int BertServiceOp::inference() {
     return -1;
   }
 
+/*
+  paddle::NativeConfig config;
+  config.model_dir = "./data/model/paddle/fluid/bert";
+  auto predictor = CreatePaddlePredictor(config);
+  predictor->Run(*in, &out);
+*/
+#if 0
   //  float *out_data = static_cast<float *>(out->at(0).data.data());
   LOG(INFO) << "check point";
   /*
@@ -160,6 +197,42 @@ int BertServiceOp::inference() {
     out->clear();
     butil::return_object<TensorVector>(out);
   */
+
+#else
+  float *out_data = static_cast<float *>(out->at(0).data.data());
+  std::ostringstream oss;
+  oss << "Shape: [";
+
+  for (auto x: out->at(0).shape) {
+    oss << x << " ";
+  }
+  oss << "]";
+
+  LOG(INFO) << oss.str();
+
+  // Output shape  is [batch_size x 3]
+  for (uint32_t bi = 0; bi < batch_size; bi++) {
+    BertResInstance *res_instance = res->add_instances();
+    std::ostringstream oss;
+    oss << "Sample " << bi << " [";
+    oss << out_data[bi * 3 + 0] << " "
+        << out_data[bi * 3 + 1] << " "
+        << out_data[bi * 3 + 2] << "]";
+    LOG(INFO) << oss.str();
+  }
+
+  for (size_t i = 0; i < in->size(); ++i) {
+    (*in)[i].shape.clear();
+  }
+  in->clear();
+  butil::return_object<TensorVector>(in);
+
+  for (size_t i = 0; i < out->size(); ++i) {
+    (*out)[i].shape.clear();
+  }
+  out->clear();
+  butil::return_object<TensorVector>(out);
+#endif
   return 0;
 }
 
