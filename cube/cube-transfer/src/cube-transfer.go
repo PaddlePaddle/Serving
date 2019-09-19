@@ -16,8 +16,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/docopt/docopt-go"
 	"github.com/Badangel/logex"
+	"github.com/docopt/docopt-go"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -64,6 +64,7 @@ Log options:
 
 	// settings:
 	if opts["-p"] == nil {
+		logex.Fatal("ERROR: -p PORT must be set!")
 		fmt.Fprintln(os.Stderr, "ERROR: -p PORT must be set!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -72,6 +73,7 @@ Log options:
 	logex.Notice(">>> port:", transfer.Port)
 
 	if opts["--config"] == nil {
+		logex.Fatal("ERROR: --config config_file must be set!")
 		fmt.Fprintln(os.Stderr, "ERROR: --config config_file must be set!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -81,6 +83,7 @@ Log options:
 	configMgr.Init(opts["--config"].(string))
 	transfer.Dict.DictName = configMgr.Read("default", "dict_name")
 	if transfer.Dict.DictName == "" {
+		logex.Fatal("ERROR: nead [default] DictName in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] DictName in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -89,22 +92,40 @@ Log options:
 
 	transfer.Dict.DictMode = configMgr.Read("default", "mode")
 	if transfer.Dict.DictMode == "" {
+		logex.Fatal("ERROR: nead [default] DictMode in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] DictMode in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
 	}
 	logex.Notice(">>> Mode:", transfer.Dict.DictMode)
 
-	transfer.Dict.StoragePlace = configMgr.Read("default", "storage_place")
-	if transfer.Dict.StoragePlace == "" || transfer.Dict.StoragePlace != "LOCAL" {
-		fmt.Fprintln(os.Stderr, "ERROR: nead [default] StoragePlace in config_file! only support Local")
+	transfer.Dict.DownloadMode = configMgr.Read("default", "download_mode")
+	if transfer.Dict.DownloadMode != "http" && transfer.Dict.DownloadMode != "ftp" {
+		logex.Fatal("ERROR: nead [default] download_mode in config_file! only support ftp or http")
+		fmt.Fprintln(os.Stderr, "ERROR: nead [default] download_mode in config_file! only support ftp or http")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
 	}
-	logex.Notice(">>> StoragePlace:", transfer.Dict.StoragePlace)
+	logex.Notice(">>> DownloadMode:", transfer.Dict.DownloadMode)
+
+	transfer.Dict.WgetPort = configMgr.Read("default", "wget_port")
+	if transfer.Dict.WgetPort == "" {
+		logex.Fatal("ERROR: nead [default] wget_port in config_file!")
+		fmt.Fprintln(os.Stderr, "ERROR: nead [default] wget_port in config_file!")
+		fmt.Fprintln(os.Stderr, usage)
+		os.Exit(1)
+	}
+	var wget_port int
+	wget_port, err = strconv.Atoi(transfer.Dict.WgetPort)
+	if err != nil {
+		logex.Fatal("wget_port form is not right need int")
+		os.Exit(1)
+	}
+	logex.Notice(">>> WgetPort:", wget_port)
 
 	transfer.BuildToolLocal = configMgr.Read("default", "buildtool_local")
 	if transfer.BuildToolLocal == "" {
+		logex.Fatal("ERROR: nead [default] BuildToolLocal in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] BuildToolLocal in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -113,6 +134,7 @@ Log options:
 
 	transfer.Dict.DonefileAddress = configMgr.Read("default", "donefile_address")
 	if transfer.Dict.DonefileAddress == "" {
+		logex.Fatal("ERROR: nead [default] DonefileAddress in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] DonefileAddress in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -121,6 +143,7 @@ Log options:
 
 	transfer.Dict.OutputAddress = configMgr.Read("default", "output_address")
 	if transfer.Dict.OutputAddress == "" {
+		logex.Fatal("ERROR: nead [default] OutputAddress in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] OutputAddress in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -129,6 +152,7 @@ Log options:
 
 	transfer.Dict.TmpAddress = configMgr.Read("default", "tmp_address")
 	if transfer.Dict.TmpAddress == "" {
+		logex.Fatal("ERROR: nead [default] TmpAddress in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] TmpAddress in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -137,6 +161,7 @@ Log options:
 
 	ShardNumStr := configMgr.Read("default", "shard_num")
 	if ShardNumStr == "" {
+		logex.Fatal("ERROR: nead [default] ShardNum in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] ShardNum in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -150,6 +175,7 @@ Log options:
 
 	CopyNumStr := configMgr.Read("default", "copy_num")
 	if CopyNumStr == "" {
+		logex.Fatal("ERROR: nead [default] CopyNum in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] CopyNum in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -165,6 +191,7 @@ Log options:
 
 	transfer.Dict.DeployPath = configMgr.Read("default", "deploy_path")
 	if transfer.Dict.DeployPath == "" {
+		logex.Fatal("ERROR: nead [default] DeployPath in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] DeployPath in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -173,6 +200,7 @@ Log options:
 
 	transfer.TransferAddr = configMgr.Read("default", "transfer_address")
 	if transfer.TransferAddr == "" {
+		logex.Fatal("ERROR: nead [default] TransferAddr in config_file!")
 		fmt.Fprintln(os.Stderr, "ERROR: nead [default] TransferAddr in config_file!")
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(1)
@@ -185,9 +213,17 @@ Log options:
 			agentName := fmt.Sprintf("agent%d_%d", i, j)
 			agentInfo := configMgr.Read("cube_agent", agentName)
 			agentInfoSlice := strings.Split(agentInfo, ":")
+			if len(agentInfoSlice) != 2 {
+				logex.Fatal("agent conf format not right! sample: ip:port")
+				os.Exit(1)
+			}
 			cubeName := fmt.Sprintf("cube%d_%d", i, j)
 			cubeInfo := configMgr.Read("cube_agent", cubeName)
 			cubeInfoSlice := strings.Split(cubeInfo, ":")
+			if len(cubeInfoSlice) != 3 {
+				logex.Fatal("cube conf format not right! sample: ip:port:deploy_path")
+				os.Exit(1)
+			}
 			instance.DictName = transfer.Dict.DictName
 			instance.AgentIp = agentInfoSlice[0]
 			instance.AgentPort, _ = strconv.Atoi(agentInfoSlice[1])

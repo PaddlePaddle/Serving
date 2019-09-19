@@ -25,7 +25,7 @@ if (NOT EXISTS
 endif()
 
 include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
-find_library(MKLML_LIBS NAMES libmklml_intel.so libiomp5.so)
+
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
@@ -59,7 +59,7 @@ target_link_libraries(serving kvdb rocksdb)
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
-target_link_libraries(serving ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread
+target_link_libraries(serving iomp5 mklml_intel -lpthread
         -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
@@ -75,8 +75,7 @@ install(FILES ${inc}
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/serving)
 
 if (${WITH_MKL})
-        install(FILES ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_intel.so
-                ${THIRD_PARTY_PATH}/install/mklml/lib/libmklml_gnu.so
-                ${THIRD_PARTY_PATH}/install/mklml/lib/libiomp5.so DESTINATION
+    install(FILES ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libmklml_intel.so
+                ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libiomp5.so DESTINATION
                 ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
