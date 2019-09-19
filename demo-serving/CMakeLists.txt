@@ -26,11 +26,6 @@ endif()
 
 include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
 
-find_library(MKLML_LIB NAMES libmklml_intel.so PATHS                                
-    ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/)                      
-find_library(MKLML_IOMP_LIB NAMES libiomp5.so PATHS                                 
-    ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib)
-
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
@@ -64,7 +59,7 @@ target_link_libraries(serving kvdb rocksdb)
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
-target_link_libraries(serving ${MKLML_LIB} ${MKLML_IOMP_LIB} -lpthread
+target_link_libraries(serving iomp5 mklml_intel -lpthread
         -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
