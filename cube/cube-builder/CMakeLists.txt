@@ -32,6 +32,7 @@ add_dependencies(cube-builder jsoncpp)
 set(DYNAMIC_LIB
     gflags
     jsoncpp
+    brpc
     -lssl
     -lcrypto
     ${CURL_LIB}
