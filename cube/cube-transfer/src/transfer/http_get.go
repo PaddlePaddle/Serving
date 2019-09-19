@@ -66,11 +66,11 @@ func GetDictScaler(subpath string, m map[string]string) (string, string, int, er
 	}
 
 	for _, version := range Dict.CurrentVersionInfo {
-		info := dict.GetDictShardScaler(shard, version, Dict.StoragePlace, TransferAddr)
+		info := dict.GetDictShardScaler(shard, version,  Dict.DownloadMode, TransferAddr, Dict.WgetPort)
 		infos = append(infos, info)
 	}
 	if Dict.WaitVersionInfo.Status > dict.Dict_Status_Deploying {
-		info := dict.GetDictShardScaler(shard, Dict.WaitVersionInfo, Dict.StoragePlace, TransferAddr)
+		info := dict.GetDictShardScaler(shard, Dict.WaitVersionInfo,  Dict.DownloadMode, TransferAddr, Dict.WgetPort)
 		infos = append(infos, info)
 	}
 
