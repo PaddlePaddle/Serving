@@ -15,76 +15,82 @@
 INCLUDE(ExternalProject)
 
 SET(PADDLE_SOURCES_DIR ${THIRD_PARTY_PATH}/Paddle)
+SET(PADDLE_DOWNLOAD_DIR ${PADDLE_SOURCES_DIR}/src/extern_paddle)
 SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle/)
 SET(PADDLE_INCLUDE_DIR "${PADDLE_INSTALL_DIR}/include" CACHE PATH "PaddlePaddle include directory." FORCE)
 SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a" CACHE FILEPATH "Paddle library." FORCE)
 
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/Paddle/fluid_install_dir)
 
 # Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
 
 message( "WITH_GPU = ${WITH_GPU}")
 
-# If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
+
+# Paddle Version should be one of:
+# latest: latest develop build
+# version number like 1.5.2
+SET(PADDLE_VERSION "latest")
+
+if (WITH_GPU)
+    SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda${CUDA_VERSION_MAJOR}-cudnn7-avx-mkl")
+else()
+    if (AVX_FOUND)
+        if (WITH_MKLML)
+            SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-cpu-avx-mkl")
+        else()
+            SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-cpu-avx-openblas")
+        endif()
+    else()
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-cpu-noavx-openblas")
+    endif()
+endif()
+
+SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
+MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
+
 ExternalProject_Add(
-    extern_paddle
+    "extern_paddle"
     ${EXTERNAL_PROJECT_LOG_ARGS}
-    # TODO(wangguibao): change to de newst repo when they changed.
-    GIT_REPOSITORY  "https://github.com/PaddlePaddle/Paddle"
-    GIT_TAG         "v1.5.1"
-    PREFIX          ${PADDLE_SOURCES_DIR}
-    UPDATE_COMMAND  ""
-    BINARY_DIR ${CMAKE_BINARY_DIR}/Paddle
-    CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                    -DCMAKE_INSTALL_PREFIX=${PADDLE_INSTALL_DIR}
-                    -DCMAKE_INSTALL_LIBDIR=${PADDLE_INSTALL_DIR}/lib
-                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-                    -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
-                    -DCMAKE_PREFIX_PATH=${prefix_path}
-                    -DCMAKE_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
-                    -DWITH_SWIG_PY=OFF
-                    -DWITH_PYTHON=OFF
-                    -DWITH_MKL=${WITH_MKL}
-                    -DWITH_AVX=${WITH_AVX}
-                    -DWITH_MKLDNN=OFF
-                    -DWITH_GPU=${WITH_GPU}
-                    -DWITH_FLUID_ONLY=ON
-                    -DWITH_TESTING=OFF
-                    -DWITH_DISTRIBUTE=OFF
-                    -DON_INFER=ON
-                    ${EXTERNAL_OPTIONAL_ARGS}
-    LIST_SEPARATOR |
-    CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${PADDLE_INSTALL_DIR}
-                     -DCMAKE_INSTALL_LIBDIR:PATH=${PADDLE_INSTALL_DIR}/lib
-                     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-                     -DCMAKE_BUILD_TYPE:STRING=${THIRD_PARTY_BUILD_TYPE}
-    BUILD_COMMAND $(MAKE)
-    INSTALL_COMMAND $(MAKE) fluid_lib_dist
+    URL                 "${PADDLE_LIB_PATH}"
+    PREFIX              "${PADDLE_SOURCES_DIR}"
+    DOWNLOAD_DIR        "${PADDLE_DOWNLOAD_DIR}"
+    CONFIGURE_COMMAND   ""
+    BUILD_COMMAND       ""
+    UPDATE_COMMAND      ""
+    INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party
 )
 
-ExternalProject_Get_Property(extern_paddle BINARY_DIR)
+INCLUDE_DIRECTORIES(${PADDLE_INCLUDE_DIR})
+
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/paddle/fluid/inference/libpaddle_fluid.a)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
 
 LIST(APPEND external_project_dependencies paddle)
 
-ADD_LIBRARY(snappystream STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET snappystream PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/snappystream/lib/libsnappystream.a)
+#ADD_LIBRARY(snappystream STATIC IMPORTED GLOBAL)
+#SET_PROPERTY(TARGET snappystream PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/snappystream/lib/libsnappystream.a)
 
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/xxhash/lib/libxxhash.a)
+SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
 ADD_LIBRARY(iomp5 SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET iomp5 PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/mklml/lib/libiomp5.so)
+SET_PROPERTY(TARGET iomp5 PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib/libiomp5.so)
 
 ADD_LIBRARY(mklml_intel SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET mklml_intel PROPERTY IMPORTED_LOCATION ${BINARY_DIR}/fluid_install_dir/third_party/install/mklml/lib/libmklml_intel.so)
+SET_PROPERTY(TARGET mklml_intel PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib/libmklml_intel.so)
+
+ADD_LIBRARY(mkldnn SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET mkldnn PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0)
 
 LIST(APPEND paddle_depend_libs
-        snappystream
+        #        snappystream
         snappy
         iomp5
         mklml_intel
-        xxhash)
+        mkldnn
+        xxhash
+        )
