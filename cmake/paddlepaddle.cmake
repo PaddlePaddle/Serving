@@ -61,36 +61,24 @@ ExternalProject_Add(
     INSTALL_COMMAND
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
+        ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so
 )
 
 INCLUDE_DIRECTORIES(${PADDLE_INCLUDE_DIR})
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib")
+LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib)
+
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib")
+LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
 
-LIST(APPEND external_project_dependencies paddle)
-
-#ADD_LIBRARY(snappystream STATIC IMPORTED GLOBAL)
-#SET_PROPERTY(TARGET snappystream PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/snappystream/lib/libsnappystream.a)
-
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
-ADD_LIBRARY(iomp5 SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET iomp5 PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib/libiomp5.so)
-
-ADD_LIBRARY(mklml_intel SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET mklml_intel PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib/libmklml_intel.so)
-
-ADD_LIBRARY(mkldnn SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET mkldnn PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0)
+LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        #        snappystream
-        snappy
-        iomp5
-        mklml_intel
-        mkldnn
-        xxhash
-        )
+        xxhash)
