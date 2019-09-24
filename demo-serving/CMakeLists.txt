@@ -59,7 +59,7 @@ target_link_libraries(serving kvdb rocksdb)
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
-target_link_libraries(serving iomp5 mklml_intel -lpthread
+target_link_libraries(serving -liomp5 -lmklml_intel -lpthread
         -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
