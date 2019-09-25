@@ -412,8 +412,6 @@ Cube一共拆分成四个组件，共同完成上述工作：
 3. cube-server 每个单独的cube服务承载一个分片的cube数据
 4. cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
 
-关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。
-
 关于Cube的性能数据，请参考[Cube Benchmark](https://github.com/PaddlePaddle/Serving/blob/develop/cube/doc/performance.md)
 
 本文仅描述从头部署Cube服务的流程。
