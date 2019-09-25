@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: paddleserving
+  labels:
+    app: paddleserving
+spec:
+  containers:
+  - name: paddleserving
+    image: wangjiawei1993/paddleserving:v7-debug
+    workingDir: /serving
+    command: ['/bin/bash']
+    args: ['run.sh']
+    ports: 
+    - containerPort: 8010
+      name: serving
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paddleserving
+spec:
+  ports:
+    - name: serving
+      port: 8010
+      protocol: TCP
+  selector:
+    app: paddleserving

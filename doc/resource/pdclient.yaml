@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pdservingclient
+  labels: 
+    app: pdservingclient
+spec:
+  containers:
+  - name: pdservingclient
+    image: wangjiawei1993/pdservingclient:v4
+    workingDir: /
+    command: ['bash']
+    args: ['nonstop.sh']
+
