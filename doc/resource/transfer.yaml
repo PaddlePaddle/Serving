@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cube-transfer
+  labels:
+    app: cube-transfer
+spec:
+  containers:
+  - name: cube-transfer
+    image: wangjiawei1993/cube-transfer:v18
+    workingDir: /
+    env:
+      - name: POD_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+    command: ['bash']
+    args: ['nonstop.sh']
+    ports:
+    - containerPort: 8099
+      name: cube-transfer
+    - containerPort: 8098
+      name: cube-http

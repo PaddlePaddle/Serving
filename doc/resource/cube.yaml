@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cube-0
+  labels:
+    app: cube-0
+spec:
+  containers:
+  - name: cube-0
+    image: wangjiawei1993/cube:v11
+    workingDir: /cube
+    command: ['/bin/bash']
+    args: ['start.sh']
+    ports:
+    - containerPort: 8001
+      name: cube-agent
+    - containerPort: 8027
+      name: cube-server
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cube-1
+  labels:
+    app: cube-1
+spec:
+  containers:
+  - name: cube-1
+    image: wangjiawei1993/cube:v11
+    workingDir: /cube
+    command: ['/bin/bash']
+    args: ['start.sh']
+    ports:
+    - containerPort: 8001
+      name: cube-agent
+    - containerPort: 8027
+      name: cube-server
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: cube-0
+spec:
+  ports:
+    - name: agent
+      port: 8001
+      protocol: TCP
+    - name: server
+      port: 8027
+      protocol: TCP
+  selector:
+    app: cube-0
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: cube-1
+spec:
+  ports:
+    - name: agent
+      port: 8001
+      protocol: TCP
+    - name: server
+      port: 8027
+      protocol: TCP
+  selector:
+    app: cube-1
+
+
