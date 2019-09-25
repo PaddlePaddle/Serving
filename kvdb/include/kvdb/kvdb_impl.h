@@ -45,6 +45,7 @@ class AbstractKVDB {
   virtual void SetDBName(std::string) = 0;
   virtual void Set(std::string key, std::string value) = 0;
   virtual std::string Get(std::string key) = 0;
+  virtual void Close() = 0;
   virtual ~AbstractKVDB() = 0;
 };
 
