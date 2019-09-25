@@ -54,6 +54,7 @@ TEST_F(KVDBTest, AbstractKVDB_Unit_Test) {
     std::string val = kvdb->Get(std::to_string(i));
     ASSERT_EQ(val, std::to_string(i * 2));
   }
+  kvdb->Close();
 }
 
 TEST_F(KVDBTest, FileReader_Unit_Test) {
@@ -82,43 +83,6 @@ TEST_F(KVDBTest, FileReader_Unit_Test) {
   ASSERT_NE(timestamp_2, timestamp_3);
 }
 #include <cmath>
-TEST_F(KVDBTest, ParamDict_Unit_Test) {
-  std::string test_in_filename = "abs_dict_reader_test_in.txt";
-  param_dict->SetFileReaderLst({test_in_filename});
-  param_dict->SetReader([](std::string text) {
-    auto split = [](const std::string& s,
-                    std::vector<std::string>& sv,
-                    const char* delim = " ") {
-      sv.clear();
-      char* buffer = new char[s.size() + 1];
-      std::copy(s.begin(), s.end(), buffer);
-      char* p = strtok(buffer, delim);
-      do {
-        sv.push_back(p);
-      } while ((p = strtok(NULL, delim)));
-      return;
-    };
-    std::vector<std::string> text_split;
-    split(text, text_split, " ");
-    std::string key = text_split[0];
-    text_split.erase(text_split.begin());
-    return make_pair(key, text_split);
-  });
-  param_dict->CreateKVDB();
-  GenerateTestIn(test_in_filename);
-
-  param_dict->UpdateBaseModel();
-
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
-  std::vector<float> test_vec = param_dict->GetSparseValue("1", "");
-
-  ASSERT_LT(fabs(test_vec[0] - 1.0), 1e-2);
-
-  UpdateTestIn(test_in_filename);
-  param_dict->UpdateDeltaModel();
-}
-
 void GenerateTestIn(std::string filename) {
   std::ifstream in_file(filename);
   if (in_file.good()) {
