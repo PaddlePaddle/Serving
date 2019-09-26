@@ -9,6 +9,7 @@ set(SRC_LIST ${CMAKE_CURRENT_LIST_DIR}/src/test_rocksdb.cpp
             ${CMAKE_CURRENT_LIST_DIR}/src/gtest_kvdb.cpp)
        
 add_library(kvdb ${SRC_LIST})
+add_dependencies(kvdb rocksdb)
 install(TARGETS kvdb ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib/)
 
 add_executable(kvdb_test ${SRC_LIST})
