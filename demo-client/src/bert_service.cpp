@@ -19,11 +19,10 @@
 #include <fstream>
 #include <string>
 #include <thread>  //NOLINT
+#include "./data_pre.h"
 #include "sdk-cpp/bert_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
-#include "data_pre.h"
-
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 using baidu::paddle_serving::predictor::bert_service::Request;
@@ -83,7 +82,6 @@ int create_req(Request* req,
 }
 #else
 
-
 int create_req(Request* req,
                const std::vector<std::string>& data_list,
                int data_index,
@@ -102,7 +100,7 @@ int create_req(Request* req,
     }
 
     std::vector<std::string> feature_list = split(data_list[cur_index], ":");
-    std::vector<std::string> shape_list = split(feature_list[0]," ");
+    std::vector<std::string> shape_list = split(feature_list[0], " ");
     std::vector<std::string> token_list = split(feature_list[1], " ");
     std::vector<std::string> pos_list = split(feature_list[2], " ");
     std::vector<std::string> seg_list = split(feature_list[3], " ");
@@ -203,6 +201,7 @@ void calc_time(int server_concurrency, int batch_size) {
   LOG(INFO) << "Total request : " << (time_list.size());
   LOG(INFO) << "Batch size : " << batch_size;
   LOG(INFO) << "Max concurrency : " << server_concurrency;
+  LOG(INFO) << "Max Seq Len : " << max_seq_len;
   float total_time = 0;
   float max_time = 0;
   float min_time = 1000000;
@@ -240,17 +239,22 @@ void calc_time(int server_concurrency, int batch_size) {
     LOG(INFO) << "99.9 percent ms: " << time_list[percent_pos_999];
   } else {
     LOG(INFO) << "N/A";
+    LOG(INFO) << "N/A";
+    LOG(INFO) << "N/A";
+    LOG(INFO) << "N/A";
+    LOG(INFO) << "N/A";
+    LOG(INFO) << "N/A";
   }
 }
 int main(int argc, char** argv) {
   PredictorApi api;
-  response_time.resize(thread_num);
-  int server_concurrency = thread_num;
   if (argc > 1) {
     thread_num = std::stoi(argv[1]);
     batch_size = std::stoi(argv[2]);
     max_seq_len = std::stoi(argv[3]);
   }
+  response_time.resize(thread_num);
+  int server_concurrency = thread_num;
 // log set
 #ifdef BCLOUD
   logging::LoggingSettings settings;
