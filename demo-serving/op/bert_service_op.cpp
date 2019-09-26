@@ -77,10 +77,10 @@ int BertServiceOp::inference() {
   for (uint32_t i = 0; i < batch_size; i++) {
     lod_set[0].push_back(i * MAX_SEQ_LEN);
   }
-  //src_ids.lod = lod_set;
-  //pos_ids.lod = lod_set;
-  //seg_ids.lod = lod_set;
-  //input_masks.lod = lod_set;
+  // src_ids.lod = lod_set;
+  // pos_ids.lod = lod_set;
+  // seg_ids.lod = lod_set;
+  // input_masks.lod = lod_set;
 
   uint32_t index = 0;
   for (uint32_t i = 0; i < batch_size; i++) {
@@ -120,12 +120,11 @@ int BertServiceOp::inference() {
     return -1;
   }
 
-/*
-    float* example = (float*)(*in)[3].data.data();
-    for(uint32_t i = 0; i < MAX_SEQ_LEN; i++){
-        LOG(INFO) << *(example + i);
-*/
-
+  /*
+      float* example = (float*)(*in)[3].data.data();
+      for(uint32_t i = 0; i < MAX_SEQ_LEN; i++){
+          LOG(INFO) << *(example + i);
+  */
 
   if (predictor::InferManager::instance().infer(
           BERT_MODEL_NAME, in, out, batch_size)) {
@@ -138,7 +137,7 @@ int BertServiceOp::inference() {
         << " seq_len : " << out->at(0).shape[1]
         << " emb_size : " << out->at(0).shape[2];
 
-    float *out_data = (float*) out->at(0).data.data();
+    float *out_data = reinterpret_cast<float *>out->at(0).data.data();
     for (uint32_t bi = 0; bi < batch_size; bi++) {
       BertResInstance *res_instance = res->add_instances();
       for (uint32_t si = 0; si < MAX_SEQ_LEN; si++) {
@@ -150,32 +149,32 @@ int BertServiceOp::inference() {
       }
     }
 #else
-	LOG(INFO) << "batch_size : " << out->at(0).shape[0]
-		<< " emb_size : " << out->at(0).shape[1];
-	float *out_data = (float*) out->at(0).data.data();
-	for (uint32_t bi = 0; bi < batch_size; bi++) {
-    	BertResInstance *res_instance = res->add_instances();
-		for (uint32_t si = 0; si < 1; si++) {
-			Embedding_values *emb_instance = res_instance->add_instances();
-			for (uint32_t ei = 0; ei < EMB_SIZE; ei++) {
-				uint32_t index = bi * MAX_SEQ_LEN * EMB_SIZE + si * EMB_SIZE + ei;
-				emb_instance->add_values(out_data[index]);
-			}
-		}
-	}
+  LOG(INFO) << "batch_size : " << out->at(0).shape[0]
+            << " emb_size : " << out->at(0).shape[1];
+  float *out_data = reinterpret_cast<float *> out->at(0).data.data();
+  for (uint32_t bi = 0; bi < batch_size; bi++) {
+    BertResInstance *res_instance = res->add_instances();
+    for (uint32_t si = 0; si < 1; si++) {
+      Embedding_values *emb_instance = res_instance->add_instances();
+      for (uint32_t ei = 0; ei < EMB_SIZE; ei++) {
+        uint32_t index = bi * EMB_SIZE + ei;
+        emb_instance->add_values(out_data[index]);
+      }
+    }
+  }
 
 #endif
-    for (size_t i = 0; i < in->size(); ++i) {
-      (*in)[i].shape.clear();
-    }
-    in->clear();
-    butil::return_object<TensorVector>(in);
+  for (size_t i = 0; i < in->size(); ++i) {
+    (*in)[i].shape.clear();
+  }
+  in->clear();
+  butil::return_object<TensorVector>(in);
 
-    for (size_t i = 0; i < out->size(); ++i) {
-      (*out)[i].shape.clear();
-    }
-    out->clear();
-    butil::return_object<TensorVector>(out);
+  for (size_t i = 0; i < out->size(); ++i) {
+    (*out)[i].shape.clear();
+  }
+  out->clear();
+  butil::return_object<TensorVector>(out);
   return 0;
 }
 
