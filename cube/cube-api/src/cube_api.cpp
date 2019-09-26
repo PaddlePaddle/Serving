@@ -13,8 +13,14 @@
 // limitations under the License.
 
 #include "cube/cube-api/include/cube_api.h"
+#ifdef BCLOUD
+#include <baidu/rpc/channel.h>
+#include <baidu/rpc/parallel_channel.h>
+#else
 #include <brpc/channel.h>
 #include <brpc/parallel_channel.h>
+#endif
+
 #include <google/protobuf/descriptor.h>
 #include "cube/cube-api/include/cube_api_bvar.h"
 
@@ -24,6 +30,10 @@
 namespace {
 static ::rec::mcube::CubeAPI* g_ins = NULL;
 }
+
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#endif
 
 namespace rec {
 namespace mcube {
