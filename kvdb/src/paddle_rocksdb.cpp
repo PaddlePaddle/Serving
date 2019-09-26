@@ -48,6 +48,14 @@ void RocksDBWrapper::SetDBName(std::string db_name) {
   this->db_name_ = db_name;
 }
 
+void RocksDBWrapper::Close() {
+  if (db_ != nullptr) {
+    db_->Close();
+    delete(db_);
+    db_ = nullptr;
+  }
+}
+
 std::shared_ptr<RocksDBWrapper> RocksDBWrapper::RocksDBWrapperFactory(
     std::string db_name) {
   return std::make_shared<RocksDBWrapper>(db_name);
