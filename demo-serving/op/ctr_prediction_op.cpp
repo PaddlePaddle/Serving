@@ -23,6 +23,9 @@
 #include "predictor/framework/kv_manager.h"
 #include "predictor/framework/memory.h"
 
+// Flag where enable profiling mode
+DECLARE_bool(enable_ctr_profiling);
+
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
@@ -45,6 +48,11 @@ const int CTR_PREDICTION_SPARSE_SLOTS = 26;
 const int CTR_PREDICTION_DENSE_SLOT_ID = 26;
 const int CTR_PREDICTION_DENSE_DIM = 13;
 const int CTR_PREDICTION_EMBEDDING_SIZE = 10;
+
+bthread::Mutex CTRPredictionOp::mutex_;
+int64_t CTRPredictionOp::cube_time_us_ = 0;
+int32_t CTRPredictionOp::cube_req_num_ = 0;
+int32_t CTRPredictionOp::cube_req_key_num_ = 0;
 
 void fill_response_with_message(Response *response,
                                 int err_code,
@@ -135,7 +143,28 @@ int CTRPredictionOp::inference() {
     return 0;
   } else if (kvinfo->sparse_param_service_type ==
              configure::EngineDesc::REMOTE) {
-    int ret = cube->seek(table_name, keys, &values);
+    struct timeval start;
+    struct timeval end;
+
+    int ret;
+
+    if (FLAGS_enable_ctr_profiling) {
+      gettimeofday(&start, NULL);
+      ret = cube->seek(table_name, keys, &values);
+      gettimeofday(&end, NULL);
+      uint64_t usec =
+          end.tv_sec * 1e6 + end.tv_usec - start.tv_sec * 1e6 - start.tv_usec;
+
+      // Statistics
+      mutex_.lock();
+      cube_time_us_ += usec;
+      ++cube_req_num_;
+      cube_req_key_num_ += keys.size();
+      mutex_.unlock();
+    } else {
+      ret = cube->seek(table_name, keys, &values);
+    }
+
     if (ret != 0) {
       fill_response_with_message(res, -1, "Query cube for embeddings error");
       LOG(ERROR) << "Query cube for embeddings error";

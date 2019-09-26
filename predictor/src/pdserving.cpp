@@ -69,6 +69,9 @@ static bvar::PassiveStatus<std::string> s_predictor_revision(
 
 DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
+DEFINE_bool(enable_ctr_profiling,
+            false,
+            "Enable profiling in CTR prediction demo");
 DECLARE_string(flagfile);
 
 namespace bthread {
