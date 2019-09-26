@@ -25,6 +25,7 @@ message BertReqInstance {
   repeated int64 sentence_type_ids = 2;
   repeated int64 position_ids = 3;
   repeated float input_masks = 4;
+  required int64 max_seq_len = 5;
 };
 
 message Request { repeated BertReqInstance instances = 1; };

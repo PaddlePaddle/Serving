@@ -200,6 +200,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.EnableUseGpu(100, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
+    analysis_config.SwitchIrOptim(true);
 
     if (params.enable_memory_optimization()) {
       analysis_config.EnableMemoryOptim(params.static_optimization(),
