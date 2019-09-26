@@ -140,4 +140,5 @@ void ParamDict::CreateKVDB() {
   this->back_db->CreateDB();
 }
 
-ParamDict::~ParamDict() {}
+ParamDict::~ParamDict() {
+}
