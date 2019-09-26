@@ -22,6 +22,7 @@
 #include "sdk-cpp/bert_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
+#include "data_pre.h"
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
@@ -31,31 +32,17 @@ using baidu::paddle_serving::predictor::bert_service::BertResInstance;
 using baidu::paddle_serving::predictor::bert_service::BertReqInstance;
 using baidu::paddle_serving::predictor::bert_service::Embedding_values;
 
-int batch_size = 1;
-int max_seq_len = 82;
-int layer_num = 12;
-int emb_size = 768;
-int thread_num = 1;
+extern int batch_size = 1;
+extern int max_seq_len = 128;
+extern int layer_num = 12;
+extern int emb_size = 768;
+extern int thread_num = 1;
 
 std::atomic<int> g_concurrency(0);
 std::vector<std::vector<int>> response_time;
 char* data_filename = "./data/bert/demo_wiki_train";
 
-std::vector<std::string> split(const std::string& str,
-                               const std::string& pattern) {
-  std::vector<std::string> res;
-  if (str == "") return res;
-  std::string strs = str + pattern;
-  size_t pos = strs.find(pattern);
-  while (pos != strs.npos) {
-    std::string temp = strs.substr(0, pos);
-    res.push_back(temp);
-    strs = strs.substr(pos + 1, strs.size());
-    pos = strs.find(pattern);
-  }
-  return res;
-}
-/*
+#if 1
 int create_req(Request* req,
                const std::vector<std::string>& data_list,
                int data_index,
@@ -90,10 +77,11 @@ int create_req(Request* req,
         ins->add_input_masks(0.0);
       }
     }
+    ins->set_max_seq_len(max_seq_len);
   }
   return 0;
 }
-*/
+#else
 
 
 int create_req(Request* req,
@@ -135,6 +123,8 @@ int create_req(Request* req,
   }
   return 0;
 }
+
+#endif
 
 void print_res(const Request& req,
                const Response& res,
@@ -256,6 +246,11 @@ int main(int argc, char** argv) {
   PredictorApi api;
   response_time.resize(thread_num);
   int server_concurrency = thread_num;
+  if (argc > 1) {
+    thread_num = std::stoi(argv[1]);
+    batch_size = std::stoi(argv[2]);
+    max_seq_len = std::stoi(argv[3]);
+  }
 // log set
 #ifdef BCLOUD
   logging::LoggingSettings settings;
