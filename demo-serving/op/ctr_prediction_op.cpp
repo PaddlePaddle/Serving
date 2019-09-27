@@ -148,31 +148,31 @@ int CTRPredictionOp::inference() {
 
     int ret;
 
-    if (FLAGS_enable_ctr_profiling) {
-      gettimeofday(&start, NULL);
-      ret = cube->seek(table_name, keys, &values);
-      gettimeofday(&end, NULL);
-      uint64_t usec =
-          end.tv_sec * 1e6 + end.tv_usec - start.tv_sec * 1e6 - start.tv_usec;
+    gettimeofday(&start, NULL);
+    ret = cube->seek(table_name, keys, &values);
+    gettimeofday(&end, NULL);
+    uint64_t usec =
+        end.tv_sec * 1e6 + end.tv_usec - start.tv_sec * 1e6 - start.tv_usec;
 
-      // Statistics
-      mutex_.lock();
-      cube_time_us_ += usec;
-      ++cube_req_num_;
-      cube_req_key_num_ += keys.size();
+    // Statistics
+    mutex_.lock();
+    cube_time_us_ += usec;
+    ++cube_req_num_;
+    cube_req_key_num_ += keys.size();
 
-      if (cube_req_num_ >= 1000) {
-        LOG(INFO) << "Cube request count: " << cube_req_num_;
-        LOG(INFO) << "Cube request key count: " << cube_req_key_num_;
-        LOG(INFO) << "Cube request total time: " << cube_time_us_ << "us";
-        LOG(INFO) << "Average " << cube_time_us_ / cube_req_num_ << "us/req";
-        LOG(INFO) << "Average " << cube_time_us_ / cube_req_key_num_
-                  << "us/key";
-      }
-      mutex_.unlock();
-    } else {
-      ret = cube->seek(table_name, keys, &values);
+    if (cube_req_num_ >= 1000) {
+      LOG(INFO) << "Cube request count: " << cube_req_num_;
+      LOG(INFO) << "Cube request key count: " << cube_req_key_num_;
+      LOG(INFO) << "Cube request total time: " << cube_time_us_ << "us";
+      LOG(INFO) << "Average " << cube_time_us_ / cube_req_num_ << "us/req";
+      LOG(INFO) << "Average " << cube_time_us_ / cube_req_key_num_ << "us/key";
+
+      cube_time_us_ = 0;
+      cube_req_num_ = 0;
+      cube_req_key_num_ = 0;
     }
+    mutex_.unlock();
+    // Statistics end
 
     if (ret != 0) {
       fill_response_with_message(res, -1, "Query cube for embeddings error");

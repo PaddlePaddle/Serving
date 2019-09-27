@@ -51,8 +51,6 @@ using baidu::paddle_serving::predictor::FLAGS_port;
 using baidu::paddle_serving::configure::InferServiceConf;
 using baidu::paddle_serving::configure::read_proto_conf;
 
-DECLARE_bool(logtostderr);
-
 void print_revision(std::ostream& os, void*) {
 #if defined(PDSERVING_VERSION)
   os << PDSERVING_VERSION;
@@ -69,9 +67,6 @@ static bvar::PassiveStatus<std::string> s_predictor_revision(
 
 DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
-DEFINE_bool(enable_ctr_profiling,
-            false,
-            "Enable profiling in CTR prediction demo");
 DECLARE_string(flagfile);
 
 namespace bthread {
@@ -220,7 +215,8 @@ int main(int argc, char** argv) {
   }
   LOG(INFO) << "Succ initialize cube";
 
-  FLAGS_logtostderr = false;
+  // FATAL messages are output to stderr
+  FLAGS_stderrthreshold = 3;
 
   if (ServerManager::instance().start_and_wait() != 0) {
     LOG(ERROR) << "Failed start server and wait!";
