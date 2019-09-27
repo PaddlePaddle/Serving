@@ -28,7 +28,7 @@
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
 #endif
 #else
-#include "paddle/fluid/inference/paddle_inference_api.h"
+#include "paddle_inference_api.h"  // NOLINT
 #endif
 #include "predictor/framework/infer.h"
 
@@ -134,8 +134,7 @@ class FluidCpuAnalysisCore : public FluidFamilyCore {
     analysis_config.SetCpuMathLibraryNumThreads(1);
 
     if (params.enable_memory_optimization()) {
-      analysis_config.EnableMemoryOptim(params.static_optimization(),
-                                        params.force_update_static_cache());
+      analysis_config.EnableMemoryOptim();
     }
 
     analysis_config.SwitchSpecifyInputNames(true);
@@ -200,8 +199,7 @@ class FluidCpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.SetCpuMathLibraryNumThreads(1);
 
     if (params.enable_memory_optimization()) {
-      analysis_config.EnableMemoryOptim(params.static_optimization(),
-                                        params.force_update_static_cache());
+      analysis_config.EnableMemoryOptim();
     }
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());
@@ -519,8 +517,7 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
     analysis_config.SetCpuMathLibraryNumThreads(1);
 
     if (params.enable_memory_optimization()) {
-      analysis_config.EnableMemoryOptim(params.static_optimization(),
-                                        params.force_update_static_cache());
+      analysis_config.EnableMemoryOptim();
     }
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());

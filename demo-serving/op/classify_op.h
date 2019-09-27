@@ -21,7 +21,7 @@
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
 #endif
 #else
-#include "paddle/fluid/inference/paddle_inference_api.h"
+#include "paddle_inference_api.h"  // NOLINT
 #endif
 #include "demo-serving/image_class.pb.h"
 
