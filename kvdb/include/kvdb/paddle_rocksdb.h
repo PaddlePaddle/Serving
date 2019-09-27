@@ -32,7 +32,7 @@ class RocksDBWrapper {
   void SetDBName(std::string db_name);
   static std::shared_ptr<RocksDBWrapper> RocksDBWrapperFactory(
       std::string db_name = "SparseMatrix");
-
+  void Close();
  private:
   rocksdb::DB *db_;
   std::string db_name_;
