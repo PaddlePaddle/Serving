@@ -94,8 +94,6 @@ int PredictorApi::thrd_clear() {
       LOG(ERROR) << "Failed thrd clear endpoint:" << it->first;
       return -1;
     }
-
-    LOG(INFO) << "Succ thrd clear endpoint:" << it->first;
   }
   return 0;
 }

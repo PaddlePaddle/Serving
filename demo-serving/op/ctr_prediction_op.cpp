@@ -160,6 +160,15 @@ int CTRPredictionOp::inference() {
       cube_time_us_ += usec;
       ++cube_req_num_;
       cube_req_key_num_ += keys.size();
+
+      if (cube_req_num_ >= 1000) {
+        LOG(INFO) << "Cube request count: " << cube_req_num_;
+        LOG(INFO) << "Cube request key count: " << cube_req_key_num_;
+        LOG(INFO) << "Cube request total time: " << cube_time_us_ << "us";
+        LOG(INFO) << "Average " << cube_time_us_ / cube_req_num_ << "us/req";
+        LOG(INFO) << "Average " << cube_time_us_ / cube_req_key_num_
+                  << "us/key";
+      }
       mutex_.unlock();
     } else {
       ret = cube->seek(table_name, keys, &values);
