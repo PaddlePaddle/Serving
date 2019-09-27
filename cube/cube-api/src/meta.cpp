@@ -26,6 +26,10 @@ namespace {
 static ::rec::mcube::Meta* g_ins = NULL;
 }
 
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#endif
+
 namespace rec {
 namespace mcube {
 
