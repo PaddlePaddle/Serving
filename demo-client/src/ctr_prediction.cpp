@@ -30,11 +30,17 @@ using baidu::paddle_serving::predictor::ctr_prediction::Response;
 using baidu::paddle_serving::predictor::ctr_prediction::CTRReqInstance;
 using baidu::paddle_serving::predictor::ctr_prediction::CTRResInstance;
 
-int batch_size = 16;
 int sparse_num = 26;
 int dense_num = 13;
-int thread_num = 1;
 int hash_dim = 1000001;
+
+DEFINE_int32(batch_size, 50, "Set the batch size of test file.");
+DEFINE_int32(concurrency, 1, "Set the max concurrency of requests");
+DEFINE_int32(repeat, 1, "Number of data samples iteration count. Default 1");
+DEFINE_bool(enable_profiling,
+            false,
+            "Enable profiling. Will supress a lot normal output");
+
 std::vector<float> cont_min = {0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 std::vector<float> cont_diff = {
     20, 603, 100, 50, 64000, 500, 100, 50, 500, 10, 10, 10, 50};
@@ -86,7 +92,7 @@ int64_t hash(std::string str) {
 
 int create_req(Request* req,
                const std::vector<std::string>& data_list,
-               int data_index,
+               int start_index,
                int batch_size) {
   for (int i = 0; i < batch_size; ++i) {
     CTRReqInstance* ins = req->add_instances();
@@ -94,12 +100,14 @@ int create_req(Request* req,
       LOG(ERROR) << "Failed create req instance";
       return -1;
     }
+
     // add data
     // avoid out of boundary
-    int cur_index = data_index + i;
+    int cur_index = start_index + i;
     if (cur_index >= data_list.size()) {
       cur_index = cur_index % data_list.size();
     }
+
     std::vector<std::string> feature_list = split(data_list[cur_index], "\t");
     for (int fi = 0; fi < dense_num; fi++) {
       if (feature_list[fi] == "") {
@@ -122,10 +130,10 @@ int create_req(Request* req,
   }
   return 0;
 }
+
 void print_res(const Request& req,
                const Response& res,
                std::string route_tag,
-               uint64_t mid_ms,
                uint64_t elapse_ms) {
   if (res.err_code() != 0) {
     LOG(ERROR) << "Get result fail :" << res.err_msg();
@@ -138,72 +146,90 @@ void print_res(const Request& req,
     LOG(INFO) << "Receive result " << oss.str();
   }
   LOG(INFO) << "Succ call predictor[ctr_prediction_service], the tag is: "
-            << route_tag << ", mid_ms: " << mid_ms
-            << ", elapse_ms: " << elapse_ms;
+            << route_tag << ", elapse_ms: " << elapse_ms;
 }
 
 void thread_worker(PredictorApi* api,
                    int thread_id,
-                   int batch_size,
-                   int server_concurrency,
                    const std::vector<std::string>& data_list) {
   // init
   Request req;
   Response res;
-  api->thrd_initialize();
   std::string line;
-  int turns = 0;
-  while (turns < 1000) {
-    timeval start;
-    gettimeofday(&start, NULL);
-    api->thrd_clear();
-    Predictor* predictor = api->fetch_predictor("ctr_prediction_service");
-    if (!predictor) {
-      LOG(ERROR) << "Failed fetch predictor: ctr_prediction_service";
-      return;
-    }
-    req.Clear();
-    res.Clear();
-    timeval mid;
-    gettimeofday(&mid, NULL);
-    uint64_t mid_ms = (mid.tv_sec * 1000 + mid.tv_usec / 1000) -
-                      (start.tv_sec * 1000 + start.tv_usec / 1000);
-    // wait for other thread
-    while (g_concurrency.load() >= server_concurrency) {
-    }
-    g_concurrency++;
-    LOG(INFO) << "Current concurrency " << g_concurrency.load();
-    int data_index = turns * batch_size;
-    if (create_req(&req, data_list, data_index, batch_size) != 0) {
-      return;
-    }
-    timeval start_run;
-    gettimeofday(&start_run, NULL);
-    if (predictor->inference(&req, &res) != 0) {
-      LOG(ERROR) << "failed call predictor with req:" << req.ShortDebugString();
-      return;
-    }
-    timeval end;
-    gettimeofday(&end, NULL);
-    uint64_t elapse_ms = (end.tv_sec * 1000 + end.tv_usec / 1000) -
-                         (start_run.tv_sec * 1000 + start_run.tv_usec / 1000);
-    response_time[thread_id].push_back(elapse_ms);
-    print_res(req, res, predictor->tag(), mid_ms, elapse_ms);
-    g_concurrency--;
-    LOG(INFO) << "Done. Current concurrency " << g_concurrency.load();
-    turns++;
-  }
-  //
+
+  api->thrd_initialize();
+
+  for (int i = 0; i < FLAGS_repeat; ++i) {
+    int start_index = 0;
+
+    while (true) {
+      if (start_index >= data_list.size()) {
+        break;
+      }
+
+      api->thrd_clear();
+
+      Predictor* predictor = api->fetch_predictor("ctr_prediction_service");
+      if (!predictor) {
+        LOG(ERROR) << "Failed fetch predictor: ctr_prediction_service";
+        return;
+      }
+
+      req.Clear();
+      res.Clear();
+
+      // wait for other thread
+      while (g_concurrency.load() >= FLAGS_concurrency) {
+      }
+      g_concurrency++;
+      LOG(INFO) << "Current concurrency " << g_concurrency.load();
+
+      if (create_req(&req, data_list, start_index, FLAGS_batch_size) != 0) {
+        return;
+      }
+      start_index += FLAGS_batch_size;
+      LOG(INFO) << "start_index = " << start_index;
+
+      timeval start;
+      gettimeofday(&start, NULL);
+
+      if (predictor->inference(&req, &res) != 0) {
+        LOG(ERROR) << "failed call predictor with req:"
+                   << req.ShortDebugString();
+        return;
+      }
+      g_concurrency--;
+
+      timeval end;
+      gettimeofday(&end, NULL);
+      uint64_t elapse_ms = (end.tv_sec * 1000 + end.tv_usec / 1000) -
+                           (start.tv_sec * 1000 + start.tv_usec / 1000);
+
+      response_time[thread_id].push_back(elapse_ms);
+
+      if (!FLAGS_enable_profiling) {
+        print_res(req, res, predictor->tag(), elapse_ms);
+      }
+
+      LOG(INFO) << "Done. Current concurrency " << g_concurrency.load();
+    }  // end while
+  }    // end for
+
   api->thrd_finalize();
 }
-void calc_time(int server_concurrency, int batch_size) {
+
+void calc_time() {
   std::vector<int> time_list;
   for (auto a : response_time) {
     time_list.insert(time_list.end(), a.begin(), a.end());
   }
+
   LOG(INFO) << "Total request : " << (time_list.size());
-  LOG(INFO) << "Batch size : " << batch_size;
-  LOG(INFO) << "Max concurrency : " << server_concurrency;
+  LOG(INFO) << "Batch size : " << FLAGS_batch_size;
+  LOG(INFO) << "Max concurrency : " << FLAGS_concurrency;
+  LOG(INFO) << "enable_profiling: " << FLAGS_enable_profiling;
+  LOG(INFO) << "repeat count: " << FLAGS_repeat;
+
   float total_time = 0;
   float max_time = 0;
   float min_time = 1000000;
@@ -212,21 +238,28 @@ void calc_time(int server_concurrency, int batch_size) {
     if (time_list[i] > max_time) max_time = time_list[i];
     if (time_list[i] < min_time) min_time = time_list[i];
   }
+
   float mean_time = total_time / (time_list.size());
   float var_time;
   for (int i = 0; i < time_list.size(); ++i) {
     var_time += (time_list[i] - mean_time) * (time_list[i] - mean_time);
   }
   var_time = var_time / time_list.size();
-  LOG(INFO) << "Total time : " << total_time / server_concurrency
-            << " Variance : " << var_time << " Max time : " << max_time
-            << " Min time : " << min_time;
+
+  LOG(INFO) << "Total time : " << total_time / FLAGS_concurrency << "ms";
+  LOG(INFO) << "Variance : " << var_time << "ms";
+  LOG(INFO) << "Max time : " << max_time << "ms";
+  LOG(INFO) << "Min time : " << min_time << "ms";
+
   float qps = 0.0;
-  if (total_time > 0)
-    qps = (time_list.size() * 1000) / (total_time / server_concurrency);
+  if (total_time > 0) {
+    qps = (time_list.size() * 1000) / (total_time / FLAGS_concurrency);
+  }
   LOG(INFO) << "QPS: " << qps << "/s";
+
   LOG(INFO) << "Latency statistics: ";
   sort(time_list.begin(), time_list.end());
+
   int percent_pos_50 = time_list.size() * 0.5;
   int percent_pos_80 = time_list.size() * 0.8;
   int percent_pos_90 = time_list.size() * 0.9;
@@ -244,11 +277,12 @@ void calc_time(int server_concurrency, int batch_size) {
   }
 }
 int main(int argc, char** argv) {
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
   // initialize
   PredictorApi api;
-  response_time.resize(thread_num);
-  int server_concurrency = thread_num;
-// log set
+  response_time.resize(FLAGS_concurrency);
+
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
@@ -282,32 +316,40 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Failed create predictors api!";
     return -1;
   }
+
+  LOG(INFO) << "data sample file: " << data_filename;
+
+  if (FLAGS_enable_profiling) {
+    LOG(INFO) << "In profiling mode, lot of normal output will be supressed. "
+              << "Use --enable_profiling=false to turn off this mode";
+  }
+
   // read data
   std::ifstream data_file(data_filename);
   if (!data_file) {
     std::cout << "read file error \n" << std::endl;
     return -1;
   }
+
   std::vector<std::string> data_list;
   std::string line;
   while (getline(data_file, line)) {
     data_list.push_back(line);
   }
+
   // create threads
   std::vector<std::thread*> thread_pool;
-  for (int i = 0; i < server_concurrency; ++i) {
-    thread_pool.push_back(new std::thread(thread_worker,
-                                          &api,
-                                          i,
-                                          batch_size,
-                                          server_concurrency,
-                                          std::ref(data_list)));
+  for (int i = 0; i < FLAGS_concurrency; ++i) {
+    thread_pool.push_back(new std::thread(thread_worker, &api, i, data_list));
   }
-  for (int i = 0; i < server_concurrency; ++i) {
+
+  for (int i = 0; i < FLAGS_concurrency; ++i) {
     thread_pool[i]->join();
     delete thread_pool[i];
   }
-  calc_time(server_concurrency, batch_size);
+
+  calc_time();
+
   api.destroy();
   return 0;
 }
