@@ -164,8 +164,12 @@ int CTRPredictionOp::inference() {
       LOG(INFO) << "Cube request count: " << cube_req_num_;
       LOG(INFO) << "Cube request key count: " << cube_req_key_num_;
       LOG(INFO) << "Cube request total time: " << cube_time_us_ << "us";
-      LOG(INFO) << "Average " << cube_time_us_ / cube_req_num_ << "us/req";
-      LOG(INFO) << "Average " << cube_time_us_ / cube_req_key_num_ << "us/key";
+      LOG(INFO) << "Average "
+                << static_cast<float>(cube_time_us_) / cube_req_num_
+                << "us/req";
+      LOG(INFO) << "Average "
+                << static_cast<float>(cube_time_us_) / cube_req_key_num_
+                << "us/key";
 
       cube_time_us_ = 0;
       cube_req_num_ = 0;
