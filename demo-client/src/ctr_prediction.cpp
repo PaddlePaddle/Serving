@@ -38,7 +38,7 @@ DEFINE_int32(batch_size, 50, "Set the batch size of test file.");
 DEFINE_int32(concurrency, 1, "Set the max concurrency of requests");
 DEFINE_int32(repeat, 1, "Number of data samples iteration count. Default 1");
 DEFINE_bool(enable_profiling,
-            true,
+            false,
             "Enable profiling. Will supress a lot normal output");
 
 std::vector<float> cont_min = {0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
