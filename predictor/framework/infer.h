@@ -632,7 +632,6 @@ class VersionedInferEngine : public InferEngine {
         LOG(ERROR) << "Failed thrd clear version engine: " << iter->first;
         return -1;
       }
-      LOG(INFO) << "Succ thrd clear version engine: " << iter->first;
     }
     return 0;
   }
