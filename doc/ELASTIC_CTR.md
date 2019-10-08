@@ -1,8 +1,7 @@
 百度云分布式训练CTR
 ===================
 
-1. 总体概览
------------
+# 1. 总体概览
 
 ![image](elastic_ctr/overview.png)
 
@@ -22,8 +21,7 @@
 -   通过指定Cube参数服务器的分片数量和副本数量。
 -   指定Serving的模型信息
 
-2. 创建集群
------------
+# 2. 创建集群
 
 具体请参考
 [帮助文档](https://cloud.baidu.com/doc/CCE/GettingStarted/24.5C.E5.88.9B.E5.BB.BA.E9.9B.86.E7.BE.A4.html#.E6.93.8D.E4.BD.9C.E6.AD.A5.E9.AA.A4)
@@ -41,8 +39,7 @@
 [集群信息](https://cloud.baidu.com/doc/CCE/GettingStarted.html#.E6.9F.A5.E7.9C.8B.E9.9B.86.E7.BE.A4)
 。
 
-3. 操作集群
------------
+# 3. 操作集群
 
 集群的操作可以通过百度云web或者通过kubectl工具进行，推荐用
 [kubectl工具](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
@@ -74,10 +71,9 @@ mv kubectl.conf  ~/.kube/config
 kubectl get node
 ```
 
-4. 部署任务
------------
+# 4. 部署任务
 
-### 安装Volcano
+## 安装Volcano
 
 执行
 
@@ -87,7 +83,7 @@ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/ins
 
 ![image](elastic_ctr/ctr_volcano_install.png)
 
-### 一键完成部署
+## 一键完成部署
 
 执行
 
@@ -101,7 +97,7 @@ bash paddle-suite.sh
 [这里](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)
 获取。
 
-选择一个node作为输出节点 ::::::::::::
+#### 选择一个node作为输出节点 
 
 ``` {.sourceCode .bash}
 kubectl label nodes $NODE_NAME nodeType=model
@@ -122,7 +118,7 @@ kubectl apply -f fileserver.yaml
 
 ![image](elastic_ctr/file_server_svc.png)
 
-启动Cube稀疏参数服务器 ::::::::::
+#### 启动Cube稀疏参数服务器
 
 ``` {.sourceCode .bash}
 kubectl apply -f cube.yaml
@@ -133,7 +129,7 @@ svc中发现了相关的服务，则说明cube server/agent启动成功。
 
 ![image](elastic_ctr/cube.png)
 
-启动Paddle Serving ::::::::::
+#### 启动Paddle Serving
 
 ``` {.sourceCode .bash}
 kubectl apply -f paddleserving.yaml
@@ -146,7 +142,7 @@ svc中发现了相关的服务，则说明paddle serving启动成功。
 
 ![image](elastic_ctr/paddleserving_svc.png)
 
-启动Cube稀疏参数服务器配送工具 ::::::::::::
+#### 启动Cube稀疏参数服务器配送工具 
 
 ``` {.sourceCode .bash}
 kubectl apply -f transfer.yaml
@@ -160,7 +156,7 @@ Serving来进行稀疏参数查询。如果出现最后wait 5
 min这样的字样，说明上一轮的模型已经配送成功了，接下来就可以做最后Paddle
 Serving的测试了。
 
-执行 Paddle CTR 分布式训练 :::::::::::::
+#### 执行 Paddle CTR 分布式训练 
 
 ``` {.sourceCode .bash}
 kubectl apply -f ctr.yaml
@@ -172,8 +168,7 @@ edl-demo-trainer-0来查看训练的进度，如果pass
 
 ![image](elastic_ctr/ctr.png)
 
-5. 查看结果
------------
+# 5. 查看结果
 
 ### 查看训练日志
 
@@ -189,7 +184,7 @@ pserver日志示例：
 
 ![image](elastic_ctr/ctr_pserver_log.png)
 
-验证Paddle Serving预测结果 \>\>\>\>\>\>\>\>\>\>\>\>
+### 验证Paddle Serving预测结果 
 
 执行
 
@@ -207,10 +202,9 @@ bin/ctr_prediction
 
 ![image](elastic_ctr/paddleclient.png)
 
-6. 二次开发指南
----------------
+# 6. 二次开发指南
 
-指定数据集的输入和读取方式 \>\>\>\>\>\>\>\>\>\>\>\>
+### 指定数据集的输入和读取方式 
 
 现有的数据的输入是从edldemo镜像当中的/workspace/ctr/data/download.sh目录进行下载。下载之后会解压在/workspace/ctr/data/raw文件夹当中，包含train.txt和test.txt。所有的数据的每一行通过空格隔开40个属性。
 
@@ -258,7 +252,7 @@ docker build -t ${DOCKER_IMAGE_NAME} .
 
 如上图所示
 
-指定cube参数服务器的分片数量和副本数量 \>\>\>\>\>\>\>\>\>\>\>\>
+### 指定cube参数服务器的分片数量和副本数量 
 
 在cube.yaml文件当中，我们可以看到每一个cube的节点的定义，有一个cube
 server pod和cube server
