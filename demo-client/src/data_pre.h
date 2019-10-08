@@ -14,6 +14,7 @@
 #ifndef SERVING_DEMO_CLIENT_SRC_DATA_PRE_H_
 #define SERVING_DEMO_CLIENT_SRC_DATA_PRE_H_
 #include <sys/stat.h>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
