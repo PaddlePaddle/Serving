@@ -21,7 +21,7 @@
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
 #endif
 #else
-#include "paddle/fluid/inference/paddle_inference_api.h"
+#include "paddle_inference_api.h"  // NOLINT
 #endif
 #include "demo-serving/ctr_prediction.pb.h"
 
@@ -55,6 +55,7 @@ static const char* CTR_PREDICTION_MODEL_NAME = "ctr_prediction";
  * and modifications we made
  *
  */
+
 class CTRPredictionOp
     : public baidu::paddle_serving::predictor::OpWithChannel<
           baidu::paddle_serving::predictor::ctr_prediction::Response> {
@@ -64,6 +65,12 @@ class CTRPredictionOp
   DECLARE_OP(CTRPredictionOp);
 
   int inference();
+
+ private:
+  static bthread::Mutex mutex_;
+  static int64_t cube_time_us_;
+  static int32_t cube_req_num_;
+  static int32_t cube_req_key_num_;
 };
 
 }  // namespace serving

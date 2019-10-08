@@ -51,8 +51,6 @@ using baidu::paddle_serving::predictor::FLAGS_port;
 using baidu::paddle_serving::configure::InferServiceConf;
 using baidu::paddle_serving::configure::read_proto_conf;
 
-DECLARE_bool(logtostderr);
-
 void print_revision(std::ostream& os, void*) {
 #if defined(PDSERVING_VERSION)
   os << PDSERVING_VERSION;
@@ -217,7 +215,8 @@ int main(int argc, char** argv) {
   }
   LOG(INFO) << "Succ initialize cube";
 
-  FLAGS_logtostderr = false;
+  // FATAL messages are output to stderr
+  FLAGS_stderrthreshold = 3;
 
   if (ServerManager::instance().start_and_wait() != 0) {
     LOG(ERROR) << "Failed start server and wait!";

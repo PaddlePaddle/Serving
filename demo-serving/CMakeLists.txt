@@ -59,7 +59,7 @@ target_link_libraries(serving kvdb rocksdb)
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
-target_link_libraries(serving -liomp5 -lmklml_intel -lpthread
+target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread
         -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 
 install(TARGETS serving
@@ -75,7 +75,10 @@ install(FILES ${inc}
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/serving)
 
 if (${WITH_MKL})
-    install(FILES ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libmklml_intel.so
-                ${CMAKE_BINARY_DIR}/Paddle/third_party/install/mklml/lib/libiomp5.so DESTINATION
+    install(FILES
+            ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libmklml_intel.so
+                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libiomp5.so
+                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so
+                DESTINATION
                 ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
