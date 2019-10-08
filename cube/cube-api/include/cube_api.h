@@ -18,7 +18,12 @@
 #include <string>
 #include <vector>
 
+#ifdef BCLOUD
+#include "baidu/rpc/server.h"
+#else
 #include "brpc/server.h"
+#endif
+
 #include "cube/cube-api/cube.pb.h"
 #include "cube/cube-api/include/meta.h"
 
