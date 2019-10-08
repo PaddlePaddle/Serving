@@ -320,7 +320,7 @@ def prune_program():
 
 ### 2.5 裁剪过程串到一起
 
-我们提供了完整的裁剪CTR预估模型的脚本文件save_program.py，同[CTR分布式训练任务](doc/DISTRIBUTED_TRAINING_AND_SERVING.md)一起发布，可以在trainer和pserver容器的训练脚本目录下找到
+我们提供了完整的裁剪CTR预估模型的脚本文件save_program.py，同[CTR分布式训练和Serving流程化部署](https://github.com/PaddlePaddle/Serving/blob/master/doc/DEPLOY.md)一起发布，可以在trainer和pserver容器的训练脚本目录下找到，也可以在[这里](https://github.com/PaddlePaddle/Serving/tree/master/doc/resource)下载。
 
 ## 3. 整个预测计算流程
 

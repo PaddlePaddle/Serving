@@ -19,10 +19,24 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef BCLOUD
+#include "baidu/rpc/channel.h"
+#include "baidu/rpc/parallel_channel.h"
+#include "rapidjson/document.h"
+#else
 #include "brpc/channel.h"
 #include "brpc/parallel_channel.h"
 #include "butil/third_party/rapidjson/document.h"
+#endif
+
 #include "bvar/bvar.h"
+
+#ifdef BCLOUD
+namespace brpc = baidu::rpc;
+#ifndef BUTIL_RAPIDJSON_NAMESPACE
+#define BUTIL_RAPIDJSON_NAMESPACE RAPIDJSON_NAMESPACE
+#endif
+#endif
 
 namespace rec {
 namespace mcube {
