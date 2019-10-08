@@ -64,7 +64,6 @@ int Endpoint::thrd_clear() {
       return -1;
     }
   }
-  LOG(INFO) << "Succ thrd clear all vars: " << var_size;
   return 0;
 }
 
