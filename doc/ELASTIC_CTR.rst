@@ -6,7 +6,7 @@
 1. 总体概览
 ----------------
 
-.. elastic_ctr:: elastic_ctr/overview.png
+.. image:: elastic_ctr/overview.png
 
 本项目提供了端到端的CTR训练和二次开发的解决方案，它具有如下特点。
 
@@ -35,7 +35,7 @@
 
 示例图
 
-.. elastic_ctr:: elastic_ctr/ctr_node.png
+.. image:: elastic_ctr/ctr_node.png
 
 创建完成后，即可查看 `集群信息 <https://cloud.baidu.com/doc/CCE/GettingStarted.html#.E6.9F.A5.E7.9C.8B.E9.9B.86.E7.BE.A4>`_ 。
 
@@ -47,7 +47,7 @@
 
 从Kubernetes 版本下载页面下载对应的 kubectl 客户端，关于kubectl 的其他信息，可以参见kubernetes官方安装和设置 kubectl文档。
 
-.. elastic_ctr:: elastic_ctr/ctr_kubectl_download.png
+.. image:: elastic_ctr/ctr_kubectl_download.png
 
 * 注意：
 本操作指南给出的操作步骤都是基于linux操作环境的。
@@ -84,7 +84,7 @@
 
         kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/installer/volcano-development.yaml
 
-.. elastic_ctr:: elastic_ctr/ctr_volcano_install.png
+.. image:: elastic_ctr/ctr_volcano_install.png
 
 
 一键完成部署
@@ -120,9 +120,9 @@
 
 运行file server的启动脚本kubectl apply -f ftp.yaml，启动文件服务器
 
-.. elastic_ctr:: elastic_ctr/file_server_pod.png
+.. image:: elastic_ctr/file_server_pod.png
 
-.. elastic_ctr:: elastic_ctr/file_server_svc.png
+.. image:: elastic_ctr/file_server_svc.png
 
 启动Cube稀疏参数服务器
 :::::::::::
@@ -133,7 +133,7 @@
 
 如果在Service中发现了cube-0/1，在kubectl get svc中发现了相关的服务，则说明cube server/agent启动成功。
 
-.. elastic_ctr:: elastic_ctr/cube.png
+.. image:: elastic_ctr/cube.png
 
 启动Paddle Serving
 :::::::::::
@@ -144,9 +144,9 @@
 
 如果在Service中发现了paddle serving，在kubectl get svc中发现了相关的服务，则说明paddle serving启动成功。
 
-.. elastic_ctr:: elastic_ctr/paddleserving_pod.png
+.. image:: elastic_ctr/paddleserving_pod.png
 
-.. elastic_ctr:: elastic_ctr/paddleserving_svc.png
+.. image:: elastic_ctr/paddleserving_svc.png
 
 启动Cube稀疏参数服务器配送工具
 :::::::::::::
@@ -155,7 +155,7 @@
 
 	kubectl apply -f transfer.yaml
 
-.. elastic_ctr:: elastic_ctr/transfer.png
+.. image:: elastic_ctr/transfer.png
 
 这个cube-transfer配送工具会把训练好的模型从下面要介绍的edl-demo-trainer-0上通过file server拉取，再进行装载。最终目的是给Paddle Serving来进行稀疏参数查询。如果出现最后wait 5 min这样的字样，说明上一轮的模型已经配送成功了，接下来就可以做最后Paddle Serving的测试了。
 
@@ -168,7 +168,7 @@
 
 接下来需要等待一段时间，我们可以通过kubectl logs edl-demo-trainer-0来查看训练的进度，如果pass 一直为0就继续等待，通常需要大概3-5分钟的之间会完成第一轮pass，这时候就会生成inference_model。
 
-.. elastic_ctr:: elastic_ctr/ctr.png
+.. image:: elastic_ctr/ctr.png
 
 
 5. 查看结果
@@ -184,11 +184,11 @@
 可以通过检查pserver和trainer的log来检查任务运行状态。
 Trainer日志示例：
 
-.. elastic_ctr:: elastic_ctr/ctr_trainer_log.png
+.. image:: elastic_ctr/ctr_trainer_log.png
 
 pserver日志示例：
 
-.. elastic_ctr:: elastic_ctr/ctr_pserver_log.png
+.. image:: elastic_ctr/ctr_pserver_log.png
 
 验证Paddle Serving预测结果
 >>>>>>>>>>>>
@@ -207,7 +207,7 @@ pserver日志示例：
 
 如果运行正常的话，会在一段时间后退出，紧接着就可以在log/ctr_prediction.INFO的最后几行看到类似于这样的日志
 
-.. elastic_ctr:: elastic_ctr/paddleclient.png
+.. image:: elastic_ctr/paddleclient.png
 
 6. 二次开发指南
 ----------------
@@ -219,7 +219,7 @@ pserver日志示例：
 
 然后在train.py当中给出数据集的读取方式
 
-.. elastic_ctr:: elastic_ctr/pyreader.png
+.. image:: elastic_ctr/pyreader.png
 
 这里面包含了连续数据和离散数据。
 连续数据是index [1, 14)，离散数据是index [14, 40)，label是index 0，分别对应最后yield [dense_feature] + sparse_feature + [label]。当离散的数据和连续的数据格式和样例有不同，需要用户在这里进行指定，并且可以在__init__函数当中参考样例的写法对连续数据进行归一化。
@@ -248,15 +248,15 @@ pserver日志示例：
 
 在ctr.yaml文件当中，我们会发现这个是在volcano的框架下定义的Job。在Job里面，我们给出了很多Pserver和Trainer的定义，在总体的Job也给出了MinAvailable数量的定义。Pserver和Trainer下面有自己的Replicas，环境变量当中有PSERVER_NUM和TRAINER_MODEL和TRAINER_NUM的数量。通常MinAvailable = PServer Num + Trainer Num，这样我们就可以启动相应的服务。
 
-.. elastic_ctr:: elastic_ctr/ctryaml1.png
+.. image:: elastic_ctr/ctryaml1.png
 
 如上图所示，我们需要在min_available处设置合理的数字。例如一个POD占用一个CPU，那么我们就要对集群的总CPU数有一个预估，不要过于接近或事超过集群CPU总和的上限。否则无法满足Volcano的Gang-Schedule机制，就会出现无法分配资源，一直处于Pending的情况。然后第二个红框当中是
 
-.. elastic_ctr:: elastic_ctr/ctryaml2.png
+.. image:: elastic_ctr/ctryaml2.png
 
 如上图所示，这个部分是用来专门做模型的输出，这里我们不需要做任何的改动，只要保留一个副本就可以。
 
-.. elastic_ctr:: elastic_ctr/ctryaml3.png
+.. image:: elastic_ctr/ctryaml3.png
 
 如上图所示
 
@@ -265,9 +265,9 @@ pserver日志示例：
 
 在cube.yaml文件当中，我们可以看到每一个cube的节点的定义，有一个cube server pod和cube server service。如果我们需要增加cube的副本数和分片数，只需要在yaml文件中复制相关的定义和环境变量即可。
 
-.. elastic_ctr:: elastic_ctr/cube_config1.png
+.. image:: elastic_ctr/cube_config1.png
 
-.. elastic_ctr:: elastic_ctr/cube_config2.png
+.. image:: elastic_ctr/cube_config2.png
 
 以上两个图片，一个是对cube POD的定义，一个是对cube SERVICE的定义。如果需要扩展Cube分片数量，可以复制POD和SERVICE的定义，并重命名它们。示例程序给出的是2个分片，复制之后第3个可以命名为cube-2。
 
