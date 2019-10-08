@@ -137,7 +137,7 @@ int BertServiceOp::inference() {
         << " seq_len : " << out->at(0).shape[1]
         << " emb_size : " << out->at(0).shape[2];
 
-    float *out_data = reinterpret_cast<float *>out->at(0).data.data();
+    float *out_data = reinterpret_cast<float *>(out->at(0).data.data());
     for (uint32_t bi = 0; bi < batch_size; bi++) {
       BertResInstance *res_instance = res->add_instances();
       for (uint32_t si = 0; si < MAX_SEQ_LEN; si++) {
@@ -151,7 +151,7 @@ int BertServiceOp::inference() {
 #else
   LOG(INFO) << "batch_size : " << out->at(0).shape[0]
             << " emb_size : " << out->at(0).shape[1];
-  float *out_data = reinterpret_cast<float *> out->at(0).data.data();
+  float *out_data = reinterpret_cast<float *>(out->at(0).data.data());
   for (uint32_t bi = 0; bi < batch_size; bi++) {
     BertResInstance *res_instance = res->add_instances();
     for (uint32_t si = 0; si < 1; si++) {
