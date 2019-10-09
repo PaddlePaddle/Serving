@@ -1,9 +1,9 @@
-百度云分布式训练CTR
+百度云分布式训练CTR预估任务一键部署
 ===================
 
 * [1. 总体概览](#head1)
 * [2. 前置需求](#head2)
-* [3. 分布式训练+serving方案部署](#head3)
+* [3. 分布式训练+serving方案一键部署](#head3)
 * [4. 查看结果](#head4)
 * [5. 二次开发指南](#head5)
 
@@ -104,7 +104,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 ![image](elastic_ctr/ctr_volcano_install.png)
 
 
-# 3. <span id='head3'>分布式训练+serving方案部署</span>
+# 3. <span id='head3'>分布式训练+serving方案一键部署</span>
 
 ## 3.1 一键部署
 
