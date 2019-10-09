@@ -243,6 +243,10 @@ $ kubectl apply -f paddleclient.yaml
 用如下命令进入容器内，在/client/ctr\_prediction目录下，启动CTR预估任务客户端，并通过日志查看预测结果
 
 ```bash
+# 进入容器
+$ kubectl exec -ti pdservingclient /bin/bash
+
+# 此命令在容器内执行
 $ bin/ctr_prediction
 ```
 
