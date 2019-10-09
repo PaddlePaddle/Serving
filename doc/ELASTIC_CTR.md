@@ -118,13 +118,13 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 $ bash paddle-suite.sh
 ```
 
-请参考**3.3-3.7节**验证每一步的安装是否正确，**第4节**验证训练过程和预测服务结果。
+请参考**3.3-3.8节**验证每一步的安装是否正确，**第4节**验证训练过程和预测服务结果。
 
 任务的所有脚本文件可以访问[这里](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)获取。
 
-为方便理解，接下来会将该脚本的每一步执行过程给出说明。
+**注**：以下**3.3-3.8节所述内容已经在一键部署脚本中包含，无需手动执行**。但为方便理解，将该脚本的每一步执行过程给出说明。
 
-## 3.2 选择一个node作为输出节点
+## 3.3 选择一个node作为输出节点
 
 ```bash
 $ kubectl label nodes $NODE_NAME nodeType=model
@@ -132,7 +132,7 @@ $ kubectl label nodes $NODE_NAME nodeType=model
 
 这句话的意思是给这个node做一个标记，之后的文件服务和模型产出都被强制分配在这个node上进行，把NAME的一串字符替换 \$NODE\_NAME即可。
 
-## 3.3 启动文件服务器
+## 3.4 启动文件服务器
 
 ```bash
 $ kubectl apply -f fileserver.yaml
@@ -153,7 +153,7 @@ $ kubectl get service
 ![image](elastic_ctr/file_server_svc.png)
 
 
-## 3.4 启动Cube稀疏参数服务器
+## 3.5 启动Cube稀疏参数服务器
 
 ```bash
 $ kubectl apply -f cube.yaml
@@ -169,7 +169,7 @@ $ kubectl get service
 
 **注**：分片数量可根据稀疏字典大小灵活修改，参考5.3节。
 
-## 3.5 启动Paddle Serving
+## 3.6 启动Paddle Serving
 
 ```bash
 $ kubectl apply -f paddleserving.yaml
@@ -187,7 +187,7 @@ $ kubectl get service
 ```
 ![image](elastic_ctr/paddleserving_svc.png)
 
-## 3.6 启动Cube稀疏参数服务器配送工具 
+## 3.7 启动Cube稀疏参数服务器配送工具 
 
 ```bash
 $ kubectl apply -f transfer.yaml
@@ -212,7 +212,7 @@ $ kubectl logs cube-transfer
 ![image](elastic_ctr/transfer.png)
 
 
-## 3.7 执行Paddle CTR分布式训练
+## 3.8 执行Paddle CTR分布式训练
 
 ```bash
 $ kubectl apply -f ctr.yaml
