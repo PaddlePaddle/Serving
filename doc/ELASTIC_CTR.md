@@ -133,7 +133,7 @@ kubectl apply -f fileserver.yaml
 ```bash
 $ kubectl get pod
 ```
-![image](elastic_ctr/file_seirver_pod.png)
+![image](elastic_ctr/file_server_pod.png)
 
 ```
 $ kubectl get service
