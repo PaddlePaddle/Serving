@@ -33,5 +33,5 @@ engines {
   batch_infer_size: 0
   enable_batch_align: 0
   sparse_param_service_type: REMOTE
-  sparse_param_service_table_name: "dict"
+  sparse_param_service_table_name: "test_dict"
 }
