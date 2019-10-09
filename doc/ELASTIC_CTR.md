@@ -1,7 +1,14 @@
 百度云分布式训练CTR
 ===================
 
-# 1. 总体概览
+* [1. 总体概览](#head1)
+* [2. 前置需求](#head2)
+* [3. 分布式训练+serving方案部署](#head3)
+* [4. 查看结果](#head4)
+* [5. 二次开发](#head5)
+
+
+# <span id='head_1'>1. 总体概览</span>
 
 本项目提供了端到端的CTR训练和二次开发的解决方案，主要特点：
 
@@ -41,9 +48,9 @@
 
 **第4节 查看结果** 根据各个pod输出，验证一键安装状态
 
-**第5节 二次开发实操** 提出本一键部署方案可定制改善的部分，给出具体修改位置等
+**第5节 二次开发** 提出本一键部署方案可定制改善的部分，给出具体修改位置等
 
-# 2. 前置需求
+# <span id='head2'>2. 前置需求</span>
 
 运行本方案前，需要用户已经搭建好k8s集群，并安装好volcano组件。k8s环境部署比较复杂，本文不涉及。百度智能云CCE容器引擎申请后即可使用，仅以百度云上创建k8s为例。
 
@@ -97,7 +104,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 ![image](elastic_ctr/ctr_volcano_install.png)
 
 
-# 3. 分布式训练+serving方案部署
+# 3. <span id='head3'>分布式训练+serving方案部署</span>
 
 ## 3.1 一键部署
 
@@ -216,7 +223,7 @@ $ kubectl get pod
 
 ![image](elastic_ctr/ctr.png)
 
-# 4. 查看结果
+# 4. <span id='head4'>查看结果<span>
 
 ## 4.1 查看训练日志
 
@@ -254,7 +261,7 @@ $ bin/ctr_prediction
 
 ![image](elastic_ctr/paddleclient.png)
 
-# 5. 二次开发指南
+# 5. <span id='head5'>二次开发指南</span>
 
 ## 5.1 指定数据集的输入和读取方式
 
