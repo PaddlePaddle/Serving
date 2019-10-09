@@ -131,7 +131,7 @@ $ kubectl label nodes $NODE_NAME nodeType=model
 ## 3.3 启动文件服务器
 
 ```bash
-kubectl apply -f fileserver.yaml
+$ kubectl apply -f fileserver.yaml
 ```
 
 运行file server的启动脚本kubectl apply -f ftp.yaml，启动文件服务器
