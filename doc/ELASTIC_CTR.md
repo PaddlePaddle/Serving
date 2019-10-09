@@ -106,7 +106,11 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 
 # 3. <span id='head3'>分布式训练+serving方案一键部署</span>
 
-## 3.1 一键部署
+## 3.1 下载部署方案脚本文件
+
+请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)下载到本地
+
+## 3.2 一键部署
 
 执行以下脚本，一键将所有组件部署到k8s集群。
 
