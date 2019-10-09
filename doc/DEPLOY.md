@@ -412,8 +412,6 @@ Cube一共拆分成四个组件，共同完成上述工作：
 3. cube-server 每个单独的cube服务承载一个分片的cube数据
 4. cube-agent 与cube-server伴生部署，负责接受cube-transfer下发的指令，在本地执行实际的数据下载维护等操作
 
-关于Cube的详细说明文档，请参考[Cube设计文档](https://github.com/PaddlePaddle/Serving/tree/develop/cube/doc/DESIGN.md)。
-
 关于Cube的性能数据，请参考[Cube Benchmark](https://github.com/PaddlePaddle/Serving/blob/develop/cube/doc/performance.md)
 
 本文仅描述从头部署Cube服务的流程。
@@ -772,7 +770,7 @@ wget http://${FILE_SERVER_IP}:${FILE_SERVER_PORT}/data/ctr_model.tar.gz
 
 #### <span id="head39">3.1.2 Serving编译</span>
 
-截至写本文时，Serving develop分支已经提供了CTR预估服务相关OP，参考[ctr_prediction_op.cpp](https://github.com/PaddlePaddle/Serving/blob/develop/demo-serving/op/ctr_prediction_op.cpp)，该OP从client端接收请求后会将每个请求的26个sparse feature id发给cube服务，获得对应的embedding向量，然后填充到模型feed variable对应的LoDTensor，执行预测计算。只要按常规步骤编译Serving即可。
+截至写本文时，Serving develop分支已经提供了CTR预估服务相关OP，参考[ctr_prediction_op.cpp](https://github.com/PaddlePaddle/Serving/blob/develop/demo-serving/op/ctr_prediction_op.cpp)，该OP从client端接收请求后会将每个请求的26个sparse feature id发给cube服务，获得对应的embedding向量，然后填充到模型feed variable对应的LoDTensor，执行预测计算。只要按常规步骤编译Serving即可。serving可执行文件以及相关配置文件位于build/output/demo/serving文件夹下，bin文件夹下为可执行文件，conf文件夹下为配置文件。
 
 ```bash
 $ git clone https://github.com/PaddlePaddle/Serving.git
@@ -784,7 +782,7 @@ $ make -jN                # 这里可修改并发编译线程数
 $ make install
 $ cd output/demo/serving
 $ ls
-bin  conf  data  kvdb  log
+bin  conf  data  kvdb
 ```
 
 #### <span id="head40">3.1.3 配置修改</span>
