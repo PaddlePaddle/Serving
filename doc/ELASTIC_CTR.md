@@ -1,7 +1,17 @@
-百度云分布式训练CTR
+ELASTIC CTR
 ===================
 
-# 1. 总体概览
+——百度云分布式训练CTR预估任务和Serving流程一键部署
+
+
+* [1. 总体概览](#head1)
+* [2. 前置需求](#head2)
+* [3. 分布式训练+serving方案一键部署](#head3)
+* [4. 查看结果](#head4)
+* [5. 二次开发指南](#head5)
+
+
+# <span id='head_1'>1. 总体概览</span>
 
 本项目提供了端到端的CTR训练和二次开发的解决方案，主要特点：
 
@@ -41,9 +51,9 @@
 
 **第4节 查看结果** 根据各个pod输出，验证一键安装状态
 
-**第5节 二次开发实操** 提出本一键部署方案可定制改善的部分，给出具体修改位置等
+**第5节 二次开发** 提出本一键部署方案可定制改善的部分，给出具体修改位置等
 
-# 2. 前置需求
+# <span id='head2'>2. 前置需求</span>
 
 运行本方案前，需要用户已经搭建好k8s集群，并安装好volcano组件。k8s环境部署比较复杂，本文不涉及。百度智能云CCE容器引擎申请后即可使用，仅以百度云上创建k8s为例。
 
@@ -97,9 +107,13 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 ![image](elastic_ctr/ctr_volcano_install.png)
 
 
-# 3. 分布式训练+serving方案部署
+# 3. <span id='head3'>分布式训练+serving方案一键部署</span>
 
-## 3.1 一键部署
+## 3.1 下载部署方案脚本文件
+
+请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)下载到本地
+
+## 3.2 一键部署
 
 执行以下脚本，一键将所有组件部署到k8s集群。
 
@@ -107,13 +121,13 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 $ bash paddle-suite.sh
 ```
 
-请参考**3.3-3.7节**验证每一步的安装是否正确，**第4节**验证训练过程和预测服务结果。
+请参考**3.3-3.8节**验证每一步的安装是否正确，**第4节**验证训练过程和预测服务结果。
 
 任务的所有脚本文件可以访问[这里](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)获取。
 
-为方便理解，接下来会将该脚本的每一步执行过程给出说明。
+**注**：以下**3.3-3.8节所述内容已经在一键部署脚本中包含，无需手动执行**。但为方便理解，将该脚本的每一步执行过程给出说明。
 
-## 3.2 选择一个node作为输出节点
+## 3.3 选择一个node作为输出节点
 
 ```bash
 $ kubectl label nodes $NODE_NAME nodeType=model
@@ -121,10 +135,10 @@ $ kubectl label nodes $NODE_NAME nodeType=model
 
 这句话的意思是给这个node做一个标记，之后的文件服务和模型产出都被强制分配在这个node上进行，把NAME的一串字符替换 \$NODE\_NAME即可。
 
-## 3.3 启动文件服务器
+## 3.4 启动文件服务器
 
 ```bash
-kubectl apply -f fileserver.yaml
+$ kubectl apply -f fileserver.yaml
 ```
 
 运行file server的启动脚本kubectl apply -f ftp.yaml，启动文件服务器
@@ -142,7 +156,7 @@ $ kubectl get service
 ![image](elastic_ctr/file_server_svc.png)
 
 
-## 3.4 启动Cube稀疏参数服务器
+## 3.5 启动Cube稀疏参数服务器
 
 ```bash
 $ kubectl apply -f cube.yaml
@@ -158,7 +172,7 @@ $ kubectl get service
 
 **注**：分片数量可根据稀疏字典大小灵活修改，参考5.3节。
 
-## 3.5 启动Paddle Serving
+## 3.6 启动Paddle Serving
 
 ```bash
 $ kubectl apply -f paddleserving.yaml
@@ -176,7 +190,7 @@ $ kubectl get service
 ```
 ![image](elastic_ctr/paddleserving_svc.png)
 
-## 3.6 启动Cube稀疏参数服务器配送工具 
+## 3.7 启动Cube稀疏参数服务器配送工具 
 
 ```bash
 $ kubectl apply -f transfer.yaml
@@ -201,7 +215,7 @@ $ kubectl logs cube-transfer
 ![image](elastic_ctr/transfer.png)
 
 
-## 3.7 执行Paddle CTR分布式训练
+## 3.8 执行Paddle CTR分布式训练
 
 ```bash
 $ kubectl apply -f ctr.yaml
@@ -216,7 +230,7 @@ $ kubectl get pod
 
 ![image](elastic_ctr/ctr.png)
 
-# 4. 查看结果
+# 4. <span id='head4'>查看结果<span>
 
 ## 4.1 查看训练日志
 
@@ -254,7 +268,7 @@ $ bin/ctr_prediction
 
 ![image](elastic_ctr/paddleclient.png)
 
-# 5. 二次开发指南
+# 5. <span id='head5'>二次开发指南</span>
 
 ## 5.1 指定数据集的输入和读取方式
 
