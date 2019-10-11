@@ -94,7 +94,17 @@ $ kubectl get node
 
 - 关于kubectl的其他信息，可以参考[Overview of kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)。
 
-# 2.3 安装Volcano
+## 2.3 设置访问权限
+
+建立分布式任务需要pod间有API互相访问的权限，可以按如下步骤
+
+```bash
+$ kubectl create rolebinding default-view --clusterrole=view --serviceaccount=default:default --namespace=default
+```
+
+注意： --namespace 指定的default 为创建集群时候的名称
+
+## 2.4 安装Volcano
 
 我们使用volcano作为训练阶段的批量任务管理工具。关于volcano的详细信息，请参考[官方网站](https://volcano.sh/)的Documentation。
 
