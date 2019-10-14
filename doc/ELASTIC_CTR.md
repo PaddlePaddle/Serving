@@ -353,11 +353,35 @@ $ docker push  ${DOCKER_IMAGE_NAME}
 
 ## 注1. <span id='annotation_1'>Cube和redis性能对比测试环境</span>
 
+Cube和Redis均在百度云环境上部署，测试时只测试单个cube server和redis server节点的性能。
+
+client端和server端分别位于1台独立的云主机，机器间ping延时为0.3ms-0.5ms。
+
+机器配置：Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz 4核
+
+
 ### Cube测试环境
 
-在本方案部署的整体解决方案中，CTR预估任务demo client端能够发送批量查询请求，而Serving端则定期向日志中打印访问cube的平均响应时间等统计信息。具体的说明在这里 [PROFILING_CUBE.md](https://github.com/PaddlePaddle/Serving/blob/master/doc/PROFILING_CUBE.md)
+测试key 64bit整数，value为10个float （40字节）
+
+首先用本方案一键部署脚本部署完成。
+
+用Paddle Serving的cube客户端SDK，编写测试代码
+
+基本原理，启动k个线程，每个线程访问M次cube server，每次批量获取N个key。
+
+测试结论：
+
+线程数 | batch size | 平均响应时间 (us)
+-------|------------|-----------
+1 | 1000 | 1680
+2 | 1000 | 1690
+3 | 1000 | 1675
+4 | 1000 | 1680
 
 ### Redis测试环境
+
+测试key 1-1000000之间随机整数，value为40字节字符串
 
 2台百度云主机，分别作为server和client端
 
@@ -380,3 +404,10 @@ $ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1300
 \-t 并发线程数
 \-r 每线程请求次数
 \-b 每个mget请求的key个数
+
+线程数 | batch size | 平均响应时间 (us)
+-------|------------|-----------
+1 | 1000 | 1100
+2 | 1000 | 2110
+3 | 1000 | 3050
+4 | 1000 | 4100
