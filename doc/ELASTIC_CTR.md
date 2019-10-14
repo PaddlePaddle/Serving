@@ -351,7 +351,7 @@ $ docker push  ${DOCKER_IMAGE_NAME}
 
 # 注释
 
-## 注1. <span id='annotaion_1'>Cube和redis性能对比测试环境</span>
+## 注1. <span id='annotation_1'>Cube和redis性能对比测试环境</span>
 
 ### Cube测试环境
 
@@ -372,7 +372,7 @@ client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编
 调用方法：
 
 ```bash
-$ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1000
+$ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1300
 ```
 
 其中
