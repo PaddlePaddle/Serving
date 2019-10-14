@@ -65,7 +65,7 @@ I1014 12:57:20.699692    38 ctr_prediction_op.cpp:169] Average 1.12746us/key
 
 百度云平台上机器间ping的时延平均为0.3ms - 0.5ms，在batch为1300个key时，平均响应时间为1450us
 
-Paddle Serving发布的cube社区版本性能报告中给出的机器间ping时延为0.06ms，在batch为1000个key时，平均响应时间为675us/req
+Paddle Serving发布的[cube社区版本性能报告](https://github.com/PaddlePaddle/Serving/blob/develop/cube/doc/performance.md)中给出的机器间ping时延为0.06ms，在batch为1000个key时，平均响应时间为675us/req
 
 两种环境的主要差别在于机器间固有的通信延迟
 
