@@ -43,5 +43,13 @@ I1014 11:33:32.728842    42 ctr_prediction.pb.cc:1847]  remote_side=[10.0.1.30:5
 
 2) 稀疏参数字典分片数
 
-假设分片数为N，每次cube访问，都会生成N个channel，每个来对应一个分片的请求
+假设分片数为N，每次cube访问，都会生成N个channel，每个来对应一个分片的请求，这些channel和Serving内其他工作线程共用bthread资源。
+
+3) 网络环境
+
+百度云平台上机器间ping的时延平均为0.3ms - 0.5ms，在batch为1000个key时，平均响应时间为1350us
+
+Paddle Serving发布的cube社区版本性能报告中给出的机器间ping时延为0.06ms，在batch为1000个key时，平均响应时间为675us/req
+
+两种环境的主要差别在于机器间固有的通信延迟
 
