@@ -1,0 +1,54 @@
+Paddle Serving的CTR预估任务会定期将访问大规模稀疏参数服务cube的响应时间等统计信息打印出来。具体的观察方法如下：
+
+## 使用CTR预估任务客户端ctr_prediction向Serving发送批量请求
+
+因Serving端每1000个请求打印一次请求，为了观察输出结果，需要客户端向serving端发送较大量请求。具体做法：
+
+```bash
+# 进入pdservingclient pod
+$ kubectl exec -ti pdservingclient /bin/bash
+
+# 以下命令在pdservingclient这个pod内执行
+$ cd client/ctr_prediction/
+$ bin/ctr_prediction --enable_profiling --concurrency=4 --repeat=100
+```
+
+## Serving端日志
+
+```bash
+# 进入Serving端pod
+$ kubectl exec -ti paddleserving /bin/bash
+
+# 以下命令在Serving pod内执行
+$ grep 'Cube request count' log/serving.INFO -A 5 | more
+```
+
+示例输出：
+```
+I1014 11:33:28.944790    36 ctr_prediction_op.cpp:163] Cube request count: 1000
+I1014 11:33:28.947324    39 op.cpp:157]  ctr_prediction_service_op_time=[4240]
+I1014 11:33:28.947472    39 ctr_prediction.pb.cc:1861]  tc=[4573]
+I1014 11:33:28.947417    36 ctr_prediction_op.cpp:164] Cube request key count: 1300000
+I1014 11:33:28.947517    36 ctr_prediction_op.cpp:165] Cube request total time: 1560743us
+I1014 11:33:28.947526    36 ctr_prediction_op.cpp:166] Average 1560.74us/req
+--
+I1014 11:33:32.727739    37 ctr_prediction_op.cpp:163] Cube request count: 1000
+I1014 11:33:32.727762    37 ctr_prediction_op.cpp:164] Cube request key count: 1300000
+I1014 11:33:32.727768    37 ctr_prediction_op.cpp:165] Cube request total time: 1506420us
+I1014 11:33:32.727774    37 ctr_prediction_op.cpp:166] Average 1506.42us/req
+I1014 11:33:32.727789    37 ctr_prediction_op.cpp:169] Average 1.15878us/key
+I1014 11:33:32.728842    42 ctr_prediction.pb.cc:1847]  remote_side=[10.0.1.30:54232]
+```
+
+## 说明
+
+影响Paddle Serving访问cube的因素：
+
+1) CPU核数
+
+假设Paddle Serving所在云服务器上CPU核数为4，则Paddle Serving本身默认会启动4个worker线程。在client端发送4个并发情况下，Serving端约为占满4个CPU核。但由于Serving又要启动新的channel/thread来访问cube（采用的是异步模式），这些和Serving本身的server端代码共用bthread资源，因此就会出现竞争的情况。
+
+2) 稀疏参数字典分片数
+
+假设分片数为N，每次cube访问，都会生成N个channel，每个来对应一个分片的请求
+
