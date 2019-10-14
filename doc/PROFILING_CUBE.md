@@ -41,9 +41,26 @@ I1014 11:33:32.728842    42 ctr_prediction.pb.cc:1847]  remote_side=[10.0.1.30:5
 
 假设Paddle Serving所在云服务器上CPU核数为4，则Paddle Serving本身默认会启动4个worker线程。在client端发送4个并发情况下，Serving端约为占满4个CPU核。但由于Serving又要启动新的channel/thread来访问cube（采用的是异步模式），这些和Serving本身的server端代码共用bthread资源，因此就会出现竞争的情况。
 
+以下是在Serving端不同并发请求数时，访问cube的平均响应时间
+
+线程数 | 访问cube的平均响应时间 (us)
+-------|-------
+1 | 1350
+2 | 1380
+3 | 1350
+4 | 1905
+
+
 2) 稀疏参数字典分片数
 
 假设分片数为N，每次cube访问，都会生成N个channel，每个来对应一个分片的请求，这些channel和Serving内其他工作线程共用bthread资源。
+
+以下是同一份词典分成1个分片和2个分片，serving端访问cube的平均响应时间
+
+分片数 | 访问cube的平均响应时间 (us)
+-------|--------------------------
+1 | 1680
+2 | 1350
 
 3) 网络环境
 
