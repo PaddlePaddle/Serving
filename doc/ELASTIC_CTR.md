@@ -368,7 +368,7 @@ client端和server端分别位于1台独立的云主机，机器间ping延时为
 
 用Paddle Serving的cube客户端SDK，编写测试代码
 
-基本原理，启动k个线程，每个线程访问M次cube server，每次批量获取N个key。
+基本原理，启动k个线程，每个线程访问M次cube server，每次批量获取N个key，总时间加和求平均。
 
 测试结论：
 
@@ -391,7 +391,7 @@ server端部署redis-sever (latest stable 5.0.6)
 
 client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编写的客户端[get_values.cpp](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/get_value.cpp)
 
-基本原理：启动k个线程，每个线程访问M次redis server，每次用mget批量获取N个key。总时间加和取平均。
+基本原理：启动k个线程，每个线程访问M次redis server，每次用mget批量获取N个key。总时间加和求平均。
 
 调用方法：
 
