@@ -18,7 +18,7 @@ ELASTIC CTR
 - 整体方案在k8s环境一键部署，可快速搭建与验证效果
 - 基于Paddle transpiler模式的大规模分布式高速训练
 - 训练资源弹性伸缩
-- 工业级稀疏参数Serving组件，批量读取响应时间是redis的xx%，吞吐量是redis的xx倍
+- 工业级稀疏参数Serving组件，批量读取响应时间是redis的xx%，吞吐量是redis的xx倍 [注1](#annotation_1)
 
 本方案整体流程如下图所示：
 
@@ -348,3 +348,35 @@ $ docker push  ${DOCKER_IMAGE_NAME}
 
 
 关于Paddle Serving的完整开发模式，可参考[Serving从零开始写一个预测服务](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CREATING.md)，以及[Paddle Serving的其他文档](https://github.com/PaddlePaddle/Serving/tree/develop/doc)
+
+# 注释
+
+## 注1. <span id='annotaion_1'>Cube和redis性能对比测试环境</span>
+
+### Cube测试环境
+
+在本方案部署的整体解决方案中，CTR预估任务demo client端能够发送批量查询请求，而Serving端则定期向日志中打印访问cube的平均响应时间等统计信息。具体的说明在这里 [PROFILING_CUBE.md](https://github.com/PaddlePaddle/Serving/blob/master/doc/PROFILING_CUBE.md)
+
+### Redis测试环境
+
+2台百度云主机，分别作为server和client端
+
+CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz, 6核
+
+server端部署redis-sever (latest stable 5.0.6)
+
+client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编写的客户端[get_values.cpp](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/get_value.cpp)
+
+基本原理：启动k个线程，每个线程访问M次redis server，每次用mget批量获取N个key。总时间加和取平均。
+
+调用方法：
+
+```bash
+$ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1000
+```
+
+其中
+\-h server所在主机名
+\-t 并发线程数
+\-r 每线程请求次数
+\-b 每个mget请求的key个数
