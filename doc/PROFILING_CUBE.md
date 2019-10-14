@@ -25,12 +25,11 @@ $ grep 'Cube request count' log/serving.INFO -A 5 | more
 
 示例输出：
 ```
-I1014 11:33:32.727739    37 ctr_prediction_op.cpp:163] Cube request count: 1000
-I1014 11:33:32.727762    37 ctr_prediction_op.cpp:164] Cube request key count: 1300000
-I1014 11:33:32.727768    37 ctr_prediction_op.cpp:165] Cube request total time: 1506420us
-I1014 11:33:32.727774    37 ctr_prediction_op.cpp:166] Average 1506.42us/req
-I1014 11:33:32.727789    37 ctr_prediction_op.cpp:169] Average 1.15878us/key
-I1014 11:33:32.728842    42 ctr_prediction.pb.cc:1847]  remote_side=[10.0.1.30:54232]
+I1014 12:57:20.699606    38 ctr_prediction_op.cpp:163] Cube request count: 1000
+I1014 12:57:20.699631    38 ctr_prediction_op.cpp:164] Cube request key count: 1300000
+I1014 12:57:20.699645    38 ctr_prediction_op.cpp:165] Cube request total time: 1465704us
+I1014 12:57:20.699666    38 ctr_prediction_op.cpp:166] Average 1465.7us/req
+I1014 12:57:20.699692    38 ctr_prediction_op.cpp:169] Average 1.12746us/key
 ```
 
 ## 说明
