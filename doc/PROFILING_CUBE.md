@@ -1,4 +1,4 @@
-Paddle Serving的CTR预估任务会定期将访问大规模稀疏参数服务的响应时间等统计信息打印出来。用户在k8集群一键部署好分布式训练+Serving方案后，可以在容器内通过CTR预估任务demo观察serving访问稀疏参数服务的响应时间等信息。具体的观察方法如下：
+Paddle Serving的CTR预估任务会定期将访问大规模稀疏参数服务的响应时间等统计信息打印出来。用户在k8s集群一键部署好分布式训练+Serving方案后，可以在容器内通过CTR预估任务demo观察serving访问稀疏参数服务的响应时间等信息。具体的观察方法如下：
 
 ## 使用CTR预估任务客户端ctr_prediction向Serving发送批量请求
 
