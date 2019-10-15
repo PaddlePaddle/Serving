@@ -208,7 +208,6 @@ int Resource::thread_clear() {
     return -1;
   }
 
-  LOG(INFO) << bthread_self() << "Resource::thread_clear success";
   // ...
   return 0;
 }
