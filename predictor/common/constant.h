@@ -40,8 +40,6 @@ DECLARE_int32(reload_interval_s);
 DECLARE_bool(enable_model_toolkit);
 DECLARE_string(enable_protocol_list);
 DECLARE_bool(enable_cube);
-DECLARE_string(cube_config_path);
-DECLARE_string(cube_config_file);
 
 // STATIC Variables
 extern const char* START_OP_NAME;
