@@ -68,7 +68,7 @@ Paddle Serving实例中打印出的访问cube的平响时间，与[cube社区版
 
 4) 网络环境
 
-百度云平台上机器间ping的时延平均为0.3ms - 0.5ms，在batch为1000个key时，平均响应时间为1450us
+百度云平台上机器间ping的时延平均为0.3ms - 0.5ms，在batch为1000个key时，平均响应时间为1312us \[[注1](https://github.com/PaddlePaddle/Serving/blob/master/doc/ELASTIC_CTR.md#annotation_1)\]
 
 Paddle Serving发布的[cube社区版本性能报告](https://github.com/PaddlePaddle/Serving/blob/develop/cube/doc/performance.md)中测试环境为裸机部署，给出的机器间ping时延为0.06ms，在batch为1000个key时，平均响应时间为675us/req
 
