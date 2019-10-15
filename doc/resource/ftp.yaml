@@ -12,7 +12,7 @@ spec:
     name: file-home
   containers:
   - name: file-server
-    image: halverneus/static-file-server
+    image: hub.baidubce.com/ctr/file-server:latest
     ports:
     - containerPort: 8080
     volumeMounts:

@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: paddleserving
-    image: wangjiawei1993/paddleserving:v7-debug
+    image: hub.baidubce.com/ctr/paddleserving:latest 
     workingDir: /serving
     command: ['/bin/bash']
     args: ['run.sh']

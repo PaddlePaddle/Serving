@@ -26,7 +26,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid
@@ -116,7 +116,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid
@@ -206,7 +206,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid

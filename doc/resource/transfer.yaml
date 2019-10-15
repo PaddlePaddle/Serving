@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: cube-transfer
-    image: wangjiawei1993/cube-transfer:v18
+    image: hub.baidubce.com/ctr/cube-transfer:latest
     workingDir: /
     env:
       - name: POD_IP
