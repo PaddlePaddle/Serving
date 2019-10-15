@@ -18,7 +18,7 @@ ELASTIC CTR
 - 整体方案在k8s环境一键部署，可快速搭建与验证效果
 - 基于Paddle transpiler模式的大规模分布式高速训练
 - 训练资源弹性伸缩
-- 工业级稀疏参数Serving组件，单节点吞吐总量是redis的13倍 \[[注1](#annotation_1)\]
+- 工业级稀疏参数Serving组件，高并发条件下单位时间吞吐总量是redis的13倍 \[[注1](#annotation_1)\]
 
 本方案整体流程如下图所示：
 
