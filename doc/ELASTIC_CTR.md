@@ -355,7 +355,7 @@ $ docker push  ${DOCKER_IMAGE_NAME}
 
 Cube和Redis均在百度云环境上部署，测试时只测试单个cube server和redis server节点的性能。
 
-client端和server端分别位于1台独立的云主机，机器间ping延时为0.3ms-0.5ms。
+client端和server端分别位于2台独立的云主机，机器间ping延时为0.3ms-0.5ms。
 
 机器配置：Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz 32核
 
