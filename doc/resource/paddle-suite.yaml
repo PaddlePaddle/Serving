@@ -12,7 +12,7 @@ spec:
     name: file-home
   containers:
   - name: file-server
-    image: halverneus/static-file-server
+    image: hub.baidubce.com/ctr/file-server:latest
     ports:
     - containerPort: 8080
     volumeMounts:
@@ -37,7 +37,6 @@ spec:
 
 ---
 
-
 apiVersion: v1
 kind: Pod
 metadata:
@@ -47,7 +46,7 @@ metadata:
 spec:
   containers:
   - name: cube-0
-    image: wangjiawei1993/cube:v11
+    image: hub.baidubce.com/ctr/cube:latest
     workingDir: /cube
     command: ['/bin/bash']
     args: ['start.sh']
@@ -68,7 +67,7 @@ metadata:
 spec:
   containers:
   - name: cube-1
-    image: wangjiawei1993/cube:v11
+    image: hub.baidubce.com/ctr/cube:latest
     workingDir: /cube
     command: ['/bin/bash']
     args: ['start.sh']
@@ -123,7 +122,7 @@ metadata:
 spec:
   containers:
   - name: cube-transfer
-    image: wangjiawei1993/cube-transfer:v18
+    image: hub.baidubce.com/ctr/cube-transfer:latest
     workingDir: /
     env:
       - name: POD_IP
@@ -150,7 +149,7 @@ metadata:
 spec:
   containers:
   - name: paddleserving
-    image: wangjiawei1993/paddleserving:v7-debug
+    image: hub.baidubce.com/ctr/paddleserving:latest
     workingDir: /serving
     command: ['/bin/bash']
     args: ['run.sh']
@@ -183,7 +182,7 @@ metadata:
 spec:
   containers:
   - name: pdservingclient
-    image: wangjiawei1993/pdservingclient:v4
+    image: hub.baidubce.com/ctr/pdservingclient:latest
     workingDir: /
     command: ['bash']
     args: ['nonstop.sh']
@@ -196,7 +195,7 @@ kind: Job
 metadata:
   name: edl-demo
 spec:
-  minAvailable: 6
+  minAvailable: 4
   schedulerName: volcano
   policies:
   - event: PodEvicted
@@ -204,7 +203,7 @@ spec:
   - event: PodFailed
     action: RestartJob
   tasks:
-    - replicas: 3
+    - replicas: 2
       name: pserver
       template:
         metadata:
@@ -219,7 +218,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid
@@ -273,9 +272,9 @@ spec:
                 - name: PADDLE_IS_LOCAL
                   value: "0"
                 - name: PADDLE_TRAINERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: PADDLE_PSERVERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: FLAGS_rpc_deadline
                   value: "36000000"
                 - name: ENTRY
@@ -309,7 +308,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid
@@ -368,9 +367,9 @@ spec:
                 - name: PADDLE_PORT
                   value: "30240"
                 - name: PADDLE_PSERVERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: PADDLE_TRAINERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: PADDLE_TRAINING_ROLE
                   value: TRAINER
                 - name: TRAINING_ROLE
@@ -381,7 +380,7 @@ spec:
                   value: (/postprocess &) && cd /workspace/ctr && python train.py --is_local 0 --cloud_train 1
           restartPolicy: OnFailure
 
-    - replicas: 2
+    - replicas: 1
       policies:
       - event: TaskCompleted
         action: CompleteJob
@@ -399,7 +398,7 @@ spec:
               type: ""
             name: seqdata
           containers:
-            - image: wangjiawei1993/edldemo:v19
+            - image: hub.baidubce.com/ctr/edldemo:latest
               command:
                 - paddle_k8s
                 - start_fluid
@@ -458,9 +457,9 @@ spec:
                 - name: PADDLE_PORT
                   value: "30240"
                 - name: PADDLE_PSERVERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: PADDLE_TRAINERS_NUM
-                  value: "3"
+                  value: "2"
                 - name: PADDLE_TRAINING_ROLE
                   value: TRAINER
                 - name: TRAINING_ROLE
@@ -470,3 +469,4 @@ spec:
                 - name: ENTRY
                   value: (/postprocess &) && cd /workspace/ctr && python train.py --is_local 0 --cloud_train 1
           restartPolicy: OnFailure
+

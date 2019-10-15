@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: pdservingclient
-    image: wangjiawei1993/pdservingclient:v4
+    image: hub.baidubce.com/ctr/pdservingclient:latest
     workingDir: /
     command: ['bash']
     args: ['nonstop.sh']

@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: cube-0
-    image: wangjiawei1993/cube:v11
+    image: hub.baidubce.com/ctr/cube:latest
     workingDir: /cube
     command: ['/bin/bash']
     args: ['start.sh']
@@ -28,7 +28,7 @@ metadata:
 spec:
   containers:
   - name: cube-1
-    image: wangjiawei1993/cube:v11
+    image: hub.baidubce.com/ctr/cube:latest
     workingDir: /cube
     command: ['/bin/bash']
     args: ['start.sh']
