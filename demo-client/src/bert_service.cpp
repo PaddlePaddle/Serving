@@ -36,9 +36,11 @@ extern int max_seq_len = 128;
 extern int layer_num = 12;
 extern int emb_size = 768;
 extern int thread_num = 1;
+extern int max_turn = 1000;
 
 std::atomic<int> g_concurrency(0);
 std::vector<std::vector<int>> response_time;
+std::vector<std::vector<int>> infer_time;
 char* data_filename = "./data/bert/demo_wiki_train";
 
 #if 1
@@ -64,7 +66,7 @@ int create_req(Request* req,
     std::vector<std::string> seg_list = split(feature_list[1], " ");
     std::vector<std::string> pos_list = split(feature_list[2], " ");
     for (int fi = 0; fi < max_seq_len; fi++) {
-      if (fi < token_list.size()) {
+      if (std::stoi(token_list[fi]) != 0) {
         ins->add_token_ids(std::stoi(token_list[fi]));
         ins->add_sentence_type_ids(std::stoi(seg_list[fi]));
         ins->add_position_ids(std::stoi(pos_list[fi]));
@@ -157,7 +159,7 @@ void thread_worker(PredictorApi* api,
   api->thrd_initialize();
   std::string line;
   int turns = 0;
-  while (turns < 1000) {
+  while (turns < max_turn) {
     timeval start;
     gettimeofday(&start, NULL);
     api->thrd_clear();
