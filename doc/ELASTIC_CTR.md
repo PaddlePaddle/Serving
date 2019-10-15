@@ -357,7 +357,7 @@ Cube和Redis均在百度云环境上部署，测试时只测试单个cube server
 
 client端和server端分别位于1台独立的云主机，机器间ping延时为0.3ms-0.5ms。
 
-机器配置：Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz 4核
+机器配置：Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz 32核
 
 
 ### Cube测试环境
@@ -381,10 +381,6 @@ client端和server端分别位于1台独立的云主机，机器间ping延时为
 
 测试key 1-1000000之间随机整数，value为40字节字符串
 
-2台百度云主机，分别作为server和client端
-
-CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz, 6核
-
 server端部署redis-sever (latest stable 5.0.6)
 
 client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编写的客户端[get_values.cpp](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/get_value.cpp)
@@ -394,7 +390,7 @@ client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编
 调用方法：
 
 ```bash
-$ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1300
+$ ./get_values -h 192.168.48.25 -t 3 -r 10000 -b 1000
 ```
 
 其中
