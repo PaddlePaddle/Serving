@@ -15,10 +15,10 @@ ELASTIC CTR
 
 本项目提供了端到端的CTR训练和二次开发的解决方案，主要特点：
 
-- 使用K8S集群解决原来在物理集群上训练时，会出现类似于配置参数冗杂，环境搭建繁复等问题。
-- 使用基于Kube-batch开发的Volcano框架来进行任务提交和弹性调度。
-- 使用Paddle Serving来进行模型的上线和预测。
-- 使用Cube作为稀疏参数的分布式存储，在预测端与Paddle Serving对接。
+- 整体方案在k8s环境一键部署，可快速搭建与验证效果
+- 基于Paddle transpiler模式的大规模分布式高速训练
+- 训练资源弹性伸缩
+- 工业级稀疏参数Serving组件，高并发条件下单位时间吞吐总量是redis的13倍 \[[注1](#annotation_1)\]
 
 本方案整体流程如下图所示：
 
@@ -41,7 +41,7 @@ ELASTIC CTR
 -   指定训练的规模，包括参数服务器的数量和训练节点的数量
 -   指定Cube参数服务器的分片数量和副本数量
 
-在本文第4部分会详细解释以上二次开发的实际操作。
+在本文第5节会详细解释以上二次开发的实际操作。
 
 本文主要内容：
 
@@ -348,3 +348,72 @@ $ docker push  ${DOCKER_IMAGE_NAME}
 
 
 关于Paddle Serving的完整开发模式，可参考[Serving从零开始写一个预测服务](https://github.com/PaddlePaddle/Serving/blob/develop/doc/CREATING.md)，以及[Paddle Serving的其他文档](https://github.com/PaddlePaddle/Serving/tree/develop/doc)
+
+# 注释
+
+## 注1. <span id='annotation_1'>Cube和redis性能对比测试环境</span>
+
+Cube和Redis均在百度云环境上部署，测试时只测试单个cube server和redis server节点的性能。
+
+client端和server端分别位于2台独立的云主机，机器间ping延时为0.3ms-0.5ms。
+
+机器配置：Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz 32核
+
+
+### Cube测试环境
+
+测试key 64bit整数，value为10个float （40字节）
+
+首先用本方案一键部署脚本部署完成。
+
+用Paddle Serving的cube客户端SDK，编写测试代码
+
+基本原理，启动k个线程，每个线程访问M次cube server，每次批量获取N个key，总时间加和求平均。
+
+并发数 （压测线程数） | batch size | 平均响应时间 (us) | total qps
+-------|------------|-------------|---------------------------
+1	| 1000 | 1312 | 762
+4	| 1000 | 1496 | 2674
+8	| 1000 | 1585 | 5047
+16 | 1000 | 1866 | 8574
+24 | 1000 | 2236 | 10733
+32 | 1000 | 2602 | 12298
+
+### Redis测试环境
+
+测试key 1-1000000之间随机整数，value为40字节字符串
+
+server端部署redis-sever (latest stable 5.0.6)
+
+client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编写的客户端[get_values.cpp](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/get_value.cpp)
+
+基本原理：启动k个线程，每个线程访问M次redis server，每次用mget批量获取N个key。总时间加和求平均。
+
+调用方法：
+
+```bash
+$ ./get_values -h 192.168.1.1 -t 3 -r 10000 -b 1000
+```
+
+其中
+\-h server所在主机名
+\-t 并发线程数
+\-r 每线程请求次数
+\-b 每个mget请求的key个数
+
+并发数 （压测线程数） | batch size | 平均响应时间 (us) | total qps
+-------|------------|-------------|---------------------------
+1  | 1000 | 1159 | 862
+4  | 1000 | 3537  | 1079
+8  | 1000 | 7726  | 1073
+16 | 1000 | 15440  | 1034
+24 | 1000 | 24279  | 1004 
+32 | 1000 | 32570 | 996
+
+###测试结论
+
+由于Redis高效的时间驱动模型和全内存操作，在单并发时，redis平均响应时间比cube少接近50% (1100us vs. 1680us)
+
+在扩展性方面，redis受制于单线程模型，随并发数增加，响应时间加倍增加，而总吞吐在1000qps左右即不再上涨；而cube则随着压测并发数增加，总的qps一直上涨，说明cube能够较好处理并发请求，具有良好的扩展能力。
+
+
