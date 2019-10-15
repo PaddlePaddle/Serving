@@ -19,6 +19,8 @@ int pool_size = 5;
 int batch_size = 100;
 int key_size = 10000000;        // keys in redis server
 
+std::vector<uint64_t> times_us;
+
 sw::redis::Redis *redis;
 
 int parse_options(int argc, char **argv)
@@ -84,29 +86,25 @@ int parse_options(int argc, char **argv)
     return 0;
 }
 
-void thread_worker()
+void thread_worker(int thread_id)
 {
     // get values
-    std::vector<std::string> get_kvs;
-    std::vector<std::string> get_kvs_res;
-    get_kvs_res.reserve(total_request_num);
-    uint64_t time_us = 0;
-
     for (int i = 0; i < total_request_num; ++i) {
-        get_kvs.clear();
-        get_kvs_res.clear();
+        std::vector<std::string> get_kvs;
+        std::vector<std::string> get_kvs_res;
 
-        for(int j = i * batch_size; j <  (i + 1) * batch_size; j++) {
+         for(int j = i * batch_size; j <  (i + 1) * batch_size; j++) {
             get_kvs.push_back(std::to_string(i % key_size));
         }
         auto start2 = std::chrono::steady_clock::now();
-        redis->mget(get_kvs.begin(), get_kvs.end(), get_kvs_res.begin());
+        redis->mget(get_kvs.begin(), get_kvs.end(), std::back_inserter(get_kvs_res));
         auto stop2 = std::chrono::steady_clock::now();
-        time_us += std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2).count();
+        times_us[thread_id] += std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2).count();
     }
 
-    std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << time_us <<std::endl;
-    std::cout << "Average " << time_us / total_request_num << "us per req" << std::endl;
+    std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_us[thread_id] <<std::endl;
+    std::cout << "Average " << times_us[thread_id] / total_request_num << "us per req" << std::endl;
+    std::cout << "qps: " << (double)total_request_num / times_us[thread_id] * 1000000 << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -117,13 +115,27 @@ int main(int argc, char **argv)
     redis = new sw::redis::Redis(connstr);
 
     std::vector<std::thread> workers;
+    times_us.reserve(thread_num);
 
     for (int i = 0; i < thread_num; ++i) {
-        workers.push_back(std::thread(thread_worker));
+        times_us[i] = 0;
+        workers.push_back(std::thread(thread_worker, i));
     }
 
     for (int i = 0; i < thread_num; ++i) {
         workers[i].join();
     }
+
+    uint64_t times_total_us = 0;
+    for (int i = 0; i < thread_num; ++i) {
+        times_total_us += times_us[i];
+    }
+    times_total_us /= thread_num;
+    total_request_num *= thread_num;
+
+    std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_total_us <<std::endl;
+    std::cout << "Average " << times_total_us / total_request_num << "us per req" << std::endl;
+    std::cout << "qps: " << (double)total_request_num / times_total_us * 1000000 << std::endl;
+
     return 0;
 }
