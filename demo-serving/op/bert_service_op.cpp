@@ -34,6 +34,9 @@ const int LAYER_NUM = 12;
 const int EMB_SIZE = 768;
 
 int BertServiceOp::inference() {
+  timeval op_start;
+  gettimeofday(&op_start, NULL);
+
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
   TensorVector *in = butil::get_object<TensorVector>();
@@ -120,18 +123,33 @@ int BertServiceOp::inference() {
     return -1;
   }
 
-  /*
-      float* example = (float*)(*in)[3].data.data();
-      for(uint32_t i = 0; i < MAX_SEQ_LEN; i++){
-          LOG(INFO) << *(example + i);
-  */
-
+#if 0  // print request
+  std::ostringstream oss;
+  for (int j = 0; j < 3; j++) {
+    int64_t* example = reinterpret_cast<int64_t*>(*in)[j].data.data();
+    for (uint32_t i = 0; i < MAX_SEQ_LEN; i++) {
+        oss << *(example + i) << " ";
+    }
+    oss << ";";
+  }
+  float* example = reinterpret_cast<float*>(*in)[3].data.data();
+  for (int i = 0; i < MAX_SEQ_LEN; i++) {
+    oss << *(example + i) << " ";
+  }
+  LOG(INFO) << "msg: " << oss.str();
+#endif
+  timeval infer_start;
+  gettimeofday(&infer_start, NULL);
   if (predictor::InferManager::instance().infer(
           BERT_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << BERT_MODEL_NAME;
     return -1;
   }
-
+  timeval infer_end;
+  gettimeofday(&infer_end, NULL);
+  uint64_t infer_time =
+      (infer_end.tv_sec * 1000 + infer_end.tv_usec / 1000 -
+       (infer_start.tv_sec * 1000 + infer_start.tv_usec / 1000));
 #if 0
     LOG(INFO) << "batch_size : " << out->at(0).shape[0]
         << " seq_len : " << out->at(0).shape[1]
@@ -163,6 +181,13 @@ int BertServiceOp::inference() {
     }
   }
 
+  timeval op_end;
+  gettimeofday(&op_end, NULL);
+  uint64_t op_time = (op_end.tv_sec * 1000 + op_end.tv_usec / 1000 -
+                      (op_start.tv_sec * 1000 + op_start.tv_usec / 1000));
+
+  res->set_op_time(op_time);
+  res->set_infer_time(infer_time);
 #endif
   for (size_t i = 0; i < in->size(); ++i) {
     (*in)[i].shape.clear();
@@ -175,6 +200,7 @@ int BertServiceOp::inference() {
   }
   out->clear();
   butil::return_object<TensorVector>(out);
+
   return 0;
 }
 
