@@ -102,6 +102,7 @@ void thread_worker(int thread_id)
         times_us[thread_id] += std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2).count();
     }
 
+    // Per-thread statistics
     std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_us[thread_id] <<std::endl;
     std::cout << "Average " << times_us[thread_id] / total_request_num << "us per req" << std::endl;
     std::cout << "qps: " << (double)total_request_num / times_us[thread_id] * 1000000 << std::endl;
@@ -126,11 +127,14 @@ int main(int argc, char **argv)
         workers[i].join();
     }
 
+    // times_total_us is average running time of each thread
     uint64_t times_total_us = 0;
     for (int i = 0; i < thread_num; ++i) {
         times_total_us += times_us[i];
     }
     times_total_us /= thread_num;
+    
+    // Total requests should be sum of requests sent by each thread
     total_request_num *= thread_num;
 
     std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_total_us <<std::endl;
