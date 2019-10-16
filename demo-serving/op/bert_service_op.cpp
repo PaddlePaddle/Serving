@@ -31,7 +31,7 @@ using baidu::paddle_serving::predictor::bert_service::Embedding_values;
 extern int64_t MAX_SEQ_LEN = 128;
 const bool POOLING = true;
 const int LAYER_NUM = 12;
-const int EMB_SIZE = 768;
+extern int EMB_SIZE = 768;
 
 int BertServiceOp::inference() {
   timeval op_start;
@@ -49,6 +49,7 @@ int BertServiceOp::inference() {
   }
 
   MAX_SEQ_LEN = req->instances(0).max_seq_len();
+  EMB_SIZE = req->instances(0).emb_size();
 
   paddle::PaddleTensor src_ids;
   paddle::PaddleTensor pos_ids;
