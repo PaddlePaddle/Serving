@@ -26,6 +26,7 @@ message BertReqInstance {
   repeated int64 position_ids = 3;
   repeated float input_masks = 4;
   required int64 max_seq_len = 5;
+  required int64 emb_size = 6;
 };
 
 message Request { repeated BertReqInstance instances = 1; };
@@ -34,7 +35,11 @@ message Embedding_values { repeated float values = 1; };
 
 message BertResInstance { repeated Embedding_values instances = 1; };
 
-message Response { repeated BertResInstance instances = 1; };
+message Response {
+  repeated BertResInstance instances = 1;
+  optional int64 op_time = 2;
+  optional int64 infer_time = 3;
+};
 
 service BertService {
   rpc inference(Request) returns (Response);
