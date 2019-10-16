@@ -32,6 +32,8 @@ ELASTIC CTR
 - cube-builder: 负责将训练作业产出的模型文件（hadoop sequence file格式）转换成可以被cube-server加载的字典文件。字典文件具有特定的数据结构，针对尺寸和内存中访问做了高度优化
 - Cube-Server: 提供分片kv读写能力的服务节点
 - Cube-agent: 与cube-server同机部署，接收cube-transfer下发的字典文件更新命令，拉取数据到本地，通知cube-server进行更新
+- Paddle Serving: 加载CTR预估任务模型ProgramDesc和dense参数，提供预测服务
+- Client: CTR预估任务的demo客户端
 
 以上组件串联完成从训练到预测部署的所有流程。本文档所提供的一键部署脚本[paddle-suite.sh](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/paddle-suite.sh)可一键部署上述所有组件。
 
