@@ -121,7 +121,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 
 ## 3.1 下载部署方案脚本文件
 
-请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)下载到本地
+请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/Serving/tree/master/doc/resource)下载到本地
 
 ## 3.2 一键部署
 
