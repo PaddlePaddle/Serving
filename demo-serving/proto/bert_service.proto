@@ -25,8 +25,8 @@ message BertReqInstance {
   repeated int64 sentence_type_ids = 2;
   repeated int64 position_ids = 3;
   repeated float input_masks = 4;
-  required int64 max_seq_len = 5;
-  required int64 emb_size = 6;
+  optional int64 max_seq_len = 5;
+  optional int64 emb_size = 6;
 };
 
 message Request { repeated BertReqInstance instances = 1; };
