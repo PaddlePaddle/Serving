@@ -308,6 +308,8 @@ $ docker build -t ${DOCKER_IMAGE_NAME} .
 $ docker push  ${DOCKER_IMAGE_NAME}
 ```
 
+推荐使用百度云提供的镜像仓库，这里是说明文档[推送镜像到镜像仓库](https://cloud.baidu.com/doc/CCE/s/Yjxppt74z/#%E6%8E%A8%E9%80%81%E9%95%9C%E5%83%8F%E5%88%B0%E9%95%9C%E5%83%8F%E4%BB%93%E5%BA%93)
+
 ## 5.2 指定训练规模
 
 在ctr.yaml文件当中，我们会发现这个是在volcano的框架下定义的Job。在Job里面，我们给出了很多Pserver和Trainer的定义，在总体的Job也给出了MinAvailable数量的定义。Pserver和Trainer下面有自己的Replicas，环境变量当中有PSERVER\_NUM和TRAINER\_MODEL和TRAINER\_NUM的数量。通常MinAvailable= PServer Num + Trainer Num，这样我们就可以启动相应的服务。
