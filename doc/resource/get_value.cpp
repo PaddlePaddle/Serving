@@ -20,6 +20,7 @@ int batch_size = 100;
 int key_size = 10000000;        // keys in redis server
 
 std::vector<uint64_t> times_us;
+std::vector<uint64_t> average_time_us;
 
 sw::redis::Redis *redis;
 
@@ -94,7 +95,7 @@ void thread_worker(int thread_id)
         std::vector<std::string> get_kvs_res;
 
          for(int j = i * batch_size; j <  (i + 1) * batch_size; j++) {
-            get_kvs.push_back(std::to_string(i % key_size));
+            get_kvs.push_back(std::to_string(j % key_size));
         }
         auto start2 = std::chrono::steady_clock::now();
         redis->mget(get_kvs.begin(), get_kvs.end(), std::back_inserter(get_kvs_res));
@@ -102,10 +103,11 @@ void thread_worker(int thread_id)
         times_us[thread_id] += std::chrono::duration_cast<std::chrono::microseconds>(stop2 - start2).count();
     }
 
-    // Per-thread statistics
-    std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_us[thread_id] <<std::endl;
-    std::cout << "Average " << times_us[thread_id] / total_request_num << "us per req" << std::endl;
-    std::cout << "qps: " << (double)total_request_num / times_us[thread_id] * 1000000 << std::endl;
+    average_time_us[thread_id] = times_us[thread_id] / total_request_num;
+
+    // std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_us[thread_id] <<std::endl;
+    // std::cout << "Average " << average_time_us[thread_id] << "us per req" << std::endl;
+    // std::cout << "qps: " << (double)total_request_num / times_us[thread_id] * 1000000 << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
 
     std::vector<std::thread> workers;
     times_us.reserve(thread_num);
+    average_time_us.reserve(thread_num);
 
     for (int i = 0; i < thread_num; ++i) {
         times_us[i] = 0;
@@ -127,18 +130,19 @@ int main(int argc, char **argv)
         workers[i].join();
     }
 
-    // times_total_us is average running time of each thread
     uint64_t times_total_us = 0;
+    uint64_t average_time_total_us;
+
     for (int i = 0; i < thread_num; ++i) {
         times_total_us += times_us[i];
+        average_time_total_us += average_time_us[i];
     }
+
     times_total_us /= thread_num;
-    
-    // Total requests should be sum of requests sent by each thread
     total_request_num *= thread_num;
 
     std::cout << total_request_num << " requests, " << batch_size << " keys per req, total time us = " << times_total_us <<std::endl;
-    std::cout << "Average " << times_total_us / total_request_num << "us per req" << std::endl;
+    std::cout << "Average " << average_time_total_us / thread_num << "us per req" << std::endl;
     std::cout << "qps: " << (double)total_request_num / times_total_us * 1000000 << std::endl;
 
     return 0;
