@@ -32,6 +32,8 @@ ELASTIC CTR
 - cube-builder: 负责将训练作业产出的模型文件（hadoop sequence file格式）转换成可以被cube-server加载的字典文件。字典文件具有特定的数据结构，针对尺寸和内存中访问做了高度优化
 - Cube-Server: 提供分片kv读写能力的服务节点
 - Cube-agent: 与cube-server同机部署，接收cube-transfer下发的字典文件更新命令，拉取数据到本地，通知cube-server进行更新
+- Paddle Serving: 加载CTR预估任务模型ProgramDesc和dense参数，提供预测服务
+- Client: CTR预估任务的demo客户端
 
 以上组件串联完成从训练到预测部署的所有流程。本文档所提供的一键部署脚本[paddle-suite.sh](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/paddle-suite.sh)可一键部署上述所有组件。
 
@@ -121,7 +123,7 @@ $ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/i
 
 ## 3.1 下载部署方案脚本文件
 
-请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)下载到本地
+请将[本方案所需所有脚本文件](https://github.com/PaddlePaddle/Serving/tree/master/doc/resource)下载到本地
 
 ## 3.2 一键部署
 
@@ -133,9 +135,7 @@ $ bash paddle-suite.sh
 
 请参考**3.3-3.8节**验证每一步的安装是否正确，**第4节**验证训练过程和预测服务结果。
 
-任务的所有脚本文件可以访问[这里](https://github.com/PaddlePaddle/edl/tree/develop/example/ctr/script)获取。
-
-**注**：以下**3.3-3.8节所述内容已经在一键部署脚本中包含，无需手动执行**。但为方便理解，将该脚本的每一步执行过程给出说明。
+**[注意！！！]**：以下**3.3-3.8节所述内容已经在一键部署脚本中包含，无需手动执行**。但为方便理解，将该脚本的每一步执行过程给出说明。
 
 ## 3.3 选择一个node作为输出节点
 
@@ -405,16 +405,16 @@ $ ./get_values -h 192.168.1.1 -t 3 -r 10000 -b 1000
 
 并发数 （压测线程数） | batch size | 平均响应时间 (us) | total qps
 -------|------------|-------------|---------------------------
-1  | 1000 | 1159 | 862
-4  | 1000 | 3537  | 1079
-8  | 1000 | 7726  | 1073
-16 | 1000 | 15440  | 1034
-24 | 1000 | 24279  | 1004 
-32 | 1000 | 32570 | 996
+1  | 1000 | 1643 | 608
+4  | 1000 | 4878  | 819
+8  | 1000 | 9870  | 810
+16 | 1000 | 22177  | 721
+24 | 1000 | 30620  | 783 
+32 | 1000 | 37668 | 849
 
 ###测试结论
 
-由于Redis高效的时间驱动模型和全内存操作，在单并发时，redis平均响应时间比cube少接近50% (1100us vs. 1680us)
+由于Redis高效的时间驱动模型和全内存操作，在单并发时，redis平均响应时间与cube相差不多% (1643us vs. 1312us)
 
 在扩展性方面，redis受制于单线程模型，随并发数增加，响应时间加倍增加，而总吞吐在1000qps左右即不再上涨；而cube则随着压测并发数增加，总的qps一直上涨，说明cube能够较好处理并发请求，具有良好的扩展能力。
 
