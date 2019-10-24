@@ -385,7 +385,7 @@ client端和server端分别位于2台独立的云主机，机器间ping延时为
 
 测试key 1-1000000之间随机整数，value为40字节字符串
 
-server端部署redis-sever (latest stable 5.0.6)
+server端部署redis-server (latest stable 5.0.6)
 
 client端为基于[redisplusplus](https://github.com/sewenew/redis-plus-plus)编写的客户端[get_values.cpp](https://github.com/PaddlePaddle/Serving/blob/master/doc/resource/get_value.cpp)
 
@@ -412,10 +412,28 @@ $ ./get_values -h 192.168.1.1 -t 3 -r 10000 -b 1000
 24 | 1000 | 30620  | 783 
 32 | 1000 | 37668 | 849
 
-###测试结论
+
+### RocksDB测试环境
+
+测试key 1-1000000之间随机整数，value为40字节字符串
+
+基本原理：启动k个线程，每个线程访问M次rocksDB，每次用mget批量获取N个key。总时间加和求平均。
+
+并发数 （压测线程数） | batch size | 平均响应时间 (us) | total qps
+-------|------------|-------------|---------------------------
+1  | 1000 | 11345 | 88
+4  | 1000 | 11210 | 357
+8  | 1000 | 11475 | 697
+16 | 1000 | 12822  | 1248
+24 | 1000 | 14220  | 1688 
+32 | 1000 | 17256 | 1854
+
+
+### 测试结论
 
 由于Redis高效的时间驱动模型和全内存操作，在单并发时，redis平均响应时间与cube相差不多% (1643us vs. 1312us)
 
 在扩展性方面，redis受制于单线程模型，随并发数增加，响应时间加倍增加，而总吞吐在1000qps左右即不再上涨；而cube则随着压测并发数增加，总的qps一直上涨，说明cube能够较好处理并发请求，具有良好的扩展能力。
 
+RocksDB在线程数较少的时候，平均响应时间和qps慢于Redis，但是在16以及更多线程的测试当中，RocksDB提供了更快的响应时间和更大的qps。
 
