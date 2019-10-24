@@ -25,6 +25,8 @@
 #endif
 #include "demo-serving/bert_service.pb.h"
 
+#include <sys/time.h>
+
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
