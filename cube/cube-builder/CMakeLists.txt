@@ -31,7 +31,7 @@ set(DYNAMIC_LIB
     -lcurl
     -lssl
     -lcrypto
-#    ${CURL_LIB}
+    ${CURL_LIB}
     )
 
 target_link_libraries(cube-builder ${DYNAMIC_LIB})
