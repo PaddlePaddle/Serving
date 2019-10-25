@@ -94,6 +94,7 @@ int create_req(Request* req,
       }
     }
     ins->set_max_seq_len(max_seq_len);
+    ins->set_emb_size(emb_size);
   }
   return 0;
 }

@@ -38,7 +38,7 @@ message BertResInstance { repeated Embedding_values instances = 1; };
 message Response {
   repeated BertResInstance instances = 1;
   optional int64 op_time = 2;
-  optional int64 infert_time = 3;
+  optional int64 infer_time = 3;
 };
 
 service BertService {
