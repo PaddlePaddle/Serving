@@ -17,9 +17,10 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <thread>  //NOLINT
-#include "./data_pre.h"
+#include <vector>
 #include "sdk-cpp/bert_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
@@ -41,9 +42,23 @@ extern int max_turn = 1000;
 std::atomic<int> g_concurrency(0);
 std::vector<std::vector<int>> response_time;
 std::vector<std::vector<int>> infer_time;
-char* data_filename = "./data/bert/demo_wiki_train";
+char* data_filename = "./data/bert/demo_wiki_data";
 
-#if 1
+std::vector<std::string> split(const std::string& str,
+                               const std::string& pattern) {
+  std::vector<std::string> res;
+  if (str == "") return res;
+  std::string strs = str + pattern;
+  size_t pos = strs.find(pattern);
+  while (pos != strs.npos) {
+    std::string temp = strs.substr(0, pos);
+    res.push_back(temp);
+    strs = strs.substr(pos + 1, strs.size());
+    pos = strs.find(pattern);
+  }
+  return res;
+}
+
 int create_req(Request* req,
                const std::vector<std::string>& data_list,
                int data_index,
@@ -82,49 +97,6 @@ int create_req(Request* req,
   }
   return 0;
 }
-#else
-
-int create_req(Request* req,
-               const std::vector<std::string>& data_list,
-               int data_index,
-               int batch_size) {
-  for (int i = 0; i < batch_size; ++i) {
-    BertReqInstance* ins = req->add_instances();
-    if (!ins) {
-      LOG(ERROR) << "Failed create req instance";
-      return -1;
-    }
-    // add data
-    // avoid out of boundary
-    int cur_index = data_index + i;
-    if (cur_index >= data_list.size()) {
-      cur_index = cur_index % data_list.size();
-    }
-
-    std::vector<std::string> feature_list = split(data_list[cur_index], ":");
-    std::vector<std::string> shape_list = split(feature_list[0], " ");
-    std::vector<std::string> token_list = split(feature_list[1], " ");
-    std::vector<std::string> pos_list = split(feature_list[2], " ");
-    std::vector<std::string> seg_list = split(feature_list[3], " ");
-    std::vector<std::string> mask_list = split(feature_list[4], " ");
-    for (int fi = 0; fi < max_seq_len; fi++) {
-      if (fi < token_list.size()) {
-        ins->add_token_ids(std::stoi(token_list[fi]));
-        ins->add_sentence_type_ids(std::stoll(seg_list[fi]));
-        ins->add_position_ids(std::stoll(pos_list[fi]));
-        ins->add_input_masks(std::stof(mask_list[fi]));
-      } else {
-        ins->add_token_ids(0);
-        ins->add_sentence_type_ids(0);
-        ins->add_position_ids(0);
-        ins->add_input_masks(0.0);
-      }
-    }
-  }
-  return 0;
-}
-
-#endif
 
 void print_res(const Request& req,
                const Response& res,
