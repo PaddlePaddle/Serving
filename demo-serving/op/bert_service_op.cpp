@@ -127,13 +127,13 @@ int BertServiceOp::inference() {
 #if 0  // print request
   std::ostringstream oss;
   for (int j = 0; j < 3; j++) {
-    int64_t* example = reinterpret_cast<int64_t*>(*in)[j].data.data();
+    int64_t* example = reinterpret_cast<int64_t*>((*in)[j].data.data());
     for (uint32_t i = 0; i < MAX_SEQ_LEN; i++) {
         oss << *(example + i) << " ";
     }
     oss << ";";
   }
-  float* example = reinterpret_cast<float*>(*in)[3].data.data();
+  float* example = reinterpret_cast<float*>((*in)[3].data.data());
   for (int i = 0; i < MAX_SEQ_LEN; i++) {
     oss << *(example + i) << " ";
   }
