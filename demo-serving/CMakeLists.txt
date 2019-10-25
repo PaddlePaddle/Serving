@@ -24,6 +24,18 @@ if (NOT EXISTS
                 ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid)
 endif()
 
+if (NOT EXISTS
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/bert_cased_L-12_H-768_A-12)
+        execute_process(COMMAND wget --no-check-certificate
+                https://paddle-serving.bj.bcebos.com/data/bert/bert_cased_L-12_H-768_A-12.tar.gz
+                --output-document
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/bert_cased_L-12_H-768_A-12.tar.gz)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf
+            "${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/bert_cased_L-12_H-768_A-12.tar.gz"
+                WORKING_DIRECTORY
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid)
+endif()
+
 include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
 
 include(op/CMakeLists.txt)
