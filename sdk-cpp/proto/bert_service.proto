@@ -31,9 +31,9 @@ message BertReqInstance {
 
 message Request { repeated BertReqInstance instances = 1; };
 
-message Embedding_values { repeated float values = 1; };
+message EmbeddingValues { repeated float values = 1; };
 
-message BertResInstance { repeated Embedding_values instances = 1; };
+message BertResInstance { repeated EmbeddingValues instances = 1; };
 
 message Response {
   repeated BertResInstance instances = 1;
