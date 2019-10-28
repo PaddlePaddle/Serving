@@ -21,7 +21,7 @@
 #include "paddle/fluid/inference/api/paddle_inference_api.h"
 #endif
 #else
-#include "./paddle_inference_api.h"
+#include "paddle_inference_api.h"  // NOLINT
 #endif
 #include "demo-serving/bert_service.pb.h"
 
