@@ -30,7 +30,7 @@ using baidu::paddle_serving::predictor::bert_service::Request;
 using baidu::paddle_serving::predictor::bert_service::Response;
 using baidu::paddle_serving::predictor::bert_service::BertResInstance;
 using baidu::paddle_serving::predictor::bert_service::BertReqInstance;
-using baidu::paddle_serving::predictor::bert_service::Embedding_values;
+using baidu::paddle_serving::predictor::bert_service::EmbeddingValues;
 
 extern int batch_size = 1;
 extern int max_seq_len = 128;
@@ -108,7 +108,7 @@ void print_res(const Request& req,
     std::ostringstream oss;
     oss << "[";
     for (uint32_t bi = 0; bi < res_ins.instances_size(); bi++) {
-      const Embedding_values& emb_ins = res_ins.instances(bi);
+      const EmbeddingValues& emb_ins = res_ins.instances(bi);
       oss << "[";
       for (uint32_t ei = 0; ei < emb_ins.values_size(); ei++) {
         oss << emb_ins.values(ei) << " ";
