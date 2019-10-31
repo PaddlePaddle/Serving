@@ -1,0 +1,8 @@
+workflows {
+  name: "workflow1"
+  workflow_type: "Sequence"
+  nodes {
+    name: "elastic_ctr_prediction_op"
+    type: "ElasticCTRPredictionOp"
+  } 
+}

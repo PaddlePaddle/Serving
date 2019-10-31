@@ -122,3 +122,6 @@ add_subdirectory(inferencer-fluid-gpu)
 endif()
 add_subdirectory(demo-serving)
 endif()
+
+# Paddle Serving Solutions
+add_subdirectory(elastic-ctr)
