@@ -7,6 +7,7 @@ LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/int64tensor_service.proto
         ${CMAKE_CURRENT_LIST_DIR}/text_classification.proto
         ${CMAKE_CURRENT_LIST_DIR}/ctr_prediction.proto
+        ${CMAKE_CURRENT_LIST_DIR}/bert_service.proto
 )
 
 PROTOBUF_GENERATE_SERVING_CPP(TRUE PROTO_SRCS PROTO_HDRS ${protofiles})
