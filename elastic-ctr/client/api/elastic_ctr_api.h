@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 #include "elastic-ctr/client/elastic_ctr_prediction.pb.h"
-#include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
