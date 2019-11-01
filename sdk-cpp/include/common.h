@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include <exception>
 
-#include "boost/unordered_map.hpp"
 #include "gflags/gflags.h"
 #include "google/protobuf/message.h"
 
@@ -35,7 +34,7 @@
 #include "base/logging.h"
 #include "base/object_pool.h"
 #include "base/time.h"
-#include "bthread.h"
+#include "bthread.h"  // NOLINT
 #else
 #include "brpc/channel.h"
 #include "brpc/parallel_channel.h"
@@ -49,7 +48,7 @@
 #include "bvar/bvar.h"
 
 #ifdef BCLOUD
-#include "json_to_pb.h"
+#include "json_to_pb.h"  // NOLINT
 #else
 #include "json2pb/json_to_pb.h"
 #endif

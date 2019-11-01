@@ -33,14 +33,26 @@ install(FILES
         ${CMAKE_BINARY_DIR}/elastic-ctr/client/builtin_format.pb.h
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include/elastic-ctr/client/)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/sdk-cpp/include
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/sdk-cpp/include
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include/sdk-cpp/)
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/configure/include
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include/configure)
+install(FILES
+        ${CMAKE_BINARY_DIR}/configure/sdk_configure.pb.h
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include/configure)
+
 install(DIRECTORY
         ${CMAKE_BINARY_DIR}/third_party/install/protobuf/include/google
         ${CMAKE_BINARY_DIR}/third_party/install/brpc/include/brpc
         ${CMAKE_BINARY_DIR}/third_party/install/brpc/include/butil
         ${CMAKE_BINARY_DIR}/third_party/install/brpc/include/bthread
+        ${CMAKE_BINARY_DIR}/third_party/install/brpc/include/bvar
+        ${CMAKE_BINARY_DIR}/third_party/install/brpc/include/json2pb
         ${CMAKE_BINARY_DIR}/third_party/install/gflags/include/gflags
         ${CMAKE_BINARY_DIR}/third_party/install/glog/include/glog
         DESTINATION
