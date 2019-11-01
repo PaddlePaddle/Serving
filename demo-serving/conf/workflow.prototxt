@@ -83,3 +83,12 @@ workflows {
     type: "CTRPredictionOp"
   } 
 }
+workflows {
+  name: "workflow9"
+  workflow_type: "Sequence"
+  nodes {
+    name: "bert_service_op"
+    type: "BertServiceOp"
+  }
+}
+
