@@ -118,8 +118,8 @@ void print_res(const Request& req,
     oss << "]\n";
     LOG(INFO) << "Receive : " << oss.str();
   }
-  LOG(INFO) << "Succ call predictor[ctr_prediction_service], the tag is: "
-            << route_tag << ", elapse_ms: " << elapse_ms;
+  LOG(INFO) << "Succ call predictor[bert_service], the tag is: " << route_tag
+            << ", elapse_ms: " << elapse_ms;
 }
 
 void thread_worker(PredictorApi* api,
