@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #pragma once
+
+#define BRPC_WITH_GLOG 1  // To make sure prpoer glog inclusion
+
 #include <map>
 #include <set>
 #include <string>
