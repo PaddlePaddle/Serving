@@ -1,5 +1,5 @@
 engines {
-  name: "ctr_prediction"
+  name: "elastic_ctr_prediction"
   type: "FLUID_CPU_ANALYSIS_DIR"
   reloadable_meta: "./data/model/paddle/fluid_time_file"
   reloadable_type: "timestamp_ne"

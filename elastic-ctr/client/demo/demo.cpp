@@ -158,17 +158,16 @@ int main(int argc, char** argv) {
       ++index;
     }
 
-    Response res;
-    if (api.inference() != 0) {
+    std::vector<std::vector<float>> results_vec;
+    if (api.inference(results_vec) != 0) {
       LOG(ERROR) << "failed call predictor";
       return -1;
     }
 
-    std::vector<Prediction> ret = api.get_results();
 #if 1
-    for (std::size_t i = 0; i < ret.size(); ++i) {
-      LOG(INFO) << "sample " << i << ": [" << ret[i].prob0 << ", "
-                << ret[i].prob1 << "]";
+    for (std::size_t i = 0; i < results_vec.size(); ++i) {
+      LOG(INFO) << "sample " << i << ": [" << results_vec[i].at(0) << ", "
+                << results_vec[i].at(1) << "]";
     }
 #endif
   }  // end while

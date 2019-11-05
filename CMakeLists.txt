@@ -74,6 +74,8 @@ include(external/snappy)
 include(external/gtest)
 include(generic)
 include(flags)
+include(external/python)
+include(external/pybind11)
 
 if (NOT CLIENT_ONLY)
 include(external/cudnn)
