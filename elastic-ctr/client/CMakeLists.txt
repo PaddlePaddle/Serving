@@ -4,13 +4,17 @@ file(GLOB sdk_cpp_srcs ${CMAKE_SOURCE_DIR}/sdk-cpp/src/*.cpp)
 list(APPEND elasticctr_srcs ${elastic_ctr_cpp_srcs})
 list(APPEND elasticctr_srcs ${sdk_cpp_srcs})
 list(APPEND elasticctr_srcs
-        ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/api/pybind.cpp)
 
 add_library(elasticctr SHARED ${elasticctr_srcs})
-target_link_libraries(elasticctr brpc configure protobuf leveldb)
+add_dependencies(elasticctr pybind)
+target_link_libraries(elasticctr brpc configure protobuf leveldb -lcrypto
+        -lssl -lz)
 
 add_executable(elastic_ctr_demo ${CMAKE_CURRENT_LIST_DIR}/demo/demo.cpp)
-target_link_libraries(elastic_ctr_demo elasticctr -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+target_link_libraries(elastic_ctr_demo elasticctr python -lpthread -lcrypto -lm -lrt
+        -lssl -ldl -lz)
 
 # install
 install(TARGETS elastic_ctr_demo

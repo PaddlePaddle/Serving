@@ -91,11 +91,10 @@ class ElasticCTRPredictorApi {
   int add_slot(ReqInstance *instance,
                const std::string slot_name,
                int64_t value);
-  int inference();
-  std::vector<Prediction> get_results();
+  int inference(std::vector<std::vector<float>> &results_vec);  // NOLINT
 
  private:
-  static void read_slot_conf(const char *path, const char *slot_conf_file);
+  static int read_slot_conf(const char *path, const char *slot_conf_file);
   void validate_request();
 
  private:

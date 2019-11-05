@@ -93,14 +93,14 @@ void ThreadResource::validate_request(const std::set<std::string> &slot_names) {
   }
 }
 
-void ElasticCTRPredictorApi::read_slot_conf(const char *path,
-                                            const char *slot_conf_file) {
+int ElasticCTRPredictorApi::read_slot_conf(const char *path,
+                                           const char *slot_conf_file) {
   struct stat stat_buf;
   char name[VARIABLE_NAME_LEN];
   snprintf(name, VARIABLE_NAME_LEN, "%s/%s", path, slot_conf_file);
   if (stat(name, &stat_buf) != 0) {
     LOG(ERROR) << "Error stating file" << name;
-    return;
+    return -1;
   }
 
   std::ifstream fs(name);
@@ -113,13 +113,22 @@ void ElasticCTRPredictorApi::read_slot_conf(const char *path,
     LOG(INFO) << "slot: " << x.c_str();
   }
 #endif
+
+  return 0;
 }
 
 int ElasticCTRPredictorApi::init(const char *path,
                                  const char *slot_conf_file,
                                  const char *serving_conf_file) {
-  api_.create(path, serving_conf_file);
-  read_slot_conf(path, slot_conf_file);
+  int ret = api_.create(path, serving_conf_file);
+  if (ret != 0) {
+    return ret;
+  }
+
+  ret = read_slot_conf(path, slot_conf_file);
+  if (ret != 0) {
+    return ret;
+  }
 
   // Thread-local storage
   if (pthread_key_create(&tls_bspec_key_, thread_resource_delete) != 0) {
@@ -231,7 +240,8 @@ void ElasticCTRPredictorApi::validate_request() {
   thread_resource->validate_request(slot_names_);
 }
 
-int ElasticCTRPredictorApi::inference() {
+int ElasticCTRPredictorApi::inference(
+    std::vector<std::vector<float>> &results_vec) {
   ThreadResource *thread_resource =
       reinterpret_cast<ThreadResource *>(pthread_getspecific(tls_bspec_key_));
   if (thread_resource == NULL) {
@@ -257,33 +267,19 @@ int ElasticCTRPredictorApi::inference() {
     return ret;
   }
 
-  return 0;
-}
-
-std::vector<Prediction> ElasticCTRPredictorApi::get_results() {
-  std::vector<Prediction> prediction_vec;
-
-  ThreadResource *thread_resource =
-      reinterpret_cast<ThreadResource *>(pthread_getspecific(tls_bspec_key_));
-  if (thread_resource == NULL) {
-    if (thread_resource == NULL) {
-      LOG(ERROR) << "ERROR: thread local resource is null";
-      return prediction_vec;
-    }
-  }
-
   Response *response = thread_resource->get_response();
 
   for (int i = 0; i < response->predictions_size(); ++i) {
     const ResInstance &res_instance = response->predictions(i);
-    Prediction prediction;
-    prediction.prob0 = res_instance.prob0();
-    prediction.prob1 = res_instance.prob1();
-    prediction_vec.push_back(prediction);
+    std::vector<float> res;
+    res.push_back(res_instance.prob0());
+    res.push_back(res_instance.prob1());
+    results_vec.push_back(res);
   }
 
-  return prediction_vec;
+  return 0;
 }
+
 }  // namespace elastic_ctr
 }  // namespace paddle_serving
 }  // namespace baidu
