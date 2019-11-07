@@ -12,14 +12,23 @@ add_dependencies(elasticctr pybind)
 target_link_libraries(elasticctr brpc configure protobuf leveldb -lcrypto
         -lssl -lz)
 
+set_target_properties(elasticctr PROPERTIES INTERFACE_LINK_LIBRARIES "")
+
 add_executable(elastic_ctr_demo ${CMAKE_CURRENT_LIST_DIR}/demo/demo.cpp)
+set_target_properties(elastic_ctr_demo PROPERTIES LINK_LIBRARIES "")
 target_link_libraries(elastic_ctr_demo elasticctr python -lpthread -lcrypto -lm -lrt
         -lssl -ldl -lz)
 
+get_filename_component(PYTHON_LIBRARY_REAL_PATH ${PYTHON_LIBRARY} REALPATH)
+
 # install
-install(TARGETS elastic_ctr_demo
+install(TARGETS elasticctr elastic_ctr_demo
         RUNTIME DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin
+        LIBRARY DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
+install(FILES ${PYTHON_LIBRARY_REAL_PATH}
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
