@@ -25,11 +25,15 @@ message BertReqInstance {
   repeated int64 sentence_type_ids = 2;
   repeated int64 position_ids = 3;
   repeated float input_masks = 4;
-  optional int64 max_seq_len = 5;
-  optional int64 emb_size = 6;
 };
 
-message Request { repeated BertReqInstance instances = 1; };
+message Request {
+  repeated BertReqInstance instances = 1;
+  optional int64 max_seq_len = 2;
+  optional int64 emb_size = 3;
+  optional string feed_var_names = 4;
+  optional string fetch_var_names = 5;
+};
 
 message EmbeddingValues { repeated float values = 1; };
 
