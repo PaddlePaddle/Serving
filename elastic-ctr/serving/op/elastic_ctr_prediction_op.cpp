@@ -37,7 +37,7 @@ using baidu::paddle_serving::predictor::elastic_ctr::Request;
 const int VARIABLE_NAME_LEN = 256;
 
 const int CTR_PREDICTION_DENSE_DIM = 13;
-const int CTR_PREDICTION_EMBEDDING_SIZE = 10;
+const int CTR_PREDICTION_EMBEDDING_SIZE = 9;
 
 bthread::Mutex ElasticCTRPredictionOp::mutex_;
 int64_t ElasticCTRPredictionOp::cube_time_us_ = 0;
@@ -143,7 +143,7 @@ int ElasticCTRPredictionOp::inference() {
     }
   }
 
-#if 0
+#if 1
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   predictor::KVManager &kv_manager = predictor::KVManager::instance();
   const predictor::KVInfo *kvinfo =
@@ -269,7 +269,7 @@ int ElasticCTRPredictionOp::inference() {
              instance.slots(i).slot_name().c_str());
     lod_tensor.name = std::string(name);
 
-    lod_tensors[i].dtype = paddle::PaddleDType::INT64;
+    lod_tensors[i].dtype = paddle::PaddleDType::FLOAT32;
     std::vector<std::vector<size_t>> &lod = lod_tensors[i].lod;
     lod.resize(1);
     lod[0].push_back(0);
@@ -296,10 +296,15 @@ int ElasticCTRPredictionOp::inference() {
       int idx = base + j;
       if (values[idx].buff.size() !=
           sizeof(float) * CTR_PREDICTION_EMBEDDING_SIZE) {
+#if 0
         LOG(ERROR) << "Embedding vector size not expected";
         fill_response_with_message(
             res, -1, "Embedding vector size not expected");
         return 0;
+#else
+        // sizeof(float) * CTR_PREDICTION_EMBEDDING_SIZE = 36
+        values[idx].buff.append(36, '0');
+#endif
       }
 
       memcpy(data_ptr, values[idx].buff.data(), values[idx].buff.size());
