@@ -1,11 +1,14 @@
 if (NOT EXISTS
                 ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/ctr_prediction)
         execute_process(COMMAND wget --no-check-certificate
-                https://paddle-serving.bj.bcebos.com/data/ctr_prediction/ctr_prediction.tar.gz
+                https://paddle-serving.bj.bcebos.com/data/ctr_prediction/elastic_ctr_model.tar.gz
                 --output-document
-                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/ctr_prediction.tar.gz)
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/elastic_ctr_model.tar.gz)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf
-                "${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/ctr_prediction.tar.gz"
+                "${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid/elastic_ctr_model.tar.gz"
+                WORKING_DIRECTORY
+                ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E rename inference_only ctr_prediction
                 WORKING_DIRECTORY
                 ${CMAKE_CURRENT_LIST_DIR}/data/model/paddle/fluid)
 endif()
