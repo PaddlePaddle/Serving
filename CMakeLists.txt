@@ -50,6 +50,7 @@ option(WITH_AVX     "Compile Paddle Serving with AVX intrinsics"    ${AVX_FOUND}
 option(WITH_MKL     "Compile Paddle Serving with MKL support."      ${AVX_FOUND})
 option(WITH_GPU     "Compile Paddle Serving with NVIDIA GPU"        ${CUDA_FOUND})
 option(CLIENT_ONLY  "Compile client libraries and demos only"       FALSE)
+option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              FALSE)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)
@@ -74,8 +75,11 @@ include(external/snappy)
 include(external/gtest)
 include(generic)
 include(flags)
+
+if(WITH_ELASTIC_CTR)
 include(external/python)
 include(external/pybind11)
+endif()
 
 if (NOT CLIENT_ONLY)
 include(external/cudnn)
@@ -127,4 +131,6 @@ add_subdirectory(demo-serving)
 endif()
 
 # Paddle Serving Solutions
+if (WITH_ELASTIC_CTR)
 add_subdirectory(elastic-ctr)
+endif()
