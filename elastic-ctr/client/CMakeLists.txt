@@ -37,6 +37,10 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
 install(TARGETS elasticctr
         LIBRARY DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib)
+install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib/libelasticctr.so
+${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib/elasticctr.so)")
+
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.h
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include/elastic-ctr/client/api/)
@@ -70,3 +74,15 @@ install(DIRECTORY
         ${CMAKE_BINARY_DIR}/third_party/install/glog/include/glog
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include)
+
+# Python client API
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/__init__.py
+        ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/elasticctr.py
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/demo/demo.py
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/conf DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client/)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client/data)
