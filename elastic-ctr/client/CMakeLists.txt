@@ -10,7 +10,7 @@ list(APPEND elasticctr_srcs
 add_library(elasticctr SHARED ${elasticctr_srcs})
 add_dependencies(elasticctr pybind)
 target_link_libraries(elasticctr brpc configure protobuf leveldb -lcrypto
-        -lssl -lz)
+        -lssl -lz -lrt)
 
 set_target_properties(elasticctr PROPERTIES INTERFACE_LINK_LIBRARIES "")
 
