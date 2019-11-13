@@ -81,8 +81,6 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/__init__.py
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/demo/demo.py
-        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/conf DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/python_client/data)
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/demo/elastic_ctr.py
+        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)

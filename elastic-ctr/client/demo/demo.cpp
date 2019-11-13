@@ -67,7 +67,7 @@ int read_samples(const char* file) {
 
       if (sample.slots.find(slot_name) == sample.slots.end()) {
         std::vector<uint64_t> values;
-        values.push_back(x % 400000001);
+        values.push_back(x % CTR_EMBEDDING_TABLE_SIZE);
         sample.slots[slot_name] = values;
       } else {
         auto it = sample.slots.find(slot_name);
