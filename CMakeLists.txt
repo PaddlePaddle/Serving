@@ -76,11 +76,6 @@ include(external/gtest)
 include(generic)
 include(flags)
 
-if(WITH_ELASTIC_CTR)
-include(external/python)
-include(external/pybind11)
-endif()
-
 if (NOT CLIENT_ONLY)
 include(external/cudnn)
 include(paddlepaddle)
