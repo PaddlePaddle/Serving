@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
 import json
 import sys
 import os
@@ -30,7 +31,7 @@ class ElasticCTRAPI(object):
 
     def read_slots_conf(self, slots_conf_file):
         if not os.path.exists(slots_conf_file):
-            print "Path %s not exist" % sltos_conf_file
+            print("Path %s not exist" % sltos_conf_file)
             return -1
         with open(slots_conf_file, "r") as f:
             for line in f:
@@ -51,11 +52,11 @@ class ElasticCTRAPI(object):
 
     def add_slot(self, instance, slot, feasigns):
         if not isinstance(instance, list):
-            print "add slot: parameter invalid: instance should be list"
+            print("add slot: parameter invalid: instance should be list")
             return -1
 
         if not isinstance(feasigns, list):
-            print "add slot: value format invalid: feasigns should be list"
+            print("add slot: value format invalid: feasigns should be list")
             return -1
 
         kv = [{"slot_name": slot, "feasigns": feasigns}]
@@ -82,7 +83,7 @@ class ElasticCTRAPI(object):
                 response = self._conn.getresponse()
                 return response.read()
             except httplib.HTTPException as e:
-                print e.reason
+                print(e.reason)
         elif sys.version_info[0] == 3:
             try:
                 self._conn.request(
@@ -91,4 +92,4 @@ class ElasticCTRAPI(object):
                 response = self._conn.getresponse()
                 return response.read()
             except http.clinet.HTTPException as e:
-                print e.reason
+                print(e.reason)
