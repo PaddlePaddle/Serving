@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import print_function
 import json
 import httplib
 import sys
@@ -28,7 +29,7 @@ SLOTS = []
 
 def data_reader(data_file, samples, labels):
     if not os.path.exists(data_file):
-        print "Path %s not exist" % data_file
+        print("Path %s not exist" % data_file)
         return -1
 
     with open(data_file, "r") as f:
@@ -59,7 +60,9 @@ if __name__ == "__main__":
     """ main
     """
     if len(sys.argv) != 5:
-        print "Usage: python elastic_ctr.py SERVING_IP SERVING_PORT SLOT_CONF_FILE DATA_FILE"
+        print(
+            "Usage: python elastic_ctr.py SERVING_IP SERVING_PORT SLOT_CONF_FILE DATA_FILE"
+        )
         sys.exit(-1)
 
     samples = []
@@ -86,5 +89,5 @@ if __name__ == "__main__":
                 api.add_slot(instance, k, v)
 
         ret = api.inference()
-        print ret
+        print(ret)
         sys.exit(0)
