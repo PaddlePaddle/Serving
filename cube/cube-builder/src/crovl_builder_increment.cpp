@@ -180,7 +180,7 @@ bool CROVLBuilderIncremental::flush_data() {
   char file[MAX_DATA_DIR_LEN * 2];
   snprintf(file, sizeof(file), "%s/data.%lu", _data_dir, _data_file);
   FILE *fp;
-  if ((fp = fopen(file, "wb")) == NULL) {
+  if ((fp = fopen(file, "ab")) == NULL) {
     LOG(ERROR) << "open file failed! " << file;
     return false;
   }
@@ -209,7 +209,7 @@ bool CROVLBuilderIncremental::FlushIndex() {
   char file[MAX_DATA_DIR_LEN * 2];
   snprintf(file, sizeof(file), "%s/index.%d", _data_dir, _index_file_num);
   FILE *fp;
-  if ((fp = fopen(file, "wb")) == NULL) {
+  if ((fp = fopen(file, "ab")) == NULL) {
     LOG(ERROR) << "open file failed! " << file;
     return false;
   }
