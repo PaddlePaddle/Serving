@@ -13,9 +13,13 @@
 # limitations under the License.
 
 import json
-import httplib
 import sys
 import os
+
+if sys.version_info[0] == 2:
+    import httplib
+elif sys.version_info[0] == 3:
+    import http.client
 
 
 class ElasticCTRAPI(object):
@@ -34,7 +38,10 @@ class ElasticCTRAPI(object):
         return 0
 
     def conn(self, ip, port):
-        return httplib.HTTPConnection(ip, port)
+        if sys.version_info[0] == 2:
+            return httplib.HTTPConnection(ip, port)
+        elif sys.version_info[0] == 3:
+            return http.client.HTTPConnection(ip, port)
 
     def add_instance(self):
         feature_slots = []
@@ -67,11 +74,21 @@ class ElasticCTRAPI(object):
 
         request_json = json.dumps(req)
 
-        try:
-            self._conn.request('POST', "/ElasticCTRPredictionService/inference",
-                               request_json,
-                               {"Content-Type": "application/json"})
-            response = self._conn.getresponse()
-            return response.read()
-        except httplib.HTTPException as e:
-            print e.reason
+        if sys.version_info[0] == 2:
+            try:
+                self._conn.request(
+                    'POST', "/ElasticCTRPredictionService/inference",
+                    request_json, {"Content-Type": "application/json"})
+                response = self._conn.getresponse()
+                return response.read()
+            except httplib.HTTPException as e:
+                print e.reason
+        elif sys.version_info[0] == 3:
+            try:
+                self._conn.request(
+                    'POST', "/ElasticCTRPredictionService/inference",
+                    request_json, {"Content-Type": "application/json"})
+                response = self._conn.getresponse()
+                return response.read()
+            except http.clinet.HTTPException as e:
+                print e.reason
