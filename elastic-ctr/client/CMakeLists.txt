@@ -4,11 +4,9 @@ file(GLOB sdk_cpp_srcs ${CMAKE_SOURCE_DIR}/sdk-cpp/src/*.cpp)
 list(APPEND elasticctr_srcs ${elastic_ctr_cpp_srcs})
 list(APPEND elasticctr_srcs ${sdk_cpp_srcs})
 list(APPEND elasticctr_srcs
-        ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/api/pybind.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.cpp)
 
 add_library(elasticctr SHARED ${elasticctr_srcs})
-add_dependencies(elasticctr pybind)
 target_link_libraries(elasticctr brpc configure protobuf leveldb -lcrypto
         -lssl -lz -lrt)
 
@@ -16,10 +14,8 @@ set_target_properties(elasticctr PROPERTIES INTERFACE_LINK_LIBRARIES "")
 
 add_executable(elastic_ctr_demo ${CMAKE_CURRENT_LIST_DIR}/demo/demo.cpp)
 set_target_properties(elastic_ctr_demo PROPERTIES LINK_LIBRARIES "")
-target_link_libraries(elastic_ctr_demo elasticctr python -lpthread -lcrypto -lm -lrt
+target_link_libraries(elastic_ctr_demo elasticctr -lpthread -lcrypto -lm -lrt
         -lssl -ldl -lz)
-
-get_filename_component(PYTHON_LIBRARY_REAL_PATH ${PYTHON_LIBRARY} REALPATH)
 
 # install
 install(TARGETS elasticctr elastic_ctr_demo
@@ -27,8 +23,6 @@ install(TARGETS elasticctr elastic_ctr_demo
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin
         LIBRARY DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
-install(FILES ${PYTHON_LIBRARY_REAL_PATH}
-        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
@@ -37,9 +31,6 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/demo/data/ctr_prediction DESTINATION
 install(TARGETS elasticctr
         LIBRARY DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib)
-install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib/libelasticctr.so
-${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib/elasticctr.so)")
 
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/elastic_ctr_api.h
         DESTINATION
@@ -76,11 +67,12 @@ install(DIRECTORY
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/include)
 
 # Python client API
-install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/__init__.py
-        ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/elasticctr.py
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/elastic_ctr_api.py
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/api/lib)
-install(FILES ${CMAKE_CURRENT_LIST_DIR}/demo/demo.py
-        DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
+
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/api/python/elasticctr/elastic_ctr_api.py
+        DESTINATION
+        ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/demo/elastic_ctr.py
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/elastic_ctr/client/bin)

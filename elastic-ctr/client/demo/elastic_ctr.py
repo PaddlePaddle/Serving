@@ -17,6 +17,8 @@ import httplib
 import sys
 import os
 
+from elastic_ctr_api import ElasticCTRAPI
+
 BATCH_SIZE = 3
 SERVING_IP = "127.0.0.1"
 SLOT_CONF_FILE = "./conf/slot.conf"
@@ -53,60 +55,36 @@ def data_reader(data_file, samples, labels):
             samples.append(sample)
 
 
-def read_slots_conf(slots_conf_file, slots):
-    if not os.path.exists(slots_conf_file):
-        print "Path %s not exist" % sltos_conf_file
-        return -1
-    with open(slots_conf_file, "r") as f:
-        for line in f:
-            slots.append(line.rstrip('\n'))
-    print slots
-    return 0
-
-
 if __name__ == "__main__":
     """ main
     """
-    if len(sys.argv) != 4:
-        print "Usage: python elastic_ctr.py SERVING_IP SLOT_CONF_FILE DATA_FILE"
+    if len(sys.argv) != 5:
+        print "Usage: python elastic_ctr.py SERVING_IP SERVING_PORT SLOT_CONF_FILE DATA_FILE"
         sys.exit(-1)
 
     samples = []
     labels = []
 
     SERVING_IP = sys.argv[1]
-    SLOT_CONF_FILE = sys.argv[2]
+    SERVING_PORT = sys.argv[2]
+    SLOT_CONF_FILE = sys.argv[3]
 
-    ret = read_slots_conf(SLOT_CONF_FILE, SLOTS)
+    api = ElasticCTRAPI(SERVING_IP, SERVING_PORT)
+    ret = api.read_slots_conf(SLOT_CONF_FILE)
     if ret != 0:
         sys.exit(-1)
-    print SLOTS
 
-    ret = data_reader(sys.argv[3], samples, labels)
-
-    conn = httplib.HTTPConnection(SERVING_IP, 8010)
+    ret = data_reader(sys.argv[4], samples, labels)
 
     for i in range(0, len(samples) - BATCH_SIZE, BATCH_SIZE):
         batch = samples[i:i + BATCH_SIZE]
         instances = []
         for sample in batch:
-            instance = []
+            instance = api.add_instance()
             kv = []
             for k, v in sample.iteritems():
-                kv += [{"slot_name": k, "feasigns": v}]
-            print kv
-            instance = [{"slots": kv}]
-            instances += instance
-        req = {"instances": instances}
+                api.add_slot(instance, k, v)
 
-        request_json = json.dumps(req)
-        print request_json
-
-        try:
-            conn.request('POST', "/ElasticCTRPredictionService/inference",
-                         request_json, {"Content-Type": "application/json"})
-            response = conn.getresponse()
-            print response.read()
-        except httplib.HTTPException as e:
-            print e.reason
+        ret = api.inference()
+        print ret
         sys.exit(0)
