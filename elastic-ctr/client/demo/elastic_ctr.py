@@ -94,7 +94,6 @@ if __name__ == "__main__":
         instances = []
         for sample in batch:
             instance = api.add_instance()
-            kv = []
             if sys.version_info[0] == 2:
                 for k, v in sample.iteritems():
                     api.add_slot(instance, k, v)
