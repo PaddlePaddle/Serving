@@ -34,7 +34,7 @@ RUN yum -y install wget \
 
 
 
-##GPU版本Dockerfile
+## GPU版本Dockerfile
 
 ```bash
 FROM paddlepaddle/paddle_manylinux_devel:cuda9.0_cudnn7
@@ -53,7 +53,7 @@ RUN yum -y install git openssl-devel curl-devel bzip2-devel \
 
 ## 使用方法
 
-###构建Docker镜像
+### 构建Docker镜像
 
 建立新目录，复制Dockerfile内容到目录下Dockerfile文件
 
