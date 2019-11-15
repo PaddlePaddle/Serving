@@ -16,7 +16,7 @@ openssl & openssl-devel
 
 ## 编译
 
-推荐使用Docker编译Paddle Serving, [镜像Dockerfile](./DOCKER.md)
+推荐使用Docker编译Paddle Serving, [Docker编译使用说明](./DOCKER.md)
 
 ```shell
 $ git clone https://github.com/PaddlePaddle/serving.git
