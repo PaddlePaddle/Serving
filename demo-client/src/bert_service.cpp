@@ -93,9 +93,9 @@ int create_req(Request* req,
         ins->add_input_masks(0.0);
       }
     }
-    ins->set_max_seq_len(max_seq_len);
-    ins->set_emb_size(emb_size);
   }
+  req->set_max_seq_len(max_seq_len);
+  req->set_emb_size(emb_size);
   return 0;
 }
 
@@ -118,8 +118,8 @@ void print_res(const Request& req,
     oss << "]\n";
     LOG(INFO) << "Receive : " << oss.str();
   }
-  LOG(INFO) << "Succ call predictor[ctr_prediction_service], the tag is: "
-            << route_tag << ", elapse_ms: " << elapse_ms;
+  LOG(INFO) << "Succ call predictor[bert_service], the tag is: " << route_tag
+            << ", elapse_ms: " << elapse_ms;
 }
 
 void thread_worker(PredictorApi* api,
