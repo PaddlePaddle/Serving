@@ -2,8 +2,8 @@
 
 ## Docker编译环境要求
 
-+ 开发机上已安装Docker
-+ 编译GPU版本需要安装nvidia-docker
++ 开发机上已安装Docker。
++ 编译GPU版本需要安装nvidia-docker。
 
 [CPU版本Dockerfile](../Dockerfile)
 
@@ -13,7 +13,7 @@
 
 ### 构建Docker镜像
 
-建立新目录，复制Dockerfile内容到该目录下Dockerfile文件
+建立新目录，复制Dockerfile内容到该目录下Dockerfile文件。
 
 执行
 
@@ -65,4 +65,4 @@ docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 
 **备注：** 
 + 若执行预编译版本出现找不到libcrypto.so.10、libssl.so.10的情况，可以将Docker环境中的/usr/lib64/libssl.so.10与/usr/lib64/libcrypto.so.10复制到可执行文件所在目录。
-+ CPU预编译版本仅可在CPU机器上执行，GPU预编译版本仅可在GPU机器上执行
++ CPU预编译版本仅可在CPU机器上执行，GPU预编译版本仅可在GPU机器上执行。
