@@ -1,0 +1,11 @@
+FROM paddlepaddle/paddle_manylinux_devel:cuda9.0_cudnn7
+RUN yum -y install git openssl-devel curl-devel bzip2-devel \
+    && wget https://dl.google.com/go/go1.12.12.linux-amd64.tar.gz \
+    && tar -xzvf go1.12.12.linux-amd64.tar.gz \
+    && rm -rf /usr/local/go \
+    && mv go /usr/local/go \
+    && rm go1.12.12.linux-amd64.tar.gz \
+    && echo "GOROOT=/usr/local/go" >> /root/.bashrc \
+    && echo "GOPATH=$HOME/go" >> /root/.bashrc \
+    && echo "PATH=$PATH:$GOROOT/bin" >> /root/.bashrc
+
