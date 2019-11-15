@@ -43,6 +43,8 @@ docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 
 ## Docker编译出的可执行文件支持的环境列表
 
+经过验证的环境列表如下：
+
 | CPU Docker编译出的可执行文件支持的系统环境 |
 | -------------------------- |
 | Centos6                    |
