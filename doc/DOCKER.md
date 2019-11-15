@@ -1,11 +1,11 @@
-#使用docker编译Paddle Serving
+# 使用Docker编译Paddle Serving
 
-## docker编译环境要求
+## Docker编译环境要求
 
-+ 开发机上已安装docker
++ 开发机上已安装Docker
 + 编译GPU版本需要安装nvidia-docker
 
-## CPU版本dockerfile
+## CPU版本Dockerfile
 
 ```bash
 FROM centos:centos6.10
@@ -34,7 +34,7 @@ RUN yum -y install wget \
 
 
 
-##GPU版本dockerfile
+##GPU版本Dockerfile
 
 ```bash
 FROM paddlepaddle/paddle_manylinux_devel:cuda9.0_cudnn7
@@ -53,9 +53,9 @@ RUN yum -y install git openssl-devel curl-devel bzip2-devel \
 
 ## 使用方法
 
-###构建docker镜像
+###构建Docker镜像
 
-建立新目录，复制dockerfile内容到目录下dockerfile文件
+建立新目录，复制Dockerfile内容到目录下Dockerfile文件
 
 执行
 
@@ -69,7 +69,7 @@ docker build -t serving_compile:cpu .
 docker build -t serving_compile:cuda9 .
 ```
 
-## 进入docker
+## 进入Docker
 
 CPU版本请执行
 
