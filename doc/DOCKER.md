@@ -41,22 +41,32 @@ GPU版本请执行
 docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 ```
 
-## 预编译文件可执行环境列表
+## Docker编译出的可执行文件支持的环境列表
 
-| Docker预编译版本可运行环境 |
+| CPU Docker编译出的可执行文件支持的系统环境 |
 | -------------------------- |
 | Centos6                    |
 | Centos7                    |
 | Ubuntu16.04                |
-| Ubuntu 18.04               |
+| Ubuntu18.04               |
 
 
 
-| GPU Docker预编译版本支持的CUDA版本 |
+| GPU Docker编译出的可执行文件支持的系统环境 |
 | ---------------------------------- |
-| cuda8_cudnn7                       |
-| cuda9_cudnn7                       |
-| cuda10_cudnn7                      |
+| Centos6_cuda8_cudnn7                       |
+| Centos6_cuda9_cudnn7                       |
+| Centos6_cuda10_cudnn7                  |
+| Centos7_cuda8_cudnn7                       |
+| Centos7_cuda9_cudnn7                       |
+| Centos7_cuda10_cudnn7                  |
+| Ubuntu16.04_cuda8_cudnn7                       |
+| Ubuntu16.04_cuda9_cudnn7                       |
+| Ubuntu16.04_cuda10_cudnn7                  |
+| Ubuntu18.04_cuda8_cudnn7                       |
+| Ubuntu18.04_cuda9_cudnn7                       |
+| Ubuntu18.04_cuda10_cudnn7                  |
+
 
 **备注：** 
 + 若执行预编译版本出现找不到libcrypto.so.10、libssl.so.10的情况，可以将Docker环境中的/usr/lib64/libssl.so.10与/usr/lib64/libcrypto.so.10复制到可执行文件所在目录。
