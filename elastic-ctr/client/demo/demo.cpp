@@ -30,7 +30,7 @@ DEFINE_int32(batch_size, 10, "Infernce batch_size");
 DEFINE_string(test_file, "", "test file");
 
 const int VARIABLE_NAME_LEN = 256;
-const int CTR_EMBEDDING_TABLE_SIZE = 400000001;
+const int CTR_EMBEDDING_TABLE_SIZE = 100000001;
 
 struct Sample {
   std::map<std::string, std::vector<uint64_t>> slots;
