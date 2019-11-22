@@ -50,6 +50,9 @@ class ElasticCTRAPI(object):
         self._instances += instance
         return instance
 
+    def clear(self):
+        self._instances = []
+
     def add_slot(self, instance, slot, feasigns):
         if not isinstance(instance, list):
             print("add slot: parameter invalid: instance should be list")
