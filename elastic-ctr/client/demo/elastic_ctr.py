@@ -22,7 +22,7 @@ from elastic_ctr_api import ElasticCTRAPI
 BATCH_SIZE = 3
 SERVING_IP = "127.0.0.1"
 SLOT_CONF_FILE = "./conf/slot.conf"
-CTR_EMBEDDING_TABLE_SIZE = 400000001
+CTR_EMBEDDING_TABLE_SIZE = 100000001
 SLOTS = []
 
 
@@ -43,6 +43,7 @@ def data_reader(data_file, samples, labels):
             sample = {}
             line = line.rstrip('\n')
             feature_slots = line.split(' ')
+            labels.append(int(feature_slots[1]))
             feature_slots = feature_slots[2:]
             feature_slot_maps = [x.split(':') for x in feature_slots]
 
@@ -89,7 +90,9 @@ if __name__ == "__main__":
 
     ret = data_reader(sys.argv[4], samples, labels)
 
+    correct = 0
     for i in range(0, len(samples) - BATCH_SIZE, BATCH_SIZE):
+        api.clear()
         batch = samples[i:i + BATCH_SIZE]
         instances = []
         for sample in batch:
@@ -102,5 +105,22 @@ if __name__ == "__main__":
                     api.add_slot(instance, k, v)
 
         ret = api.inference()
-        print(ret)
-        sys.exit(0)
+        ret = json.loads(ret)
+        predictions = ret["predictions"]
+
+        idx = 0
+        for x in predictions:
+            if x["prob0"] >= x["prob1"]:
+                pred = 0
+            else:
+                pred = 1
+
+            if labels[i + idx] == pred:
+                correct += 1
+            else:
+                print("id=%d predict incorrect: pred=%d label=%d (%f %f)" %
+                      (i + idx, pred, labels[i + idx], x["prob0"], x["prob1"]))
+
+            idx = idx + 1
+
+    print("Acc=%f" % (float(correct) / len(samples)))
