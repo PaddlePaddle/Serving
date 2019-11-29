@@ -1,0 +1,4 @@
+services {
+  name: "ElasticCTRPredictionService"
+  workflows: "workflow1"
+}
