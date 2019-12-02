@@ -81,16 +81,17 @@ func CmdInstsDownload() {
 			}
 		}
 		for i, inst := range Dict.Instances {
-			err := <-chs[i]
-			logex.Noticef("[instance resp]download:%v", Dict.Instances)
-			if err != nil || keyAndRespSlice[i].Success != "0" {
-				logex.Warningf("cmd cube online downlaod of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
-				continue
-			}
-			if inst.Status < dict.Instance_Status_Download_Succ {
-				Dict.Instances[i].Status = dict.Instance_Status_Download_Succ
-				Dict.Instances[i].DownloadedTime = int(time.Now().Unix())
-				Dict.DownloadSuccInsts++
+			if inst.Status != dict.Instance_Status_Download_Succ {
+				err := <-chs[i]
+				if err != nil || keyAndRespSlice[i].Success != "0" {
+					logex.Warningf("cmd cube online downlaod of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
+					continue
+				}
+				if inst.Status < dict.Instance_Status_Download_Succ {
+					Dict.Instances[i].Status = dict.Instance_Status_Download_Succ
+					Dict.Instances[i].DownloadedTime = int(time.Now().Unix())
+					Dict.DownloadSuccInsts++
+				}
 			}
 		}
 		if Dict.DownloadSuccInsts == Dict.InstancesNum {
@@ -130,16 +131,18 @@ func CmdInstsReload() {
 			}
 		}
 		for i, inst := range Dict.Instances {
-			err := <-chs[i]
-			logex.Noticef("[instance resp]reload:%v", Dict.Instances)
-			if err != nil || keyAndRespSlice[i].Success != "0" {
-				logex.Warningf("cmd cube online reload of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
-				continue
-			}
-			if inst.Status < dict.Instance_Status_Reload_Succ {
-				Dict.Instances[i].Status = dict.Instance_Status_Reload_Succ
-				Dict.Instances[i].ReloadedTime = int(time.Now().Unix())
-				Dict.ReloadSuccInsts++
+			if inst.Status != dict.Instance_Status_Reload_Succ {
+				err := <-chs[i]
+				logex.Noticef("[instance resp]reload:%v", Dict.Instances)
+				if err != nil || keyAndRespSlice[i].Success != "0" {
+					logex.Warningf("cmd cube online reload of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
+					continue
+				}
+				if inst.Status < dict.Instance_Status_Reload_Succ {
+					Dict.Instances[i].Status = dict.Instance_Status_Reload_Succ
+					Dict.Instances[i].ReloadedTime = int(time.Now().Unix())
+					Dict.ReloadSuccInsts++
+				}
 			}
 		}
 		if Dict.ReloadSuccInsts == Dict.InstancesNum {
@@ -179,16 +182,18 @@ func CmdInstsEnable() {
 			}
 		}
 		for i, inst := range Dict.Instances {
-			err := <-chs[i]
-			logex.Noticef("[instance resp]enable:%v", Dict.Instances)
-			if err != nil || keyAndRespSlice[i].Success != "0" {
-				logex.Warningf("cmd cube online enable of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
-				continue
-			}
-			if inst.Status < dict.Instance_Status_Enable_Succ {
-				Dict.Instances[i].Status = dict.Instance_Status_Enable_Succ
-				Dict.Instances[i].EnabledTime = int(time.Now().Unix())
-				Dict.EnableSuccInsts++
+			if inst.Status != dict.Instance_Status_Enable_Succ {
+				err := <-chs[i]
+				logex.Noticef("[instance resp]enable:%v", Dict.Instances)
+				if err != nil || keyAndRespSlice[i].Success != "0" {
+					logex.Warningf("cmd cube online enable of %v:%v, shard:%v failed", inst.AgentIp, inst.AgentPort, inst.Shard)
+					continue
+				}
+				if inst.Status < dict.Instance_Status_Enable_Succ {
+					Dict.Instances[i].Status = dict.Instance_Status_Enable_Succ
+					Dict.Instances[i].EnabledTime = int(time.Now().Unix())
+					Dict.EnableSuccInsts++
+				}
 			}
 		}
 		if Dict.EnableSuccInsts == Dict.InstancesNum {
