@@ -19,7 +19,7 @@ import os
 
 from elastic_ctr_api import ElasticCTRAPI
 
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 SERVING_IP = "127.0.0.1"
 SLOT_CONF_FILE = "./conf/slot.conf"
 CTR_EMBEDDING_TABLE_SIZE = 100000001
