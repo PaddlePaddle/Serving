@@ -160,7 +160,6 @@ if __name__ == "__main__":
                     api.add_slot(instance, k, v)
 
         ret = api.inference()
-        continue
         ret = json.loads(ret)
         predictions = ret["predictions"]
 
