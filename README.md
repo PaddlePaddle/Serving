@@ -1,5 +1,16 @@
 # 概述
-PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。
+PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是PaddlePaddle的在线预估服务框架，通过加载PaddlePaddle训练得到的模型，利用PaddlePaddle的预测库，提供机器学习预测云服务。
+
+# 文档
+
+[设计文档](doc/DESIGN.md)
+
+[从零开始写一个预测服务](doc/CREATING.md)
+
+[编译安装](doc/INSTALL.md)
+
+[FAQ](doc/FAQ.md)
+
 
 # 框架简介
 
@@ -80,13 +91,3 @@ Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
 `-- tools                               # CI工具
     `-- codestyle
 ```
-
-# 文档
-
-[设计文档](doc/DESIGN.md)
-
-[从零开始写一个预测服务](doc/CREATING.md)
-
-[编译安装](doc/INSTALL.md)
-
-[FAQ](doc/FAQ.md)
