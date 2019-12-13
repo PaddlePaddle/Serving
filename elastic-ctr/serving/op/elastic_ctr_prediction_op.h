@@ -41,6 +41,8 @@ class ElasticCTRPredictionOp
           baidu::paddle_serving::predictor::elastic_ctr::Response> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
+  typedef std::map<int, std::vector<int64_t>> Sample;
+  typedef std::vector<Sample> Samples;
 
   DECLARE_OP(ElasticCTRPredictionOp);
 
