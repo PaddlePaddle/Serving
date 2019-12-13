@@ -90,7 +90,7 @@ if (${WITH_MKL})
     install(FILES
             ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libmklml_intel.so
                 ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libiomp5.so
-                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.0
+                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.1
                 DESTINATION
                 ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()

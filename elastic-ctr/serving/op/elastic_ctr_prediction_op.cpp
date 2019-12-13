@@ -15,6 +15,7 @@
 #include "elastic-ctr/serving/op/elastic_ctr_prediction_op.h"
 #include <algorithm>
 #include <string>
+#include <iomanip>
 #include "cube/cube-api/include/cube_api.h"
 #include "predictor/framework/infer.h"
 #include "predictor/framework/kv_manager.h"
@@ -70,17 +71,65 @@ int ElasticCTRPredictionOp::inference() {
     return 0;
   }
 
+  Samples samples;
+  samples.resize(req->instances_size());
+
+  for (int i = 0; i < req->instances_size(); ++i) {
+    const ReqInstance &req_instance = req->instances(i);
+    for (int j = 0; j < req_instance.slots_size(); ++j) {
+      const Slot &slot = req_instance.slots(j);
+      for (int k = 0; k < slot.feasigns().size(); ++k) {
+        int slot_id = strtol(slot.slot_name().c_str(), NULL, 10);
+        samples[i][slot_id].push_back(slot.feasigns(k));
+      }
+    }
+  }
+
   // Verify all request instances have same slots
-  int slot_num = req->instances(0).slots_size();
-#if 1
-  LOG(INFO) << "slot_num =" << slot_num;
-#endif
-  for (int i = 1; i < req->instances_size(); ++i) {
-    if (req->instances(i).slots_size() != slot_num) {
+  std::vector<int> slot_ids;
+  for (auto x: samples[0]) {
+    slot_ids.push_back(x.first);
+  }
+  std::sort(slot_ids.begin(), slot_ids.end());
+
+  // use of slot_map:
+  //
+  // Example:
+  // slot_ids: 1, 20, 50, 100
+  //
+  // Then
+  // slot_map[1] = 0
+  // slot_map[20] = 1
+  // slot_map[50] = 2
+  // slot_map[100] = 3
+  //
+  // Later we use slot_map to index into lod_tenor array
+  //
+  std::map<int, int> slot_map;
+  int index = 0;
+  for (auto slot_id: slot_ids) {
+    slot_map[slot_id] = index;
+    ++index;
+  }
+
+  for (size_t i = 1; i < samples.size(); ++i) {
+    if (samples[i].size() != slot_ids.size()) {
       LOG(WARNING) << "Req " << i
                    << " has different slot num with that of req 0";
       fill_response_with_message(
           res, -1, "Req intance has varying slot numbers");
+      return 0;
+    }
+
+    for (auto slot: samples[i]) {
+      int id = slot.first;
+      auto x = std::find(slot_ids.begin(), slot_ids.end(), id);
+      if (x == slot_ids.end()) {
+        std::ostringstream oss;
+        oss << "Req instance " << i << " has an outlier slot id: " << id;
+        fill_response_with_message(res, -1, oss.str().c_str());
+        return 0;
+      }
     }
   }
 
@@ -115,30 +164,27 @@ int ElasticCTRPredictionOp::inference() {
 
   // Level of details of each feature slot
   std::vector<std::vector<size_t>> feature_slot_lods;
-  feature_slot_lods.resize(slot_num);
+  feature_slot_lods.resize(slot_ids.size());
 
   // Number of feature signs in each slot
   std::vector<int> feature_slot_sizes;
-  feature_slot_sizes.resize(slot_num);
+  feature_slot_sizes.resize(slot_ids.size());
 
   // Iterate over each feature slot
-  for (int i = 0; i < slot_num; ++i) {
-    feature_slot_lods[i].push_back(0);
-    feature_slot_sizes[i] = 0;
+  for (auto slot_id: slot_ids) {
+    feature_slot_lods[slot_map[slot_id]].push_back(0);
+    feature_slot_sizes[slot_map[slot_id]] = 0;
 
     // Extract feature i values from each instance si
-    for (int si = 0; si < sample_size; ++si) {
-#if 1
-      LOG(INFO) << "slot " << i << " sample " << si;
-#endif
-      const ReqInstance &req_instance = req->instances(si);
-      const Slot &slot = req_instance.slots(i);
-      feature_slot_lods[i].push_back(feature_slot_lods[i].back() +
-                                     slot.feasigns_size());
-      feature_slot_sizes[i] += slot.feasigns_size();
+    for (size_t si = 0; si < samples.size(); ++si) {
+      Sample &sample = samples[si];
+      std::vector<int64_t> &slot = sample[slot_id];
+      feature_slot_lods[slot_map[slot_id]].push_back(feature_slot_lods[slot_map[slot_id]].back() +
+                                     slot.size());
+      feature_slot_sizes[slot_map[slot_id]] += slot.size();
 
-      for (int j = 0; j < slot.feasigns_size(); ++j) {
-        keys.push_back(slot.feasigns(j));
+      for (size_t j = 0; j < slot.size(); ++j) {
+        keys.push_back(slot[j]);
       }
     }
   }
@@ -234,10 +280,9 @@ int ElasticCTRPredictionOp::inference() {
     return 0;
   }
 
-  for (int i = 0; i < keys.size(); ++i) {
+  for (size_t i = 0; i < keys.size(); ++i) {
     std::ostringstream oss;
     oss << keys[i] << ": ";
-    const char *value = (values[i].buff.data());
     if (values[i].buff.size() !=
         sizeof(float) * CTR_PREDICTION_EMBEDDING_SIZE) {
       LOG(WARNING) << "Key " << keys[i] << " has values less than "
@@ -256,21 +301,20 @@ int ElasticCTRPredictionOp::inference() {
 
   // Fill feature embedding into feed tensors
   std::vector<paddle::PaddleTensor> lod_tensors;
-  lod_tensors.resize(slot_num);
+  lod_tensors.resize(slot_ids.size());
 
-  const ReqInstance &instance = req->instances(0);
-  for (int i = 0; i < slot_num; ++i) {
-    paddle::PaddleTensor &lod_tensor = lod_tensors[i];
+  for (auto slot_id: slot_ids) {
+    paddle::PaddleTensor &lod_tensor = lod_tensors[slot_map[slot_id]];
 
     char name[VARIABLE_NAME_LEN];
     snprintf(name,
              VARIABLE_NAME_LEN,
-             "embedding_%s.tmp_0",
-             instance.slots(i).slot_name().c_str());
+             "embedding_%d.tmp_0",
+             slot_id);
     lod_tensor.name = std::string(name);
 
-    lod_tensors[i].dtype = paddle::PaddleDType::FLOAT32;
-    std::vector<std::vector<size_t>> &lod = lod_tensors[i].lod;
+    lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
+    std::vector<std::vector<size_t>> &lod = lod_tensor.lod;
     lod.resize(1);
     lod[0].push_back(0);
   }
@@ -278,11 +322,11 @@ int ElasticCTRPredictionOp::inference() {
   int base = 0;
 
   // Iterate over all slots
-  for (int i = 0; i < slot_num; ++i) {
-    paddle::PaddleTensor &lod_tensor = lod_tensors[i];
+  for (auto slot_id: slot_ids) {
+    paddle::PaddleTensor &lod_tensor = lod_tensors[slot_map[slot_id]];
     std::vector<std::vector<size_t>> &lod = lod_tensor.lod;
 
-    lod[0] = feature_slot_lods[i];
+    lod[0] = feature_slot_lods[slot_map[slot_id]];
 
     lod_tensor.shape = {lod[0].back(), CTR_PREDICTION_EMBEDDING_SIZE};
     lod_tensor.data.Resize(lod[0].back() * sizeof(float) *
@@ -290,7 +334,7 @@ int ElasticCTRPredictionOp::inference() {
 
     int offset = 0;
     // Copy all slot i feature embeddings to lod_tensor[i]
-    for (uint32_t j = 0; j < feature_slot_sizes[i]; ++j) {
+    for (uint32_t j = 0; j < feature_slot_sizes[slot_map[slot_id]]; ++j) {
       float *data_ptr = static_cast<float *>(lod_tensor.data.data()) + offset;
 
       int idx = base + j;
@@ -303,19 +347,24 @@ int ElasticCTRPredictionOp::inference() {
         return 0;
 #else
         // sizeof(float) * CTR_PREDICTION_EMBEDDING_SIZE = 36
+#if 1
+        LOG(INFO) << "values[" << idx << "].buff.size != 36";
+#endif
         values[idx].buff.append(36, '0');
 #endif
       }
 
       memcpy(data_ptr, values[idx].buff.data(), values[idx].buff.size());
+
       offset += CTR_PREDICTION_EMBEDDING_SIZE;
     }
 
     in->push_back(lod_tensor);
 
     // Bump base counter
-    base += feature_slot_sizes[i];
+    base += feature_slot_sizes[slot_map[slot_id]];
   }
+
 #else
 
   // Fill all tensors

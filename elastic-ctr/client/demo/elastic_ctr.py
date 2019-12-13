@@ -105,13 +105,11 @@ def data_reader(data_file, samples, labels):
 
             for i in range(0, len(features)):
                 if slots[i] in sample:
-                    sample[slots[i]] = [
-                        sample[slots[i]] + str2long(features[i]) %
-                        CTR_EMBEDDING_TABLE_SIZE
-                    ]
+                    sample[slots[i]].append(int(features[i]) %
+                        CTR_EMBEDDING_TABLE_SIZE)
                 else:
                     sample[slots[i]] = [
-                        str2long(features[i]) % CTR_EMBEDDING_TABLE_SIZE
+                        int(features[i]) % CTR_EMBEDDING_TABLE_SIZE
                     ]
 
             for x in SLOTS:
@@ -142,11 +140,11 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     ret = data_reader(sys.argv[4], samples, labels)
-    print(len(samples))
     correct = 0
     wrong_label_1_count = 0
     result_list = []
-    for i in range(0, len(samples) - BATCH_SIZE, BATCH_SIZE):
+    #for i in range(0, len(samples) - BATCH_SIZE, BATCH_SIZE):
+    for i in range(0, len(samples), BATCH_SIZE):
         api.clear()
         batch = samples[i:i + BATCH_SIZE]
         instances = []
@@ -181,7 +179,5 @@ if __name__ == "__main__":
                 #      (i + idx, pred, labels[i + idx], x["prob0"], x["prob1"]))
                 pass
             idx = idx + 1
-    
 
-    #print("Acc=%f" % (float(correct) / len(samples)))
     print("auc = ", auc(labels, result_list) )
