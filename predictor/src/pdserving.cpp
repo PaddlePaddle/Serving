@@ -215,8 +215,10 @@ int main(int argc, char** argv) {
   }
   LOG(INFO) << "Succ initialize cube";
 
+#ifndef BCLOUD
   // FATAL messages are output to stderr
   FLAGS_stderrthreshold = 3;
+#endif
 
   if (ServerManager::instance().start_and_wait() != 0) {
     LOG(ERROR) << "Failed start server and wait!";
