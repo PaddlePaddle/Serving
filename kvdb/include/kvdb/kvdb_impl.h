@@ -31,6 +31,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <functional>
 class AbstractKVDB;
 class FileReader;
 class ParamDict;
