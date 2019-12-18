@@ -1,9 +1,11 @@
-# 使用Docker编译Paddle Serving
+# Docker编译环境准备
 
-## Docker编译环境要求
+## 环境要求
 
 + 开发机上已安装Docker。
 + 编译GPU版本需要安装nvidia-docker。
+
+## Dockerfile文件
 
 [CPU版本Dockerfile](../Dockerfile)
 
