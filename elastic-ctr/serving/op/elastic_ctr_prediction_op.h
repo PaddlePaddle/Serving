@@ -14,15 +14,7 @@
 
 #pragma once
 #include <vector>
-#ifdef BCLOUD
-#ifdef WITH_GPU
-#include "paddle/paddle_inference_api.h"
-#else
-#include "paddle/fluid/inference/api/paddle_inference_api.h"
-#endif
-#else
 #include "paddle_inference_api.h"  // NOLINT
-#endif
 #include "elastic-ctr/serving/elastic_ctr_prediction.pb.h"
 
 namespace baidu {
@@ -41,6 +33,8 @@ class ElasticCTRPredictionOp
           baidu::paddle_serving::predictor::elastic_ctr::Response> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
+  typedef std::map<int, std::vector<int64_t>> Sample;
+  typedef std::vector<Sample> Samples;
 
   DECLARE_OP(ElasticCTRPredictionOp);
 
