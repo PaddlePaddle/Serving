@@ -162,7 +162,8 @@ int main(int argc, char** argv) {
 
   api.thrd_initialize();
 
-  while (true) {
+  int count = 0;
+  while (count < 10) {
     timeval start;
     gettimeofday(&start, NULL);
 
@@ -200,7 +201,7 @@ int main(int argc, char** argv) {
     print_res(req, res, predictor->tag(), elapse_ms);
     res.Clear();
 
-    usleep(50);
+    ++count;
   }  // while (true)
 
   api.thrd_finalize();
