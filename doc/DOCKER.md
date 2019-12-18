@@ -1,9 +1,11 @@
-# 使用Docker编译Paddle Serving
+# Docker编译环境准备
 
-## Docker编译环境要求
+## 环境要求
 
 + 开发机上已安装Docker。
 + 编译GPU版本需要安装nvidia-docker。
+
+## Dockerfile文件
 
 [CPU版本Dockerfile](../Dockerfile)
 
@@ -56,10 +58,8 @@ docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 
 | GPU Docker编译出的可执行文件支持的系统环境 |
 | ---------------------------------- |
-| Centos6_cuda8_cudnn7                       |
 | Centos6_cuda9_cudnn7                       |
 | Centos7_cuda9_cudnn7                  |
-| Ubuntu16.04_cuda8_cudnn7                       |
 | Ubuntu16.04_cuda9_cudnn7                       |
 | Ubuntu16.04_cuda10_cudnn7                  |
 
