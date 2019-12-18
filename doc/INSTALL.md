@@ -4,21 +4,25 @@
 
 OS: Linux
 
-CMake: (验证过的版本：3.2)
+CMake: (验证过的版本：3.2/3.5.2)
 
 C++编译器 (验证过的版本：GCC 4.8.2/5.4.0)
 
 python (验证过的版本：2.7)
 
-Go编译器 (验证过的版本：1.9.2/1.12.0)
+Go编译器 (>=1.8 验证过的版本：1.9.2/1.12.0)
 
 openssl & openssl-devel
 
+curl-devel
+
+bzip2-devel
+
 ## 编译
 
-推荐使用Docker准备Paddle Serving编译环境. [Docker编译使用说明](./DOCKER.md)
+推荐使用Docker准备Paddle Serving编译环境。[Docker编译使用说明](./DOCKER.md)
 
-以下命令将会下载Paddle Serving最新代码，并执行编译
+以下命令将会下载Paddle Serving最新代码，并执行编译。
 
 ```shell
 $ git clone https://github.com/PaddlePaddle/Serving.git
