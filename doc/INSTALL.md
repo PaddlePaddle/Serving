@@ -26,7 +26,7 @@ bzip2-devel
 
 ```shell
 $ git clone https://github.com/PaddlePaddle/Serving.git
-$ cd serving
+$ cd Serving
 $ mkdir build
 $ cd build
 $ cmake ..
