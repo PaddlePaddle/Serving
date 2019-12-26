@@ -73,7 +73,7 @@ class BertService():
             server_ip = server.split(':')[0]
             server_port = int(server.split(':')[1])
             client.connect((server_ip, server_port))
-            client.send('pending server')
+            client.send(b'pending server')
             response = client.recv(1024).decode()
 
             response_list = response.split('\t')
