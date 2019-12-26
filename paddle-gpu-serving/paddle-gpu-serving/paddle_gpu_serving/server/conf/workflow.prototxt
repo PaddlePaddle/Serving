@@ -1,0 +1,94 @@
+workflows {
+  name: "workflow1"
+  workflow_type: "Sequence"
+  nodes {
+    name: "dense_echo_op"
+    type: "DenseEchoOp"
+  }
+}
+
+workflows {
+  name: "workflow2"
+  workflow_type: "Sequence"
+  nodes {
+    name: "sparse_echo_op"
+    type: "SparseEchoOp"
+    dependencies {
+      name: "startup_op"
+      mode: "RO"
+    }
+  }
+}
+workflows {
+  name: "workflow3"
+  workflow_type: "Sequence"
+  nodes {
+    name: "echo_op"
+    type: "CommonEchoOp"
+  }
+}
+workflows {
+  name: "workflow4"
+  workflow_type: "Sequence"
+  nodes {
+    name: "image_reader_op"
+    type: "ReaderOp"
+  }
+  nodes {
+    name: "image_classify_op"
+    type: "ClassifyOp"
+    dependencies {
+      name: "image_reader_op"
+      mode: "RO"
+    }
+  }
+  nodes {
+    name: "write_json_op"
+    type: "WriteJsonOp"
+    dependencies {
+      name: "image_classify_op"
+      mode: "RO"
+    }
+  }
+}
+workflows {
+  name: "workflow5"
+  workflow_type: "Sequence"
+  nodes {
+    name: "int64tensor_echo_op"
+    type: "Int64TensorEchoOp"
+  }
+}
+workflows {
+  name: "workflow6"
+  workflow_type: "Sequence"
+  nodes {
+    name: "text_classify_op"
+    type: "TextClassificationOp"
+  }
+}
+workflows {
+  name: "workflow7"
+  workflow_type: "Sequence"
+  nodes {
+    name: "echo_kvdb_service_op"
+    type: "KVDBEchoOp"
+  } 
+}
+workflows {
+  name: "workflow8"
+  workflow_type: "Sequence"
+  nodes {
+    name: "ctr_prediction_service_op"
+    type: "CTRPredictionOp"
+  } 
+}
+workflows {
+  name: "workflow9"
+  workflow_type: "Sequence"
+  nodes {
+    name: "bert_service_op"
+    type: "BertServiceOp"
+  }
+}
+
