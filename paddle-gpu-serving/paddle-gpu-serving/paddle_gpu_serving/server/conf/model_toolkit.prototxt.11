@@ -3,7 +3,7 @@ engines {
   type: "FLUID_GPU_ANALYSIS_DIR"
   reloadable_meta: "./data/model/paddle/fluid_time_file"
   reloadable_type: "timestamp_ne"
-  model_data_path: "/home/xulongteng/.paddlehub/bert_service/bert_chinese_L-12_H-768_A-12"
+  model_data_path: "./data/model/paddle/fluid/"
   runtime_thread_num: 0
   batch_infer_size: 0
   enable_batch_align: 0
