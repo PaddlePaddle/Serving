@@ -35,7 +35,6 @@ using baidu::paddle_serving::predictor::bert_service::EmbeddingValues;
 extern int batch_size = 1;
 extern int max_seq_len = 128;
 extern int layer_num = 12;
-extern int emb_size = 768;
 extern int thread_num = 1;
 extern int max_turn = 1000;
 
@@ -95,7 +94,6 @@ int create_req(Request* req,
     }
   }
   req->set_max_seq_len(max_seq_len);
-  req->set_emb_size(emb_size);
   return 0;
 }
 
