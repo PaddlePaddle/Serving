@@ -59,7 +59,7 @@ int BertServiceOp::inference() {
   }
 
   const int64_t MAX_SEQ_LEN = req->max_seq_len();
-  const int64_t EMB_SIZE = req->emb_size();
+  // const int64_t EMB_SIZE = req->emb_size();
 
   paddle::PaddleTensor src_ids;
   paddle::PaddleTensor pos_ids;
@@ -172,13 +172,14 @@ int BertServiceOp::inference() {
 
   LOG(INFO) << "batch_size : " << out->at(0).shape[0]
             << " emb_size : " << out->at(0).shape[1];
+  uint32_t emb_size = out->at(0).shape[1];
   float *out_data = reinterpret_cast<float *>(out->at(0).data.data());
   for (uint32_t bi = 0; bi < batch_size; bi++) {
     BertResInstance *res_instance = res->add_instances();
     for (uint32_t si = 0; si < 1; si++) {
       EmbeddingValues *emb_instance = res_instance->add_instances();
-      for (uint32_t ei = 0; ei < EMB_SIZE; ei++) {
-        uint32_t index = bi * EMB_SIZE + ei;
+      for (uint32_t ei = 0; ei < emb_size; ei++) {
+        uint32_t index = bi * emb_size + ei;
         emb_instance->add_values(out_data[index]);
       }
     }

@@ -1,0 +1,11 @@
+engines {
+  name: "bert"
+  type: "FLUID_GPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+  enable_memory_optimization: 1
+}
