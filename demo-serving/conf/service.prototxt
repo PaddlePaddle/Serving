@@ -39,3 +39,7 @@ services {
   name: "BertService"
   workflows: "workflow9"
 }
+services {
+  name: "LoadGeneralModelService"
+  workflows: "workflow10"
+}

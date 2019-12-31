@@ -91,4 +91,11 @@ workflows {
     type: "BertServiceOp"
   }
 }
-
+workflows {
+  name: "workflow10"
+  workflow_type: "Sequence"
+  nodes {
+    name: "load_general_model_conf_op"
+    type: "LoadGeneralModelConfOp"
+  }
+}
