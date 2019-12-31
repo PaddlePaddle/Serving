@@ -2,6 +2,7 @@ LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/proto/server_configure.proto
         ${CMAKE_CURRENT_LIST_DIR}/proto/sdk_configure.proto
         ${CMAKE_CURRENT_LIST_DIR}/proto/inferencer_configure.proto
+	${CMAKE_CURRENT_LIST_DIR}/proto/general_model_config.proto
 )
 
 PROTOBUF_GENERATE_CPP(configure_proto_srcs configure_proto_hdrs ${protofiles})

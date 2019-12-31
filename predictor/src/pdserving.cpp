@@ -216,6 +216,17 @@ int main(int argc, char** argv) {
   LOG(INFO) << "Succ initialize cube";
 
 #ifndef BCLOUD
+
+  if (Resource::instance().general_model_initialize(
+          FLAGS_general_model_path, FLAGS_general_model_file) != 0) {
+    LOG(ERROR) << "Failed to initialize general model conf: "
+               << FLAGS_general_model_path << "/"
+               << FLAGS_general_model_file;
+    return -1;
+  }
+
+  LOG(INFO) << "Succ initialize general model"
+
   // FATAL messages are output to stderr
   FLAGS_stderrthreshold = 3;
 #endif
