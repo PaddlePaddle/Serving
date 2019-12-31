@@ -45,6 +45,8 @@ using baidu::paddle_serving::predictor::FLAGS_logger_path;
 using baidu::paddle_serving::predictor::FLAGS_logger_file;
 using baidu::paddle_serving::predictor::FLAGS_resource_path;
 using baidu::paddle_serving::predictor::FLAGS_resource_file;
+using baidu::paddle_serving::predictor::FLAGS_general_model_path;
+using baidu::paddle_serving::predictor::FLAGS_general_model_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
 
@@ -225,7 +227,7 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  LOG(INFO) << "Succ initialize general model"
+  LOG(INFO) << "Succ initialize general model";
 
   // FATAL messages are output to stderr
   FLAGS_stderrthreshold = 3;
