@@ -31,6 +31,8 @@ DECLARE_string(logger_path);
 DECLARE_string(logger_file);
 DECLARE_string(resource_path);
 DECLARE_string(resource_file);
+DECLARE_string(general_model_path);
+DECLARE_string(general_model_file);
 DECLARE_bool(enable_mc_cache);
 DECLARE_bool(enable_nshead_protocol);
 DECLARE_string(nshead_protocol);
@@ -40,6 +42,7 @@ DECLARE_int32(reload_interval_s);
 DECLARE_bool(enable_model_toolkit);
 DECLARE_string(enable_protocol_list);
 DECLARE_bool(enable_cube);
+DECLARE_bool(enable_general_model);
 
 // STATIC Variables
 extern const char* START_OP_NAME;

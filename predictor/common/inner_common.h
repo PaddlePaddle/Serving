@@ -54,6 +54,7 @@
 
 #include "configure/include/configure_parser.h"
 #include "configure/server_configure.pb.h"
+#include "configure/general_model_config.pb.h"
 
 #include "predictor/common/constant.h"
 #include "predictor/common/types.h"
