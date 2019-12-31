@@ -87,6 +87,11 @@ class Resource {
 
   int finalize();
 
+  std::shared_ptr<PaddleGeneralModelConfig> get_general_model_config();
+
+  void print_general_model_config(
+      const std::shared_ptr<PaddleGeneralModelConfig> & config);
+
   std::shared_ptr<RocksDBWrapper> getDB();
 
   DynamicResource* get_dynamic_resource() {
