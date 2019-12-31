@@ -21,7 +21,7 @@ namespace paddle_serving {
 namespace predictor {
 
 using configure::ResourceConf;
-using configure::GeneralModelConf;
+using configure::GeneralModelConfig;
 using configure::Shape;
 using rec::mcube::CubeAPI;
 // __thread bool p_thread_initialized = false;
@@ -104,29 +104,29 @@ int Resource::general_model_initialize(
     return 0;
   }
 
-  GeneralModelConf model_config;
+  GeneralModelConfig model_config;
   if (configure::read_proto_conf(path, file, &model_config) != 0) {
     LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
     return -1;
   }
 
   _config.reset(new PaddleGeneralModelConfig());
-  _config->_feed_type.resize(model_config.is_feed_type_size());
+  _config->_feed_type.resize(model_config.feed_type_size());
   _config->_is_lod_feed.resize(model_config.is_lod_feed_size());
   _config->_capacity.resize(model_config.feed_shape_size());
   _config->_feed_shape.resize(model_config.feed_shape_size());
   for (int i = 0; i < model_config.is_lod_feed_size(); ++i) {
-    _config->feed_type[i] = model_config.feed_type(i);
+    _config->_feed_type[i] = model_config.feed_type(i);
     if (model_config.is_lod_feed(i)) {
       _config->_feed_shape[i] = {-1};
       _config->_is_lod_feed[i] = true;
     } else {
-      _config->capacity[i] = 1;
+      _config->_capacity[i] = 1;
       _config->_is_lod_feed[i] = false;
       for (int j = 0; j < model_config.feed_shape(i).shape_size(); ++j) {
-        int dim = model_cnofig.feed_shape(i).shape(j);
+        int dim = model_config.feed_shape(i).shape(j);
         _config->_feed_shape[i].push_back(dim);
-        _config->capacity[i] *= dim;
+        _config->_capacity[i] *= dim;
       }
     }
   }

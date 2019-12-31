@@ -41,6 +41,9 @@ DEFINE_int32(reload_interval_s, 10, "");
 DEFINE_bool(enable_model_toolkit, false, "enable model toolkit");
 DEFINE_string(enable_protocol_list, "baidu_std", "set protocol list");
 DEFINE_bool(enable_cube, false, "enable cube");
+DEFINE_string(general_model_path, "./conf", "");
+DEFINE_string(general_model_file, "general_model.prototxt", "");
+DEFINE_bool(enable_general_model, false, "enable general model");
 
 const char* START_OP_NAME = "startup_op";
 }  // namespace predictor

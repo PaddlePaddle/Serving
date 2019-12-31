@@ -27,11 +27,10 @@ namespace paddle_serving {
 namespace predictor {
 
 class PaddleGeneralModelConfig {
-  PaddleGeneralModelConfig();
+ public:
+  PaddleGeneralModelConfig() {}
 
-  ~PaddleGeneralModelConfig();
-
-  void load_config(std::string);
+  ~PaddleGeneralModelConfig() {}
 
  public:
   
