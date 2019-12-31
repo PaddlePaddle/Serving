@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "predictor/framework/resource.h"
+#include <sstream>
 #include <string>
 #include "predictor/common/inner_common.h"
 #include "predictor/framework/kv_manager.h"
@@ -40,6 +41,53 @@ DynamicResource::~DynamicResource() {}
 int DynamicResource::initialize() { return 0; }
 
 std::shared_ptr<RocksDBWrapper> Resource::getDB() { return db; }
+
+std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
+  return _config;
+}
+
+void Resource::print_general_model_config(
+    const std::shared_ptr<PaddleGeneralModelConfig> & config) {
+  if (config == nullptr) {
+    LOG(INFO) << "paddle general model config is not set";
+    return;
+  }
+  LOG(INFO) << "Number of Feed Tensor: " << config->_feed_type.size();
+  std::ostringstream oss;
+  LOG(INFO) << "Feed Type Info";
+  for (auto & feed_type : config->_feed_type) {
+    oss << feed_type << " ";
+  }
+  LOG(INFO) << oss.str();
+  oss.clear();
+  oss.str("");
+  LOG(INFO) << "Lod Type Info";
+
+  for (auto is_lod : config->_is_lod_feed) {
+    oss << is_lod << " ";
+  }
+
+  LOG(INFO) << oss.str();
+  oss.clear();
+  oss.str("");
+  LOG(INFO) << "Capacity Info";
+  for (auto & cap : config->_capacity) {
+    oss << cap << " ";
+  }
+  LOG(INFO) << oss.str();
+  oss.clear();
+  oss.str("");
+  LOG(INFO) << "Feed Shape Info";
+  int tensor_idx = 0;
+  for (auto & shape : config->_feed_shape) {
+    for (auto & dim : shape) {
+      oss << dim << " ";
+    }
+    LOG(INFO) << "Tensor[" << tensor_idx++ << "].shape: " << oss.str();
+    oss.clear();
+    oss.str("");
+  }
+}
 
 int DynamicResource::clear() { return 0; }
 
@@ -130,6 +178,7 @@ int Resource::general_model_initialize(
       }
     }
   }
+  return 0;
 }
 
 int Resource::cube_initialize(const std::string& path,
