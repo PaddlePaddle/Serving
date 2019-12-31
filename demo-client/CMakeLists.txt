@@ -25,6 +25,11 @@ target_link_libraries(ximage_press -Wl,--whole-archive sdk-cpp
                -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl
         -lz)
 
+add_executable(load_general_model ${CMAKE_CURRENT_LIST_DIR}/src/load_general_model.cpp)
+target_link_libraries(load_general_model -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
+        -lpthread -lcrypto -lm -lrt -lssl -ldl
+        -lz)
+
 add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/src/echo.cpp)
 target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
         -lpthread -lcrypto -lm -lrt -lssl -ldl
