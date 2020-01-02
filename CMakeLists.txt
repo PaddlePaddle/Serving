@@ -73,6 +73,8 @@ include(external/gflags)
 include(external/glog)
 include(external/snappy)
 include(external/gtest)
+include(external/pybind11)
+include(external/python)
 include(generic)
 include(flags)
 
