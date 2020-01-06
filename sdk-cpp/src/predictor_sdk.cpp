@@ -58,6 +58,8 @@ int PredictorApi::create(const char* path, const char* file) {
       return -1;
     }
 
+    LOG(INFO) << "endpoint name: " << ep_info.endpoint_name;
+
     std::pair<std::map<std::string, Endpoint*>::iterator, bool> r =
         _endpoints.insert(std::make_pair(ep_info.endpoint_name, ep));
     if (!r.second) {
