@@ -43,14 +43,17 @@ int GeneralModelOp::inference() {
   std::vector<int> elem_type;
   std::vector<int> elem_size;
   std::vector<int> capacity;
+
   if (batch_size > 0) {
     int var_num = req->insts(0).tensor_array_size();
+    VLOG(3) << "var num: " << var_num;
     elem_type.resize(var_num);
     elem_size.resize(var_num);
     capacity.resize(var_num);
     paddle::PaddleTensor lod_tensor;
     for (int i = 0; i < var_num; ++i) {
       elem_type[i] = req->insts(0).tensor_array(i).elem_type();
+      VLOG(3) << "var[" << i << "] has elem type: " << elem_type[i];
       if (elem_type[i] == 0) {  // int64
         elem_size[i] = sizeof(int64_t);
         lod_tensor.dtype = paddle::PaddleDType::INT64;
@@ -58,9 +61,11 @@ int GeneralModelOp::inference() {
         elem_size[i] = sizeof(float);
         lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
       }
+
       if (req->insts(0).tensor_array(i).shape(0) == -1) {
         lod_tensor.lod.resize(1);
         lod_tensor.lod[0].push_back(0);
+        VLOG(3) << "var[" << i << "] is lod_tensor";
       } else {
         lod_tensor.shape.push_back(batch_size);
         capacity[i] = 1;
@@ -68,42 +73,76 @@ int GeneralModelOp::inference() {
              k < req->insts(0).tensor_array(i).shape_size();
              ++k) {
           int dim = req->insts(0).tensor_array(i).shape(k);
+          VLOG(3) << "shape for var[" << i << "]: " << dim;
           capacity[i] *= dim;
           lod_tensor.shape.push_back(dim);
         }
+        VLOG(3) << "var[" << i << "] is tensor, capacity: " << capacity[i];
+      }
+      if (i == 0) {
+        lod_tensor.name = "words";
+      } else {
+        lod_tensor.name = "label";
       }
       in->push_back(lod_tensor);
     }
 
     for (int i = 0; i < var_num; ++i) {
-      if ((*in)[i].lod.size() > 0) {
+      if (in->at(i).lod.size() == 1) {
         for (int j = 0; j < batch_size; ++j) {
           const Tensor & tensor = req->insts(j).tensor_array(i);
-          int data_len = tensor.data_size() / elem_size[i];
-          int cur_len = (*in)[i].lod[0].back();
-          (*in)[i].lod[0].push_back(cur_len + data_len);
+          int data_len = tensor.data_size();
+          VLOG(3) << "tensor size for var[" << i << "]: "
+                  << tensor.data_size();
+          int cur_len = in->at(i).lod[0].back();
+          VLOG(3) << "current len: " << cur_len;
+          in->at(i).lod[0].push_back(cur_len + data_len);
+          VLOG(3) << "new len: " << cur_len + data_len;
         }
-        (*in)[i].data.Resize((*in)[i].lod[0].back());
+        in->at(i).data.Resize(in->at(i).lod[0].back() * elem_size[i]);
+        in->at(i).shape = {in->at(i).lod[0].back(), 1};
+        VLOG(3) << "var[" << i << "] is lod_tensor and len="
+                << in->at(i).lod[0].back();
       } else {
-        (*in)[i].data.Resize(batch_size * capacity[i]);
+        in->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
+        VLOG(3) << "var[" << i << "] is tensor and capacity="
+                << batch_size * capacity[i];
       }
     }
 
     for (int i = 0; i < var_num; ++i) {
-      void * dst_ptr = (*in)[i].data.data();
-      int offset = 0;
-      for (int j = 0; j < batch_size; ++j) {
-        memcpy(dst_ptr + offset,
-               (void *)(req->insts(j).tensor_array(i).data().data()),
-               req->insts(j).tensor_array(i).data_size() * elem_size[i]);
-        if ((*in)[i].lod.size() > 0) {
-          offset += (*in)[i].lod[0][j + 1] * elem_size[i];
-        } else {
-          offset += capacity[i] * elem_size[i];
+      if (elem_type[i] == 0) {
+        int64_t * dst_ptr = static_cast<int64_t *>(in->at(i).data.data());
+        int offset = 0;
+        for (int j = 0; j < batch_size; ++j) {
+          for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
+            dst_ptr[offset + k] =
+                *(const int64_t *)req->insts(j).tensor_array(i).data(k).c_str();
+          }
+          if (in->at(i).lod.size() == 1) {
+            offset = in->at(i).lod[0][j + 1];
+          } else {
+            offset += capacity[i];
+          }
+        }
+      } else {
+        float * dst_ptr = static_cast<float *>(in->at(i).data.data());
+        int offset = 0;
+        for (int j = 0; j < batch_size; ++j) {
+          for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
+            dst_ptr[offset + k] =
+                *(const float *)req->insts(j).tensor_array(i).data(k).c_str();
+          }
+          if (in->at(i).lod.size() == 1) {
+            offset = in->at(i).lod[0][j + 1];
+          } else {
+            offset += capacity[i];
+          }
         }
       }
     }
 
+    VLOG(3) << "going to infer";
     TensorVector *out = butil::get_object<TensorVector>();
     if (!out) {
       LOG(ERROR) << "Failed get tls output object";
@@ -119,44 +158,42 @@ int GeneralModelOp::inference() {
 
     Response * res = mutable_data<Response>();
     
-    // we suppose the dtype of all fetch variables is float
     for (int i = 0; i < batch_size; ++i) {
       FetchInst * fetch_inst = res->add_insts();
       for (int j = 0; j < out->size(); ++j) {
         Tensor * tensor = fetch_inst->add_tensor_array();
         tensor->set_elem_type(1);
-        if ((*out)[j].lod.size() > 0) {
+        if (out->at(j).lod.size() == 1) {
           tensor->add_shape(-1);
-          tensor->mutable_data()->Reserve(
-              (*out)[j].lod[0].back() * sizeof(float));
         } else {
-          int cap = 1;
-          for (int k = 1; k < (*out)[j].shape.size(); ++k) {
-            cap *= (*out)[j].shape[k];
-            tensor->add_shape((*out)[j].shape[k]);
+          for (int k = 1; k < out->at(j).shape.size(); ++k) {
+            tensor->add_shape(out->at(j).shape[k]);
           }
-          tensor->mutable_data()->Reserve(cap * sizeof(float));
         }
       }
     }
 
     for (int i = 0; i < out->size(); ++i) {
-      if ((*out)[i].lod.size() > 0) {
+      float * data_ptr = static_cast<float *>(out->at(i).data.data());
+      int cap = 1;
+      for (int j = 0; j < out->at(i).shape.size(); ++j) {
+        cap *= out->at(i).shape[j];
+      }
+      if (out->at(i).lod.size() == 1) {
         for (int j = 0; j < batch_size; ++j) {
-          Tensor * tensor = res->mutable_insts(j)->mutable_tensor_array(i);
-          void * dst_ptr = tensor->mutable_data()->mutable_data();
-          memcpy(dst_ptr,
-                 (*out)[i].data.data() + (*out)[i].lod[0][j] * elem_size[i],
-                 ((*out)[i].lod[0][j + 1] - (*out)[i].lod[0][j])
-                 * elem_size[i]);
+          for (int k = out->at(i).lod[0][j];
+               k < out->at(i).lod[0][j + 1];
+               k++) {
+            res->mutable_insts(j)->mutable_tensor_array(i)->add_data(
+                (char *)(&(data_ptr[k])), sizeof(float));
+          }
         }
       } else {
         for (int j = 0; j < batch_size; ++j) {
-          Tensor * tensor = res->mutable_insts(j)->mutable_tensor_array(i);
-          void * dst_ptr = tensor->mutable_data()->mutable_data();
-          memcpy(dst_ptr,
-                 (*out)[i].data.data() + j * capacity[i] * elem_size[i],
-                 capacity[i] * elem_size[i]);
+          for (int k = j * cap; k < (j + 1) * cap; ++k) {
+            res->mutable_insts(j)->mutable_tensor_array(i)->add_data(
+                (char *)(&(data_ptr[k])), sizeof(float));
+          }
         }
       }
     }
