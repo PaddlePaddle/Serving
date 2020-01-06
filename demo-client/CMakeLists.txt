@@ -31,9 +31,13 @@ target_link_libraries(load_general_model -Wl,--whole-archive sdk-cpp -Wl,--no-wh
         -lz)
 
 add_library(paddle_serving_client SHARED src/general_model.cpp src/pybind_general_model.cpp)
-add_dependencies(paddle_serving_client pybind)
-target_link_libraries(paddle_serving_client brpc configure protobuf leveldb -lcrypto
+target_link_libraries(paddle_serving_client brpc configure protobuf leveldb pybind python -lcrypto
         -lssl -lz -lrt)
+
+add_executable(general_model_main ${CMAKE_CURRENT_LIST_DIR}/src/general_model_main.cpp)
+target_link_libraries(general_model_main -Wl,--whole-archive sdk-cpp paddle_serving_client -Wl,--no-whole-archive
+        -lpthread -lcrypto -lm -lrt -lssl -ldl
+	-lz)
 
 add_executable(echo ${CMAKE_CURRENT_LIST_DIR}/src/echo.cpp)
 target_link_libraries(echo -Wl,--whole-archive sdk-cpp -Wl,--no-whole-archive
