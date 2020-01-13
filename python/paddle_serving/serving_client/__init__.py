@@ -34,7 +34,7 @@ class SDKConfig(object):
 
         variant_desc = sdk.VariantConf()
         variant_desc.tag = "var1"
-        variant_desc.naming_conf.cluster = "list://%s".format(":".join(self.endpoints))
+        variant_desc.naming_conf.cluster = "list://{}".format(":".join(self.endpoints))
 
         predictor_desc.variants.extend([variant_desc])
 
