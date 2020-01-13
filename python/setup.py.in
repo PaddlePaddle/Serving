@@ -33,10 +33,13 @@ REQUIRED_PACKAGES = [
 ]
 
 packages=['paddle_serving',
-          'paddle_serving.serving_client']
+          'paddle_serving.serving_client',
+          'paddle_serving.proto']
 package_data={'paddle_serving.serving_client': ['serving_client.so']}
 package_dir={'paddle_serving.serving_client':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_client'}
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_client',
+             'paddle_serving.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/proto'}
 
 setup(
     name='paddle-serving-client',
