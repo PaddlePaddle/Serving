@@ -37,6 +37,7 @@ namespace general_model {
 
 typedef std::map<std::string, std::vector<float>> FetchedMap;
 
+
 class PredictorClient {
  public:
   PredictorClient() {}
