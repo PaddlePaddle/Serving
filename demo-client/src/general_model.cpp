@@ -15,7 +15,6 @@
 #include <fstream>
 #include "general_model.h"
 #include "sdk-cpp/builtin_format.pb.h"
-#include "sdk-cpp/load_general_model_service.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
 
