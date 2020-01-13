@@ -137,6 +137,8 @@ add_subdirectory(sdk-cpp)
 if(CLIENT_ONLY)
 add_subdirectory(general-client)
 add_subdirectory(python)
+set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE})
+set(PYTHON_LIBRARIES ${PYTHON_LIB})
 endif()
 
 if (NOT CLIENT_ONLY)
