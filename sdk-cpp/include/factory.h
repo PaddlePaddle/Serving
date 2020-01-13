@@ -98,7 +98,6 @@ namespace brpc = baidu::rpc;
 #define REGIST_STUB_OBJECT_WITH_TAG(D, C, R, I, O, T)                      \
   __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject, \
                                                        __LINE__)(void) {   \
-    RAW_LOG_INFO("REGIST_STUB_OBJECT_WITH_TAG");                           \
     ::baidu::paddle_serving::sdk_cpp::Factory<                             \
         ::baidu::paddle_serving::sdk_cpp::StubImpl<D, C, R, I, O>,         \
         ::baidu::paddle_serving::sdk_cpp::Stub>* factory =                 \
@@ -157,10 +156,6 @@ class FactoryPool {
       RAW_LOG_ERROR("Failed insert new factory with: %s", tag.c_str());
       return -1;
     }
-
-    RAW_LOG_INFO("Succ insert one factory, tag: %s, base type %s",
-                 tag.c_str(),
-                 typeid(B).name());
 
     return 0;
   }
