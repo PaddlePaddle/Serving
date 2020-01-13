@@ -17,7 +17,7 @@ add_custom_command(
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_CLIENT_CORE} sdk_configure_py_proto ${PY_FILES})
 
-add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
 
 set(SERVING_CLIENT_PYTHON_PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/dist/)
 
