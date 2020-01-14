@@ -56,13 +56,13 @@ if __name__ == "__main__":
     exe.run(fluid.default_startup_program())
     epochs = 30
     save_dirname = "cnn_model"
+
     for i in range(epochs):
         exe.train_from_dataset(program=fluid.default_main_program(),
                                dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         fluid.io.save_inference_model("%s/epoch%d.model" % (save_dirname, i),
                                       [data.name, label.name], [acc], exe)
-        serving.io.save_model("%s/epoch%d.model" % (save_dirname, i),
-                              ["words", "label"], {"acc": acc}, exe)
-
-
+        serving.save_model("%s/epoch%d.model" % (save_dirname, i), "client_config{}".format(i),
+                           {"words": data, "label": label},
+                           {"acc": acc, "cost": avg_cost, "prediction": prediction})

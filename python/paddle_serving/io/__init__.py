@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from paddle.fluid import Executor
 from paddle.fluid.compiler import CompiledProgram
 from paddle.fluid.framework import Program
+from paddle.fluid.framework import default_main_program
+from paddle.fluid import CPUPlace
+from paddle.fluid.io import save_persistables
+import os
 
 def save_model(server_model_folder,
                client_config_folder,
@@ -30,10 +35,30 @@ def save_model(server_model_folder,
     if not isinstance(main_program, Program):
         raise TypeError("program should be as Program type or None")
 
-    executor = Executor(place=paddle.fluid.CPUPlace())
-    paddle.fluid.io.save_persistables(executor, server_model_folder,
-                                      main_program)
-    
+    executor = Executor(place=CPUPlace())
+
+    save_persistables(executor, server_model_folder,
+                      main_program)
+
+    cmd = "mkdir -p {}".format(client_config_folder)
+    os.system(cmd)
+    with open("{}/client.conf".format(client_config_folder), "w") as fout:
+        fout.write("{} {}\n".format(len(feed_var_dict), len(fetch_var_dict)))
+        for key in feed_var_dict:
+            fout.write("{}".format(key))
+            if feed_var_dict[key].lod_level == 1:
+                fout.write(" 1 -1\n")
+            elif feed_var_dict[key].lod_level == 0:
+                fout.write(" {}".format(len(feed_var_dict[key].shape)))
+                for dim in feed_var_dict[key].shape:
+                    fout.write(" {}".format(dim))
+                fout.write("\n")
+        for key in fetch_var_dict:
+            fout.write("{} {}\n".format(key, fetch_var_dict[key].name))
+
+    cmd = "cp {}/client.conf {}/server.conf".format(
+        client_config_folder, server_model_folder)
+    os.system(cmd)
 
     
 
