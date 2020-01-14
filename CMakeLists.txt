@@ -1,4 +1,4 @@
-# Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER}, version: "
 message(STATUS "C compiler: ${CMAKE_C_COMPILER}, version: "
         "${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 
-    
+
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CUDA QUIET)
@@ -62,17 +62,22 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
+if (NOT CLIENT_ONLY)
 include(external/jsoncpp)
-include(external/leveldb)
 include(external/rocksdb)
+include(external/gtest)
+endif()
+
+include(external/snappy)
+include(external/leveldb)
 include(external/zlib)
 include(external/boost)
 include(external/protobuf)
 include(external/brpc)
 include(external/gflags)
 include(external/glog)
-include(external/snappy)
-include(external/gtest)
+include(external/pybind11)
+include(external/python)
 include(generic)
 include(flags)
 
@@ -82,26 +87,39 @@ include(paddlepaddle)
 include(external/opencv)
 endif()
 
+message("paddle serving source dir: " ${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_BINARY_DIR})
 
+if(NOT CLIENT_ONLY)
+    set(EXTERNAL_LIBS
+	jsoncpp
+	gflags
+	rocksdb
+	glog
+	protobuf
+	paddlepaddle
+	brpc)
+endif()
+
 set(EXTERNAL_LIBS
-    jsoncpp
-    gflags
-    rocksdb
-    glog
-    protobuf
-    paddlepaddle
-    brpc
+	gflags
+	glog
+	protobuf
+	brpc
 )
 
+if(NOT CLIENT_ONLY)
 if(WITH_MKLML)
     list(APPEND EXTERNAL_LIBS ${MKLML_IOMP_LIB})
 endif()
+endif()
 
 
+if(NOT CLIENT_ONLY)
 if(WITH_MKLDNN)
     list(APPEND EXTERNAL_LIBS ${MKLDNN_LIB})
+endif()
 endif()
 
 if (NOT CLIENT_ONLY)
@@ -109,23 +127,15 @@ if (NOT CLIENT_ONLY)
     list(APPEND EXTERNAL_LIBS opencv)
 endif()
 
-add_subdirectory(cube)
-add_subdirectory(configure)
-add_subdirectory(pdcodegen)
-add_subdirectory(sdk-cpp)
-add_subdirectory(demo-client)
-add_subdirectory(kvdb)
-
-if (NOT CLIENT_ONLY)
-add_subdirectory(predictor)
-add_subdirectory(inferencer-fluid-cpu)
-if (WITH_GPU)
-add_subdirectory(inferencer-fluid-gpu)
-endif()
-add_subdirectory(demo-serving)
+add_subdirectory(core)
+if(NOT CLIENT_ONLY)
+add_subdirectory(paddle_inference)
 endif()
 
-# Paddle Serving Solutions
-if (WITH_ELASTIC_CTR)
-add_subdirectory(elastic-ctr)
+if(CLIENT_ONLY)
+add_subdirectory(python)
+set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE})
+set(PYTHON_LIBRARIES ${PYTHON_LIB})
 endif()
+
+add_subdirectory(examples)

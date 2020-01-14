@@ -1,0 +1,171 @@
+default_variant_conf {
+  tag: "default"
+  connection_conf {
+    connect_timeout_ms: 2000
+    rpc_timeout_ms: 20000
+    connect_retry_count: 2
+    max_connection_per_host: 100
+    hedge_request_timeout_ms: -1
+    hedge_fetch_retry_count: 2
+    connection_type: "pooled"
+  }
+  naming_conf {
+    cluster_filter_strategy: "Default"
+    load_balance_strategy: "la"
+  }
+  rpc_parameter {
+    compress_type: 0
+    package_size: 20
+    protocol: "baidu_std"
+    max_channel_per_request: 3
+  }
+}
+predictors {
+  name: "ximage"
+  service_name: "baidu.paddle_serving.predictor.image_classification.ImageClassifyService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+
+predictors {
+  name: "echo_service"
+  service_name: "baidu.paddle_serving.predictor.echo_service.BuiltinTestEchoService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "dense_service"
+  service_name: "baidu.paddle_serving.predictor.dense_service.BuiltinDenseFormatService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "load_general_model_service"
+  service_name: "baidu.paddle_serving.predictor.load_general_model_service.LoadGeneralModelService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "sparse_service"
+  service_name: "baidu.paddle_serving.predictor.sparse_service.BuiltinSparseFormatService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "int64tensor_service"
+  service_name: "baidu.paddle_serving.predictor.int64tensor_service.BuiltinFluidService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "text_classification"
+  service_name: "baidu.paddle_serving.predictor.text_classification.TextClassificationService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+      cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "echo_kvdb_service"
+  service_name: "baidu.paddle_serving.predictor.echo_kvdb_service.EchoKVDBService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+        cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+
+predictors {
+  name: "ctr_prediction_service"
+  service_name: "baidu.paddle_serving.predictor.ctr_prediction.CTRPredictionService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+        cluster: "list://127.0.0.1:8010"
+    }
+  }
+}
+predictors {
+  name: "bert_service"
+  service_name: "baidu.paddle_serving.predictor.bert_service.BertService"
+  endpoint_router: "WeightedRandomRender"
+  weighted_random_render_conf {
+    variant_weight_list: "50"
+  }
+  variants {
+    tag: "var1"
+    naming_conf {
+        cluster: "list://127.0.0.1:8010"
+    }
+  }
+}

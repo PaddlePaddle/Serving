@@ -1,0 +1,70 @@
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto2";
+package baidu.paddle_serving.configure;
+
+message ConnectionConf {
+  required int32 connect_timeout_ms = 1 [default = 2000];
+  required int32 rpc_timeout_ms = 2 [default = 20000];
+  required int32 connect_retry_count = 3 [default = 2];
+  required int32 max_connection_per_host = 4 [default = 100];
+  required int32 hedge_request_timeout_ms = 5 [default = -1];
+  required int32 hedge_fetch_retry_count = 6 [default = 2];
+  required string connection_type = 7 [default = "pooled"];
+};
+
+message NamingConf {
+  optional string cluster_filter_strategy = 1 [default="Default"];
+  optional string load_balance_strategy = 2 [default = "la"];
+  optional string cluster = 3;
+};
+
+message RpcParameter {
+  // 0-NONE, 1-SNAPPY, 2-GZIP, 3-ZLIB, 4-LZ4
+  required int32 compress_type = 1 [default = 0];
+  required int32 package_size = 2 [default = 20];
+  required string protocol = 3 [default = "baidu_std"];
+  required int32 max_channel_per_request = 4 [default = 3];
+};
+
+message SplitConf {
+  optional string split_tag_name = 1;
+  optional string tag_candidates = 2;
+};
+
+message VariantConf {
+  required string tag = 1;
+  optional ConnectionConf connection_conf = 2;
+  optional NamingConf naming_conf = 3;
+  optional RpcParameter rpc_parameter = 4;
+  optional SplitConf split_conf = 5;
+  optional string variant_router = 6;
+};
+
+message WeightedRandomRenderConf { required string variant_weight_list = 1 [default= "50" ]; };
+
+message Predictor {
+  required string name = 1 [default="general_model"];
+  required string service_name = 2 [default="baidu.paddle_serving.predictor.general_model.GeneralModelService"];
+  required string endpoint_router = 3 [default="WeightedRandomRender"];
+  required WeightedRandomRenderConf weighted_random_render_conf = 4;
+  repeated VariantConf variants = 5;
+};
+
+// SDK conf
+message SDKConf {
+  required VariantConf default_variant_conf = 1;
+  repeated Predictor predictors = 2;
+};
