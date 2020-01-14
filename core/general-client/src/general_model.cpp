@@ -45,6 +45,7 @@ void PredictorClient::init(const std::string & conf_file) {
   std::string fetch_var_name;
   int shape_num = 0;
   int dim = 0;
+  int type_value = 0;
   for (int i = 0; i < feed_var_num; ++i) {
     fin >> name;
     _feed_name_to_idx[name] = i;
@@ -54,6 +55,8 @@ void PredictorClient::init(const std::string & conf_file) {
       fin >> dim;
       tmp_feed_shape.push_back(dim);
     }
+    fin >> type_value;
+    _type.push_back(type_value);
     _shape.push_back(tmp_feed_shape);
   }
 
