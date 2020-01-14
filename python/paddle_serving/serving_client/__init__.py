@@ -16,6 +16,9 @@ from .serving_client import PredictorClient
 from ..proto import sdk_configure_pb2 as sdk
 import time
 
+int_type = 0
+float_type = 1
+
 class SDKConfig(object):
     def __init__(self):
         self.sdk_desc = sdk.SDKConf()
@@ -65,7 +68,7 @@ class Client(object):
         self.fetch_names_ = []
         self.client_handle_ = None
         self.feed_shapes_ = []
-        self.feed_types_ = []
+        self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
 
     def load_client_config(self, path):
@@ -75,6 +78,28 @@ class Client(object):
         # map feed names to index
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
+        self.feed_names_ = []
+        self.fetch_names_ = []
+        self.feed_shapes_ = []
+        self.feed_types_ = {}
+        self.feed_names_to_idx_ = {}
+
+        with open(path) as fin:
+            group = fin.readline().strip().split()
+            feed_num = int(group[0])
+            fetch_num = int(group[1])
+            for i in range(feed_num):
+                group = fin.readline().strip().split()
+                self.feed_names_.append(group[0])
+                tmp_shape = []
+                for s in group[2:-1]:
+                    tmp_shape.append(int(s))
+                self.feed_shapes_.append(tmp_shape)
+                self.feed_types_[group[0]] = int(group[-1])
+                self.feed_names_to_idx_[group[0]] = i
+            for i in range(fetch_num):
+                group = fin.readline().strip().split()
+                self.fetch_names_.append(group[0])
         return
 
     def connect(self, endpoints):
@@ -84,7 +109,6 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
-        print(sdk_desc)
         timestamp = time.asctime(time.localtime(time.time()))
         predictor_path = "/tmp/"
         predictor_file = "%s_predictor.conf" % timestamp
@@ -100,7 +124,7 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    def predict(self, feed={}, fetch={}):
+    def predict(self, feed={}, fetch=[]):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -111,10 +135,10 @@ class Client(object):
                 continue
             if self.feed_types_[key] == int_type:
                 int_feed_names.append(key)
-                int_slot.append(feed_map[key])
+                int_slot.append(feed[key])
             elif self.feed_types_[key] == float_type:
                 float_feed_names.append(key)
-                float_slot.append(feed_map[key])
+                float_slot.append(feed[key])
 
         for key in fetch:
             if key in self.fetch_names_:
