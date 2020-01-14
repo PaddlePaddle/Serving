@@ -1,0 +1,60 @@
+engines {
+  name: "image_classification_resnet"
+  type: "FLUID_CPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/SE_ResNeXt50_32x4d"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0  
+  enable_memory_optimization: true
+  static_optimization: false
+  force_update_static_cache: false
+}
+
+engines {
+  name: "general_model"
+  type: "FLUID_CPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/text_classification"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+}
+
+engines {
+  name: "text_classification_bow"
+  type: "FLUID_CPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/text_classification_lstm"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+}
+
+engines {
+  name: "ctr_prediction"
+  type: "FLUID_CPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/ctr_prediction"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+  sparse_param_service_type: REMOTE
+  sparse_param_service_table_name: "test_dict"
+}
+
+engines {
+  name: "bert"
+  type: "FLUID_CPU_ANALYSIS_DIR"
+  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_data_path: "./data/model/paddle/fluid/bert_cased_L-12_H-768_A-12"
+  runtime_thread_num: 0
+  batch_infer_size: 0
+  enable_batch_align: 0
+  enable_memory_optimization: true
+}

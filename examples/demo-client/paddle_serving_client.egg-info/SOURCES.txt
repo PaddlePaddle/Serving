@@ -1,0 +1,6 @@
+setup.py
+paddle_serving_client.egg-info/PKG-INFO
+paddle_serving_client.egg-info/SOURCES.txt
+paddle_serving_client.egg-info/dependency_links.txt
+paddle_serving_client.egg-info/not-zip-safe
+paddle_serving_client.egg-info/top_level.txt

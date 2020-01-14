@@ -1,0 +1,45 @@
+services {
+  name: "BuiltinDenseFormatService"
+  workflows: "workflow1"
+}
+services {
+  name: "BuiltinSparseFormatService"
+  workflows: "workflow2"
+}
+
+services {
+  name: "BuiltinTestEchoService"
+  workflows: "workflow3"
+}
+
+services {
+  name: "ImageClassifyService"
+  workflows: "workflow4"
+}
+
+services {
+  name: "BuiltinFluidService"
+  workflows: "workflow5"
+}
+services {
+  name: "TextClassificationService"
+  workflows: "workflow6"
+}
+
+services {
+  name: "EchoKVDBService"
+  workflows: "workflow7"
+}
+
+services {
+  name: "CTRPredictionService"
+  workflows: "workflow8"
+}
+services {
+  name: "BertService"
+  workflows: "workflow9"
+}
+services {
+  name: "LoadGeneralModelService"
+  workflows: "workflow10"
+}

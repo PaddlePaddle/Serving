@@ -1,0 +1,20 @@
+is_lod_feed: true
+is_lod_feed: false
+is_lod_feed: true
+feed_type: 1
+feed_type: 0
+feed_type: 1
+
+feed_shape {
+    shape: -1
+}
+
+feed_shape {
+    shape: 1
+    shape: 2
+    shape: 3
+}
+
+feed_shape {
+    shape: -1
+}
