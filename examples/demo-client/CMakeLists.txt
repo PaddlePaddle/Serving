@@ -81,8 +81,6 @@ install(TARGETS ximage_press
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/images DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/image_classification/data)
 
 install(TARGETS echo
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/demo/client/echo/bin)
@@ -121,8 +119,6 @@ install(TARGETS text_classification text_classification_press
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/text_classification DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/data)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/python/text_classification.py
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/text_classification/python)
@@ -137,13 +133,9 @@ install(TARGETS ctr_prediction
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/ctr_prediction DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/client/ctr_prediction/data)
 
 install(TARGETS bert
     RUNTIME DESTINATION
     ${PADDLE_SERVING_INSTALL_DIR}/demo/client/bert/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
     ${PADDLE_SERVING_INSTALL_DIR}/demo/client/bert/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data/bert DESTINATION
-    ${PADDLE_SERVING_INSTALL_DIR}/demo/client/bert/data)
