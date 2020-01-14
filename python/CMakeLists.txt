@@ -6,14 +6,14 @@ set(SETUP_LOG_FILE "setup.py.log")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in
     ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 
-set(SERVING_CLIENT_CORE ${PADDLE_SERVING_BINARY_DIR}/general-client/serving_client.so)
+set(SERVING_CLIENT_CORE ${PADDLE_SERVING_BINARY_DIR}/core/general-client/serving_client.so)
 
 message("python env: " ${py_env})
 
 add_custom_command(
 	OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
 	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving/ ${PADDLE_SERVING_BINARY_DIR}/python/
-	COMMAND ${CMAKE_COMMAND} -E copy ${PADDLE_SERVING_BINARY_DIR}/general-client/serving_client.so ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_client/
+	COMMAND ${CMAKE_COMMAND} -E copy ${PADDLE_SERVING_BINARY_DIR}/core/general-client/serving_client.so ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_client/
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_CLIENT_CORE} sdk_configure_py_proto ${PY_FILES})
 
