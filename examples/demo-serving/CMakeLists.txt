@@ -79,8 +79,6 @@ install(TARGETS serving
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/data DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
 
 FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
 install(FILES ${inc}
@@ -90,7 +88,7 @@ if (${WITH_MKL})
     install(FILES
             ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libmklml_intel.so
                 ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libiomp5.so
-                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.1
+                ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.0
                 DESTINATION
                 ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
