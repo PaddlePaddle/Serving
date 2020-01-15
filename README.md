@@ -10,7 +10,7 @@ pip install paddle-serving-client
 ```
 
 ## 训练过程中保存Serving的配置
-```
+``` python
 import os
 import sys
 import paddle
