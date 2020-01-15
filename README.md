@@ -10,7 +10,7 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-#### 训练代码保存Serving的配置
+#### 训练脚本
 ``` python
 import os
 import sys
@@ -69,10 +69,10 @@ if __name__ == "__main__":
                            {"acc": acc, "cost": avg_cost, "prediction": prediction})
 ```
 
-#### 服务启动
+#### 本地服务启动
 TBA
 
-#### 客户端访问
+#### 客户端预测
 ``` python
 from paddle_serving import Client
 import sys
