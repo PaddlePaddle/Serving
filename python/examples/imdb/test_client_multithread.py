@@ -62,5 +62,5 @@ def predict_multi_thread(p_num):
 if __name__ == '__main__':
     conf_file = sys.argv[1]
     data_file = sys.argv[2]
-    p_num = sys.argv[3]
+    p_num = int(sys.argv[3])
     predict_multi_thread(p_num)
