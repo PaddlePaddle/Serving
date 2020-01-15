@@ -1,15 +1,16 @@
 # Paddle Serving
 Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者轻松实现从移动端、服务器端调用深度学习模型的远程预测服务。当前Paddle Serving以支持PaddlePaddle训练的模型为主，可以与Paddle训练框架联合使用，快速部署预估服务。
 
-## 客户端快速上手
+## 快速上手
 Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，我们假设远程已经部署的Paddle Serving的文本分类模型，您可以在自己的服务器快速安装客户端并进行快速预测。
 
-#### 客户端安装
+#### 安装
 ```
 pip install paddle-serving-client
+pip install paddle-serving-server
 ```
 
-#### 训练过程中保存Serving的配置
+#### 训练代码保存Serving的配置
 ``` python
 import os
 import sys
@@ -68,7 +69,7 @@ if __name__ == "__main__":
                            {"acc": acc, "cost": avg_cost, "prediction": prediction})
 ```
 
-#### 启动服务
+#### 服务启动
 TBA
 
 #### 客户端访问
