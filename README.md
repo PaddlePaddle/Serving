@@ -4,12 +4,12 @@ Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者
 ## 客户端快速上手
 Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，我们假设远程已经部署的Paddle Serving的文本分类模型，您可以在自己的服务器快速安装客户端并进行快速预测。
 
-### 客户端安装
+#### 客户端安装
 ```
 pip install paddle-serving-client
 ```
 
-### 训练过程中保存Serving的配置
+#### 训练过程中保存Serving的配置
 ``` python
 import os
 import sys
@@ -68,10 +68,10 @@ if __name__ == "__main__":
                            {"acc": acc, "cost": avg_cost, "prediction": prediction})
 ```
 
-### 启动服务
+#### 启动服务
 TBA
 
-### 客户端访问
+#### 客户端访问
 ``` python
 from paddle_serving import Client
 import sys
@@ -92,10 +92,10 @@ for line in sys.stdin:
 ```
 
 
-### 完成操作截屏
+#### 完成操作截屏
 TBA
 
-## 文档
+### 文档
 
 [设计文档](doc/DESIGN.md)
 
