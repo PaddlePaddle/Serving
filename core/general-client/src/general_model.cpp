@@ -254,7 +254,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::predict_for_batch(
         fetch_result_batch[bi][idx].resize(len);
         for (int i = 0; i < len; ++i) {
           fetch_result_batch[bi][idx][i] =
-              *(const float *)res.insts(0).tensor_array(idx).data(i).c_str();
+              *(const float *)res.insts(bi).tensor_array(idx).data(i).c_str();
         }
       }
     }

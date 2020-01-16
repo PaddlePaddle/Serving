@@ -10,4 +10,7 @@ cat test.data | python test_client.py > result
 ```
 python test_client_multithread.py inference.conf test.data 4 > result
 ```
-batch clienit
+batch clienit，若batch size为4
+```
+cat test.data | python test_client_batch inference.conf 4 > result
+```

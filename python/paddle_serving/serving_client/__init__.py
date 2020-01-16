@@ -161,6 +161,7 @@ class Client(object):
         int_feed_names = []
         float_feed_names = []
         fetch_names = []
+        counter = 0
         for feed in feed_batch:
             int_slot = []
             float_slot = []
@@ -168,11 +169,14 @@ class Client(object):
                 if key not in self.feed_names_:
                     continue
                 if self.feed_types_[key] == int_type:
-                    int_feed_names.append(key)
+                    if counter == 0:
+                        int_feed_names.append(key)
                     int_slot.append(feed[key])
                 elif self.feed_types_[key] == float_type:
-                    float_feed_names.append(key)
+                    if counter == 0:
+                        float_feed_names.append(key)
                     float_slot.append(feed[key])
+            counter += 1
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
