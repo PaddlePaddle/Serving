@@ -15,7 +15,7 @@
 from paddle_serving import Client
 import sys
 import subprocess
-from multiprocessing import Pool, Queue
+from multiprocessing import Pool
 import time
 
 
