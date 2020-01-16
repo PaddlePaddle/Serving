@@ -10,3 +10,4 @@ cat test.data | python test_client.py > result
 ```
 python test_client_multithread.py inference.conf test.data 4 > result
 ```
+batch clienit
