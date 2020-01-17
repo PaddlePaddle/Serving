@@ -4,7 +4,7 @@
 
 单进程client
 ```
-cat test.data | python test_client.py > result
+cat test.data | python test_client.py inference.conf > result
 ```
 多进程client，若进程数为4
 ```
