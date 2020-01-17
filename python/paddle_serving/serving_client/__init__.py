@@ -19,6 +19,7 @@ import time
 int_type = 0
 float_type = 1
 
+
 class SDKConfig(object):
     def __init__(self):
         self.sdk_desc = sdk.SDKConf()
@@ -37,7 +38,8 @@ class SDKConfig(object):
 
         variant_desc = sdk.VariantConf()
         variant_desc.tag = "var1"
-        variant_desc.naming_conf.cluster = "list://{}".format(":".join(self.endpoints))
+        variant_desc.naming_conf.cluster = "list://{}".format(":".join(
+            self.endpoints))
 
         predictor_desc.variants.extend([variant_desc])
 
@@ -50,7 +52,7 @@ class SDKConfig(object):
         self.sdk_desc.default_variant_conf.connection_conf.hedge_request_timeout_ms = -1
         self.sdk_desc.default_variant_conf.connection_conf.hedge_fetch_retry_count = 2
         self.sdk_desc.default_variant_conf.connection_conf.connection_type = "pooled"
-        
+
         self.sdk_desc.default_variant_conf.naming_conf.cluster_filter_strategy = "Default"
         self.sdk_desc.default_variant_conf.naming_conf.load_balance_strategy = "la"
 
@@ -114,8 +116,7 @@ class Client(object):
         predictor_file = "%s_predictor.conf" % timestamp
         with open(predictor_path + predictor_file, "w") as fout:
             fout.write(sdk_desc)
-        self.client_handle_.set_predictor_conf(
-            predictor_path, predictor_file)
+        self.client_handle_.set_predictor_conf(predictor_path, predictor_file)
         self.client_handle_.create_predictor()
 
     def get_feed_names(self):
@@ -145,13 +146,52 @@ class Client(object):
                 fetch_names.append(key)
 
         result = self.client_handle_.predict(
-            float_slot, float_feed_names,
-            int_slot, int_feed_names,
-            fetch_names)
-            
+            float_slot, float_feed_names, int_slot, int_feed_names, fetch_names)
+
         result_map = {}
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
-            
+
         return result_map
 
+    def batch_predict(self, feed_batch=[], fetch=[]):
+        int_slot_batch = []
+        float_slot_batch = []
+        int_feed_names = []
+        float_feed_names = []
+        fetch_names = []
+        counter = 0
+        for feed in feed_batch:
+            int_slot = []
+            float_slot = []
+            for key in feed:
+                if key not in self.feed_names_:
+                    continue
+                if self.feed_types_[key] == int_type:
+                    if counter == 0:
+                        int_feed_names.append(key)
+                    int_slot.append(feed[key])
+                elif self.feed_types_[key] == float_type:
+                    if counter == 0:
+                        float_feed_names.append(key)
+                    float_slot.append(feed[key])
+            counter += 1
+            int_slot_batch.append(int_slot)
+            float_slot_batch.append(float_slot)
+
+        for key in fetch:
+            if key in self.fetch_names_:
+                fetch_names.append(key)
+
+        result_batch = self.client_handle_.batch_predict(
+            float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
+            fetch_names)
+
+        result_map_batch = []
+        for result in result_batch:
+            result_map = {}
+            for i, name in enumerate(fetch_names):
+                result_map[name] = result[i]
+            result_map_batch.append(result_map)
+
+        return result_map_batch
