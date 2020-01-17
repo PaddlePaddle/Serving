@@ -19,7 +19,7 @@ from multiprocessing import Pool
 import time
 
 
-def predict_for_batch(batch_size=4):
+def batch_predict(batch_size=4):
     client = Client()
     client.load_client_config(conf_file)
     client.connect(["127.0.0.1:8010"])
@@ -33,7 +33,7 @@ def predict_for_batch(batch_size=4):
         fetch = ["acc", "cost", "prediction"]
         feed_batch.append(feed)
         if len(feed_batch) == batch_size:
-            fetch_batch = client.predict_for_batch(
+            fetch_batch = client.batch_predict(
                 feed_batch=feed_batch, fetch=fetch)
             for i in range(batch_size):
                 print("{} {}".format(fetch_batch[i]["prediction"][1],
@@ -47,4 +47,4 @@ def predict_for_batch(batch_size=4):
 if __name__ == '__main__':
     conf_file = sys.argv[1]
     batch_size = int(sys.argv[2])
-    predict_for_batch(batch_size)
+    batch_predict(batch_size)
