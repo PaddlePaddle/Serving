@@ -154,8 +154,7 @@ class Client(object):
 
         return result_map
 
-    def predict_for_batch(self, feed_batch=[], fetch=[]):
-        batch_size = len(feed_batch)
+    def batch_predict(self, feed_batch=[], fetch=[]):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -184,9 +183,9 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        result_batch = self.client_handle_.predict_for_batch(
+        result_batch = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
-            fetch_names, batch_size)
+            fetch_names)
 
         result_map_batch = []
         for result in result_batch:

@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <string>
@@ -58,13 +59,12 @@ class PredictorClient {
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::string>& fetch_name);
 
-  std::vector<std::vector<std::vector<float>>> predict_for_batch(
+  std::vector<std::vector<std::vector<float>>> batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name,
-      const int64_t& batch_size);
+      const std::vector<std::string>& fetch_name);
 
   std::vector<std::vector<float>> predict_with_profile(
       const std::vector<std::vector<float>>& float_feed,
