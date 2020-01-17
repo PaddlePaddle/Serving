@@ -8,6 +8,8 @@ https://paddle-serving.bj.bcebos.com/data/cube/cube-press.tar.gz
 
 将压缩包解压，cube-press目录下包含了单机场景和分布式场景下client端压测所使用的脚本、可执行文件、配置文件、样例数据以及数据生成脚本。
 
+其中，keys为client要读取用来查询的key值文件，feature为cube要加载的key-value文件，本次测试中使用的数据，key的范围为0~999999。
+
 ## 单机场景
 
 在单个物理机部署cube服务，使用genernate_input.py脚本生成测数据，执行test.sh脚本启动cube client端向cube server发送请求。
@@ -20,7 +22,6 @@ python genernate_input.py 1
 
 参数表示生成的数据每一行含有多少个key，即test.sh执行的查询操作中的batch_size。
 
-本次测试中使用的数据，key的范围为0~999999，可以根据实际数据进行修改。
 
 test.sh脚本接受3个参数，示例：
 
