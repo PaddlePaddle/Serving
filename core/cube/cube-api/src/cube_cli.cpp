@@ -104,7 +104,7 @@ int run(int argc, char** argv, int thread_id) {
     keys.push_back(key_list[index]);
     index += 1;
     int ret = 0;
-    if (keys.size() > FLAGS_batch) {
+    if (keys.size() >= FLAGS_batch) {
       TIME_FLAG(seek_start);
       ret = cube->seek(FLAGS_dict, keys, &values);
       TIME_FLAG(seek_end);
@@ -214,8 +214,8 @@ int run_m(int argc, char** argv) {
             << " avg = " << std::to_string(mean_time)
             << " max = " << std::to_string(max_time)
             << " min = " << std::to_string(min_time);
-  LOG(INFO) << " total_request = " << std::to_string(request_num)
-            << " speed = " << std::to_string(1000000 * thread_num / mean_time)
+  LOG(INFO) << " total_request = " << std::to_string(request_num) << " speed = "
+            << std::to_string(1000000 * thread_num / mean_time)  // mean_time us
             << " query per second";
 }
 

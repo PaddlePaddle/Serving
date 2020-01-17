@@ -17,10 +17,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <fstream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "core/sdk-cpp/builtin_format.pb.h"
 #include "core/sdk-cpp/general_model_service.pb.h"
@@ -37,46 +38,51 @@ namespace general_model {
 
 typedef std::map<std::string, std::vector<float>> FetchedMap;
 
-typedef std::map<std::string, std::vector<std::vector<float> > >
-    BatchFetchedMap;
+typedef std::map<std::string, std::vector<std::vector<float>>> BatchFetchedMap;
 
 class PredictorClient {
  public:
   PredictorClient() {}
   ~PredictorClient() {}
 
-  void init(const std::string & client_conf);
+  void init(const std::string& client_conf);
 
-  void set_predictor_conf(
-      const std::string& conf_path,
-      const std::string& conf_file);
+  void set_predictor_conf(const std::string& conf_path,
+                          const std::string& conf_file);
 
   int create_predictor();
 
-  std::vector<std::vector<float> > predict(
-      const std::vector<std::vector<float> > & float_feed,
-      const std::vector<std::string> & float_feed_name,
-      const std::vector<std::vector<int64_t> > & int_feed,
-      const std::vector<std::string> & int_feed_name,
-      const std::vector<std::string> & fetch_name);
+  std::vector<std::vector<float>> predict(
+      const std::vector<std::vector<float>>& float_feed,
+      const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<int64_t>>& int_feed,
+      const std::vector<std::string>& int_feed_name,
+      const std::vector<std::string>& fetch_name);
 
-  std::vector<std::vector<float> > predict_with_profile(
-      const std::vector<std::vector<float> > & float_feed,
-      const std::vector<std::string> & float_feed_name,
-      const std::vector<std::vector<int64_t> > & int_feed,
-      const std::vector<std::string> & int_feed_name,
-      const std::vector<std::string> & fetch_name);
+  std::vector<std::vector<std::vector<float>>> batch_predict(
+      const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
+      const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
+      const std::vector<std::string>& int_feed_name,
+      const std::vector<std::string>& fetch_name);
+
+  std::vector<std::vector<float>> predict_with_profile(
+      const std::vector<std::vector<float>>& float_feed,
+      const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<int64_t>>& int_feed,
+      const std::vector<std::string>& int_feed_name,
+      const std::vector<std::string>& fetch_name);
 
  private:
   PredictorApi _api;
-  Predictor * _predictor;
+  Predictor* _predictor;
   std::string _predictor_conf;
   std::string _predictor_path;
   std::string _conf_file;
   std::map<std::string, int> _feed_name_to_idx;
   std::map<std::string, int> _fetch_name_to_idx;
   std::map<std::string, std::string> _fetch_name_to_var_name;
-  std::vector<std::vector<int> > _shape;
+  std::vector<std::vector<int>> _shape;
   std::vector<int> _type;
 };
 
