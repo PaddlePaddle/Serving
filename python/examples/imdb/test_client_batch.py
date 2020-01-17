@@ -41,7 +41,6 @@ def batch_predict(batch_size=4):
             feed_batch = []
     cost = time.time() - start
     print("total cost : {}".format(cost))
-    print(time.time())
 
 
 if __name__ == '__main__':
