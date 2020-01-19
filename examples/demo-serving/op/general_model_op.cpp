@@ -48,16 +48,6 @@ int GeneralModelOp::inference() {
   std::vector<int> elem_size;
   std::vector<int> capacity;
 
-  // config
-  LOG(INFO) << "start to call load general model_conf op";
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
-  LOG(INFO) << "get resource pointer done.";
-  std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
-  LOG(INFO) << "get general model config pointer done.";
-  resource.print_general_model_config(model_config);
-
   // infer
   if (batch_size > 0) {
     int var_num = req->insts(0).tensor_array_size();

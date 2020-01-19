@@ -23,7 +23,6 @@ namespace predictor {
 
 using configure::ResourceConf;
 using configure::GeneralModelConfig;
-using configure::Shape;
 using rec::mcube::CubeAPI;
 // __thread bool p_thread_initialized = false;
 
@@ -198,9 +197,8 @@ int Resource::general_model_initialize(const std::string& path,
     } else {
       _config->_capacity[i] = 1;
       _config->_is_lod_feed[i] = false;
-      for (int j = 0; j < model_config.feed_var(i).feed_shape().shape_size();
-           ++j) {
-        int32_t dim = model_config.feed_var(i).feed_shape().shape(j);
+      for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
+        int32_t dim = model_config.feed_var(i).shape(j);
         _config->_feed_shape[i].push_back(dim);
         _config->_capacity[i] *= dim;
       }
@@ -212,9 +210,8 @@ int Resource::general_model_initialize(const std::string& path,
   _config->_fetch_shape.resize(fetch_var_num);
   for (int i = 0; i < fetch_var_num; ++i) {
     _config->_fetch_name[i] = model_config.fetch_var(i).name();
-    for (int j = 0; j < model_config.fetch_var(i).fetch_shape().shape_size();
-         ++j) {
-      int dim = model_config.fetch_var(i).fetch_shape().shape(j);
+    for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
+      int dim = model_config.fetch_var(i).shape(j);
       _config->_fetch_shape[i].push_back(dim);
     }
   }
