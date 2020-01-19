@@ -15,9 +15,11 @@
 #include "examples/demo-serving/op/general_model_op.h"
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
+#include "core/predictor/framework/resource.h"
 
 namespace baidu {
 namespace paddle_serving {
@@ -29,10 +31,12 @@ using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::FetchInst;
+using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 static std::once_flag g_proto_init_flag;
 
 int GeneralModelOp::inference() {
+  // request
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
   TensorVector *in = butil::get_object<TensorVector>();
@@ -44,6 +48,17 @@ int GeneralModelOp::inference() {
   std::vector<int> elem_size;
   std::vector<int> capacity;
 
+  // config
+  LOG(INFO) << "start to call load general model_conf op";
+  baidu::paddle_serving::predictor::Resource &resource =
+      baidu::paddle_serving::predictor::Resource::instance();
+  LOG(INFO) << "get resource pointer done.";
+  std::shared_ptr<PaddleGeneralModelConfig> model_config =
+      resource.get_general_model_config();
+  LOG(INFO) << "get general model config pointer done.";
+  resource.print_general_model_config(model_config);
+
+  // infer
   if (batch_size > 0) {
     int var_num = req->insts(0).tensor_array_size();
     VLOG(3) << "var num: " << var_num;
@@ -146,11 +161,23 @@ int GeneralModelOp::inference() {
       return -1;
     }
 
+    // print request
+    std::ostringstream oss;
+    int64_t *example = reinterpret_cast<int64_t *>((*in)[0].data.data());
+    for (uint32_t i = 0; i < 10; i++) {
+      oss << *(example + i) << " ";
+    }
+    VLOG(3) << "msg: " << oss.str();
+
+    // infer
     if (predictor::InferManager::instance().infer(
             GENERAL_MODEL_NAME, in, out, batch_size)) {
       LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
       return -1;
     }
+    // print response
+    float *example_1 = reinterpret_cast<float *>((*out)[0].data.data());
+    VLOG(3) << "result: " << *example_1;
 
     Response *res = mutable_data<Response>();
 

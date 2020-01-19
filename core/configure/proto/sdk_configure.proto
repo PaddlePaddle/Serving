@@ -16,27 +16,27 @@ syntax = "proto2";
 package baidu.paddle_serving.configure;
 
 message ConnectionConf {
-  required int32 connect_timeout_ms = 1 [default = 2000];
-  required int32 rpc_timeout_ms = 2 [default = 20000];
-  required int32 connect_retry_count = 3 [default = 2];
-  required int32 max_connection_per_host = 4 [default = 100];
-  required int32 hedge_request_timeout_ms = 5 [default = -1];
-  required int32 hedge_fetch_retry_count = 6 [default = 2];
-  required string connection_type = 7 [default = "pooled"];
+  required int32 connect_timeout_ms = 1;
+  required int32 rpc_timeout_ms = 2;
+  required int32 connect_retry_count = 3;
+  required int32 max_connection_per_host = 4;
+  required int32 hedge_request_timeout_ms = 5;
+  required int32 hedge_fetch_retry_count = 6;
+  required string connection_type = 7;
 };
 
 message NamingConf {
-  optional string cluster_filter_strategy = 1 [default="Default"];
-  optional string load_balance_strategy = 2 [default = "la"];
+  optional string cluster_filter_strategy = 1;
+  optional string load_balance_strategy = 2;
   optional string cluster = 3;
 };
 
 message RpcParameter {
   // 0-NONE, 1-SNAPPY, 2-GZIP, 3-ZLIB, 4-LZ4
-  required int32 compress_type = 1 [default = 0];
-  required int32 package_size = 2 [default = 20];
-  required string protocol = 3 [default = "baidu_std"];
-  required int32 max_channel_per_request = 4 [default = 3];
+  required int32 compress_type = 1;
+  required int32 package_size = 2;
+  required string protocol = 3;
+  required int32 max_channel_per_request = 4;
 };
 
 message SplitConf {
@@ -53,12 +53,12 @@ message VariantConf {
   optional string variant_router = 6;
 };
 
-message WeightedRandomRenderConf { required string variant_weight_list = 1 [default= "50" ]; };
+message WeightedRandomRenderConf { required string variant_weight_list = 1; };
 
 message Predictor {
-  required string name = 1 [default="general_model"];
-  required string service_name = 2 [default="baidu.paddle_serving.predictor.general_model.GeneralModelService"];
-  required string endpoint_router = 3 [default="WeightedRandomRender"];
+  required string name = 1;
+  required string service_name = 2;
+  required string endpoint_router = 3;
   required WeightedRandomRenderConf weighted_random_render_conf = 4;
   repeated VariantConf variants = 5;
 };

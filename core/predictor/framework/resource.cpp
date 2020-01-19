@@ -47,15 +47,22 @@ std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
 }
 
 void Resource::print_general_model_config(
-    const std::shared_ptr<PaddleGeneralModelConfig> & config) {
+    const std::shared_ptr<PaddleGeneralModelConfig>& config) {
   if (config == nullptr) {
     LOG(INFO) << "paddle general model config is not set";
     return;
   }
-  LOG(INFO) << "Number of Feed Tensor: " << config->_feed_type.size();
+  LOG(INFO) << "Number of Feed Tensor: " << config->_feed_name.size();
   std::ostringstream oss;
+  LOG(INFO) << "Feed Name Info";
+  for (auto& feed_name : config->_feed_name) {
+    oss << feed_name << " ";
+  }
+  LOG(INFO) << oss.str();
+  oss.clear();
+  oss.str("");
   LOG(INFO) << "Feed Type Info";
-  for (auto & feed_type : config->_feed_type) {
+  for (auto& feed_type : config->_feed_type) {
     oss << feed_type << " ";
   }
   LOG(INFO) << oss.str();
@@ -71,7 +78,7 @@ void Resource::print_general_model_config(
   oss.clear();
   oss.str("");
   LOG(INFO) << "Capacity Info";
-  for (auto & cap : config->_capacity) {
+  for (auto& cap : config->_capacity) {
     oss << cap << " ";
   }
   LOG(INFO) << oss.str();
@@ -79,8 +86,8 @@ void Resource::print_general_model_config(
   oss.str("");
   LOG(INFO) << "Feed Shape Info";
   int tensor_idx = 0;
-  for (auto & shape : config->_feed_shape) {
-    for (auto & dim : shape) {
+  for (auto& shape : config->_feed_shape) {
+    for (auto& dim : shape) {
       oss << dim << " ";
     }
     LOG(INFO) << "Tensor[" << tensor_idx++ << "].shape: " << oss.str();
@@ -146,36 +153,69 @@ int Resource::initialize(const std::string& path, const std::string& file) {
   return 0;
 }
 
-int Resource::general_model_initialize(
-    const std::string& path, const std::string & file) {
+// model config
+int Resource::general_model_initialize(const std::string& path,
+                                       const std::string& file) {
   if (!FLAGS_enable_general_model) {
     return 0;
   }
+  ResourceConf resource_conf;
+  if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
+    LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
+    return -1;
+  }
+  int err = 0;
+  std::string general_model_path = resource_conf.general_model_path();
+  std::string general_model_file = resource_conf.general_model_file();
+  if (err != 0) {
+    LOG(ERROR) << "read general_model_path failed, path[" << path << "], file["
+               << file << "]";
+    return -1;
+  }
 
   GeneralModelConfig model_config;
-  if (configure::read_proto_conf(path, file, &model_config) != 0) {
-    LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
+  if (configure::read_proto_conf(general_model_path.c_str(),
+                                 general_model_file.c_str(),
+                                 &model_config) != 0) {
+    LOG(ERROR) << "Failed initialize model config from: " << general_model_path
+               << "/" << general_model_file;
     return -1;
   }
 
   _config.reset(new PaddleGeneralModelConfig());
-  _config->_feed_type.resize(model_config.feed_type_size());
-  _config->_is_lod_feed.resize(model_config.is_lod_feed_size());
-  _config->_capacity.resize(model_config.feed_shape_size());
-  _config->_feed_shape.resize(model_config.feed_shape_size());
-  for (int i = 0; i < model_config.is_lod_feed_size(); ++i) {
-    _config->_feed_type[i] = model_config.feed_type(i);
-    if (model_config.is_lod_feed(i)) {
+  int feed_var_num = model_config.feed_var_size();
+  _config->_feed_name.resize(feed_var_num);
+  _config->_feed_type.resize(feed_var_num);
+  _config->_is_lod_feed.resize(feed_var_num);
+  _config->_capacity.resize(feed_var_num);
+  _config->_feed_shape.resize(feed_var_num);
+  for (int i = 0; i < feed_var_num; ++i) {
+    _config->_feed_name[i] = model_config.feed_var(i).name();
+    _config->_feed_type[i] = model_config.feed_var(i).feed_type();
+    if (model_config.feed_var(i).is_lod_tensor()) {
       _config->_feed_shape[i] = {-1};
       _config->_is_lod_feed[i] = true;
     } else {
       _config->_capacity[i] = 1;
       _config->_is_lod_feed[i] = false;
-      for (int j = 0; j < model_config.feed_shape(i).shape_size(); ++j) {
-        int dim = model_config.feed_shape(i).shape(j);
+      for (int j = 0; j < model_config.feed_var(i).feed_shape().shape_size();
+           ++j) {
+        int32_t dim = model_config.feed_var(i).feed_shape().shape(j);
         _config->_feed_shape[i].push_back(dim);
         _config->_capacity[i] *= dim;
       }
+    }
+  }
+
+  int fetch_var_num = model_config.fetch_var_size();
+  _config->_fetch_name.resize(fetch_var_num);
+  _config->_fetch_shape.resize(fetch_var_num);
+  for (int i = 0; i < fetch_var_num; ++i) {
+    _config->_fetch_name[i] = model_config.fetch_var(i).name();
+    for (int j = 0; j < model_config.fetch_var(i).fetch_shape().shape_size();
+         ++j) {
+      int dim = model_config.fetch_var(i).fetch_shape().shape(j);
+      _config->_fetch_shape[i].push_back(dim);
     }
   }
   return 0;
