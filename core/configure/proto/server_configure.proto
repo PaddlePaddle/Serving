@@ -53,6 +53,8 @@ message ResourceConf {
   required string model_toolkit_path = 1;
   required string model_toolkit_file = 2;
   optional string cube_config_file = 3;
+  optional string general_model_path = 4;
+  optional string general_model_file = 5;
 };
 
 // DAG node depency info

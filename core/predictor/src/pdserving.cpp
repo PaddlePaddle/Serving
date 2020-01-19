@@ -45,8 +45,6 @@ using baidu::paddle_serving::predictor::FLAGS_logger_path;
 using baidu::paddle_serving::predictor::FLAGS_logger_file;
 using baidu::paddle_serving::predictor::FLAGS_resource_path;
 using baidu::paddle_serving::predictor::FLAGS_resource_file;
-using baidu::paddle_serving::predictor::FLAGS_general_model_path;
-using baidu::paddle_serving::predictor::FLAGS_general_model_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
 
@@ -219,11 +217,10 @@ int main(int argc, char** argv) {
 
 #ifndef BCLOUD
 
-  if (Resource::instance().general_model_initialize(
-          FLAGS_general_model_path, FLAGS_general_model_file) != 0) {
+  if (Resource::instance().general_model_initialize(FLAGS_resource_path,
+                                                    FLAGS_resource_file) != 0) {
     LOG(ERROR) << "Failed to initialize general model conf: "
-               << FLAGS_general_model_path << "/"
-               << FLAGS_general_model_file;
+               << FLAGS_resource_path << "/" << FLAGS_resource_file;
     return -1;
   }
 
