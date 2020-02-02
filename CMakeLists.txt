@@ -46,11 +46,11 @@ set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
 
 set(THIRD_PARTY_BUILD_TYPE Release)
 
-option(WITH_AVX     "Compile Paddle Serving with AVX intrinsics"    ${AVX_FOUND})
-option(WITH_MKL     "Compile Paddle Serving with MKL support."      ${AVX_FOUND})
-option(WITH_GPU     "Compile Paddle Serving with NVIDIA GPU"        ${CUDA_FOUND})
-option(CLIENT_ONLY  "Compile client libraries and demos only"       FALSE)
-option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              FALSE)
+option(WITH_AVX	    "Compile Paddle Serving with AVX intrinsics"    OFF)
+option(WITH_MKL	    "Compile Paddle Serving with MKL support."      OFF)
+option(WITH_GPU	    "Compile Paddle Serving with NVIDIA GPU"        OFF)
+option(CLIENT_ONLY  "Compile client libraries and demos only"       OFF)
+option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              OFF)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)
