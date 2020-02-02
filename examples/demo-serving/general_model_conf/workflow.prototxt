@@ -1,8 +1,0 @@
-workflows {
-  name: "workflow1"
-  workflow_type: "Sequence"
-  nodes {
-    name: "general_model_op"
-    type: "GeneralModelOp"
-  }
-}

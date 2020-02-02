@@ -33,16 +33,19 @@ class PaddleGeneralModelConfig {
   ~PaddleGeneralModelConfig() {}
 
  public:
-  
-  std::vector<int> _feed_type;  // 0 int64, 1 float
+  std::vector<std::string> _feed_name;
+  std::vector<int> _feed_type;     // 0 int64, 1 float
   std::vector<bool> _is_lod_feed;  // true lod tensor
-  std::vector<int> _capacity;  //  capacity for each tensor
-  /*
-    feed_shape_ for feeded variable
-    feed_shape_[i][j] represents the jth dim for ith input Tensor
-    if is_lod_feed_[i] == False, feed_shape_[i][0] = -1
-   */
+  std::vector<int> _capacity;      //  capacity for each tensor
+                                   /*
+                                     feed_shape_ for feeded variable
+                                     feed_shape_[i][j] represents the jth dim for ith input Tensor
+                                     if is_lod_feed_[i] == False, feed_shape_[i][0] = -1
+                                    */
   std::vector<std::vector<int>> _feed_shape;
+
+  std::vector<std::string> _fetch_name;
+  std::vector<std::vector<int>> _fetch_shape;
 };
 
 class BaseRdDict;
@@ -76,8 +79,8 @@ class Resource {
   int initialize(const std::string& path, const std::string& file);
   int cube_initialize(const std::string& path, const std::string& file);
 
-  int general_model_initialize(
-      const std::string& path, const std::string & file);
+  int general_model_initialize(const std::string& path,
+                               const std::string& file);
 
   int thread_initialize();
 
@@ -90,7 +93,7 @@ class Resource {
   std::shared_ptr<PaddleGeneralModelConfig> get_general_model_config();
 
   void print_general_model_config(
-      const std::shared_ptr<PaddleGeneralModelConfig> & config);
+      const std::shared_ptr<PaddleGeneralModelConfig>& config);
 
   std::shared_ptr<RocksDBWrapper> getDB();
 

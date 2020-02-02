@@ -15,12 +15,17 @@
 syntax = "proto2";
 package baidu.paddle_serving.configure;
 
-message Shape {
-  repeated int32 shape = 1;
-};
-
+message FeedVar {
+  required string name = 1;
+  required bool is_lod_tensor = 2;
+  required int32 feed_type = 3;
+  repeated int32 shape = 4;
+}
+message FetchVar {
+  required string name = 1;
+  repeated int32 shape = 2;
+}
 message GeneralModelConfig {
-  repeated bool is_lod_feed = 1;
-  repeated int32 feed_type = 2;
-  repeated Shape feed_shape = 4;
+  repeated FeedVar feed_var = 1;
+  repeated FetchVar fetch_var = 2;
 };
