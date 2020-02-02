@@ -13,4 +13,5 @@
 # limitations under the License.
 """ Paddle Serving Client version string """
 serving_client_version = "0.1.0"
+serving_server_version = "0.1.0"
 module_proto_version = "0.1.0"
