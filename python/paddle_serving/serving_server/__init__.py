@@ -49,6 +49,27 @@ class Server(object):
         self.infer_service_conf = None
         self.model_toolkit_conf = None
         self.engine = None
+        self.workflow_fn = "workflow.prototxt"
+        self.resource_fn = "resource.prototxt"
+        self.infer_service_fn = "infer_service.prototxt"
+        self.model_toolkit_fn = "model_toolkit.prototxt"
+        self.workdir = ""
+        self.max_concurrency = 0
+        self.num_threads = 0
+        self.port = 8080
+        self.reload_interval_s = 10
+
+    def set_max_concurrency(self, concurrency):
+        self.max_concurrency = concurrency
+
+    def set_num_threads(self, threads):
+        self.num_threads = threads
+
+    def set_port(self, port):
+        self.port = port
+
+    def set_reload_interval(self, interval):
+        self.reload_interval_s = interval
 
     def set_op_sequence(self, op_seq):
         self.workflow_conf = op_seq
@@ -97,15 +118,18 @@ class Server(object):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
+        else:
+            os.system("mkdir {}".format(workdir))
+
         self._prepare_resource(workdir)
         self._prepare_engine(self.config_file, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
 
-        infer_service_fn = "{}/server_infer_service.prototxt".format(workdir)
-        workflow_fn = "{}/server_workflow.prototxt".format(workdir)
-        resource_fn = "{}/server_resource.prototxt".format(workdir)
-        model_toolkit_fn = "{}/server_model_toolkit.prototxt".format(workdir)
+        infer_service_fn = "{}/{}".format(workdir, self.infer_service_fn)
+        workflow_fn = "{}/{}".format(workdir, self.workflow_fn)
+        resource_fn = "{}/{}".format(workdir, self.resource_fn)
+        model_toolkit_fn = "{}/{}".format(workdir, self.model_toolkit_fn)
 
         self._write_pb_str(infer_service_fn, self.infer_service_conf)
         self._write_pb_str(workflow_fn, self.workflow_conf)
@@ -114,5 +138,28 @@ class Server(object):
 
     def run_server(self):
         # just run server with system command
-        os.system("./pdserving {}".format(self.workdir))
+        # currently we do not load cube
+        command = "./pdserving -enable_model_toolkit " \
+                  "-inferservice_path {} " \
+                  "-inferservice_file {} " \
+                  "-max_concurrency {} " \
+                  "-num_threads {} " \
+                  "-port {} " \
+                  "-reload_interval_s {} " \
+                  "-resource_path {} " \
+                  "-resource_file {} " \
+                  "-workflow_path {} " \
+                  "-workflow_file {} ".format(
+                      self.workdir,
+                      self.infer_service_fn,
+                      self.max_concurrency,
+                      self.num_threads,
+                      self.port,
+                      self.reload_interval_s,
+                      self.workdir,
+                      self.resource_fn,
+                      self.workdir, 
+                      self.workflow_fn)
+        os.system(command)
+
 
