@@ -128,14 +128,13 @@ if (NOT CLIENT_ONLY)
 endif()
 
 add_subdirectory(core)
+
 if(NOT CLIENT_ONLY)
 add_subdirectory(paddle_inference)
 endif()
 
-if(CLIENT_ONLY)
 add_subdirectory(python)
 set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE})
 set(PYTHON_LIBRARIES ${PYTHON_LIB})
-endif()
 
 add_subdirectory(examples)
