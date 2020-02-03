@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from ..proto import server_configure_pb2 as server_sdk
 
 class OpMaker(object):
     def __init__(self):
-        self.op_dict = {"general_model":"GeneralModelOp",
+        self.op_dict = {"general_infer":"GeneralInferOp",
                         "general_reader":"GeneralReaderOp",
                         "general_single_kv":"GeneralSingleKVOp",
                         "general_dist_kv":"GeneralDistKVOp"}
 
+    # currently, inputs and outputs are not used
+    # when we have OpGraphMaker, inputs and outputs are necessary
     def create(self, name, inputs=[], outputs=[]):
         if name not in self.op_dict:
             raise Exception("Op name {} is not supported right now".format(name))
@@ -36,6 +39,11 @@ class OpSeqMaker(object):
         self.workflow.workflow_type = "Sequence"
 
     def add_op(self, node):
+        if len(self.workflow.nodes) >= 1:
+            dep = server_sdk.DAGNodeDependency()
+            dep.name = self.workflow.nodes[-1].name
+            dep.mode = "RO"
+            node.dependencies.extend([dep])
         self.workflow.nodes.extend([node])
 
     def get_op_sequence(self):
@@ -48,6 +56,7 @@ class Server(object):
         self.server_handle_ = None
         self.infer_service_conf = None
         self.model_toolkit_conf = None
+        self.resource_conf = None
         self.engine = None
         self.workflow_fn = "workflow.prototxt"
         self.resource_fn = "resource.prototxt"
@@ -80,16 +89,20 @@ class Server(object):
         if self.engine == None:
             self.engine = server_sdk.EngineDesc()
         self.engine.name = "general_model"
-        self.engine.reloadable_type = "tiemstamp_ne"
+        self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        self.engine.reloadable_type = "timestamp_ne"
         self.engine.runtime_thread_num = 0
         self.engine.batch_infer_size = 0
         self.engine.enable_batch_align = 0
-        self.engine.model_data_path = model_path
+        self.engine.model_data_path = model_config_path
+        self.engine.enable_memory_optimization = True
+        self.engine.static_optimization = False
+        self.engine.force_update_static_cache = False
         if device == "cpu":
             self.engine.type = "FLUID_CPU_ANALYSIS_DIR"
         elif device == "gpu":
             self.engine.type = "FLUID_GPU_ANALYSIS_DIR"
-        self.model_toolkit_conf.engines.extend([engine])
+        self.model_toolkit_conf.engines.extend([self.engine])
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -104,7 +117,7 @@ class Server(object):
         if self.resource_conf == None:
             self.resource_conf = server_sdk.ResourceConf()
             self.resource_conf.model_toolkit_path = workdir
-            self.resource_conf.model_toolkit_file = "server_model_toolkit.prototxt"
+            self.resource_conf.model_toolkit_file = self.model_toolkit_fn
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
@@ -112,17 +125,19 @@ class Server(object):
 
     def load_model_config(self, path):
         self.config_file = "{}/inference.conf".format(path)
+        self.model_config_path = path
         # check config here
 
-    def prepare_server(self, port=9292, device="cpu", workdir=None):
+    def prepare_server(self, workdir=None, port=9292, device="cpu"):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
         else:
             os.system("mkdir {}".format(workdir))
+        os.system("touch {}/fluid_time_file".format(workdir))
 
         self._prepare_resource(workdir)
-        self._prepare_engine(self.config_file, device)
+        self._prepare_engine(self.model_config_path, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
 
@@ -139,7 +154,8 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        command = "./pdserving -enable_model_toolkit " \
+        command = "/home/users/dongdaxiang/github_develop/Serving/examples/demo-serving/serving" \
+                  " -enable_model_toolkit " \
                   "-inferservice_path {} " \
                   "-inferservice_file {} " \
                   "-max_concurrency {} " \
