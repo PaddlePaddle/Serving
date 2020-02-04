@@ -1,4 +1,4 @@
-from paddle_serving import Client
+from paddle_serving.serving_client import Client
 import sys
 
 client = Client()
