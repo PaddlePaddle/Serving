@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving import Client
+from paddle_serving.serving_client import Client
 import sys
 import subprocess
 from multiprocessing import Pool
