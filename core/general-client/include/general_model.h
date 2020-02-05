@@ -45,7 +45,7 @@ class PredictorClient {
   PredictorClient() {}
   ~PredictorClient() {}
 
-  void init(const std::string& client_conf);
+  int init(const std::string& client_conf);
 
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);

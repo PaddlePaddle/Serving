@@ -95,24 +95,7 @@ workflows {
   name: "workflow10"
   workflow_type: "Sequence"
   nodes {
-    name: "general_model_op"
-    type: "GeneralModelOp"
-  }
-}
-
-workflows {
-  name: "workflow11"
-  workflow_type: "Sequence"
-  nodes {
-    name: "general_reader_op"
-    type: "GeneralReaderOp"
-  }
-  nodes {
-    name: "general_infer_op"
-    type: "GeneralInferOp"
-    dependencies {
-      name: "general_reader_op"
-      mode: "RO"
-    }
+    name: "load_general_model_conf_op"
+    type: "LoadGeneralModelConfOp"
   }
 }

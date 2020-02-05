@@ -23,21 +23,35 @@
 #else
 #include "paddle_inference_api.h"  // NOLINT
 #endif
-#include "examples/demo-serving/general_model_service.pb.h"
+#include <string>
+#include "core/predictor/framework/resource.h"
+#include "core/general-server/general_model_service.pb.h"
+#include "core/general-server/load_general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-static const char* GENERAL_MODEL_NAME = "general_model";
+struct GeneralReaderOutput {
+  std::vector<paddle::PaddleTensor> tensor_vector;
+  int reader_status = 0;
 
-class GeneralInferOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::general_model::Response> {
+  void Clear() {
+    size_t tensor_count = tensor_vector.size();
+    for (size_t ti = 0; ti < tensor_count; ++ti) {
+      tensor_vector[ti].shape.clear();
+    }
+    tensor_vector.clear();
+  }
+  std::string ShortDebugString() const { return "Not implemented!"; }
+};
+
+class GeneralReaderOp : public baidu::paddle_serving::predictor::OpWithChannel<
+                            GeneralReaderOutput> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
-  DECLARE_OP(GeneralInferOp);
+  DECLARE_OP(GeneralReaderOp);
 
   int inference();
 };

@@ -36,7 +36,7 @@ SET(PADDLE_VERSION "latest")
 if (WITH_GPU)
     SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda${CUDA_VERSION_MAJOR}-cudnn7-avx-mkl")
 else()
-    if (AVX_FOUND)
+    if (WITH_AVX)
         if (WITH_MKLML)
             SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-cpu-avx-mkl")
         else()
@@ -62,9 +62,12 @@ ExternalProject_Add(
     INSTALL_COMMAND
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
-        ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party 
 )
+
+if (WITH_MKLML)
+   file(COPY ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 DESTINATION ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so FOLLOW_SYMLINK_CHAIN)
+endif()
 
 INCLUDE_DIRECTORIES(${PADDLE_INCLUDE_DIR})
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib")
@@ -72,6 +75,9 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib)
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib")
 LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
+
+ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
 ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
