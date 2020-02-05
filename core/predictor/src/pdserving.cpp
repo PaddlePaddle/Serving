@@ -126,10 +126,6 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (!FLAGS_g) {
-    google::SetCommandLineOption("flagfile", "conf/gflags.conf");
-  }
-
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();

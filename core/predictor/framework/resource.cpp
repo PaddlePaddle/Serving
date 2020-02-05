@@ -155,8 +155,11 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 // model config
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
+  VLOG(2) << "general model path: " << path;
+  VLOG(2) << "general model file: " << file;
   if (!FLAGS_enable_general_model) {
-    return 0;
+    LOG(ERROR) << "general model is not enabled";
+    return -1;
   }
   ResourceConf resource_conf;
   if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
@@ -183,6 +186,8 @@ int Resource::general_model_initialize(const std::string& path,
 
   _config.reset(new PaddleGeneralModelConfig());
   int feed_var_num = model_config.feed_var_size();
+  VLOG(2) << "load general model config";
+  VLOG(2) << "feed var num: " << feed_var_num;
   _config->_feed_name.resize(feed_var_num);
   _config->_feed_type.resize(feed_var_num);
   _config->_is_lod_feed.resize(feed_var_num);
@@ -190,15 +195,23 @@ int Resource::general_model_initialize(const std::string& path,
   _config->_feed_shape.resize(feed_var_num);
   for (int i = 0; i < feed_var_num; ++i) {
     _config->_feed_name[i] = model_config.feed_var(i).name();
+    VLOG(2) << "feed var[" << i << "]: "
+            << _config->_feed_name[i];
     _config->_feed_type[i] = model_config.feed_var(i).feed_type();
+    VLOG(2) << "feed type[" << i << "]: "
+            << _config->_feed_type[i];
+
     if (model_config.feed_var(i).is_lod_tensor()) {
+      VLOG(2) << "var[" << i << "] is lod tensor";
       _config->_feed_shape[i] = {-1};
       _config->_is_lod_feed[i] = true;
     } else {
+      VLOG(2) << "var[" << i << "] is tensor";
       _config->_capacity[i] = 1;
       _config->_is_lod_feed[i] = false;
       for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
         int32_t dim = model_config.feed_var(i).shape(j);
+        VLOG(2) << "var[" << i << "].shape[" << i << "]: " << dim;
         _config->_feed_shape[i].push_back(dim);
         _config->_capacity[i] *= dim;
       }
