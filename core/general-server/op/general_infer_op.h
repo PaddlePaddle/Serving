@@ -23,7 +23,7 @@
 #else
 #include "paddle_inference_api.h"  // NOLINT
 #endif
-#include "examples/demo-serving/general_model_service.pb.h"
+#include "core/general-server/general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {

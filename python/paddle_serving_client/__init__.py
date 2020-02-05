@@ -141,6 +141,9 @@ class Client(object):
         result = self.client_handle_.predict(
             float_slot, float_feed_names, int_slot, int_feed_names, fetch_names)
 
+        # TODO(guru4elephant): the order of fetch var name should be consistent with
+        #                      general_model_config, this is not friendly
+        #                      In the future, we need make the number of fetched variable changable
         result_map = {}
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]

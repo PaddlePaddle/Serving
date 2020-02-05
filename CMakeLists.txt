@@ -134,7 +134,4 @@ add_subdirectory(paddle_inference)
 endif()
 
 add_subdirectory(python)
-set(PYTHON_INCLUDE_DIR ${PYTHON_INCLUDE})
-set(PYTHON_LIBRARIES ${PYTHON_LIB})
-
 #add_subdirectory(examples)

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "examples/demo-serving/op/general_reader_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include "core/general-server/op/general_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 

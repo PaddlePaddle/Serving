@@ -175,7 +175,7 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        command = "/home/users/dongdaxiang/github_develop/Serving/build_server/core/general-server" \
+        command = "/home/users/dongdaxiang/github_develop/Serving/build_server/core/general-server/serving" \
                   " -enable_model_toolkit " \
                   "-inferservice_path {} " \
                   "-inferservice_file {} " \
