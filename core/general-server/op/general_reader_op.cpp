@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "examples/demo-serving/op/general_reader_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include "core/general-server/op/general_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 
@@ -34,6 +34,8 @@ int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
   int var_num = req->insts(0).tensor_array_size();
   if (var_num != model_config->_feed_type.size()) {
+    VLOG(2) << "var num: " << var_num;
+    VLOG(2) << "model config var num: " << model_config->_feed_type.size();
     LOG(ERROR) << "feed var number not match.";
     return -1;
   }
@@ -84,7 +86,7 @@ int GeneralReaderOp::inference() {
   }
 
   int var_num = req->insts(0).tensor_array_size();
-  VLOG(3) << "var num: " << var_num;
+  VLOG(2) << "var num: " << var_num;
   // read config
 
   LOG(INFO) << "start to call load general model_conf op";
@@ -112,7 +114,7 @@ int GeneralReaderOp::inference() {
   paddle::PaddleTensor lod_tensor;
   for (int i = 0; i < var_num; ++i) {
     elem_type[i] = req->insts(0).tensor_array(i).elem_type();
-    VLOG(3) << "var[" << i << "] has elem type: " << elem_type[i];
+    VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
     if (elem_type[i] == 0) {  // int64
       elem_size[i] = sizeof(int64_t);
       lod_tensor.dtype = paddle::PaddleDType::INT64;
@@ -124,17 +126,17 @@ int GeneralReaderOp::inference() {
     if (req->insts(0).tensor_array(i).shape(0) == -1) {
       lod_tensor.lod.resize(1);
       lod_tensor.lod[0].push_back(0);
-      VLOG(3) << "var[" << i << "] is lod_tensor";
+      VLOG(2) << "var[" << i << "] is lod_tensor";
     } else {
       lod_tensor.shape.push_back(batch_size);
       capacity[i] = 1;
       for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
         int dim = req->insts(0).tensor_array(i).shape(k);
-        VLOG(3) << "shape for var[" << i << "]: " << dim;
+        VLOG(2) << "shape for var[" << i << "]: " << dim;
         capacity[i] *= dim;
         lod_tensor.shape.push_back(dim);
       }
-      VLOG(3) << "var[" << i << "] is tensor, capacity: " << capacity[i];
+      VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
     if (i == 0) {
       lod_tensor.name = "words";
@@ -149,19 +151,19 @@ int GeneralReaderOp::inference() {
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
         int data_len = tensor.data_size();
-        VLOG(3) << "tensor size for var[" << i << "]: " << tensor.data_size();
+        VLOG(2) << "tensor size for var[" << i << "]: " << tensor.data_size();
         int cur_len = in->at(i).lod[0].back();
-        VLOG(3) << "current len: " << cur_len;
+        VLOG(2) << "current len: " << cur_len;
         in->at(i).lod[0].push_back(cur_len + data_len);
-        VLOG(3) << "new len: " << cur_len + data_len;
+        VLOG(2) << "new len: " << cur_len + data_len;
       }
       in->at(i).data.Resize(in->at(i).lod[0].back() * elem_size[i]);
       in->at(i).shape = {in->at(i).lod[0].back(), 1};
-      VLOG(3) << "var[" << i
+      VLOG(2) << "var[" << i
               << "] is lod_tensor and len=" << in->at(i).lod[0].back();
     } else {
       in->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
-      VLOG(3) << "var[" << i
+      VLOG(2) << "var[" << i
               << "] is tensor and capacity=" << batch_size * capacity[i];
     }
   }
@@ -198,14 +200,14 @@ int GeneralReaderOp::inference() {
     }
   }
 
-  VLOG(3) << "read data from client success";
+  VLOG(2) << "read data from client success";
   // print request
   std::ostringstream oss;
   int64_t *example = reinterpret_cast<int64_t *>((*in)[0].data.data());
   for (int i = 0; i < 10; i++) {
     oss << *(example + i) << " ";
   }
-  VLOG(3) << "head element of first feed var : " << oss.str();
+  VLOG(2) << "head element of first feed var : " << oss.str();
   //
   return 0;
 }

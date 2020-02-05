@@ -1,6 +1,3 @@
 model_toolkit_path: "./conf/"
 model_toolkit_file: "model_toolkit.prototxt"
 cube_config_file: "./conf/cube.conf"
-general_model_path: "./conf/"
-general_model_file: "general_model.prototxt"
-
