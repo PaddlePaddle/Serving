@@ -18,7 +18,7 @@ from paddle.fluid.framework import core
 from paddle.fluid.framework import default_main_program
 from paddle.fluid.framework import Program
 from paddle.fluid import CPUPlace
-from paddle.fluid.io import save_persistables
+from paddle.fluid.io import save_inference_model
 from ..proto import general_model_config_pb2 as model_conf
 import os
 
@@ -27,19 +27,13 @@ def save_model(server_model_folder,
                feed_var_dict,
                fetch_var_dict,
                main_program=None):
-    if main_program is None:
-        main_program = default_main_program()
-    elif isinstance(main_program, CompiledProgram):
-        main_program = main_program._program
-        if main_program is None:
-            raise TypeError("program should be as Program type or None")
-    if not isinstance(main_program, Program):
-        raise TypeError("program should be as Program type or None")
-
     executor = Executor(place=CPUPlace())
 
-    save_persistables(executor, server_model_folder,
-                      main_program)
+    feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
+    target_vars = fetch_var_dict.values()
+
+    save_inference_model(server_model_folder, feed_var_names,
+                         target_vars, executor, main_program=main_program)
 
     config = model_conf.GeneralModelConfig()
 
@@ -71,10 +65,11 @@ def save_model(server_model_folder,
         config.fetch_var.extend([fetch_var])
 
     cmd = "mkdir -p {}".format(client_config_folder)
+
     os.system(cmd)
-    with open("{}/serving_client_conf.prototxt", "w") as fout:
+    with open("{}/serving_client_conf.prototxt".format(client_config_folder), "w") as fout:
         fout.write(str(config))
-    with open("{}/serving_server_conf.prototxt", "w") as fout:
+    with open("{}/serving_server_conf.prototxt".format(server_model_folder), "w") as fout:
         fout.write(str(config))
 
 

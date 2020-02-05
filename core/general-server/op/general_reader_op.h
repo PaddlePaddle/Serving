@@ -25,8 +25,8 @@
 #endif
 #include <string>
 #include "core/predictor/framework/resource.h"
-#include "examples/demo-serving/general_model_service.pb.h"
-#include "examples/demo-serving/load_general_model_service.pb.h"
+#include "core/general-server/general_model_service.pb.h"
+#include "core/general-server/load_general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
