@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from .serving_client import PredictorClient
-from ..proto import sdk_configure_pb2 as sdk
+from .proto import sdk_configure_pb2 as sdk
+from .proto import general_model_config_pb2 as m_config
+import google.protobuf.text_format
 import time
 
 int_type = 0
@@ -74,34 +76,25 @@ class Client(object):
         self.feed_names_to_idx_ = {}
 
     def load_client_config(self, path):
+        model_conf = m_config.GeneralModelConfig()
+        f = open(path, 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
+
         # load configuraion here
         # get feed vars, fetch vars
         # get feed shapes, feed types
         # map feed names to index
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
-        self.feed_names_ = []
-        self.fetch_names_ = []
-        self.feed_shapes_ = []
-        self.feed_types_ = {}
+        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_shapes_ = [var.shape for var in model_conf.feed_var]
         self.feed_names_to_idx_ = {}
+        for i, var in enumerate(model_conf.feed_var):
+            self.feed_names_to_idx_[var.alias_name] = i
+            self.feed_types_[var.alias_name] = var.feed_type
 
-        with open(path) as fin:
-            group = fin.readline().strip().split()
-            feed_num = int(group[0])
-            fetch_num = int(group[1])
-            for i in range(feed_num):
-                group = fin.readline().strip().split()
-                self.feed_names_.append(group[0])
-                tmp_shape = []
-                for s in group[2:-1]:
-                    tmp_shape.append(int(s))
-                self.feed_shapes_.append(tmp_shape)
-                self.feed_types_[group[0]] = int(group[-1])
-                self.feed_names_to_idx_[group[0]] = i
-            for i in range(fetch_num):
-                group = fin.readline().strip().split()
-                self.fetch_names_.append(group[0])
         return
 
     def connect(self, endpoints):

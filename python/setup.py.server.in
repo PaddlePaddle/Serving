@@ -21,8 +21,7 @@ import platform
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving.version import serving_client_version
-from paddle_serving.version import serving_server_version
+from paddle_serving_server.version import serving_server_version
 
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
@@ -33,17 +32,13 @@ REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.1.0','paddlepaddle'
 ]
 
-packages=['paddle_serving',
-          'paddle_serving.serving_server',
-          'paddle_serving.proto',
-          'paddle_serving.io']
-package_data={'paddle_serving.serving_server': ['serving_server.so']}
-package_dir={'paddle_serving.serving_server':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_server',
-             'paddle_serving.proto':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/proto',
-             'paddle_serving.io':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/io'}
+packages=['paddle_serving_server',
+          'paddle_serving_server.proto']
+
+package_dir={'paddle_serving_server':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
+             'paddle_serving_server.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto'}
 
 setup(
     name='paddle-serving-server',
@@ -55,7 +50,6 @@ setup(
     author_email='guru4elephant@gmail.com',
     install_requires=REQUIRED_PACKAGES,
     packages=packages,
-    package_data=package_data,
     package_dir=package_dir,
     # PyPI package information.
     classifiers=[

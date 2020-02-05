@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import os
-from ..proto import server_configure_pb2 as server_sdk
+from .proto import server_configure_pb2 as server_sdk
+from .proto import general_model_config_pb2 as m_config
+import google.protobuf.text_format
 
 class OpMaker(object):
     def __init__(self):
@@ -58,10 +60,13 @@ class Server(object):
         self.model_toolkit_conf = None
         self.resource_conf = None
         self.engine = None
+        self.memory_optimization = False
+        self.model_conf = None
         self.workflow_fn = "workflow.prototxt"
         self.resource_fn = "resource.prototxt"
         self.infer_service_fn = "infer_service.prototxt"
         self.model_toolkit_fn = "model_toolkit.prototxt"
+        self.general_model_config_fn = "general_model.prototxt"
         self.workdir = ""
         self.max_concurrency = 0
         self.num_threads = 0
@@ -83,11 +88,17 @@ class Server(object):
     def set_op_sequence(self, op_seq):
         self.workflow_conf = op_seq
 
+    def set_memory_optimize(self, flag=False):
+        self.memory_optimization = flag
+
     def _prepare_engine(self, model_config_path, device):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
+
         if self.engine == None:
             self.engine = server_sdk.EngineDesc()
+
+        self.model_config_path = model_config_path
         self.engine.name = "general_model"
         self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
         self.engine.reloadable_type = "timestamp_ne"
@@ -95,13 +106,15 @@ class Server(object):
         self.engine.batch_infer_size = 0
         self.engine.enable_batch_align = 0
         self.engine.model_data_path = model_config_path
-        self.engine.enable_memory_optimization = True
+        self.engine.enable_memory_optimization = self.memory_optimization
         self.engine.static_optimization = False
         self.engine.force_update_static_cache = False
+
         if device == "cpu":
             self.engine.type = "FLUID_CPU_ANALYSIS_DIR"
         elif device == "gpu":
             self.engine.type = "FLUID_GPU_ANALYSIS_DIR"
+
         self.model_toolkit_conf.engines.extend([self.engine])
 
     def _prepare_infer_service(self, port):
@@ -115,18 +128,26 @@ class Server(object):
 
     def _prepare_resource(self, workdir):
         if self.resource_conf == None:
+            with open("{}/{}".format(workdir, self.general_model_config_fn), "w") as fout:
+                fout.write(str(self.model_conf))
             self.resource_conf = server_sdk.ResourceConf()
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
+            self.resource_conf.general_model_path = workdir
+            self.resource_conf.general_model_file = self.general_model_config_fn
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
             fout.write(str(pb_obj))
 
     def load_model_config(self, path):
-        self.config_file = "{}/inference.conf".format(path)
         self.model_config_path = path
+        self.model_conf = m_config.GeneralModelConfig()
+        f = open("{}/serving_server_conf.prototxt".format(path), 'r')
+        self.model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), self.model_conf)
         # check config here
+        # print config here
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
         if workdir == None:
@@ -154,7 +175,7 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        command = "/home/users/dongdaxiang/github_develop/Serving/examples/demo-serving/serving" \
+        command = "/home/users/dongdaxiang/github_develop/Serving/build_server/core/general-server" \
                   " -enable_model_toolkit " \
                   "-inferservice_path {} " \
                   "-inferservice_file {} " \
