@@ -1,24 +1,20 @@
-feed_var {
-    name: "words"
-    is_lod_tensor: true
-    feed_type: 0
+is_lod_feed: true
+is_lod_feed: false
+is_lod_feed: true
+feed_type: 1
+feed_type: 0
+feed_type: 1
+
+feed_shape {
     shape: -1
 }
-feed_var {
-    name: "label"
-    is_lod_tensor: false
-    feed_type: 0
-    shape: 1    
-}
-fetch_var {
-    name: "cost"
+
+feed_shape {
     shape: 1
-}
-fetch_var {
-    name: "acc"
-    shape: 1
-}
-fetch_var {
-    name: "prediction"
     shape: 2
+    shape: 3
+}
+
+feed_shape {
+    shape: -1
 }
