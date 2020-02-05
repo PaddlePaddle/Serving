@@ -1,12 +1,12 @@
 if (CLIENT_ONLY)
-file(GLOB_RECURSE SERVING_CLIENT_PY_FILES serving_client/*.py)
+file(GLOB_RECURSE SERVING_CLIENT_PY_FILES paddle_serving_client/*.py)
 set(PY_FILES ${SERVING_CLIENT_PY_FILES})
 SET(PACKAGE_NAME "serving_client")
 set(SETUP_LOG_FILE "setup.py.client.log")
 endif()
 
 if (NOT CLIENT_ONLY)
-file(GLOB_RECURSE SERVING_SERVER_PY_FILES serving_server/*.py)
+file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server/*.py)
 set(PY_FILES ${SERVING_SERVER_PY_FILES})
 SET(PACKAGE_NAME "serving_server")
 set(SETUP_LOG_FILE "setup.py.server.log")
@@ -29,8 +29,8 @@ message("python env: " ${py_env})
 if (CLIENT_ONLY)
 add_custom_command(
 	OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
-	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving/ ${PADDLE_SERVING_BINARY_DIR}/python/
-	COMMAND ${CMAKE_COMMAND} -E copy ${PADDLE_SERVING_BINARY_DIR}/core/general-client/serving_client.so ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving/serving_client/
+	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_client/ ${PADDLE_SERVING_BINARY_DIR}/python/
+	COMMAND ${CMAKE_COMMAND} -E copy ${PADDLE_SERVING_BINARY_DIR}/core/general-client/serving_client.so ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_CLIENT_CORE} sdk_configure_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
@@ -39,7 +39,7 @@ endif()
 if (NOT CLIENT_ONLY)
 add_custom_command(
    	OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
-	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving/ ${PADDLE_SERVING_BINARY_DIR}/python/
+	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server/ ${PADDLE_SERVING_BINARY_DIR}/python/
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)

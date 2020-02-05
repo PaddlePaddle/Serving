@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from paddle.fluid import Executor
 from paddle.fluid.compiler import CompiledProgram
-from paddle.fluid.framework import Program
+from paddle.fluid.framework import core
 from paddle.fluid.framework import default_main_program
+from paddle.fluid.framework import Program
 from paddle.fluid import CPUPlace
 from paddle.fluid.io import save_persistables
+from ..proto import general_model_config_pb2 as model_conf
 import os
 
 def save_model(server_model_folder,
@@ -40,25 +41,42 @@ def save_model(server_model_folder,
     save_persistables(executor, server_model_folder,
                       main_program)
 
+    config = model_conf.GeneralModelConfig()
+
+    for key in feed_var_dict:
+        feed_var = model_conf.FeedVar()
+        feed_var.alias_name = key
+        feed_var.name = feed_var_dict[key].name
+        feed_var.is_lod_tensor = feed_var_dict[key].lod_level == 1
+        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
+           feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
+            feed_var.feed_type = 0
+        if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
+            feed_var.feed_type = 1
+        if feed_var.is_lod_tensor:
+            feed_var.shape.extend([-1])
+        else:
+            tmp_shape = []
+            for v in feed_var_dict[key].shape:
+                if v >= 0:
+                    tmp_shape.append(v)
+            feed_var.shape.extend(tmp_shape)
+        config.feed_var.extend([feed_var])
+
+    for key in fetch_var_dict:
+        fetch_var = model_conf.FetchVar()
+        fetch_var.alias_name = key
+        fetch_var.name = fetch_var_dict[key].name
+        fetch_var.shape.extend(fetch_var_dict[key].shape)
+        config.fetch_var.extend([fetch_var])
+
     cmd = "mkdir -p {}".format(client_config_folder)
     os.system(cmd)
-    with open("{}/client.conf".format(client_config_folder), "w") as fout:
-        fout.write("{} {}\n".format(len(feed_var_dict), len(fetch_var_dict)))
-        for key in feed_var_dict:
-            fout.write("{}".format(key))
-            if feed_var_dict[key].lod_level == 1:
-                fout.write(" 1 -1\n")
-            elif feed_var_dict[key].lod_level == 0:
-                fout.write(" {}".format(len(feed_var_dict[key].shape)))
-                for dim in feed_var_dict[key].shape:
-                    fout.write(" {}".format(dim))
-                fout.write("\n")
-        for key in fetch_var_dict:
-            fout.write("{} {}\n".format(key, fetch_var_dict[key].name))
+    with open("{}/serving_client_conf.prototxt", "w") as fout:
+        fout.write(str(config))
+    with open("{}/serving_server_conf.prototxt", "w") as fout:
+        fout.write(str(config))
 
-    cmd = "cp {}/client.conf {}/server.conf".format(
-        client_config_folder, server_model_folder)
-    os.system(cmd)
 
     
 
