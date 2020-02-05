@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
-    epochs = 30
+    epochs = 6
     save_dirname = "cnn_model"
 
     import paddle_serving_client.io as serving_io
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         exe.train_from_dataset(program=fluid.default_main_program(),
                                dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
-        if i == 20:
+        if i == 5:
             serving_io.save_model("serving_server_model",
                                   "serving_client_conf",
                                   {"words": data, "label": label},

@@ -10,8 +10,7 @@ for line in sys.stdin:
     words = [int(x) for x in group[1:int(group[0]) + 1]]
     label = [int(group[-1])]
     feed = {"words": words, "label": label}
-    fetch = ["cost", "acc", "prediction"]
+    fetch = ["acc", "cost", "prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
-    print(fetch_map)
-    #print("{} {}".format(fetch_map["prediction"][1], label[0]))
+    print("{} {}".format(fetch_map["prediction"][1], label[0]))
     
