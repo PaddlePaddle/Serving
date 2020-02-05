@@ -33,7 +33,7 @@ PYBIND11_MODULE(serving_client, m) {
       .def(py::init())
       .def("init",
            [](PredictorClient &self, const std::string &conf) {
-             self.init(conf);
+             return self.init(conf);
            })
       .def("set_predictor_conf",
            [](PredictorClient &self,

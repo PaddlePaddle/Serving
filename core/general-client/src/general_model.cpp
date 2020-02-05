@@ -27,45 +27,42 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 namespace baidu {
 namespace paddle_serving {
 namespace general_model {
+using configure::GeneralModelConfig;
 
-void PredictorClient::init(const std::string &conf_file) {
-  _conf_file = conf_file;
-  std::ifstream fin(conf_file);
-  if (!fin) {
-    LOG(ERROR) << "Your inference conf file can not be found";
-    exit(-1);
-  }
-  _feed_name_to_idx.clear();
-  _fetch_name_to_idx.clear();
-  _shape.clear();
-  int feed_var_num = 0;
-  int fetch_var_num = 0;
-  fin >> feed_var_num >> fetch_var_num;
-  std::string name;
-  std::string fetch_var_name;
-  int shape_num = 0;
-  int dim = 0;
-  int type_value = 0;
-  for (int i = 0; i < feed_var_num; ++i) {
-    fin >> name;
-    _feed_name_to_idx[name] = i;
-    fin >> shape_num;
-    std::vector<int> tmp_feed_shape;
-    for (int j = 0; j < shape_num; ++j) {
-      fin >> dim;
-      tmp_feed_shape.push_back(dim);
+int PredictorClient::init(const std::string &conf_file) {
+  try {
+    GeneralModelConfig model_config;
+    if (configure::read_proto_conf(conf_file.c_str(),
+                                   &model_config) != 0) {
+      LOG(ERROR) << "Failed to load general model config"
+                 << ", file path: " << conf_file;
+      return -1;
     }
-    fin >> type_value;
-    _type.push_back(type_value);
-    _shape.push_back(tmp_feed_shape);
-  }
+    _feed_name_to_idx.clear();
+    _fetch_name_to_idx.clear();
+    _shape.clear();
+    int feed_var_num = model_config.feed_var_size();
+    int fetch_var_num = model_config.fetch_var_size();
+    for (int i = 0; i < feed_var_num; ++i) {
+      _feed_name_to_idx[model_config.feed_var(i).alias_name()] = i;
+      std::vector<int> tmp_feed_shape;
+      for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
+        tmp_feed_shape.push_back(model_config.feed_var(i).shape(j));
+      }
+      _type.push_back(model_config.feed_var(i).feed_type());
+      _shape.push_back(tmp_feed_shape);
+    }
 
-  for (int i = 0; i < fetch_var_num; ++i) {
-    fin >> name;
-    fin >> fetch_var_name;
-    _fetch_name_to_idx[name] = i;
-    _fetch_name_to_var_name[name] = fetch_var_name;
+    for (int i = 0; i < fetch_var_num; ++i) {
+      _fetch_name_to_idx[model_config.fetch_var(i).alias_name()] = i;
+      _fetch_name_to_var_name[model_config.fetch_var(i).alias_name()] =
+          model_config.fetch_var(i).name();
+    }
+  } catch (std::exception& e) {
+    LOG(ERROR) << "Failed load general model config" << e.what();
+    return -1;
   }
+  return 0;
 }
 
 void PredictorClient::set_predictor_conf(const std::string &conf_path,

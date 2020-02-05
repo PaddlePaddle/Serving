@@ -13,24 +13,35 @@
 // limitations under the License.
 
 #pragma once
-#include <google/protobuf/message.h>
-#include <string>
+#include <vector>
+#ifdef BCLOUD
+#ifdef WITH_GPU
+#include "paddle/paddle_inference_api.h"
+#else
+#include "paddle/fluid/inference/api/paddle_inference_api.h"
+#endif
+#else
+#include "paddle_inference_api.h"  // NOLINT
+#endif
+#include "examples/demo-serving/general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace configure {
+namespace serving {
 
-  int read_proto_conf(const std::string &conf_full_path,
-                      google::protobuf::Message *conf);
-  
-  int read_proto_conf(const std::string &conf_path,
-                      const std::string &conf_file,
-                      google::protobuf::Message *conf);
-  
-  int write_proto_conf(google::protobuf::Message *message,
-                       const std::string &output_path,
-                       const std::string &output_file);
+static const char* GENERAL_MODEL_NAME = "general_model";
 
-}  // namespace configure
+class GeneralInferOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<
+          baidu::paddle_serving::predictor::general_model::Response> {
+ public:
+  typedef std::vector<paddle::PaddleTensor> TensorVector;
+
+  DECLARE_OP(GeneralInferOp);
+
+  int inference();
+};
+
+}  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

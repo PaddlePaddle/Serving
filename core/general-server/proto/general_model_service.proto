@@ -13,21 +13,36 @@
 // limitations under the License.
 
 syntax = "proto2";
-package baidu.paddle_serving.configure;
+import "pds_option.proto";
+import "builtin_format.proto";
+package baidu.paddle_serving.predictor.general_model;
 
-message FeedVar {
-  optional string name = 1;
-  optional string alias_name = 2;
-  optional bool is_lod_tensor = 3 [ default = false ];
-  optional int32 feed_type = 4 [ default = 0 ];
-  repeated int32 shape = 5;
-}
-message FetchVar {
-  optional string name = 1;
-  optional string alias_name = 2;
+option cc_generic_services = true;
+
+message Tensor {
+  repeated bytes data = 1;
+  optional int32 elem_type = 2;
   repeated int32 shape = 3;
-}
-message GeneralModelConfig {
-  repeated FeedVar feed_var = 1;
-  repeated FetchVar fetch_var = 2;
+};
+
+message FeedInst {
+  repeated Tensor tensor_array = 1;
+};
+
+message FetchInst {
+  repeated Tensor tensor_array = 1;
+};
+
+message Request {
+  repeated FeedInst insts = 1;
+};
+
+message Response {
+  repeated FetchInst insts = 1;
+};
+
+service GeneralModelService {
+  rpc inference(Request) returns (Response);
+  rpc debug(Request) returns (Response);
+  option (pds.options).generate_impl = true;
 };
