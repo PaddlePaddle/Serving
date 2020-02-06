@@ -103,12 +103,14 @@ for data in test_reader():
 
 [设计文档](doc/DESIGN.md)
 
-[从零开始写一个预测服务](doc/CREATING.md)
-
-[编译安装](doc/INSTALL.md)
-
 [FAQ](doc/FAQ.md)
 
+### 资深开发者使用指南
+
+[基于C++核心从零开始写一个预测服务](doc/CREATING.md)
+
+[编译指南](doc/INSTALL.md)
+
 # 贡献
-如果你想要给Paddle Serving做贡献，请参考贡献指南
+如果你想要给Paddle Serving做贡献，请参考[贡献指南](doc/CONTRIBUTE.md)
 
