@@ -51,7 +51,16 @@ Server Python API主要负责加载预估模型，以及生成Paddle Serving需�
 
 ### 3.6 训练过程中使用的Client io
 
-PaddleServing设计可以
+PaddleServing设计可以在训练过程中使用的保存模型接口，与Paddle保存inference model的接口基本一致，feed_var_dict与fetch_var_dict
+可以为输入和输出变量起别名，serving启动需要读取的配置会保存在client端和server端的保存目录中。
+
+``` python
+def save_model(server_model_folder,
+               client_config_folder,
+               feed_var_dict,
+               fetch_var_dict,
+               main_program=None)
+```
 
 ## 4. Paddle Serving底层框架
 
