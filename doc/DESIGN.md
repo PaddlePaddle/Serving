@@ -42,33 +42,16 @@ Client Python API当前有两个简单的功能，load_inference_conf和predict�
 Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
 
 ### 3.4 Server Inferface
-<p align="center">
-<img align="center" src="server_interface.png" height="250px" width="510px">
-</p>
-<p align="center">
-  Server Interface
-</p>
+
+![Server Interface](server_interface.png)
 
 ### 3.5 Client Interface
 
+![Client Interface](client_interface.png)
 
+### 3.6 训练过程中使用的Client io
 
-
-RPC通信协议：
-Tensor可以兼容LodTensor(level=1)和n-d Tensor
-Tensor中的elem_type表示当前Tensor的数值类型，elem_type=0为int64，elem_type=1为float
-Tensor中的shape表示当前Tensor的形状，shape.size() >= 1，shape[0]=-1则表示当前Tensor为lod_level=1的LodTensor，否则表示n-d Tensor的实际shape
-FeedInst和FetchInst由若干Tensor组成，代表单条样本的多个输入或输出Variable
-Request和Response中包含若干FeedInst、FetchInst支持批量预测
-
-Server端支持通用模型加载的设计：
-定义engine，workflow，resource，这部分会通过Server Python API自动生成，主要的变量就是model_data_path，需要加载当前实际需要预测的模型路径，对于workflow，由于当前Paddle Serving的设计可以服用已有workflow，因此可以不做自动生成
-
-Client端支持通用模型加载的设计：
-Client Python API加载模型需要加载一个训练过程中保存的模型配置，即inference model conf，包含用户预测过程中输入数据的具体Variable的信息
-单个client可以连接多个server，在客户端可做负载均衡，数据并行预测
-预测过程使用的reader，可以复用训练过程中的reader实现
-
+PaddleServing设计可以
 
 ## 4. Paddle Serving底层框架
 
