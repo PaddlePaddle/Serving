@@ -107,3 +107,6 @@ for data in test_reader():
 
 [FAQ](doc/FAQ.md)
 
+# 贡献
+如果你想要给Paddle Serving做贡献，请参考贡献指南
+
