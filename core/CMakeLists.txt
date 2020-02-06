@@ -25,4 +25,5 @@ endif()
 
 if (NOT CLIENT_ONLY)
 add_subdirectory(predictor)
+add_subdirectory(general-server)
 endif()

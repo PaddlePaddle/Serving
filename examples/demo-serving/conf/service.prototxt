@@ -40,6 +40,6 @@ services {
   workflows: "workflow9"
 }
 services {
-  name: "GeneralModelService"
-  workflows: "workflow11"
+  name: "LoadGeneralModelService"
+  workflows: "workflow10"
 }

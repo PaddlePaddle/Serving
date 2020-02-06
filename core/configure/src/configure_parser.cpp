@@ -31,6 +31,24 @@ namespace baidu {
 namespace paddle_serving {
 namespace configure {
 
+int read_proto_conf(const std::string &conf_file_full_path,
+                    google::protobuf::Message *conf) {
+  int fd = open(conf_file_full_path.c_str(), O_RDONLY);
+  if (fd == -1) {
+    LOG(WARNING) << "File not found: " << conf_file_full_path.c_str();
+    return -1;
+  }
+
+  google::protobuf::io::FileInputStream input(fd);
+  bool success = google::protobuf::TextFormat::Parse(&input, conf);
+  close(fd);
+  if (!success) {
+    return -1;
+  }
+
+  return 0;
+}
+
 int read_proto_conf(const std::string &conf_path,
                     const std::string &conf_file,
                     google::protobuf::Message *conf) {
