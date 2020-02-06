@@ -42,7 +42,12 @@ Client Python API当前有两个简单的功能，load_inference_conf和predict�
 Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
 
 ### 3.4 Server Inferface
-
+<p align="center">
+<img align="center" src="server_interface.png" height="250px" width="510px">
+</p>
+<p align="center">
+  Server Interface
+</p>
 
 ### 3.5 Client Interface
 
