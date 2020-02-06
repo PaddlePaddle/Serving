@@ -24,7 +24,48 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 - DAG/Workflow 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点Op通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象
 - Service 对一次pv的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
 
-## 3. Paddle Serving总体框架
+## 3. Python Interface设计
+
+### 3.1 核心目标：
+
+一套Paddle Serving的动态库，支持Paddle保存的通用模型的远程预估服务，通过Python Interface调用PaddleServing底层的各种功能。
+
+### 3.2 通用模型：
+
+能够使用Paddle Inference Library进行预测的模型，在训练过程中保存的模型，包含Feed Variable和Fetch Variable
+
+### 3.3 整体设计：
+
+用户通过Python Client启动Client和Server，Python API有检查互联和待访问模型是否匹配的功能
+Python API背后调用的是Paddle Serving实现的client和server对应功能的pybind，互传的信息通过RPC实现
+Client Python API当前有两个简单的功能，load_inference_conf和predict，分别用来执行加载待预测的模型和预测
+Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
+
+### 3.4 Server Inferface
+
+
+### 3.5 Client Interface
+
+
+
+
+RPC通信协议：
+Tensor可以兼容LodTensor(level=1)和n-d Tensor
+Tensor中的elem_type表示当前Tensor的数值类型，elem_type=0为int64，elem_type=1为float
+Tensor中的shape表示当前Tensor的形状，shape.size() >= 1，shape[0]=-1则表示当前Tensor为lod_level=1的LodTensor，否则表示n-d Tensor的实际shape
+FeedInst和FetchInst由若干Tensor组成，代表单条样本的多个输入或输出Variable
+Request和Response中包含若干FeedInst、FetchInst支持批量预测
+
+Server端支持通用模型加载的设计：
+定义engine，workflow，resource，这部分会通过Server Python API自动生成，主要的变量就是model_data_path，需要加载当前实际需要预测的模型路径，对于workflow，由于当前Paddle Serving的设计可以服用已有workflow，因此可以不做自动生成
+
+Client端支持通用模型加载的设计：
+Client Python API加载模型需要加载一个训练过程中保存的模型配置，即inference model conf，包含用户预测过程中输入数据的具体Variable的信息
+单个client可以连接多个server，在客户端可做负载均衡，数据并行预测
+预测过程使用的reader，可以复用训练过程中的reader实现
+
+
+## 4. Paddle Serving底层框架
 
 ![Paddle-Serging总体框图](framework.png)
 
@@ -32,7 +73,7 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 **业务调度框架**：对各种不同预测模型的计算逻辑进行抽象，提供通用的DAG调度框架，通过DAG图串联不同的算子，共同完成一次预测服务。该抽象模型使用户可以方便的实现自己的计算逻辑，同时便于算子共用。（用户搭建自己的预测服务，很大一部分工作是搭建DAG和提供算子的实现）
 **PredictService**:对外部提供的预测服务接口封装。通过protobuf定义与客户端的通信字段。
 
-### 3.1 模型管理框架
+### 4.1 模型管理框架
 
 模型管理框架负责管理机器学习框架训练出来的模型，总体可抽象成模型加载、模型数据和模型推理等3个层次。
 
@@ -56,9 +97,9 @@ class FluidFamilyCore {
 };
 ```
 
-### 3.2 业务调度框架
+### 4.2 业务调度框架
 
-#### 3.2.1 预测服务Service
+#### 4.2.1 预测服务Service
 
 参考TF框架的模型计算的抽象思想，将业务逻辑抽象成DAG图，由配置驱动，生成workflow，跳过C++代码编译。业务的每个具体步骤，对应一个具体的OP，OP可配置自己依赖的上游OP。OP之间消息传递统一由线程级Bus和channel机制实现。例如，一个简单的预测服务的服务过程，可以抽象成读请求数据->调用预测接口->写回预测结果等3个步骤，相应的实现到3个OP: ReaderOp->ClassifyOp->WriteOp
 
@@ -71,13 +112,13 @@ class FluidFamilyCore {
 ![服务端实例透视图](server-side.png)
 
 
-#### 3.2.2 Paddle Serving的多服务机制
+#### 4.2.2 Paddle Serving的多服务机制
 
 ![Paddle Serving的多服务机制](multi-service.png)
 
 Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
-#### 3.2.3 业务调度层级关系
+#### 4.2.3 业务调度层级关系
 
 从客户端看，一个Paddle Serving service从顶向下可分为Service, Endpoint, Variant等3个层级
 
@@ -88,7 +129,7 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 
 ![Client端proxy功能](client-side-proxy.png)
 
-## 4. 用户接口
+## 5. 用户接口
 
 在满足一定的接口规范前提下，服务框架不对用户数据字段做任何约束，以应对各种预测服务的不同业务接口。Baidu-rpc继承了Protobuf serice的接口，用户按照Protobuf语法规范描述Request和Response业务接口。Paddle Serving基于Baidu-rpc框架搭建，默认支持该特性。
 
@@ -99,11 +140,11 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
   - 数据字段：请求包Request和返回包Response两种数据结构包含的字段定义
   - 描述接口：跟协议接口类似，默认支持Protobuf
 
-### 4.1 数据压缩方法
+### 5.1 数据压缩方法
 
 Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
 
-### 4.2 C++ SDK API接口
+### 5.2 C++ SDK API接口
 
 ```C++
 class PredictorApi {
@@ -138,7 +179,7 @@ class Predictor {
 
 ```
 
-### 4.3 OP相关接口
+### 5.3 OP相关接口
 
 ```C++
 class Op {
@@ -220,7 +261,7 @@ class Op {
 
 ```
 
-### 4.4 框架相关接口
+### 5.4 框架相关接口
 
 Service
 
