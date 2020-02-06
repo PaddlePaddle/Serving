@@ -17,11 +17,6 @@ import sys
 import paddle
 import logging
 import paddle.fluid as fluid
-import paddle_serving as serving
-
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("fluid")
-logger.setLevel(logging.INFO)
 
 def load_vocab(filename):
     vocab = {}
@@ -56,45 +51,68 @@ if __name__ == "__main__":
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
     epochs = 30
-    save_dirname = "cnn_model"
+
+    import paddle_serving_client.io as serving_io
 
     for i in range(epochs):
         exe.train_from_dataset(program=fluid.default_main_program(),
                                dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
-        fluid.io.save_inference_model("%s/epoch%d.model" % (save_dirname, i),
-                                      [data.name, label.name], [acc], exe)
-        serving.save_model("%s/epoch%d.model" % (save_dirname, i), "client_config{}".format(i),
-                           {"words": data, "label": label},
-                           {"acc": acc, "cost": avg_cost, "prediction": prediction})
+        if i == 20:
+            serving_io.save_model("serving_server_model",
+                                  "serving_client_conf",
+                                  {"words": data, "label": label},
+                                  {"cost": avg_cost, "acc": acc,
+                                   "prediction": prediction},
+                                  fluid.default_main_program())
 ```
 
-#### 本地服务启动
-TBA
+#### 服务器端代码
+``` python
+import sys
+from paddle_serving.serving_server import OpMaker
+from paddle_serving.serving_server import OpSeqMaker
+from paddle_serving.serving_server import Server
+
+op_maker = OpMaker()
+read_op = op_maker.create('general_reader')
+general_infer_op = op_maker.create('general_infer')
+
+op_seq_maker = OpSeqMaker()
+op_seq_maker.add_op(read_op)
+op_seq_maker.add_op(general_infer_op)
+
+server = Server()
+server.set_op_sequence(op_seq_maker.get_op_sequence())
+server.load_model_config(sys.argv[1])
+server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
+server.run_server()
+```
+
+#### 服务器端启动
+``` shell
+python test_server.py serving_server_model
+```
 
 #### 客户端预测
 ``` python
-from paddle_serving import Client
+from paddle_serving_client import Client
 import sys
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9292"])
+client.connect(["127.0.0.1:9393"])
 
 for line in sys.stdin:
     group = line.strip().split()
-    words = [int(x) for x in group[1:int(group[0])]]
+    words = [int(x) for x in group[1:int(group[0]) + 1]]
     label = [int(group[-1])]
     feed = {"words": words, "label": label}
-    fetch = ["acc", "cost", "prediction"]
+    fetch = ["cost", "acc", "prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
     print("{} {}".format(fetch_map["prediction"][1], label[0]))
 
 ```
-
-
-#### 完成操作截屏
-TBA
 
 ### 文档
 
