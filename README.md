@@ -1,7 +1,103 @@
-# 概述
-PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是PaddlePaddle的在线预估服务框架，通过加载PaddlePaddle训练得到的模型，利用PaddlePaddle的预测库，提供机器学习预测云服务。
+# Paddle Serving
+Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者轻松实现从移动端、服务器端调用深度学习模型的远程预测服务。当前Paddle Serving以支持PaddlePaddle训练的模型为主，可以与Paddle训练框架联合使用，快速部署预估服务。
 
-# 文档
+## 快速上手
+
+Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，并且与Paddle的训练可以打通。我们以最经典的波士顿房价预测为示例，说明Paddle Serving的使用方法。
+
+#### 安装
+```
+pip install paddle-serving-client
+pip install paddle-serving-server
+```
+
+#### 训练脚本
+``` python
+import sys
+import paddle
+import paddle.fluid as fluid
+
+train_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.train(), buf_size=500), batch_size=16)
+
+test_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=16)
+
+x = fluid.data(name='x', shape=[None, 13], dtype='float32')
+y = fluid.data(name='y', shape=[None, 1], dtype='float32')
+
+y_predict = fluid.layers.fc(input=x, size=1, act=None)
+cost = fluid.layers.square_error_cost(input=y_predict, label=y)
+avg_loss = fluid.layers.mean(cost)
+sgd_optimizer = fluid.optimizer.SGD(learning_rate=0.01)
+sgd_optimizer.minimize(avg_loss)
+
+place = fluid.CPUPlace()
+feeder = fluid.DataFeeder(place=place, feed_list=[x, y])
+exe = fluid.Executor(place)
+exe.run(fluid.default_startup_program())
+
+import paddle_serving_client.io as serving_io
+
+for pass_id in range(30):
+    for data_train in train_reader():
+        avg_loss_value, = exe.run(
+            fluid.default_main_program(),
+            feed=feeder.feed(data_train),
+            fetch_list=[avg_loss])
+
+serving_io.save_model(
+    "serving_server_model", "serving_client_conf",
+    {"x": x}, {"y": y_predict}, fluid.default_main_program())
+```
+
+#### 服务器端代码
+``` python
+import sys
+from paddle_serving.serving_server import OpMaker
+from paddle_serving.serving_server import OpSeqMaker
+from paddle_serving.serving_server import Server
+
+op_maker = OpMaker()
+read_op = op_maker.create('general_reader')
+general_infer_op = op_maker.create('general_infer')
+
+op_seq_maker = OpSeqMaker()
+op_seq_maker.add_op(read_op)
+op_seq_maker.add_op(general_infer_op)
+
+server = Server()
+server.set_op_sequence(op_seq_maker.get_op_sequence())
+server.load_model_config(sys.argv[1])
+server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
+server.run_server()
+```
+
+#### 服务器端启动
+``` shell
+python test_server.py serving_server_model
+```
+
+#### 客户端预测
+``` python
+from paddle_serving_client import Client
+import paddle
+import sys
+
+client = Client()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9292"])
+
+test_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=1)
+
+for data in test_reader():
+    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["y"])
+    print("{} {}".format(fetch_map["y"][0], data[0][1][0]))
+
+```
+
+### 文档
 
 [设计文档](doc/DESIGN.md)
 
@@ -11,83 +107,3 @@ PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学�
 
 [FAQ](doc/FAQ.md)
 
-
-# 框架简介
-
-![图片](doc/architecture.png)
-
-## 主要功能
-
-Paddle serving框架为策略工程师提供以下三层面的功能性扩展：
-
-### 模型
-- 预测引擎：集成PaddlePaddle深度学习框架的预测Lib；
-- 模型种类：支持Paddle Fluid模型格式；
-- 用户接口：支持模型加载、重载的配置化驱动，不同种类模型的预测接口完全一致；
-- 模型调度：支持基于异步线程模型的多模型预估调度，实现异构资源的优先级调度；
-
-### 业务
-- 预测流程：通过有限DAG图描述一次预测从Request到Response的业务流程，节点Node是一个最小逻辑单元——OP；
-- 预测逻辑：框架封装常用预处理、预测计算、后处理等常用OP，用户通过自定义OP算子实现特化处理逻辑；
-
-### 服务
-
-- RPC：底层通过Baidu-rpc封装网络交互，Server端可配置化启动多个独立Service，框架会搜集Service粒度的详细业务指标，并按照BVar接口对接到Noah等监控平台；
-- SDK：基于Baidu-rpc的client进行封装，提供多下游连接管理、可扩展路由策略、可定制参数实验、自动分包等机制，支持同步、半同步、纯异步等交互模式，以及多种兼容协议，所有连接策略均通过配置驱动
-
-# 目录结构
-
-```
-.
-|-- cmake                               # CMake文件
-|   |-- external
-|   `-- patch
-|-- configure                           # Configure模块; Paddle Serving使用Protobuf格式的配置语言
-|   |-- include
-|   |-- proto
-|   |-- src
-|   `-- tests
-|-- demo-client                         # Client端示例；包括如文本分类、图像分类等任务的例子
-|   |-- conf                            # Client示例的conf目录
-|   |-- data                            # Client示例的data目录
-|   |   \-- images
-|   `-- src                             # Client示例的src目录
-|-- demo-serving                        # Serving示例。该目录下代码与libpdserving.a联编，产出一个可执行的serving二进制
-|   |-- conf                            # Serving示例的Conf目录
-|   |-- data                            # Serving示例的data目录
-|   |   `-- model
-|   |       `-- paddle
-|   |           `-- fluid
-|   |               |-- SE_ResNeXt50_32x4d
-|   |               `-- text_classification_lstm
-|   |-- op                              # Serving示例OP
-|   |-- proto                           # Serving示例的proto文件
-|   `-- scripts
-|-- doc                                 # 文档
-|-- inferencer-fluid-cpu                # 与PaddlePaddle CPU预测库的接口代码
-|   |-- include
-|   `-- src
-|-- pdcodegen                           # pdcodegen插件；请用此插件编译用户定义的服务接口描述protobuf文件
-|   |-- plugin
-|   `-- src
-|-- predictor                           # Serving端库: libpdserving.a
-|   |-- common
-|   |-- conf
-|   |-- cts
-|   |   `-- lib
-|   |-- framework
-|   |-- mempool
-|   |-- op
-|   |-- proto
-|   |-- scripts
-|   |   `-- images
-|   |-- src
-|   `-- unittest
-|-- sdk-cpp                             # Client端库: libpdsdk-cpp.a
-|   |-- include
-|   |-- plugin
-|   |-- proto
-|   `-- src
-`-- tools                               # CI工具
-    `-- codestyle
-```
