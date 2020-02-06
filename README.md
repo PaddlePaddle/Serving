@@ -2,7 +2,8 @@
 Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者轻松实现从移动端、服务器端调用深度学习模型的远程预测服务。当前Paddle Serving以支持PaddlePaddle训练的模型为主，可以与Paddle训练框架联合使用，快速部署预估服务。
 
 ## 快速上手
-Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，我们假设远程已经部署的Paddle Serving的文本分类模型，您可以在自己的服务器快速安装客户端并进行快速预测。
+
+Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，并且与Paddle的训练可以打通。我们以最经典的波士顿房价预测为示例，说明Paddle Serving的使用方法。
 
 #### 安装
 ```
@@ -12,59 +13,42 @@ pip install paddle-serving-server
 
 #### 训练脚本
 ``` python
-import os
 import sys
 import paddle
-import logging
 import paddle.fluid as fluid
 
-def load_vocab(filename):
-    vocab = {}
-    with open(filename) as f:
-        wid = 0
-        for line in f:
-            vocab[line.strip()] = wid
-            wid += 1
-    vocab["<unk>"] = len(vocab)
-    return vocab
+train_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.train(), buf_size=500), batch_size=16)
 
-if __name__ == "__main__":
-    vocab = load_vocab('imdb.vocab')
-    dict_dim = len(vocab)
+test_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=16)
 
-    data = fluid.layers.data(name="words", shape=[1], dtype="int64", lod_level=1)
-    label = fluid.layers.data(name="label", shape=[1], dtype="int64")
+x = fluid.data(name='x', shape=[None, 13], dtype='float32')
+y = fluid.data(name='y', shape=[None, 1], dtype='float32')
 
-    dataset = fluid.DatasetFactory().create_dataset()
-    filelist = ["train_data/%s" % x for x in os.listdir("train_data")]
-    dataset.set_use_var([data, label])
-    pipe_command = "python imdb_reader.py"
-    dataset.set_pipe_command(pipe_command)
-    dataset.set_batch_size(4)
-    dataset.set_filelist(filelist)
-    dataset.set_thread(10)
-    from nets import cnn_net
-    avg_cost, acc, prediction = cnn_net(data, label, dict_dim)
-    optimizer = fluid.optimizer.SGD(learning_rate=0.01)
-    optimizer.minimize(avg_cost)
+y_predict = fluid.layers.fc(input=x, size=1, act=None)
+cost = fluid.layers.square_error_cost(input=y_predict, label=y)
+avg_loss = fluid.layers.mean(cost)
+sgd_optimizer = fluid.optimizer.SGD(learning_rate=0.01)
+sgd_optimizer.minimize(avg_loss)
 
-    exe = fluid.Executor(fluid.CPUPlace())
-    exe.run(fluid.default_startup_program())
-    epochs = 30
+place = fluid.CPUPlace()
+feeder = fluid.DataFeeder(place=place, feed_list=[x, y])
+exe = fluid.Executor(place)
+exe.run(fluid.default_startup_program())
 
-    import paddle_serving_client.io as serving_io
+import paddle_serving_client.io as serving_io
 
-    for i in range(epochs):
-        exe.train_from_dataset(program=fluid.default_main_program(),
-                               dataset=dataset, debug=False)
-        logger.info("TRAIN --> pass: {}".format(i))
-        if i == 20:
-            serving_io.save_model("serving_server_model",
-                                  "serving_client_conf",
-                                  {"words": data, "label": label},
-                                  {"cost": avg_cost, "acc": acc,
-                                   "prediction": prediction},
-                                  fluid.default_main_program())
+for pass_id in range(30):
+    for data_train in train_reader():
+        avg_loss_value, = exe.run(
+            fluid.default_main_program(),
+            feed=feeder.feed(data_train),
+            fetch_list=[avg_loss])
+
+serving_io.save_model(
+    "serving_server_model", "serving_client_conf",
+    {"x": x}, {"y": y_predict}, fluid.default_main_program())
 ```
 
 #### 服务器端代码
@@ -97,20 +81,19 @@ python test_server.py serving_server_model
 #### 客户端预测
 ``` python
 from paddle_serving_client import Client
+import paddle
 import sys
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+client.connect(["127.0.0.1:9292"])
 
-for line in sys.stdin:
-    group = line.strip().split()
-    words = [int(x) for x in group[1:int(group[0]) + 1]]
-    label = [int(group[-1])]
-    feed = {"words": words, "label": label}
-    fetch = ["cost", "acc", "prediction"]
-    fetch_map = client.predict(feed=feed, fetch=fetch)
-    print("{} {}".format(fetch_map["prediction"][1], label[0]))
+test_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=1)
+
+for data in test_reader():
+    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["y"])
+    print("{} {}".format(fetch_map["y"][0], data[0][1][0]))
 
 ```
 
