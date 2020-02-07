@@ -38,23 +38,35 @@ int PredictorClient::init(const std::string &conf_file) {
                  << ", file path: " << conf_file;
       return -1;
     }
+
     _feed_name_to_idx.clear();
     _fetch_name_to_idx.clear();
     _shape.clear();
     int feed_var_num = model_config.feed_var_size();
     int fetch_var_num = model_config.fetch_var_size();
+    VLOG(2) << "feed var num: " << feed_var_num
+            << "fetch_var_num: " << fetch_var_num;
     for (int i = 0; i < feed_var_num; ++i) {
       _feed_name_to_idx[model_config.feed_var(i).alias_name()] = i;
+      VLOG(2) << "feed alias name: " << model_config.feed_var(i).alias_name()
+              << " index: " << i;
       std::vector<int> tmp_feed_shape;
+      VLOG(2) << "feed" << "[" << i << "] shape:";
       for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
         tmp_feed_shape.push_back(model_config.feed_var(i).shape(j));
+        VLOG(2) << "shape[" << j << "]: "
+                << model_config.feed_var(i).shape(j);
       }
       _type.push_back(model_config.feed_var(i).feed_type());
+      VLOG(2) << "feed" << "[" << i << "] feed type: "
+              << model_config.feed_var(i).feed_type();
       _shape.push_back(tmp_feed_shape);
     }
 
     for (int i = 0; i < fetch_var_num; ++i) {
       _fetch_name_to_idx[model_config.fetch_var(i).alias_name()] = i;
+      VLOG(2) << "fetch [" << i << "]" << " alias name: "
+              << model_config.fetch_var(i).alias_name();
       _fetch_name_to_var_name[model_config.fetch_var(i).alias_name()] =
           model_config.fetch_var(i).name();
     }
@@ -93,6 +105,9 @@ std::vector<std::vector<float>> PredictorClient::predict(
 
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
+  VLOG(2) << "fetch general model predictor done.";
+  VLOG(2) << "float feed name size: " << float_feed_name.size();
+  VLOG(2) << "int feed name size: " << int_feed_name.size();
   Request req;
   std::vector<Tensor *> tensor_vec;
   FeedInst *inst = req.add_insts();
@@ -103,6 +118,7 @@ std::vector<std::vector<float>> PredictorClient::predict(
   for (auto &name : int_feed_name) {
     tensor_vec.push_back(inst->add_tensor_array());
   }
+  VLOG(2) << "prepare tensor vec done.";
 
   int vec_idx = 0;
   for (auto &name : float_feed_name) {
@@ -120,6 +136,8 @@ std::vector<std::vector<float>> PredictorClient::predict(
     vec_idx++;
   }
 
+  VLOG(2) << "feed float feed var done.";
+
   vec_idx = 0;
   for (auto &name : int_feed_name) {
     int idx = _feed_name_to_idx[name];
@@ -136,6 +154,8 @@ std::vector<std::vector<float>> PredictorClient::predict(
     vec_idx++;
   }
 
+  VLOG(2) << "feed int feed var done.";
+
   // std::map<std::string, std::vector<float> > result;
   Response res;
 
@@ -147,18 +167,10 @@ std::vector<std::vector<float>> PredictorClient::predict(
     for (auto &name : fetch_name) {
       int idx = _fetch_name_to_idx[name];
       int len = res.insts(0).tensor_array(idx).data_size();
-      VLOG(3) << "fetch name: " << name;
-      VLOG(3) << "tensor data size: " << len;
+      VLOG(2) << "fetch name: " << name;
+      VLOG(2) << "tensor data size: " << len;
       fetch_result[idx].resize(len);
       for (int i = 0; i < len; ++i) {
-        /*
-        (*fetch_result)[name][i] = *(const float *)
-                    res.insts(0).tensor_array(idx).data(i).c_str();
-        VLOG(3) << *(const float *)
-            res.insts(0).tensor_array(idx).data(i).c_str();
-        fetch_result[name][i] = *(const float *)
-                    res.insts(0).tensor_array(idx).data(i).c_str();
-        */
         fetch_result[idx][i] =
             *(const float *)res.insts(0).tensor_array(idx).data(i).c_str();
       }
@@ -187,9 +199,13 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
 
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
+  VLOG(2) << "fetch general model predictor done.";
+  VLOG(2) << "float feed name size: " << float_feed_name.size();
+  VLOG(2) << "int feed name size: " << int_feed_name.size();
   Request req;
   //
   for (int bi = 0; bi < batch_size; bi++) {
+    VLOG(2) << "prepare batch " << bi;
     std::vector<Tensor *> tensor_vec;
     FeedInst *inst = req.add_insts();
     std::vector<std::vector<float>> float_feed = float_feed_batch[bi];
@@ -201,7 +217,9 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
     for (auto &name : int_feed_name) {
       tensor_vec.push_back(inst->add_tensor_array());
     }
-
+    
+    VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name"
+            << "prepared";
     int vec_idx = 0;
     for (auto &name : float_feed_name) {
       int idx = _feed_name_to_idx[name];
@@ -217,6 +235,8 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       }
       vec_idx++;
     }
+
+    VLOG(2) << "batch [" << bi << "] " << "float feed value prepared";
 
     vec_idx = 0;
     for (auto &name : int_feed_name) {
@@ -235,6 +255,8 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       }
       vec_idx++;
     }
+
+    VLOG(2) << "batch [" << bi << "] " << "itn feed value prepared";
   }
 
   Response res;
@@ -248,10 +270,10 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       for (auto &name : fetch_name) {
         int idx = _fetch_name_to_idx[name];
         int len = res.insts(bi).tensor_array(idx).data_size();
-        VLOG(3) << "fetch name: " << name;
-        VLOG(3) << "tensor data size: " << len;
+        VLOG(2) << "fetch name: " << name;
+        VLOG(2) << "tensor data size: " << len;
         fetch_result_batch[bi][idx].resize(len);
-        VLOG(3)
+        VLOG(2)
             << "fetch name " << name << " index " << idx << " first data "
             << *(const float *)res.insts(bi).tensor_array(idx).data(0).c_str();
         for (int i = 0; i < len; ++i) {
