@@ -96,20 +96,6 @@ int GeneralInferOp::inference() {
       }
     }
   }
-  /*
-      for (size_t i = 0; i < in->size(); ++i) {
-        (*in)[i].shape.clear();
-      }
-      in->clear();
-      butil::return_object<TensorVector>(in);
-
-      for (size_t i = 0; i < out->size(); ++i) {
-        (*out)[i].shape.clear();
-      }
-      out->clear();
-      butil::return_object<TensorVector>(out);
-    }
-  */
   return 0;
 }
 DEFINE_OP(GeneralInferOp);
