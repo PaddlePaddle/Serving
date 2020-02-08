@@ -108,7 +108,11 @@ std::vector<std::vector<float>> PredictorClient::predict(
   VLOG(2) << "fetch general model predictor done.";
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
+  VLOG(2) << "fetch name size: " << fetch_name.size();
   Request req;
+  for (auto & name : fetch_name) {
+    req.add_fetch_var_names(name);
+  }
   std::vector<Tensor *> tensor_vec;
   FeedInst *inst = req.add_insts();
   for (auto &name : float_feed_name) {

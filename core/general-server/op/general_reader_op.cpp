@@ -39,6 +39,9 @@ int conf_check(const Request *req,
     LOG(ERROR) << "feed var number not match.";
     return -1;
   }
+
+  VLOG(2) << "fetch var num in reader op: " << req->fetch_var_names_size();
+
   for (int i = 0; i < var_num; ++i) {
     if (model_config->_feed_type[i] !=
         req->insts(0).tensor_array(i).elem_type()) {
@@ -89,15 +92,15 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "var num: " << var_num;
   // read config
 
-  LOG(INFO) << "start to call load general model_conf op";
+  VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
 
-  LOG(INFO) << "get resource pointer done.";
+  VLOG(2) << "get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
-  LOG(INFO) << "print general model config done.";
+  VLOG(2) << "print general model config done.";
 
   // check
   res->reader_status = conf_check(req, model_config);
@@ -111,8 +114,8 @@ int GeneralReaderOp::inference() {
   elem_type.resize(var_num);
   elem_size.resize(var_num);
   capacity.resize(var_num);
-  paddle::PaddleTensor lod_tensor;
   for (int i = 0; i < var_num; ++i) {
+    paddle::PaddleTensor lod_tensor;
     elem_type[i] = req->insts(0).tensor_array(i).elem_type();
     VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
     if (elem_type[i] == 0) {  // int64
@@ -138,11 +141,7 @@ int GeneralReaderOp::inference() {
       }
       VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
-    if (i == 0) {
-      lod_tensor.name = "words";
-    } else {
-      lod_tensor.name = "label";
-    }
+    lod_tensor.name = model_config->_feed_name[i];
     in->push_back(lod_tensor);
   }
 

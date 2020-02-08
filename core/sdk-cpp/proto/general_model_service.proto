@@ -35,6 +35,7 @@ message FetchInst {
 
 message Request {
   repeated FeedInst insts = 1;
+  repeated string fetch_var_names = 2;
 };
 
 message Response {

@@ -25,7 +25,8 @@ message FeedVar {
 message FetchVar {
   optional string name = 1;
   optional string alias_name = 2;
-  repeated int32 shape = 3;
+  optional bool is_lod_tensor = 3 [ default = false ];
+  repeated int32 shape = 4;
 }
 message GeneralModelConfig {
   repeated FeedVar feed_var = 1;
