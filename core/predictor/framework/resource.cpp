@@ -189,14 +189,18 @@ int Resource::general_model_initialize(const std::string& path,
   VLOG(2) << "load general model config";
   VLOG(2) << "feed var num: " << feed_var_num;
   _config->_feed_name.resize(feed_var_num);
+  _config->_feed_alias_name.resize(feed_var_num);
   _config->_feed_type.resize(feed_var_num);
   _config->_is_lod_feed.resize(feed_var_num);
   _config->_capacity.resize(feed_var_num);
   _config->_feed_shape.resize(feed_var_num);
   for (int i = 0; i < feed_var_num; ++i) {
     _config->_feed_name[i] = model_config.feed_var(i).name();
+    _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
     VLOG(2) << "feed var[" << i << "]: "
             << _config->_feed_name[i];
+    VLOG(2) << "feed var[" << i << "]: "
+            << _config->_feed_alias_name[i];
     _config->_feed_type[i] = model_config.feed_var(i).feed_type();
     VLOG(2) << "feed type[" << i << "]: "
             << _config->_feed_type[i];
@@ -219,13 +223,25 @@ int Resource::general_model_initialize(const std::string& path,
   }
 
   int fetch_var_num = model_config.fetch_var_size();
+  _config->_is_lod_fetch.resize(fetch_var_num);
   _config->_fetch_name.resize(fetch_var_num);
+  _config->_fetch_alias_name.resize(fetch_var_num);
   _config->_fetch_shape.resize(fetch_var_num);
   for (int i = 0; i < fetch_var_num; ++i) {
     _config->_fetch_name[i] = model_config.fetch_var(i).name();
-    for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
-      int dim = model_config.fetch_var(i).shape(j);
-      _config->_fetch_shape[i].push_back(dim);
+    _config->_fetch_alias_name[i] = model_config.fetch_var(i).alias_name();
+    _config->_fetch_name_to_index[_config->_fetch_name[i]] = i;
+    _config->_fetch_alias_name_to_index[_config->_fetch_alias_name[i]] = i;
+    if (model_config.fetch_var(i).is_lod_tensor()) {
+      VLOG(2) << "fetch var[" << i << "] is lod tensor";
+      _config->_fetch_shape[i] = {-1};
+      _config->_is_lod_fetch[i] = true;
+    } else {
+      _config->_is_lod_fetch[i] = false;
+      for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
+        int dim = model_config.fetch_var(i).shape(j);
+        _config->_fetch_shape[i].push_back(dim);
+      }
     }
   }
   return 0;
