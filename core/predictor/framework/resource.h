@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 #include "core/cube/cube-api/include/cube_api.h"
 #include "core/kvdb/include/kvdb/paddle_rocksdb.h"
 #include "core/predictor/common/inner_common.h"
@@ -34,8 +35,10 @@ class PaddleGeneralModelConfig {
 
  public:
   std::vector<std::string> _feed_name;
+  std::vector<std::string> _feed_alias_name;
   std::vector<int> _feed_type;     // 0 int64, 1 float
   std::vector<bool> _is_lod_feed;  // true lod tensor
+  std::vector<bool> _is_lod_fetch;  // whether a fetch var is lod_tensor
   std::vector<int> _capacity;      //  capacity for each tensor
                                    /*
                                      feed_shape_ for feeded variable
@@ -45,7 +48,10 @@ class PaddleGeneralModelConfig {
   std::vector<std::vector<int>> _feed_shape;
 
   std::vector<std::string> _fetch_name;
+  std::vector<std::string> _fetch_alias_name;
   std::vector<std::vector<int>> _fetch_shape;
+  std::map<std::string, int> _fetch_name_to_index;
+  std::map<std::string, int> _fetch_alias_name_to_index;
 };
 
 class BaseRdDict;
