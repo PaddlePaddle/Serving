@@ -1,2 +1,2 @@
-wget 10.86.69.44:/home/work/incubate/ctr_data.tar.gz
+wget https://paddle-serving.bj.bcebos.com/data%2Fctr_prediction%2Fctr_data.tar.gz
 tar -zxvf ctr_data.tar.gz
