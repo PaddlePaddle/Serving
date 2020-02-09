@@ -101,6 +101,7 @@ class Server(object):
         self.model_config_path = model_config_path
         self.engine.name = "general_model"
         self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        os.system("touch {}".format(self.engine.reloadable_meta))
         self.engine.reloadable_type = "timestamp_ne"
         self.engine.runtime_thread_num = 0
         self.engine.batch_infer_size = 0

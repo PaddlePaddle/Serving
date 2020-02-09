@@ -41,7 +41,7 @@ def save_model(server_model_folder,
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
         feed_var.name = feed_var_dict[key].name
-        feed_var.is_lod_tensor = feed_var_dict[key].lod_level == 1
+        feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
         if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
            feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
             feed_var.feed_type = 0
@@ -61,7 +61,15 @@ def save_model(server_model_folder,
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
-        fetch_var.shape.extend(fetch_var_dict[key].shape)
+        fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        if fetch_var.is_lod_tensor:
+            fetch_var.shape.extend([-1])
+        else:
+            tmp_shape = []
+            for v in fetch_var_dict[key].shape:
+                if v >= 0:
+                    tmp_shape.append(v)
+            fetch_var.shape.extend(tmp_shape)
         config.fetch_var.extend([fetch_var])
 
     cmd = "mkdir -p {}".format(client_config_folder)
