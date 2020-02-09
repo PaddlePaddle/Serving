@@ -62,7 +62,7 @@ def save_model(server_model_folder,
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
         fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
-        if feteh_var.is_lod_tensor:
+        if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
             tmp_shape = []
