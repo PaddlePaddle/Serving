@@ -162,29 +162,10 @@ class Server(object):
         # check config here
         # print config here
 
-    def get_device_version(self):
-        avx_flag = False
-        mkl_flag = False
-        openblas_flag = False
-        r = os.system("cat /proc/cpuinfo | grep avx")
-        if r == 0:
-            avx_flag = True
-        r = os.system("which mkl")
-        if r == 0:
-            mkl_flag = True
-        if avx_flag:
-            if mkl_flag:
-                device_version = "serving-cpu-avx-mkl-"
-            else:
-                device_version = "serving-cpu-avx-openblas-"
-        else:
-            device_version = "serving-cpu-noavx-openblas-"
-        return device_version
-
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
-        device_version = get_device_version()
+        device_version = "server-gpu-"
         floder_name = device_version + serving_server_version
         tar_name = floder_name + ".tar.gz"
         bin_url = "127.0.0.1:8100/" + tar_name
