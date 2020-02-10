@@ -18,6 +18,7 @@ from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import tarfile
 import paddle_serving_server as paddle_serving_server
+from version import serving_server_version
 
 
 class OpMaker(object):
@@ -80,9 +81,8 @@ class Server(object):
         self.num_threads = 0
         self.port = 8080
         self.reload_interval_s = 10
-        self.moudle_path = os.path.dirname(paddle_serving_server.__file__)
+        self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.moudle_version = paddle_serving_server.__version__
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -162,15 +162,14 @@ class Server(object):
         # check config here
         # print config here
 
-    def download_bin():
-        os.chdir(self.sever_path)
+    def download_bin(self):
+        os.chdir(self.module_path)
         need_download = False
-        exe_path = "./bin"
-        version = paddle_serving_server.__version__
-        tar_name = "serving-gpu-" + version + ".tar.gz"
+        device_version = "serving-cpu-noavx-openblas-"
+        floder_name = device_version + serving_server_version
+        tar_name = floder_name + ".tar.gz"
         bin_url = "127.0.0.1:8100/" + tar_name
-        floder_name = "server" + version
-        self.server_path = os.path.join(moudle_path, floder_name)
+        self.server_path = os.path.join(self.module_path, floder_name)
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
@@ -218,7 +217,7 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-
+        self.download_bin()
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
