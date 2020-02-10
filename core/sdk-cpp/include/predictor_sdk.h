@@ -31,6 +31,8 @@ class PredictorApi {
 
   int register_all();
 
+  int create(const std::string & sdk_desc_str);
+
   int create(const char* path, const char* file);
 
   int thrd_initialize();

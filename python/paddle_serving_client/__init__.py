@@ -36,7 +36,7 @@ class SDKConfig(object):
         predictor_desc.service_name = \
             "baidu.paddle_serving.predictor.general_model.GeneralModelService"
         predictor_desc.endpoint_router = "WeightedRandomRender"
-        predictor_desc.weighted_random_render_conf.variant_weight_list = "30"
+        predictor_desc.weighted_random_render_conf.variant_weight_list = "100"
 
         variant_desc = sdk.VariantConf()
         variant_desc.tag = "var1"
@@ -105,12 +105,7 @@ class Client(object):
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
         timestamp = time.asctime(time.localtime(time.time()))
-        predictor_path = "/tmp/"
-        predictor_file = "%s_predictor.conf" % timestamp
-        with open(predictor_path + predictor_file, "w") as fout:
-            fout.write(sdk_desc)
-        self.client_handle_.set_predictor_conf(predictor_path, predictor_file)
-        self.client_handle_.create_predictor()
+        self.client_handle_.create_predictor(sdk_desc)
 
     def get_feed_names(self):
         return self.feed_names_
@@ -118,7 +113,7 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    def predict(self, feed={}, fetch=[]):
+    def predict(self, feed={}, fetch=[], debug=False):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -147,6 +142,9 @@ class Client(object):
         result_map = {}
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
+
+        if debug:
+            result_map["infer_time"] = result[-1][0]
 
         return result_map
 
@@ -191,3 +189,6 @@ class Client(object):
             result_map_batch.append(result_map)
 
         return result_map_batch
+
+    def release(self):
+        self.client_handle_.destroy_predictor()
