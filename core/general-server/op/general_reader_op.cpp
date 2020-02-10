@@ -103,12 +103,14 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "print general model config done.";
 
   // check
+  /*
   res->reader_status = conf_check(req, model_config);
   if (res->reader_status != 0) {
     LOG(INFO) << "model conf of server:";
     resource.print_general_model_config(model_config);
     return 0;
   }
+  */
   // package tensor
 
   elem_type.resize(var_num);
@@ -201,13 +203,14 @@ int GeneralReaderOp::inference() {
 
   VLOG(2) << "read data from client success";
   // print request
+  /*
   std::ostringstream oss;
   int64_t *example = reinterpret_cast<int64_t *>((*in)[0].data.data());
   for (int i = 0; i < 10; i++) {
     oss << *(example + i) << " ";
   }
   VLOG(2) << "head element of first feed var : " << oss.str();
-  //
+  */
   return 0;
 }
 DEFINE_OP(GeneralReaderOp);
