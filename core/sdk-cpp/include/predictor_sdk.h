@@ -49,11 +49,6 @@ class PredictorApi {
   }
 
   Predictor* fetch_predictor(std::string ep_name) {
-    std::map<std::string, Endpoint*>::iterator iter;
-    VLOG(2) << "going to print predictor names";
-    for (iter = _endpoints.begin(); iter != _endpoints.end(); ++iter) {
-      VLOG(2) << "name: " << iter->first;
-    }
     std::map<std::string, Endpoint*>::iterator it = _endpoints.find(ep_name);
     if (it == _endpoints.end() || !it->second) {
       LOG(ERROR) << "Failed fetch predictor:"
