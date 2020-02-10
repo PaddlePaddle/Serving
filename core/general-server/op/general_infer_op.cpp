@@ -122,6 +122,7 @@ int GeneralInferOp::inference() {
         }
       }
     }
+    var_idx++;
   }
   return 0;
 }
