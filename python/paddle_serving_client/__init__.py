@@ -118,7 +118,7 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    def predict(self, feed={}, fetch=[]):
+    def predict(self, feed={}, fetch=[], debug=False):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -147,6 +147,9 @@ class Client(object):
         result_map = {}
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
+
+        if debug:
+            result_map["infer_time"] = result[-1][0]
 
         return result_map
 
@@ -191,3 +194,6 @@ class Client(object):
             result_map_batch.append(result_map)
 
         return result_map_batch
+
+    def release(self):
+        self.client_handle_.destroy_predictor()

@@ -43,6 +43,8 @@ PYBIND11_MODULE(serving_client, m) {
            })
       .def("create_predictor",
            [](PredictorClient &self) { self.create_predictor(); })
+      .def("destroy_predictor",
+           [](PredictorClient &self) { self.destroy_predictor(); })
       .def("predict",
            [](PredictorClient &self,
               const std::vector<std::vector<float>> &float_feed,
