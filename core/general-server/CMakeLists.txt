@@ -40,8 +40,6 @@ endif()
 install(TARGETS serving
         RUNTIME DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION
-        ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/)
 
 FILE(GLOB inc ${CMAKE_CURRENT_BINARY_DIR}/*.pb.h)
 install(FILES ${inc}
