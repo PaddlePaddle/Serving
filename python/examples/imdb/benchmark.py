@@ -63,6 +63,6 @@ if __name__ == '__main__':
 
     thread_runner = MultiThreadRunner()
     result = thread_runner.run(predict, int(sys.argv[3]), resource)
-    print(result[-1])
+
     print("{}\t{}".format(sys.argv[3], sum(result[-1]) / len(result[-1])))
     print("{}\t{}".format(sys.argv[3], sum(result[2]) / 1000.0 / 1000.0 / len(result[2])))

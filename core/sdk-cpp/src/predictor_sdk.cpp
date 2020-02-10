@@ -30,6 +30,49 @@ int PredictorApi::register_all() {
   return 0;
 }
 
+int PredictorApi::create(const std::string & api_desc_str) {
+  VLOG(2) << api_desc_str;
+  if (register_all() != 0) {
+    LOG(ERROR) << "Failed do register all!";
+    return -1;
+  }
+
+  if (_config_manager.create(api_desc_str) != 0) {
+    LOG(ERROR) << "Failed create config manager from desc string :"
+               << api_desc_str;
+    return -1;
+  }
+
+  const std::map<std::string, EndpointInfo>& map = _config_manager.config();
+  std::map<std::string, EndpointInfo>::const_iterator it;
+  for (it = map.begin(); it != map.end(); ++it) {
+    const EndpointInfo& ep_info = it->second;
+    Endpoint* ep = new (std::nothrow) Endpoint();
+    if (ep->initialize(ep_info) != 0) {
+      LOG(ERROR) << "Failed intialize endpoint:" << ep_info.endpoint_name;
+      return -1;
+    }
+
+    if (_endpoints.find(ep_info.endpoint_name) != _endpoints.end()) {
+      LOG(ERROR) << "Cannot insert duplicated endpoint:"
+                 << ep_info.endpoint_name;
+      return -1;
+    }
+
+    std::pair<std::map<std::string, Endpoint*>::iterator, bool> r =
+        _endpoints.insert(std::make_pair(ep_info.endpoint_name, ep));
+    if (!r.second) {
+      LOG(ERROR) << "Failed insert endpoint:" << ep_info.endpoint_name;
+      return -1;
+    }
+
+    LOG(INFO) << "Succ create endpoint instance with name: "
+              << ep_info.endpoint_name;
+  }
+
+  return 0;
+}
+
 int PredictorApi::create(const char* path, const char* file) {
   if (register_all() != 0) {
     LOG(ERROR) << "Failed do register all!";

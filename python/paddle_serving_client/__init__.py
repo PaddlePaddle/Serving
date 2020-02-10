@@ -36,7 +36,7 @@ class SDKConfig(object):
         predictor_desc.service_name = \
             "baidu.paddle_serving.predictor.general_model.GeneralModelService"
         predictor_desc.endpoint_router = "WeightedRandomRender"
-        predictor_desc.weighted_random_render_conf.variant_weight_list = "30"
+        predictor_desc.weighted_random_render_conf.variant_weight_list = "100"
 
         variant_desc = sdk.VariantConf()
         variant_desc.tag = "var1"
@@ -105,12 +105,7 @@ class Client(object):
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
         timestamp = time.asctime(time.localtime(time.time()))
-        predictor_path = "/tmp/"
-        predictor_file = "%s_predictor.conf" % timestamp
-        with open(predictor_path + predictor_file, "w") as fout:
-            fout.write(sdk_desc)
-        self.client_handle_.set_predictor_conf(predictor_path, predictor_file)
-        self.client_handle_.create_predictor()
+        self.client_handle_.create_predictor(sdk_desc)
 
     def get_feed_names(self):
         return self.feed_names_

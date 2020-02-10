@@ -88,7 +88,17 @@ int PredictorClient::destroy_predictor() {
   _api.destroy();
 }
 
+int PredictorClient::create_predictor_by_desc(const std::string & sdk_desc) {
+  if (_api.create(sdk_desc) != 0) {
+    LOG(ERROR) << "Predictor Creation Failed";
+    return -1;
+  }
+  _api.thrd_initialize();
+}
+
 int PredictorClient::create_predictor() {
+  VLOG(2) << "Predictor path: " << _predictor_path
+          << " predictor file: " << _predictor_conf;
   if (_api.create(_predictor_path.c_str(), _predictor_conf.c_str()) != 0) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
