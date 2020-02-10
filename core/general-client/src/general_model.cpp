@@ -83,7 +83,22 @@ void PredictorClient::set_predictor_conf(const std::string &conf_path,
   _predictor_conf = conf_file;
 }
 
+int PredictorClient::destroy_predictor() {
+  _api.thrd_finalize();
+  _api.destroy();
+}
+
+int PredictorClient::create_predictor_by_desc(const std::string & sdk_desc) {
+  if (_api.create(sdk_desc) != 0) {
+    LOG(ERROR) << "Predictor Creation Failed";
+    return -1;
+  }
+  _api.thrd_initialize();
+}
+
 int PredictorClient::create_predictor() {
+  VLOG(2) << "Predictor path: " << _predictor_path
+          << " predictor file: " << _predictor_conf;
   if (_api.create(_predictor_path.c_str(), _predictor_conf.c_str()) != 0) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
@@ -101,7 +116,9 @@ std::vector<std::vector<float>> PredictorClient::predict(
   if (fetch_name.size() == 0) {
     return fetch_result;
   }
-  fetch_result.resize(fetch_name.size());
+
+  // we save infer_us at fetch_result[fetch_name.size()]
+  fetch_result.resize(fetch_name.size() + 1);
 
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
@@ -179,6 +196,8 @@ std::vector<std::vector<float>> PredictorClient::predict(
             *(const float *)res.insts(0).tensor_array(idx).data(i).c_str();
       }
     }
+    fetch_result[fetch_name.size()].resize(1);
+    fetch_result[fetch_name.size()][0] = res.mean_infer_us();
   }
 
   return fetch_result;
