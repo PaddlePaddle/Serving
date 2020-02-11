@@ -63,7 +63,7 @@ class SDKConfig(object):
         self.sdk_desc.default_variant_conf.rpc_parameter.protocol = "baidu_std"
         self.sdk_desc.default_variant_conf.rpc_parameter.max_channel_per_request = 3
 
-        return str(self.sdk_desc)
+        return self.sdk_desc
 
 
 class Client(object):
@@ -104,7 +104,6 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
-        timestamp = time.asctime(time.localtime(time.time()))
         self.client_handle_.create_predictor_by_desc(sdk_desc)
 
     def get_feed_names(self):
