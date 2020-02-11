@@ -105,7 +105,7 @@ class Client(object):
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
         timestamp = time.asctime(time.localtime(time.time()))
-        self.client_handle_.create_predictor(sdk_desc)
+        self.client_handle_.create_predictor_by_desc(sdk_desc)
 
     def get_feed_names(self):
         return self.feed_names_
