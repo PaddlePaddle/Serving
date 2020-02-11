@@ -80,9 +80,9 @@ def save_model(server_model_folder,
     with open("{}/serving_server_conf.prototxt".format(server_model_folder), "w") as fout:
         fout.write(str(config))
     with open("{}/serving_client_conf.stream.prototxt".format(client_config_folder), "wb") as fout:
-        fout.write(config.serialize_to_string())
+        fout.write(config.SerializeToString())
     with open("{}/serving_server_conf.stream.prototxt".format(server_model_folder), "wb") as fout:
-        fout.write(config.serialize_to_string())
+        fout.write(config.SerializeToString())
 
 
     
