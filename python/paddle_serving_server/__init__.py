@@ -176,7 +176,7 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        command = "/home/users/dongdaxiang/github_develop/Serving/build_server/core/general-server/serving" \
+        command = "/home/xulongteng/github/Serving/build_server/core/general-server/serving" \
                   " -enable_model_toolkit " \
                   "-inferservice_path {} " \
                   "-inferservice_file {} " \
@@ -187,7 +187,8 @@ class Server(object):
                   "-resource_path {} " \
                   "-resource_file {} " \
                   "-workflow_path {} " \
-                  "-workflow_file {} ".format(
+                  "-workflow_file {} " \
+                  "-bthread_concurrency {} ".format(
                       self.workdir,
                       self.infer_service_fn,
                       self.max_concurrency,
@@ -196,8 +197,9 @@ class Server(object):
                       self.reload_interval_s,
                       self.workdir,
                       self.resource_fn,
-                      self.workdir, 
-                      self.workflow_fn)
+                      self.workdir,
+                      self.workflow_fn,
+                      self.num_threads,)
         os.system(command)
 
 
