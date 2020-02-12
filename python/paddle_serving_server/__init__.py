@@ -166,7 +166,7 @@ class Server(object):
         avx_flag = False
         mkl_flag = False
         openblas_flag = False
-        r = os.system("cat /proc/cpuinfo | grep avx")
+        r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
         if r == 0:
             avx_flag = True
         r = os.system("which mkl")
@@ -184,10 +184,10 @@ class Server(object):
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
-        device_version = get_device_version()
+        device_version = self.get_device_version()
         floder_name = device_version + serving_server_version
         tar_name = floder_name + ".tar.gz"
-        bin_url = "127.0.0.1:8100/" + tar_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
         self.server_path = os.path.join(self.module_path, floder_name)
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
@@ -250,6 +250,7 @@ class Server(object):
                   "-workflow_path {} " \
                   "-workflow_file {} " \
                   "-bthread_concurrency {} ".format(
+                      self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
                       self.max_concurrency,

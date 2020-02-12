@@ -165,10 +165,10 @@ class Server(object):
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
-        device_version = "server-gpu-"
+        device_version = "serving-gpu-"
         floder_name = device_version + serving_server_version
         tar_name = floder_name + ".tar.gz"
-        bin_url = "127.0.0.1:8100/" + tar_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
         self.server_path = os.path.join(self.module_path, floder_name)
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
