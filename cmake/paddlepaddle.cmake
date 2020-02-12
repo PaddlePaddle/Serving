@@ -49,7 +49,7 @@ endif()
 
 SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
-
+if (WITH_GPU OR WITH_MKLML)
 ExternalProject_Add(
     "extern_paddle"
     ${EXTERNAL_PROJECT_LOG_ARGS}
@@ -62,11 +62,24 @@ ExternalProject_Add(
     INSTALL_COMMAND
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
         ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party 
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
+        ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so 
 )
-
-if (WITH_MKLML)
-   file(COPY ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 DESTINATION ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so FOLLOW_SYMLINK_CHAIN)
+else()
+ExternalProject_Add(
+    "extern_paddle"
+    ${EXTERNAL_PROJECT_LOG_ARGS}
+    URL                 "${PADDLE_LIB_PATH}"
+    PREFIX              "${PADDLE_SOURCES_DIR}"
+    DOWNLOAD_DIR        "${PADDLE_DOWNLOAD_DIR}"
+    CONFIGURE_COMMAND   ""
+    BUILD_COMMAND       ""
+    UPDATE_COMMAND      ""
+    INSTALL_COMMAND
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
+        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party
+)
 endif()
 
 INCLUDE_DIRECTORIES(${PADDLE_INCLUDE_DIR})
