@@ -36,7 +36,7 @@ packages=['paddle_serving_server_gpu',
           'paddle_serving_server.proto']
 
 package_dir={'paddle_serving_server_gpu':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu',
              'paddle_serving_server.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto'}
 
