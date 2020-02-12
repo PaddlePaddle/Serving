@@ -248,8 +248,8 @@ class Server(object):
                   "-resource_path {} " \
                   "-resource_file {} " \
                   "-workflow_path {} " \
-                  "-workflow_file {} ".format(
-                      self.bin_path,
+                  "-workflow_file {} " \
+                  "-bthread_concurrency {} ".format(
                       self.workdir,
                       self.infer_service_fn,
                       self.max_concurrency,
@@ -259,5 +259,6 @@ class Server(object):
                       self.workdir,
                       self.resource_fn,
                       self.workdir,
-                      self.workflow_fn)
+                      self.workflow_fn,
+                      self.num_threads,)
         os.system(command)
