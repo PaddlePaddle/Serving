@@ -11,5 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from auc import auc
-from acc import acc
+
+def acc(prob, label, threshold):
+    # we support prob is the probability for label to be one
+    assert len(prob) == len(label)
+    total = len(prob)
+    right = 0
+    for i in range(len(prob)):
+        if (prob - threshold) * (label - prob) > 0:
+            right += 1
+    return float(right) / total
+
+

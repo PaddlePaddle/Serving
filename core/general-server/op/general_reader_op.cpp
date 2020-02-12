@@ -200,14 +200,6 @@ int GeneralReaderOp::inference() {
   }
 
   VLOG(2) << "read data from client success";
-  // print request
-  std::ostringstream oss;
-  int64_t *example = reinterpret_cast<int64_t *>((*in)[0].data.data());
-  for (int i = 0; i < 10; i++) {
-    oss << *(example + i) << " ";
-  }
-  VLOG(2) << "head element of first feed var : " << oss.str();
-  //
   return 0;
 }
 DEFINE_OP(GeneralReaderOp);

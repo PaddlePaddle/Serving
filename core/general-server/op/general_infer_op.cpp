@@ -21,12 +21,13 @@
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
-
+#include "core/util/include/timer.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
+using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Response;
@@ -54,10 +55,15 @@ int GeneralInferOp::inference() {
   TensorVector *out = butil::get_object<TensorVector>();
   int batch_size = (*in)[0].shape[0];
   // infer
+  Timer timeline;
+  double infer_time = 0.0;
+  timeline.Start();
   if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
   }
+  timeline.Pause();
+  infer_time = timeline.ElapsedUS();
 
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
@@ -78,6 +84,8 @@ int GeneralInferOp::inference() {
   
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
+
+  res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
@@ -122,6 +130,7 @@ int GeneralInferOp::inference() {
         }
       }
     }
+    var_idx++;
   }
   return 0;
 }

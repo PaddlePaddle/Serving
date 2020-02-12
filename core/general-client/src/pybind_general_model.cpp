@@ -41,8 +41,13 @@ PYBIND11_MODULE(serving_client, m) {
               const std::string &conf_file) {
              self.set_predictor_conf(conf_path, conf_file);
            })
+      .def("create_predictor_by_desc",
+           [](PredictorClient &self, const std::string & sdk_desc) {
+             self.create_predictor_by_desc(sdk_desc); })
       .def("create_predictor",
            [](PredictorClient &self) { self.create_predictor(); })
+      .def("destroy_predictor",
+           [](PredictorClient &self) { self.destroy_predictor(); })
       .def("predict",
            [](PredictorClient &self,
               const std::vector<std::vector<float>> &float_feed,

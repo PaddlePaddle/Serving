@@ -50,7 +50,10 @@ class PredictorClient {
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
 
+  int create_predictor_by_desc(const std::string & sdk_desc);
+
   int create_predictor();
+  int destroy_predictor();
 
   std::vector<std::vector<float>> predict(
       const std::vector<std::vector<float>>& float_feed,
