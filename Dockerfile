@@ -1,7 +1,5 @@
 FROM centos:centos6.10
-RUN export http_proxy=http://172.19.56.199:3128 \
-    && export https_proxy=http://172.19.56.199:3128 \
-    && yum -y install wget \
+RUN yum -y install wget \
     && wget http://people.centos.org/tru/devtools-2/devtools-2.repo -O /etc/yum.repos.d/devtoolset-2.repo \
     && yum -y install devtoolset-2-gcc devtoolset-2-gcc-c++ devtoolset-2-binutils \
     && source /opt/rh/devtoolset-2/enable \
