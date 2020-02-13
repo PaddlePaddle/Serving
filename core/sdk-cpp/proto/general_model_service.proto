@@ -20,9 +20,11 @@ package baidu.paddle_serving.predictor.general_model;
 option cc_generic_services = true;
 
 message Tensor {
-  repeated bytes data = 1;
-  optional int32 elem_type = 2;
-  repeated int32 shape = 3;
+  repeated bytes data = 1; // most general format
+  repeated int32 int_data = 2; // for simple debug only
+  repeated float float_data = 3; // for simple debug only
+  optional int32 elem_type = 4; // support int64, float32
+  repeated int32 shape = 5;
 };
 
 message FeedInst {

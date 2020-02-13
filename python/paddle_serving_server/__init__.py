@@ -20,7 +20,9 @@ import google.protobuf.text_format
 class OpMaker(object):
     def __init__(self):
         self.op_dict = {"general_infer":"GeneralInferOp",
+                        "general_text_infer":"GeneralTextInferOp",
                         "general_reader":"GeneralReaderOp",
+                        "general_text_reader":"GeneralTextReaderOp",
                         "general_single_kv":"GeneralSingleKVOp",
                         "general_dist_kv":"GeneralDistKVOp"}
 
