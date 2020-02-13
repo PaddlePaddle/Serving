@@ -16,23 +16,31 @@ import os
 from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
+import tarfile
+import paddle_serving_server as paddle_serving_server
+from version import serving_server_version
+
 
 class OpMaker(object):
     def __init__(self):
-        self.op_dict = {"general_infer":"GeneralInferOp",
-                        "general_reader":"GeneralReaderOp",
-                        "general_single_kv":"GeneralSingleKVOp",
-                        "general_dist_kv":"GeneralDistKVOp"}
+        self.op_dict = {
+            "general_infer": "GeneralInferOp",
+            "general_reader": "GeneralReaderOp",
+            "general_single_kv": "GeneralSingleKVOp",
+            "general_dist_kv": "GeneralDistKVOp"
+        }
 
     # currently, inputs and outputs are not used
     # when we have OpGraphMaker, inputs and outputs are necessary
     def create(self, name, inputs=[], outputs=[]):
         if name not in self.op_dict:
-            raise Exception("Op name {} is not supported right now".format(name))
+            raise Exception("Op name {} is not supported right now".format(
+                name))
         node = server_sdk.DAGNode()
         node.name = "{}_op".format(name)
         node.type = self.op_dict[name]
         return node
+
 
 class OpSeqMaker(object):
     def __init__(self):
@@ -53,6 +61,7 @@ class OpSeqMaker(object):
         workflow_conf.workflows.extend([self.workflow])
         return workflow_conf
 
+
 class Server(object):
     def __init__(self):
         self.server_handle_ = None
@@ -72,6 +81,8 @@ class Server(object):
         self.num_threads = 0
         self.port = 8080
         self.reload_interval_s = 10
+        self.module_path = os.path.dirname(paddle_serving_server.__file__)
+        self.cur_path = os.getcwd()
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -129,7 +140,8 @@ class Server(object):
 
     def _prepare_resource(self, workdir):
         if self.resource_conf == None:
-            with open("{}/{}".format(workdir, self.general_model_config_fn), "w") as fout:
+            with open("{}/{}".format(workdir, self.general_model_config_fn),
+                      "w") as fout:
                 fout.write(str(self.model_conf))
             self.resource_conf = server_sdk.ResourceConf()
             self.resource_conf.model_toolkit_path = workdir
@@ -149,6 +161,54 @@ class Server(object):
             str(f.read()), self.model_conf)
         # check config here
         # print config here
+
+    def get_device_version(self):
+        avx_flag = False
+        mkl_flag = False
+        openblas_flag = False
+        r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
+        if r == 0:
+            avx_flag = True
+        r = os.system("which mkl")
+        if r == 0:
+            mkl_flag = True
+        if avx_flag:
+            if mkl_flag:
+                device_version = "serving-cpu-avx-mkl-"
+            else:
+                device_version = "serving-cpu-avx-openblas-"
+        else:
+            device_version = "serving-cpu-noavx-openblas-"
+        return device_version
+
+    def download_bin(self):
+        os.chdir(self.module_path)
+        need_download = False
+        device_version = self.get_device_version()
+        floder_name = device_version + serving_server_version
+        tar_name = floder_name + ".tar.gz"
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
+        self.server_path = os.path.join(self.module_path, floder_name)
+        if not os.path.exists(self.server_path):
+            print('Frist time run, downloading PaddleServing components ...')
+            r = os.system('wget ' + bin_url + ' --no-check-certificate')
+            if r != 0:
+                print('Download failed')
+                if os.path.exists(tar_name):
+                    os.remove(tar_name)
+            else:
+                try:
+                    print('Decompressing files ..')
+                    tar = tarfile.open(tar_name)
+                    tar.extractall()
+                    tar.close()
+                except:
+                    if os.path.exists(exe_path):
+                        os.remove(exe_path)
+                finally:
+                    os.remove(tar_name)
+        os.chdir(self.cur_path)
+        self.bin_path = self.server_path + "/serving"
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
         if workdir == None:
@@ -176,8 +236,9 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        command = "/home/xulongteng/github/Serving/build_server/core/general-server/serving" \
-                  " -enable_model_toolkit " \
+        self.download_bin()
+        command = "{} " \
+                  "-enable_model_toolkit " \
                   "-inferservice_path {} " \
                   "-inferservice_file {} " \
                   "-max_concurrency {} " \
@@ -189,6 +250,7 @@ class Server(object):
                   "-workflow_path {} " \
                   "-workflow_file {} " \
                   "-bthread_concurrency {} ".format(
+                      self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
                       self.max_concurrency,
@@ -201,5 +263,3 @@ class Server(object):
                       self.workflow_fn,
                       self.num_threads,)
         os.system(command)
-
-
