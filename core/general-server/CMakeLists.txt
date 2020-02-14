@@ -31,7 +31,7 @@ if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
 
-if(WITH_MKL)
+if(WITH_MKL OR WITH_GPU)
     target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 else()
     target_link_libraries(serving openblas -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)

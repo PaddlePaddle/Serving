@@ -55,6 +55,7 @@ if (NOT CLIENT_ONLY)
 py_proto_compile(server_config_py_proto SRCS proto/server_configure.proto)
 add_custom_target(server_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(server_config_py_proto server_config_py_proto_init)
+if (NOT WITH_GPU)
 add_custom_command(TARGET server_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
@@ -66,6 +67,24 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMENT "Copy generated general_model_config proto file into directory paddle_serving_server/proto."
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+else()
+add_custom_command(TARGET server_config_py_proto POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
+		COMMAND cp *.py
+        ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
+		COMMENT "Copy generated python proto into directory
+        paddle_serving_server_gpu/proto."
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINRARY_DIR})
 
+add_custom_command(TARGET general_model_config_py_proto POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
+		COMMAND cp *.py
+        ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
+		COMMENT "Copy generated general_model_config proto file into directory
+        paddle_serving_server_gpu/proto."
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 endif()
 
