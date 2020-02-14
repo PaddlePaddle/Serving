@@ -56,7 +56,13 @@ int GeneralTextInferOp::inference() {
 
   const TensorVector *in = &reader_out->tensor_vector;
   TensorVector *out = butil::get_object<TensorVector>();
-  int batch_size = (*in)[0].shape[0];
+  int batch_size = 0;
+  if (in->at(0).lod.size() == 1) {
+    batch_size = in->at(0).lod[0].size() - 1;
+  } else {
+    batch_size = in->at(0).shape[0];
+  }
+  VLOG(2) << "infer batch size: " << batch_size;
   // infer
   Timer timeline;
   double infer_time = 0.0;
