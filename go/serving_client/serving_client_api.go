@@ -20,12 +20,13 @@ import (
        "io/ioutil"
        "log"
        "net/http"
-       "fmt"
        pb "general_model"
        "github.com/golang/protobuf/proto"
 )
 
 type Tensor struct {
+     Data   []byte `json:"data"`
+     FloatData	   []float32 `json:"float_data"`
      IntData	   []int64 `json:"int_data"`
      ElemType	int `json:"elem_type"`
      Shape	[]int `json:"shape"`
@@ -46,14 +47,16 @@ type Request struct {
 
 type Response struct {
      Insts    []FetchInst `json:"insts"`
+     MeanInferUs	  float32 `json:"mean_infer_us"`
 }
 
 type Handle struct {
      Url    string
-     Port   int
+     Port   string
      FeedAliasNameMap	map[string]string
      FeedShapeMap	map[string][]int
      FeedNameMap   map[string]int
+     FeedAliasNames	   []string
      FetchNameMap  map[string]int
      FetchAliasNameMap	map[string]string
 }
@@ -67,16 +70,24 @@ func LoadModelConfig(config string) Handle {
      if err := proto.Unmarshal(in, general_model_config); err != nil {
      	log.Fatalln("Failed to parse GeneralModelConfig: ", err)
      }
+     log.Println("read protobuf succeed")
      handle := Handle{}
+     handle.FeedNameMap = map[string]int{}
+     handle.FeedAliasNameMap = map[string]string{}
+     handle.FeedShapeMap = map[string][]int{}
+     handle.FetchNameMap = map[string]int{}
+     handle.FetchAliasNameMap = map[string]string{}
+     handle.FeedAliasNames = []string{}
+
      for i, v := range general_model_config.FeedVar {
      	 handle.FeedNameMap[*v.Name] = i
-	 // handle.FeedShapeMap[*v.Name] := []int
 	 tmp_array := []int{}
 	 for _, vv := range v.Shape {
 	     tmp_array = append(tmp_array, int(vv))
 	 }
 	 handle.FeedShapeMap[*v.Name] = tmp_array
 	 handle.FeedAliasNameMap[*v.AliasName] = *v.Name
+	 handle.FeedAliasNames = append(handle.FeedAliasNames, *v.AliasName)
      }
 
      for i, v := range general_model_config.FetchVar {
@@ -87,7 +98,7 @@ func LoadModelConfig(config string) Handle {
      return handle
 }
 
-func Connect(url string, port int, handle Handle) Handle {
+func Connect(url string, port string, handle Handle) Handle {
      handle.Url = url
      handle.Port = port
      return handle
@@ -98,24 +109,38 @@ func Predict(handle Handle, int_feed_map map[string][]int64, fetch []string) map
 
      var tensor_array []Tensor
      var inst FeedInst
-     for k, _ := range int_feed_map {
-     	 var tmp Tensor
-	 tmp.IntData = int_feed_map[k]
+     tensor_array = []Tensor{}
+     inst = FeedInst{}
+
+     for i := 0; i < len(handle.FeedAliasNames); i++ {
+     	 key_i := handle.FeedAliasNames[i]
+	 var tmp Tensor
+	 tmp.IntData = []int64{}
+	 tmp.Shape = []int{}
+	 tmp.IntData = int_feed_map[key_i]
 	 tmp.ElemType = 0
-	 tmp.Shape = handle.FeedShapeMap[k]
+	 tmp.Shape = handle.FeedShapeMap[key_i]
 	 tensor_array = append(tensor_array, tmp)
      }
+
+     inst.TensorArray = tensor_array
 
      req := &Request{
      	 Insts: []FeedInst{inst},
 	 FetchVarNames: fetch}
 
      b, err := json.Marshal(req)
-     fmt.Println(string(b))
 
      body := bytes.NewBuffer(b)
 
-     resp, err := http.Post(handle.Url, contentType, body)
+     var post_address bytes.Buffer
+     post_address.WriteString("http://")
+     post_address.WriteString(handle.Url)
+     post_address.WriteString(":")
+     post_address.WriteString(handle.Port)
+     post_address.WriteString("/GeneralModelService/inference")
+
+     resp, err := http.Post(post_address.String(), contentType, body)
      if err != nil {
      	log.Println("Post failed:", err)
      }
@@ -124,11 +149,17 @@ func Predict(handle Handle, int_feed_map map[string][]int64, fetch []string) map
 
      content, err := ioutil.ReadAll(resp.Body)
      if err != nil {
-     	log.Println("Read failed:", err)
+      	log.Println("Read failed:", err)
      }
 
-     log.Println("content:", string(content))
+     response_json := Response{}
+     err = json.Unmarshal([]byte(content), &response_json)
 
      var result map[string][]float32
+     result = map[string][]float32{}
+     for i, v := range fetch {
+     	 result[v] = response_json.Insts[0].TensorArray[i].FloatData
+     }
+     
      return result
 }

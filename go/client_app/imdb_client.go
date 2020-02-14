@@ -16,10 +16,10 @@ package main
 
 import (
        "io"
+       "fmt"
        "strings"
        "bufio"
        "strconv"
-       "fmt"
        "os"
        "serving_client"
 )
@@ -28,7 +28,7 @@ func main() {
      var config_file_path string
      config_file_path = os.Args[1]
      handle := serving_client.LoadModelConfig(config_file_path)
-     serving_client.Connect("127.0.0.1", 9292, handle)
+     handle = serving_client.Connect("127.0.0.1", "9292", handle)
 
      test_file_path := os.Args[2]
      fi, err := os.Open(test_file_path)
@@ -49,6 +49,8 @@ func main() {
 	    break
 	 }
 
+	 line = strings.Trim(line, "\n")
+
 	 var words = []int64{}
 
 	 s := strings.Split(line, " ")
@@ -60,13 +62,18 @@ func main() {
 	     words = append(words, int64(int_v))
 	 }
 
-	 label, _ := strconv.Atoi(s[len(s)-1])
+	 label, err := strconv.Atoi(s[len(s)-1])
 
+	 if err != nil {
+	    panic(err)
+	 }
+
+	 feed_int_map = map[string][]int64{}
 	 feed_int_map["words"] = words
 	 feed_int_map["label"] = []int64{int64(label)}
 	 
 	 result = serving_client.Predict(handle,
 	 	 feed_int_map, fetch)
-	 fmt.Println(result["prediction"][0])
+	 fmt.Println(result["prediction"][1], "\t", int64(label))
      }
 }
