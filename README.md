@@ -1,5 +1,7 @@
 # Paddle Serving
 
+[中文](./README_CN.md)
+
 Paddle Serving is the online inference service framework of [Paddle](https://github.com/PaddlePaddle/Paddle) that can help developers easily deploy a deep learning model service on server side and send request from mobile devices, edge devices as well as data centers. Currently, Paddle Serving supports the deep learning models produced by Paddle althought it can be very easy to support other deep learning framework's model inference. Paddle Serving is designed oriented from industrial practice. For example, multiple models management for online service, double buffers model loading, models online A/B testing are supported. Highly concurrent [Baidu-rpc](https://github.com/apache/incubator-brpc) is used as the underlying communication library which is also from industry practice. Paddle Serving provides user-friendly API that can integrate with Paddle training code seamlessly, and users can finish model training and model serving in an end-to-end fasion.
 
 
