@@ -186,7 +186,7 @@ func main() {
 ```
 
 ```shell
-go acc.go result
+go run acc.go result
 total num:  25000
 acc num:  22014
 acc:  0.88056
