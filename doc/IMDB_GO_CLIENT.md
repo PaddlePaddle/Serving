@@ -63,7 +63,7 @@ import (
        "bufio"
        "strconv"
        "os"
-       "serving_client"
+       serving_client "github.com/PaddlePaddle/Serving/go/serving_client"
 )
 
 func main() {
@@ -185,8 +185,11 @@ func main() {
 }
 ```
 
-```
+```shell
 go acc.go result
+total num:  25000
+acc num:  22014
+acc:  0.88056
 ```
 
 
