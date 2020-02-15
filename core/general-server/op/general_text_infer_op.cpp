@@ -129,10 +129,6 @@ int GeneralTextInferOp::inference() {
              k < out->at(idx).lod[0][j + 1]; k++) {
           res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_float_data(
               data_ptr[k]);
-          /*
-          res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
-              reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
-          */
         }
       }
     } else {
@@ -140,10 +136,6 @@ int GeneralTextInferOp::inference() {
         for (int k = j * cap; k < (j + 1) * cap; ++k) {
           res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_float_data(
               data_ptr[k]);
-          /*
-          res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_float_data(
-              reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
-          */
         }
       }
     }
