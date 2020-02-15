@@ -1,4 +1,5 @@
 # Paddle Serving
+An easy-to-use Deep Learning Model Inference Service Deployment Tool
 
 [中文](./README_CN.md)
 
