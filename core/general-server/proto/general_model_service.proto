@@ -21,8 +21,10 @@ option cc_generic_services = true;
 
 message Tensor {
   repeated bytes data = 1;
-  optional int32 elem_type = 2;
-  repeated int32 shape = 3;
+  repeated int32 int_data = 2;
+  repeated float float_data = 3;
+  optional int32 elem_type = 4;
+  repeated int32 shape = 5;
 };
 
 message FeedInst {

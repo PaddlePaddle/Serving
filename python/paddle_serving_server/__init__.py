@@ -23,12 +23,12 @@ from version import serving_server_version
 
 class OpMaker(object):
     def __init__(self):
-        self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp"
-        }
+        self.op_dict = {"general_infer":"GeneralInferOp",
+                        "general_text_infer":"GeneralTextInferOp",
+                        "general_reader":"GeneralReaderOp",
+                        "general_text_reader":"GeneralTextReaderOp",
+                        "general_single_kv":"GeneralSingleKVOp",
+                        "general_dist_kv":"GeneralDistKVOp"}
 
     # currently, inputs and outputs are not used
     # when we have OpGraphMaker, inputs and outputs are necessary
