@@ -125,4 +125,4 @@ for data in test_reader():
 
 ## Contribution
 
-If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](
+If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
