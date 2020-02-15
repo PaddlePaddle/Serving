@@ -87,35 +87,35 @@ func main() {
 
      for {
      	 line, err := br.ReadString('\n')
-	 		 if err == io.EOF {
+	 if err == io.EOF {
 	       break
-	     }
+	 }
 
-	 		 line = strings.Trim(line, "\n")
+	 line = strings.Trim(line, "\n")
 
-	 		 var words = []int64{}
+	 var words = []int64{}
 
-	     s := strings.Split(line, " ")
-	     value, err := strconv.Atoi(s[0])
-	     var feed_int_map map[string][]int64
+	 s := strings.Split(line, " ")
+	 value, err := strconv.Atoi(s[0])
+	 var feed_int_map map[string][]int64
        
-	     for _, v := range s[1:value + 1] {
+	 for _, v := range s[1:value + 1] {
 	       int_v, _ := strconv.Atoi(v)
 	       words = append(words, int64(int_v))
-	     }
+	 }
 
-	     label, err := strconv.Atoi(s[len(s)-1])
+	 label, err := strconv.Atoi(s[len(s)-1])
 
-	     if err != nil {
+	 if err != nil {
 	       panic(err)
-	     }
+	 }
 
-	     feed_int_map = map[string][]int64{}
-	     feed_int_map["words"] = words
-	     feed_int_map["label"] = []int64{int64(label)}
+	 feed_int_map = map[string][]int64{}
+	 feed_int_map["words"] = words
+	 feed_int_map["label"] = []int64{int64(label)}
 	 
-	     result = serving_client.Predict(handle, feed_int_map, fetch)
-	     fmt.Println(result["prediction"][1], "\t", int64(label))
+	 result = serving_client.Predict(handle, feed_int_map, fetch)
+	 fmt.Println(result["prediction"][1], "\t", int64(label))
     }
 }
 ```
