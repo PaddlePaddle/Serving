@@ -25,7 +25,6 @@ pip install paddle-serving-server
 ### Training Scripts
 
 ``` python
-import sys
 import paddle
 
 train_reader = paddle.batch(paddle.reader.shuffle(
