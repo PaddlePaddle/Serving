@@ -53,11 +53,18 @@ int GeneralInferOp::inference() {
 
   const TensorVector *in = &reader_out->tensor_vector;
   TensorVector *out = butil::get_object<TensorVector>();
-  int batch_size = (*in)[0].shape[0];
+  int batch_size = 0;
+  if ((*in)[0].lod.size() == 1) {
+    batch_size = (*in)[0].lod[0].size() - 1;
+  }
+  else {
+    batch_size = (*in)[0].shape[0];
+  }
   // infer
   Timer timeline;
   double infer_time = 0.0;
   timeline.Start();
+  VLOG(2) << "batch size : " << batch_size;
   if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
@@ -70,7 +77,7 @@ int GeneralInferOp::inference() {
   VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
-  
+
   VLOG(2) << "get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
@@ -81,7 +88,7 @@ int GeneralInferOp::inference() {
     fetch_index[i] =
         model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
   }
-  
+
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
@@ -94,7 +101,7 @@ int GeneralInferOp::inference() {
       // currently only response float tensor or lod_tensor
       tensor->set_elem_type(1);
       if (model_config->_is_lod_fetch[idx]) {
-        VLOG(2) << "out[" << idx << " is lod_tensor";
+        VLOG(2) << "out[" << idx << "] is lod_tensor";
         tensor->add_shape(-1);
       } else {
         VLOG(2) << "out[" << idx << "] is tensor";

@@ -147,7 +147,7 @@ class Client(object):
 
         return result_map
 
-    def batch_predict(self, feed_batch=[], fetch=[]):
+    def batch_predict(self, feed_batch=[], fetch=[], debug=False):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -181,13 +181,18 @@ class Client(object):
             fetch_names)
 
         result_map_batch = []
-        for result in result_batch:
+        for result in result_batch[:-1]:
             result_map = {}
             for i, name in enumerate(fetch_names):
                 result_map[name] = result[i]
             result_map_batch.append(result_map)
 
-        return result_map_batch
+        infer_time = result_batch[-1][0][0]
+
+        if debug:
+            return result_map_batch, infer_time
+        else:
+            return result_map_batch
 
     def release(self):
         self.client_handle_.destroy_predictor()
