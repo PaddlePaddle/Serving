@@ -1,7 +1,7 @@
 # Paddle Serving
 An easy-to-use Machine Learning Model Inference Service Deployment Tool
 
-[![Issues]](https://img.shields.io/github/issues/PaddlePaddle/Serving)(Issues)
+[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 
 [中文](./README_CN.md)
