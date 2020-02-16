@@ -41,7 +41,10 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralTextInferOp::inference() {
   const GeneralTextReaderOutput *reader_out =
-      get_depend_argument<GeneralTextReaderOutput>("general_text_reader_op");
+      get_depend_argument<GeneralTextReaderOutput>(pre_name());
+
+  VLOG(2) << "Going to get previous node name: " << pre_name();
+
   if (!reader_out) {
     LOG(ERROR) << "Failed mutable depended argument, op:"
                << "general_text_reader_op";
