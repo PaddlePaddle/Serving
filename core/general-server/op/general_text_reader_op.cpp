@@ -17,6 +17,7 @@
 #include <memory>
 #include <sstream>
 #include "core/general-server/op/general_text_reader_op.h"
+#include "core/general-server/op/general_infer_helper.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 
@@ -42,7 +43,7 @@ int GeneralTextReaderOp::inference() {
   std::vector<int64_t> elem_size;
   std::vector<int64_t> capacity;
 
-  GeneralTextReaderOutput *res = mutable_data<GeneralTextReaderOutput>();
+  GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *in = &res->tensor_vector;
 
   if (!res) {
