@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+
 #include <vector>
 #ifdef BCLOUD
 #ifdef WITH_GPU
@@ -23,22 +24,41 @@
 #else
 #include "paddle_inference_api.h"  // NOLINT
 #endif
-#include "core/general-server/general_model_service.pb.h"
+#include <string>
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-class GeneralTextInferOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::general_model::Response> {
- public:
-  typedef std::vector<paddle::PaddleTensor> TensorVector;
+static const char* GENERAL_MODEL_NAME = "general_model";
 
-  DECLARE_OP(GeneralTextInferOp);
+struct GeneralBlob {
+  std::vector<paddle::PaddleTensor> tensor_vector;
+  double infer_time;
+  std::vector<std::string> fetch_name_vector;
 
-  int inference();
-};
+  void Clear() {
+    size_t tensor_count = tensor_vector.size();
+    for (size_t ti = 0; ti < tensor_count; ++ti) {
+      tensor_vector[ti].shape.clear();
+    }
+    tensor_vector.clear();
+  }
+  
+  int GetBatchSize() {
+    if (tensor_vector.size() > 0) {
+      if (tensor_vector[0].lod.size() == 1) {
+        return tensor_vector[0].lod[0].size() - 1;
+      } else {
+        return tensor_vector[0].shape[0];
+      }
+    } else {
+      return -1;
+    }
+  }
+
+  std::string ShortDebugString() const { return "Not implemented!"; }
+}
 
 }  // namespace serving
 }  // namespace paddle_serving

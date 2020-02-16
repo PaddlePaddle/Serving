@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include <string>
 #include <vector>
 #ifdef BCLOUD
 #ifdef WITH_GPU
@@ -29,17 +30,15 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-static const char* GENERAL_MODEL_NAME = "general_model";
-
 class GeneralInferOp
-    : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::general_model::Response> {
+    : public baidu::paddle_serving::predictor::OpWithChannel<GeneralBlob> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
   DECLARE_OP(GeneralInferOp);
 
   int inference();
+
 };
 
 }  // namespace serving

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include <string>
 #include <vector>
 #ifdef BCLOUD
 #ifdef WITH_GPU
@@ -23,22 +24,19 @@
 #else
 #include "paddle_inference_api.h"  // NOLINT
 #endif
-#include <string>
-#include "core/predictor/framework/resource.h"
-#include "core/general-server/op/general_infer_helper.h"
 #include "core/general-server/general_model_service.pb.h"
-#include "core/general-server/load_general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-class GeneralReaderOp : public baidu::paddle_serving::predictor::OpWithChannel<
-                            GeneralBlob> {
+class GeneralResponseOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<
+          baidu::paddle_serving::predictor::general_model::Response> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
-  DECLARE_OP(GeneralReaderOp);
+  DECLARE_OP(GeneralResponseOp);
 
   int inference();
 

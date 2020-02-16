@@ -32,23 +32,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-struct GeneralTextReaderOutput {
-  std::vector<paddle::PaddleTensor> tensor_vector;
-  int reader_status = 0;
-
-  void Clear() {
-    size_t tensor_count = tensor_vector.size();
-    for (size_t ti = 0; ti < tensor_count; ++ti) {
-      tensor_vector[ti].shape.clear();
-    }
-    tensor_vector.clear();
-  }
-  std::string ShortDebugString() const { return "Not implemented!"; }
-};
-
 class GeneralTextReaderOp :
-    public baidu::paddle_serving::predictor::OpWithChannel<
-    GeneralTextReaderOutput> {
+    public baidu::paddle_serving::predictor::OpWithChannel<GeneralBlob> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
