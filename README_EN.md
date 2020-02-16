@@ -1,11 +1,4 @@
 # Paddle Serving
-An easy-to-use Machine Learning Model Inference Service Deployment Tool
-
-[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
-[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
-[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
-
-[中文](./README_CN.md)
 
 Paddle Serving is the online inference service framework of [Paddle](https://github.com/PaddlePaddle/Paddle) that can help developers easily deploy a deep learning model service on server side and send request from mobile devices, edge devices as well as data centers. Currently, Paddle Serving supports the deep learning models produced by Paddle althought it can be very easy to support other deep learning framework's model inference. Paddle Serving is designed oriented from industrial practice. For example, multiple models management for online service, double buffers model loading, models online A/B testing are supported. Highly concurrent [Baidu-rpc](https://github.com/apache/incubator-brpc) is used as the underlying communication library which is also from industry practice. Paddle Serving provides user-friendly API that can integrate with Paddle training code seamlessly, and users can finish model training and model serving in an end-to-end fasion.
 
@@ -25,37 +18,42 @@ pip install paddle-serving-server
 ### Training Scripts
 
 ``` python
+import sys
 import paddle
+import paddle.fluid as fluid
 
 train_reader = paddle.batch(paddle.reader.shuffle(
     paddle.dataset.uci_housing.train(), buf_size=500), batch_size=16)
 
-x = paddle.fluid.data(name='x', shape=[None, 13], dtype='float32')
-y = paddle.fluid.data(name='y', shape=[None, 1], dtype='float32')
+test_reader = paddle.batch(paddle.reader.shuffle(
+    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=16)
 
-y_predict = paddle.fluid.layers.fc(input=x, size=1, act=None)
-cost = paddle.fluid.layers.square_error_cost(input=y_predict, label=y)
-avg_loss = paddle.fluid.layers.mean(cost)
-sgd_optimizer = paddle.fluid.optimizer.SGD(learning_rate=0.01)
+x = fluid.data(name='x', shape=[None, 13], dtype='float32')
+y = fluid.data(name='y', shape=[None, 1], dtype='float32')
+
+y_predict = fluid.layers.fc(input=x, size=1, act=None)
+cost = fluid.layers.square_error_cost(input=y_predict, label=y)
+avg_loss = fluid.layers.mean(cost)
+sgd_optimizer = fluid.optimizer.SGD(learning_rate=0.01)
 sgd_optimizer.minimize(avg_loss)
 
-place = paddle.fluid.CPUPlace()
-feeder = paddle.fluid.DataFeeder(place=place, feed_list=[x, y])
-exe = paddle.fluid.Executor(place)
-exe.run(paddle.fluid.default_startup_program())
+place = fluid.CPUPlace()
+feeder = fluid.DataFeeder(place=place, feed_list=[x, y])
+exe = fluid.Executor(place)
+exe.run(fluid.default_startup_program())
 
 import paddle_serving_client.io as serving_io
 
 for pass_id in range(30):
     for data_train in train_reader():
         avg_loss_value, = exe.run(
-            paddle.fluid.default_main_program(),
+            fluid.default_main_program(),
             feed=feeder.feed(data_train),
             fetch_list=[avg_loss])
 
 serving_io.save_model(
     "serving_server_model", "serving_client_conf",
-    {"x": x}, {"y": y_predict}, paddle.fluid.default_main_program())
+    {"x": x}, {"y": y_predict}, fluid.default_main_program())
 ```
 
 
@@ -125,4 +123,4 @@ for data in test_reader():
 
 ## Contribution
 
-If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
+If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](
