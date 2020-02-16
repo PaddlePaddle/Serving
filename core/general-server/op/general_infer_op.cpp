@@ -39,6 +39,8 @@ int GeneralInferOp::inference() {
   const GeneralBlob * input_blob =
       get_depend_argument<GeneralBlob>(pre_name());
 
+  GeneralBlob * output_blob = mutable_data<GeneralBlob>();
+
   if (!input_blob) {
     LOG(ERROR) << "Failed mutable depended argument, op:"
                << pre_name();
@@ -46,7 +48,7 @@ int GeneralInferOp::inference() {
   }
 
   const TensorVector *in = &input_blob->tensor_vector;
-  TensorVector *out = butil::get_object<TensorVector>();
+  TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "infer batch size: " << batch_size;
