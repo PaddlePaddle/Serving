@@ -24,10 +24,13 @@ from version import serving_server_version
 class OpMaker(object):
     def __init__(self):
         self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp"
+            "general_infer":"GeneralInferOp",
+            "general_reader":"GeneralReaderOp",
+            "general_response":"GeneralResponseOp",
+            "general_text_reader":"GeneralTextReaderOp",
+            "general_text_response":"GeneralTextResponseOp",
+            "general_single_kv":"GeneralSingleKVOp",
+            "general_dist_kv":"GeneralDistKVOp"
         }
 
     # currently, inputs and outputs are not used
