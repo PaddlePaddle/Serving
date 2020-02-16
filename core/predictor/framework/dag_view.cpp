@@ -45,6 +45,8 @@ int DagView::init(Dag* dag, const std::string& service_name) {
                  << "at:" << si;
       return ERR_MEM_ALLOC_FAILURE;
     }
+    VLOG(2) << "stage[" << si << "] name: " <<  stage->full_name;
+    VLOG(2) << "stage[" << si << "] node size: " << stage->nodes.size();
     vstage->full_name = service_name + NAME_DELIMITER + stage->full_name;
     uint32_t node_size = stage->nodes.size();
     // create tls view node
@@ -63,15 +65,29 @@ int DagView::init(Dag* dag, const std::string& service_name) {
       }
 
       // initialize a TLS op object
+      VLOG(2) << "dag view initialized: \n"
+              << "node id: " << node->id << "\n"
+              << "node name: " << node->name << "\n"
+              << "node type: " << node->type;
       if (op->init(_bus, dag, node->id, node->name, node->type, node->conf) !=
           0) {
         LOG(WARNING) << "Failed init op, type:" << node->type;
         return ERR_INTERNAL_FAILURE;
       }
+      
       op->set_full_name(service_name + NAME_DELIMITER + node->full_name);
       vnode->conf = node;
       vnode->op = op;
       vstage->nodes.push_back(vnode);
+    }
+    // TODO(guru4elephant): this seems buggy, please review later
+    if (si > 0) {
+      VLOG(2) << "set op pre name: \n"
+              << "current op name: " << vstage->nodes.back()->op->op_name()
+              << " previous op name: "
+              << _view[si-1]->nodes.back()->op->op_name();
+      vstage->nodes.back()->op->set_pre_node_name(
+          _view[si-1]->nodes.back()->op->op_name());
     }
     _view.push_back(vstage);
   }
