@@ -1,6 +1,7 @@
 # Paddle Serving
 An easy-to-use Machine Learning Model Inference Service Deployment Tool
 
+[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
 [![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 
