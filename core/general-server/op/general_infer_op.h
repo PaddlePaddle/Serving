@@ -25,6 +25,7 @@
 #include "paddle_inference_api.h"  // NOLINT
 #endif
 #include "core/general-server/general_model_service.pb.h"
+#include "core/general-server/op/general_infer_helper.h"
 
 namespace baidu {
 namespace paddle_serving {

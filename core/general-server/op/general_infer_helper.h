@@ -45,7 +45,7 @@ struct GeneralBlob {
     tensor_vector.clear();
   }
   
-  int GetBatchSize() {
+  int GetBatchSize() const {
     if (tensor_vector.size() > 0) {
       if (tensor_vector[0].lod.size() == 1) {
         return tensor_vector[0].lod[0].size() - 1;
@@ -58,7 +58,7 @@ struct GeneralBlob {
   }
 
   std::string ShortDebugString() const { return "Not implemented!"; }
-}
+};
 
 }  // namespace serving
 }  // namespace paddle_serving

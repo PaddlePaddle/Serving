@@ -17,7 +17,6 @@
 #include <memory>
 #include <sstream>
 #include "core/general-server/op/general_text_response_op.h"
-#include "core/general-server/op/general_infer_helper.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
@@ -36,18 +35,18 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralTextInferOp::inference() {
-  const GeneralBlob *blob_input =
+int GeneralTextResponseOp::inference() {
+  const GeneralBlob *input_blob =
       get_depend_argument<GeneralBlob>(pre_name());
 
-  if (!blob_input) {
+  if (!input_blob) {
     LOG(ERROR) << "Failed mutable depended argument, op: "
                << pre_name();
     return -1;
   }
 
-  const TensorVector *in = &blob_input->tensor_vector;
-  int batch_size = in->GetBatchSize();
+  const TensorVector *in = &input_blob->tensor_vector;
+  int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "infer batch size: " << batch_size;
   // infer
@@ -72,7 +71,7 @@ int GeneralTextInferOp::inference() {
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
-  res->set_mean_infer_us(infer_time);
+  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();

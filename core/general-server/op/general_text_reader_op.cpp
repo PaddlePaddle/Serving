@@ -17,7 +17,6 @@
 #include <memory>
 #include <sstream>
 #include "core/general-server/op/general_text_reader_op.h"
-#include "core/general-server/op/general_infer_helper.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 
@@ -51,8 +50,8 @@ int GeneralTextReaderOp::inference() {
   }
 
   if (batch_size <= 0) {
-    res->reader_status = -1;
-    return 0;
+    LOG(ERROR) << "Batch size < 0";
+    return -1;
   }
 
   int var_num = req->insts(0).tensor_array_size();

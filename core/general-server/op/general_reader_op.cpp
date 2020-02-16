@@ -100,8 +100,8 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "print general model config done.";
 
   // TODO(guru4elephant): how to do conditional check?
-  res->reader_status = conf_check(req, model_config);
-  if (res->reader_status != 0) {
+  int ret = conf_check(req, model_config);
+  if (ret != 0) {
     LOG(INFO) << "model conf of server:";
     resource.print_general_model_config(model_config);
     return 0;
