@@ -25,6 +25,7 @@
 #endif
 #include <string>
 #include "core/predictor/framework/resource.h"
+#include "core/general-server/op/general_infer_helper.h"
 #include "core/general-server/general_model_service.pb.h"
 #include "core/general-server/load_general_model_service.pb.h"
 

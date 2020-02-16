@@ -47,8 +47,7 @@ int GeneralResponseOp::inference() {
   }
 
   const TensorVector *in = &input_blob->tensor_vector;
-  int batch_size = in->GetBatchSize();
-  double infer_time = in->infer_time;
+  int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "input batch size: " << batch_size;
 
@@ -72,7 +71,7 @@ int GeneralResponseOp::inference() {
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
-  res->set_mean_infer_us(infer_time);
+  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();

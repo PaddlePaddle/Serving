@@ -16,7 +16,6 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include "core/general-server/op/general_infer_helper.h"
 #include "core/general-server/op/general_infer_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
@@ -48,7 +47,7 @@ int GeneralInferOp::inference() {
 
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = butil::get_object<TensorVector>();
-  int batch_size = in->GetBatchSize();
+  int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "infer batch size: " << batch_size;
   // infer
