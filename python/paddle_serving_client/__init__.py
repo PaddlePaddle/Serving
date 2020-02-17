@@ -104,7 +104,8 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
-        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString())
+        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
+        ))
 
     def get_feed_names(self):
         return self.feed_names_
@@ -112,7 +113,7 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    def predict(self, feed={}, fetch=[], debug=False):
+    def predict(self, feed={}, fetch=[], profile=False):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -142,12 +143,12 @@ class Client(object):
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
 
-        if debug:
+        if profile:
             result_map["infer_time"] = result[-1][0]
 
         return result_map
 
-    def batch_predict(self, feed_batch=[], fetch=[], debug=False):
+    def batch_predict(self, feed_batch=[], fetch=[], profile=False):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -189,7 +190,7 @@ class Client(object):
 
         infer_time = result_batch[-1][0][0]
 
-        if debug:
+        if profile:
             return result_map_batch, infer_time
         else:
             return result_map_batch
