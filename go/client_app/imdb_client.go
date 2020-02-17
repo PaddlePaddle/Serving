@@ -21,7 +21,7 @@ import (
        "bufio"
        "strconv"
        "os"
-       "serving_client"
+       serving_client "github.com/PaddlePaddle/Serving/go/serving_client"
 )
 
 func main() {
