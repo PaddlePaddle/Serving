@@ -24,13 +24,13 @@ from version import serving_server_version
 class OpMaker(object):
     def __init__(self):
         self.op_dict = {
-            "general_infer":"GeneralInferOp",
-            "general_reader":"GeneralReaderOp",
-            "general_response":"GeneralResponseOp",
-            "general_text_reader":"GeneralTextReaderOp",
-            "general_text_response":"GeneralTextResponseOp",
-            "general_single_kv":"GeneralSingleKVOp",
-            "general_dist_kv":"GeneralDistKVOp"
+            "general_infer": "GeneralInferOp",
+            "general_reader": "GeneralReaderOp",
+            "general_response": "GeneralResponseOp",
+            "general_text_reader": "GeneralTextReaderOp",
+            "general_text_response": "GeneralTextResponseOp",
+            "general_single_kv": "GeneralSingleKVOp",
+            "general_dist_kv": "GeneralDistKVOp"
         }
 
     # currently, inputs and outputs are not used
@@ -95,6 +95,9 @@ class Server(object):
 
     def set_port(self, port):
         self.port = port
+
+    def set_vlog_level(self, vlog_level):
+        self.vlog_level = vlog_level
 
     def set_reload_interval(self, interval):
         self.reload_interval_s = interval
@@ -252,7 +255,8 @@ class Server(object):
                   "-resource_file {} " \
                   "-workflow_path {} " \
                   "-workflow_file {} " \
-                  "-bthread_concurrency {} ".format(
+                  "-bthread_concurrency {} " \
+                  "-v {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -264,5 +268,6 @@ class Server(object):
                       self.resource_fn,
                       self.workdir,
                       self.workflow_fn,
-                      self.num_threads,)
+                      self.num_threads,
+                      self.vlog_level)
         os.system(command)

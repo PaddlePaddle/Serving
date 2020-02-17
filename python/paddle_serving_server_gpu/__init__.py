@@ -24,13 +24,13 @@ from version import serving_server_version
 class OpMaker(object):
     def __init__(self):
         self.op_dict = {
-            "general_infer":"GeneralInferOp",
-            "general_reader":"GeneralReaderOp",
-            "general_response":"GeneralResponseOp",
-            "general_text_reader":"GeneralTextReaderOp",
-            "general_text_response":"GeneralTextResponseOp",
-            "general_single_kv":"GeneralSingleKVOp",
-            "general_dist_kv":"GeneralDistKVOp"
+            "general_infer": "GeneralInferOp",
+            "general_reader": "GeneralReaderOp",
+            "general_response": "GeneralResponseOp",
+            "general_text_reader": "GeneralTextReaderOp",
+            "general_text_response": "GeneralTextResponseOp",
+            "general_single_kv": "GeneralSingleKVOp",
+            "general_dist_kv": "GeneralDistKVOp"
         }
 
     # currently, inputs and outputs are not used
@@ -96,6 +96,9 @@ class Server(object):
     def set_port(self, port):
         self.port = port
 
+    def set_vlog_level(self, vlog_level):
+        slef.vlog_level = vlog_level
+
     def set_reload_interval(self, interval):
         self.reload_interval_s = interval
 
@@ -104,6 +107,9 @@ class Server(object):
 
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
+
+    def set_gpuid(self, gpuid=0):
+        self.gpuid = gpuid
 
     def _prepare_engine(self, model_config_path, device):
         if self.model_toolkit_conf == None:
@@ -232,7 +238,10 @@ class Server(object):
                   "-resource_path {} " \
                   "-resource_file {} " \
                   "-workflow_path {} " \
-                  "-workflow_file {} ".format(
+                  "-workflow_file {} " \
+                  "-bthread_concurrency {} " \
+                  "-gpuid {} " \
+                  "-v {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -243,5 +252,8 @@ class Server(object):
                       self.workdir,
                       self.resource_fn,
                       self.workdir,
-                      self.workflow_fn)
+                      self.workflow_fn,
+                      self.num_threads,
+                      self.gpuid,
+                      self.vlog_level)
         os.system(command)
