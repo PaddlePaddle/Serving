@@ -20,7 +20,7 @@ import (
        "io/ioutil"
        "log"
        "net/http"
-       pb "github.com/PaddlePaddle/Serving/go/proto/general_model"
+       pb "github.com/PaddlePaddle/Serving/go/proto"
        "github.com/golang/protobuf/proto"
 )
 
