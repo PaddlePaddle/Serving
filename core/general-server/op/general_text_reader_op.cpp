@@ -42,7 +42,7 @@ int GeneralTextReaderOp::inference() {
   std::vector<int64_t> elem_size;
   std::vector<int64_t> capacity;
 
-  GeneralTextReaderOutput *res = mutable_data<GeneralTextReaderOutput>();
+  GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *in = &res->tensor_vector;
 
   if (!res) {
@@ -50,8 +50,8 @@ int GeneralTextReaderOp::inference() {
   }
 
   if (batch_size <= 0) {
-    res->reader_status = -1;
-    return 0;
+    LOG(ERROR) << "Batch size < 0";
+    return -1;
   }
 
   int var_num = req->insts(0).tensor_array_size();

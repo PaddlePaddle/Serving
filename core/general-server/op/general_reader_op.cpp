@@ -16,6 +16,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include "core/general-server/op/general_infer_helper.h"
 #include "core/general-server/op/general_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
@@ -77,15 +78,11 @@ int GeneralReaderOp::inference() {
   std::vector<int64_t> elem_size;
   std::vector<int64_t> capacity;
 
-  GeneralReaderOutput *res = mutable_data<GeneralReaderOutput>();
-  TensorVector *in = &res->tensor_vector;
+  GeneralBlob *res = mutable_data<GeneralBlob>();
+  TensorVector *out = &res->tensor_vector;
 
   if (!res) {
     LOG(ERROR) << "Failed get op tls reader object output";
-  }
-  if (batch_size <= 0) {
-    res->reader_status = -1;
-    return 0;
   }
 
   int var_num = req->insts(0).tensor_array_size();
@@ -102,9 +99,9 @@ int GeneralReaderOp::inference() {
 
   VLOG(2) << "print general model config done.";
 
-  // check
-  res->reader_status = conf_check(req, model_config);
-  if (res->reader_status != 0) {
+  // TODO(guru4elephant): how to do conditional check?
+  int ret = conf_check(req, model_config);
+  if (ret != 0) {
     LOG(INFO) << "model conf of server:";
     resource.print_general_model_config(model_config);
     return 0;
@@ -142,26 +139,26 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
     lod_tensor.name = model_config->_feed_name[i];
-    in->push_back(lod_tensor);
+    out->push_back(lod_tensor);
   }
 
   for (int i = 0; i < var_num; ++i) {
-    if (in->at(i).lod.size() == 1) {
+    if (out->at(i).lod.size() == 1) {
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
         int data_len = tensor.data_size();
         VLOG(2) << "tensor size for var[" << i << "]: " << tensor.data_size();
-        int cur_len = in->at(i).lod[0].back();
+        int cur_len = out->at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
-        in->at(i).lod[0].push_back(cur_len + data_len);
+        out->at(i).lod[0].push_back(cur_len + data_len);
         VLOG(2) << "new len: " << cur_len + data_len;
       }
-      in->at(i).data.Resize(in->at(i).lod[0].back() * elem_size[i]);
-      in->at(i).shape = {in->at(i).lod[0].back(), 1};
+      out->at(i).data.Resize(out->at(i).lod[0].back() * elem_size[i]);
+      out->at(i).shape = {out->at(i).lod[0].back(), 1};
       VLOG(2) << "var[" << i
-              << "] is lod_tensor and len=" << in->at(i).lod[0].back();
+              << "] is lod_tensor and len=" << out->at(i).lod[0].back();
     } else {
-      in->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
+      out->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
       VLOG(2) << "var[" << i
               << "] is tensor and capacity=" << batch_size * capacity[i];
     }
@@ -169,29 +166,29 @@ int GeneralReaderOp::inference() {
 
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
-      int64_t *dst_ptr = static_cast<int64_t *>(in->at(i).data.data());
+      int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
           dst_ptr[offset + k] =
               *(const int64_t *)req->insts(j).tensor_array(i).data(k).c_str();
         }
-        if (in->at(i).lod.size() == 1) {
-          offset = in->at(i).lod[0][j + 1];
+        if (out->at(i).lod.size() == 1) {
+          offset = out->at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
       }
     } else {
-      float *dst_ptr = static_cast<float *>(in->at(i).data.data());
+      float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
           dst_ptr[offset + k] =
               *(const float *)req->insts(j).tensor_array(i).data(k).c_str();
         }
-        if (in->at(i).lod.size() == 1) {
-          offset = in->at(i).lod[0][j + 1];
+        if (out->at(i).lod.size() == 1) {
+          offset = out->at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
