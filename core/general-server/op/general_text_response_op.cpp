@@ -16,10 +16,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include "core/general-server/op/general_text_infer_op.h"
-#include "core/general-server/op/general_infer_op.h"
-#include "core/general-server/op/general_text_reader_op.h"
-#include "core/general-server/op/general_reader_op.h"
+#include "core/general-server/op/general_text_response_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
@@ -29,7 +26,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-using baidu::paddle_serving::serving::GENERAL_MODEL_NAME;
 using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
@@ -39,40 +35,21 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralTextInferOp::inference() {
-  const GeneralTextReaderOutput *reader_out =
-      get_depend_argument<GeneralTextReaderOutput>("general_text_reader_op");
-  if (!reader_out) {
-    LOG(ERROR) << "Failed mutable depended argument, op:"
-               << "general_text_reader_op";
+int GeneralTextResponseOp::inference() {
+  const GeneralBlob *input_blob =
+      get_depend_argument<GeneralBlob>(pre_name());
+
+  if (!input_blob) {
+    LOG(ERROR) << "Failed mutable depended argument, op: "
+               << pre_name();
     return -1;
   }
 
-  int reader_status = reader_out->reader_status;
-  if (reader_status != 0) {
-    LOG(ERROR) << "Read request wrong.";
-    return -1;
-  }
+  const TensorVector *in = &input_blob->tensor_vector;
+  int batch_size = input_blob->GetBatchSize();
 
-  const TensorVector *in = &reader_out->tensor_vector;
-  TensorVector *out = butil::get_object<TensorVector>();
-  int batch_size = 0;
-  if (in->at(0).lod.size() == 1) {
-    batch_size = in->at(0).lod[0].size() - 1;
-  } else {
-    batch_size = in->at(0).shape[0];
-  }
   VLOG(2) << "infer batch size: " << batch_size;
   // infer
-  Timer timeline;
-  double infer_time = 0.0;
-  timeline.Start();
-  if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
-    return -1;
-  }
-  timeline.Pause();
-  infer_time = timeline.ElapsedUS();
 
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
@@ -94,7 +71,7 @@ int GeneralTextInferOp::inference() {
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
-  res->set_mean_infer_us(infer_time);
+  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
@@ -107,10 +84,10 @@ int GeneralTextInferOp::inference() {
         tensor->add_shape(-1);
       } else {
         VLOG(2) << "out[" << idx << "] is tensor";
-        for (int k = 1; k < out->at(idx).shape.size(); ++k) {
+        for (int k = 1; k < in->at(idx).shape.size(); ++k) {
           VLOG(2) << "shape[" << k - 1 << "]: "
-                  << out->at(idx).shape[k];
-          tensor->add_shape(out->at(idx).shape[k]);
+                  << in->at(idx).shape[k];
+          tensor->add_shape(in->at(idx).shape[k]);
         }
       }
     }
@@ -118,15 +95,15 @@ int GeneralTextInferOp::inference() {
 
   int var_idx = 0;
   for (auto & idx : fetch_index) {
-    float *data_ptr = static_cast<float *>(out->at(idx).data.data());
+    float *data_ptr = static_cast<float *>(in->at(idx).data.data());
     int cap = 1;
-    for (int j = 1; j < out->at(idx).shape.size(); ++j) {
-      cap *= out->at(idx).shape[j];
+    for (int j = 1; j < in->at(idx).shape.size(); ++j) {
+      cap *= in->at(idx).shape[j];
     }
     if (model_config->_is_lod_fetch[idx]) {
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = out->at(idx).lod[0][j];
-             k < out->at(idx).lod[0][j + 1]; k++) {
+        for (int k = in->at(idx).lod[0][j];
+             k < in->at(idx).lod[0][j + 1]; k++) {
           res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_float_data(
               data_ptr[k]);
         }
@@ -143,7 +120,7 @@ int GeneralTextInferOp::inference() {
   }
   return 0;
 }
-DEFINE_OP(GeneralTextInferOp);
+DEFINE_OP(GeneralTextResponseOp);
 
 }  // namespace serving
 }  // namespace paddle_serving

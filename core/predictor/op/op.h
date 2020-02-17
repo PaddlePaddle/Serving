@@ -128,9 +128,17 @@ class Op {
 
   const char* name() const;
 
+  const std::string& op_name() const { return _name; }
+
   const std::string& full_name() const { return _full_name; }
 
+  const std::string& pre_name() const { return _pre_node_name; }
+
   void set_full_name(const std::string full_name) { _full_name = full_name; }
+
+  void set_pre_node_name(const std::string pre_name) {
+    _pre_node_name = pre_name;
+  }
 
   const std::string& type() const;
 
@@ -181,6 +189,7 @@ class Op {
   Bus* _bus;
   Dag* _dag;
   uint32_t _id;
+  std::string _pre_node_name;  // only for sequential execution
   std::string _name;
   std::string _full_name;  // service_workflow_stageindex_opname
   std::string _type;
