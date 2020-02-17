@@ -22,7 +22,7 @@ import time
 def batch_predict(batch_size=4):
     client = Client()
     client.load_client_config(conf_file)
-    client.connect(["127.0.0.1:8010"])
+    client.connect(["127.0.0.1:9292"])
     start = time.time()
     fetch = ["acc", "cost", "prediction"]
     feed_batch = []

@@ -44,11 +44,24 @@ def predict(thr_id, resource):
     start = time.time()
     fetch = ["acc", "cost", "prediction"]
     infer_time_list = []
+    counter = 0
+    feed_list = []
     for inst in dataset:
-        fetch_map = client.predict(feed=inst, fetch=fetch, profile=True)
-        prob.append(fetch_map["prediction"][1])
-        label_list.append(label[0])
-        infer_time_list.append(fetch_map["infer_time"])
+        counter += 1
+        feed_list.append(inst)
+        if counter == resource["batch_size"]:
+            fetch_map_batch, infer_time = client.batch_predict(
+                feed_batch=feed_list, fetch=fetch, profile=True)
+            #prob.append(fetch_map["prediction"][1])
+            #label_list.append(label[0])
+            infer_time_list.append(infer_time)
+            counter = 0
+            feed_list = []
+    if counter != 0:
+        fetch_map_batch, infer_time = client.batch_predict(
+            feed_batch=feed_list, fetch=fetch, profile=True)
+        infer_time_list.append(infer_time)
+
     end = time.time()
     client.release()
     return [prob, label_list, [sum(infer_time_list)], [end - start]]
@@ -62,11 +75,13 @@ if __name__ == '__main__':
     resource["server_endpoint"] = ["127.0.0.1:9292"]
     resource["filelist"] = [data_file]
     resource["thread_num"] = int(sys.argv[3])
+    resource["batch_size"] = int(sys.argv[4])
 
     thread_runner = MultiThreadRunner()
     result = thread_runner.run(predict, int(sys.argv[3]), resource)
 
-    print("thread num {}\ttotal time {}".format(sys.argv[
-        3], sum(result[-1]) / len(result[-1])))
-    print("thread num {}\ttotal time {}".format(sys.argv[
-        3], sum(result[2]) / 1000.0 / 1000.0 / len(result[2])))
+    print("thread num {}\tbatch size {}\ttotal time {}".format(sys.argv[
+        3], resource["batch_size"], sum(result[-1]) / len(result[-1])))
+    print("thread num {}\tbatch size {}\tinfer time {}".format(
+        sys.argv[3], resource["batch_size"],
+        sum(result[2]) / 1000.0 / 1000.0 / len(result[2])))
