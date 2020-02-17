@@ -1,0 +1,3 @@
+[submodule "core/general-client/"]
+	path = core/general-client/
+	url = https://github.com/pybind/pybind11
