@@ -17,7 +17,7 @@ from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import tarfile
-import paddle_serving_server as paddle_serving_server
+import paddle_serving_server_gpu as paddle_serving_server
 from version import serving_server_version
 
 

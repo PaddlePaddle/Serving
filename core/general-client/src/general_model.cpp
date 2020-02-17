@@ -214,7 +214,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
   if (fetch_name.size() == 0) {
     return fetch_result_batch;
   }
-  fetch_result_batch.resize(batch_size);
+  fetch_result_batch.resize(batch_size + 1);
   int fetch_name_num = fetch_name.size();
   for (int bi = 0; bi < batch_size; bi++) {
     fetch_result_batch[bi].resize(fetch_name_num);
@@ -226,6 +226,9 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
   Request req;
+  for (auto & name : fetch_name) {
+    req.add_fetch_var_names(name);
+  }
   //
   for (int bi = 0; bi < batch_size; bi++) {
     VLOG(2) << "prepare batch " << bi;
@@ -240,7 +243,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
     for (auto &name : int_feed_name) {
       tensor_vec.push_back(inst->add_tensor_array());
     }
-    
+
     VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name"
             << "prepared";
     int vec_idx = 0;
@@ -305,6 +308,10 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
         }
       }
     }
+    //last index for infer time
+    fetch_result_batch[batch_size].resize(1);
+    fetch_result_batch[batch_size][0].resize(1);
+    fetch_result_batch[batch_size][0][0] = res.mean_infer_us();
   }
 
   return fetch_result_batch;
