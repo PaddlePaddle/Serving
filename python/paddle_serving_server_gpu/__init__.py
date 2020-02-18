@@ -81,11 +81,13 @@ class Server(object):
         self.general_model_config_fn = "general_model.prototxt"
         self.workdir = ""
         self.max_concurrency = 0
-        self.num_threads = 0
+        self.num_threads = 4
         self.port = 8080
         self.reload_interval_s = 10
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
+        self.vlog_level = 0
+        self.use_local_bin = False
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -107,6 +109,10 @@ class Server(object):
 
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
+
+    def set_local_bin(self, path):
+        self.use_local_bin = True
+        self.bin_path = path
 
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
@@ -226,7 +232,8 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
-        self.download_bin()
+        if not self.use_local_bin:
+            self.download_bin()
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
