@@ -57,13 +57,10 @@ int GeneralTextReaderOp::inference() {
   }
 
   Timer timeline;
-  // double read_time = 0.0;
-  // timeline.Start();
   int64_t start = timeline.TimeStampUS();
 
   int var_num = req->insts(0).tensor_array_size();
   VLOG(2) << "var num: " << var_num;
-  // read config
 
   VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
@@ -164,8 +161,6 @@ int GeneralTextReaderOp::inference() {
     }
   }
 
-  // timeline.Pause();
-  // read_time = timeline.ElapsedUS();
   int64_t end = timeline.TimeStampUS();
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
