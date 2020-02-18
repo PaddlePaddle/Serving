@@ -126,14 +126,17 @@ int GeneralResponseOp::inference() {
 
   // timeline.Pause();
   // response_time = timeline.ElapsedUS();
-  int64_t end = timeline.TimeStampUS();
-  VLOG(2) << "p size for input blob: " << input_blob->p_size;
-  for (int i = 0; i < input_blob->p_size; ++i) {
-    res->add_profile_time(input_blob->time_stamp[i]);
+
+  if (req->profile_server()) {
+    int64_t end = timeline.TimeStampUS();
+    VLOG(2) << "p size for input blob: " << input_blob->p_size;
+    for (int i = 0; i < input_blob->p_size; ++i) {
+      res->add_profile_time(input_blob->time_stamp[i]);
+    }
+    // TODO(guru4elephant): find more elegant way to do this
+    res->add_profile_time(start);
+    res->add_profile_time(end);
   }
-  // TODO(guru4elephant): find more elegant way to do this
-  res->add_profile_time(start);
-  res->add_profile_time(end);
 
   return 0;
 }
