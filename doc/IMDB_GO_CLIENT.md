@@ -31,11 +31,13 @@ from paddle_serving_server import Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_text_reader')
-general_infer_op = op_maker.create('general_text_infer')
+general_infer_op = op_maker.create('general_infer')
+general_response_op = op_maker.create('general_text_response')
 
 op_seq_maker = OpSeqMaker()
 op_seq_maker.add_op(read_op)
 op_seq_maker.add_op(general_infer_op)
+op_seq_maker.add_op(general_response_op)
 
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
