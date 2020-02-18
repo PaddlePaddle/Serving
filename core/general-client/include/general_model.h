@@ -31,6 +31,9 @@
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 
+DECLARE_bool(profile_client);
+DECLARE_bool(profile_server);
+
 // given some input data, pack into pb, and send request
 namespace baidu {
 namespace paddle_serving {
@@ -44,6 +47,8 @@ class PredictorClient {
  public:
   PredictorClient() {}
   ~PredictorClient() {}
+
+  void init_gflags(std::vector<std::string> argv);
 
   int init(const std::string& client_conf);
 

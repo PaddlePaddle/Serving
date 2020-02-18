@@ -19,6 +19,9 @@
 #include "core/sdk-cpp/include/predictor_sdk.h"
 #include "core/util/include/timer.h"
 
+DEFINE_bool(profile_client, false, "");
+DEFINE_bool(profile_server, false, "");
+
 using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
@@ -26,10 +29,29 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::general_model::FetchInst;
 
+std::once_flag gflags_init_flag;
+
 namespace baidu {
 namespace paddle_serving {
 namespace general_model {
 using configure::GeneralModelConfig;
+
+void PredictorClient::init_gflags(std::vector<std::string> argv) {
+  std::call_once(gflags_init_flag, [&]() {
+      FLAGS_logtostderr = true;
+      argv.insert(argv.begin(), "dummy");
+      int argc = argv.size();
+      char **arr = new char *[argv.size()];
+      std::string line;
+      for (size_t i = 0; i < argv.size(); i++) {
+        arr[i] = &argv[i][0];
+        line += argv[i];
+        line += ' ';
+      }
+      google::ParseCommandLineFlags(&argc, &arr, true);
+      VLOG(2) << "Init commandline: " << line;
+    });
+}
 
 int PredictorClient::init(const std::string &conf_file) {
   try {
@@ -190,6 +212,13 @@ std::vector<std::vector<float>> PredictorClient::predict(
   int64_t client_infer_end = 0;
   int64_t postprocess_start = 0;
   int64_t postprocess_end = 0;
+
+  if (FLAGS_profile_client) {
+    if (FLAGS_profile_server) {
+      req.set_profile_server(true);
+    }
+  }
+
   res.Clear();
   if (_predictor->inference(&req, &res) != 0) {
     LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
@@ -211,20 +240,27 @@ std::vector<std::vector<float>> PredictorClient::predict(
     postprocess_end = timeline.TimeStampUS();
   }
 
-  int op_num = res.profile_time_size() / 2;
- 
-  VLOG(2) << "preprocess start: " << preprocess_start;
-  VLOG(2) << "preprocess end: " << preprocess_end;
-  VLOG(2) << "client infer start: " << client_infer_start;
-  VLOG(2) << "op1 start: " << res.profile_time(0);
-  VLOG(2) << "op1 end: " << res.profile_time(1);
-  VLOG(2) << "op2 start: " << res.profile_time(2);
-  VLOG(2) << "op2 end: " << res.profile_time(3);
-  VLOG(2) << "op3 start: " << res.profile_time(4);
-  VLOG(2) << "op3 end: " << res.profile_time(5);
-  VLOG(2) << "client infer end: " << client_infer_end;
-  VLOG(2) << "client postprocess start: " << postprocess_start;
-  VLOG(2) << "client postprocess end: " << postprocess_end;
+  if (FLAGS_profile_client) {
+    std::ostringstream oss;
+    oss << "PROFILE\t"
+        << "prepro_0:" << preprocess_start << " "
+        << "prepro_1:" << preprocess_end << " "
+        << "client_infer_0:" << client_infer_start << " "
+        << "client_infer_1:" << client_infer_end << " ";
+        
+    if (FLAGS_profile_server) {
+      int op_num = res.profile_time_size() / 2;
+      for (int i = 0; i < op_num; ++i) {
+        oss << "op" << i << "_0:" << res.profile_time(i * 2) << " ";
+        oss << "op" << i << "_1:" << res.profile_time(i * 2 + 1) << " ";
+      }
+    }
+    
+    oss << "postpro_0:" << postprocess_start << " ";
+    oss << "postpro_1:" << postprocess_end;
+
+    fprintf(stderr, "%s\n", oss.str().c_str());
+  }
 
   return fetch_result;
 }
