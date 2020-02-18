@@ -42,7 +42,7 @@ message Request {
 
 message Response {
   repeated FetchInst insts = 1;
-  optional float mean_infer_us = 2;
+  repeated int64 profile_time = 2;
 };
 
 service GeneralModelService {
