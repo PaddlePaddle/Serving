@@ -370,10 +370,6 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
         }
       }
     }
-    // last index for infer time
-    // fetch_result_batch[batch_size].resize(1);
-    // fetch_result_batch[batch_size][0].resize(1);
-    // fetch_result_batch[batch_size][0][0] = res.mean_infer_us();
   }
 
   return fetch_result_batch;
