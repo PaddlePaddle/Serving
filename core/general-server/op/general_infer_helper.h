@@ -37,6 +37,8 @@ struct GeneralBlob {
   double infer_time;
   std::vector<std::string> fetch_name_vector;
 
+  int _batch_size;
+
   void Clear() {
     size_t tensor_count = tensor_vector.size();
     for (size_t ti = 0; ti < tensor_count; ++ti) {
@@ -44,7 +46,11 @@ struct GeneralBlob {
     }
     tensor_vector.clear();
   }
-  
+
+  int SetBatchSize(int batch_size) { _batch_size = batch_size; }
+
+  int GetBatchSize() const { return _batch_size; }
+  /*
   int GetBatchSize() const {
     if (tensor_vector.size() > 0) {
       if (tensor_vector[0].lod.size() == 1) {
@@ -56,7 +62,7 @@ struct GeneralBlob {
       return -1;
     }
   }
-
+  */
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
 
