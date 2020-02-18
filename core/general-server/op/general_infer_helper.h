@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <string.h>
 #include <vector>
 #ifdef BCLOUD
 #ifdef WITH_GPU
@@ -34,8 +35,8 @@ static const char* GENERAL_MODEL_NAME = "general_model";
 
 struct GeneralBlob {
   std::vector<paddle::PaddleTensor> tensor_vector;
-  double infer_time;
-  std::vector<std::string> fetch_name_vector;
+  int64_t time_stamp[20];
+  int p_size = 0;
 
   void Clear() {
     size_t tensor_count = tensor_vector.size();
@@ -59,6 +60,18 @@ struct GeneralBlob {
 
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
+
+static void AddBlobInfo(GeneralBlob * blob,
+                        int64_t init_value) {
+  blob->time_stamp[blob->p_size] = init_value;
+  blob->p_size++;
+}
+
+static void CopyBlobInfo(const GeneralBlob * src,
+                         GeneralBlob * tgt) {
+  memcpy(&(tgt->time_stamp[0]), &(src->time_stamp[0]),
+         src->p_size * sizeof(int64_t));
+}
 
 }  // namespace serving
 }  // namespace paddle_serving

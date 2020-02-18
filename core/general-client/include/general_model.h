@@ -87,6 +87,7 @@ class PredictorClient {
   std::map<std::string, std::string> _fetch_name_to_var_name;
   std::vector<std::vector<int>> _shape;
   std::vector<int> _type;
+  std::vector<int64_t> _last_request_ts;
 };
 
 }  // namespace general_model

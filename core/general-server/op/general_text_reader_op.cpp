@@ -19,11 +19,13 @@
 #include "core/general-server/op/general_text_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
+#include "core/util/include/timer.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
+using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
@@ -53,6 +55,11 @@ int GeneralTextReaderOp::inference() {
     LOG(ERROR) << "Batch size < 0";
     return -1;
   }
+
+  Timer timeline;
+  // double read_time = 0.0;
+  // timeline.Start();
+  int64_t start = timeline.TimeStampUS();
 
   int var_num = req->insts(0).tensor_array_size();
   VLOG(2) << "var num: " << var_num;
@@ -156,6 +163,12 @@ int GeneralTextReaderOp::inference() {
       }
     }
   }
+
+  // timeline.Pause();
+  // read_time = timeline.ElapsedUS();
+  int64_t end = timeline.TimeStampUS();
+  AddBlobInfo(res, start);
+  AddBlobInfo(res, end);
 
   VLOG(2) << "read data from client success";
   return 0;

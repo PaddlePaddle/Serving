@@ -17,7 +17,9 @@
 #include "core/sdk-cpp/builtin_format.pb.h"
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
+#include "core/util/include/timer.h"
 
+using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
@@ -117,15 +119,20 @@ std::vector<std::vector<float>> PredictorClient::predict(
     return fetch_result;
   }
 
+  Timer timeline;
+  int64_t preprocess_start = timeline.TimeStampUS();
+
   // we save infer_us at fetch_result[fetch_name.size()]
   fetch_result.resize(fetch_name.size() + 1);
 
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
+
   VLOG(2) << "fetch general model predictor done.";
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
   VLOG(2) << "fetch name size: " << fetch_name.size();
+
   Request req;
   for (auto & name : fetch_name) {
     req.add_fetch_var_names(name);
@@ -175,16 +182,21 @@ std::vector<std::vector<float>> PredictorClient::predict(
     vec_idx++;
   }
 
-  VLOG(2) << "feed int feed var done.";
+  int64_t preprocess_end = timeline.TimeStampUS();
 
-  // std::map<std::string, std::vector<float> > result;
+  int64_t client_infer_start = timeline.TimeStampUS();
   Response res;
 
+  int64_t client_infer_end = 0;
+  int64_t postprocess_start = 0;
+  int64_t postprocess_end = 0;
   res.Clear();
   if (_predictor->inference(&req, &res) != 0) {
     LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
     exit(-1);
   } else {
+    client_infer_end = timeline.TimeStampUS();
+    postprocess_start = client_infer_end;
     for (auto &name : fetch_name) {
       int idx = _fetch_name_to_idx[name];
       int len = res.insts(0).tensor_array(idx).data_size();
@@ -196,9 +208,23 @@ std::vector<std::vector<float>> PredictorClient::predict(
             *(const float *)res.insts(0).tensor_array(idx).data(i).c_str();
       }
     }
-    fetch_result[fetch_name.size()].resize(1);
-    fetch_result[fetch_name.size()][0] = res.mean_infer_us();
+    postprocess_end = timeline.TimeStampUS();
   }
+
+  int op_num = res.profile_time_size() / 2;
+ 
+  VLOG(2) << "preprocess start: " << preprocess_start;
+  VLOG(2) << "preprocess end: " << preprocess_end;
+  VLOG(2) << "client infer start: " << client_infer_start;
+  VLOG(2) << "op1 start: " << res.profile_time(0);
+  VLOG(2) << "op1 end: " << res.profile_time(1);
+  VLOG(2) << "op2 start: " << res.profile_time(2);
+  VLOG(2) << "op2 end: " << res.profile_time(3);
+  VLOG(2) << "op3 start: " << res.profile_time(4);
+  VLOG(2) << "op3 end: " << res.profile_time(5);
+  VLOG(2) << "client infer end: " << client_infer_end;
+  VLOG(2) << "client postprocess start: " << postprocess_start;
+  VLOG(2) << "client postprocess end: " << postprocess_end;
 
   return fetch_result;
 }
@@ -308,10 +334,10 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
         }
       }
     }
-    //last index for infer time
-    fetch_result_batch[batch_size].resize(1);
-    fetch_result_batch[batch_size][0].resize(1);
-    fetch_result_batch[batch_size][0][0] = res.mean_infer_us();
+    // last index for infer time
+    // fetch_result_batch[batch_size].resize(1);
+    // fetch_result_batch[batch_size][0].resize(1);
+    // fetch_result_batch[batch_size][0][0] = res.mean_infer_us();
   }
 
   return fetch_result_batch;

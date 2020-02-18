@@ -143,9 +143,6 @@ class Client(object):
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
 
-        if profile:
-            result_map["infer_time"] = result[-1][0]
-
         return result_map
 
     def batch_predict(self, feed_batch=[], fetch=[], profile=False):
