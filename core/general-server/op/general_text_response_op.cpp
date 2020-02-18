@@ -49,13 +49,9 @@ int GeneralTextResponseOp::inference() {
   int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "infer batch size: " << batch_size;
-  // infer
-
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
   Timer timeline;
-  // double response_time = 0.0;
-  // timeline.Start();
   int64_t start = timeline.TimeStampUS();
 
   VLOG(2) << "start to call load general model_conf op";
@@ -75,8 +71,6 @@ int GeneralTextResponseOp::inference() {
   
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
-
-  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();

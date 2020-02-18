@@ -73,10 +73,7 @@ int GeneralResponseOp::inference() {
         model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
   }
 
-  // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
-
-  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
@@ -123,9 +120,6 @@ int GeneralResponseOp::inference() {
     }
     var_idx++;
   }
-
-  // timeline.Pause();
-  // response_time = timeline.ElapsedUS();
 
   if (req->profile_server()) {
     int64_t end = timeline.TimeStampUS();
