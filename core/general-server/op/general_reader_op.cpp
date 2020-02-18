@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "core/general-server/op/general_reader_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include "core/general-server/op/general_infer_helper.h"
-#include "core/general-server/op/general_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 
@@ -73,13 +73,14 @@ int GeneralReaderOp::inference() {
 
   int batch_size = req->insts_size();
   int input_var_num = 0;
-
   std::vector<int64_t> elem_type;
   std::vector<int64_t> elem_size;
   std::vector<int64_t> capacity;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *out = &res->tensor_vector;
+
+  res->SetBatchSize(batch_size);
 
   if (!res) {
     LOG(ERROR) << "Failed get op tls reader object output";

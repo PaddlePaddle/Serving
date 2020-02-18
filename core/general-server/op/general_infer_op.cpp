@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "core/general-server/op/general_infer_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include "core/general-server/op/general_infer_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
@@ -36,33 +36,31 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
-  const GeneralBlob * input_blob =
-      get_depend_argument<GeneralBlob>(pre_name());
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
 
-  GeneralBlob * output_blob = mutable_data<GeneralBlob>();
+  GeneralBlob *output_blob = mutable_data<GeneralBlob>();
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op:"
-               << pre_name();
+    LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name();
     return -1;
   }
 
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
+  output_blob->SetBatchSize(batch_size);
 
   VLOG(2) << "infer batch size: " << batch_size;
   // infer
-  Timer timeline;
-  double infer_time = 0.0;
-  timeline.Start();
+  // Timer timeline;
+  // double infer_time = 0.0;
+  // timeline.Start();
   if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
   }
-  timeline.Pause();
-  infer_time = timeline.ElapsedUS();
-
+  // timeline.Pause();
+  // infer_time = timeline.ElapsedUS();
   return 0;
 }
 DEFINE_OP(GeneralInferOp);
