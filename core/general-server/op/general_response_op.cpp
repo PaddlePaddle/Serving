@@ -53,6 +53,11 @@ int GeneralResponseOp::inference() {
 
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
+  Timer timeline;
+  // double response_time = 0.0;
+  // timeline.Start();
+  int64_t start = timeline.TimeStampUS();
+
   VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
@@ -67,11 +72,8 @@ int GeneralResponseOp::inference() {
     fetch_index[i] =
         model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
   }
-  
-  // response inst with only fetch_var_names
-  Response *res = mutable_data<Response>();
 
-  // res->set_mean_infer_us(infer_time);
+  Response *res = mutable_data<Response>();
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
@@ -118,6 +120,18 @@ int GeneralResponseOp::inference() {
     }
     var_idx++;
   }
+
+  if (req->profile_server()) {
+    int64_t end = timeline.TimeStampUS();
+    VLOG(2) << "p size for input blob: " << input_blob->p_size;
+    for (int i = 0; i < input_blob->p_size; ++i) {
+      res->add_profile_time(input_blob->time_stamp[i]);
+    }
+    // TODO(guru4elephant): find more elegant way to do this
+    res->add_profile_time(start);
+    res->add_profile_time(end);
+  }
+
   return 0;
 }
 
