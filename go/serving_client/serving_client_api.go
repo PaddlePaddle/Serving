@@ -43,11 +43,12 @@ type FetchInst struct {
 type Request struct {
      Insts   []FeedInst `json:"insts"`
      FetchVarNames	[]string `json:"fetch_var_names"`
+     ProfileServer	bool `json:"profile_server"`
 }
 
 type Response struct {
      Insts    []FetchInst `json:"insts"`
-     MeanInferUs	  float32 `json:"mean_infer_us"`
+     ProfileTime	  []int64 `json:"profile_time"`     
 }
 
 type Handle struct {
@@ -125,9 +126,13 @@ func Predict(handle Handle, int_feed_map map[string][]int64, fetch []string) map
 
      inst.TensorArray = tensor_array
 
+     var profiletime bool
+     profiletime = false
+
      req := &Request{
      	 Insts: []FeedInst{inst},
-	 FetchVarNames: fetch}
+	 FetchVarNames: fetch,
+	 ProfileTime: profiletime}
 
      b, err := json.Marshal(req)
 
