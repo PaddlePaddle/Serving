@@ -121,8 +121,6 @@ for data in test_reader():
 
 ### Advanced features and development
 
-[Develop a serving application with C++(Chinese)](doc/CREATING.md)
-
 [Compile from source code(Chinese)](doc/INSTALL.md)
 
 ## Contribution
