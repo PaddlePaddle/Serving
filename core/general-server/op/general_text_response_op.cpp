@@ -49,9 +49,10 @@ int GeneralTextResponseOp::inference() {
   int batch_size = input_blob->GetBatchSize();
 
   VLOG(2) << "infer batch size: " << batch_size;
-  // infer
-
   const Request *req = dynamic_cast<const Request *>(get_request_message());
+
+  Timer timeline;
+  int64_t start = timeline.TimeStampUS();
 
   VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
@@ -70,8 +71,6 @@ int GeneralTextResponseOp::inference() {
   
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
-
-  // res->set_mean_infer_us(infer_time);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
@@ -118,6 +117,18 @@ int GeneralTextResponseOp::inference() {
     }
     var_idx++;
   }
+  
+  if (req->profile_server()) {
+    int64_t end = timeline.TimeStampUS();
+    
+    for (int i = 0; i < input_blob->p_size; ++i) {
+      res->add_profile_time(input_blob->time_stamp[i]);
+    }
+    // TODO(guru4elephant): find more elegant way to do this
+    res->add_profile_time(start);
+    res->add_profile_time(end);
+  }
+
   return 0;
 }
 DEFINE_OP(GeneralTextResponseOp);

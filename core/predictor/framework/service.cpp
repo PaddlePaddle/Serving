@@ -147,6 +147,7 @@ int InferService::inference(const google::protobuf::Message* request,
   TRACEPRINTF("finish to thread clear");
 
   if (_enable_map_request_to_workflow) {
+    LOG(INFO) << "enable map request == True";
     std::vector<Workflow*>* workflows = _map_request_to_workflow(request);
     if (!workflows || workflows->size() == 0) {
       LOG(ERROR) << "Failed to map request to workflow";
@@ -169,6 +170,7 @@ int InferService::inference(const google::protobuf::Message* request,
       }
     }
   } else {
+    LOG(INFO) << "enable map request == False";
     TRACEPRINTF("start to execute one workflow");
     size_t fsize = _flows.size();
     for (size_t fi = 0; fi < fsize; ++fi) {
@@ -233,6 +235,7 @@ int InferService::_execute_workflow(Workflow* workflow,
   TRACEPRINTF("finish to copy from");
 
   workflow_time.stop();
+  LOG(INFO) << "workflow total time: " << workflow_time.u_elapsed();
   PredictorMetric::GetInstance()->update_latency_metric(
       WORKFLOW_METRIC_PREFIX + dv->full_name(), workflow_time.u_elapsed());
 

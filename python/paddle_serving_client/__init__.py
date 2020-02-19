@@ -17,6 +17,7 @@ from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import time
+import sys
 
 int_type = 0
 float_type = 1
@@ -87,6 +88,9 @@ class Client(object):
         # map feed names to index
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
+        read_env_flags = ["profile_client", "profile_server"]
+        self.client_handle_.init_gflags([sys.argv[0]] +
+                                        ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.feed_shapes_ = [var.shape for var in model_conf.feed_var]
@@ -142,9 +146,6 @@ class Client(object):
         result_map = {}
         for i, name in enumerate(fetch_names):
             result_map[name] = result[i]
-
-        if profile:
-            result_map["infer_time"] = result[-1][0]
 
         return result_map
 

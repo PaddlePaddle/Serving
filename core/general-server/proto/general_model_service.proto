@@ -38,11 +38,12 @@ message FetchInst {
 message Request {
   repeated FeedInst insts = 1;
   repeated string fetch_var_names = 2;
+  optional bool profile_server = 3 [ default = false ];
 };
 
 message Response {
   repeated FetchInst insts = 1;
-  optional float mean_infer_us = 2;
+  repeated int64 profile_time = 2;
 };
 
 service GeneralModelService {
