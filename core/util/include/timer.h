@@ -38,6 +38,7 @@ class Timer {
   double ElapsedMS();
   // return elapsed time in sec
   double ElapsedSec();
+  int64_t TimeStampUS();
 
  private:
   struct timeval _start;
