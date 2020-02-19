@@ -89,8 +89,8 @@ class Client(object):
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
         read_env_flags = ["profile_client", "profile_server"]
-        self.client_handle_.init_gflags([sys.argv[0]] +
-                                        ["--tryfromenv=" + ",".join(read_env_flags)])
+        self.client_handle_.init_gflags([sys.argv[
+            0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.feed_shapes_ = [var.shape for var in model_conf.feed_var]
@@ -183,18 +183,13 @@ class Client(object):
             fetch_names)
 
         result_map_batch = []
-        for result in result_batch[:-1]:
+        for result in result_batch:
             result_map = {}
             for i, name in enumerate(fetch_names):
                 result_map[name] = result[i]
             result_map_batch.append(result_map)
 
-        infer_time = result_batch[-1][0][0]
-
-        if profile:
-            return result_map_batch, infer_time
-        else:
-            return result_map_batch
+        return result_map_batch
 
     def release(self):
         self.client_handle_.destroy_predictor()
