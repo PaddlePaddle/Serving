@@ -31,6 +31,10 @@ PYBIND11_MODULE(serving_client, m) {
        )pddoc";
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
+      .def("init_gflags",
+           [](PredictorClient &self, std::vector<std::string> argv) {
+             self.init_gflags(argv);
+           })
       .def("init",
            [](PredictorClient &self, const std::string &conf) {
              return self.init(conf);

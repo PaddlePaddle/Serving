@@ -54,6 +54,11 @@ double Timer::ElapsedMS() { return _elapsed / 1000.0; }
 
 double Timer::ElapsedSec() { return _elapsed / 1000000.0; }
 
+int64_t Timer::TimeStampUS() {
+  gettimeofday(&_now, NULL);
+  return _now.tv_usec;
+}
+
 int64_t Timer::Tickus() {
   gettimeofday(&_now, NULL);
   return (_now.tv_sec - _start.tv_sec) * 1000 * 1000L +

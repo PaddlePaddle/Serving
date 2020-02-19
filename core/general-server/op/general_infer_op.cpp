@@ -51,16 +51,20 @@ int GeneralInferOp::inference() {
   output_blob->SetBatchSize(batch_size);
 
   VLOG(2) << "infer batch size: " << batch_size;
-  // infer
-  // Timer timeline;
-  // double infer_time = 0.0;
-  // timeline.Start();
+
+  Timer timeline;
+  int64_t start = timeline.TimeStampUS();
+  timeline.Start();
+
   if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
   }
-  // timeline.Pause();
-  // infer_time = timeline.ElapsedUS();
+
+  int64_t end = timeline.TimeStampUS();
+  CopyBlobInfo(input_blob, output_blob);
+  AddBlobInfo(output_blob, start);
+  AddBlobInfo(output_blob, end);
   return 0;
 }
 DEFINE_OP(GeneralInferOp);
