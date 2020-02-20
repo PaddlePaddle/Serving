@@ -15,7 +15,7 @@
 Usage:
     Host a trained paddle model with one line command
     Example:
-        python -m paddle_serving_server.serve model 9292
+        python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
 import argparse
 
