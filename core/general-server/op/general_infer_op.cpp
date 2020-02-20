@@ -36,8 +36,9 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
+  VLOG(2) << "Going to run inference";
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
-
+  VLOG(2) << "Get precedent op name: " << pre_name();
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
 
   if (!input_blob) {
@@ -48,6 +49,8 @@ int GeneralInferOp::inference() {
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
+  VLOG(2) << "input batch size: " << batch_size;
+
   output_blob->SetBatchSize(batch_size);
 
   VLOG(2) << "infer batch size: " << batch_size;
