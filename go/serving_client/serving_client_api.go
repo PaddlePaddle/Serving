@@ -126,13 +126,13 @@ func Predict(handle Handle, int_feed_map map[string][]int64, fetch []string) map
 
      inst.TensorArray = tensor_array
 
-     var profiletime bool
-     profiletime = false
+     var profile_server bool
+     profile_server = false
 
      req := &Request{
      	 Insts: []FeedInst{inst},
 	 FetchVarNames: fetch,
-	 ProfileTime: profiletime}
+	 ProfileServer: profile_server}
 
      b, err := json.Marshal(req)
 
