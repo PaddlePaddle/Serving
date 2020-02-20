@@ -22,6 +22,7 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
+
 ### Training Scripts
 
 ``` python
@@ -121,7 +122,7 @@ for data in test_reader():
 
 ### Advanced features and development
 
-[Compile from source code(Chinese)](doc/INSTALL.md)
+[Compile from source code(Chinese)](doc/COMPILE.md)
 
 ## Contribution
 
