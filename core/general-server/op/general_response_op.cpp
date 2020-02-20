@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "core/general-server/op/general_response_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include "core/general-server/op/general_infer_helper.h"
-#include "core/general-server/op/general_response_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
@@ -37,12 +37,10 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralResponseOp::inference() {
-  const GeneralBlob *input_blob =
-      get_depend_argument<GeneralBlob>(pre_name());
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op: "
-               << pre_name();
+    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name();
     return -1;
   }
 
@@ -61,7 +59,7 @@ int GeneralResponseOp::inference() {
   VLOG(2) << "start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
-  
+
   VLOG(2) << "get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
@@ -73,11 +71,12 @@ int GeneralResponseOp::inference() {
         model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
   }
 
+  // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
-    for (auto & idx : fetch_index) {
+    for (auto &idx : fetch_index) {
       Tensor *tensor = fetch_inst->add_tensor_array();
       // currently only response float tensor or lod_tensor
       tensor->set_elem_type(1);
@@ -87,8 +86,7 @@ int GeneralResponseOp::inference() {
       } else {
         VLOG(2) << "out[" << idx << "] is tensor";
         for (int k = 1; k < in->at(idx).shape.size(); ++k) {
-          VLOG(2) << "shape[" << k - 1 << "]: "
-                  << in->at(idx).shape[k];
+          VLOG(2) << "shape[" << k - 1 << "]: " << in->at(idx).shape[k];
           tensor->add_shape(in->at(idx).shape[k]);
         }
       }
@@ -96,7 +94,7 @@ int GeneralResponseOp::inference() {
   }
 
   int var_idx = 0;
-  for (auto & idx : fetch_index) {
+  for (auto &idx : fetch_index) {
     float *data_ptr = static_cast<float *>(in->at(idx).data.data());
     int cap = 1;
     for (int j = 1; j < in->at(idx).shape.size(); ++j) {
@@ -104,17 +102,25 @@ int GeneralResponseOp::inference() {
     }
     if (model_config->_is_lod_fetch[idx]) {
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = in->at(idx).lod[0][j];
-             k < in->at(idx).lod[0][j + 1]; k++) {
+        for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
+             k++) {
           res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
               reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
         }
       }
     } else {
-      for (int j = 0; j < batch_size; ++j) {
-        for (int k = j * cap; k < (j + 1) * cap; ++k) {
+      int var_size = in->at(idx).shape[0];
+      if (var_size == batch_size) {
+        for (int j = 0; j < batch_size; ++j) {
+          for (int k = j * cap; k < (j + 1) * cap; ++k) {
+            res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
+                reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
+          }
+        }
+      } else {
+        for (int j = 0; j < batch_size; ++j) {
           res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
-              reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
+              reinterpret_cast<char *>(&(data_ptr[0])), sizeof(float));
         }
       }
     }

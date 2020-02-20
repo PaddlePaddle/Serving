@@ -38,26 +38,25 @@ using configure::GeneralModelConfig;
 
 void PredictorClient::init_gflags(std::vector<std::string> argv) {
   std::call_once(gflags_init_flag, [&]() {
-      FLAGS_logtostderr = true;
-      argv.insert(argv.begin(), "dummy");
-      int argc = argv.size();
-      char **arr = new char *[argv.size()];
-      std::string line;
-      for (size_t i = 0; i < argv.size(); i++) {
-        arr[i] = &argv[i][0];
-        line += argv[i];
-        line += ' ';
-      }
-      google::ParseCommandLineFlags(&argc, &arr, true);
-      VLOG(2) << "Init commandline: " << line;
-    });
+    FLAGS_logtostderr = true;
+    argv.insert(argv.begin(), "dummy");
+    int argc = argv.size();
+    char **arr = new char *[argv.size()];
+    std::string line;
+    for (size_t i = 0; i < argv.size(); i++) {
+      arr[i] = &argv[i][0];
+      line += argv[i];
+      line += ' ';
+    }
+    google::ParseCommandLineFlags(&argc, &arr, true);
+    VLOG(2) << "Init commandline: " << line;
+  });
 }
 
 int PredictorClient::init(const std::string &conf_file) {
   try {
     GeneralModelConfig model_config;
-    if (configure::read_proto_conf(conf_file.c_str(),
-                                   &model_config) != 0) {
+    if (configure::read_proto_conf(conf_file.c_str(), &model_config) != 0) {
       LOG(ERROR) << "Failed to load general model config"
                  << ", file path: " << conf_file;
       return -1;
@@ -75,26 +74,27 @@ int PredictorClient::init(const std::string &conf_file) {
       VLOG(2) << "feed alias name: " << model_config.feed_var(i).alias_name()
               << " index: " << i;
       std::vector<int> tmp_feed_shape;
-      VLOG(2) << "feed" << "[" << i << "] shape:";
+      VLOG(2) << "feed"
+              << "[" << i << "] shape:";
       for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
         tmp_feed_shape.push_back(model_config.feed_var(i).shape(j));
-        VLOG(2) << "shape[" << j << "]: "
-                << model_config.feed_var(i).shape(j);
+        VLOG(2) << "shape[" << j << "]: " << model_config.feed_var(i).shape(j);
       }
       _type.push_back(model_config.feed_var(i).feed_type());
-      VLOG(2) << "feed" << "[" << i << "] feed type: "
-              << model_config.feed_var(i).feed_type();
+      VLOG(2) << "feed"
+              << "[" << i
+              << "] feed type: " << model_config.feed_var(i).feed_type();
       _shape.push_back(tmp_feed_shape);
     }
 
     for (int i = 0; i < fetch_var_num; ++i) {
       _fetch_name_to_idx[model_config.fetch_var(i).alias_name()] = i;
-      VLOG(2) << "fetch [" << i << "]" << " alias name: "
-              << model_config.fetch_var(i).alias_name();
+      VLOG(2) << "fetch [" << i << "]"
+              << " alias name: " << model_config.fetch_var(i).alias_name();
       _fetch_name_to_var_name[model_config.fetch_var(i).alias_name()] =
           model_config.fetch_var(i).name();
     }
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     LOG(ERROR) << "Failed load general model config" << e.what();
     return -1;
   }
@@ -112,7 +112,7 @@ int PredictorClient::destroy_predictor() {
   _api.destroy();
 }
 
-int PredictorClient::create_predictor_by_desc(const std::string & sdk_desc) {
+int PredictorClient::create_predictor_by_desc(const std::string &sdk_desc) {
   if (_api.create(sdk_desc) != 0) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
@@ -156,7 +156,7 @@ std::vector<std::vector<float>> PredictorClient::predict(
   VLOG(2) << "fetch name size: " << fetch_name.size();
 
   Request req;
-  for (auto & name : fetch_name) {
+  for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
   std::vector<Tensor *> tensor_vec;
@@ -247,7 +247,7 @@ std::vector<std::vector<float>> PredictorClient::predict(
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-        
+
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {
@@ -255,7 +255,7 @@ std::vector<std::vector<float>> PredictorClient::predict(
         oss << "op" << i << "_1:" << res.profile_time(i * 2 + 1) << " ";
       }
     }
-    
+
     oss << "postpro_0:" << postprocess_start << " ";
     oss << "postpro_1:" << postprocess_end;
 
@@ -288,7 +288,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
   Request req;
-  for (auto & name : fetch_name) {
+  for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
   //
@@ -324,7 +324,8 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       vec_idx++;
     }
 
-    VLOG(2) << "batch [" << bi << "] " << "float feed value prepared";
+    VLOG(2) << "batch [" << bi << "] "
+            << "float feed value prepared";
 
     vec_idx = 0;
     for (auto &name : int_feed_name) {
@@ -344,7 +345,8 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       vec_idx++;
     }
 
-    VLOG(2) << "batch [" << bi << "] " << "itn feed value prepared";
+    VLOG(2) << "batch [" << bi << "] "
+            << "itn feed value prepared";
   }
 
   Response res;

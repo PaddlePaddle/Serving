@@ -38,6 +38,8 @@ struct GeneralBlob {
   int64_t time_stamp[20];
   int p_size = 0;
 
+  int _batch_size;
+
   void Clear() {
     size_t tensor_count = tensor_vector.size();
     for (size_t ti = 0; ti < tensor_count; ++ti) {
@@ -45,31 +47,21 @@ struct GeneralBlob {
     }
     tensor_vector.clear();
   }
-  
-  int GetBatchSize() const {
-    if (tensor_vector.size() > 0) {
-      if (tensor_vector[0].lod.size() == 1) {
-        return tensor_vector[0].lod[0].size() - 1;
-      } else {
-        return tensor_vector[0].shape[0];
-      }
-    } else {
-      return -1;
-    }
-  }
 
+  int SetBatchSize(int batch_size) { _batch_size = batch_size; }
+
+  int GetBatchSize() const { return _batch_size; }
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
 
-static void AddBlobInfo(GeneralBlob * blob,
-                        int64_t init_value) {
+static void AddBlobInfo(GeneralBlob* blob, int64_t init_value) {
   blob->time_stamp[blob->p_size] = init_value;
   blob->p_size++;
 }
 
-static void CopyBlobInfo(const GeneralBlob * src,
-                         GeneralBlob * tgt) {
-  memcpy(&(tgt->time_stamp[0]), &(src->time_stamp[0]),
+static void CopyBlobInfo(const GeneralBlob* src, GeneralBlob* tgt) {
+  memcpy(&(tgt->time_stamp[0]),
+         &(src->time_stamp[0]),
          src->p_size * sizeof(int64_t));
 }
 
