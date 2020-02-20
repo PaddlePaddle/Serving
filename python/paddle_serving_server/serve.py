@@ -54,7 +54,6 @@ def start_standard_model():
     server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
-    server.set_vlog_level(0)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)

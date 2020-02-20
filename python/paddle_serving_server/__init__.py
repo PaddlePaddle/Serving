@@ -98,9 +98,6 @@ class Server(object):
     def set_port(self, port):
         self.port = port
 
-    def set_vlog_level(self, vlog_level):
-        self.vlog_level = vlog_level
-
     def set_reload_interval(self, interval):
         self.reload_interval_s = interval
 
@@ -250,6 +247,8 @@ class Server(object):
         # currently we do not load cube
         if not self.use_local_bin:
             self.download_bin()
+        else:
+            print("Use local bin")
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
@@ -262,8 +261,7 @@ class Server(object):
                   "-resource_file {} " \
                   "-workflow_path {} " \
                   "-workflow_file {} " \
-                  "-bthread_concurrency {} " \
-                  "-v {} ".format(
+                  "-bthread_concurrency {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -275,6 +273,7 @@ class Server(object):
                       self.resource_fn,
                       self.workdir,
                       self.workflow_fn,
-                      self.num_threads,
-                      self.vlog_level)
+                      self.num_threads)
+        print("Going to Run Comand")
+        print(command)
         os.system(command)
