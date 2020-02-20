@@ -88,6 +88,7 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.vlog_level = 0
         self.use_local_bin = False
+        self.gpuid = 0
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
