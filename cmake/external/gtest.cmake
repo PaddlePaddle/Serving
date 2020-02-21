@@ -28,7 +28,7 @@ ExternalProject_Add(
     GIT_TAG master
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND CXXFLAGS=-fPIC && mkdir build && cd build && cmake .. && make -j ${NUM_OF_PROCESSOR} gtest
+    BUILD_COMMAND CXXFLAGS=-fPIC && mkdir -p build && cd build && cmake .. && make -j ${NUM_OF_PROCESSOR} gtest
     INSTALL_COMMAND mkdir -p ${GTEST_INSTALL_DIR}/lib/ 
     && cp ${GTEST_SOURCES_DIR}/src/extern_gtest/build/lib/libgtest.a ${GTEST_LIBRARIES}
     && cp -r ${GTEST_SOURCES_DIR}/src/extern_gtest/googletest/include ${GTEST_INSTALL_DIR}/
@@ -41,4 +41,3 @@ ADD_LIBRARY(gtest STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET gtest PROPERTY IMPORTED_LOCATION ${GTEST_LIBRARIES})
 
 LIST(APPEND external_project_dependencies gtest)
-
