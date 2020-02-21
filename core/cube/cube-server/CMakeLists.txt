@@ -67,10 +67,10 @@ endif()
 
 target_link_libraries(cube brpc ${DYNAMIC_LIB} -lpthread -ldl -lz)
 
-add_executable(cube_test ${SRC_LIST} test/cube_test.cpp
-    ${PROTO_SRC} ${PROTO_HEADER})
+#add_executable(cube_test ${SRC_LIST} test/cube_test.cpp
+#    ${PROTO_SRC} ${PROTO_HEADER})
 
-target_link_libraries(cube_test brpc ${DYNAMIC_LIB} gtest -lpthread -ldl -lz)
+#target_link_libraries(cube_test brpc ${DYNAMIC_LIB} gtest -lpthread -ldl -lz)
 
 # install
 install(TARGETS cube
