@@ -259,6 +259,8 @@ class Server(object):
         # currently we do not load cube
         if not self.use_local_bin:
             self.download_bin()
+        else:
+            print("Use local bin")
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
@@ -283,5 +285,7 @@ class Server(object):
                       self.resource_fn,
                       self.workdir,
                       self.workflow_fn,
-                      self.num_threads,)
+                      self.num_threads)
+        print("Going to Run Comand")
+        print(command)
         os.system(command)

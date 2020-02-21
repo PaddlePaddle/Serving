@@ -272,4 +272,6 @@ class Server(object):
                       self.workflow_fn,
                       self.num_threads,
                       self.gpuid,)
+        print("Going to Run Comand")
+        print(command)
         os.system(command)
