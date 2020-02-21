@@ -23,7 +23,6 @@ def batch_predict(batch_size=4):
     client = Client()
     client.load_client_config(conf_file)
     client.connect(["127.0.0.1:9292"])
-    start = time.time()
     fetch = ["acc", "cost", "prediction"]
     feed_batch = []
     for line in sys.stdin:
@@ -44,8 +43,6 @@ def batch_predict(batch_size=4):
         for i in range(len(feed_batch)):
             print("{} {}".format(fetch_batch[i]["prediction"][1], feed_batch[i][
                 "label"][0]))
-    cost = time.time() - start
-    print("total cost : {}".format(cost))
 
 
 if __name__ == '__main__':

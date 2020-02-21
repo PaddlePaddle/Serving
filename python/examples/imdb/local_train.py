@@ -21,6 +21,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("fluid")
 logger.setLevel(logging.INFO)
 
+
 def load_vocab(filename):
     vocab = {}
     with open(filename) as f:
@@ -31,17 +32,19 @@ def load_vocab(filename):
     vocab["<unk>"] = len(vocab)
     return vocab
 
+
 if __name__ == "__main__":
     vocab = load_vocab('imdb.vocab')
     dict_dim = len(vocab)
 
-    data = fluid.layers.data(name="words", shape=[1], dtype="int64", lod_level=1)
+    data = fluid.layers.data(
+        name="words", shape=[1], dtype="int64", lod_level=1)
     label = fluid.layers.data(name="label", shape=[1], dtype="int64")
 
     dataset = fluid.DatasetFactory().create_dataset()
     filelist = ["train_data/%s" % x for x in os.listdir("train_data")]
     dataset.set_use_var([data, label])
-    pipe_command = "/home/users/dongdaxiang/paddle_whls/custom_op/paddle_release_home/python/bin/python imdb_reader.py"
+    pipe_command = "python imdb_reader.py"
     dataset.set_pipe_command(pipe_command)
     dataset.set_batch_size(4)
     dataset.set_filelist(filelist)
@@ -59,16 +62,14 @@ if __name__ == "__main__":
     import paddle_serving_client.io as serving_io
 
     for i in range(epochs):
-        exe.train_from_dataset(program=fluid.default_main_program(),
-                               dataset=dataset, debug=False)
+        exe.train_from_dataset(
+            program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
-            serving_io.save_model("serving_server_model",
-                                  "serving_client_conf",
-                                  {"words": data, "label": label},
-                                  {"cost": avg_cost, "acc": acc,
-                                   "prediction": prediction},
-                                  fluid.default_main_program())
-
-
-
+            serving_io.save_model("serving_server_model", "serving_client_conf",
+                                  {"words": data,
+                                   "label": label}, {
+                                       "cost": avg_cost,
+                                       "acc": acc,
+                                       "prediction": prediction
+                                   }, fluid.default_main_program())
