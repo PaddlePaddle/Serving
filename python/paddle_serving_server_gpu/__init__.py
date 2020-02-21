@@ -234,7 +234,7 @@ class Server(object):
     def check_port(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex('127.0.0.1', port)
+            result = sock.connect_ex(('127.0.0.1', port))
         if result != 0:
             return True
         else:
@@ -258,8 +258,7 @@ class Server(object):
                   "-workflow_path {} " \
                   "-workflow_file {} " \
                   "-bthread_concurrency {} " \
-                  "-gpuid {} " \
-                  "-v {} ".format(
+                  "-gpuid {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
