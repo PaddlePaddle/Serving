@@ -28,7 +28,7 @@ ExternalProject_Add(
     GIT_TAG master
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND CXXFLAGS=-fPIC && mkdir -p build && cd build && /home/users/dongdaxiang/software/cmake-3.15.2/bin/cmake .. && make -j ${NUM_OF_PROCESSOR} gtest
+    BUILD_COMMAND CXXFLAGS=-fPIC && mkdir -p build && cd build && cmake .. && make -j ${NUM_OF_PROCESSOR} gtest
     INSTALL_COMMAND mkdir -p ${GTEST_INSTALL_DIR}/lib/ 
     && cp ${GTEST_SOURCES_DIR}/src/extern_gtest/build/lib/libgtest.a ${GTEST_LIBRARIES}
     && cp -r ${GTEST_SOURCES_DIR}/src/extern_gtest/googletest/include ${GTEST_INSTALL_DIR}/
