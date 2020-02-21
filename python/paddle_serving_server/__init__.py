@@ -17,8 +17,10 @@ from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import tarfile
+import socket
 import paddle_serving_server as paddle_serving_server
 from version import serving_server_version
+from contextlib import closing
 
 
 class OpMaker(object):
@@ -86,7 +88,6 @@ class Server(object):
         self.reload_interval_s = 10
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.vlog_level = 0
         self.use_local_bin = False
 
     def set_max_concurrency(self, concurrency):
@@ -227,6 +228,8 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
+        if not self.check_port(port):
+            raise SystemExit("Prot {} is already used".format(port))
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_path, device)
         self._prepare_infer_service(port)
@@ -241,6 +244,15 @@ class Server(object):
         self._write_pb_str(workflow_fn, self.workflow_conf)
         self._write_pb_str(resource_fn, self.resource_conf)
         self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
+
+    def check_port(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('127.0.0.1', port))
+        if result != 0:
+            return True
+        else:
+            return False
 
     def run_server(self):
         # just run server with system command

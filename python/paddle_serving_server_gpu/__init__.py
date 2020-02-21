@@ -17,8 +17,10 @@ from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import tarfile
+import socket
 import paddle_serving_server_gpu as paddle_serving_server
 from version import serving_server_version
+from contextlib import closing
 
 
 class OpMaker(object):
@@ -86,8 +88,8 @@ class Server(object):
         self.reload_interval_s = 10
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.vlog_level = 0
         self.use_local_bin = False
+        self.gpuid = 0
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -97,9 +99,6 @@ class Server(object):
 
     def set_port(self, port):
         self.port = port
-
-    def set_vlog_level(self, vlog_level):
-        slef.vlog_level = vlog_level
 
     def set_reload_interval(self, interval):
         self.reload_interval_s = interval
@@ -214,6 +213,9 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
+        if not self.check_port(port):
+            raise SystemExit("Prot {} is already used".format(port))
+
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_path, device)
         self._prepare_infer_service(port)
@@ -228,6 +230,15 @@ class Server(object):
         self._write_pb_str(workflow_fn, self.workflow_conf)
         self._write_pb_str(resource_fn, self.resource_conf)
         self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
+
+    def check_port(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('127.0.0.1', port))
+        if result != 0:
+            return True
+        else:
+            return False
 
     def run_server(self):
         # just run server with system command
@@ -247,8 +258,7 @@ class Server(object):
                   "-workflow_path {} " \
                   "-workflow_file {} " \
                   "-bthread_concurrency {} " \
-                  "-gpuid {} " \
-                  "-v {} ".format(
+                  "-gpuid {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -261,6 +271,7 @@ class Server(object):
                       self.workdir,
                       self.workflow_fn,
                       self.num_threads,
-                      self.gpuid,
-                      self.vlog_level)
+                      self.gpuid,)
+        print("Going to Run Comand")
+        print(command)
         os.system(command)
