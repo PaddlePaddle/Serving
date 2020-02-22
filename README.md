@@ -55,7 +55,7 @@ print(fetch_map)
 
 [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 
-[How to develop a new Serving operator](doc/OPERATOR.md)
+[How to develop a new Serving operator](doc/NEW_OPERATOR.md)
 
 [Client API for other programming languages](doc/CLIENT_API.md)
 
