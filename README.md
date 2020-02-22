@@ -5,6 +5,7 @@ An easy-to-use Machine Learning Model Inference Service Deployment Tool
 [![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
 [![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
+[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
 
 [中文](./doc/README_CN.md)
 
@@ -48,8 +49,6 @@ print(fetch_map)
 
 ```
 
-
-
 ### Document
 
 [Design Doc(Chinese)](doc/DESIGN.md)
@@ -65,6 +64,9 @@ print(fetch_map)
 ### Advanced features and development
 
 [Compile from source code(Chinese)](doc/COMPILE.md)
+
+## Join Community
+To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 ## Contribution
 
