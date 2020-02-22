@@ -57,7 +57,7 @@ print(fetch_map)
 
 [How to develop a new Serving operator](doc/NEW_OPERATOR.md)
 
-[Client API for other programming languages](doc/CLIENT_API.md)
+[Golang client](doc/IMDB_GO_CLIENT.md)
 
 [FAQ(Chinese)](doc/FAQ.md)
 
