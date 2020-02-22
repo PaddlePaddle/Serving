@@ -138,7 +138,7 @@ class FluidCpuAnalysisCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -169,7 +169,7 @@ class FluidCpuNativeCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -202,7 +202,7 @@ class FluidCpuAnalysisDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -231,7 +231,7 @@ class FluidCpuNativeDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -240,7 +240,7 @@ class Parameter {
  public:
   Parameter() : _row(0), _col(0), _params(NULL) {}
   ~Parameter() {
-    LOG(INFO) << "before destroy Parameter, file_name[" << _file_name << "]";
+    VLOG(2) << "before destroy Parameter, file_name[" << _file_name << "]";
     destroy();
   }
 
@@ -254,7 +254,7 @@ class Parameter {
       LOG(ERROR) << "Load " << _file_name << " malloc error.";
       return -1;
     }
-    LOG(WARNING) << "Load parameter file[" << _file_name << "] success.";
+    VLOG(2) << "Load parameter file[" << _file_name << "] success.";
     return 0;
   }
 
@@ -296,7 +296,7 @@ class Parameter {
         fclose(fs);
         fs = NULL;
       }
-      LOG(INFO) << "load " << _file_name << " read ok.";
+      VLOG(2) << "load " << _file_name << " read ok.";
       return 0;
     } else {
       LOG(ERROR) << "load " << _file_name << " read error.";
@@ -329,13 +329,13 @@ class SigmoidModel {
       LOG(ERROR) << "load params sigmoid_w failed.";
       return -1;
     }
-    LOG(WARNING) << "load sigmoid_w [" << _sigmoid_w._params[0] << "] ["
-                 << _sigmoid_w._params[1] << "].";
+    VLOG(2) << "load sigmoid_w [" << _sigmoid_w._params[0] << "] ["
+            << _sigmoid_w._params[1] << "].";
     if (0 != _sigmoid_b.init(2, 1, sigmoid_b_file) || 0 != _sigmoid_b.load()) {
       LOG(ERROR) << "load params sigmoid_b failed.";
       return -1;
     }
-    LOG(WARNING) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
+    VLOG(2) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
                  << _sigmoid_b._params[1] << "].";
     _exp_max_input = exp_max;
     _exp_min_input = exp_min;
@@ -412,8 +412,8 @@ class FluidCpuWithSigmoidCore : public FluidFamilyCore {
     float exp_max = conf.exp_max_input();
     float exp_min = conf.exp_min_input();
     _core->_sigmoid_core.reset(new SigmoidModel);
-    LOG(INFO) << "create sigmoid core[" << _core->_sigmoid_core.get()
-              << "], use count[" << _core->_sigmoid_core.use_count() << "].";
+    VLOG(2) << "create sigmoid core[" << _core->_sigmoid_core.get()
+            << "], use count[" << _core->_sigmoid_core.use_count() << "].";
     ret = _core->_sigmoid_core->load(
         sigmoid_w_file, sigmoid_b_file, exp_max, exp_min);
     if (ret < 0) {
@@ -444,8 +444,8 @@ class FluidCpuWithSigmoidCore : public FluidFamilyCore {
       LOG(ERROR) << "fail to clone paddle predictor: " << origin_core;
       return -1;
     }
-    LOG(INFO) << "clone sigmoid core[" << _core->_sigmoid_core.get()
-              << "] use count[" << _core->_sigmoid_core.use_count() << "].";
+    VLOG(2) << "clone sigmoid core[" << _core->_sigmoid_core.get()
+            << "] use count[" << _core->_sigmoid_core.use_count() << "].";
     return 0;
   }
 
@@ -487,7 +487,7 @@ class FluidCpuNativeDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -520,7 +520,7 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
