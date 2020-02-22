@@ -1,4 +1,4 @@
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr_9grHGD.png' width = "400" height = "160">
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr_20Qzun.png' width = "400" height = "120">
 
 An easy-to-use Machine Learning Model Inference Service Deployment Tool
 
