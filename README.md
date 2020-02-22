@@ -27,20 +27,10 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-### Save Model with Paddle
-``` python
-# training scripts for uci housing price regression
-# after training, save model with serving client API
-# we are working on integrate this API with Paddle API
-import paddle_serving_client.io as serving_io
-serving_io.save_model(
-    "uci_housing_model", "uci_housing_client",
-    {"x": x}, {"price": y_predict}, fluid.default_main_program())
-```
-
-### Server side launch command
-
+### Download models and start server
 ``` shell
+wget https://paddle-serving.bj.bcebos.com/uci_housing_example%2Fuci_housing.tar.gz
+tar -xzf uci_housing.tar.gz
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
