@@ -99,16 +99,16 @@ static void g_change_server_port() {
   if (read_proto_conf(FLAGS_inferservice_path.c_str(),
                       FLAGS_inferservice_file.c_str(),
                       &conf) != 0) {
-    LOG(WARNING) << "failed to load configure[" << FLAGS_inferservice_path
-                 << "," << FLAGS_inferservice_file << "].";
+    VLOG(WARNING) << "failed to load configure[" << FLAGS_inferservice_path
+                  << "," << FLAGS_inferservice_file << "].";
     return;
   }
   uint32_t port = conf.port();
   if (port != 0) {
     FLAGS_port = port;
-    LOG(INFO) << "use configure[" << FLAGS_inferservice_path << "/"
-              << FLAGS_inferservice_file << "] port[" << port
-              << "] instead of flags";
+    VLOG(2) << "use configure[" << FLAGS_inferservice_path << "/"
+            << FLAGS_inferservice_file << "] port[" << port
+            << "] instead of flags";
   }
   return;
 }
@@ -157,8 +157,8 @@ int main(int argc, char** argv) {
     mkdir(FLAGS_log_dir.c_str(), 0777);
     ret = stat(FLAGS_log_dir.c_str(), &st_buf);
     if (ret != 0) {
-      LOG(WARNING) << "Log path " << FLAGS_log_dir
-                   << " not exist, and create fail";
+      VLOG(2) << "Log path " << FLAGS_log_dir
+              << " not exist, and create fail";
       return -1;
     }
   }
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
   FLAGS_logbufsecs = 0;
   FLAGS_logbuflevel = -1;
 #endif
-  LOG(INFO) << "Succ initialize logger";
+  VLOG(2) << "Succ initialize logger";
 
   // initialize resource manager
   if (Resource::instance().initialize(FLAGS_resource_path,
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
                << "/" << FLAGS_resource_file;
     return -1;
   }
-  LOG(INFO) << "Succ initialize resource";
+  VLOG(2) << "Succ initialize resource";
 
   // initialize workflow manager
   if (WorkflowManager::instance().initialize(FLAGS_workflow_path,
@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
                << FLAGS_workflow_path << "/" << FLAGS_workflow_file;
     return -1;
   }
-  LOG(INFO) << "Succ initialize workflow";
+  VLOG(2) << "Succ initialize workflow";
 
   // initialize service manager
   if (InferServiceManager::instance().initialize(
@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
                << FLAGS_inferservice_path << "/" << FLAGS_inferservice_file;
     return -1;
   }
-  LOG(INFO) << "Succ initialize inferservice";
+  VLOG(2) << "Succ initialize inferservice";
 
   int errcode = bthread_set_worker_startfn(pthread_worker_start_fn);
   if (errcode != 0) {
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
                << errcode << "]";
     return -1;
   }
-  LOG(INFO) << "Succ call pthread worker start function";
+  VLOG(2) << "Succ call pthread worker start function";
 
   if (Resource::instance().cube_initialize(FLAGS_resource_path,
                                            FLAGS_resource_file) != 0) {
@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
                << FLAGS_resource_file;
     return -1;
   }
-  LOG(INFO) << "Succ initialize cube";
+  VLOG(2) << "Succ initialize cube";
 
 #ifndef BCLOUD
 
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  LOG(INFO) << "Succ initialize general model";
+  VLOG(2) << "Succ initialize general model";
 
   // FATAL messages are output to stderr
   FLAGS_stderrthreshold = 3;
@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Failed start server and wait!";
     return -1;
   }
-  LOG(INFO) << "Succ start service manager";
+  VLOG(2) << "Succ start service manager";
 
   if (InferServiceManager::instance().finalize() != 0) {
     LOG(ERROR) << "Failed finalize infer service manager.";
@@ -248,6 +248,6 @@ int main(int argc, char** argv) {
 #else
   google::ShutdownGoogleLogging();
 #endif
-  LOG(INFO) << "Paddle Inference Server exit successfully!";
+  VLOG(2) << "Paddle Inference Server exit successfully!";
   return 0;
 }
