@@ -29,7 +29,7 @@ pip install paddle-serving-server
 
 ### Download models and start server
 ``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing_example%2Fuci_housing.tar.gz
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
