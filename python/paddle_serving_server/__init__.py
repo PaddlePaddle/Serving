@@ -89,6 +89,7 @@ class Server(object):
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.use_local_bin = False
+        self.mkl_flag = False
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -172,16 +173,16 @@ class Server(object):
         # check config here
         # print config here
 
+    def use_mkl(self):
+        self.mkl_flag = True
+
     def get_device_version(self):
         avx_flag = False
-        mkl_flag = False
+        mkl_flag = self.mkl_flag
         openblas_flag = False
         r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
         if r == 0:
             avx_flag = True
-        r = os.system("which mkl")
-        if r == 0:
-            mkl_flag = True
         if avx_flag:
             if mkl_flag:
                 device_version = "serving-cpu-avx-mkl-"
