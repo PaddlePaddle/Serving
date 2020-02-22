@@ -14,44 +14,36 @@ Paddle Serving helps deep learning developers deploy an online inference service
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed with one line command.
 - Industrial serving features supported, such as multiple models management, model online loading, online A/B testing etc.
 - Distributed Key-Value indexing supported that is especially useful for large scale sparse features as model inputs.
-- Highly concurrent and efficient communication, with [Baidu-rpc](https://github.com/apache/incubator-brpc) supported.
+- Highly concurrent and efficient communication between clients and servers.
 - Multiple programming language supported on client side, such as Golang, C++ and python
 
-## Quick Start
-
-Paddle Serving supports light-weighted Python API for model inference and can be integrated with trainining process seemlessly. Here is a Boston House Pricing example for users to do quick start.
-
-### Installation
+## Installation
 
 ```shell
 pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-### Download models and start server
+## Quick Start Example
+
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-### Client Side Scripts
+### Python Client Request
 
 ```
 from paddle_serving_client import Client
-import paddle
-import sys
 
 client = Client()
-client.load_client_config(sys.argv[1])
+client.load_client_config("uci_housing_client")
 client.connect(["127.0.0.1:9292"])
-
-test_reader = paddle.batch(paddle.reader.shuffle(
-    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=1)
-
-for data in test_reader():
-    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
+        -0.1583 -0.0584 0.6283 0.4919 0.1856 0.0795 -0.0332]
+fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+print(fetch_map)
 
 ```
 
