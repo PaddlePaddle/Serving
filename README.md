@@ -34,7 +34,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ### Python Client Request
 
-```
+``` python
 from paddle_serving_client import Client
 
 client = Client()
