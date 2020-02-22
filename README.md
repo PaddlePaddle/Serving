@@ -1,4 +1,5 @@
-# Paddle Serving
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr_9grHGD.png' width = "400" height = "160">
+
 An easy-to-use Machine Learning Model Inference Service Deployment Tool
 
 [![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
