@@ -34,7 +34,7 @@ tar -xzf uci_housing.tar.gz
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-### Python Client Request
+Python Client Request
 
 ``` python
 from paddle_serving_client import Client
