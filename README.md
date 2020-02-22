@@ -55,7 +55,7 @@ print(fetch_map)
 
 [Design Doc(Chinese)](doc/DESIGN.md)
 
-[How to config Serving native operators on server side?](doc/https://github.com/PaddlePaddle/Serving/blob/develop/doc/SERVER_DAG.md)
+[How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 
 [How to develop a new Serving operator](doc/OPERATOR.md)
 
