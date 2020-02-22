@@ -11,11 +11,11 @@ An easy-to-use Machine Learning Model Inference Service Deployment Tool
 Paddle Serving helps deep learning developers deploy an online inference service without much effort. Currently, Paddle Serving supports the deep learning models trained by [Paddle](https://github.com/PaddlePaddle/Paddle) althought it can be very easy to integrate other deep learning framework's model inference engine.  
 
 ## Key Features
-- Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed with <font color="#0000dd">one line command</font><br />.
+- Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
 - **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
 - **Distributed Key-Value indexing** supported that is especially useful for large scale sparse features as model inputs.
 - **Highly concurrent and efficient communication** between clients and servers.
-- **Multiple programming language** supported on client side, such as Golang, C++ and python
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python
 
 ## Installation
 
