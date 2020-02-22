@@ -59,11 +59,9 @@ print(fetch_map)
 
 [Golang client](doc/IMDB_GO_CLIENT.md)
 
-[FAQ(Chinese)](doc/FAQ.md)
-
-### Advanced features and development
-
 [Compile from source code(Chinese)](doc/COMPILE.md)
+
+[FAQ(Chinese)](doc/FAQ.md)
 
 ## Join Community
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
