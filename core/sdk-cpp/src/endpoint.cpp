@@ -35,8 +35,8 @@ int Endpoint::initialize(const EndpointInfo& ep_info) {
       return -1;
     }
     _variant_list.push_back(var);
-    LOG(INFO) << "Succ create variant: " << vi
-              << ", endpoint:" << _endpoint_name;
+    VLOG(2) << "Succ create variant: " << vi
+            << ", endpoint:" << _endpoint_name;
   }
 
   return 0;
@@ -51,7 +51,7 @@ int Endpoint::thrd_initialize() {
       return -1;
     }
   }
-  LOG(WARNING) << "Succ thrd initialize all vars: " << var_size;
+  VLOG(2) << "Succ thrd initialize all vars: " << var_size;
   return 0;
 }
 

@@ -25,7 +25,7 @@ int PredictorApi::register_all() {
     return -1;
   }
 
-  LOG(WARNING) << "Succ register all components!";
+  VLOG(2) << "Succ register all components!";
 
   return 0;
 }
@@ -66,8 +66,8 @@ int PredictorApi::create(const std::string & api_desc_str) {
       return -1;
     }
 
-    LOG(INFO) << "Succ create endpoint instance with name: "
-              << ep_info.endpoint_name;
+    VLOG(2) << "Succ create endpoint instance with name: "
+            << ep_info.endpoint_name;
   }
 
   return 0;
@@ -101,7 +101,7 @@ int PredictorApi::create(const char* path, const char* file) {
       return -1;
     }
 
-    LOG(INFO) << "endpoint name: " << ep_info.endpoint_name;
+    VLOG(2) << "endpoint name: " << ep_info.endpoint_name;
 
     std::pair<std::map<std::string, Endpoint*>::iterator, bool> r =
         _endpoints.insert(std::make_pair(ep_info.endpoint_name, ep));
@@ -110,8 +110,8 @@ int PredictorApi::create(const char* path, const char* file) {
       return -1;
     }
 
-    LOG(INFO) << "Succ create endpoint instance with name: "
-              << ep_info.endpoint_name;
+    VLOG(2) << "Succ create endpoint instance with name: "
+            << ep_info.endpoint_name;
   }
 
   return 0;
@@ -126,7 +126,7 @@ int PredictorApi::thrd_initialize() {
       return -1;
     }
 
-    LOG(WARNING) << "Succ thrd initialize endpoint:" << it->first;
+    VLOG(2) << "Succ thrd initialize endpoint:" << it->first;
   }
   return 0;
 }
@@ -152,7 +152,7 @@ int PredictorApi::thrd_finalize() {
       return -1;
     }
 
-    LOG(INFO) << "Succ thrd finalize endpoint:" << it->first;
+    VLOG(2) << "Succ thrd finalize endpoint:" << it->first;
   }
   return 0;
 }

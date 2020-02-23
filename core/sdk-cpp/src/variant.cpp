@@ -53,7 +53,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
   }
 
   if (_stub_map.size() > 0) {
-    LOG(INFO) << "Initialize variants from VariantInfo"
+    VLOG(2) << "Initialize variants from VariantInfo"
               << ", stubs count: " << _stub_map.size();
     return 0;
   }
@@ -66,7 +66,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
   }
 
   _default_stub = stub;
-  LOG(INFO) << "Succ create default debug";
+  VLOG(2) << "Succ create default debug";
   return 0;
 }
 
@@ -82,10 +82,10 @@ int Variant::thrd_initialize() {
       LOG(ERROR) << "Failed thrd initialize stub: " << iter->first;
       return -1;
     }
-    LOG(INFO) << "Succ thrd initialize stub:" << iter->first;
+    VLOG(2) << "Succ thrd initialize stub:" << iter->first;
   }
 
-  LOG(WARNING) << "Succ thrd initialize all stubs";
+  VLOG(2) << "Succ thrd initialize all stubs";
   return 0;
 }
 
