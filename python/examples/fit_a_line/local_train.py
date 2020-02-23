@@ -32,5 +32,5 @@ for pass_id in range(30):
             fetch_list=[avg_loss])
 
 serving_io.save_model(
-    "serving_server_model", "serving_client_conf",
-    {"x": x}, {"y": y_predict}, fluid.default_main_program())
+    "uci_housing_model", "uci_housing_client",
+    {"x": x}, {"price": y_predict}, fluid.default_main_program())

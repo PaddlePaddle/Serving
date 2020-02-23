@@ -35,11 +35,11 @@ int StubImpl<T, C, R, I, O>::initialize(const VariantInfo& var,
     }
 
     _gchannel = init_channel(var, filter);
-    LOG(INFO) << "Create stub with tag: " << *tag << ", " << *tag_value
-              << ", ep: " << ep;
+    VLOG(2) << "Create stub with tag: " << *tag << ", " << *tag_value
+            << ", ep: " << ep;
   } else {
     _gchannel = init_channel(var, NULL);
-    LOG(INFO) << "Create stub without tag, ep " << ep;
+    VLOG(2) << "Create stub without tag, ep " << ep;
   }
 
   if (!_gchannel) {
@@ -143,7 +143,7 @@ int StubImpl<T, C, R, I, O>::thrd_initialize() {
     return -1;
   }
 
-  LOG(WARNING) << "Succ thread initialize stub impl!";
+  VLOG(2) << "Succ thread initialize stub impl!";
 
   return 0;
 }
@@ -370,7 +370,7 @@ google::protobuf::RpcChannel* StubImpl<T, C, R, I, O>::init_channel(
   // brpc parallel channel
   _pchannel = init_pchannel(_channel, _max_channel, _package_size, chn_options);
   if (_pchannel) {
-    LOG(INFO) << "Succ create parallel channel, count: " << _max_channel;
+    VLOG(2) << "Succ create parallel channel, count: " << _max_channel;
     return _pchannel;
   }
 
@@ -384,21 +384,21 @@ brpc::ParallelChannel* StubImpl<T, C, R, I, O>::init_pchannel(
     uint32_t package_size,
     const brpc::ChannelOptions& options) {
   if (channel_count <= 1) {  // noneed use parallel channel
-    LOG(INFO) << "channel count <= 1, noneed use pchannel.";
+    VLOG(2) << "channel count <= 1, noneed use pchannel.";
     return NULL;
   }
 
   _pchannel = butil::get_object<brpc::ParallelChannel>();
   if (!_pchannel) {
-    LOG(FATAL) << "Failed get pchannel from object pool";
+    VLOG(2) << "Failed get pchannel from object pool";
     return NULL;
   }
 
   brpc::ParallelChannelOptions pchan_options;
   pchan_options.timeout_ms = options.timeout_ms;
   if (_pchannel->Init(&pchan_options) != 0) {
-    LOG(FATAL) << "Failed init parallel channel with tmo_us: "
-               << pchan_options.timeout_ms;
+    VLOG(2) << "Failed init parallel channel with tmo_us: "
+            << pchan_options.timeout_ms;
     return NULL;
   }
 

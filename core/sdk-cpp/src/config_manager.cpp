@@ -80,8 +80,8 @@ int EndpointConfigManager::load(const std::string& sdk_desc_str) {
     LOG(ERROR) << "Failed load configure" << e.what();
     return -1;
   }
-  LOG(INFO) << "Success reload endpoint config file, id: "
-            << _current_endpointmap_id;
+  VLOG(2) << "Success reload endpoint config file, id: "
+          << _current_endpointmap_id;
   return 0;
 }
 
@@ -128,8 +128,8 @@ int EndpointConfigManager::load() {
     LOG(ERROR) << "Failed load configure" << e.what();
     return -1;
   }
-  LOG(INFO) << "Success reload endpoint config file, id: "
-            << _current_endpointmap_id;
+  VLOG(2) << "Success reload endpoint config file, id: "
+          << _current_endpointmap_id;
   return 0;
 }
 
@@ -181,8 +181,8 @@ int EndpointConfigManager::init_one_endpoint(const configure::Predictor& conf,
       return -1;
     }
 
-    LOG(INFO) << "Succ load one endpoint, name: " << ep.endpoint_name
-              << ", count of variants: " << ep.vars.size() << ".";
+    VLOG(2) << "Succ load one endpoint, name: " << ep.endpoint_name
+            << ", count of variants: " << ep.vars.size() << ".";
   } catch (std::exception& e) {
     LOG(ERROR) << "Exception acccurs when load endpoint conf"
                << ", message: " << e.what();
@@ -258,7 +258,7 @@ int EndpointConfigManager::merge_variant(const VariantInfo& default_var,
 int EndpointConfigManager::parse_tag_values(SplitParameters& split) {
   split.tag_values.clear();
   if (!split.split_tag.init || !split.tag_cands_str.init) {
-    LOG(WARNING) << "split info not set, skip...";
+    VLOG(2) << "split info not set, skip...";
     return 0;
   }
 

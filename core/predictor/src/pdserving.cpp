@@ -99,8 +99,8 @@ static void g_change_server_port() {
   if (read_proto_conf(FLAGS_inferservice_path.c_str(),
                       FLAGS_inferservice_file.c_str(),
                       &conf) != 0) {
-    VLOG(WARNING) << "failed to load configure[" << FLAGS_inferservice_path
-                  << "," << FLAGS_inferservice_file << "].";
+    VLOG(2) << "failed to load configure[" << FLAGS_inferservice_path
+            << "," << FLAGS_inferservice_file << "].";
     return;
   }
   uint32_t port = conf.port();
