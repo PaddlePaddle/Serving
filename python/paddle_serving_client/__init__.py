@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .serving_client import PredictorClient
+import paddle_serving_client
+import os
 from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
@@ -75,8 +76,17 @@ class Client(object):
         self.feed_shapes_ = []
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
+        self.rpath()
+
+    def rpath(self):
+        lib_path = os.path.dirname(paddle_serving_client.__file__)
+        client_path = os.path.join(lib_path, 'serving_client.so')
+        lib_path = os.path.join(lib_path, 'lib')
+        os.popen('patchelf --set-rpath {} {}'.format(lib_path, client_path))
+
 
     def load_client_config(self, path):
+        from .serving_client import PredictorClient
         model_conf = m_config.GeneralModelConfig()
         f = open(path, 'r')
         model_conf = google.protobuf.text_format.Merge(

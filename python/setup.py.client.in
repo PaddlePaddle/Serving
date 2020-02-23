@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 
 import platform
+import os
 
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
@@ -26,7 +27,15 @@ from paddle_serving_client.version import serving_client_version
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
 
+def copy_lib():
+    os.popen('mkdir -p paddle_serving_client/lib')
+    for lib in ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10']:
+        r = os.popen('whereis {}'.format(lib))
+        text = r.read()
+        os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip().split(' ')[1]))
+
 max_version, mid_version, min_version = python_version()
+copy_lib()
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.1.0','paddlepaddle'
@@ -36,8 +45,8 @@ packages=['paddle_serving_client',
           'paddle_serving_client.proto',
           'paddle_serving_client.io',
 	  'paddle_serving_client.metric',
-	  'paddle_serving_client.utils']
-package_data={'paddle_serving_client': ['serving_client.so']}
+	  'paddle_serving_client.utils',]
+package_data={'paddle_serving_client': ['serving_client.so','lib/*'],}
 package_dir={'paddle_serving_client':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client',
              'paddle_serving_client.proto':
@@ -47,7 +56,7 @@ package_dir={'paddle_serving_client':
 	     'paddle_serving_client.metric':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/metric',
 	     'paddle_serving_client.utils':
-	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/utils'}
+	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/utils',}
 
 setup(
     name='paddle-serving-client',
