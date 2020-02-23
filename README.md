@@ -8,7 +8,7 @@
 [中文](./doc/README_CN.md)
 
 ## Motivation
-Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with Paddle, you already have a model inference service. 
+Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. 
 
 ## Key Features
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
@@ -16,6 +16,7 @@ Paddle Serving helps deep learning developers deploy an online inference service
 - **Distributed Key-Value indexing** supported that is especially useful for large scale sparse features as model inputs.
 - **Highly concurrent and efficient communication** between clients and servers.
 - **Multiple programming languages** supported on client side, such as Golang, C++ and python
+- **Extensible framework design** that can support model serving beyond Paddle.
 
 ## Installation
 
