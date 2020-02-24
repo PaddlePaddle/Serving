@@ -52,9 +52,9 @@ int WeightedRandomRender::initialize(const google::protobuf::Message& conf) {
       return -1;
     }
 
-    LOG(INFO) << "Succ read weights list: " << weights
-              << ", count: " << _variant_weight_list.size()
-              << ", normalized: " << _normalized_sum;
+    VLOG(2) << "Succ read weights list: " << weights
+            << ", count: " << _variant_weight_list.size()
+            << ", normalized: " << _normalized_sum;
   } catch (std::bad_cast& e) {
     LOG(ERROR) << "Failed init WeightedRandomRender"
                << "from configure, err:" << e.what();
@@ -87,9 +87,9 @@ Variant* WeightedRandomRender::route(const VariantList& variants) {
   for (uint32_t ci = 0; ci < cand_size; ++ci) {
     cur_total += _variant_weight_list[ci];
     if (sample < cur_total) {
-      LOG(INFO) << "Sample " << sample << " on " << ci
-                << ", _normalized: " << _normalized_sum
-                << ", weight: " << _variant_weight_list[ci];
+      VLOG(2) << "Sample " << sample << " on " << ci
+              << ", _normalized: " << _normalized_sum
+              << ", weight: " << _variant_weight_list[ci];
       return variants[ci];
     }
   }
