@@ -1,4 +1,5 @@
 include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
+include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/..)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})

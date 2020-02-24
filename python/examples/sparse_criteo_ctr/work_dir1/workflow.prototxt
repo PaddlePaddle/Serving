@@ -1,0 +1,24 @@
+workflows {
+  name: "workflow1"
+  workflow_type: "Sequence"
+  nodes {
+    name: "general_reader_op"
+    type: "GeneralReaderOp"
+  }
+  nodes {
+    name: "general_dist_kv_op"
+    type: "GeneralDistKVOp"
+    dependencies {
+      name: "general_reader_op"
+      mode: "RO"
+    }
+  }
+  nodes {
+    name: "general_infer_op"
+    type: "GeneralInferOp"
+    dependencies {
+      name: "general_dist_kv_op"
+      mode: "RO"
+    }
+  }
+}

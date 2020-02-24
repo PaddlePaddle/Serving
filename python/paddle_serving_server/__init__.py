@@ -157,6 +157,8 @@ class Server(object):
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
             self.resource_conf.general_model_file = self.general_model_config_fn
+            self.resource_conf.cube_config_file = ''
+
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:

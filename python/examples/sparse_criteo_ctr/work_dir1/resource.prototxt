@@ -1,0 +1,5 @@
+model_toolkit_path: "work_dir1"
+model_toolkit_file: "model_toolkit.prototxt"
+cube_config_file: ""
+general_model_path: "work_dir1"
+general_model_file: "general_model.prototxt"
