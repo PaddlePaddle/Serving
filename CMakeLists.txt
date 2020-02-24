@@ -84,7 +84,6 @@ include(flags)
 if (NOT CLIENT_ONLY)
 include(external/cudnn)
 include(paddlepaddle)
-include(external/opencv)
 endif()
 
 message("paddle serving source dir: " ${PADDLE_SERVING_SOURCE_DIR})
@@ -124,7 +123,6 @@ endif()
 
 if (NOT CLIENT_ONLY)
     list(APPEND EXTERNAL_LIBS paddlepaddle)
-    list(APPEND EXTERNAL_LIBS opencv)
 endif()
 
 add_subdirectory(core)
