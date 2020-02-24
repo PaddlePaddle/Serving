@@ -46,18 +46,17 @@ if __name__ == "__main__":
     dataset.set_use_var([data, label])
     pipe_command = "python imdb_reader.py"
     dataset.set_pipe_command(pipe_command)
-    dataset.set_batch_size(4)
+    dataset.set_batch_size(128)
     dataset.set_filelist(filelist)
     dataset.set_thread(10)
-    from nets import cnn_net
-    avg_cost, acc, prediction = cnn_net(data, label, dict_dim)
+    from nets import bow_net
+    avg_cost, acc, prediction = bow_net(data, label, dict_dim)
     optimizer = fluid.optimizer.SGD(learning_rate=0.01)
     optimizer.minimize(avg_cost)
 
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
     epochs = 6
-    save_dirname = "cnn_model"
 
     import paddle_serving_client.io as serving_io
 
@@ -67,9 +66,5 @@ if __name__ == "__main__":
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
             serving_io.save_model("serving_server_model", "serving_client_conf",
-                                  {"words": data,
-                                   "label": label}, {
-                                       "cost": avg_cost,
-                                       "acc": acc,
-                                       "prediction": prediction
-                                   }, fluid.default_main_program())
+                                  {"words": data}, {"prediction": prediction},
+                                  fluid.default_main_program())

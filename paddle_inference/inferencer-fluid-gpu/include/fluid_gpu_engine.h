@@ -143,7 +143,7 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -173,7 +173,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -206,7 +206,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -235,7 +235,7 @@ class FluidGpuNativeDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -258,7 +258,7 @@ class Parameter {
       LOG(ERROR) << "Load " << _file_name << " malloc error.";
       return -1;
     }
-    LOG(WARNING) << "Load parameter file[" << _file_name << "] success.";
+    VLOG(2) << "Load parameter file[" << _file_name << "] success.";
     return 0;
   }
 
@@ -333,13 +333,13 @@ class SigmoidModel {
       LOG(ERROR) << "load params sigmoid_w failed.";
       return -1;
     }
-    LOG(WARNING) << "load sigmoid_w [" << _sigmoid_w._params[0] << "] ["
+    VLOG(2) << "load sigmoid_w [" << _sigmoid_w._params[0] << "] ["
                  << _sigmoid_w._params[1] << "].";
     if (0 != _sigmoid_b.init(2, 1, sigmoid_b_file) || 0 != _sigmoid_b.load()) {
       LOG(ERROR) << "load params sigmoid_b failed.";
       return -1;
     }
-    LOG(WARNING) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
+    VLOG(2) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
                  << _sigmoid_b._params[1] << "].";
     _exp_max_input = exp_max;
     _exp_min_input = exp_min;
@@ -491,7 +491,7 @@ class FluidGpuNativeDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
@@ -524,7 +524,7 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
       return -1;
     }
 
-    LOG(WARNING) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };
