@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/general-server/op/general_dist_kv_op.h"
+#include "core/general-server/op/general_copy_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -33,7 +33,7 @@ using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralDistKVOp::inference() {
+int GeneralCopyOp::inference() {
   // reade request from client
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
   VLOG(2) << "precedent name: " << pre_name();
@@ -82,14 +82,15 @@ int GeneralDistKVOp::inference() {
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
-  res->p_size = 0;
+  CopyBlobInfo(input_blob, res)
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
   VLOG(2) << "read data from client success";
   return 0;
 }
-DEFINE_OP(GeneralDistKVOp);
+
+DEFINE_OP(GeneralCopyOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
