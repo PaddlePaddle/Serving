@@ -32,12 +32,12 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-class GeneralDistKVOp :
+class GeneralCopyOp :
     public baidu::paddle_serving::predictor::OpWithChannel<GeneralBlob> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
-  DECLARE_OP(GeneralDistKVOp);
+  DECLARE_OP(GeneralCopyOp);
 
   int inference();
 
