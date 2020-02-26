@@ -317,11 +317,6 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       }
       tensor->set_elem_type(1);
       for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
-        /*
-        tensor->add_data(const_cast<char *>(reinterpret_cast<const char *>(
-                             &(float_feed[vec_idx][j]))),
-                         sizeof(float));
-        */
         tensor->add_float_data(float_feed[vec_idx][j]);
       }
       vec_idx++;
@@ -341,11 +336,6 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
       VLOG(3) << "feed var name " << name << " index " << vec_idx
               << "first data " << int_feed[vec_idx][0];
       for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
-        /*
-        tensor->add_data(const_cast<char *>(reinterpret_cast<const char *>(
-                             &(int_feed[vec_idx][j]))),
-                         sizeof(int64_t));
-        */
         tensor->add_int64_data(int_feed[vec_idx][j]);
       }
       vec_idx++;
@@ -390,16 +380,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
             << "fetch name " << name << " index " << idx << " first data "
             << *(const float *)res.insts(bi).tensor_array(idx).data(0).c_str();
         /*
-        if (_fetch_name_to_va[name] == 0) {  // int64
-          for (int i = 0; i < len; ++i) {
-            fetch_result_batch[bi][idx][i] =
-                *(const int64 *)res.insts(bi).tensor_array(idx).int64_data(i).c_str();
-          }
-        } else {
-          for (int i = 0; i < len; ++i) {
-            fetch_result_batch
-          }
-        }
+          TBA
         */
       }
     }
