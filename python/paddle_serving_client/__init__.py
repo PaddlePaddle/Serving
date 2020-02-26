@@ -73,6 +73,7 @@ class Client(object):
         self.feed_names_ = []
         self.fetch_names_ = []
         self.client_handle_ = None
+        self.result_handle_ = None
         self.feed_shapes_ = []
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
@@ -87,6 +88,7 @@ class Client(object):
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
+        from .serving_client import PredictorRes
         model_conf = m_config.GeneralModelConfig()
         f = open(path, 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -96,6 +98,7 @@ class Client(object):
         # get feed vars, fetch vars
         # get feed shapes, feed types
         # map feed names to index
+        self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
         read_env_flags = ["profile_client", "profile_server"]
@@ -120,6 +123,7 @@ class Client(object):
         sdk_desc = predictor_sdk.gen_desc()
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
+        
 
     def get_feed_names(self):
         return self.feed_names_
@@ -147,15 +151,19 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
+        '''
         result = self.client_handle_.predict(
             float_slot, float_feed_names, int_slot, int_feed_names, fetch_names)
+        '''
+        ret = self.client_handle_.predict(
+            float_slot, float_feed_names, int_slot, int_feed_names, fetch_names, self.result_handle_)
 
         # TODO(guru4elephant): the order of fetch var name should be consistent with
         #                      general_model_config, this is not friendly
         #                      In the future, we need make the number of fetched variable changable
         result_map = {}
         for i, name in enumerate(fetch_names):
-            result_map[name] = result[i]
+            result_map[name] = self.result_handle_.get_float_by_name(name)
 
         return result_map
 

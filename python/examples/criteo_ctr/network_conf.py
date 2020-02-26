@@ -16,7 +16,7 @@ def ctr_dnn_model_dataset(dense_input, sparse_inputs, label,
         return fluid.layers.sequence_pool(input=emb, pool_type='sum')
 
     sparse_embed_seq = list(map(embedding_layer, sparse_inputs))
-    concated = fluid.layers.concat(sparse_embed_seq + [dense_input], axis=1)
+    concated = fluid.layers.concat(sparse_embed_seq, axis=1)
     fc1 = fluid.layers.fc(input=concated, size=400, act='relu',
                           param_attr=fluid.ParamAttr(initializer=fluid.initializer.Normal(
                               scale=1 / math.sqrt(concated.shape[1]))))

@@ -1,0 +1,95 @@
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "core/general-server/op/general_dist_kv_op.h"
+#include <algorithm>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include "core/general-server/op/general_infer_helper.h"
+#include "core/predictor/framework/infer.h"
+#include "core/predictor/framework/memory.h"
+#include "core/util/include/timer.h"
+
+namespace baidu {
+namespace paddle_serving {
+namespace serving {
+
+using baidu::paddle_serving::Timer;
+using baidu::paddle_serving::predictor::MempoolWrapper;
+using baidu::paddle_serving::predictor::general_model::Tensor;
+using baidu::paddle_serving::predictor::general_model::Request;
+using baidu::paddle_serving::predictor::general_model::FeedInst;
+using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
+
+int GeneralDistKVOp::inference() {
+  // reade request from client
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
+  VLOG(2) << "precedent name: " << pre_name();
+  const TensorVector *in = &input_blob->tensor_vector;
+  VLOG(2) << "input size: " << in->size();
+  int batch_size = input_blob->GetBatchSize();
+  int input_var_num = 0;
+
+  GeneralBlob *res = mutable_data<GeneralBlob>();
+  TensorVector *out = &res->tensor_vector;
+
+  VLOG(2) << "input batch size: " << batch_size;
+  res->SetBatchSize(batch_size);
+
+  if (!res) {
+    LOG(ERROR) << "Failed get op tls reader object output";
+  }
+
+  Timer timeline;
+  int64_t start = timeline.TimeStampUS();
+
+  VLOG(2) << "Going to init lod tensor";
+  for (int i = 0; i < in->size(); ++i) {
+    paddle::PaddleTensor lod_tensor;
+    CopyLod(&in->at(i), &lod_tensor);
+    lod_tensor.dtype = in->at(i).dtype;
+    lod_tensor.name = in->at(i).name;
+    VLOG(2) << "lod tensor [" << i << "].name = " << lod_tensor.name;
+    out->push_back(lod_tensor);
+  }
+
+  VLOG(2) << "pack done.";
+
+  for (int i = 0; i < out->size(); ++i) {
+    int64_t *src_ptr = static_cast<int64_t *>(in->at(i).data.data());
+    out->at(i).data.Resize(
+        out->at(i).lod[0].back() * sizeof(int64_t));
+    out->at(i).shape = {out->at(i).lod[0].back(), 1};
+    int64_t *tgt_ptr = static_cast<int64_t *>(out->at(i).data.data());
+    for (int j = 0; j < out->at(i).lod[0].back(); ++j) {
+      tgt_ptr[j] = src_ptr[j];
+    }
+  }
+
+  VLOG(2) << "output done.";
+
+  timeline.Pause();
+  int64_t end = timeline.TimeStampUS();
+  res->p_size = 0;
+  AddBlobInfo(res, start);
+  AddBlobInfo(res, end);
+
+  VLOG(2) << "read data from client success";
+  return 0;
+}
+DEFINE_OP(GeneralDistKVOp);
+}  // namespace serving
+}  // namespace paddle_serving
+}  // namespace baidu
