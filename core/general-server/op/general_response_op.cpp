@@ -95,36 +95,69 @@ int GeneralResponseOp::inference() {
 
   int var_idx = 0;
   for (auto &idx : fetch_index) {
-    float *data_ptr = static_cast<float *>(in->at(idx).data.data());
     int cap = 1;
     for (int j = 1; j < in->at(idx).shape.size(); ++j) {
       cap *= in->at(idx).shape[j];
     }
-    if (model_config->_is_lod_fetch[idx]) {
-      for (int j = 0; j < batch_size; ++j) {
-        for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
-             k++) {
-          res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
-              reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
-        }
-      }
-    } else {
-      int var_size = in->at(idx).shape[0];
-      if (var_size == batch_size) {
+    if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
+      int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
+      if (model_config->_is_lod_fetch[idx]) {
         for (int j = 0; j < batch_size; ++j) {
-          for (int k = j * cap; k < (j + 1) * cap; ++k) {
-            res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
-                reinterpret_cast<char *>(&(data_ptr[k])), sizeof(float));
+          for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
+               k++) {
+            FetchInst *fetch_p = res->mutable_insts(j);
+            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[k]);
           }
         }
       } else {
-        for (int j = 0; j < batch_size; ++j) {
-          res->mutable_insts(j)->mutable_tensor_array(var_idx)->add_data(
-              reinterpret_cast<char *>(&(data_ptr[0])), sizeof(float));
+        int var_size = in->at(idx).shape[0];
+        if (var_size == batch_size) {
+          for (int j = 0; j < batch_size; ++j) {
+            for (int k = j * cap; k < (j + 1) * cap; ++k) {
+              FetchInst *fetch_p = res->mutable_insts(j);
+              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
+                  data_ptr[k]);
+            }
+          }
+        } else {
+          for (int j = 0; j < batch_size; ++j) {
+            FetchInst *fetch_p = res->mutable_insts(j);
+            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
+                data_ptr[0]);
+          }
         }
       }
+      var_idx++;
+    } else if (in->at(idx).dtype == paddle::PaddleDType::FLOAT32) {
+      float *data_ptr = static_cast<float *>(in->at(idx).data.data());
+      if (model_config->_is_lod_fetch[idx]) {
+        for (int j = 0; j < batch_size; ++j) {
+          for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
+               k++) {
+            FetchInst *fetch_p = res->mutable_insts(j);
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[k]);
+          }
+        }
+      } else {
+        int var_size = in->at(idx).shape[0];
+        if (var_size == batch_size) {
+          for (int j = 0; j < batch_size; ++j) {
+            for (int k = j * cap; k < (j + 1) * cap; ++k) {
+              FetchInst * fetch_p = res->mutable_insts(j);
+              fetch_p->mutable_tensor_array(var_idx)->add_float_data(
+                  data_ptr[k]);
+            }
+          }
+        } else {
+          for (int j = 0; j < batch_size; ++j) {
+            FetchInst * fetch_p = res->mutable_insts(j);
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(
+                data_ptr[0]);
+          }
+        }
+      }
+      var_idx++;
     }
-    var_idx++;
   }
 
   if (req->profile_server()) {
