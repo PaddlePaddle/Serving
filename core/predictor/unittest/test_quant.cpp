@@ -40,7 +40,7 @@ TEST_F(TestQuant, test_init) {
 }
 
 TEST_F(TestQuant, test_seqfile) {
-  //system("wget https://paddle-serving.bj.bcebos.com/unittest/SparseFeatFactors --no-check-certificate");
+  system("wget https://paddle-serving.bj.bcebos.com/unittest/SparseFeatFactors --no-check-certificate");
   int res = writeSeq("SparseFeatFactors", "SeqFile", 8, 1);
   ASSERT_EQ(res, 0);
 }
