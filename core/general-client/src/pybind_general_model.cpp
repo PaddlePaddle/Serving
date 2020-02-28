@@ -77,19 +77,6 @@ PYBIND11_MODULE(serving_client, m) {
                                  fetch_name,
                                  predict_res);
            })
-      .def("predict",
-           [](PredictorClient &self,
-              const std::vector<std::vector<float>> &float_feed,
-              const std::vector<std::string> &float_feed_name,
-              const std::vector<std::vector<int64_t>> &int_feed,
-              const std::vector<std::string> &int_feed_name,
-              const std::vector<std::string> &fetch_name) {
-             return self.predict(float_feed,
-                                 float_feed_name,
-                                 int_feed,
-                                 int_feed_name,
-                                 fetch_name);
-           })
       .def("batch_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<std::vector<float>>>
