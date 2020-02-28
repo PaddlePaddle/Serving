@@ -15,16 +15,9 @@
 #pragma once
 #include <gtest/gtest.h>
 
-namespace baidu {
-namespace paddle_serving {
-namespace unittest {
-
-class TestServerManager : public ::testing::Test {
+class TestQuant : public ::testing::Test {
  public:
-  void SetUp() {}
-  void TearDown() {}
-};
+  TestQuant() {}
+  virtual ~TestQuant() {}
 
-}  // namespace unittest
-}  // namespace paddle_serving
-}  // namespace baidu
+};

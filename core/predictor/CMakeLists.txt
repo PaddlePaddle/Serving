@@ -37,3 +37,12 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/mempool/mempool.h
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/core/predictor/mempool)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/op/op.h
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/core/predictor/op)
+
+if (WITH_TEST)
+include(unittest/CMakeLists.txt)
+endif()
+
+if (WITH_TEST)
+install(TARGETS unittest
+        RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin/unittest)
+endif()

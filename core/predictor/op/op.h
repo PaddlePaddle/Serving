@@ -176,7 +176,7 @@ class Op {
   // ------------------ Metric Interface -------------------
   virtual void regist_metric() { return; }
 
- private:
+ public:
   bool is_mutable(const std::string& op);
 
   bool is_mutable(const std::string& op) const;
@@ -185,6 +185,9 @@ class Op {
 
   bool is_readable(const std::string& op) const;
 
+  const Bus* get_bus() const { return _bus; }
+  
+  const TimerFlow* get_timer() const { return _timer; }
  private:
   Bus* _bus;
   Dag* _dag;

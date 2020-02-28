@@ -67,6 +67,8 @@ class DagView {
 
   const std::string& full_name() const { return _full_name; }
 
+  const std::vector<ViewStage*>& get_view() const { return _view; }  
+
  private:
   std::string _name;
   std::string _full_name;

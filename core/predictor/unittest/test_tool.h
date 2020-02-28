@@ -51,6 +51,7 @@ class AutoTempFile {
  private:
   std::string generate_temp_name() {
     timeval tv;
+    unsigned int seed = 123;
     srand(time(0));
     gettimeofday(&tv, NULL);
     std::ostringstream oss;
@@ -59,7 +60,7 @@ class AutoTempFile {
     oss << "_";
     oss << static_cast<int>(getpid());
     oss << "_";
-    oss << rand_r();
+    oss << rand_r(&seed);
     oss << ".conf";
     return oss.str();
   }

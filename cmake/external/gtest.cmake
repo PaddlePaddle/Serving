@@ -25,12 +25,12 @@ ExternalProject_Add(
     ${EXTERNAL_PROJECT_LOG_ARGS}
     PREFIX ${GTEST_SOURCES_DIR}
     GIT_REPOSITORY "https://github.com/google/googletest"
-    GIT_TAG master
+    GIT_TAG release-1.8.0
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND CXXFLAGS=-fPIC && mkdir -p build && cd build && cmake .. && make -j ${NUM_OF_PROCESSOR} gtest
     INSTALL_COMMAND mkdir -p ${GTEST_INSTALL_DIR}/lib/ 
-    && cp ${GTEST_SOURCES_DIR}/src/extern_gtest/build/lib/libgtest.a ${GTEST_LIBRARIES}
+    && cp ${GTEST_SOURCES_DIR}/src/extern_gtest/build/googlemock/gtest/libgtest.a ${GTEST_LIBRARIES}
     && cp -r ${GTEST_SOURCES_DIR}/src/extern_gtest/googletest/include ${GTEST_INSTALL_DIR}/
     BUILD_IN_SOURCE 1
 )

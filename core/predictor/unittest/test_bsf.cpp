@@ -83,8 +83,8 @@ TEST_F(TestBsf, test_multi_thread) {
       0);
 
   const size_t psize = 5;
-  std::unique_ptr<pthread_t*> pid;
-  pid.reset(new pthread_t[psize]);
+  
+  pthread_t* pid = new pthread_t[psize];
   for (size_t i = 0; i < psize; ++i) {
     pthread_create(&pid[i], NULL, &TestBsf::task_trigger, NULL);
   }

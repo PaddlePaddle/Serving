@@ -35,19 +35,19 @@ using pds::ut::OpMessageData;
 
 TEST_F(TestMSGOP, test_init) {
   Bus* bus = new Bus();
-  ASSERT_NE(bus, NULL);
-  Dag* dag = NULL;
+  ASSERT_NE(bus, nullptr);
+  Dag* dag = nullptr;
 
   MsgOP op;
   std::string op_name = "TestMSGOp";
   std::string op_type = "TestMSGOp";
-  EXPECT_EQ(0, op.init(bus, dag, (uint32_t)9999, op_name, op_type, NULL));
+  EXPECT_EQ(0, op.init(bus, dag, (uint32_t)9999, op_name, op_type, nullptr));
   EXPECT_FALSE(op.has_calc());
   EXPECT_EQ(9999, op.id());
   EXPECT_STREQ("TestMSGOp", op.name());
   EXPECT_STREQ("", op.debug_string().c_str());
-  EXPECT_NE(op._timer, NULL);
-  EXPECT_EQ(bus, op._bus);
+  EXPECT_NE(op.get_timer(), nullptr);
+  EXPECT_EQ(bus, op.get_bus());
 
   OpMessageData* ab = op.mutable_data<OpMessageData>();
   EXPECT_EQ(33, ab->a());
@@ -61,7 +61,7 @@ TEST_F(TestMSGOP, test_init) {
 
   EXPECT_EQ(0, bus->size());
   Channel* chn2 = bus->channel_by_name("TestOp");
-  EXPECT_EQ(NULL, chn2);
+  EXPECT_EQ(nullptr, chn2);
 
   // Message OP can obtain data via message()
   EXPECT_EQ(ab, chn->message());

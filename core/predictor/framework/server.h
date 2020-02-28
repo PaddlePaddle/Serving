@@ -42,6 +42,8 @@ class ServerManager {
 
   int start_and_wait();
 
+  const brpc::ServerOptions& get_options() const { return _options; }  
+
  private:
   int _start_reloader();
 

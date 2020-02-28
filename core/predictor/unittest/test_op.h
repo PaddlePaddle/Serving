@@ -15,7 +15,9 @@
 #pragma once
 #include <gtest/gtest.h>
 #include <string>
+#include <unordered_map>
 #include "core/predictor/framework/channel.h"
+#include "core/predictor/common/inner_common.h"
 #include "core/predictor/op/op.h"
 
 namespace baidu {
@@ -71,10 +73,10 @@ class OpWithConf
                                                                     OpConf> {
  public:
   DECLARE_OP(OpWithConf);
-  void* create_config(const comcfg::ConfigUnit& conf) {
+  void* create_config(const std::unordered_map<std::string, std::string>& conf) {
     OpConf* op_conf = new (std::nothrow) OpConf();
     int err = 0;
-    op_conf->name_in_conf = conf["name_in_conf"].to_cstr(&err);
+    //op_conf->name_in_conf = conf["name_in_conf"].c_str();
     if (err != 0) {
       return NULL;
     }

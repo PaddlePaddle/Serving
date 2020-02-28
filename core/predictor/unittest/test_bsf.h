@@ -62,8 +62,8 @@ class TestBsf : public ::testing::Test {
     for (size_t i = 0; i < 100; i++) {
       std::vector<TestItem> in;
       std::vector<TestItem> out;
-
-      size_t count = rand_r() % 10 + 1;
+      unsigned int seed = 123;
+      size_t count = rand_r(&seed) % 10 + 1;
       TestItem::create(in, out, count);
 
       im::bsf::TaskManager<TestItem, TestItem> task_manager;
