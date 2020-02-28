@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 [![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
 
+[中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
 ## Motivation
 Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. 
