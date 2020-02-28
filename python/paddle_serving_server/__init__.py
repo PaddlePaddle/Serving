@@ -110,9 +110,10 @@ class Server(object):
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
-    def set_local_bin(self, path):
-        self.use_local_bin = True
-        self.bin_path = path
+    def check_local_bin(self):
+        if "SERVING_BIN" in os.environ:
+            self.use_local_bin = True
+            self.bin_path = os.environ["SERVING_BIN"]
 
     def _prepare_engine(self, model_config_path, device):
         if self.model_toolkit_conf == None:
@@ -259,10 +260,11 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
+        self.check_local_bin()
         if not self.use_local_bin:
             self.download_bin()
         else:
-            print("Use local bin")
+            print("Use local bin : {}".format(self.bin_path))
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \

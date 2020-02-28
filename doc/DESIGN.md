@@ -47,7 +47,7 @@ Server Python API主要负责加载预估模型，以及生成Paddle Serving需�
 
 ### 3.5 Client Interface
 
-![Client Interface](client_interface.png)
+<img src='client_inferface.png' width = "600" height = "200">
 
 ### 3.6 训练过程中使用的Client io
 
