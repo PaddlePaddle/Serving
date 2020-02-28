@@ -6,13 +6,11 @@ from paddle_serving_server import Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_reader')
-dist_op = op_maker.create('general_dist_kv')
 general_infer_op = op_maker.create('general_infer')
 response_op = op_maker.create('general_response')
 
 op_seq_maker = OpSeqMaker()
 op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(dist_op)
 op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(response_op)
 
