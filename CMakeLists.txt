@@ -51,6 +51,7 @@ option(WITH_MKL	    "Compile Paddle Serving with MKL support."      OFF)
 option(WITH_GPU	    "Compile Paddle Serving with NVIDIA GPU"        OFF)
 option(CLIENT_ONLY  "Compile client libraries and demos only"       OFF)
 option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              OFF)
+option(PACK         "Compile for whl"                               OFF)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)
