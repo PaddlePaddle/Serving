@@ -82,7 +82,7 @@ int GeneralCopyOp::inference() {
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
-  CopyBlobInfo(input_blob, res)
+  CopyBlobInfo(input_blob, res);
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
