@@ -127,6 +127,7 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
+        print(sdk_desc)
         self.client_handle_.create_predictor_by_desc(
             sdk_desc.SerializeToString())
         
@@ -161,6 +162,7 @@ class Client(object):
             float_slot, float_feed_names, int_slot,
             int_feed_names, fetch_names, self.result_handle_)
 
+        result_map = {}
         for i, name in enumerate(fetch_names):
             if self.fetch_names_to_type_[name] == int_type:
                 result_map[name] = self.result_handle_.get_int64_by_name(name)[0]
@@ -213,3 +215,4 @@ class Client(object):
 
     def release(self):
         self.client_handle_.destroy_predictor()
+        self.client_handle_ = None
