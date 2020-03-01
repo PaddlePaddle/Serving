@@ -22,31 +22,100 @@ import paddle_serving_server as paddle_serving_server
 from version import serving_server_version
 from contextlib import closing
 
+INT64=0
+FP32=1
 
-class OpMaker(object):
-    def __init__(self):
-        self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_response": "GeneralResponseOp",
-            "general_text_reader": "GeneralTextReaderOp",
-            "general_text_response": "GeneralTextResponseOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp",
-            "general_copy": "GeneralCopyOp"
-        }
+op_dict = {
+    "general_paddle_infer": "GeneralInferOp",
+    "general_reader": "GeneralReaderOp",
+    "general_response": "GeneralResponseOp",
+    "general_text_reader": "GeneralTextReaderOp",
+    "general_text_response": "GeneralTextResponseOp",
+    "general_single_kv": "GeneralSingleKVOp",
+    "general_dist_kv": "GeneralDistKVOp",
+    "general_copy": "GeneralCopyOp",
+    "general_mod": "GeneralModOp"
+}
 
-    # currently, inputs and outputs are not used
-    # when we have OpGraphMaker, inputs and outputs are necessary
-    def create(self, name, inputs=[], outputs=[]):
-        if name not in self.op_dict:
-            raise Exception("Op name {} is not supported right now".format(
-                name))
+class Ten(object):
+    def __init__(self, name, shape=[], dtype=-1):
+        self.name = name
+        self.shape = shape
+        self.dtype = dtype
+
+class Op(object):
+    def __init__(self, name, inputs=[], outputs=[]):
+        global op_dict
+        if name not in op_dict:
+            raise Exception(
+                "Op name {} is not supported right now".format(name))
         node = server_sdk.DAGNode()
         node.name = "{}_op".format(name)
-        node.type = self.op_dict[name]
-        return node
+        node.type = op_dict[name]
+        self.node_desc = node
 
+        self.inputs = inputs
+        self.outputs = outputs
+        self.input_names = [x.name for x in self.inputs]
+        self.output_names = [x.name for x in self.outputs]
+        self.name = name
+
+
+class OpDAG(object):
+    def __init__(self):
+        self.workflow = server_sdk.Workflow()
+        self.workflow.name = "workflow1"
+        self.workflow.workflow_type = "Sequence"
+        self.general_graph = m_config.Graph()
+
+    def add_ops(self, ops):
+        # we suppose ops are in topological order
+        output_dict = {}
+        node_vec = []
+        for i, op in enumerate(ops):
+            for output in op.outputs:
+                output_dict[output.name] = i
+            output_names = [x.name for x in op.outputs]
+            node = m_config.Node()
+            node.node_output_names.extend(output_names)
+            node.op_node_name = op.name
+            node_vec.append(node)
+
+        for i, op in enumerate(ops):
+            deps = []
+            input_inverted_name = {}
+            input_inverted_idx = {}
+            input_op_name_dict = {}
+            for op_input in op.inputs:
+                if op_input.name in output_dict:
+                    dep = server_sdk.DAGNodeDependency()
+                    dep.name = ops[output_dict[op_input.name]].name
+                    dep.mode = "RO"
+                    deps.extend([dep])
+                    if not output_dict[op_input.name] in input_inverted_name:
+                        input_inverted_name[output_dict[op_input.name]] = m_config.StrVec()
+                    if not output_dict[op_input.name] in input_inverted_idx:
+                        input_inverted_idx[output_dict[op_input.name]] = m_config.IntVec()
+                    input_inverted_name[output_dict[op_input.name]].str.extend([op_input.name])
+                    input_inverted_idx[output_dict[op_input.name]].ids.extend(
+                        [ops[output_dict[op_input.name]].output_names.index(op_input.name)])
+
+            for key in input_inverted_idx:
+                node_vec[i].pre_node_input_names.extend([input_inverted_name[key]])
+                node_vec[i].pre_node_input_idx.extend([input_inverted_idx[key]])
+                node_vec[i].pre_node_names.extend([ops[key].name])
+                    
+            op.node_desc.dependencies.extend(deps)
+        self.general_graph.nodes.extend(node_vec)
+
+    def get_graph(self):
+        return self.general_graph
+
+    def get_op_sequence(self):
+        workflow_conf = server_sdk.WorkflowConf()
+        workflow_conf.workflows.extend([self.workflow])
+        return workflow_conf
+            
 
 class OpSeqMaker(object):
     def __init__(self):
@@ -68,7 +137,7 @@ class OpSeqMaker(object):
         return workflow_conf
 
 
-class Server(object):
+class RPCService(object):
     def __init__(self):
         self.server_handle_ = None
         self.infer_service_conf = None
@@ -91,12 +160,19 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.mkl_flag = False
+        self.graph = None
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
 
     def set_num_threads(self, threads):
         self.num_threads = threads
+
+    def set_graph(self, graph):
+        self.graph = graph
+        if not self.model_conf == None:
+            self.model_conf.graph.CopyFrom(self.graph.get_graph())
+            self.workflow_conf = self.graph.get_op_sequence()
 
     def set_port(self, port):
         self.port = port
@@ -172,6 +248,9 @@ class Server(object):
         f = open("{}/serving_server_conf.prototxt".format(path), 'r')
         self.model_conf = google.protobuf.text_format.Merge(
             str(f.read()), self.model_conf)
+        if not self.graph == None:
+            self.model_conf.graph = self.graph
+            self.workflow_conf = self.graph.get_op_sequence()
         # check config here
         # print config here
 

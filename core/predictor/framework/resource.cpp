@@ -244,6 +244,87 @@ int Resource::general_model_initialize(const std::string& path,
       }
     }
   }
+
+  // read server operator DAG info
+  _config->_graph.nodes.resize(model_config.graph().nodes_size());
+  for (int i = 0; i < model_config.graph().nodes_size(); ++i) {
+    VLOG(2) << "op node name: "
+            << model_config.graph().nodes(i).op_node_name();
+    VLOG(2) << "pre node name size: "
+            << model_config.graph().nodes(i).pre_node_names_size();
+    VLOG(2) << "pre input names: "
+            << model_config.graph().nodes(i).pre_node_names_size();
+    VLOG(2) << "pre input idx size: "
+            << model_config.graph().nodes(i).pre_node_input_idx_size();
+    _config->_graph.node_name_to_id[
+        model_config.graph().nodes(i).op_node_name()] = i;
+    _config->_graph.nodes[i].pre_node_names.resize(
+        model_config.graph().nodes(i).pre_node_names_size());
+    _config->_graph.nodes[i].pre_input_names.resize(
+        model_config.graph().nodes(i).pre_node_names_size());
+    _config->_graph.nodes[i].pre_input_idx.resize(
+        model_config.graph().nodes(i).pre_node_input_idx_size());
+    int input_tensor_num = 0;
+    for (int j = 0;
+         j < model_config.graph().nodes(i).pre_node_names_size();
+         ++j) {
+      _config->_graph.nodes[i].pre_node_names[j] =
+          model_config.graph().nodes(i).pre_node_names(j);
+      _config->_graph.nodes[i].pre_input_names[j].resize(
+          model_config.graph().nodes(i).pre_node_input_names(j).str_size());
+      int len = _config->_graph.nodes[i].pre_input_names[j].size();
+      for (int k = 0; k < len; ++k) {
+        VLOG(2) << "node[" << i << "].pre_node_input_names["
+                << j << "].name[" << k << "]: "
+                << model_config.graph().nodes(i).pre_node_input_names(j).str(k);
+        _config->_graph.nodes[i].pre_input_names[j][k] =
+            model_config.graph().nodes(i).pre_node_input_names(j).str(k);
+        _config->_graph.nodes[i].input_tensor_name_dict[
+            model_config.graph().nodes(i).pre_node_input_names(j).str(k)] =
+            input_tensor_num++;
+      }
+
+      _config->_graph.nodes[i].output_names.resize(
+          model_config.graph().nodes(i).node_output_names_size());
+      len = _config->_graph.nodes[i].output_names.size();
+      for (int k = 0; k < len; ++k) {
+        VLOG(2) << "node[" << i << "].output_names["
+                << k << "]: "
+                << model_config.graph().nodes(i).node_output_names(k);
+        _config->_graph.nodes[i].output_names[k] =
+            model_config.graph().nodes(i).node_output_names(k);
+      }
+      
+      _config->_graph.nodes[i].pre_input_idx[j].resize(
+          model_config.graph().nodes(i).pre_node_input_idx(j).ids_size());
+      len = _config->_graph.nodes[i].pre_input_idx[j].size();
+      for (int k = 0; k < len; ++k) {
+        VLOG(2) << "node[" << i << "].pre_input_idx["
+                << j << "][" << k << "]: "
+                << model_config.graph().nodes(i).pre_node_input_idx(j).ids(k);
+        _config->_graph.nodes[i].pre_input_idx[j][k] =
+            model_config.graph().nodes(i).pre_node_input_idx(j).ids(k);
+      }
+    }
+    _config->_graph.nodes[i].name =
+        model_config.graph().nodes(i).op_node_name();
+  }
+
+  for (int i = 0; i < model_config.graph().alias_name_size(); ++i) {
+    _config->_graph.origin_to_alias[model_config.graph().origin_name(i)] =
+        model_config.graph().alias_name(i);
+    VLOG(2) << "origin name: "
+            << model_config.graph().origin_name(i)
+            << " alias name: "
+            << model_config.graph().alias_name(i);
+  }
+
+  for (int i = 0; i < model_config.graph().nodes_size(); ++i) {
+    VLOG(2) << "node name: " << model_config.graph().nodes(i).op_node_name()
+            << ", idx: " << i;
+  }
+
+
   return 0;
 }
 

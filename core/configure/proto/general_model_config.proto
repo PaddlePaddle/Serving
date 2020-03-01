@@ -15,6 +15,30 @@
 syntax = "proto2";
 package baidu.paddle_serving.configure;
 
+// we should have a dag representation here
+
+message StrVec {
+  repeated string str = 1;
+}
+
+message IntVec {
+  repeated int32 ids = 1;
+}
+
+message Node {
+  repeated string pre_node_names = 1; // precedent operator name
+  repeated StrVec pre_node_input_names = 2; // [C_0_emb, C_1_emb], [dense]
+  repeated IntVec pre_node_input_idx = 3; // dense -> 2
+  repeated string node_output_names = 4; // pre-defined
+  optional string op_node_name = 5; // operator name
+}
+
+message Graph {
+  repeated Node nodes = 1; // sorted through topo here
+  repeated string origin_name = 2; // underlying tensor names
+  repeated string alias_name = 3; // human readable names
+}
+
 message FeedVar {
   optional string name = 1;
   optional string alias_name = 2;
@@ -29,7 +53,9 @@ message FetchVar {
   optional int32 fetch_type = 4 [ default = 0 ];
   repeated int32 shape = 5;
 }
+
 message GeneralModelConfig {
-  repeated FeedVar feed_var = 1;
-  repeated FetchVar fetch_var = 2;
+  optional Graph graph = 1;
+  repeated FeedVar feed_var = 2;
+  repeated FetchVar fetch_var = 3;
 };
