@@ -23,6 +23,8 @@ for data in reader():
     feed_dict = {}
     for i in range(1, 27):
         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+    feed_dict["dense"] = data[0][0]
+    print(feed_dict)
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
     print(fetch_map)
 
