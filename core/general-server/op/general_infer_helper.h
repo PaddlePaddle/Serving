@@ -33,6 +33,10 @@ namespace serving {
 
 static const char* GENERAL_MODEL_NAME = "general_model";
 
+struct GeneralConfig {
+  std::vector<paddle::PaddleTensor> inputs;
+};
+
 struct GeneralBlob {
   std::vector<paddle::PaddleTensor> tensor_vector;
   int64_t time_stamp[20];

@@ -103,17 +103,7 @@ int GeneralReaderOp::inference() {
 
   VLOG(2) << "print general model config done.";
 
-  // TODO(guru4elephant): how to do conditional check?
-  /*
-  int ret = conf_check(req, model_config);
-  if (ret != 0) {
-    LOG(ERROR) << "model conf of server:";
-    resource.print_general_model_config(model_config);
-    return 0;
-  }
-  */
   // package tensor
-
   elem_type.resize(var_num);
   elem_size.resize(var_num);
   capacity.resize(var_num);
