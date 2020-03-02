@@ -36,5 +36,7 @@ server.set_gpuid(1)
 
 server.load_model_config(sys.argv[1])
 port = int(sys.argv[2])
+gpuid = sys.argv[3]
+server.set_gpuid(gpuid)
 server.prepare_server(workdir="work_dir1", port=port, device="gpu")
 server.run_server()
