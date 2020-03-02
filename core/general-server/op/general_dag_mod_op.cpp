@@ -73,7 +73,12 @@ int GeneralDAGModOp::inference() {
         out->back().name = output_names[output_idx++];
       }
     }
+    VLOG(2) << "input tensor name of " << op_name();
+    for (int j = 0; j < input_blob->tensor_vector.size(); ++j) {
+      VLOG(2) << input_blob->tensor_vector[j].name;
+    }
   }
+
 
   VLOG(2) << "push back input dense done.";
   VLOG(2) << "pre node names[0]: " << pre_node_names[0];
@@ -95,6 +100,11 @@ int GeneralDAGModOp::inference() {
     for (int j = 0; j < out->at(i).lod[0].back(); ++j) {
       dst_ptr[j] = dst_ptr[j] % mod_value;
     }
+  }
+
+  VLOG(2) << "output name of " << op_name();
+  for (int i = 0; i < out->size(); ++i) {
+    VLOG(2) << "output[" << i << "].name: " << out->at(i).name;
   }
 
   VLOG(2) << "compute done.";

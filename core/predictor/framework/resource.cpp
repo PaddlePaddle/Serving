@@ -264,6 +264,18 @@ int Resource::general_model_initialize(const std::string& path,
         model_config.graph().nodes(i).pre_node_names_size());
     _config->_graph.nodes[i].pre_input_idx.resize(
         model_config.graph().nodes(i).pre_node_input_idx_size());
+    
+    _config->_graph.nodes[i].output_names.resize(
+        model_config.graph().nodes(i).node_output_names_size());
+    int len = _config->_graph.nodes[i].output_names.size();
+    for (int k = 0; k < len; ++k) {
+      VLOG(2) << "node[" << i << "].output_names["
+              << k << "]: "
+              << model_config.graph().nodes(i).node_output_names(k);
+              _config->_graph.nodes[i].output_names[k] =
+                  model_config.graph().nodes(i).node_output_names(k);
+    }
+
     int input_tensor_num = 0;
     for (int j = 0;
          j < model_config.graph().nodes(i).pre_node_names_size();
@@ -282,17 +294,6 @@ int Resource::general_model_initialize(const std::string& path,
         _config->_graph.nodes[i].input_name_map[
             model_config.graph().nodes(i).pre_node_input_names(j).str(k)] =
             input_tensor_num++;
-      }
-
-      _config->_graph.nodes[i].output_names.resize(
-          model_config.graph().nodes(i).node_output_names_size());
-      len = _config->_graph.nodes[i].output_names.size();
-      for (int k = 0; k < len; ++k) {
-        VLOG(2) << "node[" << i << "].output_names["
-                << k << "]: "
-                << model_config.graph().nodes(i).node_output_names(k);
-        _config->_graph.nodes[i].output_names[k] =
-            model_config.graph().nodes(i).node_output_names(k);
       }
       
       _config->_graph.nodes[i].pre_input_idx[j].resize(

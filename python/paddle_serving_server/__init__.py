@@ -44,8 +44,15 @@ op_dict = {
 class Ten(object):
     def __init__(self, name, shape=[], dtype=-1):
         self.name = name
+        self.alias_name = name
         self.shape = shape
         self.dtype = dtype
+        if shape == []:
+            self.is_lod_tensor = False
+        elif shape[0] == -1:
+            self.is_lod_tensor = True
+        else:
+            self.is_lod_tensor = True
 
 class Op(object):
     def __init__(self, name, inputs=[], outputs=[]):
@@ -108,7 +115,13 @@ class OpDAG(object):
                len(op.outputs) > 0:
                 output_names = [x.name for x in op.outputs]
                 self.general_graph.feed_name.extend(output_names)
-                
+                self.feed_tens = op.outputs
+
+            if len(op.inputs) >= 0 and \
+               len(op.outputs) <= 0:
+                input_names = [x.name for x in op.inputs]
+                self.general_graph.fetch_name.extend(input_names)
+                self.fetch_tens = op.outputs
 
         for i, op in enumerate(ops):
             deps = []
@@ -215,6 +228,8 @@ class RPCService(object):
         self.graph = graph
         self.model_conf.graph.CopyFrom(self.graph.get_graph())
         self.workflow_conf = self.graph.get_op_sequence()
+        self.feed_tens = graph.feed_tens
+        self.fetch_tens = graph.fetch_tens
 
     def set_port(self, port):
         self.port = port
@@ -286,7 +301,46 @@ class RPCService(object):
 
     def export_model_config(self, client_conf, server_conf):
         # export client_config, model_config, work_dir
-        pass
+        new_config = m_config.GeneralModelConfig()
+        for feed_ten in self.feed_tens:
+            feed_var = m_config.FeedVar()
+            feed_var.alias_name = feed_ten.alias_name
+            feed_var.name = feed_ten.name
+            feed_var.is_lod_tensor = feed_ten.is_lod_tensor
+            feed_var.feed_type = feed_ten.dtype
+            feed_var.shape.extend(feed_ten.shape)
+            new_config.feed_var.extend([feed_var])
+            
+        for fetch_ten in self.fetch_tens:
+            fetch_var = m_config.FetchVar()
+            fetch_var.alias_name = fetch_ten.alias_name
+            fetch_var.name = fetch_ten.name
+            fetch_var.is_lod_tensor = fetch_ten.is_lod_tensor
+            fetch_var.feed_type = fetch_ten.dtype
+            fetch_var.shape.extend(fetch_ten.shape)
+            new_config.fetch_var.extend([fetch_var])
+
+        new_config.graph.CopyFrom(self.model_conf.graph)
+        cmd = "mkdir -p {}".format(client_conf)
+        os.system(cmd)
+        cmd = "mkdir -p {}".format(server_conf)
+        os.system(cmd)
+        cmd = "cp -r {}/* {}".format(
+            self.model_config_path, server_conf)
+        os.system(cmd)
+
+        with open("{}/serving_client_conf.prototxt".format(client_conf),
+                  "w") as fout:
+            fout.write(str(new_config))
+        with open("{}/serving_server_conf.prototxt".format(server_conf),
+                  "w") as fout:
+            fout.write(str(new_config))
+        with open("{}/serving_client_conf.stream.prototxt".format(
+                client_conf), "wb") as fout:
+            fout.write(new_config.SerializeToString())
+        with open("{}/serving_server_conf.stream.prototxt".format(
+                server_conf), "wb") as fout:
+            fout.write(new_config.SerializeToString())
 
     def load_model_config(self, path):
         self.model_config_path = path
@@ -388,6 +442,50 @@ class RPCService(object):
         else:
             return False
 
+    def run_exported_config(self, config, workdir, port=9292, threads=10):
+        if not os.direxists(config):
+            raise SystemExit("Config dir does not exist, exit")
+
+        if not os.direxists(workdir):
+            raise SystemExit("workdir does not exist, exit")
+
+        if not self.check_port(port):
+            raise SystemExit("port {} can not be used currently".format(port))
+
+        self.check_local_bin()
+        if not self.use_local_bin:
+            self.download_bin()
+        else:
+            print("Use local bin : {}".format(self.bin_path))
+        command = "{} " \
+                  "-enable_model_toolkit " \
+                  "-inferservice_path {} " \
+                  "-inferservice_file {} " \
+                  "-max_concurrency {} " \
+                  "-num_threads {} " \
+                  "-port {} " \
+                  "-reload_interval_s {} " \
+                  "-resource_path {} " \
+                  "-resource_file {} " \
+                  "-workflow_path {} " \
+                  "-workflow_file {} " \
+                  "-bthread_concurrency {} ".format(
+                      self.bin_path,
+                      workdir,
+                      self.infer_service_fn,
+                      self.max_concurrency,
+                      self.num_threads,
+                      port,
+                      self.reload_interval_s,
+                      workdir,
+                      self.resource_fn,
+                      workdir,
+                      self.workflow_fn,
+                      threads)
+        print("Going to Run Command")
+        print(command)
+        os.system(command)
+        
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
@@ -421,6 +519,6 @@ class RPCService(object):
                       self.workdir,
                       self.workflow_fn,
                       self.num_threads)
-        print("Going to Run Comand")
+        print("Going to Run Command")
         print(command)
         os.system(command)

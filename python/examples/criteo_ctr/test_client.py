@@ -7,7 +7,7 @@ from paddle_serving_client.metric import auc
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9292"])
+client.connect(["127.0.0.1:9393"])
 
 batch = 1
 buf_size = 100
@@ -22,8 +22,8 @@ prob_list = []
 for data in reader():
     feed_dict = {}
     for i in range(1, 27):
-        feed_dict["sparse_{}".format(i - 1)] = data[0][i]
-    feed_dict["dense"] = data[0][0]
+        feed_dict["new_sparse_{}".format(i - 1)] = data[0][i]
+    feed_dict["dense_0"] = data[0][0]
     print(feed_dict)
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
     print(fetch_map)

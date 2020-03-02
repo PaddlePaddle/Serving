@@ -59,9 +59,19 @@ int GeneralInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
 
+  VLOG(2) << "input of op " << op_name();
+  for (int i = 0; i < in->size(); ++i) {
+    VLOG(2) << in->at(i).name;
+  }
+
   if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
+  }
+
+  VLOG(2) << "output of op " << op_name();
+  for (int i = 0; i < out->size(); ++i) {
+    VLOG(2) << out->at(i).name;
   }
 
   int64_t end = timeline.TimeStampUS();

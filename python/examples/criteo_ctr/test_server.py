@@ -4,8 +4,6 @@ from paddle_serving_server import OpMaker
 from paddle_serving_server import OpSeqMaker
 from paddle_serving_server import Server
 
-
-
 op_maker = OpMaker()
 
 service_inputs = ["C_{}".format(i) for i in range(27)]
