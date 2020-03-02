@@ -16,6 +16,7 @@
 
 #include <string.h>
 #include <vector>
+#include <memory>
 #ifdef BCLOUD
 #ifdef WITH_GPU
 #include "paddle/paddle_inference_api.h"
@@ -25,12 +26,14 @@
 #else
 #include "paddle_inference_api.h"  // NOLINT
 #endif
+#include "core/predictor/framework/resource.h"
 #include <string>
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
+using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 static const char* GENERAL_MODEL_NAME = "general_model";
 
 struct GeneralConfig {
@@ -57,6 +60,14 @@ struct GeneralBlob {
   int GetBatchSize() const { return _batch_size; }
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
+
+static std::shared_ptr<PaddleGeneralModelConfig> get_config() {
+  baidu::paddle_serving::predictor::Resource &resource =
+      baidu::paddle_serving::predictor::Resource::instance();
+  std::shared_ptr<PaddleGeneralModelConfig> config =
+      resource.get_general_model_config();
+  return config;
+}
 
 static void AddBlobInfo(GeneralBlob* blob, int64_t init_value) {
   blob->time_stamp[blob->p_size] = init_value;

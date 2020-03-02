@@ -279,7 +279,7 @@ int Resource::general_model_initialize(const std::string& path,
                 << model_config.graph().nodes(i).pre_node_input_names(j).str(k);
         _config->_graph.nodes[i].pre_input_names[j][k] =
             model_config.graph().nodes(i).pre_node_input_names(j).str(k);
-        _config->_graph.nodes[i].input_tensor_name_dict[
+        _config->_graph.nodes[i].input_name_map[
             model_config.graph().nodes(i).pre_node_input_names(j).str(k)] =
             input_tensor_num++;
       }
@@ -308,6 +308,12 @@ int Resource::general_model_initialize(const std::string& path,
     }
     _config->_graph.nodes[i].name =
         model_config.graph().nodes(i).op_node_name();
+  }
+
+  for (int i = 0; i < model_config.graph().feed_name_size(); ++i) {
+    VLOG(2) << "graph feed name: " << model_config.graph().feed_name(i);
+    VLOG(2) << "index at: " << i;
+    _config->_graph.feed_name_to_idx[model_config.graph().feed_name(i)] = i;
   }
 
   for (int i = 0; i < model_config.graph().alias_name_size(); ++i) {

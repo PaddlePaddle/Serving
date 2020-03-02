@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/general-server/op/general_reader_op.h"
+#include "core/general-server/op/general_dag_reader_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -33,43 +33,11 @@ using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int conf_check(const Request *req,
-               const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
-  int var_num = req->insts(0).tensor_array_size();
-  if (var_num != model_config->_feed_type.size()) {
-    VLOG(2) << "var num: " << var_num;
-    VLOG(2) << "model config var num: " << model_config->_feed_type.size();
-    LOG(ERROR) << "feed var number not match.";
-    return -1;
-  }
-
-  VLOG(2) << "fetch var num in reader op: " << req->fetch_var_names_size();
-
-  for (int i = 0; i < var_num; ++i) {
-    if (model_config->_feed_type[i] !=
-        req->insts(0).tensor_array(i).elem_type()) {
-      LOG(ERROR) << "feed type not match.";
-      return -1;
-    }
-    if (model_config->_feed_shape[i].size() ==
-        req->insts(0).tensor_array(i).shape_size()) {
-      for (int j = 0; j < model_config->_feed_shape[i].size(); ++j) {
-        req->insts(0).tensor_array(i).shape(j);
-        if (model_config->_feed_shape[i][j] !=
-            req->insts(0).tensor_array(i).shape(j)) {
-          LOG(ERROR) << "feed shape not match.";
-          return -1;
-        }
-      }
-    } else {
-      LOG(ERROR) << "feed shape not match.";
-      return -1;
-    }
-  }
-  return 0;
-}
-
-int GeneralReaderOp::inference() {
+// in general dag reader
+// input is from rpc request
+// output is pre-defined with resource loaded from config files
+// each rpc input corresponds to a output tensor
+int GeneralDAGReaderOp::inference() {
   // reade request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
@@ -81,6 +49,7 @@ int GeneralReaderOp::inference() {
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *out = &res->tensor_vector;
+  TensorVector tmp_out;
 
   res->SetBatchSize(batch_size);
 
@@ -94,12 +63,7 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "var num: " << var_num;
 
   VLOG(2) << "start to call load general model_conf op";
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
-
-  VLOG(2) << "get resource pointer done.";
-  std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+  std::shared_ptr<PaddleGeneralModelConfig> model_config = get_config();
 
   VLOG(2) << "print general model config done.";
 
@@ -137,11 +101,12 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
     lod_tensor.name = model_config->_feed_name[i];
+    tmp_out.push_back(lod_tensor);
   }
 
   // specify the memory needed for output tensor_vector
   for (int i = 0; i < var_num; ++i) {
-    if (out->at(i).lod.size() == 1) {
+    if (tmp_out.at(i).lod.size() == 1) {
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
         int data_len = 0;
@@ -152,18 +117,18 @@ int GeneralReaderOp::inference() {
         }
         VLOG(2) << "tensor size for var[" << i << "]: " << data_len;
 
-        int cur_len = out->at(i).lod[0].back();
+        int cur_len = tmp_out.at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
 
-        out->at(i).lod[0].push_back(cur_len + data_len);
+        tmp_out.at(i).lod[0].push_back(cur_len + data_len);
         VLOG(2) << "new len: " << cur_len + data_len;
       }
-      out->at(i).data.Resize(out->at(i).lod[0].back() * elem_size[i]);
-      out->at(i).shape = {out->at(i).lod[0].back(), 1};
+      tmp_out.at(i).data.Resize(tmp_out.at(i).lod[0].back() * elem_size[i]);
+      tmp_out.at(i).shape = {tmp_out.at(i).lod[0].back(), 1};
       VLOG(2) << "var[" << i
-              << "] is lod_tensor and len=" << out->at(i).lod[0].back();
+              << "] is lod_tensor and len=" << tmp_out.at(i).lod[0].back();
     } else {
-      out->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
+      tmp_out.at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
       VLOG(2) << "var[" << i
               << "] is tensor and capacity=" << batch_size * capacity[i];
     }
@@ -172,7 +137,7 @@ int GeneralReaderOp::inference() {
   // fill the data into output general_blob
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
-      int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
+      int64_t *dst_ptr = static_cast<int64_t *>(tmp_out.at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
@@ -180,14 +145,14 @@ int GeneralReaderOp::inference() {
           dst_ptr[offset + k] =
               req->insts(j).tensor_array(i).int64_data(k);
         }
-        if (out->at(i).lod.size() == 1) {
-          offset = out->at(i).lod[0][j + 1];
+        if (tmp_out.at(i).lod.size() == 1) {
+          offset = tmp_out.at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
       }
     } else {
-      float *dst_ptr = static_cast<float *>(out->at(i).data.data());
+      float *dst_ptr = static_cast<float *>(tmp_out.at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
@@ -195,8 +160,8 @@ int GeneralReaderOp::inference() {
           dst_ptr[offset + k] =
               req->insts(j).tensor_array(i).float_data(k);
         }
-        if (out->at(i).lod.size() == 1) {
-          offset = out->at(i).lod[0][j + 1];
+        if (tmp_out.at(i).lod.size() == 1) {
+          offset = tmp_out.at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
@@ -204,7 +169,13 @@ int GeneralReaderOp::inference() {
     }
   }
 
-  VLOG(2) << "output size: " << out->size();
+  VLOG(2) << "output size: " << tmp_out.size();
+  for (int i = 0; i < tmp_out.size(); ++i) {
+    VLOG(2) << "moving " << tmp_out[i].name
+            << " index at "
+            << model_config->_graph.feed_name_to_idx[tmp_out[i].name];
+    out->push_back(std::move(tmp_out[i]));
+  }
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
@@ -215,7 +186,7 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "read data from client success";
   return 0;
 }
-DEFINE_OP(GeneralReaderOp);
+DEFINE_OP(GeneralDAGReaderOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

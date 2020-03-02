@@ -26,7 +26,11 @@ INT64=0
 FP32=1
 
 op_dict = {
-    "general_paddle_infer": "GeneralInferOp",
+    "general_dag_infer": "GeneralDAGInferOp",
+    "general_dag_reader": "GeneralDAGReaderOp",
+    "general_dag_response": "GeneralDAGResponseOp",
+    "general_dag_mod": "GeneralDAGModOp",
+    "general_infer": "GeneralInferOp",
     "general_reader": "GeneralReaderOp",
     "general_response": "GeneralResponseOp",
     "general_text_reader": "GeneralTextReaderOp",
@@ -58,7 +62,7 @@ class Op(object):
         self.outputs = outputs
         self.input_names = [x.name for x in self.inputs]
         self.output_names = [x.name for x in self.outputs]
-        self.name = name
+        self.name = node.name
 
 
 class OpDAG(object):
@@ -67,9 +71,27 @@ class OpDAG(object):
         self.workflow.name = "workflow1"
         self.workflow.workflow_type = "Sequence"
         self.general_graph = m_config.Graph()
+        self.ops = []
 
     def add_ops(self, ops):
+        self.ops = ops
+
+    def set_alias_to_origin(self, name_dict):
+        for op in self.ops:
+            for input_tensor in op.inputs:
+                if input_tensor.name in name_dict:
+                    input_tensor.name = name_dict[input_tensor.name]
+            for output_tensor in op.outputs:
+                if output_tensor.name in name_dict:
+                    output_tensor.name = name_dict[output_tensor.name]
+            op.input_names = [x.name for x in op.inputs]
+            op.output_names = [x.name for x in op.outputs]
+        self.general_graph.origin_name.extend(name_dict.values())
+        self.general_graph.alias_name.extend(name_dict.keys())
+
+    def build_dag(self):
         # we suppose ops are in topological order
+        ops = self.ops
         output_dict = {}
         node_vec = []
         for i, op in enumerate(ops):
@@ -81,17 +103,30 @@ class OpDAG(object):
             node.op_node_name = op.name
             node_vec.append(node)
 
+        for op in ops:
+            if len(op.inputs) <= 0 and \
+               len(op.outputs) > 0:
+                output_names = [x.name for x in op.outputs]
+                self.general_graph.feed_name.extend(output_names)
+                
+
         for i, op in enumerate(ops):
             deps = []
             input_inverted_name = {}
             input_inverted_idx = {}
             input_op_name_dict = {}
+            dep_dict = {}
             for op_input in op.inputs:
+                # if input var's name is in output_dict
+                # it mean current op depends on the output_dict[name]
+                # output_dict is an index
                 if op_input.name in output_dict:
-                    dep = server_sdk.DAGNodeDependency()
-                    dep.name = ops[output_dict[op_input.name]].name
-                    dep.mode = "RO"
-                    deps.extend([dep])
+                    if output_dict[op_input.name] not in dep_dict:
+                        dep_dict[output_dict[op_input.name]] = 1
+                        dep = server_sdk.DAGNodeDependency()
+                        dep.name = ops[output_dict[op_input.name]].name
+                        dep.mode = "RO"
+                        deps.extend([dep])
                     if not output_dict[op_input.name] in input_inverted_name:
                         input_inverted_name[output_dict[op_input.name]] = m_config.StrVec()
                     if not output_dict[op_input.name] in input_inverted_idx:
@@ -106,6 +141,8 @@ class OpDAG(object):
                 node_vec[i].pre_node_names.extend([ops[key].name])
                     
             op.node_desc.dependencies.extend(deps)
+        for i, op in enumerate(ops):
+            self.workflow.nodes.extend([op.node_desc])
         self.general_graph.nodes.extend(node_vec)
 
     def get_graph(self):
@@ -169,10 +206,15 @@ class RPCService(object):
         self.num_threads = threads
 
     def set_graph(self, graph):
+        if self.model_conf == None:
+            print("Error: You should load_model_config first")
+            exit(-1)
+
+        graph.set_alias_to_origin(self.alias_to_origin)
+        graph.build_dag()
         self.graph = graph
-        if not self.model_conf == None:
-            self.model_conf.graph.CopyFrom(self.graph.get_graph())
-            self.workflow_conf = self.graph.get_op_sequence()
+        self.model_conf.graph.CopyFrom(self.graph.get_graph())
+        self.workflow_conf = self.graph.get_op_sequence()
 
     def set_port(self, port):
         self.port = port
@@ -242,17 +284,27 @@ class RPCService(object):
         with open(filepath, "w") as fout:
             fout.write(str(pb_obj))
 
+    def export_model_config(self, client_conf, server_conf):
+        # export client_config, model_config, work_dir
+        pass
+
     def load_model_config(self, path):
         self.model_config_path = path
         self.model_conf = m_config.GeneralModelConfig()
         f = open("{}/serving_server_conf.prototxt".format(path), 'r')
         self.model_conf = google.protobuf.text_format.Merge(
             str(f.read()), self.model_conf)
-        if not self.graph == None:
-            self.model_conf.graph = self.graph
-            self.workflow_conf = self.graph.get_op_sequence()
-        # check config here
-        # print config here
+
+        # keep a variable name to alias name dict here
+        self.alias_to_origin = {}
+        self.origin_to_alias = {}
+        for var in self.model_conf.feed_var:
+            self.alias_to_origin[var.alias_name] = var.name
+            self.origin_to_alias[var.name] = var.alias_name
+        for var in self.model_conf.fetch_var:
+            self.alias_to_origin[var.alias_name] = var.name
+            self.origin_to_alias[var.name] = var.alias_name
+
 
     def use_mkl(self):
         self.mkl_flag = True

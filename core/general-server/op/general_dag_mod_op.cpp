@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/general-server/op/general_mod_op.h"
+#include "core/general-server/op/general_dag_mod_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -33,29 +33,17 @@ using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralModOp::inference() {
+int GeneralDAGModOp::inference() {
+  std::shared_ptr<PaddleGeneralModelConfig> config = get_config();
 
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
-
-  std::shared_ptr<PaddleGeneralModelConfig> config =
-      resource.get_general_model_config();
-
-  VLOG(2) << "op name: " << op_name();
-  if (config->_graph.node_name_to_id.find(op_name()) ==
-      config->_graph.node_name_to_id.end()) {
-    LOG(ERROR) << "Current op: " << op_name()
-               << " is not in your config, exit";
-    exit(-1);
-  }
   int curr_op_idx = config->_graph.node_name_to_id[op_name()];
   VLOG(2) << "current op idx: " << curr_op_idx;
   const std::vector<std::string> output_names =
       config->_graph.nodes[curr_op_idx].output_names;
   const std::vector<std::string> pre_node_names =
       config->_graph.nodes[curr_op_idx].pre_node_names;
-  const std::vector<std::vector<int>> pre_input_idx =
-      config->_graph.nodes[curr_op_idx].pre_input_idx;
+  const std::map<std::string, int> input_name_map =
+      config->_graph.nodes[curr_op_idx].input_name_map;
 
   // this operator suppose every input tensor is a lodtensor with int64
   // the output of this op merge all the inputs into a single tensor vec
@@ -69,6 +57,7 @@ int GeneralModOp::inference() {
   TensorVector *out = &output_blob->tensor_vector;
 
   VLOG(2) << "pre node names size: " << pre_node_names.size();
+  int output_idx = 0;
   for (int i = 0; i < pre_node_names.size(); ++i) {
     VLOG(2) << "pre_node_names[" << i << "]: " << pre_node_names[i];
     const GeneralBlob *input_blob =
@@ -77,9 +66,12 @@ int GeneralModOp::inference() {
       LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name();
       return -1;
     }
-    for (int j = 0; j < pre_input_idx[i].size(); ++j) {
-      VLOG(2) << "pre_input_idx i=" << i << ", j=" << j;
-      out->push_back(input_blob->tensor_vector[pre_input_idx[i][j]]);
+    for (int j = 0; j < input_blob->tensor_vector.size(); ++j) {
+      if (input_name_map.find(input_blob->tensor_vector[j].name)
+          != input_name_map.end()) {
+        out->push_back(input_blob->tensor_vector[j]);
+        out->back().name = output_names[output_idx++];
+      }
     }
   }
 
@@ -116,7 +108,7 @@ int GeneralModOp::inference() {
   return 0;
 }
 
-DEFINE_OP(GeneralModOp);
+DEFINE_OP(GeneralDAGModOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

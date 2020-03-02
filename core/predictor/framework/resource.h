@@ -32,7 +32,7 @@ struct GeneralModelNode {
   std::vector<std::vector<std::string>> pre_input_names;
   std::vector<std::string> output_names;
   std::vector<std::vector<int>> pre_input_idx;
-  std::map<std::string, int> input_tensor_name_dict;
+  std::map<std::string, int> input_name_map;
   std::string name;
 };
 
@@ -40,6 +40,7 @@ struct GeneralModelGraph {
   std::vector<GeneralModelNode> nodes;
   std::map<std::string, int> node_name_to_id;
   std::map<std::string, std::string> origin_to_alias;
+  std::map<std::string, int> feed_name_to_idx;
 };
 
 class PaddleGeneralModelConfig {

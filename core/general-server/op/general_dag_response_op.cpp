@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/general-server/op/general_response_op.h"
+#include "core/general-server/op/general_dag_response_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -36,7 +36,7 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralResponseOp::inference() {
+int GeneralDAGResponseOp::inference() {
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
 
   if (!input_blob) {
@@ -174,7 +174,7 @@ int GeneralResponseOp::inference() {
   return 0;
 }
 
-DEFINE_OP(GeneralResponseOp);
+DEFINE_OP(GeneralDAGResponseOp);
 
 }  // namespace serving
 }  // namespace paddle_serving

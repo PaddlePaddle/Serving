@@ -35,8 +35,9 @@ message Node {
 
 message Graph {
   repeated Node nodes = 1; // sorted through topo here
-  repeated string origin_name = 2; // underlying tensor names
-  repeated string alias_name = 3; // human readable names
+  repeated string feed_name = 2; // rpc feed, feed of service
+  repeated string origin_name = 3; // underlying tensor names
+  repeated string alias_name = 4; // human readable names
 }
 
 message FeedVar {

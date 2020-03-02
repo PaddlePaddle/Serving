@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/general-server/op/general_infer_op.h"
+#include "core/general-server/op/general_dag_infer_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -35,13 +35,9 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralInferOp::inference() {
+int GeneralDAGInferOp::inference() {
 
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
-
-  std::shared_ptr<PaddleGeneralModelConfig> config =
-      resource.get_general_model_config();
+  std::shared_ptr<PaddleGeneralModelConfig> config = get_config();
 
   int curr_op_idx = config->_graph.node_name_to_id[op_name()];
   const std::vector<std::string> output_names =
@@ -50,8 +46,8 @@ int GeneralInferOp::inference() {
   const std::vector<std::string> pre_node_names =
       config->_graph.nodes[curr_op_idx].pre_node_names;
 
-  const std::vector<std::vector<int>> pre_input_idx =
-      config->_graph.nodes[curr_op_idx].pre_input_idx;
+  const std::map<std::string, int> input_name_map =
+      config->_graph.nodes[curr_op_idx].input_name_map;
 
   // here we suppose the input of inference can be from
   // multiple inputs, and some of the PaddleTensor can be
@@ -69,9 +65,14 @@ int GeneralInferOp::inference() {
       LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name();
       return -1;
     }
-    for (int j = 0; j < pre_input_idx[i].size(); ++j) {
-      input.push_back(std::move(
-          input_blob->tensor_vector[pre_input_idx[i][j]]));
+    for (int j = 0; j < input_blob->tensor_vector.size(); ++j) {
+      VLOG(2) << "input tensor[" << j << "]: "
+              << input_blob->tensor_vector[j].name;
+      if (input_name_map.find(input_blob->tensor_vector[j].name)
+          != input_name_map.end()) {
+        VLOG(2) << "added";
+        input.push_back(std::move(input_blob->tensor_vector[j]));
+      }
     }
   }
 
@@ -99,18 +100,13 @@ int GeneralInferOp::inference() {
     return -1;
   }
 
-  // set Tensor underlying names
-  for (int i = 0; i < out->size(); ++i) {
-    out->at(i).name = output_names[i];
-  }
-
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(first_blob, output_blob);
   AddBlobInfo(output_blob, start);
   AddBlobInfo(output_blob, end);
   return 0;
 }
-DEFINE_OP(GeneralInferOp);
+DEFINE_OP(GeneralDAGInferOp);
 
 }  // namespace serving
 }  // namespace paddle_serving
