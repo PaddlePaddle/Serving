@@ -16,8 +16,8 @@ from flask import Flask, request, abort
 from paddle_serving_client import Client
 
 class PluginService(object):
-    def __init__(self, name="default_service", model="",
-                 port=9091, concurrency=10):
+    def __init__(self, name="default_service",
+                 model="", port=9091, concurrency=10):
         self.name = name
         self.port = port
         self.model = model
@@ -31,9 +31,11 @@ class PluginService(object):
         self.client_service = Client()
         self.client_service.load_client_config(
             "{}/serving_server_conf.prototxt".format(self.model))
-        self.client_service.connect(["127.0.0.1:9292"])
+        # TODO(guru4elephant): we need to specify the serving port later
+        self.client_service.connect(["127.0.0.1:{}".format(self.port+1)])
 
-        @app_instance.route('/PaddleServing/v1.0/prediction', methods=['POST'])
+        service_name = "/" + self.name + "/prediction"
+        @app_instance.route(service_name, methods=['POST'])
         def get_prediction():
             if not request.json:
                 abort(400)
@@ -42,8 +44,13 @@ class PluginService(object):
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             fetch_map = self.client_service.predict(feed=feed, fetch=fetch)
             fetch_map = self.postprocess(feed=request.json, fetch=fetch, fetch_map=fetch_map)
-        app_instance.run(host="127.0.0.1", port=self.port,
-                         threaded=False, processes=1)
+            return fetch_map
+
+        import socket
+        localIP = socket.gethostbyname(socket.gethostname())
+
+        print("http://{}:{}{}".format(localIP, self.port, service_name))
+        app_instance.run(host="127.0.0.1", port=self.port, threaded=False, processes=1)
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
