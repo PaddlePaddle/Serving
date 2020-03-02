@@ -62,6 +62,13 @@ def save_model(server_model_folder,
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
         fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
+           fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
+            fetch_var.fetch_type = 0
+
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
+           fetch_var.fetch_type = 1
+
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:

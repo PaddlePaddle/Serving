@@ -21,12 +21,8 @@ label_list = []
 prob_list = []
 for data in reader():
     feed_dict = {}
-    feed_dict["dense_0"] = data[0][0]
     for i in range(1, 27):
         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
-    feed_dict["label"] = data[0][-1]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    prob_list.append(fetch_map["prob"][0])
-    label_list.append(data[0][-1][0])
+    print(fetch_map)
 
-print(auc(prob_list, label_list))    
