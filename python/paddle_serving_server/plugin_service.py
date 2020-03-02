@@ -44,6 +44,7 @@ class PluginService(object):
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             fetch_map = self.client_service.predict(feed=feed, fetch=fetch)
             fetch_map = self.postprocess(feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            return fetch_map
 
         import socket
         localIP = socket.gethostbyname(socket.gethostname())

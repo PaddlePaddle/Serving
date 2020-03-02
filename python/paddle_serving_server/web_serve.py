@@ -18,7 +18,7 @@ Usage:
         python -m paddle_serving_server.web_serve --model ./serving_server_model --port 9292
 """
 import argparse
-from multiprocessing import Pool
+from multiprocessing import Pool, Process
 from plugin_service import PluginService
 
 def parse_args():
