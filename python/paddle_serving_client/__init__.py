@@ -73,6 +73,7 @@ class Client(object):
         self.feed_names_ = []
         self.fetch_names_ = []
         self.client_handle_ = None
+        self.result_handle_ = None
         self.feed_shapes_ = []
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
@@ -87,6 +88,7 @@ class Client(object):
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
+        from .serving_client import PredictorRes
         model_conf = m_config.GeneralModelConfig()
         f = open(path, 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -96,6 +98,7 @@ class Client(object):
         # get feed vars, fetch vars
         # get feed shapes, feed types
         # map feed names to index
+        self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
         read_env_flags = ["profile_client", "profile_server"]
@@ -105,9 +108,15 @@ class Client(object):
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.feed_shapes_ = [var.shape for var in model_conf.feed_var]
         self.feed_names_to_idx_ = {}
+        self.fetch_names_to_type_ = {}
+        self.fetch_names_to_idx_ = {}
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
             self.feed_types_[var.alias_name] = var.feed_type
+
+        for i, var in enumerate(model_conf.fetch_var):
+            self.fetch_names_to_idx_[var.alias_name] = i
+            self.fetch_names_to_type_[var.alias_name] = var.fetch_type
 
         return
 
@@ -118,8 +127,10 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
-        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
-        ))
+        print(sdk_desc)
+        self.client_handle_.create_predictor_by_desc(
+            sdk_desc.SerializeToString())
+        
 
     def get_feed_names(self):
         return self.feed_names_
@@ -127,7 +138,7 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    def predict(self, feed={}, fetch=[], profile=False):
+    def predict(self, feed={}, fetch=[]):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -147,19 +158,20 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        result = self.client_handle_.predict(
-            float_slot, float_feed_names, int_slot, int_feed_names, fetch_names)
+        ret = self.client_handle_.predict(
+            float_slot, float_feed_names, int_slot,
+            int_feed_names, fetch_names, self.result_handle_)
 
-        # TODO(guru4elephant): the order of fetch var name should be consistent with
-        #                      general_model_config, this is not friendly
-        #                      In the future, we need make the number of fetched variable changable
         result_map = {}
         for i, name in enumerate(fetch_names):
-            result_map[name] = result[i]
+            if self.fetch_names_to_type_[name] == int_type:
+                result_map[name] = self.result_handle_.get_int64_by_name(name)[0]
+            elif self.fetch_names_to_type_[name] == float_type:
+                result_map[name] = self.result_handle_.get_float_by_name(name)[0]
 
         return result_map
 
-    def batch_predict(self, feed_batch=[], fetch=[], profile=False):
+    def batch_predict(self, feed_batch=[], fetch=[]):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -203,3 +215,4 @@ class Client(object):
 
     def release(self):
         self.client_handle_.destroy_predictor()
+        self.client_handle_ = None

@@ -104,17 +104,21 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "print general model config done.";
 
   // TODO(guru4elephant): how to do conditional check?
+  /*
   int ret = conf_check(req, model_config);
   if (ret != 0) {
-    LOG(INFO) << "model conf of server:";
+    LOG(ERROR) << "model conf of server:";
     resource.print_general_model_config(model_config);
     return 0;
   }
+  */
   // package tensor
 
   elem_type.resize(var_num);
   elem_size.resize(var_num);
   capacity.resize(var_num);
+
+  // prepare basic information for input
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor lod_tensor;
     elem_type[i] = req->insts(0).tensor_array(i).elem_type();
@@ -146,14 +150,22 @@ int GeneralReaderOp::inference() {
     out->push_back(lod_tensor);
   }
 
+  // specify the memory needed for output tensor_vector
   for (int i = 0; i < var_num; ++i) {
     if (out->at(i).lod.size() == 1) {
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
-        int data_len = tensor.data_size();
-        VLOG(2) << "tensor size for var[" << i << "]: " << tensor.data_size();
+        int data_len = 0;
+        if (tensor.int64_data_size() > 0) {
+          data_len = tensor.int64_data_size();
+        } else {
+          data_len = tensor.float_data_size();
+        }
+        VLOG(2) << "tensor size for var[" << i << "]: " << data_len;
+
         int cur_len = out->at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
+
         out->at(i).lod[0].push_back(cur_len + data_len);
         VLOG(2) << "new len: " << cur_len + data_len;
       }
@@ -168,14 +180,16 @@ int GeneralReaderOp::inference() {
     }
   }
 
+  // fill the data into output general_blob
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
+        int elem_num = req->insts(j).tensor_array(i).int64_data_size();
+        for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] =
-              *(const int64_t *)req->insts(j).tensor_array(i).data(k).c_str();
+              req->insts(j).tensor_array(i).int64_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];
@@ -187,9 +201,10 @@ int GeneralReaderOp::inference() {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = 0; k < req->insts(j).tensor_array(i).data_size(); ++k) {
+        int elem_num = req->insts(j).tensor_array(i).float_data_size();
+        for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] =
-              *(const float *)req->insts(j).tensor_array(i).data(k).c_str();
+              req->insts(j).tensor_array(i).float_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];
@@ -199,6 +214,8 @@ int GeneralReaderOp::inference() {
       }
     }
   }
+
+  VLOG(2) << "output size: " << out->size();
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();

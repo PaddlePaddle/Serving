@@ -65,6 +65,19 @@ static void CopyBlobInfo(const GeneralBlob* src, GeneralBlob* tgt) {
          src->p_size * sizeof(int64_t));
 }
 
+static void CopyLod(const paddle::PaddleTensor* src,
+                    paddle::PaddleTensor* tgt) {
+  VLOG(2) << "copy lod done.";
+  tgt->lod.resize(src->lod.size());
+  VLOG(2) << "src lod size: " << src->lod.size();
+  for (int i = 0; i < src->lod.size(); ++i) {
+    tgt->lod[i].resize(src->lod[i].size());
+    for (int j = 0; j < src->lod[i].size(); ++j) {
+      tgt->lod[i][j] = src->lod[i][j];
+    }
+  }
+}
+
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

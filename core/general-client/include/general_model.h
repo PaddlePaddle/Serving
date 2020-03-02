@@ -39,9 +39,25 @@ namespace baidu {
 namespace paddle_serving {
 namespace general_model {
 
-typedef std::map<std::string, std::vector<float>> FetchedMap;
+class PredictorRes {
+ public:
+  PredictorRes() {}
+  ~PredictorRes() {}
 
-typedef std::map<std::string, std::vector<std::vector<float>>> BatchFetchedMap;
+ public:
+  const std::vector<std::vector<int64_t>> & get_int64_by_name(
+      const std::string & name) {
+    return _int64_map[name];
+  }
+  const std::vector<std::vector<float>> & get_float_by_name(
+      const std::string & name) {
+    return _float_map[name];
+  }
+
+ public:
+  std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
+  std::map<std::string, std::vector<std::vector<float>>> _float_map;
+};
 
 class PredictorClient {
  public:
@@ -60,6 +76,13 @@ class PredictorClient {
   int create_predictor();
   int destroy_predictor();
 
+  int predict(const std::vector<std::vector<float>>& float_feed,
+              const std::vector<std::string>& float_feed_name,
+              const std::vector<std::vector<int64_t>>& int_feed,
+              const std::vector<std::string>& int_feed_name,
+              const std::vector<std::string>& fetch_name,
+              PredictorRes & predict_res); // NOLINT
+
   std::vector<std::vector<float>> predict(
       const std::vector<std::vector<float>>& float_feed,
       const std::vector<std::string>& float_feed_name,
@@ -74,13 +97,6 @@ class PredictorClient {
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::string>& fetch_name);
 
-  std::vector<std::vector<float>> predict_with_profile(
-      const std::vector<std::vector<float>>& float_feed,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int64_t>>& int_feed,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name);
-
  private:
   PredictorApi _api;
   Predictor* _predictor;
@@ -90,6 +106,7 @@ class PredictorClient {
   std::map<std::string, int> _feed_name_to_idx;
   std::map<std::string, int> _fetch_name_to_idx;
   std::map<std::string, std::string> _fetch_name_to_var_name;
+  std::map<std::string, int> _fetch_name_to_type;
   std::vector<std::vector<int>> _shape;
   std::vector<int> _type;
   std::vector<int64_t> _last_request_ts;
