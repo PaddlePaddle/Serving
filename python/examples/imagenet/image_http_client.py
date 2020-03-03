@@ -17,19 +17,33 @@ import base64
 import sys
 import cv2
 import json
+import os
 import numpy as np
 
-image = open("./to_longteng/n01440764/n01440764_12362.JPEG").read()
-image = base64.b64encode(image)
 
-req = {}
-req["image"] = image
-req["fetch"] = ["score"]
+def predict(image_path):
+    image = open(image_path).read()
+    image = base64.b64encode(image)
 
-req = json.dumps(req)
-url = "http://127.0.0.1:9291/image/prediction"
-headers = {"Content-Type": "application/json"}
-r = requests.post(url, data=req, headers=headers)
-score = r.json()["score"]
-score = np.array(score)
-print("max score : {} class {}".format(np.max(score), np.argmax(score)))
+    req = {}
+    req["image"] = image
+    req["fetch"] = ["score"]
+
+    req = json.dumps(req)
+    url = "http://127.0.0.1:9291/image/prediction"
+    headers = {"Content-Type": "application/json"}
+    r = requests.post(url, data=req, headers=headers)
+    if r.status_code == requests.codes.ok:
+        score = r.json()["score"]
+        score = np.array(score)
+        print("max score : {} class {}".format(np.max(score), np.argmax(score)))
+    else:
+        print("predict {} error".format(image_path))
+
+
+if __name__ == "__main__":
+    folder = "./to_longteng/n01440764"
+    file_list = os.listdir(folder)
+    for f in file_list:
+        image_path = folder + "/" + f
+        predict(image_path)
