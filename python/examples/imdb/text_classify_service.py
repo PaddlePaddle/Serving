@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #!flask/bin/python
-from paddle_serving_server.plugin_service import WebService
+from paddle_serving_server.web_service import WebService
 from imdb_reader import IMDBDataset
 import sys
 
