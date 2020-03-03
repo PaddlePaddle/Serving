@@ -19,7 +19,7 @@ Usage:
 """
 import argparse
 from multiprocessing import Pool, Process
-from plugin_service import PluginService
+from .web_service import WebService
 
 def parse_args():
     parser = argparse.ArgumentParser("web_serve")
@@ -35,7 +35,7 @@ def start_web_service(args):
     model = args.model
     port = args.port
     name = args.name
-    web_service = PluginService(name=name, model=model, port=port)
+    web_service = WebService(name=name, model=model, port=port)
     web_service.start_service()
 
 def start_standard_model(args):
