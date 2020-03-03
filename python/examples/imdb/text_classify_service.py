@@ -12,28 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #!flask/bin/python
-from plugin_service import PluginService
+from paddle_serving_server.plugin_service import WebService
+from imdb_reader import IMDBDataset
 import sys
 
-class IMDBService(PluginService):
-    def prepare_service(self, args={}):
+class IMDBService(WebService):
+    def prepare_dict(self, args={}):
         if len(args) == 0:
             exit(-1)
-        self.word_dict = {}
-        with open(args["dict_file_path"]) as fin:
-            idx = 0
-            for line in fin:
-                self.word_dict[idx] = idx
-                idx += 1
+        self.dataset = IMDBDataset()
+        self.dataset.load_resource(args["dict_file_path"])
     
     def preprocess(self, feed={}, fetch=[]):
         if "words" not in feed:
             exit(-1)
         res_feed = {}
-        res_feed["words"] = [self.word_dict[int(x)] for x in feed["words"]]
-        print(res_feed)
+        res_feed["words"] = self.dataset.get_words_and_label(feed["words"])[0]
         return res_feed, fetch
 
-imdb_service = IMDBService(name="imdb", model=sys.argv[1], port=9898)
-imdb_service.prepare_service({"dict_file_path":sys.argv[2]})
-imdb_service.start_service()
+imdb_service = IMDBService(name="imdb")
+imdb_service.load_model_config(sys.argv[1])
+imdb_service.prepare_server(workdir=sys.argv[2], port=9393, device="cpu")
+imdb_service.prepare_dict({"dict_file_path":sys.argv[3]})
+imdb_service.run_server()
