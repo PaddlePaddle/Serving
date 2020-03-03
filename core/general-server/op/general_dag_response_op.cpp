@@ -37,10 +37,19 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralDAGResponseOp::inference() {
-  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
+  std::shared_ptr<PaddleGeneralModelConfig> config = get_config();
+  int curr_op_idx = config->_graph.node_name_to_id[op_name()];
+  const std::vector<std::string> output_names =
+      config->_graph.nodes[curr_op_idx].output_names;
+  const std::vector<std::string> pre_node_names =
+      config->_graph.nodes[curr_op_idx].pre_node_names;
+
+  const GeneralBlob *input_blob =
+      get_depend_argument<GeneralBlob>(pre_node_names[0]);
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name();
+    LOG(ERROR) << "Failed mutable depended argument, op: "
+               << pre_node_names[0];
     return -1;
   }
 
@@ -56,31 +65,27 @@ int GeneralDAGResponseOp::inference() {
   // timeline.Start();
   int64_t start = timeline.TimeStampUS();
 
-  VLOG(2) << "start to call load general model_conf op";
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
-
-  VLOG(2) << "get resource pointer done.";
-  std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
-
   std::vector<int> fetch_index;
   fetch_index.resize(req->fetch_var_names_size());
+  VLOG(2) << "fetch var name size: " << req->fetch_var_names_size();
   for (int i = 0; i < req->fetch_var_names_size(); ++i) {
     fetch_index[i] =
-        model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
+        config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
+    VLOG(2) << "fetch var name: " << req->fetch_var_names(i)
+            << " index: " << fetch_index[i];
   }
-
+  VLOG(2) << "batch size: " << batch_size;
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();
     for (auto &idx : fetch_index) {
+      VLOG(2) << "fetch index: " << idx;
       Tensor *tensor = fetch_inst->add_tensor_array();
       // currently only response float tensor or lod_tensor
       tensor->set_elem_type(1);
-      if (model_config->_is_lod_fetch[idx]) {
+      if (config->_is_lod_fetch[idx]) {
         VLOG(2) << "out[" << idx << " is lod_tensor";
         tensor->add_shape(-1);
       } else {
@@ -93,6 +98,8 @@ int GeneralDAGResponseOp::inference() {
     }
   }
 
+  VLOG(2) << "allocate memory";
+
   int var_idx = 0;
   for (auto &idx : fetch_index) {
     int cap = 1;
@@ -101,7 +108,7 @@ int GeneralDAGResponseOp::inference() {
     }
     if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
       int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
-      if (model_config->_is_lod_fetch[idx]) {
+      if (config->_is_lod_fetch[idx]) {
         for (int j = 0; j < batch_size; ++j) {
           for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
                k++) {
@@ -129,8 +136,12 @@ int GeneralDAGResponseOp::inference() {
       }
       var_idx++;
     } else if (in->at(idx).dtype == paddle::PaddleDType::FLOAT32) {
+      VLOG(2) << "float fetch";
       float *data_ptr = static_cast<float *>(in->at(idx).data.data());
-      if (model_config->_is_lod_fetch[idx]) {
+      for (int xxx = 0; xxx < cap; xxx++) {
+        VLOG(2) << "data_ptr[" << xxx << "]: " << data_ptr[xxx];
+      }
+      if (config->_is_lod_fetch[idx]) {
         for (int j = 0; j < batch_size; ++j) {
           for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
                k++) {

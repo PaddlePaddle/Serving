@@ -54,23 +54,44 @@ int GeneralDAGModOp::inference() {
 
   VLOG(2) << "going to declare output blob";
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
+  fprintf(stderr, "output blob addree %x\n", output_blob);
   TensorVector *out = &output_blob->tensor_vector;
+  out->clear();
 
   VLOG(2) << "pre node names size: " << pre_node_names.size();
   int output_idx = 0;
+  const GeneralBlob *input_blob;
   for (int i = 0; i < pre_node_names.size(); ++i) {
     VLOG(2) << "pre_node_names[" << i << "]: " << pre_node_names[i];
-    const GeneralBlob *input_blob =
-        get_depend_argument<GeneralBlob>(pre_node_names[i]);
+    input_blob = get_depend_argument<GeneralBlob>(pre_node_names[i]);
+    VLOG(2) << "input blob " << pre_node_names[i] << " batch size"
+            << input_blob->GetBatchSize();
     if (!input_blob) {
       LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name();
       return -1;
     }
     for (int j = 0; j < input_blob->tensor_vector.size(); ++j) {
+      VLOG(2) << "input blob name: "
+              << input_blob->tensor_vector[j].name;
       if (input_name_map.find(input_blob->tensor_vector[j].name)
           != input_name_map.end()) {
-        out->push_back(input_blob->tensor_vector[j]);
-        out->back().name = output_names[output_idx++];
+        paddle::PaddleTensor lod_tensor;
+        lod_tensor.name = output_names[output_idx++];
+        lod_tensor.lod.resize(1);
+        lod_tensor.lod[0].push_back(0);
+        lod_tensor.lod[0].push_back(1);
+        lod_tensor.dtype = paddle::PaddleDType::INT64;
+        lod_tensor.data.Resize(1 * sizeof(int64_t));
+        lod_tensor.shape = {1, 1};
+        int64_t * dst_ptr = static_cast<int64_t *>(lod_tensor.data.data());
+        int64_t * src_ptr = static_cast<int64_t *>(
+            input_blob->tensor_vector[j].data.data());
+        dst_ptr[0] = src_ptr[0];
+        out->push_back(lod_tensor);
+        VLOG(2) << "add an input tensor name: " << lod_tensor.name;
+        // out->push_back(input_blob->tensor_vector[j]);
+        // VLOG(2) << "output name: " << output_names[output_idx];
+        // out->back().name = output_names[output_idx++];
       }
     }
     VLOG(2) << "input tensor name of " << op_name();
@@ -80,11 +101,8 @@ int GeneralDAGModOp::inference() {
   }
 
 
-  VLOG(2) << "push back input dense done.";
   VLOG(2) << "pre node names[0]: " << pre_node_names[0];
-  const GeneralBlob *first_blob =
-      get_depend_argument<GeneralBlob>(pre_node_names[0]);
-  int batch_size = first_blob->GetBatchSize();
+  int batch_size = input_blob->GetBatchSize();
   VLOG(2) << "batch size of the first blob: " << batch_size;
 
   VLOG(2) << "batch size of this output: " << batch_size;
@@ -92,15 +110,14 @@ int GeneralDAGModOp::inference() {
 
   int mod_value = 100000001;
   VLOG(2) << "output tensor size: " << out->size();
+  /*
   for (int i = 0; i < out->size(); ++i) {
     int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
-    if (out->at(i).lod.size() == 1) {
-      VLOG(2) << "lod back size: " << out->at(i).lod[0].back();
-    }
     for (int j = 0; j < out->at(i).lod[0].back(); ++j) {
       dst_ptr[j] = dst_ptr[j] % mod_value;
     }
   }
+  */
 
   VLOG(2) << "output name of " << op_name();
   for (int i = 0; i < out->size(); ++i) {
@@ -110,7 +127,7 @@ int GeneralDAGModOp::inference() {
   VLOG(2) << "compute done.";
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
-  CopyBlobInfo(first_blob, output_blob);
+  CopyBlobInfo(input_blob, output_blob);
   AddBlobInfo(output_blob, start);
   AddBlobInfo(output_blob, end);
 

@@ -48,8 +48,8 @@ int GeneralDAGReaderOp::inference() {
   std::vector<int64_t> capacity;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
-  TensorVector *out = &res->tensor_vector;
-  TensorVector tmp_out;
+  TensorVector *tmp_out = &res->tensor_vector;
+  // TensorVector tmp_out;
 
   res->SetBatchSize(batch_size);
 
@@ -100,13 +100,14 @@ int GeneralDAGReaderOp::inference() {
       }
       VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
+    VLOG(2) << "lod_tensor.name=" << model_config->_feed_name[i];
     lod_tensor.name = model_config->_feed_name[i];
-    tmp_out.push_back(lod_tensor);
+    tmp_out->push_back(lod_tensor);
   }
 
   // specify the memory needed for output tensor_vector
   for (int i = 0; i < var_num; ++i) {
-    if (tmp_out.at(i).lod.size() == 1) {
+    if (tmp_out->at(i).lod.size() == 1) {
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
         int data_len = 0;
@@ -117,18 +118,18 @@ int GeneralDAGReaderOp::inference() {
         }
         VLOG(2) << "tensor size for var[" << i << "]: " << data_len;
 
-        int cur_len = tmp_out.at(i).lod[0].back();
+        int cur_len = tmp_out->at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
 
-        tmp_out.at(i).lod[0].push_back(cur_len + data_len);
+        tmp_out->at(i).lod[0].push_back(cur_len + data_len);
         VLOG(2) << "new len: " << cur_len + data_len;
       }
-      tmp_out.at(i).data.Resize(tmp_out.at(i).lod[0].back() * elem_size[i]);
-      tmp_out.at(i).shape = {tmp_out.at(i).lod[0].back(), 1};
+      tmp_out->at(i).data.Resize(tmp_out->at(i).lod[0].back() * elem_size[i]);
+      tmp_out->at(i).shape = {tmp_out->at(i).lod[0].back(), 1};
       VLOG(2) << "var[" << i
-              << "] is lod_tensor and len=" << tmp_out.at(i).lod[0].back();
+              << "] is lod_tensor and len=" << tmp_out->at(i).lod[0].back();
     } else {
-      tmp_out.at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
+      tmp_out->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
       VLOG(2) << "var[" << i
               << "] is tensor and capacity=" << batch_size * capacity[i];
     }
@@ -137,7 +138,7 @@ int GeneralDAGReaderOp::inference() {
   // fill the data into output general_blob
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
-      int64_t *dst_ptr = static_cast<int64_t *>(tmp_out.at(i).data.data());
+      int64_t *dst_ptr = static_cast<int64_t *>(tmp_out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
@@ -145,14 +146,14 @@ int GeneralDAGReaderOp::inference() {
           dst_ptr[offset + k] =
               req->insts(j).tensor_array(i).int64_data(k);
         }
-        if (tmp_out.at(i).lod.size() == 1) {
-          offset = tmp_out.at(i).lod[0][j + 1];
+        if (tmp_out->at(i).lod.size() == 1) {
+          offset = tmp_out->at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
       }
     } else {
-      float *dst_ptr = static_cast<float *>(tmp_out.at(i).data.data());
+      float *dst_ptr = static_cast<float *>(tmp_out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
@@ -160,8 +161,8 @@ int GeneralDAGReaderOp::inference() {
           dst_ptr[offset + k] =
               req->insts(j).tensor_array(i).float_data(k);
         }
-        if (tmp_out.at(i).lod.size() == 1) {
-          offset = tmp_out.at(i).lod[0][j + 1];
+        if (tmp_out->at(i).lod.size() == 1) {
+          offset = tmp_out->at(i).lod[0][j + 1];
         } else {
           offset += capacity[i];
         }
@@ -169,13 +170,16 @@ int GeneralDAGReaderOp::inference() {
     }
   }
 
-  VLOG(2) << "output size: " << tmp_out.size();
-  for (int i = 0; i < tmp_out.size(); ++i) {
+  /*
+  VLOG(2) << "output size: " << tmp_out->size();
+  for (int i = 0; i < tmp_out->size(); ++i) {
     VLOG(2) << "moving " << tmp_out[i].name
             << " index at "
             << model_config->_graph.feed_name_to_idx[tmp_out[i].name];
     out->push_back(std::move(tmp_out[i]));
   }
+  */
+  VLOG(2) << "output size: " << tmp_out->size();
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
