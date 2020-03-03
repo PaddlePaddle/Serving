@@ -30,7 +30,7 @@ op_seq_maker.add_op(general_response_op)
 
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.set_num_threads(4)
+server.set_num_threads(16)
 
 server.load_model_config(sys.argv[1])
 port = int(sys.argv[2])
