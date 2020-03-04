@@ -66,6 +66,20 @@ print(fetch_map)
 
 ```
 
+## Models waiting for you to deploy
+
+
+<center>
+
+|      Model Name      	|              Resnet50              	|
+|:--------------------:	|:----------------------------------:	|
+|      Package URL     	|           To be released           	|
+|      Description     	| Get the representation of an image 	|
+| Training Data Source 	|              Imagenet              	|
+
+</center>
+
+
 ## Document
 
 [Design Doc(Chinese)](doc/DESIGN.md)
