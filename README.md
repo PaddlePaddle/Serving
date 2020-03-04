@@ -103,3 +103,9 @@ To connect with other users and contributors, welcome to join our [Slack channel
 ## Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
+
+### Feedback
+For any feedback or to report a bug, please propose a [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues).
+
+## License
+[Apache 2.0 License](https://github.com/PaddlePaddle/Serving/blob/develop/LICENSE)
