@@ -8,7 +8,10 @@
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
 ## Motivation
-Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. 
+Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. A demo of serving is as follows:
+<p align="center">
+    <img src="doc/demo.gif" width="700">
+</p>
 
 ## Key Features
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
@@ -27,13 +30,28 @@ pip install paddle-serving-server
 
 ## Quick Start Example
 
+### download trained model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+```
+Paddle Serving provides HTTP and RPC based service for users to access
+
+### HTTP service
+
+``` shell
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+```
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
 
-Python Client Request
+### RPC service
+
+``` shell
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+```
+python client api
 
 ``` python
 from paddle_serving_client import Client
@@ -47,8 +65,6 @@ fetch_map = client.predict(feed={"x": data}, fetch=["price"])
 print(fetch_map)
 
 ```
-
-
 
 ## Document
 
