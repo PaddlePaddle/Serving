@@ -65,6 +65,6 @@ if __name__ == "__main__":
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
-            serving_io.save_model("serving_server_model", "serving_client_conf",
+            serving_io.save_model("imdb_model", "imdb_client_conf",
                                   {"words": data}, {"prediction": prediction},
                                   fluid.default_main_program())
