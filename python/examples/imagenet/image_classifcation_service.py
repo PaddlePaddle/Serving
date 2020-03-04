@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_server.plugin_service import PluginService
+from paddle_serving_server.web_service import WebService
 import sys
 import cv2
 import base64
-from PIL import Image
-from StringIO import StringIO
 import numpy as np
-from image_server import start_serving
 
 
-class ImageService(PluginService):
+class ImageService(WebService):
     def set_param(self):
         self.image_mean = [0.485, 0.456, 0.406]
         self.image_std = [0.229, 0.224, 0.225]
@@ -115,5 +112,7 @@ class ImageService(PluginService):
         return res_feed, fetch
 
 
-image_service = ImageService(name="image", model=sys.argv[1], port=9291)
-image_service.start_service()
+image_service = ImageService(name="image")
+image_service.load_model_config(sys.argv[1])
+image_service.prepare_server(workdir=sys.argv[2], port=9393, device="cpu")
+image_service.run_server()
