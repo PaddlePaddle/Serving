@@ -30,14 +30,14 @@ pip install paddle-serving-server
 
 ## Quick Start Example
 
-#### download trained model
+### download trained model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
 ```
 Paddle Serving provides HTTP and RPC based service for users to access
 
-#### HTTP service
+### HTTP service
 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
@@ -46,12 +46,12 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
 
-#### RPC service
+### RPC service
 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
-Python client api
+python client api
 
 ``` python
 from paddle_serving_client import Client
