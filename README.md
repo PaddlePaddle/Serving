@@ -30,7 +30,7 @@ pip install paddle-serving-server
 
 ## Quick Start Example
 
-### Download Boston House Prediction model
+### Boston House Price Prediction model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
@@ -83,7 +83,7 @@ print(fetch_map)
 
 ## Document
 
-[Design Doc(Chinese)](doc/DESIGN.md)
+[How to save a servable model?](doc/SAVE.md)
 
 [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 
@@ -94,6 +94,8 @@ print(fetch_map)
 [Compile from source code(Chinese)](doc/COMPILE.md)
 
 [FAQ(Chinese)](doc/FAQ.md)
+
+[Design Doc(Chinese)](doc/DESIGN.md)
 
 ## Join Community
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
