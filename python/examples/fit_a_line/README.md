@@ -13,7 +13,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 # prediction through http service
 Start a web service with default web service hosting modules
 ``` shell
-python -m paddle_serving_server.web_serve --model uci_housing_model/ --thread 10 --name uci --port 9393
+python -m paddle_serving_server.web_serve --model uci_housing_model/ --thread 10 --name uci --port 9393 --name uci
 ```
 
 Prediction through http post

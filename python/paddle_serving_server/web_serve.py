@@ -31,48 +31,9 @@ def parse_args():
     parser.add_argument("--name", type=str, default="default", help="Default service name")
     return parser.parse_args()
 
-def start_web_service(args):
-    model = args.model
-    port = args.port
-    name = args.name
-    web_service = WebService(name=name, model=model, port=port)
-    web_service.start_service()
-
-def start_standard_model(args):
-    thread_num = args.thread
-    model = args.model
-    port = args.port
-    workdir = args.workdir
-    device = args.device
-
-    if model == "":
-        print("You must specify your serving model")
-        exit(-1)
-
-    import paddle_serving_server as serving
-    op_maker = serving.OpMaker()
-    read_op = op_maker.create('general_reader')
-    general_infer_op = op_maker.create('general_infer')
-    general_response_op = op_maker.create('general_response')
-
-    op_seq_maker = serving.OpSeqMaker()
-    op_seq_maker.add_op(read_op)
-    op_seq_maker.add_op(general_infer_op)
-    op_seq_maker.add_op(general_response_op)
-
-    server = serving.Server()
-    server.set_op_sequence(op_seq_maker.get_op_sequence())
-    server.set_num_threads(thread_num)
-
-    server.load_model_config(model)
-    server.prepare_server(workdir=workdir, port=port + 1, device=device)
-    server.run_server()
-
 if __name__ == "__main__":
     args = parse_args()
-    p_serving = Process(target=start_standard_model, args=(args,))
-    p_web_service = Process(target=start_web_service, args=(args,))
-    p_serving.start()
-    p_web_service.start()
-    p_web_service.join()
-    p_serving.join()
+    service = WebService(name=args.name)
+    service.load_model_config(args.model)
+    service.prepare_server(workdir=args.workdir, port=args.port, device=args.device)
+    service.run_server()
