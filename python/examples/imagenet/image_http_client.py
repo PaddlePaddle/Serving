@@ -21,7 +21,7 @@ import os
 import numpy as np
 
 
-def predict(image_path):
+def predict(image_path, server):
     image = open(image_path).read()
     image = base64.b64encode(image)
 
@@ -30,20 +30,19 @@ def predict(image_path):
     req["fetch"] = ["score"]
 
     req = json.dumps(req)
-    url = "http://127.0.0.1:9291/image/prediction"
+    url = server
     headers = {"Content-Type": "application/json"}
     r = requests.post(url, data=req, headers=headers)
     if r.status_code == requests.codes.ok:
         score = r.json()["score"]
         score = np.array(score)
-        print("max score : {} class {}".format(np.max(score), np.argmax(score)))
+        print("picture {} max score : {} class {}".format(
+            image_path, np.max(score), np.argmax(score)))
     else:
         print("predict {} error".format(image_path))
 
 
 if __name__ == "__main__":
-    folder = "./to_longteng/n01440764"
-    file_list = os.listdir(folder)
-    for f in file_list:
-        image_path = folder + "/" + f
-        predict(image_path)
+    server = "http://127.0.0.1:9393/image/prediction"
+    image_path = "./data/n01440764_10026.JPEG"
+    predict(image_path, server)
