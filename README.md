@@ -8,7 +8,7 @@
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
 ## Motivation
-Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. An demo of serving is as follows:
+Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. A demo of serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
