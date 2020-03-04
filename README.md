@@ -30,11 +30,12 @@ pip install paddle-serving-server
 
 ## Quick Start Example
 
-### download trained model
+### Download Boston House Prediction model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
 ```
+
 Paddle Serving provides HTTP and RPC based service for users to access
 
 ### HTTP service
@@ -51,9 +52,9 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
-python client api
 
 ``` python
+# A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
 
 client = Client()
