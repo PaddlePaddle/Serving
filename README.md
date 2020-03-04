@@ -30,7 +30,7 @@ pip install paddle-serving-server
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 
 Python Client Request
