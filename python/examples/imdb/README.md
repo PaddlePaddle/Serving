@@ -23,7 +23,7 @@ cat test.data | python test_client_batch.py inference.conf 4 > result
 
 server thread num ： 16
 
-测试中，client共发送2500条测试样本，图中数据为单个线程的耗时，时间单位为秒。可以看出，client端多线程的预测速度相比单线程有明显提升，在16线程时预测速度是单线程的8.7倍。
+测试中，client共发送25000条测试样本，图中数据为单个线程的耗时，时间单位为秒。可以看出，client端多线程的预测速度相比单线程有明显提升，在16线程时预测速度是单线程的8.7倍。
 
 | client  thread num | prepro | client infer | op0    | op1   | op2    | postpro | total |
 | ------------------ | ------ | ------------ | ------ | ----- | ------ | ------- | ----- |
