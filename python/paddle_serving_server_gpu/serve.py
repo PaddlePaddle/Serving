@@ -34,7 +34,8 @@ def parse_args():
         default="workdir",
         help="Working dir of current service")
     parser.add_argument(
-        "--device", type=str, default="cpu", help="Type of device")
+        "--device", type=str, default="gpu", help="Type of device")
+    parser.add_argument("--gpuid", type=int, default=0, help="Index of GPU")
     return parser.parse_args()
 
 
@@ -45,6 +46,7 @@ def start_standard_model():
     port = args.port
     workdir = args.workdir
     device = args.device
+    gpuid = args.gpuid
 
     if model == "":
         print("You must specify your serving model")
@@ -67,6 +69,7 @@ def start_standard_model():
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
+    server.set_gpuid(gpuid)
     server.run_server()
 
 
