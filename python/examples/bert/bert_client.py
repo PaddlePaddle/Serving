@@ -120,7 +120,6 @@ class BertService():
 
 
 def test():
-
     bc = BertService(
         model_name='bert_chinese_L-12_H-768_A-12',
         max_seq_len=20,
@@ -130,16 +129,25 @@ def test():
     config_file = './serving_client_conf/serving_client_conf.prototxt'
     fetch = ["pooled_output"]
     bc.load_client(config_file, server_addr)
-    batch_size = 4
+    batch_size = 1
     batch = []
     for line in sys.stdin:
-        if len(batch) < batch_size:
-            batch.append([line.strip()])
+        if batch_size == 1:
+            result = bc.run_general([[line.strip()]], fetch)
+            print(result)
         else:
-            result = bc.run_batch_general(batch, fetch)
-            batch = []
-            for r in result:
-                print(r)
+            if len(batch) < batch_size:
+                batch.append([line.strip()])
+            else:
+                result = bc.run_batch_general(batch, fetch)
+                batch = []
+                for r in result:
+                    print(r)
+    if len(batch) > 0:
+        result = bc.run_batch_general(batch, fetch)
+        batch = []
+        for r in result:
+            print(r)
 
 
 if __name__ == '__main__':
