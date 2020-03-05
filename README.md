@@ -8,7 +8,10 @@
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
 ## Motivation
-Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. 
+Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. A demo of serving is as follows:
+<p align="center">
+    <img src="doc/demo.gif" width="700">
+</p>
 
 ## Key Features
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
@@ -27,15 +30,31 @@ pip install paddle-serving-server
 
 ## Quick Start Example
 
+### Boston House Price Prediction model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
+```
+
+Paddle Serving provides HTTP and RPC based service for users to access
+
+### HTTP service
+
+``` shell
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+```
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+```
+
+### RPC service
+
+``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-Python Client Request
-
 ``` python
+# A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
 
 client = Client()
@@ -48,11 +67,23 @@ print(fetch_map)
 
 ```
 
+## Models waiting for you to deploy
+
+
+<center>
+
+|      Model Name      	|              Resnet50              	|
+|:--------------------:	|:----------------------------------:	|
+|      Package URL     	|           To be released           	|
+|      Description     	| Get the representation of an image 	|
+| Training Data Source 	|              Imagenet              	|
+
+</center>
 
 
 ## Document
 
-[Design Doc(Chinese)](doc/DESIGN.md)
+[How to save a servable model?](doc/SAVE.md)
 
 [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 
@@ -64,9 +95,17 @@ print(fetch_map)
 
 [FAQ(Chinese)](doc/FAQ.md)
 
+[Design Doc(Chinese)](doc/DESIGN.md)
+
 ## Join Community
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 ## Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
+
+### Feedback
+For any feedback or to report a bug, please propose a [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues).
+
+## License
+[Apache 2.0 License](https://github.com/PaddlePaddle/Serving/blob/develop/LICENSE)

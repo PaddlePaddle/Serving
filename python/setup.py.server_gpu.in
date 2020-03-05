@@ -30,6 +30,7 @@ max_version, mid_version, min_version = python_version()
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.1.0','paddlepaddle',
+    'paddle_serving_client'
 ]
 
 packages=['paddle_serving_server_gpu',

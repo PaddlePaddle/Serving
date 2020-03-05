@@ -1,2 +1,2 @@
-wget https://paddle-serving.bj.bcebos.com/data%2Fctr_prediction%2Fctr_data.tar.gz
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/data/ctr_prediction/ctr_data.tar.gz
 tar -zxvf *ctr_data.tar.gz
