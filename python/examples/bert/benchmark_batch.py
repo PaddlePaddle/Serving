@@ -17,7 +17,7 @@ from paddle_serving_client import Client
 from paddle_serving_client.metric import auc
 from paddle_serving_client.utils import MultiThreadRunner
 import time
-from test_bert_client import BertService
+from bert_client import BertService
 
 
 def predict(thr_id, resource, batch_size):
