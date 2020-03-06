@@ -13,55 +13,45 @@
 # limitations under the License.
 
 import sys
-from paddle_serving_client import Client
-from paddle_serving_client.metric import auc
-from paddle_serving_client.utils import MultiThreadRunner
 import time
+import requests
+from imdb_reader import IMDBDataset
+from paddle_serving_client import Client
+from paddle_serving_client.utils import MultiThreadRunner
+from paddle_serving_client.utils import benchmark_args
 
+args = benchmark_args()
 
-def predict(thr_id, resource):
-    client = Client()
-    client.load_client_config(resource["conf_file"])
-    client.connect(resource["server_endpoint"])
-    thread_num = resource["thread_num"]
-    file_list = resource["filelist"]
-    line_id = 0
-    prob = []
-    label_list = []
-    dataset = []
-    for fn in file_list:
-        fin = open(fn)
-        for line in fin:
-            if line_id % thread_num == thr_id - 1:
-                group = line.strip().split()
-                words = [int(x) for x in group[1:int(group[0])]]
-                label = [int(group[-1])]
-                feed = {"words": words, "label": label}
-                dataset.append(feed)
-            line_id += 1
-        fin.close()
-
+def single_func(idx, resource):
+    imdb_dataset = IMDBDataset()
+    imdb_dataset.load_resource(args.vocab)
+    filelist_fn = args.filelist
+    filelist = []
     start = time.time()
-    fetch = ["acc", "cost", "prediction"]
-    for inst in dataset:
-        fetch_map = client.predict(feed=inst, fetch=fetch)
-        prob.append(fetch_map["prediction"][1])
-        label_list.append(label[0])
+    with open(filelist_fn) as fin:
+        for line in fin:
+            filelist.append(line.strip())
+    filelist = filelist[idx::args.thread]
+    if args.request == "rpc":
+        client = Client()
+        client.load_client_config(args.model)
+        client.connect([args.endpoint])
+        for fn in filelist:
+            fin = open(fn)
+            for line in fin:
+                word_ids, label = imdb_dataset.get_words_and_label(line)
+                fetch_map = client.predict(feed={"words": word_ids},
+                                           fetch=["prediction"])
+    elif args.request == "http":
+        for fn in filelist:
+            fin = open(fn)
+            for line in fin:
+                word_ids, label = imdb_dataset.get_words_and_label(line)
+                r = requests.post("http://{}/imdb/prediction".format(args.endpoint),
+                                  data={"words": word_ids})
     end = time.time()
-    client.release()
-    return [prob, label_list, [end - start]]
+    return [[end - start]]
 
-
-if __name__ == '__main__':
-    conf_file = sys.argv[1]
-    data_file = sys.argv[2]
-    resource = {}
-    resource["conf_file"] = conf_file
-    resource["server_endpoint"] = ["127.0.0.1:9293"]
-    resource["filelist"] = [data_file]
-    resource["thread_num"] = int(sys.argv[3])
-
-    thread_runner = MultiThreadRunner()
-    result = thread_runner.run(predict, int(sys.argv[3]), resource)
-
-    print("total time {} s".format(sum(result[-1]) / len(result[-1])))
+multi_thread_runner = MultiThreadRunner()
+result = multi_thread_runner.run(single_func, args.thread, {})
+print(result)
