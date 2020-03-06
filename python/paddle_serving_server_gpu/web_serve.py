@@ -38,6 +38,8 @@ def parse_args():
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
+        "--gpu_ids", type=str, default="", help="GPU ids of current service")
+    parser.add_argument(
         "--name", type=str, default="default", help="Default service name")
     return parser.parse_args()
 
@@ -48,4 +50,6 @@ if __name__ == "__main__":
     service.load_model_config(args.model)
     service.prepare_server(
         workdir=args.workdir, port=args.port, device=args.device)
-    service.run_server()
+    service.run_server(args.gpu_ids)
+
+

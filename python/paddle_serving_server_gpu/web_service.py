@@ -25,7 +25,12 @@ class WebService(object):
     def load_model_config(self, model_config):
         self.model_config = model_config
 
-    def _launch_rpc_service(self):
+    def _launch_rpc_service(self, gpuid):
+        if gpuid < 0:
+            device = "cpu"
+        else:
+            device = "gpu"
+            
         op_maker = OpMaker()
         read_op = op_maker.create('general_reader')
         general_infer_op = op_maker.create('general_infer')
@@ -36,11 +41,13 @@ class WebService(object):
         op_seq_maker.add_op(general_response_op)
         server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
-        server.set_num_threads(16)
-        server.set_gpuid = self.gpuid
+        server.set_num_threads(10)
+        if gpuid >= 0:
+            server.set_gpuid(gpuid)
         server.load_model_config(self.model_config)
         server.prepare_server(
-            workdir=self.workdir, port=self.port + 1, device=self.device)
+            workdir="{}_{}".format(self.workdir, gpuid),
+            port=self.port + gpuid + 1, device=device)
         server.run_server()
 
     def prepare_server(self, workdir="", port=9393, device="gpu", gpuid=0):
@@ -74,18 +81,27 @@ class WebService(object):
                          threaded=False,
                          processes=1)
 
-    def run_server(self):
+    def run_server(self, gpu_ids):
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
         print("http://{}:{}/{}/prediction".format(localIP, self.port,
                                                   self.name))
-        p_rpc = Process(target=self._launch_rpc_service)
-        p_web = Process(target=self._launch_web_service)
-        p_rpc.start()
-        p_web.start()
-        p_web.join()
-        p_rpc.join()
+
+        gpus = gpu_ids.split(",")
+        if len(gpus) <= 0:
+            self._launch_rpc_service(-1)
+        else:
+            gpu_processes = []
+            for i, gpu_id in gpus:
+                p = Process(target=self._launch_rpc_service, (i,))
+                gpu_processes.append(p)
+            for p in gpu_processes:
+                p.start()
+            p_web = Process(target=self._launch_web_service)
+            for p in gpu_processes:
+                p.join()
+            p_web.join()
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch

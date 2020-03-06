@@ -18,6 +18,7 @@ Usage:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
 import argparse
+from multiprocessing import Pool, Process
 
 
 def parse_args():
@@ -27,7 +28,7 @@ def parse_args():
     parser.add_argument(
         "--model", type=str, default="", help="Model for serving")
     parser.add_argument(
-        "--port", type=int, default=9292, help="Port the server")
+        "--port", type=int, default=9292, help="Port of the starting gpu")
     parser.add_argument(
         "--workdir",
         type=str,
@@ -35,18 +36,21 @@ def parse_args():
         help="Working dir of current service")
     parser.add_argument(
         "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument("--gpuid", type=int, default=0, help="Index of GPU")
+    parser.add_argument(
+        "--gpu_ids", type=int, default=0, help="gpu ids")
     return parser.parse_args()
 
+args = parse_args()
 
-def start_standard_model():
-    args = parse_args()
+def start_gpu_card_model(gpuid):
+    device = "gpu"
+    port = args.port
+    if gpuid == -1:
+        device = "cpu"
+        port = args.port + gpuid
     thread_num = args.thread
     model = args.model
-    port = args.port
     workdir = args.workdir
-    device = args.device
-    gpuid = args.gpuid
 
     if model == "":
         print("You must specify your serving model")
@@ -57,7 +61,7 @@ def start_standard_model():
     read_op = op_maker.create('general_reader')
     general_infer_op = op_maker.create('general_infer')
     general_response_op = op_maker.create('general_response')
-
+    
     op_seq_maker = serving.OpSeqMaker()
     op_seq_maker.add_op(read_op)
     op_seq_maker.add_op(general_infer_op)
@@ -69,9 +73,21 @@ def start_standard_model():
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
-    server.set_gpuid(gpuid)
+    if gpuid >= 0:
+        server.set_gpuid(gpuid)
     server.run_server()
 
-
 if __name__ == "__main__":
-    start_standard_model()
+    gpus = args.gpu_ids.split(",")
+    if len(gpus) <= 0:
+        start_gpu_card_model(-1)
+    else:
+        gpu_processes = []
+        for i, gpu_id in gpus:
+            p = Process(target=start_gpu_card_model, (i,))
+            gpu_processes.append(p)
+        for p in gpu_processes:
+            p.start()
+        for p in gpu_processes:
+            p.join()
+    
