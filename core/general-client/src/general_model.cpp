@@ -137,7 +137,8 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
                              const std::vector<std::vector<int64_t>> &int_feed,
                              const std::vector<std::string> &int_feed_name,
                              const std::vector<std::string> &fetch_name,
-                             PredictorRes &predict_res) {  // NOLINT
+                             PredictorRes &predict_res,
+                             const int &pid) {  // NOLINT
   predict_res._int64_map.clear();
   predict_res._float_map.clear();
   Timer timeline;
@@ -241,6 +242,7 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   if (FLAGS_profile_client) {
     std::ostringstream oss;
     oss << "PROFILE\t"
+        << "pid:" << pid << "\t"
         << "prepro_0:" << preprocess_start << " "
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
