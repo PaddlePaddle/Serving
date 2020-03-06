@@ -36,6 +36,7 @@ class BertService():
         self.show_ids = show_ids
         self.do_lower_case = do_lower_case
         self.retry = retry
+        self.pid = os.getpid()
         self.profile = True if ("FLAGS_profile_client" in os.environ and
                                 os.environ["FLAGS_profile_client"]) else False
 
@@ -78,7 +79,8 @@ class BertService():
                 }
                 prepro_end = time.time()
                 if self.profile:
-                    print("PROFILE\tbert_pre_0:{} bert_pre_1:{}".format(
+                    print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
+                        self.pid,
                         int(round(prepro_start * 1000000)),
                         int(round(prepro_end * 1000000))))
                 fetch_map = self.client.predict(feed=feed, fetch=fetch)
@@ -111,7 +113,8 @@ class BertService():
                 feed_batch.append(feed)
             prepro_end = time.time()
             if self.profile:
-                print("PROFILE\tbert_pre_0:{} bert_pre_1:{}".format(
+                print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
+                    self.pid,
                     int(round(prepro_start * 1000000)),
                     int(round(prepro_end * 1000000))))
             fetch_map_batch = self.client.batch_predict(
