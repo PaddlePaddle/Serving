@@ -37,20 +37,22 @@ def parse_args():
     parser.add_argument(
         "--device", type=str, default="gpu", help="Type of device")
     parser.add_argument(
-        "--gpu_ids", type=int, default=0, help="gpu ids")
+        "--gpu_ids", type=str, default="", help="gpu ids")
     return parser.parse_args()
 
 args = parse_args()
 
 def start_gpu_card_model(gpuid):
+    gpuid = int(gpuid)
     device = "gpu"
     port = args.port
     if gpuid == -1:
         device = "cpu"
+    elif gpuid >= 0:
         port = args.port + gpuid
     thread_num = args.thread
     model = args.model
-    workdir = args.workdir
+    workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
         print("You must specify your serving model")
@@ -83,8 +85,8 @@ if __name__ == "__main__":
         start_gpu_card_model(-1)
     else:
         gpu_processes = []
-        for i, gpu_id in gpus:
-            p = Process(target=start_gpu_card_model, (i,))
+        for i, gpu_id in enumerate(gpus):
+            p = Process(target=start_gpu_card_model, args=(i,))
             gpu_processes.append(p)
         for p in gpu_processes:
             p.start()

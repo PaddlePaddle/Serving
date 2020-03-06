@@ -217,6 +217,7 @@ class Server(object):
         if not self.check_port(port):
             raise SystemExit("Prot {} is already used".format(port))
 
+        self.set_port(port)
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_path, device)
         self._prepare_infer_service(port)
