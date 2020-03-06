@@ -5,8 +5,9 @@ import sys
 profile_file = sys.argv[1]
 
 
-def prase(line, counter):
-    event_list = line.split(" ")
+def prase(pid_str, time_str, counter):
+    pid = pid_str.split(":")[1]
+    event_list = time_str.split(" ")
     trace_list = []
     for event in event_list:
         name, ts = event.split(":")
@@ -19,7 +20,7 @@ def prase(line, counter):
         event_dict = {}
         event_dict["name"] = name
         event_dict["tid"] = 0
-        event_dict["pid"] = 0
+        event_dict["pid"] = pid
         event_dict["ts"] = ts
         event_dict["ph"] = ph
 
@@ -36,7 +37,7 @@ if __name__ == "__main__":
         for line in f.readlines():
             line = line.strip().split("\t")
             if line[0] == "PROFILE":
-                trace_list = prase(line[1], counter)
+                trace_list = prase(line[1], line[2], counter)
                 counter += 1
                 for trace in trace_list:
                     all_list.append(trace)

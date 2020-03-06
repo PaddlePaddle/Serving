@@ -78,6 +78,7 @@ class Client(object):
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
         self.rpath()
+        self.pid = os.getpid()
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -160,6 +161,7 @@ class Client(object):
         int_feed_names = []
         float_feed_names = []
         fetch_names = []
+
         for key in feed:
             self.shape_check(feed, key)
             if key not in self.feed_names_:
@@ -177,7 +179,7 @@ class Client(object):
 
         ret = self.client_handle_.predict(float_slot, float_feed_names,
                                           int_slot, int_feed_names, fetch_names,
-                                          self.result_handle_)
+                                          self.result_handle_, self.pid)
 
         result_map = {}
         for i, name in enumerate(fetch_names):
