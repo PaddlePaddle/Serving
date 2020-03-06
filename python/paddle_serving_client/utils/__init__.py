@@ -11,16 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import sys
 import subprocess
+import argparse
 from multiprocessing import Pool
+
+def benchmark_args():
+    parser = argparse.ArgumentParser("benchmark")
+    parser.add_argument("--thread", type=int, default=10, help="concurrecy")
+    parser.add_argument("--model", type=str, default="", help="model for evaluation")
+    parser.add_argument("--endpoint", type=str, default="127.0.0.1:9292", help="endpoint of server")
+    parser.add_argument("--request", type=str, default="rpc", help="mode of service")
+    return parser.parse_args()
+
 
 class MultiThreadRunner(object):
     def __init__(self):
         pass
 
     def run(self, thread_func, thread_num, global_resource):
+        os.environ["http_proxy"] = ""
+        os.environ["https_proxy"] = ""
         p = Pool(thread_num)
         result_list = []
         for i in range(thread_num):
