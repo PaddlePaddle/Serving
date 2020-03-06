@@ -61,47 +61,49 @@ int GeneralDistKVInferOp::inference() {
     for (size_t s = 0; s < in->at(i).shape.size(); ++s) {
       elem_num *= in->at(i).shape[s];
     }
-    std::cout << elem_num << std::endl;
     int64_t* data_ptr = static_cast<int64_t*>(in->at(i).data.data());
     for (size_t j = 0; j < elem_num; ++j) {
       keys.push_back(data_ptr[j]);
-      std::cout << data_ptr[j] << " ";
     }
-    std::cout << std::endl;
   }  
   //TODO: Add Seek CubeValues Here, and replace EMBEDDING_SIZE with variable.
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   cube->init("./work_dir1/cube.conf");
   std::string table_name = "test_dict";
   int ret = cube->seek(table_name, keys, &values);
-  for (int vi = 0; vi < values.size(); ++vi) {
-    std::cout << "value idx: " << vi << " , value: " << values[vi].buff << std::endl;
-  }
+  //for (int vi = 0; vi < values.size(); ++vi) {
+  //  std::cout << "value idx: " << vi << " , value: " << values[vi].buff << std::endl;
+  //}
  
   size_t EMBEDDING_SIZE = 9; 
   TensorVector dist_kv_out;
   dist_kv_out.resize(sparse_count);
   int cube_val_idx = 0;
   int sparse_idx = 0;
-  for (size_t i = 0; i < dist_kv_out.size(); ++i) {
+  for (size_t i = 0; i < in->size(); ++i) {
     if  (in->at(i).name == "dense_input") continue;
-    std::copy(in->at(sparse_idx).lod.begin(), in->at(sparse_idx).lod.end(), dist_kv_out[sparse_idx].lod.begin());
-    std::cout << "sparse idx: " << sparse_idx << " , idx: " << i << std::endl;
-    ++sparse_idx;
-    dist_kv_out[i].dtype = paddle::PaddleDType::FLOAT32;
-    dist_kv_out[i].shape.push_back(dist_kv_out[i].lod[0].back());
-    dist_kv_out[i].shape.push_back(EMBEDDING_SIZE); 
-    dist_kv_out[i].name =  "embedding_"+ std::to_string(i)+ ".tmp_0";
-    dist_kv_out[i].data.Resize(dist_kv_out[i].lod[0].back() * EMBEDDING_SIZE * sizeof(float));
-    float *dst_ptr = static_cast<float*>(dist_kv_out[i].data.data());
-    for (int x = 0; x < dist_kv_out[i].lod[0].back(); ++x) {
+    dist_kv_out[sparse_idx].lod.resize(in->at(i).lod.size());
+    for (size_t x = 0; x < dist_kv_out[sparse_idx].lod.size(); ++x) {
+      dist_kv_out[sparse_idx].lod[x].resize(in->at(i).lod[x].size());
+      std::copy(in->at(i).lod[x].begin(), in->at(i).lod[x].end(), dist_kv_out[sparse_idx].lod[x].begin());
+    }
+    //std::cout << "sparse idx: " << sparse_idx << " , idx: " << i << std::endl;
+    dist_kv_out[sparse_idx].dtype = paddle::PaddleDType::FLOAT32;
+    dist_kv_out[sparse_idx].shape.push_back(dist_kv_out[sparse_idx].lod[0].back());
+    dist_kv_out[sparse_idx].shape.push_back(EMBEDDING_SIZE); 
+    dist_kv_out[sparse_idx].name =  "embedding_"+ std::to_string(sparse_idx)+ ".tmp_0";
+    dist_kv_out[sparse_idx].data.Resize(dist_kv_out[sparse_idx].lod[0].back() * EMBEDDING_SIZE * sizeof(float));
+    //std::cout << "embedding byte size: " << dist_kv_out[sparse_idx].lod[0].back() * EMBEDDING_SIZE * sizeof(float) << std::endl;
+    float *dst_ptr = static_cast<float*>(dist_kv_out[sparse_idx].data.data());
+    for (int x = 0; x < dist_kv_out[sparse_idx].lod[0].back(); ++x) {
       float * data_ptr = dst_ptr +  x* EMBEDDING_SIZE;
-      std::cout << "x: " << x << std::endl;
+      //std::cout << "x: " << x << std::endl;
       memcpy(data_ptr, values[cube_val_idx].buff.data(), values[cube_val_idx].buff.size());
       cube_val_idx++;
     }
+    ++sparse_idx;
   }  
-  
+  dist_kv_out.push_back(in->at(0));  
   output_blob->SetBatchSize(batch_size);
 
   VLOG(2) << "infer batch size: " << batch_size;
@@ -114,7 +116,12 @@ int GeneralDistKVInferOp::inference() {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
   }
-
+  std::cout << "out size: " << out->size() << std::endl;
+  for (size_t i = 0; i < out->size(); ++i) {
+    float* res = static_cast<float*>(out->at(i).data.data());
+    std::cout << "out tensor name: "<< out->at(i).name  << " , prob 0: " << res[0] << " , prob 1: " << res[1] << std::endl;
+  }
+  
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
   AddBlobInfo(output_blob, start);
