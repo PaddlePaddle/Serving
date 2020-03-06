@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#!flask/bin/python
 from paddle_serving_server.web_service import WebService
 from imdb_reader import IMDBDataset
 import sys
@@ -27,7 +26,7 @@ class IMDBService(WebService):
         if "words" not in feed:
             exit(-1)
         res_feed = {}
-        res_feed["words"] = self.dataset.get_words_and_label(feed["words"])[0]
+        res_feed["words"] = self.dataset.get_words_only(feed["words"])[0]
         return res_feed, fetch
 
 imdb_service = IMDBService(name="imdb")
