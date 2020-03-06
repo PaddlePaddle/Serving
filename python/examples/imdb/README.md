@@ -19,7 +19,7 @@ cat test.data | python test_client_batch.py inference.conf 4 > result
 
 设备 ：Intel(R) Xeon(R)  Gold 6271 CPU @ 2.60GHz * 48
 
-模型 ：IMDB-CNN
+模型 ：[CNN](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/imdb/nets.py)
 
 server thread num ： 16
 
