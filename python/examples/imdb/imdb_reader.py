@@ -30,6 +30,14 @@ class IMDBDataset(dg.MultiSlotDataGenerator):
         self._pattern = re.compile(r'(;|,|\.|\?|!|\s|\(|\))')
         self.return_value = ("words", [1, 2, 3, 4, 5, 6]), ("label", [0])
 
+    def get_words_only(self, line):
+        sent = line.lower().replace("<br />", " ").strip()
+        words = [x for x in self._pattern.split(sent) if x and x != " "]
+        feas = [
+            self._vocab[x] if x in self._vocab else self._unk_id for x in words
+        ]
+        return feas
+
     def get_words_and_label(self, line):
         send = '|'.join(line.split('|')[:-1]).lower().replace("<br />",
                                                               " ").strip()
