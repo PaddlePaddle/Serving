@@ -48,7 +48,7 @@ def single_func(idx, resource):
             for line in fin:
                 word_ids, label = imdb_dataset.get_words_and_label(line)
                 r = requests.post("http://{}/imdb/prediction".format(args.endpoint),
-                                  data={"words": word_ids})
+                                  data={"words": word_ids, "fetch": ["prediction"]})
     end = time.time()
     return [[end - start]]
 

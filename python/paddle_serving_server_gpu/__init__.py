@@ -22,6 +22,26 @@ import paddle_serving_server_gpu as paddle_serving_server
 from version import serving_server_version
 from contextlib import closing
 
+def serve_args():
+    parser = argparse.ArgumentParser("serve")
+    parser.add_argument(
+        "--thread", type=int, default=10, help="Concurrency of server")
+    parser.add_argument(
+        "--model", type=str, default="", help="Model for serving")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port of the starting gpu")
+    parser.add_argument(
+        "--workdir",
+        type=str,
+        default="workdir",
+        help="Working dir of current service")
+    parser.add_argument(
+        "--device", type=str, default="gpu", help="Type of device")
+    parser.add_argument(
+        "--gpu_ids", type=str, default="", help="gpu ids")
+    parser.add_argument(
+        "--name", type=str, default="default", help="Default service name")
+    return parser.parse_args()
 
 class OpMaker(object):
     def __init__(self):
@@ -126,7 +146,8 @@ class Server(object):
 
         self.model_config_path = model_config_path
         self.engine.name = "general_model"
-        self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        #self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        self.engine.reloadable_meta = self.workdir + "/fluid_time_file"
         os.system("touch {}".format(self.engine.reloadable_meta))
         self.engine.reloadable_type = "timestamp_ne"
         self.engine.runtime_thread_num = 0
@@ -154,6 +175,7 @@ class Server(object):
             self.infer_service_conf.services.extend([infer_service])
 
     def _prepare_resource(self, workdir):
+        self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
                       "w") as fout:
