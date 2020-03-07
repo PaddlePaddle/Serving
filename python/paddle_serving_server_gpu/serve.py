@@ -19,30 +19,10 @@ Usage:
 """
 import argparse
 from multiprocessing import Pool, Process
+from paddle_serving_server_gpu import serve_args
 
 
-def parse_args():
-    parser = argparse.ArgumentParser("serve")
-    parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
-    parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
-    parser.add_argument(
-        "--port", type=int, default=9292, help="Port of the starting gpu")
-    parser.add_argument(
-        "--workdir",
-        type=str,
-        default="workdir",
-        help="Working dir of current service")
-    parser.add_argument(
-        "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument(
-        "--gpu_ids", type=str, default="", help="gpu ids")
-    return parser.parse_args()
-
-args = parse_args()
-
-def start_gpu_card_model(gpuid):
+def start_gpu_card_model(gpuid, args):
     gpuid = int(gpuid)
     device = "gpu"
     port = args.port
@@ -79,17 +59,24 @@ def start_gpu_card_model(gpuid):
         server.set_gpuid(gpuid)
     server.run_server()
 
-if __name__ == "__main__":
-    gpus = args.gpu_ids.split(",")
+def start_multi_card(args):
+    gpus = ""
+    if args.gpu_ids == "":
+        gpus = os.environ["CUDA_VISIBLE_DEVICES"]
+    else:
+        gpus = args.gpu_ids.split(",")
     if len(gpus) <= 0:
         start_gpu_card_model(-1)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
-            p = Process(target=start_gpu_card_model, args=(i,))
+            p = Process(target=start_gpu_card_model, args=(i, args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
             p.start()
         for p in gpu_processes:
             p.join()
     
+if __name__ == "__main__":
+    args = serve_args()
+    start_multi_card(args)
