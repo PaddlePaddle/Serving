@@ -91,12 +91,13 @@ class PredictorClient {
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::string>& fetch_name);
 
-  std::vector<std::vector<std::vector<float>>> batch_predict(
+  std::vector<PredictorRes> batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name);
+      const std::vector<std::string>& fetch_name,
+      const int& pid);
 
  private:
   PredictorApi _api;

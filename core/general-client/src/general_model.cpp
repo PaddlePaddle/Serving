@@ -264,26 +264,23 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   return 0;
 }
 
-std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
+std::vector<PredictorRes> PredictorClient::batch_predict(
     const std::vector<std::vector<std::vector<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
     const std::vector<std::vector<std::vector<int64_t>>> &int_feed_batch,
     const std::vector<std::string> &int_feed_name,
-    const std::vector<std::string> &fetch_name) {
+    const std::vector<std::string> &fetch_name,
+    const int &pid) {
   int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
   std::vector<std::vector<std::vector<float>>> fetch_result_batch;
-  if (fetch_name.size() == 0) {
-    return fetch_result_batch;
-  }
+
+  std::vector<PredictorRes> predict_res_batch;
 
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
 
-  fetch_result_batch.resize(batch_size);
+  predict_res_batch.resize(batch_size);
   int fetch_name_num = fetch_name.size();
-  for (int bi = 0; bi < batch_size; bi++) {
-    fetch_result_batch[bi].resize(fetch_name_num);
-  }
 
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
@@ -373,18 +370,36 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
     postprocess_start = client_infer_end;
 
     for (int bi = 0; bi < batch_size; bi++) {
+      predict_res_batch[bi]._int64_map.clear();
+      predict_res_batch[bi]._float_map.clear();
+
       for (auto &name : fetch_name) {
         int idx = _fetch_name_to_idx[name];
         int len = res.insts(bi).tensor_array(idx).data_size();
-        VLOG(2) << "fetch name: " << name;
-        VLOG(2) << "tensor data size: " << len;
-        fetch_result_batch[bi][idx].resize(len);
-        VLOG(2)
-            << "fetch name " << name << " index " << idx << " first data "
-            << *(const float *)res.insts(bi).tensor_array(idx).data(0).c_str();
-        /*
-          TBA
-        */
+        if (_fetch_name_to_type[name] == 0) {
+          int len = res.insts(bi).tensor_array(idx).int64_data_size();
+          VLOG(2) << "fetch tensor : " << name << " type: int64 len : " << len;
+          predict_res_batch[bi]._int64_map[name].resize(1);
+          predict_res_batch[bi]._int64_map[name][0].resize(len);
+          VLOG(2) << "fetch name " << name << " index " << idx << " first data "
+                  << res.insts(bi).tensor_array(idx).int64_data(0);
+          for (int i = 0; i < len; ++i) {
+            predict_res_batch[bi]._int64_map[name][0][i] =
+                res.insts(bi).tensor_array(idx).int64_data(i);
+          }
+        } else if (_fetch_name_to_type[name] == 1) {
+          int len = res.insts(bi).tensor_array(idx).float_data_size();
+          VLOG(2) << "fetch tensor : " << name
+                  << " type: float32 len : " << len;
+          predict_res_batch[bi]._float_map[name].resize(1);
+          predict_res_batch[bi]._float_map[name][0].resize(len);
+          VLOG(2) << "fetch name " << name << " index " << idx << " first data "
+                  << res.insts(bi).tensor_array(idx).float_data(0);
+          for (int i = 0; i < len; ++i) {
+            predict_res_batch[bi]._float_map[name][0][i] =
+                res.insts(bi).tensor_array(idx).float_data(i);
+          }
+        }
       }
     }
     postprocess_end = timeline.TimeStampUS();
@@ -411,7 +426,7 @@ std::vector<std::vector<std::vector<float>>> PredictorClient::batch_predict(
 
     fprintf(stderr, "%s\n", oss.str().c_str());
   }
-  return fetch_result_batch;
+  return predict_res_batch;
 }
 
 }  // namespace general_model
