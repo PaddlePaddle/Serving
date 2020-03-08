@@ -204,14 +204,17 @@ class Client(object):
 
         result_batch = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
-            fetch_names)
+            fetch_names, self.pid)
 
         result_map_batch = []
         for result in result_batch:
             result_map = {}
             for i, name in enumerate(fetch_names):
-                result_map[name] = result[i]
-            result_map_batch.append(result_map)
+                if self.fetch_names_to_type_[name] == int_type:
+                    result_map[name] = result.get_int64_by_name(name)[0]
+                elif self.fetch_names_to_type_[name] == float_type:
+                    result_map[name] = result.get_float_by_name(name)[0]
+            result_map_batch.appenf(result_map)
 
         return result_map_batch
 

@@ -90,12 +90,14 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<std::vector<int64_t>>>
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
-              const std::vector<std::string> &fetch_name) {
+              const std::vector<std::string> &fetch_name,
+              const int &pid) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
                                        int_feed_batch,
                                        int_feed_name,
-                                       fetch_name);
+                                       fetch_name,
+                                       pid);
            });
 }
 
