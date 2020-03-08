@@ -408,6 +408,7 @@ std::vector<PredictorRes> PredictorClient::batch_predict(
   if (FLAGS_profile_client) {
     std::ostringstream oss;
     oss << "PROFILE\t"
+        << "pid:" << pid << "\t"
         << "prepro_0:" << preprocess_start << " "
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
