@@ -1,0 +1,23 @@
+FROM centos:7.3.1611
+RUN yum -y install wget \
+    && yum -y install gcc gcc-c++ make glibc-static which \
+    && yum -y install git openssl-devel curl-devel bzip2-devel python-devel \
+    && wget https://cmake.org/files/v3.2/cmake-3.2.0-Linux-x86_64.tar.gz \
+    && tar xzf cmake-3.2.0-Linux-x86_64.tar.gz \
+    && mv cmake-3.2.0-Linux-x86_64 /usr/local/cmake3.2.0 \
+    && echo 'export PATH=/usr/local/cmake3.2.0/bin:$PATH' >> /root/.bashrc \
+    && wget https://dl.google.com/go/go1.14.linux-amd64.tar.gz \
+    && tar xzf go1.14.linux-amd64.tar.gz \
+    && mv go /usr/local/go \
+    && echo 'export GOROOT=/usr/local/go' >> /root/.bashrc \
+    && echo 'export PATH=/usr/local/go/bin:$PATH' >> /root/.bashrc \
+    && yum -y install python-devel sqlite-devel \
+    && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py >/dev/null \
+    && python get-pip.py >/dev/null \
+    && pip install google protobuf setuptools wheel flask >/dev/null \
+    && wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2 \
+    && yum -y install bzip2 \
+    && tar -jxf patchelf-0.10.tar.bz2 \
+    && cd patchelf-0.10 \
+    && ./configure --prefix=/usr \
+    && make >/dev/null && make install >/dev/null
