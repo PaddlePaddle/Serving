@@ -60,6 +60,8 @@ class WebService(object):
             if "fetch" not in request.json:
                 abort(400)
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
+            if "fetch" in feed:
+                del feed["fetch"]
             fetch_map = client_service.predict(feed=feed, fetch=fetch)
             fetch_map = self.postprocess(feed=request.json, fetch=fetch, fetch_map=fetch_map)
             return fetch_map

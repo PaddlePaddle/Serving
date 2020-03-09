@@ -17,35 +17,20 @@ Usage:
     Example:
         python -m paddle_serving_server.web_serve --model ./serving_server_model --port 9292
 """
-import argparse
+import os
 from multiprocessing import Pool, Process
 from .web_service import WebService
-
-
-def parse_args():
-    parser = argparse.ArgumentParser("web_serve")
-    parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
-    parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
-    parser.add_argument(
-        "--port", type=int, default=9292, help="Port the server")
-    parser.add_argument(
-        "--workdir",
-        type=str,
-        default="workdir",
-        help="Working dir of current service")
-    parser.add_argument(
-        "--device", type=str, default="cpu", help="Type of device")
-    parser.add_argument(
-        "--name", type=str, default="default", help="Default service name")
-    return parser.parse_args()
-
+import paddle_serving_server_gpu as serving
+from paddle_serving_server_gpu import serve_args
 
 if __name__ == "__main__":
-    args = parse_args()
-    service = WebService(name=args.name)
-    service.load_model_config(args.model)
-    service.prepare_server(
+    args = serve_args()
+    web_service = WebService(name=args.name)
+    web_service.load_model_config(args.model)
+    if args.gpu_ids == "":
+        gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
+    gpus = [int(x) for x in gpu_ids.split(",")]
+    web_service.set_gpus(gpus)
+    web_service.prepare_server(
         workdir=args.workdir, port=args.port, device=args.device)
     service.run_server()
