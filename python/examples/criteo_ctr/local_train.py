@@ -17,13 +17,13 @@ def train():
     dense_input = fluid.layers.data(
         name="dense_input", shape=[dense_feature_dim], dtype='float32')
     sparse_input_ids = [
-        fluid.layers.data(name="C" + str(i), shape=[1], lod_level=1, dtype="int64")
+        fluid.layers.data(name="C" + str(i) , shape=[1], lod_level=1, dtype="int64")
         for i in range(1, 27)]
     label = fluid.layers.data(name='label', shape=[1], dtype='int64')
 
     #nn_input = None if sparse_only else dense_input
     nn_input = dense_input
-    predict_y, loss, auc_var, batch_auc_var = dnn_model(
+    predict_y, loss, auc_var, batch_auc_var, infer_vars = dnn_model(
         nn_input, sparse_input_ids, label,
         args.embedding_size, args.sparse_feature_dim)
 
@@ -47,9 +47,10 @@ def train():
     whole_filelist = ["raw_data/part-%d" % x for x in
                       range(len(os.listdir("raw_data")))]
 
+    print (whole_filelist)
     dataset.set_filelist(whole_filelist[:thread_num])
     dataset.load_into_memory()
-
+    fluid.layers.Print(auc_var)
     epochs = 1
     for i in range(epochs):
         exe.train_from_dataset(
@@ -59,13 +60,24 @@ def train():
 
     import paddle_serving_client.io as server_io
     feed_var_dict = {}
+    feed_var_dict['dense_input'] = dense_input
     for i, sparse in enumerate(sparse_input_ids):
-        feed_var_dict["sparse_{}".format(i)] = sparse
+        feed_var_dict["embedding_{}.w_0".format(i)] = sparse
     fetch_var_dict = {"prob": predict_y}
+
+    feed_kv_dict = {}
+    feed_kv_dict['dense_input'] = dense_input
+    for i, emb in enumerate(infer_vars):
+        feed_kv_dict["embedding_{}.tmp_0".format(i)] = emb
+    fetch_var_dict = {"prob": predict_y}      
 
     server_io.save_model(
         "ctr_serving_model", "ctr_client_conf",
         feed_var_dict, fetch_var_dict, fluid.default_main_program())
+
+    server_io.save_model(
+        "ctr_serving_model_kv", "ctr_client_conf_kv",
+        feed_kv_dict, fetch_var_dict, fluid.default_main_program())
 
 if __name__ == '__main__':
     train()
