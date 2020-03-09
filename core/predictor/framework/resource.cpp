@@ -155,6 +155,9 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 // model config
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
+  // TODO: add serving dist op detection, if true, add cube instance init.
+  rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+  cube->init("./work_dir1/cube.conf");
   VLOG(2) << "general model path: " << path;
   VLOG(2) << "general model file: " << file;
   if (!FLAGS_enable_general_model) {

@@ -24,5 +24,9 @@ for data in reader():
     for i in range(1, 27):
         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    print(fetch_map)
-
+    if fetch_map['prob'][0] > fetch_map['prob'][1]:
+        prob_list.append(0)
+    else:
+        prob_list.append(1)
+    label_list.append(data[0][-1])
+print (auc(prob_list, label_list))

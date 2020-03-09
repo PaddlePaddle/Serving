@@ -68,14 +68,14 @@ int GeneralDistKVInferOp::inference() {
   }  
   //TODO: Add Seek CubeValues Here, and replace EMBEDDING_SIZE with variable.
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
-  cube->init("./work_dir1/cube.conf");
+  //cube->init("./work_dir1/cube.conf");
   std::string table_name = "test_dict";
   int ret = cube->seek(table_name, keys, &values);
   //for (int vi = 0; vi < values.size(); ++vi) {
   //  std::cout << "value idx: " << vi << " , value: " << values[vi].buff << std::endl;
   //}
  
-  size_t EMBEDDING_SIZE = 9; 
+  size_t EMBEDDING_SIZE = 10; 
   TensorVector dist_kv_out;
   dist_kv_out.resize(sparse_count);
   int cube_val_idx = 0;
@@ -90,8 +90,10 @@ int GeneralDistKVInferOp::inference() {
     //std::cout << "sparse idx: " << sparse_idx << " , idx: " << i << std::endl;
     dist_kv_out[sparse_idx].dtype = paddle::PaddleDType::FLOAT32;
     dist_kv_out[sparse_idx].shape.push_back(dist_kv_out[sparse_idx].lod[0].back());
-    dist_kv_out[sparse_idx].shape.push_back(EMBEDDING_SIZE); 
-    dist_kv_out[sparse_idx].name =  "embedding_"+ std::to_string(sparse_idx)+ ".tmp_0";
+    dist_kv_out[sparse_idx].shape.push_back(EMBEDDING_SIZE);
+    std::string sparse_id_str = std::to_string(std::stoi(in->at(i).name.substr(1, in->at(i).name.size() - 1)) -1); 
+    std::cout << sparse_id_str << std::endl;
+    dist_kv_out[sparse_idx].name =  "embedding_"+ sparse_id_str + ".tmp_0";
     dist_kv_out[sparse_idx].data.Resize(dist_kv_out[sparse_idx].lod[0].back() * EMBEDDING_SIZE * sizeof(float));
     //std::cout << "embedding byte size: " << dist_kv_out[sparse_idx].lod[0].back() * EMBEDDING_SIZE * sizeof(float) << std::endl;
     float *dst_ptr = static_cast<float*>(dist_kv_out[sparse_idx].data.data());
@@ -116,10 +118,10 @@ int GeneralDistKVInferOp::inference() {
     LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
     return -1;
   }
-  std::cout << "out size: " << out->size() << std::endl;
+  //std::cout << "out size: " << out->size() << std::endl;
   for (size_t i = 0; i < out->size(); ++i) {
     float* res = static_cast<float*>(out->at(i).data.data());
-    std::cout << "out tensor name: "<< out->at(i).name  << " , prob 0: " << res[0] << " , prob 1: " << res[1] << std::endl;
+    //std::cout << "out tensor name: "<< out->at(i).name  << " , prob 0: " << res[0] << " , prob 1: " << res[1] << std::endl;
   }
   
   int64_t end = timeline.TimeStampUS();
