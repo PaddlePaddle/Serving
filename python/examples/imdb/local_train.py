@@ -49,8 +49,9 @@ if __name__ == "__main__":
     dataset.set_batch_size(128)
     dataset.set_filelist(filelist)
     dataset.set_thread(10)
-    from nets import bow_net
-    avg_cost, acc, prediction = bow_net(data, label, dict_dim)
+    from nets import lstm_net
+    model_name = "imdb_lstm"
+    avg_cost, acc, prediction = lstm_net(data, label, dict_dim)
     optimizer = fluid.optimizer.SGD(learning_rate=0.01)
     optimizer.minimize(avg_cost)
 
@@ -65,6 +66,7 @@ if __name__ == "__main__":
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
-            serving_io.save_model("imdb_model", "imdb_client_conf",
+            serving_io.save_model("{}_model".format(model_name),
+                                  "{}_client_conf".format(model_name),
                                   {"words": data}, {"prediction": prediction},
                                   fluid.default_main_program())

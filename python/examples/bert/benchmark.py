@@ -17,7 +17,7 @@ from paddle_serving_client import Client
 from paddle_serving_client.metric import auc
 from paddle_serving_client.utils import MultiThreadRunner
 import time
-from test_bert_client import BertService
+from bert_client import BertService
 
 
 def predict(thr_id, resource):
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     thread_num = sys.argv[3]
     resource = {}
     resource["conf_file"] = conf_file
-    resource["server_endpoint"] = ["127.0.0.1:9293"]
+    resource["server_endpoint"] = ["127.0.0.1:9292"]
     resource["filelist"] = [data_file]
     resource["thread_num"] = int(thread_num)
 
