@@ -14,9 +14,9 @@
 
 import os
 import sys
-from paddle_serving_server import OpMaker
-from paddle_serving_server import OpSeqMaker
-from paddle_serving_server import Server
+from paddle_serving_server_gpu import OpMaker
+from paddle_serving_server_gpu import OpSeqMaker
+from paddle_serving_server_gpu import Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_reader')
@@ -30,11 +30,13 @@ op_seq_maker.add_op(general_response_op)
 
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.set_num_threads(4)
-server.set_local_bin(
-    "~/github/Serving/build_server/core/general-server/serving")
+server.set_num_threads(8)
+server.set_memory_optimize(True)
+server.set_gpuid(1)
 
 server.load_model_config(sys.argv[1])
 port = int(sys.argv[2])
-server.prepare_server(workdir="work_dir1", port=port, device="cpu")
+gpuid = sys.argv[3]
+server.set_gpuid(gpuid)
+server.prepare_server(workdir="work_dir1", port=port, device="gpu")
 server.run_server()
