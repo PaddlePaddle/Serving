@@ -270,14 +270,15 @@ int PredictorClient::batch_predict(
     const std::vector<std::vector<std::vector<int64_t>>> &int_feed_batch,
     const std::vector<std::string> &int_feed_name,
     const std::vector<std::string> &fetch_name,
-    PredictorResBatch &predict_res_batch,
+    PredictorRes &predict_res_batch,
     const int &pid) {
   int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
 
+  predict_res_batch._int64_map.clear();
+  predict_res_batch._float_map.clear();
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
 
-  predict_res_batch._predictres_vector.resize(batch_size);
   int fetch_name_num = fetch_name.size();
 
   _api.thrd_clear();
@@ -366,37 +367,33 @@ int PredictorClient::batch_predict(
   } else {
     client_infer_end = timeline.TimeStampUS();
     postprocess_start = client_infer_end;
-
+    for (auto &name : fetch_name) {
+      predict_res_batch._int64_map[name].resize(batch_size);
+      predict_res_batch._float_map[name].resize(batch_size);
+    }
     for (int bi = 0; bi < batch_size; bi++) {
-      predict_res_batch._predictres_vector[bi]._int64_map.clear();
-      predict_res_batch._predictres_vector[bi]._float_map.clear();
-
       for (auto &name : fetch_name) {
         int idx = _fetch_name_to_idx[name];
         int len = res.insts(bi).tensor_array(idx).data_size();
         if (_fetch_name_to_type[name] == 0) {
           int len = res.insts(bi).tensor_array(idx).int64_data_size();
           VLOG(2) << "fetch tensor : " << name << " type: int64 len : " << len;
-          predict_res_batch._predictres_vector[bi]._int64_map[name].resize(1);
-          predict_res_batch._predictres_vector[bi]._int64_map[name]
-                                                             [0].resize(len);
+          predict_res_batch._int64_map[name][bi].resize(len);
           VLOG(2) << "fetch name " << name << " index " << idx << " first data "
                   << res.insts(bi).tensor_array(idx).int64_data(0);
           for (int i = 0; i < len; ++i) {
-            predict_res_batch._predictres_vector[bi]._int64_map[name][0][i] =
+            predict_res_batch._int64_map[name][bi][i] =
                 res.insts(bi).tensor_array(idx).int64_data(i);
           }
         } else if (_fetch_name_to_type[name] == 1) {
           int len = res.insts(bi).tensor_array(idx).float_data_size();
           VLOG(2) << "fetch tensor : " << name
                   << " type: float32 len : " << len;
-          predict_res_batch._predictres_vector[bi]._float_map[name].resize(1);
-          predict_res_batch._predictres_vector[bi]._float_map[name]
-                                                             [0].resize(len);
+          predict_res_batch._float_map[name][bi].resize(len);
           VLOG(2) << "fetch name " << name << " index " << idx << " first data "
                   << res.insts(bi).tensor_array(idx).float_data(0);
           for (int i = 0; i < len; ++i) {
-            predict_res_batch._predictres_vector[bi]._float_map[name][0][i] =
+            predict_res_batch._float_map[name][bi][i] =
                 res.insts(bi).tensor_array(idx).float_data(i);
           }
         }

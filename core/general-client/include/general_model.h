@@ -59,18 +59,6 @@ class PredictorRes {
   std::map<std::string, std::vector<std::vector<float>>> _float_map;
 };
 
-class PredictorResBatch {
- public:
-  PredictorResBatch() {}
-  ~PredictorResBatch() {}
-
- public:
-  const PredictorRes& at(const int index) { return _predictres_vector[index]; }
-
- public:
-  std::vector<PredictorRes> _predictres_vector;
-};
-
 class PredictorClient {
  public:
   PredictorClient() {}
@@ -96,28 +84,13 @@ class PredictorClient {
               PredictorRes& predict_res,  // NOLINT
               const int& pid);
 
-  std::vector<std::vector<float>> predict(
-      const std::vector<std::vector<float>>& float_feed,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int64_t>>& int_feed,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name);
-
   int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::string>& fetch_name,
-      PredictorResBatch& predict_res,  // NOLINT
-      const int& pid);
-
-  std::vector<PredictorRes> batch_predict(
-      const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name,
+      PredictorRes& predict_res_batch,  // NOLINT
       const int& pid);
 
  private:
