@@ -89,7 +89,6 @@ class Client(object):
     def load_client_config(self, path):
         from .serving_client import PredictorClient
         from .serving_client import PredictorRes
-        from .serving_client import PredictorResBatch
         model_conf = m_config.GeneralModelConfig()
         f = open(path, 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -100,7 +99,6 @@ class Client(object):
         # get feed shapes, feed types
         # map feed names to index
         self.result_handle_ = PredictorRes()
-        self.result_batch_handle_ = PredictorResBatch()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
         read_env_flags = ["profile_client", "profile_server"]
@@ -205,20 +203,21 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        result_batch = self.result_batch_handle_
+        result_batch = self.result_handle_
         res = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
             fetch_names, result_batch, self.pid)
 
         result_map_batch = []
         for index in range(batch_size):
-            result = result_batch.at(index)
             result_map = {}
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int_type:
-                    result_map[name] = result.get_int64_by_name(name)[0]
+                    result_map[name] = result_batch.get_int64_by_name(name)[
+                        index]
                 elif self.fetch_names_to_type_[name] == float_type:
-                    result_map[name] = result.get_float_by_name(name)[0]
+                    result_map[name] = result_batch.get_float_by_name(name)[
+                        index]
             result_map_batch.append(result_map)
 
         return result_map_batch

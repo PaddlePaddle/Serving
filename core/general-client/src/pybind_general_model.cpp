@@ -41,12 +41,6 @@ PYBIND11_MODULE(serving_client, m) {
            },
            py::return_value_policy::reference);
 
-  py::class_<PredictorResBatch>(m, "PredictorResBatch", py::buffer_protocol())
-      .def(py::init())
-      .def("at",
-           [](PredictorResBatch &self, int index) { return self.at(index); },
-           py::return_value_policy::reference);
-
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
       .def("init_gflags",
@@ -97,7 +91,7 @@ PYBIND11_MODULE(serving_client, m) {
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::string> &fetch_name,
-              PredictorResBatch &predict_res_batch,
+              PredictorRes &predict_res_batch,
               const int &pid) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
