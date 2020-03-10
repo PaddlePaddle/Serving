@@ -15,20 +15,20 @@
 #include <fstream>
 #include <vector>
 
-#include "general_model.h"
+#include "general_model.h"  // NOLINT
 
-using namespace std;
+using namespace std;  // NOLINT
 
 using baidu::paddle_serving::general_model::PredictorClient;
 using baidu::paddle_serving::general_model::FetchedMap;
 
-int main(int argc, char * argv[]) {
-  PredictorClient * client = new PredictorClient();
+int main(int argc, char* argv[]) {
+  PredictorClient* client = new PredictorClient();
   client->init("inference.conf");
   client->set_predictor_conf("./", "predictor.conf");
   client->create_predictor();
-  std::vector<std::vector<float> > float_feed;
-  std::vector<std::vector<int64_t> > int_feed;
+  std::vector<std::vector<float>> float_feed;
+  std::vector<std::vector<int64_t>> int_feed;
   std::vector<std::string> float_feed_name;
   std::vector<std::string> int_feed_name = {"words", "label"};
   std::vector<std::string> fetch_name = {"cost", "acc", "prediction"};
@@ -53,13 +53,14 @@ int main(int argc, char * argv[]) {
     cin >> label;
     int_feed.push_back({label});
 
-    
     FetchedMap result;
 
-    client->predict(
-        float_feed, float_feed_name,
-        int_feed, int_feed_name, fetch_name,
-        &result);
+    client->predict(float_feed,
+                    float_feed_name,
+                    int_feed,
+                    int_feed_name,
+                    fetch_name,
+                    &result);
 
     cout << label << "\t" << result["prediction"][1] << endl;
 

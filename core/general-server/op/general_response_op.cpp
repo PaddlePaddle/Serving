@@ -122,8 +122,7 @@ int GeneralResponseOp::inference() {
         } else {
           for (int j = 0; j < batch_size; ++j) {
             FetchInst *fetch_p = res->mutable_insts(j);
-            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
-                data_ptr[0]);
+            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[0]);
           }
         }
       }
@@ -143,16 +142,15 @@ int GeneralResponseOp::inference() {
         if (var_size == batch_size) {
           for (int j = 0; j < batch_size; ++j) {
             for (int k = j * cap; k < (j + 1) * cap; ++k) {
-              FetchInst * fetch_p = res->mutable_insts(j);
+              FetchInst *fetch_p = res->mutable_insts(j);
               fetch_p->mutable_tensor_array(var_idx)->add_float_data(
                   data_ptr[k]);
             }
           }
         } else {
           for (int j = 0; j < batch_size; ++j) {
-            FetchInst * fetch_p = res->mutable_insts(j);
-            fetch_p->mutable_tensor_array(var_idx)->add_float_data(
-                data_ptr[0]);
+            FetchInst *fetch_p = res->mutable_insts(j);
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[0]);
           }
         }
       }

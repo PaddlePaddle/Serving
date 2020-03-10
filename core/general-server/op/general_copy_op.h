@@ -24,23 +24,22 @@
 #include "paddle_inference_api.h"  // NOLINT
 #endif
 #include <string>
-#include "core/predictor/framework/resource.h"
-#include "core/general-server/op/general_infer_helper.h"
 #include "core/general-server/general_model_service.pb.h"
+#include "core/general-server/op/general_infer_helper.h"
+#include "core/predictor/framework/resource.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-class GeneralCopyOp :
-    public baidu::paddle_serving::predictor::OpWithChannel<GeneralBlob> {
+class GeneralCopyOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<GeneralBlob> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
 
   DECLARE_OP(GeneralCopyOp);
 
   int inference();
-
 };
 
 }  // namespace serving

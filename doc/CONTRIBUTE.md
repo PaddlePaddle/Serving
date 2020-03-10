@@ -152,4 +152,3 @@ GLOG_minloglevel=1 bin/serving
 2 -ERROR
 
 3 - FATAL (Be careful as FATAL log will generate a coredump)
-

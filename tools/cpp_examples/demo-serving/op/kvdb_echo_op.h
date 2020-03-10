@@ -13,13 +13,13 @@
 // limitations under the License.
 
 #pragma once
-#include "examples/demo-serving/echo_kvdb_service.pb.h"
 #include "core/kvdb/include/kvdb/paddle_rocksdb.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/op_repository.h"
 #include "core/predictor/framework/resource.h"
 #include "core/predictor/op/op.h"
+#include "examples/demo-serving/echo_kvdb_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {

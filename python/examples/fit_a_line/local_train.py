@@ -1,12 +1,31 @@
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# pylint: disable=doc-string-missing
+
 import sys
 import paddle
 import paddle.fluid as fluid
 
-train_reader = paddle.batch(paddle.reader.shuffle(
-    paddle.dataset.uci_housing.train(), buf_size=500), batch_size=16)
+train_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.train(), buf_size=500),
+    batch_size=16)
 
-test_reader = paddle.batch(paddle.reader.shuffle(
-    paddle.dataset.uci_housing.test(), buf_size=500), batch_size=16)
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=16)
 
 x = fluid.data(name='x', shape=[None, 13], dtype='float32')
 y = fluid.data(name='y', shape=[None, 1], dtype='float32')
@@ -26,11 +45,9 @@ import paddle_serving_client.io as serving_io
 
 for pass_id in range(30):
     for data_train in train_reader():
-        avg_loss_value, = exe.run(
-            fluid.default_main_program(),
-            feed=feeder.feed(data_train),
-            fetch_list=[avg_loss])
+        avg_loss_value, = exe.run(fluid.default_main_program(),
+                                  feed=feeder.feed(data_train),
+                                  fetch_list=[avg_loss])
 
-serving_io.save_model(
-    "uci_housing_model", "uci_housing_client",
-    {"x": x}, {"price": y_predict}, fluid.default_main_program())
+serving_io.save_model("uci_housing_model", "uci_housing_client", {"x": x},
+                      {"price": y_predict}, fluid.default_main_program())

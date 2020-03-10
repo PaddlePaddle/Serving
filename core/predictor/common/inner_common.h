@@ -52,9 +52,9 @@
 
 #include "glog/raw_logging.h"
 
+#include "core/configure/general_model_config.pb.h"
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/server_configure.pb.h"
-#include "core/configure/general_model_config.pb.h"
 
 #include "core/predictor/common/constant.h"
 #include "core/predictor/common/types.h"

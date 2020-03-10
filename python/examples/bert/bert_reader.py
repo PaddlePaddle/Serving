@@ -1,5 +1,20 @@
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# pylint: disable=doc-string-missing
 from batching import pad_batch_data
 import tokenization
+
 
 class BertReader():
     def __init__(self, vocab_file="", max_seq_len=128):
@@ -48,8 +63,10 @@ class BertReader():
         position_ids = list(range(len(token_ids)))
         p_token_ids, p_pos_ids, p_text_type_ids, input_mask = \
             self.pad_batch(token_ids, text_type_ids, position_ids)
-        feed_result = {"input_ids": p_token_ids.reshape(-1).tolist(),
-                       "position_ids": p_pos_ids.reshape(-1).tolist(),
-                       "segment_ids": p_text_type_ids.reshape(-1).tolist(),
-                       "input_mask": input_mask.reshape(-1).tolist()}
+        feed_result = {
+            "input_ids": p_token_ids.reshape(-1).tolist(),
+            "position_ids": p_pos_ids.reshape(-1).tolist(),
+            "segment_ids": p_text_type_ids.reshape(-1).tolist(),
+            "input_mask": input_mask.reshape(-1).tolist()
+        }
         return feed_result
