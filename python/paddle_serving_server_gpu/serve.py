@@ -22,7 +22,7 @@ from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 
 
-def start_gpu_card_model(gpuid, args):
+def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
     gpuid = int(gpuid)
     device = "gpu"
     port = args.port
@@ -43,7 +43,7 @@ def start_gpu_card_model(gpuid, args):
     read_op = op_maker.create('general_reader')
     general_infer_op = op_maker.create('general_infer')
     general_response_op = op_maker.create('general_response')
-    
+
     op_seq_maker = serving.OpSeqMaker()
     op_seq_maker.add_op(read_op)
     op_seq_maker.add_op(general_infer_op)
@@ -59,7 +59,8 @@ def start_gpu_card_model(gpuid, args):
         server.set_gpuid(gpuid)
     server.run_server()
 
-def start_multi_card(args):
+
+def start_multi_card(args):  # pylint: disable=doc-string-missing
     gpus = ""
     if args.gpu_ids == "":
         gpus = os.environ["CUDA_VISIBLE_DEVICES"]
@@ -70,13 +71,17 @@ def start_multi_card(args):
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
-            p = Process(target=start_gpu_card_model, args=(i, args, ))
+            p = Process(
+                target=start_gpu_card_model, args=(
+                    i,
+                    args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
             p.start()
         for p in gpu_processes:
             p.join()
-    
+
+
 if __name__ == "__main__":
     args = serve_args()
     start_multi_card(args)

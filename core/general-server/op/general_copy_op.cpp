@@ -69,8 +69,7 @@ int GeneralCopyOp::inference() {
 
   for (int i = 0; i < out->size(); ++i) {
     int64_t *src_ptr = static_cast<int64_t *>(in->at(i).data.data());
-    out->at(i).data.Resize(
-        out->at(i).lod[0].back() * sizeof(int64_t));
+    out->at(i).data.Resize(out->at(i).lod[0].back() * sizeof(int64_t));
     out->at(i).shape = {out->at(i).lod[0].back(), 1};
     int64_t *tgt_ptr = static_cast<int64_t *>(out->at(i).data.data());
     for (int j = 0; j < out->at(i).lod[0].back(); ++j) {

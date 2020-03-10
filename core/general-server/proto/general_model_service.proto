@@ -28,13 +28,9 @@ message Tensor {
   repeated int32 shape = 6;
 };
 
-message FeedInst {
-  repeated Tensor tensor_array = 1;
-};
+message FeedInst { repeated Tensor tensor_array = 1; };
 
-message FetchInst {
-  repeated Tensor tensor_array = 1;
-};
+message FetchInst { repeated Tensor tensor_array = 1; };
 
 message Request {
   repeated FeedInst insts = 1;

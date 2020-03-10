@@ -54,7 +54,7 @@ int Variant::initialize(const EndpointInfo& ep_info,
 
   if (_stub_map.size() > 0) {
     VLOG(2) << "Initialize variants from VariantInfo"
-              << ", stubs count: " << _stub_map.size();
+            << ", stubs count: " << _stub_map.size();
     return 0;
   }
 

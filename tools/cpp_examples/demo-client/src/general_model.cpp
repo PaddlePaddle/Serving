@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "general_model.h"  // NOLINT
 #include <fstream>
-#include "general_model.h"
 #include "sdk-cpp/builtin_format.pb.h"
 #include "sdk-cpp/include/common.h"
 #include "sdk-cpp/include/predictor_sdk.h"
@@ -28,7 +28,7 @@ namespace baidu {
 namespace paddle_serving {
 namespace general_model {
 
-void PredictorClient::init(const std::string & conf_file) {
+void PredictorClient::init(const std::string &conf_file) {
   _conf_file = conf_file;
   std::ifstream fin(conf_file);
   if (!fin) {
@@ -65,9 +65,8 @@ void PredictorClient::init(const std::string & conf_file) {
   }
 }
 
-void PredictorClient::set_predictor_conf(
-    const std::string & conf_path,
-    const std::string & conf_file) {
+void PredictorClient::set_predictor_conf(const std::string &conf_path,
+                                         const std::string &conf_file) {
   _predictor_path = conf_path;
   _predictor_conf = conf_file;
 }
@@ -80,53 +79,51 @@ int PredictorClient::create_predictor() {
   _api.thrd_initialize();
 }
 
-void PredictorClient::predict(
-    const std::vector<std::vector<float> > & float_feed,
-    const std::vector<std::string> & float_feed_name,
-    const std::vector<std::vector<int64_t> > & int_feed,
-    const std::vector<std::string> & int_feed_name,
-    const std::vector<std::string> & fetch_name,
-    FetchedMap * fetch_result) {
-
+void PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
+                              const std::vector<std::string> &float_feed_name,
+                              const std::vector<std::vector<int64_t>> &int_feed,
+                              const std::vector<std::string> &int_feed_name,
+                              const std::vector<std::string> &fetch_name,
+                              FetchedMap *fetch_result) {
   _api.thrd_clear();
   _predictor = _api.fetch_predictor("general_model");
   Request req;
   std::vector<Tensor *> tensor_vec;
-  FeedInst * inst = req.add_insts();
-  for (auto & name : float_feed_name) {
+  FeedInst *inst = req.add_insts();
+  for (auto &name : float_feed_name) {
     tensor_vec.push_back(inst->add_tensor_array());
   }
 
-  for (auto & name : int_feed_name) {
+  for (auto &name : int_feed_name) {
     tensor_vec.push_back(inst->add_tensor_array());
   }
 
   int vec_idx = 0;
-  for (auto & name : float_feed_name) {
+  for (auto &name : float_feed_name) {
     int idx = _feed_name_to_idx[name];
-    Tensor * tensor = tensor_vec[idx];
+    Tensor *tensor = tensor_vec[idx];
     for (int j = 0; j < _shape[idx].size(); ++j) {
       tensor->add_shape(_shape[idx][j]);
     }
     tensor->set_elem_type(1);
     for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
-      tensor->add_data(
-          (char *)(&(float_feed[vec_idx][j])), sizeof(float));
+      tensor->add_data((char *)(&(float_feed[vec_idx][j])),  // NOLINT
+                       sizeof(float));
     }
     vec_idx++;
   }
 
   vec_idx = 0;
-  for (auto & name : int_feed_name) {
+  for (auto &name : int_feed_name) {
     int idx = _feed_name_to_idx[name];
-    Tensor * tensor = tensor_vec[idx];
+    Tensor *tensor = tensor_vec[idx];
     for (int j = 0; j < _shape[idx].size(); ++j) {
       tensor->add_shape(_shape[idx][j]);
     }
     tensor->set_elem_type(0);
     for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
-      tensor->add_data(
-          (char *)(&(int_feed[vec_idx][j])), sizeof(int64_t));
+      tensor->add_data((char *)(&(int_feed[vec_idx][j])),  // NOLINT
+                       sizeof(int64_t));
     }
     vec_idx++;
   }
@@ -139,13 +136,13 @@ void PredictorClient::predict(
     LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
     exit(-1);
   } else {
-    for (auto & name : fetch_name) {
+    for (auto &name : fetch_name) {
       int idx = _fetch_name_to_idx[name];
       int len = res.insts(0).tensor_array(idx).data_size();
       (*fetch_result)[name].resize(len);
       for (int i = 0; i < len; ++i) {
-        (*fetch_result)[name][i] = *(const float *)
-                    res.insts(0).tensor_array(idx).data(i).c_str();
+        (*fetch_result)[name][i] =
+            *(const float *)res.insts(0).tensor_array(idx).data(i).c_str();
       }
     }
   }
@@ -154,12 +151,12 @@ void PredictorClient::predict(
 }
 
 void PredictorClient::predict_with_profile(
-    const std::vector<std::vector<float> > & float_feed,
-    const std::vector<std::string> & float_feed_name,
-    const std::vector<std::vector<int64_t> > & int_feed,
-    const std::vector<std::string> & int_feed_name,
-    const std::vector<std::string> & fetch_name,
-    FetchedMap * fetch_result) {
+    const std::vector<std::vector<float>> &float_feed,
+    const std::vector<std::string> &float_feed_name,
+    const std::vector<std::vector<int64_t>> &int_feed,
+    const std::vector<std::string> &int_feed_name,
+    const std::vector<std::string> &fetch_name,
+    FetchedMap *fetch_result) {
   return;
 }
 
