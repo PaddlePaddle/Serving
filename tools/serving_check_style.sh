@@ -16,7 +16,7 @@ function check_style() {
     trap 'abort' 0
     set -e
 
-    pip install cpplint 'pre-commit==1.10.4'
+    pip install cpplint pylint 'pre-commit==1.10.4'
 
     export PATH=/usr/bin:$PATH
     pre-commit install
