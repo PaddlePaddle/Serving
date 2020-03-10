@@ -35,8 +35,7 @@ int Endpoint::initialize(const EndpointInfo& ep_info) {
       return -1;
     }
     _variant_list.push_back(var);
-    VLOG(2) << "Succ create variant: " << vi
-            << ", endpoint:" << _endpoint_name;
+    VLOG(2) << "Succ create variant: " << vi << ", endpoint:" << _endpoint_name;
   }
 
   return 0;

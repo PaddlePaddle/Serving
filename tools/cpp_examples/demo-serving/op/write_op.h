@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #pragma once
-#include "examples/demo-serving/image_class.pb.h"
 #include "core/predictor/builtin_format.pb.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/op_repository.h"
 #include "core/predictor/op/op.h"
+#include "examples/demo-serving/image_class.pb.h"
 
 namespace baidu {
 namespace paddle_serving {

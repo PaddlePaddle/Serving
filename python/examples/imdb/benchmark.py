@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import sys
 import time
@@ -21,6 +22,7 @@ from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
 
 args = benchmark_args()
+
 
 def single_func(idx, resource):
     imdb_dataset = IMDBDataset()
@@ -40,17 +42,20 @@ def single_func(idx, resource):
             fin = open(fn)
             for line in fin:
                 word_ids, label = imdb_dataset.get_words_and_label(line)
-                fetch_map = client.predict(feed={"words": word_ids},
-                                           fetch=["prediction"])
+                fetch_map = client.predict(
+                    feed={"words": word_ids}, fetch=["prediction"])
     elif args.request == "http":
         for fn in filelist:
             fin = open(fn)
             for line in fin:
                 word_ids, label = imdb_dataset.get_words_and_label(line)
-                r = requests.post("http://{}/imdb/prediction".format(args.endpoint),
-                                  data={"words": word_ids, "fetch": ["prediction"]})
+                r = requests.post(
+                    "http://{}/imdb/prediction".format(args.endpoint),
+                    data={"words": word_ids,
+                          "fetch": ["prediction"]})
     end = time.time()
     return [[end - start]]
+
 
 multi_thread_runner = MultiThreadRunner()
 result = multi_thread_runner.run(single_func, args.thread, {})

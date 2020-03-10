@@ -15,8 +15,8 @@
 #pragma once
 #include <gtest/gtest.h>
 #include "core/predictor/framework/channel.h"
-#include "core/predictor/op/op.h"
 #include "core/predictor/msg_data.pb.h"
+#include "core/predictor/op/op.h"
 
 namespace baidu {
 namespace paddle_serving {

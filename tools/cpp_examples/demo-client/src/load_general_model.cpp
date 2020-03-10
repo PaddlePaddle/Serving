@@ -18,14 +18,14 @@
 
 #include <fstream>
 #include "core/sdk-cpp/builtin_format.pb.h"
-#include "core/sdk-cpp/load_general_model_service.pb.h"
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
+#include "core/sdk-cpp/load_general_model_service.pb.h"
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
-using baidu::paddle_serving::predictor::
-load_general_model_service::RequestAndResponse;
+using baidu::paddle_serving::predictor::load_general_model_service::
+    RequestAndResponse;
 
 int create_req(RequestAndResponse& req) {  // NOLINT
   req.set_a(1);

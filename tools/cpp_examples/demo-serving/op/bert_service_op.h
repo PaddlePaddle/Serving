@@ -14,10 +14,10 @@
 
 #pragma once
 #include <vector>
-#include "paddle_inference_api.h"  // NOLINT
 #include "examples/demo-serving/bert_service.pb.h"
+#include "paddle_inference_api.h"  // NOLINT
 
-#include <sys/time.h>
+#include <sys/time.h>  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {

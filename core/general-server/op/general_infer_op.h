@@ -39,7 +39,6 @@ class GeneralInferOp
   DECLARE_OP(GeneralInferOp);
 
   int inference();
-
 };
 
 }  // namespace serving

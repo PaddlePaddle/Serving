@@ -73,4 +73,3 @@ setup(
     ],
     license='Apache 2.0',
     keywords=('paddle-serving serving-server deployment industrial easy-to-use'))
-

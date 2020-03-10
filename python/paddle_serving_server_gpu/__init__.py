@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import os
 from .proto import server_configure_pb2 as server_sdk
@@ -21,6 +22,7 @@ import socket
 import paddle_serving_server_gpu as paddle_serving_server
 from version import serving_server_version
 from contextlib import closing
+
 
 def serve_args():
     parser = argparse.ArgumentParser("serve")
@@ -37,11 +39,11 @@ def serve_args():
         help="Working dir of current service")
     parser.add_argument(
         "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument(
-        "--gpu_ids", type=str, default="", help="gpu ids")
+    parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
     parser.add_argument(
         "--name", type=str, default="default", help="Default service name")
     return parser.parse_args()
+
 
 class OpMaker(object):
     def __init__(self):

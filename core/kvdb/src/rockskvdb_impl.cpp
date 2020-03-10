@@ -32,12 +32,8 @@ void RocksKVDB::Set(std::string key, std::string value) {
   return;
 }
 
-void RocksKVDB::Close() {
-  this->db_->Close();
-}
+void RocksKVDB::Close() { this->db_->Close(); }
 
 std::string RocksKVDB::Get(std::string key) { return this->db_->Get(key); }
 
-RocksKVDB::~RocksKVDB() {
-  this->db_->Close();
-}
+RocksKVDB::~RocksKVDB() { this->db_->Close(); }

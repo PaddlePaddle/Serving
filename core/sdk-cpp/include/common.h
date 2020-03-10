@@ -53,9 +53,9 @@
 #include "json2pb/json_to_pb.h"
 #endif
 
+#include "core/configure/general_model_config.pb.h"
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/sdk_configure.pb.h"
-#include "core/configure/general_model_config.pb.h"
 
 #include "core/sdk-cpp/include/utils.h"
 
