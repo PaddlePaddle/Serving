@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-import base64
-import json
+import sys
+from image_reader import ImageReader
+from paddle_serving_client import Client
 
+client = Client()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9393"])
+reader = ImageReader()
+with open("./data/n01440764_10026.JPEG") as f:
+    img = f.read()
 
-def predict(image_path, server):
-    image = base64.b64encode(open(image_path).read())
-    req = json.dumps({"image": image, "fetch": ["score"]})
-    r = requests.post(
-        server, data=req, headers={"Content-Type": "application/json"})
-    print(r.json()["score"])
+img = reader.process_image(img).reshape(-1)
+fetch_map = client.predict(feed={"image": img}, fetch=["score"])
 
-
-if __name__ == "__main__":
-    server = "http://127.0.0.1:9393/image/prediction"
-    image_path = "./data/n01440764_10026.JPEG"
-    predict(image_path, server)
+print(fetch_map["score"])
