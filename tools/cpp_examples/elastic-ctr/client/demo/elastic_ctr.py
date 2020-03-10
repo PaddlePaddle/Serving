@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# pylint: disable=doc-string-missing
 from __future__ import print_function
 import json
 import sys
@@ -33,8 +33,8 @@ def str2long(str):
         return int(str)
 
 
-def tied_rank(x):
-    """
+def tied_rank(x):  # pylint: disable=doc-string-with-all-args, doc-string-with-returns
+    """ 
     Computes the tied rank of elements in x.
     This function computes the tied rank of elements in x.
     Parameters
@@ -45,23 +45,23 @@ def tied_rank(x):
     score : list of numbers
             The tied rank f each element in x
     """
-    sorted_x = sorted(zip(x,range(len(x))))
+    sorted_x = sorted(zip(x, range(len(x))))
     r = [0 for k in x]
     cur_val = sorted_x[0][0]
     last_rank = 0
     for i in range(len(sorted_x)):
         if cur_val != sorted_x[i][0]:
             cur_val = sorted_x[i][0]
-            for j in range(last_rank, i): 
-                r[sorted_x[j][1]] = float(last_rank+1+i)/2.0
+            for j in range(last_rank, i):
+                r[sorted_x[j][1]] = float(last_rank + 1 + i) / 2.0
             last_rank = i
-        if i==len(sorted_x)-1:
-            for j in range(last_rank, i+1): 
-                r[sorted_x[j][1]] = float(last_rank+i+2)/2.0
+        if i == len(sorted_x) - 1:
+            for j in range(last_rank, i + 1):
+                r[sorted_x[j][1]] = float(last_rank + i + 2) / 2.0
     return r
 
 
-def auc(actual, posterior):
+def auc(actual, posterior):  # pylint: disable=doc-string-with-all-args, doc-string-with-returns
     """
     Computes the area under the receiver-operater characteristic (AUC)
     This function computes the AUC error metric for binary classification.
@@ -78,11 +78,11 @@ def auc(actual, posterior):
             The mean squared error between actual and posterior
     """
     r = tied_rank(posterior)
-    num_positive = len([0 for x in actual if x==1])
-    num_negative = len(actual)-num_positive
-    sum_positive = sum([r[i] for i in range(len(r)) if actual[i]==1])
-    auc = ((sum_positive - num_positive*(num_positive+1)/2.0) /
-           (num_negative*num_positive))
+    num_positive = len([0 for x in actual if x == 1])
+    num_negative = len(actual) - num_positive
+    sum_positive = sum([r[i] for i in range(len(r)) if actual[i] == 1])
+    auc = ((sum_positive - num_positive * (num_positive + 1) / 2.0) /
+           (num_negative * num_positive))
     return auc
 
 
@@ -105,8 +105,8 @@ def data_reader(data_file, samples, labels):
 
             for i in range(0, len(features)):
                 if slots[i] in sample:
-                    sample[slots[i]].append(int(features[i]) %
-                        CTR_EMBEDDING_TABLE_SIZE)
+                    sample[slots[i]].append(
+                        int(features[i]) % CTR_EMBEDDING_TABLE_SIZE)
                 else:
                     sample[slots[i]] = [
                         int(features[i]) % CTR_EMBEDDING_TABLE_SIZE
@@ -117,7 +117,7 @@ def data_reader(data_file, samples, labels):
                     sample[x] = [0]
             samples.append(sample)
 
-            
+
 if __name__ == "__main__":
     """ main
     """
@@ -180,4 +180,4 @@ if __name__ == "__main__":
                 pass
             idx = idx + 1
 
-    print("auc = ", auc(labels, result_list) )
+    print("auc = ", auc(labels, result_list))

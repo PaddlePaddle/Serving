@@ -1,4 +1,5 @@
 # coding:utf-8
+# pylint: disable=doc-string-missing
 import os
 import sys
 import numpy as np
@@ -143,9 +144,12 @@ def single_func(idx, resource):
     end = time.time()
     return [[end - start]]
 
+
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(single_func, args.thread, {"endpoint":["127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496", "127.0.0.1:9497"]})
-
-
-
+    result = multi_thread_runner.run(single_func, args.thread, {
+        "endpoint": [
+            "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496",
+            "127.0.0.1:9497"
+        ]
+    })

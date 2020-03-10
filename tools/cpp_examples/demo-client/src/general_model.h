@@ -18,9 +18,9 @@
 #include <unistd.h>
 
 #include <fstream>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "sdk-cpp/builtin_format.pb.h"
 #include "sdk-cpp/general_model_service.pb.h"
@@ -37,44 +37,40 @@ namespace general_model {
 
 typedef std::map<std::string, std::vector<float>> FetchedMap;
 
-
 class PredictorClient {
  public:
   PredictorClient() {}
   ~PredictorClient() {}
 
-  void init(const std::string & client_conf);
-  void set_predictor_conf(
-      const std::string& conf_path,
-      const std::string& conf_file);
+  void init(const std::string& client_conf);
+  void set_predictor_conf(const std::string& conf_path,
+                          const std::string& conf_file);
   int create_predictor();
 
-  void predict(
-      const std::vector<std::vector<float> > & float_feed,
-      const std::vector<std::string> & float_feed_name,
-      const std::vector<std::vector<int64_t> > & int_feed,
-      const std::vector<std::string> & int_feed_name,
-      const std::vector<std::string> & fetch_name,
-      FetchedMap * result_map);
+  void predict(const std::vector<std::vector<float>>& float_feed,
+               const std::vector<std::string>& float_feed_name,
+               const std::vector<std::vector<int64_t>>& int_feed,
+               const std::vector<std::string>& int_feed_name,
+               const std::vector<std::string>& fetch_name,
+               FetchedMap* result_map);
 
-  void predict_with_profile(
-      const std::vector<std::vector<float> > & float_feed,
-      const std::vector<std::string> & float_feed_name,
-      const std::vector<std::vector<int64_t> > & int_feed,
-      const std::vector<std::string> & int_feed_name,
-      const std::vector<std::string> & fetch_name,
-      FetchedMap * result_map);
+  void predict_with_profile(const std::vector<std::vector<float>>& float_feed,
+                            const std::vector<std::string>& float_feed_name,
+                            const std::vector<std::vector<int64_t>>& int_feed,
+                            const std::vector<std::string>& int_feed_name,
+                            const std::vector<std::string>& fetch_name,
+                            FetchedMap* result_map);
 
  private:
   PredictorApi _api;
-  Predictor * _predictor;
+  Predictor* _predictor;
   std::string _predictor_conf;
   std::string _predictor_path;
   std::string _conf_file;
   std::map<std::string, int> _feed_name_to_idx;
   std::map<std::string, int> _fetch_name_to_idx;
   std::map<std::string, std::string> _fetch_name_to_var_name;
-  std::vector<std::vector<int> > _shape;
+  std::vector<std::vector<int>> _shape;
 };
 
 }  // namespace general_model

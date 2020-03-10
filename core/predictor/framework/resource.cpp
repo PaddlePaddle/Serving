@@ -197,13 +197,10 @@ int Resource::general_model_initialize(const std::string& path,
   for (int i = 0; i < feed_var_num; ++i) {
     _config->_feed_name[i] = model_config.feed_var(i).name();
     _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
-    VLOG(2) << "feed var[" << i << "]: "
-            << _config->_feed_name[i];
-    VLOG(2) << "feed var[" << i << "]: "
-            << _config->_feed_alias_name[i];
+    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_name[i];
+    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_alias_name[i];
     _config->_feed_type[i] = model_config.feed_var(i).feed_type();
-    VLOG(2) << "feed type[" << i << "]: "
-            << _config->_feed_type[i];
+    VLOG(2) << "feed type[" << i << "]: " << _config->_feed_type[i];
 
     if (model_config.feed_var(i).is_lod_tensor()) {
       VLOG(2) << "var[" << i << "] is lod tensor";

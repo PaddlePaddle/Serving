@@ -25,21 +25,13 @@ message Tensor {
   repeated int32 shape = 3;
 };
 
-message FeedInst {
-  repeated Tensor tensor_array = 1;
-};
+message FeedInst { repeated Tensor tensor_array = 1; };
 
-message FetchInst {
-  repeated Tensor tensor_array = 1;
-};
+message FetchInst { repeated Tensor tensor_array = 1; };
 
-message Request {
-  repeated FeedInst insts = 1;
-};
+message Request { repeated FeedInst insts = 1; };
 
-message Response {
-  repeated FetchInst insts = 1;
-};
+message Response { repeated FetchInst insts = 1; };
 
 service GeneralModelService {
   rpc inference(Request) returns (Response);

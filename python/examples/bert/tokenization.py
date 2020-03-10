@@ -26,7 +26,7 @@ import sentencepiece as spm
 import pickle
 
 
-def convert_to_unicode(text):
+def convert_to_unicode(text):  # pylint: disable=doc-string-with-all-args
     """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
     if six.PY3:
         if isinstance(text, str):
@@ -46,7 +46,7 @@ def convert_to_unicode(text):
         raise ValueError("Not running on Python2 or Python 3?")
 
 
-def printable_text(text):
+def printable_text(text):  # pylint: disable=doc-string-with-all-args
     """Returns text encoded in a way suitable for print or `tf.logging`."""
 
     # These functions want `str` for both Python2 and Python3, but in one case
@@ -69,7 +69,7 @@ def printable_text(text):
         raise ValueError("Not running on Python2 or Python 3?")
 
 
-def load_vocab(vocab_file):
+def load_vocab(vocab_file):  # pylint: disable=doc-string-with-all-args, doc-string-with-returns
     """Loads a vocabulary file into a dictionary."""
     vocab = collections.OrderedDict()
     fin = io.open(vocab_file, "r", encoding="UTF-8")
@@ -163,7 +163,7 @@ class CharTokenizer(object):
         return convert_by_vocab(self.inv_vocab, ids)
 
 
-class WSSPTokenizer(object):
+class WSSPTokenizer(object):  # pylint: disable=doc-string-missing
     def __init__(self, vocab_file, sp_model_dir, word_dict, ws=True,
                  lower=True):
         self.vocab = load_vocab(vocab_file)
@@ -175,7 +175,7 @@ class WSSPTokenizer(object):
         self.window_size = 5
         self.sp_model.Load(sp_model_dir)
 
-    def cut(self, chars):
+    def cut(self, chars):  # pylint: disable=doc-string-missing
         words = []
         idx = 0
         while idx < len(chars):
@@ -192,7 +192,7 @@ class WSSPTokenizer(object):
             idx += i
         return words
 
-    def tokenize(self, text, unk_token="[UNK]"):
+    def tokenize(self, text, unk_token="[UNK]"):  # pylint: disable=doc-string-missing
         text = convert_to_unicode(text)
         if self.ws:
             text = [s for s in self.cut(text) if s != ' ']
@@ -228,7 +228,7 @@ class BasicTokenizer(object):
         """
         self.do_lower_case = do_lower_case
 
-    def tokenize(self, text):
+    def tokenize(self, text):  # pylint: disable=doc-string-with-all-args, doc-string-with-returns
         """Tokenizes a piece of text."""
         text = convert_to_unicode(text)
         text = self._clean_text(text)
@@ -345,7 +345,7 @@ class WordpieceTokenizer(object):
         self.max_input_chars_per_word = max_input_chars_per_word
         self.use_sentence_piece_vocab = use_sentence_piece_vocab
 
-    def tokenize(self, text):
+    def tokenize(self, text):  # pylint: disable=doc-string-with-all-args
         """Tokenizes a piece of text into its word pieces.
 
         This uses a greedy longest-match-first algorithm to perform tokenization
@@ -432,8 +432,8 @@ def _is_punctuation(char):
     # Characters such as "^", "$", and "`" are not in the Unicode
     # Punctuation class but we treat them as punctuation anyways, for
     # consistency.
-    if ((cp >= 33 and cp <= 47) or (cp >= 58 and cp <= 64)
-            or (cp >= 91 and cp <= 96) or (cp >= 123 and cp <= 126)):
+    if ((cp >= 33 and cp <= 47) or (cp >= 58 and cp <= 64) or
+        (cp >= 91 and cp <= 96) or (cp >= 123 and cp <= 126)):
         return True
     cat = unicodedata.category(char)
     if cat.startswith("P"):

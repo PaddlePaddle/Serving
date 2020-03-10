@@ -188,8 +188,7 @@ int GeneralReaderOp::inference() {
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
         for (int k = 0; k < elem_num; ++k) {
-          dst_ptr[offset + k] =
-              req->insts(j).tensor_array(i).int64_data(k);
+          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int64_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];
@@ -203,8 +202,7 @@ int GeneralReaderOp::inference() {
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
         for (int k = 0; k < elem_num; ++k) {
-          dst_ptr[offset + k] =
-              req->insts(j).tensor_array(i).float_data(k);
+          dst_ptr[offset + k] = req->insts(j).tensor_array(i).float_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];

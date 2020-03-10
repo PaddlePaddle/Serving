@@ -1,3 +1,18 @@
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# pylint: disable=doc-string-missing, doc-string-with-all-args, doc-string-with-returns
+
 import sys
 import time
 import numpy as np
@@ -13,10 +28,9 @@ def bow_net(data,
             hid_dim=128,
             hid_dim2=96,
             class_dim=2):
-    """
-    bow net
-    """
-    emb = fluid.layers.embedding(input=data, size=[dict_dim, emb_dim], is_sparse=True)
+    """ bow net. """
+    emb = fluid.layers.embedding(
+        input=data, size=[dict_dim, emb_dim], is_sparse=True)
     bow = fluid.layers.sequence_pool(input=emb, pool_type='sum')
     bow_tanh = fluid.layers.tanh(bow)
     fc_1 = fluid.layers.fc(input=bow_tanh, size=hid_dim, act="tanh")
@@ -37,10 +51,9 @@ def cnn_net(data,
             hid_dim2=96,
             class_dim=2,
             win_size=3):
-    """
-    conv net
-    """
-    emb = fluid.layers.embedding(input=data, size=[dict_dim, emb_dim], is_sparse=True)
+    """ conv net. """
+    emb = fluid.layers.embedding(
+        input=data, size=[dict_dim, emb_dim], is_sparse=True)
 
     conv_3 = fluid.nets.sequence_conv_pool(
         input=emb,
@@ -67,9 +80,7 @@ def lstm_net(data,
              hid_dim2=96,
              class_dim=2,
              emb_lr=30.0):
-    """
-    lstm net
-    """
+    """ lstm net. """
     emb = fluid.layers.embedding(
         input=data,
         size=[dict_dim, emb_dim],
@@ -103,9 +114,7 @@ def gru_net(data,
             hid_dim2=96,
             class_dim=2,
             emb_lr=400.0):
-    """
-    gru net
-    """
+    """ gru net. """
     emb = fluid.layers.embedding(
         input=data,
         size=[dict_dim, emb_dim],

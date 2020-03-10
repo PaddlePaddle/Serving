@@ -10,4 +10,5 @@ services:
 before_install:
     - docker build -f ${DOCKERFILE_CPU} -t serving-img:${COMPILE_TYPE} .
 install:
-    - docker run -it -v $PWD:/Serving serving-img:${COMPILE_TYPE} /bin/bash Serving/tools/serving-build.sh $COMPILE_TYPE
+    - if [ $COMPILE_TYPE == "CPU" ]; then docker run -it -v $PWD:/Serving serving-img:${COMPILE_TYPE} /bin/bash Serving/tools/serving_check_style.sh ; fi;
+    - docker run -it -v $PWD:/Serving serving-img:${COMPILE_TYPE} /bin/bash Serving/tools/serving_build.sh $COMPILE_TYPE

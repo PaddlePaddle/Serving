@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 from __future__ import unicode_literals, absolute_import
 import os
@@ -29,6 +30,7 @@ from bert_reader import BertReader
 
 args = benchmark_args()
 
+
 def single_func(idx, resource):
     fin = open("data-c.txt")
     if args.request == "rpc":
@@ -38,29 +40,32 @@ def single_func(idx, resource):
         client = Client()
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % 4]])
-        
+
         start = time.time()
         for line in fin:
             feed_dict = reader.process(line)
-            result = client.predict(feed=feed_dict,
-                                    fetch=fetch)
+            result = client.predict(feed=feed_dict, fetch=fetch)
         end = time.time()
     elif args.request == "http":
         start = time.time()
-        header = {"Content-Type":"application/json"}
+        header = {"Content-Type": "application/json"}
         for line in fin:
             #dict_data = {"words": "this is for output ", "fetch": ["pooled_output"]}
             dict_data = {"words": line, "fetch": ["pooled_output"]}
-            r = requests.post('http://{}/bert/prediction'.format(resource["endpoint"][0]),
-                              data=json.dumps(dict_data), headers=header)
+            r = requests.post(
+                'http://{}/bert/prediction'.format(resource["endpoint"][0]),
+                data=json.dumps(dict_data),
+                headers=header)
         end = time.time()
     return [[end - start]]
 
+
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496", "127.0.0.1:9497"]
+    endpoint_list = [
+        "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496", "127.0.0.1:9497"
+    ]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
     #result = multi_thread_runner.run(single_func, args.thread, {"endpoint":endpoint_list})
-    result = single_func(0, {"endpoint":endpoint_list})
+    result = single_func(0, {"endpoint": endpoint_list})
     print(result)
-

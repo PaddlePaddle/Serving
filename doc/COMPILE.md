@@ -27,4 +27,3 @@ make -j10
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=/home/users/dongdaxiang/software/baidu/third-party/python/bin/python -DCLIENT_ONLY=ON ..
 make -j10
 ```
-
