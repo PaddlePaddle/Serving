@@ -71,7 +71,7 @@ class WebService(object):
                 feed=request.json, fetch=fetch, fetch_map=fetch_map)
             return fetch_map
 
-        app_instance.run(host="127.0.0.1",
+        app_instance.run(host="0.0.0.0",
                          port=self.port,
                          threaded=False,
                          processes=1)
