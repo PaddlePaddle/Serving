@@ -17,16 +17,16 @@ git submodule update --init --recursive
 
 ### 编译Server部分
 
-#### 集成CPU版本Paddle Inference Library
-``` shell
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=/home/users/dongdaxiang/software/baidu/third-party/python/bin/python -DCLIENT_ONLY=OFF ..
-make -j10
-```
-
 #### PYTHONROOT设置
 ``` shell
 # 例如python的路径为/usr/bin/python，可以设置PYTHONROOT
 export PYTHONROOT=/usr/
+```
+
+#### 集成CPU版本Paddle Inference Library
+``` shell
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=/home/users/dongdaxiang/software/baidu/third-party/python/bin/python -DCLIENT_ONLY=OFF ..
+make -j10
 ```
 
 #### 集成GPU版本Paddle Inference Library
