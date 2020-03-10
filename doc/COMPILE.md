@@ -44,8 +44,3 @@ make -j10
 
 ### 安装wheel包
 无论是client端还是server端，编译完成后，安装python/dist/下的whl包即可
-
-
-
-
-
