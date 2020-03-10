@@ -17,6 +17,7 @@ function check_style() {
     set -e
 
     pip install cpplint 'pre-commit==1.10.4'
+    pip install --ignore-installed pylint
 
     export PATH=/usr/bin:$PATH
     pre-commit install
