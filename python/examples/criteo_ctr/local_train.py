@@ -62,7 +62,7 @@ def train():
     feed_var_dict = {}
     feed_var_dict['dense_input'] = dense_input
     for i, sparse in enumerate(sparse_input_ids):
-        feed_var_dict["embedding_{}.w_0".format(i)] = sparse
+        feed_var_dict["embedding_{}.tmp_0".format(i)] = sparse
     fetch_var_dict = {"prob": predict_y}
 
     feed_kv_dict = {}
