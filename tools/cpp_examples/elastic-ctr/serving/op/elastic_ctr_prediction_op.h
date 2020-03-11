@@ -14,8 +14,8 @@
 
 #pragma once
 #include <vector>
-#include "paddle_inference_api.h"  // NOLINT
 #include "elastic-ctr/serving/elastic_ctr_prediction.pb.h"
+#include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {
@@ -33,7 +33,7 @@ class ElasticCTRPredictionOp
           baidu::paddle_serving::predictor::elastic_ctr::Response> {
  public:
   typedef std::vector<paddle::PaddleTensor> TensorVector;
-  typedef std::map<int, std::vector<int64_t>> Sample;
+  typedef std::map<int, std::vector<int64_t>> Sample;  // NOLINT
   typedef std::vector<Sample> Samples;
 
   DECLARE_OP(ElasticCTRPredictionOp);

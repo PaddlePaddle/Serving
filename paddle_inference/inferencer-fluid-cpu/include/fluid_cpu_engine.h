@@ -21,8 +21,8 @@
 #include <vector>
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
-#include "paddle_inference_api.h"  // NOLINT
 #include "core/predictor/framework/infer.h"
+#include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {
@@ -336,7 +336,7 @@ class SigmoidModel {
       return -1;
     }
     VLOG(2) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
-                 << _sigmoid_b._params[1] << "].";
+            << _sigmoid_b._params[1] << "].";
     _exp_max_input = exp_max;
     _exp_min_input = exp_min;
     return 0;
@@ -373,7 +373,7 @@ class SigmoidFluidModel {
     clone_model.reset(new SigmoidFluidModel());
     clone_model->_sigmoid_core = _sigmoid_core;
     clone_model->_fluid_core = _fluid_core->Clone();
-    return std::move(clone_model);
+    return std::move(clone_model);  // NOLINT
   }
 
  public:
@@ -459,7 +459,7 @@ class FluidCpuWithSigmoidCore : public FluidFamilyCore {
   }
 
  protected:
-  std::unique_ptr<SigmoidFluidModel> _core;
+  std::unique_ptr<SigmoidFluidModel> _core;  // NOLINT
 };
 
 class FluidCpuNativeDirWithSigmoidCore : public FluidCpuWithSigmoidCore {

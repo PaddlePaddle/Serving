@@ -19,16 +19,26 @@ Usage:
 """
 import argparse
 
-def parse_args():
+
+def parse_args():  # pylint: disable=doc-string-missing
     parser = argparse.ArgumentParser("serve")
-    parser.add_argument("--thread", type=int, default=10, help="Concurrency of server")
-    parser.add_argument("--model", type=str, default="", help="Model for serving")
-    parser.add_argument("--port", type=int, default=9292, help="Port the server")
-    parser.add_argument("--workdir", type=str, default="workdir", help="Working dir of current service")
-    parser.add_argument("--device", type=str, default="cpu", help="Type of device")
+    parser.add_argument(
+        "--thread", type=int, default=10, help="Concurrency of server")
+    parser.add_argument(
+        "--model", type=str, default="", help="Model for serving")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port the server")
+    parser.add_argument(
+        "--workdir",
+        type=str,
+        default="workdir",
+        help="Working dir of current service")
+    parser.add_argument(
+        "--device", type=str, default="cpu", help="Type of device")
     return parser.parse_args()
 
-def start_standard_model():
+
+def start_standard_model():  # pylint: disable=doc-string-missing
     args = parse_args()
     thread_num = args.thread
     model = args.model
@@ -58,6 +68,7 @@ def start_standard_model():
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
     server.run_server()
+
 
 if __name__ == "__main__":
     start_standard_model()

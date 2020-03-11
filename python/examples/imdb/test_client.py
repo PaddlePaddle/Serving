@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 from paddle_serving_client import Client
 from imdb_reader import IMDBDataset
 import sys
@@ -31,4 +32,3 @@ for line in sys.stdin:
     fetch = ["acc", "cost", "prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
     print("{} {}".format(fetch_map["prediction"][1], label[0]))
-    
