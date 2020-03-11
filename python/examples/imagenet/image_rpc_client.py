@@ -15,15 +15,21 @@
 import sys
 from image_reader import ImageReader
 from paddle_serving_client import Client
+import time
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+client.connect(["127.0.0.1:9292"])
 reader = ImageReader()
-with open("./data/n01440764_10026.JPEG") as f:
-    img = f.read()
 
-img = reader.process_image(img).reshape(-1)
-fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+start = time.time()
+for i in range(1000):
+    with open("./data/n01440764_10026.JPEG") as f:
+        img = f.read()
+    img = reader.process_image(img).reshape(-1)
+    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+    print(i)
+end = time.time()
+print(end - start)
 
-print(fetch_map["score"])
+#print(fetch_map["score"])

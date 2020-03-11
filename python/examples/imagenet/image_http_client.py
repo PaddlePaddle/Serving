@@ -15,17 +15,22 @@
 import requests
 import base64
 import json
-
+import time
 
 def predict(image_path, server):
     image = base64.b64encode(open(image_path).read())
     req = json.dumps({"image": image, "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
-    print(r.json()["score"])
+    #print(r.json()["score"])
 
 
 if __name__ == "__main__":
-    server = "http://127.0.0.1:9393/image/prediction"
+    server = "http://127.0.0.1:9292/image/prediction"
     image_path = "./data/n01440764_10026.JPEG"
-    predict(image_path, server)
+    start = time.time()
+    for i in range(1000):
+        predict(image_path, server)
+        print(i)
+    end = time.time()
+    print(end - start)
