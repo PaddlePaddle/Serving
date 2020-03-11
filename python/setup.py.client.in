@@ -23,9 +23,18 @@ from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_client.version import serving_client_version
+from pkg_resources import DistributionNotFound, get_distribution
 
+        
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
+
+def find_package(pkgname):
+    try:
+        get_distribution(pkgname)
+        return True
+    except DistributionNotFound:
+        return False
 
 def copy_lib():
     os.popen('mkdir -p paddle_serving_client/lib')
@@ -41,8 +50,11 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'protobuf >= 3.1.0','paddlepaddle'
+    'six >= 1.10.0', 'protobuf >= 3.1.0'
 ]
+
+if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
+    REQUIRED_PACKAGES.append("paddlepaddle")
 
 packages=['paddle_serving_client',
           'paddle_serving_client.proto',
