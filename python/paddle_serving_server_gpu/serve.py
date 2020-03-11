@@ -17,36 +17,23 @@ Usage:
     Example:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
+import os
 import argparse
+from multiprocessing import Pool, Process
+from paddle_serving_server_gpu import serve_args
 
 
-def parse_args():
-    parser = argparse.ArgumentParser("serve")
-    parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
-    parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
-    parser.add_argument(
-        "--port", type=int, default=9292, help="Port the server")
-    parser.add_argument(
-        "--workdir",
-        type=str,
-        default="workdir",
-        help="Working dir of current service")
-    parser.add_argument(
-        "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument("--gpuid", type=int, default=0, help="Index of GPU")
-    return parser.parse_args()
-
-
-def start_standard_model():
-    args = parse_args()
+def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
+    gpuid = int(gpuid)
+    device = "gpu"
+    port = args.port
+    if gpuid == -1:
+        device = "cpu"
+    elif gpuid >= 0:
+        port = args.port + gpuid
     thread_num = args.thread
     model = args.model
-    port = args.port
-    workdir = args.workdir
-    device = args.device
-    gpuid = args.gpuid
+    workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
         print("You must specify your serving model")
@@ -69,9 +56,33 @@ def start_standard_model():
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
-    server.set_gpuid(gpuid)
+    if gpuid >= 0:
+        server.set_gpuid(gpuid)
     server.run_server()
 
 
+def start_multi_card(args):  # pylint: disable=doc-string-missing
+    gpus = ""
+    if args.gpu_ids == "":
+        gpus = os.environ["CUDA_VISIBLE_DEVICES"]
+    else:
+        gpus = args.gpu_ids.split(",")
+    if len(gpus) <= 0:
+        start_gpu_card_model(-1)
+    else:
+        gpu_processes = []
+        for i, gpu_id in enumerate(gpus):
+            p = Process(
+                target=start_gpu_card_model, args=(
+                    i,
+                    args, ))
+            gpu_processes.append(p)
+        for p in gpu_processes:
+            p.start()
+        for p in gpu_processes:
+            p.join()
+
+
 if __name__ == "__main__":
-    start_standard_model()
+    args = serve_args()
+    start_multi_card(args)

@@ -51,7 +51,7 @@ void RocksDBWrapper::SetDBName(std::string db_name) {
 void RocksDBWrapper::Close() {
   if (db_ != nullptr) {
     db_->Close();
-    delete(db_);
+    delete (db_);
     db_ = nullptr;
   }
 }

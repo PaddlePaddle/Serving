@@ -199,6 +199,7 @@ class Client(object):
         float_feed_names = []
         fetch_names = []
         counter = 0
+        batch_size = len(feed_batch)
         for feed in feed_batch:
             int_slot = []
             float_slot = []
@@ -221,15 +222,21 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        result_batch = self.client_handle_.batch_predict(
+        result_batch = self.result_handle_
+        res = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
-            fetch_names)
+            fetch_names, result_batch, self.pid)
 
         result_map_batch = []
-        for result in result_batch:
+        for index in range(batch_size):
             result_map = {}
             for i, name in enumerate(fetch_names):
-                result_map[name] = result[i]
+                if self.fetch_names_to_type_[name] == int_type:
+                    result_map[name] = result_batch.get_int64_by_name(name)[
+                        index]
+                elif self.fetch_names_to_type_[name] == float_type:
+                    result_map[name] = result_batch.get_float_by_name(name)[
+                        index]
             result_map_batch.append(result_map)
 
         return result_map_batch

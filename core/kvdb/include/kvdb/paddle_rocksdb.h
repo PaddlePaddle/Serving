@@ -25,7 +25,7 @@
 
 class RocksDBWrapper {
  public:
-  RocksDBWrapper(std::string db_name);
+  RocksDBWrapper(std::string db_name);  // NOLINT
   std::string Get(std::string key);
 
   bool Put(std::string key, std::string value);
@@ -33,6 +33,7 @@ class RocksDBWrapper {
   static std::shared_ptr<RocksDBWrapper> RocksDBWrapperFactory(
       std::string db_name = "SparseMatrix");
   void Close();
+
  private:
   rocksdb::DB *db_;
   std::string db_name_;

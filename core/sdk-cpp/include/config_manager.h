@@ -32,9 +32,9 @@ class EndpointConfigManager {
   EndpointConfigManager()
       : _last_update_timestamp(0), _current_endpointmap_id(1) {}
 
-  int create(const std::string & sdk_desc_str);
+  int create(const std::string& sdk_desc_str);
 
-  int load(const std::string & sdk_desc_str);
+  int load(const std::string& sdk_desc_str);
 
   int create(const char* path, const char* file);
 

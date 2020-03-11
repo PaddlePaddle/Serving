@@ -1,4 +1,5 @@
 # coding:utf-8
+# pylint: disable=doc-string-missing
 import os
 import sys
 import numpy as np
@@ -9,6 +10,9 @@ import time
 from paddlehub.common.logger import logger
 import socket
 from paddle_serving_client import Client
+from paddle_serving_client.utils import MultiThreadRunner
+from paddle_serving_client.utils import benchmark_args
+args = benchmark_args()
 
 _ver = sys.version_info
 is_py2 = (_ver[0] == 2)
@@ -122,36 +126,30 @@ class BertService():
         return fetch_map_batch
 
 
-def test():
+def single_func(idx, resource):
     bc = BertService(
         model_name='bert_chinese_L-12_H-768_A-12',
         max_seq_len=20,
         show_ids=False,
         do_lower_case=True)
-    server_addr = ["127.0.0.1:9292"]
     config_file = './serving_client_conf/serving_client_conf.prototxt'
     fetch = ["pooled_output"]
+    server_addr = [resource["endpoint"][idx]]
     bc.load_client(config_file, server_addr)
     batch_size = 1
-    batch = []
-    for line in sys.stdin:
-        if batch_size == 1:
-            result = bc.run_general([[line.strip()]], fetch)
-            print(result)
-        else:
-            if len(batch) < batch_size:
-                batch.append([line.strip()])
-            else:
-                result = bc.run_batch_general(batch, fetch)
-                batch = []
-                for r in result:
-                    print(r)
-    if len(batch) > 0:
-        result = bc.run_batch_general(batch, fetch)
-        batch = []
-        for r in result:
-            print(r)
+    start = time.time()
+    fin = open("data-c.txt")
+    for line in fin:
+        result = bc.run_general([[line.strip()]], fetch)
+    end = time.time()
+    return [[end - start]]
 
 
 if __name__ == '__main__':
-    test()
+    multi_thread_runner = MultiThreadRunner()
+    result = multi_thread_runner.run(single_func, args.thread, {
+        "endpoint": [
+            "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496",
+            "127.0.0.1:9497"
+        ]
+    })

@@ -87,4 +87,3 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 endif()
-

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "core/predictor/unittest/test_server_manager.h"  // TestServerManager
-#include <gflags/gflags.h>                           // FLAGS
+#include <gflags/gflags.h>                                // FLAGS
 #include <string>
 #include "core/predictor/framework/server.h"  // ServerManager
 
