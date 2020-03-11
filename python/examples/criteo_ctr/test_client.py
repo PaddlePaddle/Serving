@@ -18,15 +18,17 @@ reader = dataset.infer_reader(test_filelists[len(test_filelists)-1:], batch, buf
 
 label_list = []
 prob_list = []
+count = 0
 for data in reader():
     feed_dict = {}
     feed_dict['dense_input'] = data[0][0]
     for i in range(1, 27):
         feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    if fetch_map['prob'][0] > fetch_map['prob'][1]:
-        prob_list.append(0)
-    else:
-        prob_list.append(1)
-    label_list.append(data[0][-1])
-print (auc(prob_list, label_list))
+    prob_list.append(fetch_map['prob'][1])
+    label_list.append(data[0][-1][0])
+    count += 1
+    if count == 1000:
+        break
+
+print (auc(label_list, prob_list))
