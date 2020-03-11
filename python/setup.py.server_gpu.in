@@ -38,7 +38,7 @@ max_version, mid_version, min_version = python_version()
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.1.0',
-    'paddle_serving_client'
+    'paddle_serving_client', 'flask >= 1.1.1'
 ]
 
 if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
