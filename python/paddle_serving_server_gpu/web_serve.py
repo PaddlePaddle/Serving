@@ -27,10 +27,13 @@ if __name__ == "__main__":
     args = serve_args()
     web_service = WebService(name=args.name)
     web_service.load_model_config(args.model)
+    gpu_ids = []
     if args.gpu_ids == "":
-        gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
-    gpus = [int(x) for x in gpu_ids.split(",")]
-    web_service.set_gpus(gpus)
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
+    if len(gpu_ids) > 0:
+        gpus = [int(x) for x in gpu_ids.split(",")]
+        web_service.set_gpus(gpus)
     web_service.prepare_server(
         workdir=args.workdir, port=args.port, device=args.device)
     service.run_server()
