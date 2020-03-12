@@ -21,7 +21,7 @@ python image_http_client.py
 
 启动server端
 ```
-python image_server.py conf_and_model/serving_server_model workdir 9393
+python -m paddle_serving_server.serve --model conf_and_model/serving_server_model/ --port 9393
 ```
 
 client端进行预测

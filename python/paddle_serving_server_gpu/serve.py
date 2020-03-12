@@ -17,6 +17,7 @@ Usage:
     Example:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
+import os
 import argparse
 from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
