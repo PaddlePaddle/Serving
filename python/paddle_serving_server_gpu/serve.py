@@ -64,6 +64,7 @@ def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
 def start_multi_card(args):  # pylint: disable=doc-string-missing
     gpus = ""
     if args.gpu_ids == "":
+        import os
         gpus = os.environ["CUDA_VISIBLE_DEVICES"]
     else:
         gpus = args.gpu_ids.split(",")

@@ -36,4 +36,4 @@ if __name__ == "__main__":
         web_service.set_gpus(gpus)
     web_service.prepare_server(
         workdir=args.workdir, port=args.port, device=args.device)
-    service.run_server()
+    web_service.run_server()
