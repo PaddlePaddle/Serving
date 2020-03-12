@@ -93,6 +93,8 @@ print(fetch_map)
 
 [Compile from source code(Chinese)](doc/COMPILE.md)
 
+[How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+
 [FAQ(Chinese)](doc/FAQ.md)
 
 [Design Doc(Chinese)](doc/DESIGN.md)

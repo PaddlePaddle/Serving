@@ -17,8 +17,8 @@ Usage:
     Example:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
-import os
 import argparse
+import os
 from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 
@@ -64,12 +64,14 @@ def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
 def start_multi_card(args):  # pylint: disable=doc-string-missing
     gpus = ""
     if args.gpu_ids == "":
-        import os
-        gpus = os.environ["CUDA_VISIBLE_DEVICES"]
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            gpus = os.environ["CUDA_VISIBLE_DEVICES"]
+        else:
+            gpus = []
     else:
         gpus = args.gpu_ids.split(",")
     if len(gpus) <= 0:
-        start_gpu_card_model(-1)
+        start_gpu_card_model(-1, args)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
