@@ -17,12 +17,12 @@ import base64
 import json
 import time
 
+
 def predict(image_path, server):
     image = base64.b64encode(open(image_path).read())
     req = json.dumps({"image": image, "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
-    #print(r.json()["score"])
 
 
 if __name__ == "__main__":

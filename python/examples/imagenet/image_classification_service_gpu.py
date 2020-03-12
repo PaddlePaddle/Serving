@@ -18,7 +18,12 @@ import os
 import base64
 from image_reader import ImageReader
 
+
 class ImageService(WebService):
+    """
+    preprocessing function for image classification
+    """
+
     def preprocess(self, feed={}, fetch=[]):
         reader = ImageReader()
         if "image" not in feed:
