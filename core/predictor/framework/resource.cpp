@@ -144,6 +144,14 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     return -1;
   }
   // init rocksDB instance
+  if (resource_conf.has_cube_config_file() && resource_conf.has_cube_config_path()) {
+    LOG(INFO) << "init cube client, path[ " << resource_conf.cube_config_path()
+      << " ], config file [ " << resource_conf.cube_config_file() << " ].";
+    rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +"/" + resource_conf.cube_config_file();
+    cube->init(cube_config_fullpath.c_str());
+  }
+
   if (db.get() == nullptr) {
     db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
   }
