@@ -33,27 +33,40 @@ args = benchmark_args()
 
 def single_func(idx, resource):
     fin = open("data-c.txt")
+    dataset = []
+    for line in fin:
+        dataset.append(line.strip())
     if args.request == "rpc":
         reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
         config_file = './serving_client_conf/serving_client_conf.prototxt'
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
-        client.connect([resource["endpoint"][idx % 4]])
+        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
 
         start = time.time()
-        for line in fin:
-            feed_dict = reader.process(line)
-            result = client.predict(feed=feed_dict, fetch=fetch)
+        for i in range(1000):
+            if args.batch_size == 1:
+                feed_dict = reader.process(dataset[i])
+                result = client.predict(feed=feed_dict, fetch=fetch)
+            elif args.batch_size > 1:
+                feed_batch = []
+                for bi in range(args.batch_size):
+                    feed_batch.append(reader.process(dataset[i]))
+                result = client.batch_predict(
+                    feed_batch=feed_batch, fetch=fetch)
+            else:
+                print("unsupport batch size {}".format(args.batch_size))
+
         end = time.time()
     elif args.request == "http":
         start = time.time()
         header = {"Content-Type": "application/json"}
-        for line in fin:
-            #dict_data = {"words": "this is for output ", "fetch": ["pooled_output"]}
-            dict_data = {"words": line, "fetch": ["pooled_output"]}
+        for i in range(1000):
+            dict_data = {"words": dataset[i], "fetch": ["pooled_output"]}
             r = requests.post(
-                'http://{}/bert/prediction'.format(resource["endpoint"][0]),
+                'http://{}/bert/prediction'.format(resource["endpoint"][
+                    idx % len(resource["endpoint"])]),
                 data=json.dumps(dict_data),
                 headers=header)
         end = time.time()
@@ -62,10 +75,13 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = [
-        "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496", "127.0.0.1:9497"
-    ]
+    endpoint_list = ["127.0.0.1:9292"]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
-    #result = multi_thread_runner.run(single_func, args.thread, {"endpoint":endpoint_list})
-    result = single_func(0, {"endpoint": endpoint_list})
-    print(result)
+    result = multi_thread_runner.run(single_func, args.thread,
+                                     {"endpoint": endpoint_list})
+    #result = single_func(0, {"endpoint": endpoint_list})
+    avg_cost = 0
+    for i in range(args.thread):
+        avg_cost += result[0][i]
+    avg_cost = avg_cost / args.thread
+    print("average total cost {} s.".format(avg_cost))

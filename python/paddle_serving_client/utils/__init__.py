@@ -31,6 +31,7 @@ def benchmark_args():
         help="endpoint of server")
     parser.add_argument(
         "--request", type=str, default="rpc", help="mode of service")
+    parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     return parser.parse_args()
 
 

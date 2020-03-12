@@ -12,6 +12,8 @@ import socket
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
+from bert_reader import BertReader
+
 args = benchmark_args()
 
 _ver = sys.version_info
@@ -43,7 +45,7 @@ class BertService():
         self.pid = os.getpid()
         self.profile = True if ("FLAGS_profile_client" in os.environ and
                                 os.environ["FLAGS_profile_client"]) else False
-
+        '''
         module = hub.Module(name=self.model_name)
         inputs, outputs, program = module.context(
             trainable=True, max_seq_len=self.max_seq_len)
@@ -56,6 +58,8 @@ class BertService():
             dataset=None,
             max_seq_len=self.max_seq_len,
             do_lower_case=self.do_lower_case)
+        '''
+        self.reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
         self.reader_flag = True
 
     def load_client(self, config_file, server_addr):
@@ -64,11 +68,14 @@ class BertService():
         self.client.connect(server_addr)
 
     def run_general(self, text, fetch):
+        '''
         self.batch_size = len(text)
         data_generator = self.reader.data_generator(
             batch_size=self.batch_size, phase='predict', data=text)
+        '''
         result = []
         prepro_start = time.time()
+        '''
         for run_step, batch in enumerate(data_generator(), start=1):
             token_list = batch[0][0].reshape(-1).tolist()
             pos_list = batch[0][1].reshape(-1).tolist()
@@ -82,47 +89,56 @@ class BertService():
                     "input_mask": mask_list
                 }
                 prepro_end = time.time()
-                if self.profile:
-                    print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
-                        self.pid,
-                        int(round(prepro_start * 1000000)),
-                        int(round(prepro_end * 1000000))))
-                fetch_map = self.client.predict(feed=feed, fetch=fetch)
+        '''
+        feed = self.reader.process(text)
+        if self.profile:
+            print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
+                self.pid,
+                int(round(prepro_start * 1000000)),
+                int(round(prepro_end * 1000000))))
+        fetch_map = self.client.predict(feed=feed, fetch=fetch)
 
         return fetch_map
 
     def run_batch_general(self, text, fetch):
         self.batch_size = len(text)
+        '''
         data_generator = self.reader.data_generator(
             batch_size=self.batch_size, phase='predict', data=text)
+        '''
         result = []
         prepro_start = time.time()
+        '''
         for run_step, batch in enumerate(data_generator(), start=1):
             token_list = batch[0][0].reshape(-1).tolist()
             pos_list = batch[0][1].reshape(-1).tolist()
             sent_list = batch[0][2].reshape(-1).tolist()
             mask_list = batch[0][3].reshape(-1).tolist()
-            feed_batch = []
-            for si in range(self.batch_size):
-                feed = {
-                    "input_ids": token_list[si * self.max_seq_len:(si + 1) *
-                                            self.max_seq_len],
-                    "position_ids":
-                    pos_list[si * self.max_seq_len:(si + 1) * self.max_seq_len],
-                    "segment_ids": sent_list[si * self.max_seq_len:(si + 1) *
-                                             self.max_seq_len],
-                    "input_mask":
-                    mask_list[si * self.max_seq_len:(si + 1) * self.max_seq_len]
-                }
-                feed_batch.append(feed)
-            prepro_end = time.time()
-            if self.profile:
-                print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
-                    self.pid,
-                    int(round(prepro_start * 1000000)),
-                    int(round(prepro_end * 1000000))))
-            fetch_map_batch = self.client.batch_predict(
-                feed_batch=feed_batch, fetch=fetch)
+        '''
+        feed_batch = []
+        for si in range(self.batch_size):
+            '''
+            feed = {
+                "input_ids": token_list[si * self.max_seq_len:(si + 1) *
+                                        self.max_seq_len],
+                "position_ids":
+                pos_list[si * self.max_seq_len:(si + 1) * self.max_seq_len],
+                "segment_ids": sent_list[si * self.max_seq_len:(si + 1) *
+                                         self.max_seq_len],
+                "input_mask":
+                mask_list[si * self.max_seq_len:(si + 1) * self.max_seq_len]
+            }
+            '''
+            feed = self.reader.process(text[si])
+            feed_batch.append(feed)
+        prepro_end = time.time()
+        if self.profile:
+            print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
+                self.pid,
+                int(round(prepro_start * 1000000)),
+                int(round(prepro_end * 1000000))))
+        fetch_map_batch = self.client.batch_predict(
+            feed_batch=feed_batch, fetch=fetch)
         return fetch_map_batch
 
 
@@ -134,22 +150,32 @@ def single_func(idx, resource):
         do_lower_case=True)
     config_file = './serving_client_conf/serving_client_conf.prototxt'
     fetch = ["pooled_output"]
-    server_addr = [resource["endpoint"][idx]]
+    server_addr = [resource["endpoint"][idx % len(resource["endpoint"])]]
     bc.load_client(config_file, server_addr)
     batch_size = 1
+    use_batch = False if batch_size == 1 else True
+    feed_batch = []
     start = time.time()
     fin = open("data-c.txt")
     for line in fin:
-        result = bc.run_general([[line.strip()]], fetch)
+        if not use_batch:
+            result = bc.run_general(line.strip(), fetch)
+        else:
+            if len(feed_batch) == batch_size:
+                result = bc.run_batch_general(feed_batch, fetch)
+                feed_batch = []
+            else:
+                feed_batch.append(line.strip())
+    if use_batch and len(feed_batch) > 0:
+        result = bc.run_batch_general(feed_batch, fetch)
+        feed_batch = []
+
     end = time.time()
     return [[end - start]]
 
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(single_func, args.thread, {
-        "endpoint": [
-            "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496",
-            "127.0.0.1:9497"
-        ]
-    })
+    result = multi_thread_runner.run(single_func, args.thread,
+                                     {"endpoint": ["127.0.0.1:9292"]})
+    print("time cost for each thread {}".format(result))
