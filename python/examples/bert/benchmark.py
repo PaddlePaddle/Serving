@@ -35,7 +35,6 @@ def single_func(idx, resource):
     fin = open("data-c.txt")
     if args.request == "rpc":
         reader = BertReader(vocab_file="vocab.txt", max_seq_len=128)
-        config_file = './serving_client_conf/serving_client_conf.prototxt'
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
