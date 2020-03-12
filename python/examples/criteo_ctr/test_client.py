@@ -14,10 +14,9 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-import paddle
 import sys
 import os
-import criteo_reader as criteo
+import criteo as criteo
 from paddle_serving_client.metric import auc
 
 client = Client()
@@ -39,7 +38,11 @@ label_list = []
 prob_list = []
 for data in reader():
     feed_dict = {}
+    feed_dict['dense_input'] = data[0][0]
     for i in range(1, 27):
-        feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+        feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    print(fetch_map)
+    prob_list.append(fetch_map['prob'][1])
+    label_list.append(data[0][-1][0])
+
+print (auc(label_list, prob_list))

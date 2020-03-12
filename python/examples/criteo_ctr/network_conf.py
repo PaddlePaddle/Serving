@@ -25,16 +25,16 @@ def dnn_model(dense_input, sparse_inputs, label, embedding_size,
             is_sparse=True,
             is_distributed=False,
             size=[sparse_feature_dim, embedding_size],
-            param_attr=fluid.ParamAttr(
-                name="SparseFeatFactors",
-                initializer=fluid.initializer.Uniform()))
-        return fluid.layers.sequence_pool(input=emb, pool_type='sum')
+            param_attr=fluid.ParamAttr(name="SparseFeatFactors",
+                                       initializer=fluid.initializer.Uniform()))
+        x =  fluid.layers.sequence_pool(input=emb, pool_type='sum')
+        return emb, x
 
     def mlp_input_tensor(emb_sums, dense_tensor):
-        if isinstance(dense_tensor, fluid.Variable):
-            return fluid.layers.concat(emb_sums, axis=1)
-        else:
-            return fluid.layers.concat(emb_sums + [dense_tensor], axis=1)
+        #if isinstance(dense_tensor, fluid.Variable):
+        #    return fluid.layers.concat(emb_sums, axis=1)
+        #else:
+        return fluid.layers.concat(emb_sums + [dense_tensor], axis=1)
 
     def mlp(mlp_input):
         fc1 = fluid.layers.fc(input=mlp_input,
@@ -63,7 +63,9 @@ def dnn_model(dense_input, sparse_inputs, label, embedding_size,
                                       scale=1 / math.sqrt(fc3.shape[1]))))
         return pre
 
-    emb_sums = list(map(embedding_layer, sparse_inputs))
+    emb_pair_sums = list(map(embedding_layer, sparse_inputs))
+    emb_sums = [x[1] for x in emb_pair_sums]
+    infer_vars = [x[0] for x in emb_pair_sums]
     mlp_in = mlp_input_tensor(emb_sums, dense_input)
     predict = mlp(mlp_in)
     cost = fluid.layers.cross_entropy(input=predict, label=label)
@@ -71,4 +73,4 @@ def dnn_model(dense_input, sparse_inputs, label, embedding_size,
     accuracy = fluid.layers.accuracy(input=predict, label=label)
     auc_var, batch_auc_var, auc_states = \
         fluid.layers.auc(input=predict, label=label, num_thresholds=2 ** 12, slide_steps=20)
-    return predict, avg_cost, auc_var, batch_auc_var
+    return predict, avg_cost, auc_var, batch_auc_var, infer_vars
