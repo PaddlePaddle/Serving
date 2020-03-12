@@ -214,9 +214,11 @@ class Server(object):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
-                print('Download failed')
                 if os.path.exists(tar_name):
                     os.remove(tar_name)
+                raise SystemExit(
+                    'Download failed, please check your network or permission of {}.'.
+                    format(self.module_path))
             else:
                 try:
                     print('Decompressing files ..')
@@ -226,6 +228,9 @@ class Server(object):
                 except:
                     if os.path.exists(exe_path):
                         os.remove(exe_path)
+                    raise SystemExit(
+                        'Decompressing failed, please check your permission of {} or disk space left.'.
+                        format(self.module_path))
                 finally:
                     os.remove(tar_name)
         os.chdir(self.cur_path)
@@ -239,7 +244,7 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
-        if not self.check_port(port):
+        if not self.port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
 
         self.set_port(port)
@@ -258,7 +263,7 @@ class Server(object):
         self._write_pb_str(resource_fn, self.resource_conf)
         self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
 
-    def check_port(self, port):
+    def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
             result = sock.connect_ex(('127.0.0.1', port))
