@@ -32,7 +32,7 @@ class OpMaker(object):
             "general_text_reader": "GeneralTextReaderOp",
             "general_text_response": "GeneralTextResponseOp",
             "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv_infer" : "GeneralDistKVInferOp",
+            "general_dist_kv_infer": "GeneralDistKVInferOp",
             "general_dist_kv": "GeneralDistKVOp",
             "general_copy": "GeneralCopyOp"
         }

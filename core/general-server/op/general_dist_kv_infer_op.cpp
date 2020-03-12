@@ -72,8 +72,8 @@ int GeneralDistKVInferOp::inference() {
   }
   // TODO: Add Seek CubeValues Here, and replace EMBEDDING_SIZE with variable.
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
-  // TODO: temp hard code "test_dict" here, fix this with next commit 
-  // related to cube conf 
+  // TODO: temp hard code "test_dict" here, fix this with next commit
+  // related to cube conf
   std::string table_name = "test_dict";
   int ret = cube->seek(table_name, keys, &values);
 

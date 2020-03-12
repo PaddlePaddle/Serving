@@ -45,4 +45,4 @@ for data in reader():
     prob_list.append(fetch_map['prob'][1])
     label_list.append(data[0][-1][0])
 
-print (auc(label_list, prob_list))
+print(auc(label_list, prob_list))

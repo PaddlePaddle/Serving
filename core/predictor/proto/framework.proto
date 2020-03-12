@@ -162,7 +162,6 @@ message VarType {
   optional Tuple tuple = 7;
 }
 
-
 message VarDesc {
   required string name = 1;
   required VarType type = 2;
@@ -216,4 +215,3 @@ message ProgramDesc {
   optional Version version = 4;
   optional OpCompatibleMap op_compatible_map = 3;
 }
-
