@@ -144,11 +144,14 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     return -1;
   }
   // init rocksDB instance
-  if (resource_conf.has_cube_config_file() && resource_conf.has_cube_config_path()) {
+  if (resource_conf.has_cube_config_file() &&
+      resource_conf.has_cube_config_path()) {
     LOG(INFO) << "init cube client, path[ " << resource_conf.cube_config_path()
-      << " ], config file [ " << resource_conf.cube_config_file() << " ].";
-    rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
-    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +"/" + resource_conf.cube_config_file();
+              << " ], config file [ " << resource_conf.cube_config_file()
+              << " ].";
+    rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
+    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +
+                                       "/" + resource_conf.cube_config_file();
     cube->init(cube_config_fullpath.c_str());
   }
 
@@ -164,7 +167,7 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
   // TODO: add serving dist op detection, if true, add cube instance init.
-  rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+  rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
   cube->init("./work_dir1/cube.conf");
   VLOG(2) << "general model path: " << path;
   VLOG(2) << "general model file: " << file;

@@ -39,7 +39,6 @@ class GeneralDistKVInferOp
   DECLARE_OP(GeneralDistKVInferOp);
 
   int inference();
-
 };
 
 }  // namespace serving
