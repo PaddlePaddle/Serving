@@ -29,9 +29,9 @@ with open(profile_file) as f:
     for line in f.readlines():
         line = line.strip().split("\t")
         if line[0] == "PROFILE":
-            prase(line[1])
+            prase(line[2])
 
 print("thread num {}".format(thread_num))
 for name in time_dict:
-    print("{} cost {} s per thread ".format(name, time_dict[name] / (
+    print("{} cost {} s in each thread ".format(name, time_dict[name] / (
         1000000.0 * float(thread_num))))
