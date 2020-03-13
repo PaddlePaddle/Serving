@@ -1,18 +1,32 @@
-### 使用方法
+## IMDB评论情绪预测服务
 
-假设数据文件为test.data，配置文件为inference.conf
 
-单进程client
+### 获取模型文件和样例数据
+
 ```
-cat test.data | python test_client.py inference.conf > result
+sh get_data.sh
 ```
-多进程client，若进程数为4
+脚本会下载和解压出cnn、lstm和bow三种模型的配置文文件以及test_data和train_data。
+
+### 启动RPC预测服务
+
 ```
-python test_client_multithread.py inference.conf test.data 4 > result
+python -m paddle_serving_server.serve --model imdb_bow_model/ --port 9292
 ```
-batch clienit，若batch size为4
+### 执行预测
 ```
-cat test.data | python test_client_batch.py inference.conf 4 > result
+head test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
+```
+预测test_data/part-0的前十个样例。
+
+### 启动HTTP预测服务
+```
+python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
+```
+### 执行预测
+
+```
+curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
 
 ### Benchmark
