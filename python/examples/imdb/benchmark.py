@@ -37,16 +37,10 @@ def single_func(idx, resource):
         client.load_client_config(args.model)
         client.connect([args.endpoint])
         for i in range(1000):
-            word_ids, label = imdb_dataset.get_words_and_label(line)
             if args.batch_size == 1:
+                word_ids, label = imdb_dataset.get_words_and_label(line)
                 fetch_map = client.predict(
                     feed={"words": word_ids}, fetch=["prediction"])
-            elif args.batch_size > 1:
-                feed_batch = []
-                for bi in range(args.batch_size):
-                    feed_batch.append({"words": word_ids})
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=["prediction"])
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 

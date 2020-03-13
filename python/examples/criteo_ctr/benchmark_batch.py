@@ -22,23 +22,25 @@ import time
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
-from batching import pad_batch_data
-import tokenization
 import requests
 import json
-from bert_reader import BertReader
+import criteo_reader as criteo
 
 args = benchmark_args()
 
 
 def single_func(idx, resource):
-    fin = open("data-c.txt")
-    dataset = []
-    for line in fin:
-        dataset.append(line.strip())
+    batch = 1
+    buf_size = 100
+    dataset = criteo.CriteoDataset()
+    dataset.setup(1000001)
+    test_filelists = [
+        "./raw_data/part-%d" % x for x in range(len(os.listdir("./raw_data")))
+    ]
+    reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:],
+                                  batch, buf_size)
     if args.request == "rpc":
-        reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
-        fetch = ["pooled_output"]
+        fetch = ["prob"]
         client = Client()
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
@@ -48,7 +50,11 @@ def single_func(idx, resource):
             if args.batch_size >= 1:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    feed_batch.append(reader.process(dataset[i]))
+                    feed_dict = {}
+                    data = reader().next()
+                    for i in range(1, 27):
+                        feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+                    feed_batch.append(feed_dict)
                 result = client.batch_predict(
                     feed_batch=feed_batch, fetch=fetch)
             else:

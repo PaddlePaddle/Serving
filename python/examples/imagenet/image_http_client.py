@@ -26,11 +26,10 @@ def predict(image_path, server):
 
 
 if __name__ == "__main__":
-    server = "http://127.0.0.1:9292/image/prediction"
+    server = "http://127.0.0.1:9393/image/prediction"
     image_path = "./data/n01440764_10026.JPEG"
     start = time.time()
     for i in range(1000):
         predict(image_path, server)
-        print(i)
     end = time.time()
     print(end - start)
