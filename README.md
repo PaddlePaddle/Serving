@@ -6,10 +6,10 @@
     
 <p align="center">
     <br>
-[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
-[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
-[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
-[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
+    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
+    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
+    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
+    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
     <br>
 <p>
 
