@@ -30,6 +30,12 @@ args = benchmark_args()
 
 
 def single_func(idx, resource):
+    file_list = []
+    for file_name in os.listdir("./image_data/n01440764"):
+        file_list.append(file_name)
+    img_list = []
+    for i in range(1000):
+        img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
     if args.request == "rpc":
         reader = ImageReader()
         fetch = ["score"]
@@ -37,13 +43,11 @@ def single_func(idx, resource):
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
         start = time.time()
-        with open("./data/n01440764_10026.JPEG") as f:
-            raw_img = f.read()
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    img = reader.process_image(raw_img)
+                    img = reader.process_image(img_list[i])
                     img = img.reshape(-1)
                     feed_batch.append({"image": img})
                 result = client.batch_predict(
