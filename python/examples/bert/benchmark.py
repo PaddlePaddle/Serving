@@ -38,7 +38,6 @@ def single_func(idx, resource):
         dataset.append(line.strip())
     if args.request == "rpc":
         reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
-        config_file = './serving_client_conf/serving_client_conf.prototxt'
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
@@ -49,12 +48,6 @@ def single_func(idx, resource):
             if args.batch_size == 1:
                 feed_dict = reader.process(dataset[i])
                 result = client.predict(feed=feed_dict, fetch=fetch)
-            elif args.batch_size > 1:
-                feed_batch = []
-                for bi in range(args.batch_size):
-                    feed_batch.append(reader.process(dataset[i]))
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
