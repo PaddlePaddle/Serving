@@ -34,8 +34,7 @@ args = benchmark_args()
 def single_func(idx, resource):
     fin = open("data-c.txt")
     if args.request == "rpc":
-        reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
-        config_file = './serving_client_conf/serving_client_conf.prototxt'
+        reader = BertReader(vocab_file="vocab.txt", max_seq_len=128)
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
@@ -50,7 +49,6 @@ def single_func(idx, resource):
         start = time.time()
         header = {"Content-Type": "application/json"}
         for line in fin:
-            #dict_data = {"words": "this is for output ", "fetch": ["pooled_output"]}
             dict_data = {"words": line, "fetch": ["pooled_output"]}
             r = requests.post(
                 'http://{}/bert/prediction'.format(resource["endpoint"][0]),
@@ -62,10 +60,11 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = [
-        "127.0.0.1:9494", "127.0.0.1:9495", "127.0.0.1:9496", "127.0.0.1:9497"
-    ]
-    #endpoint_list = endpoint_list + endpoint_list + endpoint_list
-    #result = multi_thread_runner.run(single_func, args.thread, {"endpoint":endpoint_list})
-    result = single_func(0, {"endpoint": endpoint_list})
+    endpoint_list = []
+    card_num = 4
+    for i in range(args.thread):
+        endpoint_list.append("127.0.0.1:{}".format(9494 + i % card_num))
+    print(endpoint_list)
+    result = multi_thread_runner.run(single_func, args.thread,
+                                     {"endpoint": endpoint_list})
     print(result)
