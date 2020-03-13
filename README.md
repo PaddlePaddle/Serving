@@ -1,9 +1,17 @@
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "127">
-
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "400" height = "81">
+    <br>
+<p>
+    
+<p align="center">
+    <br>
 [![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
 [![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 [![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
+    <br>
+<p>
 
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
