@@ -58,7 +58,6 @@ def single_func(idx, resource):
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
-        end = time.time()
     elif args.request == "http":
         start = time.time()
         header = {"Content-Type": "application/json"}
@@ -69,7 +68,7 @@ def single_func(idx, resource):
                     idx % len(resource["endpoint"])]),
                 data=json.dumps(dict_data),
                 headers=header)
-        end = time.time()
+    end = time.time()
     return [[end - start]]
 
 

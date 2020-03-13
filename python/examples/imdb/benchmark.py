@@ -26,24 +26,30 @@ args = benchmark_args()
 
 def single_func(idx, resource):
     imdb_dataset = IMDBDataset()
-    imdb_dataset.load_resource(args.vocab)
-    filelist_fn = args.filelist
-    filelist = []
-    start = time.time()
-    with open(filelist_fn) as fin:
+    imdb_dataset.load_resource("./imdb.vocab")
+    dataset = []
+    with open("./test_data/part-0") as fin:
         for line in fin:
-            filelist.append(line.strip())
-    filelist = filelist[idx::args.thread]
+            dataset.append(line.strip())
+    start = time.time()
     if args.request == "rpc":
         client = Client()
         client.load_client_config(args.model)
         client.connect([args.endpoint])
-        for fn in filelist:
-            fin = open(fn)
-            for line in fin:
-                word_ids, label = imdb_dataset.get_words_and_label(line)
+        for i in range(1000):
+            word_ids, label = imdb_dataset.get_words_and_label(line)
+            if args.batch_size == 1:
                 fetch_map = client.predict(
                     feed={"words": word_ids}, fetch=["prediction"])
+            elif args.batch_size > 1:
+                feed_batch = []
+                for bi in range(args.batch_size):
+                    feed_batch.append({"words": word_ids})
+                result = client.batch_predict(
+                    feed_batch=feed_batch, fetch=["prediction"])
+            else:
+                print("unsupport batch size {}".format(args.batch_size))
+
     elif args.request == "http":
         for fn in filelist:
             fin = open(fn)
