@@ -80,7 +80,7 @@ class BertServer():
 
     def build_server(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('127.0.0.1', self.port))
+        sock.bind(('0.0.0.0', self.port))
         sock.listen(5)
         print('Main server serving on {} port.'.format(self.port))
         while True:
@@ -122,7 +122,7 @@ class BertServer():
             with closing(socket.socket(socket.AF_INET,
                                        socket.SOCK_STREAM)) as sock:
                 sock.settimeout(2)
-                result = sock.connect_ex(('127.0.0.1', port))
+                result = sock.connect_ex(('0.0.0.0', port))
             if result != 0:
                 return port
         return -1
