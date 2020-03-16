@@ -4,7 +4,7 @@
 [![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 [![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
-[![Build Status](https://img.shields.io/com/travis/PaddlePaddle/Serving/develop)](https://travis-ci.com/PaddlePaddle/Serving)
+[![Build Status](https://img.shields.io/travis/com/PaddlePaddle/Serving/develop)](https://travis-ci.com/PaddlePaddle/Serving)
 
 ## 动机
 Paddle Serving 帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 只要你使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，你就同时拥有了该模型的预测服务。
