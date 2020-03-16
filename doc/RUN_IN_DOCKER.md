@@ -18,7 +18,7 @@ You can get images in two ways:
 
 2. Building image based on dockerfile
 
-   Create a new folder and copy [Dockerfile](../Dockerfile) to this folder, and run the following command:
+   Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
 
    ```bash
    docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3 .
@@ -104,7 +104,7 @@ You can also get images in two ways:
 
 2. Building image based on dockerfile
 
-   Create a new folder and copy [Dockerfile.gpu](../Dockerfile.gpu) to this folder, and run the following command:
+   Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
 
    ```bash
    nvidia-docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3-gpu .
