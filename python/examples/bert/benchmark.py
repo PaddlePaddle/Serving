@@ -68,10 +68,8 @@ def single_func(idx, resource):
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
     endpoint_list = ["127.0.0.1:9292"]
-    #endpoint_list = endpoint_list + endpoint_list + endpoint_list
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
-    #result = single_func(0, {"endpoint": endpoint_list})
     avg_cost = 0
     for i in range(args.thread):
         avg_cost += result[0][i]
