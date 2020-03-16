@@ -173,4 +173,3 @@ tar -xzf uci_housing.tar.gz
   ```
 
   
-
