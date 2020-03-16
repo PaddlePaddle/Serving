@@ -6,13 +6,13 @@
     
 <p align="center">
     <br>
+    <a href="https://travis-ci.com/PaddlePaddle/Serving">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
+    </a>
     <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
     <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
     <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
     <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
-    <a href="https://travis-ci.com/PaddlePaddle/Serving">
-        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
-    </a>
     <br>
 <p>
 
