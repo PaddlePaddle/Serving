@@ -169,4 +169,3 @@ tar -xzf uci_housing.tar.gz
   fetch_map = client.predict(feed={"x": data}, fetch=["price"])
   print(fetch_map)
   ```
-
