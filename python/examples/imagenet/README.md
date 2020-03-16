@@ -2,26 +2,34 @@
 
 示例中采用ResNet50_vd模型执行imagenet 1000分类任务。
 
-### 模型及配置文件获取
+### 获取模型配置文件和样例数据
 ```
 sh get_model.sh
 ```
-### 执行wb service预测服务
+### 执行HTTP预测服务
 
 启动server端
 ```
-python image_classification_service.py conf_and_model/serving_server_model workdir 9393
+python image_classification_service.py ResNet50_vd_model workdir 9393 #cpu预测服务
 ```
+```
+python image_classification_service_gpu.py ResNet50_vd_model workdir 9393 #gpu预测服务
+```
+
 
 client端进行预测
 ```
 python image_http_client.py
 ```
-### 执行rpc service预测服务
+### 执行RPC预测服务
 
 启动server端
 ```
-python -m paddle_serving_server.serve --model conf_and_model/serving_server_model/ --port 9393
+python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9393 #cpu预测服务
+```
+
+```
+python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0 #gpu预测服务
 ```
 
 client端进行预测

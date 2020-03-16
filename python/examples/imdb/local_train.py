@@ -35,6 +35,8 @@ def load_vocab(filename):
 
 
 if __name__ == "__main__":
+    from nets import lstm_net
+    model_name = "imdb_lstm"
     vocab = load_vocab('imdb.vocab')
     dict_dim = len(vocab)
 
@@ -50,8 +52,6 @@ if __name__ == "__main__":
     dataset.set_batch_size(128)
     dataset.set_filelist(filelist)
     dataset.set_thread(10)
-    from nets import lstm_net
-    model_name = "imdb_lstm"
     avg_cost, acc, prediction = lstm_net(data, label, dict_dim)
     optimizer = fluid.optimizer.SGD(learning_rate=0.01)
     optimizer.minimize(avg_cost)
