@@ -10,8 +10,8 @@
     <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
     <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
     <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
-    <a href="https://travis-ci.org/PaddlePaddle/Serving">
-        <img alt="Build Status" src="https://img.shields.io/travis/PaddlePaddle/Serving/develop">
+    <a href="https://travis-ci.com/PaddlePaddle/Serving">
+        <img alt="Build Status" src="https://img.shields.io/com/travis/PaddlePaddle/Serving/develop">
     </a>
     <br>
 <p>
