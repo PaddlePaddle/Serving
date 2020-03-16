@@ -18,7 +18,7 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 
 2. 基于Dockerfile构建镜像
 
-   建立新目录，复制[Dockerfile](../Dockerfile)内容到该目录下Dockerfile文件。执行
+   建立新目录，复制[Dockerfile](../tools/Dockerfile)内容到该目录下Dockerfile文件。执行
 
    ```bash
    docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3 .
@@ -102,7 +102,7 @@ GPU版本与CPU版本基本一致，只有部分接口命名的差别（GPU版�
 
 2. 基于Dockerfile构建镜像
 
-   建立新目录，复制[Dockerfile.gpu](../Dockerfile.gpu)内容到该目录下Dockerfile文件。执行
+   建立新目录，复制[Dockerfile.gpu](../tools/Dockerfile.gpu)内容到该目录下Dockerfile文件。执行
 
    ```bash
    nvidia-docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3-gpu .
