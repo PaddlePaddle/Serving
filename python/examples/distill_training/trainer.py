@@ -32,8 +32,8 @@ optimizer.minimize(loss)
 
 dataset = fluid.DatasetFactory().create_dataset()
 python_executable = "python"
-pipe_command = "{} seq_labeling_distill_reader.py {}".format(python_executable,
-                                                             args.endpoint_list)
+pipe_command = "{} reader/seq_labeling_distill_reader.py {}".format(
+    python_executable, args.endpoint_list)
 thread_num = 8
 batch_size = 4
 dataset.set_thread(thread_num)
