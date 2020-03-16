@@ -11,7 +11,7 @@
     <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
     <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
-        <img alt="Build Status" src="https://img.shields.io/com/travis/PaddlePaddle/Serving/develop">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
     </a>
     <br>
 <p>
