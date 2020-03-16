@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,53 +15,61 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
+from __future__ import unicode_literals, absolute_import
+import os
 import sys
 import time
-import requests
-from imdb_reader import IMDBDataset
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
+import requests
+import json
+from image_reader import ImageReader
 
 args = benchmark_args()
 
 
 def single_func(idx, resource):
-    imdb_dataset = IMDBDataset()
-    imdb_dataset.load_resource("./imdb.vocab")
-    dataset = []
-    with open("./test_data/part-0") as fin:
-        for line in fin:
-            dataset.append(line.strip())
-    start = time.time()
+    file_list = []
+    for file_name in os.listdir("./image_data/n01440764"):
+        file_list.append(file_name)
+    img_list = []
+    for i in range(1000):
+        img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
     if args.request == "rpc":
+        reader = ImageReader()
+        fetch = ["score"]
         client = Client()
         client.load_client_config(args.model)
-        client.connect([args.endpoint])
+        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
+        start = time.time()
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    word_ids, label = imdb_dataset.get_words_and_label(line)
-                    feed_batch.append({"words": word_ids})
+                    img = reader.process_image(img_list[i])
+                    img = img.reshape(-1)
+                    feed_batch.append({"image": img})
                 result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=["prediction"])
+                    feed_batch=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        for fn in filelist:
-            fin = open(fn)
-            for line in fin:
-                word_ids, label = imdb_dataset.get_words_and_label(line)
-                r = requests.post(
-                    "http://{}/imdb/prediction".format(args.endpoint),
-                    data={"words": word_ids,
-                          "fetch": ["prediction"]})
+        raise ("no batch predict for http")
     end = time.time()
     return [[end - start]]
 
 
-multi_thread_runner = MultiThreadRunner()
-result = multi_thread_runner.run(single_func, args.thread, {})
-print(result)
+if __name__ == '__main__':
+    multi_thread_runner = MultiThreadRunner()
+    endpoint_list = ["127.0.0.1:9393"]
+    #endpoint_list = endpoint_list + endpoint_list + endpoint_list
+    result = multi_thread_runner.run(single_func, args.thread,
+                                     {"endpoint": endpoint_list})
+    #result = single_func(0, {"endpoint": endpoint_list})
+    avg_cost = 0
+    for i in range(args.thread):
+        avg_cost += result[0][i]
+    avg_cost = avg_cost / args.thread
+    print("average total cost {} s.".format(avg_cost))
