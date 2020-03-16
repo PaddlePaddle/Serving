@@ -34,6 +34,8 @@ Paddle Serving helps deep learning developers deploy an online inference service
 
 ## Installation
 
+We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+
 ```shell
 pip install paddle-serving-client
 pip install paddle-serving-server
