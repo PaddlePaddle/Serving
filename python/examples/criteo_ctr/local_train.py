@@ -91,10 +91,9 @@ def train():
     server_io.save_model("ctr_serving_model", "ctr_client_conf", feed_var_dict,
                          fetch_var_dict, fluid.default_main_program())
 
-    server_io.save_model(
-        "ctr_serving_model", "ctr_client_conf",
-        feed_var_dict, fetch_var_dict, fluid.default_main_program())
-
+    server_io.save_model("ctr_serving_model_kv", "ctr_client_conf_kv",
+                         feed_kv_dict, fetch_var_dict,
+                         fluid.default_main_program())
 
 if __name__ == '__main__':
     train()
