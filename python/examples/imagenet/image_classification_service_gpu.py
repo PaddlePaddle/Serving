@@ -14,16 +14,13 @@
 
 from paddle_serving_server_gpu.web_service import WebService
 import sys
-import os
+import cv2
 import base64
+import numpy as np
 from image_reader import ImageReader
 
 
 class ImageService(WebService):
-    """
-    preprocessing function for image classification
-    """
-
     def preprocess(self, feed={}, fetch=[]):
         reader = ImageReader()
         if "image" not in feed:
@@ -37,9 +34,7 @@ class ImageService(WebService):
 
 image_service = ImageService(name="image")
 image_service.load_model_config(sys.argv[1])
-gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
-gpus = [int(x) for x in gpu_ids.split(",")]
-image_service.set_gpus(gpus)
+image_service.set_gpus("0,1,2,3")
 image_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="gpu")
 image_service.run_server()
