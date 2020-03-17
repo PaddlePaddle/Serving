@@ -9,6 +9,9 @@ Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者
 Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，并且与Paddle的训练可以打通。我们以最经典的波士顿房价预测为示例，完整说明在单机进行模型训练以及使用Paddle Serving进行模型部署的过程。
 
 #### 安装
+
+强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+
 ```
 pip install paddle-serving-client
 pip install paddle-serving-server
