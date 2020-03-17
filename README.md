@@ -16,15 +16,15 @@
     <br>
 <p>
 
-[中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
+<h2 align="center">Motivation</h2>
 
-## Motivation
 Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. A demo of serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
-## Key Features
+<h2 align="center">Key Features</h2>
+
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
 - **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
 - **Distributed Key-Value indexing** supported that is especially useful for large scale sparse features as model inputs.
@@ -32,7 +32,7 @@ Paddle Serving helps deep learning developers deploy an online inference service
 - **Multiple programming languages** supported on client side, such as Golang, C++ and python
 - **Extensible framework design** that can support model serving beyond Paddle.
 
-## Installation
+<h2 align="center">Installation</h2>
 
 We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 
@@ -41,7 +41,7 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-## Quick Start Example
+<h2 align="center">Quick Start Example</h2>
 
 ### Boston House Price Prediction model
 ``` shell
@@ -93,8 +93,7 @@ print(fetch_map)
 
 ```
 
-## Models waiting for you to deploy
-
+<h2 align="center">Models waiting for you to deploy</h2>
 
 <center>
 
@@ -107,37 +106,40 @@ print(fetch_map)
 </center>
 
 
-## Document
+<h2 align="center">Document</h2>
 
-#### New to Paddle Serving
+### New to Paddle Serving
 - [How to save a servable model?](doc/SAVE.md)
 - [An end-to-end tutorial from training to serving](doc/END_TO_END.md)
 - [Write Bert-as-Service in 10 minutes](doc/Bert_10_mins.md)
 
-#### Developers
+### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 - [How to develop a new Serving operator](doc/NEW_OPERATOR.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code(Chinese)](doc/COMPILE.md)
 
-#### About Efficiency
+### About Efficiency
 - [How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
 
-#### FAQ
+### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)
 
-#### Design
+### Design
 - [Design Doc(Chinese)](doc/DESIGN.md)
 
-## Join Community
+### Join Community
+
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
-## Contribution
+### Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
 
 ### Feedback
+
 For any feedback or to report a bug, please propose a [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues).
 
-## License
+### License
+
 [Apache 2.0 License](https://github.com/PaddlePaddle/Serving/blob/develop/LICENSE)
