@@ -1,4 +1,4 @@
-# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+g  # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,10 @@ from paddle_serving_client import Client
 from .serve import start_multi_card
 import time
 import random
+
+
+def producers(input_queue, output_queue, endpoint):
+    pass
 
 
 class WebService(object):
@@ -99,6 +103,18 @@ class WebService(object):
             client_list.append(client_service)
             time.sleep(1)
         service_name = "/" + self.name + "/prediction"
+
+        input_queues = []
+        output_queue = Queue()
+        for i in range(gpu_num):
+            input_queues.append(Queue())
+
+        @app_instance.route("{}_batch".format(service_name), methods['POST'])
+        def get_prediction():
+            if not request.json:
+                abort(400)
+            if "fetch" not in request.json:
+                abort(400)
 
         @app_instance.route(service_name, methods=['POST'])
         def get_prediction():
