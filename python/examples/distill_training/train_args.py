@@ -20,15 +20,15 @@ import argparse
 def train_args(yml_file=""):
     parser = argparse.ArgumentParser("trainer")
     parser.add_argument(
-        "--base_lr", type=float, default=0.001, help="base learning rate")
+        "--base_lr", type=float, default=1.0, help="base learning rate")
     parser.add_argument(
         "--vocab_size", type=int, default=17964, help="size of vocab")
     parser.add_argument(
         "--num_labels", type=int, default=57, help="dim of output labels")
     parser.add_argument(
-        "--word_emb_dim", type=int, default=128, help="dim of embedding")
+        "--word_emb_dim", type=int, default=64, help="dim of embedding")
     parser.add_argument(
-        "--grnn_hidden_dim", type=int, default=128, help="dim of hidden layer")
+        "--grnn_hidden_dim", type=int, default=256, help="dim of hidden layer")
     parser.add_argument(
         "--bigru_num", type=int, default=2, help="number of gru")
     parser.add_argument(

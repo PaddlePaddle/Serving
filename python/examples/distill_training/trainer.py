@@ -32,10 +32,10 @@ optimizer.minimize(loss)
 
 dataset = fluid.DatasetFactory().create_dataset()
 python_executable = "python"
-pipe_command = "{} reader/seq_labeling_distill_reader.py {}".format(
+pipe_command = "{} seq_labeling_distill_reader.py lac_dict {}".format(
     python_executable, args.endpoint_list)
-thread_num = 8
-batch_size = 4
+thread_num = 1
+batch_size = 32
 dataset.set_thread(thread_num)
 dataset.set_batch_size(batch_size)
 dataset.set_use_var([words, target])
@@ -43,7 +43,7 @@ dataset.set_pipe_command(pipe_command)
 whole_filelist = ["data/{}".format(x) for x in os.listdir("data")]
 dataset.set_filelist(whole_filelist)
 
-exe = fluid.Executor(fluid.CPUPlace())
+exe = fluid.Executor(fluid.CUDAPlace(0))
 exe.run(fluid.default_startup_program())
 epochs = 10
 for i in range(epochs):
