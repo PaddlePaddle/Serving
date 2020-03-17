@@ -30,7 +30,7 @@ int PredictorApi::register_all() {
   return 0;
 }
 
-int PredictorApi::create(const std::string & api_desc_str) {
+int PredictorApi::create(const std::string& api_desc_str) {
   VLOG(2) << api_desc_str;
   if (register_all() != 0) {
     LOG(ERROR) << "Failed do register all!";

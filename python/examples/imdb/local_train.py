@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 import os
 import sys
 import paddle
@@ -34,6 +35,8 @@ def load_vocab(filename):
 
 
 if __name__ == "__main__":
+    from nets import lstm_net
+    model_name = "imdb_lstm"
     vocab = load_vocab('imdb.vocab')
     dict_dim = len(vocab)
 
@@ -49,8 +52,7 @@ if __name__ == "__main__":
     dataset.set_batch_size(128)
     dataset.set_filelist(filelist)
     dataset.set_thread(10)
-    from nets import bow_net
-    avg_cost, acc, prediction = bow_net(data, label, dict_dim)
+    avg_cost, acc, prediction = lstm_net(data, label, dict_dim)
     optimizer = fluid.optimizer.SGD(learning_rate=0.01)
     optimizer.minimize(avg_cost)
 
@@ -65,6 +67,7 @@ if __name__ == "__main__":
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
-            serving_io.save_model("imdb_model", "imdb_client_conf",
+            serving_io.save_model("{}_model".format(model_name),
+                                  "{}_client_conf".format(model_name),
                                   {"words": data}, {"prediction": prediction},
                                   fluid.default_main_program())

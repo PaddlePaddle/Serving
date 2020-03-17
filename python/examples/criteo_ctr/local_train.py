@@ -1,3 +1,18 @@
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# pylint: disable=doc-string-missing
+
 from __future__ import print_function
 
 from args import parse_args
@@ -17,8 +32,10 @@ def train():
     dense_input = fluid.layers.data(
         name="dense_input", shape=[dense_feature_dim], dtype='float32')
     sparse_input_ids = [
-        fluid.layers.data(name="C" + str(i) , shape=[1], lod_level=1, dtype="int64")
-        for i in range(1, 27)]
+        fluid.layers.data(
+            name="C" + str(i), shape=[1], lod_level=1, dtype="int64")
+        for i in range(1, 27)
+    ]
     label = fluid.layers.data(name='label', shape=[1], dtype='int64')
 
     #nn_input = None if sparse_only else dense_input
@@ -36,16 +53,17 @@ def train():
     dataset.set_use_var([dense_input] + sparse_input_ids + [label])
 
     python_executable = "python"
-    pipe_command = "{} criteo_reader.py {}".format(
-        python_executable, args.sparse_feature_dim)
+    pipe_command = "{} criteo_reader.py {}".format(python_executable,
+                                                   args.sparse_feature_dim)
 
     dataset.set_pipe_command(pipe_command)
     dataset.set_batch_size(128)
     thread_num = 10
     dataset.set_thread(thread_num)
 
-    whole_filelist = ["raw_data/part-%d" % x for x in
-                      range(len(os.listdir("raw_data")))]
+    whole_filelist = [
+        "raw_data/part-%d" % x for x in range(len(os.listdir("raw_data")))
+    ]
 
     print (whole_filelist)
     dataset.set_filelist(whole_filelist[:thread_num])
@@ -54,8 +72,7 @@ def train():
     epochs = 1
     for i in range(epochs):
         exe.train_from_dataset(
-            program=fluid.default_main_program(),
-            dataset=dataset, debug=True)
+            program=fluid.default_main_program(), dataset=dataset, debug=True)
         print("epoch {} finished".format(i))
 
     import paddle_serving_client.io as server_io

@@ -1,9 +1,24 @@
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# pylint: disable=doc-string-missing
+
 import paddle.fluid as fluid
 import math
 
-def dnn_model(dense_input, sparse_inputs, label,
-              embedding_size, sparse_feature_dim):
 
+def dnn_model(dense_input, sparse_inputs, label, embedding_size,
+              sparse_feature_dim):
     def embedding_layer(input):
         emb = fluid.layers.embedding(
             input=input,
@@ -22,18 +37,30 @@ def dnn_model(dense_input, sparse_inputs, label,
         return fluid.layers.concat(emb_sums + [dense_tensor], axis=1)
 
     def mlp(mlp_input):
-        fc1 = fluid.layers.fc(input=mlp_input, size=400, act='relu',
-                              param_attr=fluid.ParamAttr(initializer=fluid.initializer.Normal(
-                                  scale=1 / math.sqrt(mlp_input.shape[1]))))
-        fc2 = fluid.layers.fc(input=fc1, size=400, act='relu',
-                              param_attr=fluid.ParamAttr(initializer=fluid.initializer.Normal(
-                                  scale=1 / math.sqrt(fc1.shape[1]))))
-        fc3 = fluid.layers.fc(input=fc2, size=400, act='relu',
-                              param_attr=fluid.ParamAttr(initializer=fluid.initializer.Normal(
-                                  scale=1 / math.sqrt(fc2.shape[1]))))
-        pre = fluid.layers.fc(input=fc3, size=2, act='softmax',
-                              param_attr=fluid.ParamAttr(initializer=fluid.initializer.Normal(
-                                  scale=1 / math.sqrt(fc3.shape[1]))))
+        fc1 = fluid.layers.fc(input=mlp_input,
+                              size=400,
+                              act='relu',
+                              param_attr=fluid.ParamAttr(
+                                  initializer=fluid.initializer.Normal(
+                                      scale=1 / math.sqrt(mlp_input.shape[1]))))
+        fc2 = fluid.layers.fc(input=fc1,
+                              size=400,
+                              act='relu',
+                              param_attr=fluid.ParamAttr(
+                                  initializer=fluid.initializer.Normal(
+                                      scale=1 / math.sqrt(fc1.shape[1]))))
+        fc3 = fluid.layers.fc(input=fc2,
+                              size=400,
+                              act='relu',
+                              param_attr=fluid.ParamAttr(
+                                  initializer=fluid.initializer.Normal(
+                                      scale=1 / math.sqrt(fc2.shape[1]))))
+        pre = fluid.layers.fc(input=fc3,
+                              size=2,
+                              act='softmax',
+                              param_attr=fluid.ParamAttr(
+                                  initializer=fluid.initializer.Normal(
+                                      scale=1 / math.sqrt(fc3.shape[1]))))
         return pre
 
     emb_pair_sums = list(map(embedding_layer, sparse_inputs))

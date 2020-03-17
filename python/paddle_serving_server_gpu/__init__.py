@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import os
 from .proto import server_configure_pb2 as server_sdk
@@ -21,6 +22,28 @@ import socket
 import paddle_serving_server_gpu as paddle_serving_server
 from version import serving_server_version
 from contextlib import closing
+import argparse
+
+
+def serve_args():
+    parser = argparse.ArgumentParser("serve")
+    parser.add_argument(
+        "--thread", type=int, default=10, help="Concurrency of server")
+    parser.add_argument(
+        "--model", type=str, default="", help="Model for serving")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port of the starting gpu")
+    parser.add_argument(
+        "--workdir",
+        type=str,
+        default="workdir",
+        help="Working dir of current service")
+    parser.add_argument(
+        "--device", type=str, default="gpu", help="Type of device")
+    parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
+    parser.add_argument(
+        "--name", type=str, default="default", help="Default service name")
+    return parser.parse_args()
 
 
 class OpMaker(object):
@@ -126,7 +149,8 @@ class Server(object):
 
         self.model_config_path = model_config_path
         self.engine.name = "general_model"
-        self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        #self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
+        self.engine.reloadable_meta = self.workdir + "/fluid_time_file"
         os.system("touch {}".format(self.engine.reloadable_meta))
         self.engine.reloadable_type = "timestamp_ne"
         self.engine.runtime_thread_num = 0
@@ -154,6 +178,7 @@ class Server(object):
             self.infer_service_conf.services.extend([infer_service])
 
     def _prepare_resource(self, workdir):
+        self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
                       "w") as fout:
@@ -189,9 +214,11 @@ class Server(object):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
-                print('Download failed')
                 if os.path.exists(tar_name):
                     os.remove(tar_name)
+                raise SystemExit(
+                    'Download failed, please check your network or permission of {}.'.
+                    format(self.module_path))
             else:
                 try:
                     print('Decompressing files ..')
@@ -201,6 +228,9 @@ class Server(object):
                 except:
                     if os.path.exists(exe_path):
                         os.remove(exe_path)
+                    raise SystemExit(
+                        'Decompressing failed, please check your permission of {} or disk space left.'.
+                        format(self.module_path))
                 finally:
                     os.remove(tar_name)
         os.chdir(self.cur_path)
@@ -214,9 +244,10 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
-        if not self.check_port(port):
+        if not self.port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
 
+        self.set_port(port)
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_path, device)
         self._prepare_infer_service(port)
@@ -232,10 +263,10 @@ class Server(object):
         self._write_pb_str(resource_fn, self.resource_conf)
         self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
 
-    def check_port(self, port):
+    def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex(('127.0.0.1', port))
+            result = sock.connect_ex(('0.0.0.0', port))
         if result != 0:
             return True
         else:

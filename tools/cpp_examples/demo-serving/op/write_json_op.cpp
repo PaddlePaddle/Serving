@@ -21,8 +21,8 @@
 #include "json2pb/pb_to_json.h"
 #endif
 
-#include "examples/demo-serving/op/write_json_op.h"
 #include "core/predictor/framework/memory.h"
+#include "examples/demo-serving/op/write_json_op.h"
 
 #ifndef BCLOUD
 using json2pb::ProtoMessageToJson;

@@ -74,17 +74,17 @@ class Client(object):
         self.fetch_names_ = []
         self.client_handle_ = None
         self.result_handle_ = None
-        self.feed_shapes_ = []
+        self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
         self.rpath()
+        self.pid = os.getpid()
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
         client_path = os.path.join(lib_path, 'serving_client.so')
         lib_path = os.path.join(lib_path, 'lib')
         os.popen('patchelf --set-rpath {} {}'.format(lib_path, client_path))
-
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
@@ -106,13 +106,23 @@ class Client(object):
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.feed_shapes_ = [var.shape for var in model_conf.feed_var]
         self.feed_names_to_idx_ = {}
         self.fetch_names_to_type_ = {}
         self.fetch_names_to_idx_ = {}
+        self.lod_tensor_set = set()
+        self.feed_tensor_len = {}
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
             self.feed_types_[var.alias_name] = var.feed_type
+            self.feed_shapes_[var.alias_name] = var.shape
+
+            if var.is_lod_tensor:
+                self.lod_tensor_set.add(var.alias_name)
+            else:
+                counter = 1
+                for dim in self.feed_shapes_[var.alias_name]:
+                    counter *= dim
+                self.feed_tensor_len[var.alias_name] = counter
 
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_names_to_idx_[var.alias_name] = i
@@ -128,9 +138,8 @@ class Client(object):
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
         print(sdk_desc)
-        self.client_handle_.create_predictor_by_desc(
-            sdk_desc.SerializeToString())
-        
+        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
+        ))
 
     def get_feed_names(self):
         return self.feed_names_
@@ -138,13 +147,23 @@ class Client(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
+    def shape_check(self, feed, key):
+        seq_shape = 1
+        if key in self.lod_tensor_set:
+            return
+        if len(feed[key]) != self.feed_tensor_len[key]:
+            raise SystemExit("The shape of feed tensor {} not match.".format(
+                key))
+
     def predict(self, feed={}, fetch=[]):
         int_slot = []
         float_slot = []
         int_feed_names = []
         float_feed_names = []
         fetch_names = []
+
         for key in feed:
+            self.shape_check(feed, key)
             if key not in self.feed_names_:
                 continue
             if self.feed_types_[key] == int_type:
@@ -158,16 +177,18 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        ret = self.client_handle_.predict(
-            float_slot, float_feed_names, int_slot,
-            int_feed_names, fetch_names, self.result_handle_)
+        ret = self.client_handle_.predict(float_slot, float_feed_names,
+                                          int_slot, int_feed_names, fetch_names,
+                                          self.result_handle_, self.pid)
 
         result_map = {}
         for i, name in enumerate(fetch_names):
             if self.fetch_names_to_type_[name] == int_type:
-                result_map[name] = self.result_handle_.get_int64_by_name(name)[0]
+                result_map[name] = self.result_handle_.get_int64_by_name(name)[
+                    0]
             elif self.fetch_names_to_type_[name] == float_type:
-                result_map[name] = self.result_handle_.get_float_by_name(name)[0]
+                result_map[name] = self.result_handle_.get_float_by_name(name)[
+                    0]
 
         return result_map
 
@@ -178,6 +199,7 @@ class Client(object):
         float_feed_names = []
         fetch_names = []
         counter = 0
+        batch_size = len(feed_batch)
         for feed in feed_batch:
             int_slot = []
             float_slot = []
@@ -200,15 +222,21 @@ class Client(object):
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        result_batch = self.client_handle_.batch_predict(
+        result_batch = self.result_handle_
+        res = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
-            fetch_names)
+            fetch_names, result_batch, self.pid)
 
         result_map_batch = []
-        for result in result_batch:
+        for index in range(batch_size):
             result_map = {}
             for i, name in enumerate(fetch_names):
-                result_map[name] = result[i]
+                if self.fetch_names_to_type_[name] == int_type:
+                    result_map[name] = result_batch.get_int64_by_name(name)[
+                        index]
+                elif self.fetch_names_to_type_[name] == float_type:
+                    result_map[name] = result_batch.get_float_by_name(name)[
+                        index]
             result_map_batch.append(result_map)
 
         return result_map_batch

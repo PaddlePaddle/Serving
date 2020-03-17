@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "core/cube/cube-server/include/cube/server.h"
 #include <brpc/server.h>
 #include "core/cube/cube-server/include/cube/framework.h"
-#include "core/cube/cube-server/include/cube/server.h"
 
 namespace rec {
 namespace mcube {

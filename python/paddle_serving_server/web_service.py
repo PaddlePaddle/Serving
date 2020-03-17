@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #!flask/bin/python
+# pylint: disable=doc-string-missing
+
 from flask import Flask, request, abort
 from multiprocessing import Pool, Process
 from paddle_serving_server import OpMaker, OpSeqMaker, Server
 from paddle_serving_client import Client
+
 
 class WebService(object):
     def __init__(self, name="default_service"):
@@ -38,7 +41,7 @@ class WebService(object):
         server.set_num_threads(16)
         server.load_model_config(self.model_config)
         server.prepare_server(
-            workdir=self.workdir, port=self.port+1, device=self.device)
+            workdir=self.workdir, port=self.port + 1, device=self.device)
         server.run_server()
 
     def prepare_server(self, workdir="", port=9393, device="cpu"):
@@ -51,8 +54,9 @@ class WebService(object):
         client_service = Client()
         client_service.load_client_config(
             "{}/serving_server_conf.prototxt".format(self.model_config))
-        client_service.connect(["127.0.0.1:{}".format(self.port+1)])
+        client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
         service_name = "/" + self.name + "/prediction"
+
         @app_instance.route(service_name, methods=['POST'])
         def get_prediction():
             if not request.json:
@@ -60,16 +64,24 @@ class WebService(object):
             if "fetch" not in request.json:
                 abort(400)
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
+            if "fetch" in feed:
+                del feed["fetch"]
             fetch_map = client_service.predict(feed=feed, fetch=fetch)
-            fetch_map = self.postprocess(feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            fetch_map = self.postprocess(
+                feed=request.json, fetch=fetch, fetch_map=fetch_map)
             return fetch_map
-        app_instance.run(host="127.0.0.1", port=self.port, threaded=False, processes=1)
+
+        app_instance.run(host="0.0.0.0",
+                         port=self.port,
+                         threaded=False,
+                         processes=1)
 
     def run_server(self):
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
-        print("http://{}:{}/{}/prediction".format(localIP, self.port, self.name))
+        print("http://{}:{}/{}/prediction".format(localIP, self.port,
+                                                  self.name))
         p_rpc = Process(target=self._launch_rpc_service)
         p_web = Process(target=self._launch_web_service)
         p_rpc.start()
@@ -82,4 +94,3 @@ class WebService(object):
 
     def postprocess(self, feed={}, fetch=[], fetch_map={}):
         return fetch_map
-    

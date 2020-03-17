@@ -99,8 +99,8 @@ static void g_change_server_port() {
   if (read_proto_conf(FLAGS_inferservice_path.c_str(),
                       FLAGS_inferservice_file.c_str(),
                       &conf) != 0) {
-    VLOG(2) << "failed to load configure[" << FLAGS_inferservice_path
-            << "," << FLAGS_inferservice_file << "].";
+    VLOG(2) << "failed to load configure[" << FLAGS_inferservice_path << ","
+            << FLAGS_inferservice_file << "].";
     return;
   }
   uint32_t port = conf.port();
@@ -157,8 +157,7 @@ int main(int argc, char** argv) {
     mkdir(FLAGS_log_dir.c_str(), 0777);
     ret = stat(FLAGS_log_dir.c_str(), &st_buf);
     if (ret != 0) {
-      VLOG(2) << "Log path " << FLAGS_log_dir
-              << " not exist, and create fail";
+      VLOG(2) << "Log path " << FLAGS_log_dir << " not exist, and create fail";
       return -1;
     }
   }

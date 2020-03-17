@@ -45,12 +45,12 @@ class PredictorRes {
   ~PredictorRes() {}
 
  public:
-  const std::vector<std::vector<int64_t>> & get_int64_by_name(
-      const std::string & name) {
+  const std::vector<std::vector<int64_t>>& get_int64_by_name(
+      const std::string& name) {
     return _int64_map[name];
   }
-  const std::vector<std::vector<float>> & get_float_by_name(
-      const std::string & name) {
+  const std::vector<std::vector<float>>& get_float_by_name(
+      const std::string& name) {
     return _float_map[name];
   }
 
@@ -71,7 +71,7 @@ class PredictorClient {
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
 
-  int create_predictor_by_desc(const std::string & sdk_desc);
+  int create_predictor_by_desc(const std::string& sdk_desc);
 
   int create_predictor();
   int destroy_predictor();
@@ -81,21 +81,17 @@ class PredictorClient {
               const std::vector<std::vector<int64_t>>& int_feed,
               const std::vector<std::string>& int_feed_name,
               const std::vector<std::string>& fetch_name,
-              PredictorRes & predict_res); // NOLINT
+              PredictorRes& predict_res,  // NOLINT
+              const int& pid);
 
-  std::vector<std::vector<float>> predict(
-      const std::vector<std::vector<float>>& float_feed,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int64_t>>& int_feed,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name);
-
-  std::vector<std::vector<std::vector<float>>> batch_predict(
+  int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
-      const std::vector<std::string>& fetch_name);
+      const std::vector<std::string>& fetch_name,
+      PredictorRes& predict_res_batch,  // NOLINT
+      const int& pid);
 
  private:
   PredictorApi _api;

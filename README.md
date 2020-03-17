@@ -1,9 +1,20 @@
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "127">
-
-[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
-[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
-[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
-[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
+    <br>
+<p>
+    
+<p align="center">
+    <br>
+    <a href="https://travis-ci.com/PaddlePaddle/Serving">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
+    </a>
+    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
+    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
+    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
+    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
+    <br>
+<p>
 
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
@@ -23,6 +34,8 @@ Paddle Serving helps deep learning developers deploy an online inference service
 
 ## Installation
 
+We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+
 ```shell
 pip install paddle-serving-client
 pip install paddle-serving-server
@@ -41,7 +54,7 @@ Paddle Serving provides HTTP and RPC based service for users to access
 ### HTTP service
 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 ``` shell
 curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
@@ -92,6 +105,8 @@ print(fetch_map)
 [Golang client](doc/IMDB_GO_CLIENT.md)
 
 [Compile from source code(Chinese)](doc/COMPILE.md)
+
+[How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
 
 [FAQ(Chinese)](doc/FAQ.md)
 

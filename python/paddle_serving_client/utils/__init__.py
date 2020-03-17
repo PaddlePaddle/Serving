@@ -11,18 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 import os
 import sys
 import subprocess
 import argparse
 from multiprocessing import Pool
 
+
 def benchmark_args():
     parser = argparse.ArgumentParser("benchmark")
     parser.add_argument("--thread", type=int, default=10, help="concurrecy")
-    parser.add_argument("--model", type=str, default="", help="model for evaluation")
-    parser.add_argument("--endpoint", type=str, default="127.0.0.1:9292", help="endpoint of server")
-    parser.add_argument("--request", type=str, default="rpc", help="mode of service")
+    parser.add_argument(
+        "--model", type=str, default="", help="model for evaluation")
+    parser.add_argument(
+        "--endpoint",
+        type=str,
+        default="127.0.0.1:9292",
+        help="endpoint of server")
+    parser.add_argument(
+        "--request", type=str, default="rpc", help="mode of service")
+    parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     return parser.parse_args()
 
 
