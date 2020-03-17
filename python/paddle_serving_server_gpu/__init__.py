@@ -20,7 +20,7 @@ import google.protobuf.text_format
 import tarfile
 import socket
 import paddle_serving_server_gpu as paddle_serving_server
-from version import serving_server_version
+from .version import serving_server_version
 from contextlib import closing
 import argparse
 
