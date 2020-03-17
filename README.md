@@ -109,21 +109,25 @@ print(fetch_map)
 
 ## Document
 
-[How to save a servable model?](doc/SAVE.md)
+#### New to Paddle Serving
+- [How to save a servable model?](doc/SAVE.md)
+- [An end-to-end tutorial from training to serving](doc/END_TO_END.md)
+- [Write Bert-as-Service in 10 minutes](doc/Bert_10_mins.md)
 
-[How to config Serving native operators on server side?](doc/SERVER_DAG.md)
+#### Developers
+- [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
+- [How to develop a new Serving operator](doc/NEW_OPERATOR.md)
+- [Golang client](doc/IMDB_GO_CLIENT.md)
+- [Compile from source code(Chinese)](doc/COMPILE.md)
 
-[How to develop a new Serving operator](doc/NEW_OPERATOR.md)
+#### About Efficiency
+- [How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
 
-[Golang client](doc/IMDB_GO_CLIENT.md)
+#### FAQ
+- [FAQ(Chinese)](doc/FAQ.md)
 
-[Compile from source code(Chinese)](doc/COMPILE.md)
-
-[How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
-
-[FAQ(Chinese)](doc/FAQ.md)
-
-[Design Doc(Chinese)](doc/DESIGN.md)
+#### Design
+- [Design Doc(Chinese)](doc/DESIGN.md)
 
 ## Join Community
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
