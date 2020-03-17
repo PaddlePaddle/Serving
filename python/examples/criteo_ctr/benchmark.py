@@ -24,12 +24,13 @@ from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
 import requests
 import json
-import criteo_reader as criteo
+import criteo as criteo
 
 args = benchmark_args()
 
 
 def single_func(idx, resource):
+    print("hello")
     batch = 1
     buf_size = 100
     dataset = criteo.CriteoDataset()
@@ -37,22 +38,28 @@ def single_func(idx, resource):
     test_filelists = [
         "./raw_data/part-%d" % x for x in range(len(os.listdir("./raw_data")))
     ]
-    reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:],
+    print(test_filelists)
+    reader = dataset.infer_reader(test_filelists[len(test_filelists) - 1:],
                                   batch, buf_size)
     if args.request == "rpc":
         fetch = ["prob"]
         client = Client()
+        print(args.model)
+        print([resource["endpoint"][idx % len(resource["endpoint"])]])
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
-
+        print("Start Time")
         start = time.time()
         for i in range(1000):
             if args.batch_size == 1:
                 data = reader().next()
                 feed_dict = {}
+                feed_dict['dense_input'] = data[0][0]
                 for i in range(1, 27):
-                    feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+                    feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
+                print(feed_dict)
                 result = client.predict(feed=feed_dict, fetch=fetch)
+                print(result)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
@@ -66,9 +73,9 @@ if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
     endpoint_list = ["127.0.0.1:9292"]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
-    result = multi_thread_runner.run(single_func, args.thread,
-                                     {"endpoint": endpoint_list})
-    #result = single_func(0, {"endpoint": endpoint_list})
+    #result = multi_thread_runner.run(single_func, args.thread,
+    #                                 {"endpoint": endpoint_list})
+    result = single_func(0, {"endpoint": endpoint_list})
     avg_cost = 0
     for i in range(args.thread):
         avg_cost += result[0][i]

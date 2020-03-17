@@ -25,9 +25,10 @@ def dnn_model(dense_input, sparse_inputs, label, embedding_size,
             is_sparse=True,
             is_distributed=False,
             size=[sparse_feature_dim, embedding_size],
-            param_attr=fluid.ParamAttr(name="SparseFeatFactors",
-                                       initializer=fluid.initializer.Uniform()))
-        x =  fluid.layers.sequence_pool(input=emb, pool_type='sum')
+            param_attr=fluid.ParamAttr(
+                name="SparseFeatFactors",
+                initializer=fluid.initializer.Uniform()))
+        x = fluid.layers.sequence_pool(input=emb, pool_type='sum')
         return emb, x
 
     def mlp_input_tensor(emb_sums, dense_tensor):

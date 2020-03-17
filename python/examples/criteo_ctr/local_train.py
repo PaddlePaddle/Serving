@@ -41,8 +41,8 @@ def train():
     #nn_input = None if sparse_only else dense_input
     nn_input = dense_input
     predict_y, loss, auc_var, batch_auc_var, infer_vars = dnn_model(
-        nn_input, sparse_input_ids, label,
-        args.embedding_size, args.sparse_feature_dim)
+        nn_input, sparse_input_ids, label, args.embedding_size,
+        args.sparse_feature_dim)
 
     optimizer = fluid.optimizer.SGD(learning_rate=1e-4)
     optimizer.minimize(loss)
@@ -94,6 +94,7 @@ def train():
     server_io.save_model("ctr_serving_model_kv", "ctr_client_conf_kv",
                          feed_kv_dict, fetch_var_dict,
                          fluid.default_main_program())
+
 
 if __name__ == '__main__':
     train()
