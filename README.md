@@ -128,7 +128,9 @@ print(fetch_map)
 ### Design
 - [Design Doc(Chinese)](doc/DESIGN.md)
 
-### Join Community
+<h2 align="center">Community</h2>
+
+### Slack
 
 To connect with other users and contributors, welcome to join our [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
