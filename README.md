@@ -56,6 +56,15 @@ Paddle Serving provides HTTP and RPC based service for users to access
 ``` shell
 python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
+<center>
+
+- thread: Concurrency of current service
+- port: Exposed port of current service to users
+- name: Service name, can be used to generate HTTP request url
+- model: Path of paddle model directory to be served
+
+</center>
+
 ``` shell
 curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
@@ -65,6 +74,10 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
+
+- thread: Concurrency of current service
+- port: Exposed port of current service to users
+- model: Path of paddle model directory to be served
 
 ``` python
 # A user can visit rpc service through paddle_serving_client API
