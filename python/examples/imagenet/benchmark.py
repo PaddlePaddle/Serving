@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,55 +11,47 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
-from __future__ import unicode_literals, absolute_import
-import os
 import sys
-import time
+from image_reader import ImageReader
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
-from batching import pad_batch_data
-import tokenization
-import requests
-import json
-from bert_reader import BertReader
+import time
+import os
+
 args = benchmark_args()
 
 
 def single_func(idx, resource):
-    fin = open("data-c.txt")
-    dataset = []
-    for line in fin:
-        dataset.append(line.strip())
+    file_list = []
+    for file_name in os.listdir("./image_data/n01440764"):
+        file_list.append(file_name)
+    img_list = []
+    for i in range(1000):
+        img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
     if args.request == "rpc":
-        reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
-        fetch = ["pooled_output"]
+        reader = ImageReader()
+        fetch = ["score"]
         client = Client()
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
 
         start = time.time()
         for i in range(1000):
-            if args.batch_size >= 1:
-                feed_batch = []
-                for bi in range(args.batch_size):
-                    feed_batch.append(reader.process(dataset[i]))
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=fetch)
-            else:
-                print("unsupport batch size {}".format(args.batch_size))
-
-    elif args.request == "http":
-        raise ("no batch predict for http")
-    end = time.time()
+            img = reader.process_image(img_list[i]).reshape(-1)
+            fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+        end = time.time()
+        return [[end - start]]
     return [[end - start]]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9292"]
+    endpoint_list = ["127.0.0.1:9393"]
+    #card_num = 4
+    #for i in range(args.thread):
+    #    endpoint_list.append("127.0.0.1:{}".format(9295 + i % card_num))
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
     avg_cost = 0

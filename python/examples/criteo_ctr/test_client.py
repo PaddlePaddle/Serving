@@ -17,6 +17,7 @@ from paddle_serving_client import Client
 import sys
 import os
 import criteo as criteo
+import time
 from paddle_serving_client.metric import auc
 
 client = Client()
@@ -33,10 +34,11 @@ test_filelists = [
 ]
 reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:], batch,
                               buf_size)
-
 label_list = []
 prob_list = []
-for data in reader():
+start = time.time()
+for ei in range(1000):
+    data = reader().next()
     feed_dict = {}
     feed_dict['dense_input'] = data[0][0]
     for i in range(1, 27):
@@ -45,4 +47,6 @@ for data in reader():
     prob_list.append(fetch_map['prob'][1])
     label_list.append(data[0][-1][0])
 
-print(auc(label_list, prob_list))
+print (auc(label_list, prob_list))
+end = time.time()
+print(end - start)

@@ -16,7 +16,7 @@
 import sys
 import time
 import requests
-from imdb_reader import IMDBDataset
+from lac_reader import LACReader
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
@@ -25,37 +25,25 @@ args = benchmark_args()
 
 
 def single_func(idx, resource):
-    imdb_dataset = IMDBDataset()
-    imdb_dataset.load_resource("./imdb.vocab")
-    dataset = []
-    with open("./test_data/part-0") as fin:
-        for line in fin:
-            dataset.append(line.strip())
+    reader = LACReader("lac_dict")
     start = time.time()
     if args.request == "rpc":
         client = Client()
         client.load_client_config(args.model)
         client.connect([args.endpoint])
-        for i in range(1000):
-            if args.batch_size >= 1:
-                feed_batch = []
-                for bi in range(args.batch_size):
-                    word_ids, label = imdb_dataset.get_words_and_label(line)
-                    feed_batch.append({"words": word_ids})
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=["prediction"])
-            else:
-                print("unsupport batch size {}".format(args.batch_size))
-
+        fin = open("jieba_test.txt")
+        for line in fin:
+            feed_data = reader.process(line)
+            fetch_map = client.predict(
+                feed={"words": feed_data}, fetch=["crf_decode"])
     elif args.request == "http":
-        for fn in filelist:
-            fin = open(fn)
-            for line in fin:
-                word_ids, label = imdb_dataset.get_words_and_label(line)
-                r = requests.post(
-                    "http://{}/imdb/prediction".format(args.endpoint),
-                    data={"words": word_ids,
-                          "fetch": ["prediction"]})
+        fin = open("jieba_test.txt")
+        for line in fin:
+            req_data = {"words": line.strip(), "fetch": ["crf_decode"]}
+            r = requests.post(
+                "http://{}/lac/prediction".format(args.endpoint),
+                data={"words": line.strip(),
+                      "fetch": ["crf_decode"]})
     end = time.time()
     return [[end - start]]
 

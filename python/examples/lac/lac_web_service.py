@@ -11,31 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
 from paddle_serving_server.web_service import WebService
-from imdb_reader import IMDBDataset
 import sys
+from lac_reader import LACReader
 
 
-class IMDBService(WebService):
-    def prepare_dict(self, args={}):
-        if len(args) == 0:
-            exit(-1)
-        self.dataset = IMDBDataset()
-        self.dataset.load_resource(args["dict_file_path"])
+class LACService(WebService):
+    def load_reader(self):
+        self.reader = LACReader("lac_dict")
 
     def preprocess(self, feed={}, fetch=[]):
         if "words" not in feed:
-            exit(-1)
-        res_feed = {}
-        res_feed["words"] = self.dataset.get_words_only(feed["words"])[0]
-        return res_feed, fetch
+            raise ("feed data error!")
+        feed_data = self.reader.process(feed["words"])
+        return {"words": feed_data}, fetch
 
 
-imdb_service = IMDBService(name="imdb")
-imdb_service.load_model_config(sys.argv[1])
-imdb_service.prepare_server(
+lac_service = LACService(name="lac")
+lac_service.load_model_config(sys.argv[1])
+lac_service.load_reader()
+lac_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
-imdb_service.prepare_dict({"dict_file_path": sys.argv[4]})
-imdb_service.run_server()
+lac_service.run_server()

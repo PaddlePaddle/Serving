@@ -143,18 +143,15 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     LOG(ERROR) << "unable to create tls_bthread_key of thrd_data";
     return -1;
   }
-  // init rocksDB instance
-  if (resource_conf.has_cube_config_file() &&
-      resource_conf.has_cube_config_path()) {
+  // init rocksDB or cube instance
+  if (resource_conf.has_cube_config_file() && resource_conf.has_cube_config_path()) {
     LOG(INFO) << "init cube client, path[ " << resource_conf.cube_config_path()
-              << " ], config file [ " << resource_conf.cube_config_file()
-              << " ].";
-    rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
-    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +
-                                       "/" + resource_conf.cube_config_file();
-    cube->init(cube_config_fullpath.c_str());
+      << " ], config file [ " << resource_conf.cube_config_file() << " ].";
+    rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +"/" + resource_conf.cube_config_file();
+    this->cube_config_fullpath = cube_config_fullpath;
   }
-
+  
   if (db.get() == nullptr) {
     db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
   }
@@ -167,8 +164,11 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
   // TODO: add serving dist op detection, if true, add cube instance init.
-  rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
-  cube->init("./work_dir1/cube.conf");
+  if (this->cube_config_fullpath.size() != 0) {
+    LOG(INFO) << "init cube by config file : " << this->cube_config_fullpath;
+    rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
+    cube->init(this->cube_config_fullpath.c_str());
+  }
   VLOG(2) << "general model path: " << path;
   VLOG(2) << "general model file: " << file;
   if (!FLAGS_enable_general_model) {
@@ -211,10 +211,13 @@ int Resource::general_model_initialize(const std::string& path,
   for (int i = 0; i < feed_var_num; ++i) {
     _config->_feed_name[i] = model_config.feed_var(i).name();
     _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
-    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_name[i];
-    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_alias_name[i];
+    VLOG(2) << "feed var[" << i << "]: "
+            << _config->_feed_name[i];
+    VLOG(2) << "feed var[" << i << "]: "
+            << _config->_feed_alias_name[i];
     _config->_feed_type[i] = model_config.feed_var(i).feed_type();
-    VLOG(2) << "feed type[" << i << "]: " << _config->_feed_type[i];
+    VLOG(2) << "feed type[" << i << "]: "
+            << _config->_feed_type[i];
 
     if (model_config.feed_var(i).is_lod_tensor()) {
       VLOG(2) << "var[" << i << "] is lod tensor";

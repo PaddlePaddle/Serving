@@ -1,3 +1,4 @@
+# encoding=utf-8
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,25 +12,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
-import sys
-from image_reader import ImageReader
 from paddle_serving_client import Client
-import time
+from lac_reader import LACReader
+import sys
+import os
+import io
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9295"])
-reader = ImageReader()
+client.connect(["127.0.0.1:9280"])
 
-start = time.time()
-for i in range(1000):
-    with open("./data/n01440764_10026.JPEG") as f:
-        img = f.read()
-    img = reader.process_image(img).reshape(-1)
-    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-    print(i)
-end = time.time()
-print(end - start)
-
-#print(fetch_map["score"])
+reader = LACReader(sys.argv[2])
+for line in sys.stdin:
+    if len(line) <= 0:
+        continue
+    feed_data = reader.process(line)
+    if len(feed_data) <= 0:
+        continue
+    fetch_map = client.predict(feed={"words": feed_data}, fetch=["crf_decode"])
+    print(fetch_map)

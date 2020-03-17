@@ -1,9 +1,20 @@
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "127">
-
-[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
-[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
-[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
-[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
+    <br>
+<p>
+    
+<p align="center">
+    <br>
+    <a href="https://travis-ci.com/PaddlePaddle/Serving">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
+    </a>
+    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
+    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
+    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
+    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
+    <br>
+<p>
 
 [中文](https://github.com/PaddlePaddle/Serving/blob/develop/README_CN.md)
 
@@ -22,6 +33,8 @@ Paddle Serving helps deep learning developers deploy an online inference service
 - **Extensible framework design** that can support model serving beyond Paddle.
 
 ## Installation
+
+We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 
 ```shell
 pip install paddle-serving-client
@@ -92,6 +105,8 @@ print(fetch_map)
 [Golang client](doc/IMDB_GO_CLIENT.md)
 
 [Compile from source code(Chinese)](doc/COMPILE.md)
+
+[How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
 
 [FAQ(Chinese)](doc/FAQ.md)
 

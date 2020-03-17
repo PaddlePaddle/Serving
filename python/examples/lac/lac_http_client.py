@@ -11,25 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import sys
-from image_reader import ImageReader
-from paddle_serving_client import Client
+#coding=utf-8
+import requests
+import json
 import time
 
-client = Client()
-client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9295"])
-reader = ImageReader()
-
-start = time.time()
-for i in range(1000):
-    with open("./data/n01440764_10026.JPEG") as f:
-        img = f.read()
-    img = reader.process_image(img).reshape(-1)
-    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-    print(i)
-end = time.time()
-print(end - start)
-
-#print(fetch_map["score"])
+if __name__ == "__main__":
+    server = "http://127.0.0.1:9280/lac/prediction"
+    fin = open("jieba_test.txt", "r")
+    start = time.time()
+    for line in fin:
+        req_data = {"words": line.strip(), "fetch": ["crf_decode"]}
+        r = requests.post(server, json=req_data)
+    end = time.time()
+    print(end - start)

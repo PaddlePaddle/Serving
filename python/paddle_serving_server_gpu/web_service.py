@@ -95,7 +95,7 @@ class WebService(object):
             client_service = Client()
             client_service.load_client_config(
                 "{}/serving_server_conf.prototxt".format(self.model_config))
-            client_service.connect(["127.0.0.1:{}".format(self.port + i + 1)])
+            client_service.connect(["0.0.0.0:{}".format(self.port + i + 1)])
             client_list.append(client_service)
             time.sleep(1)
         service_name = "/" + self.name + "/prediction"
@@ -107,6 +107,8 @@ class WebService(object):
             if "fetch" not in request.json:
                 abort(400)
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
+            if "fetch" in feed:
+                del feed["fetch"]
             fetch_map = client_list[0].predict(feed=feed, fetch=fetch)
             fetch_map = self.postprocess(
                 feed=request.json, fetch=fetch, fetch_map=fetch_map)
