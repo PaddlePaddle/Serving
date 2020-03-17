@@ -61,7 +61,7 @@ python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 
 | Argument | Type | Default | Description |
 |--------------|------|-----------|--------------------------------|
 | `thread` | int | `10` | Concurrency of current service |
-| `port` | int | `9292` | Exposed port of current service to users |
+| `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
 
@@ -76,11 +76,6 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
-| Argument | Type | Default | Description |
-|--------------|------|-----------|--------------------------------|
-| `thread` | int | `10` | Concurrency of current service |
-| `port` | int | `9292` | Exposed port of current service to users |
-| `model` | str | `""` | Path of paddle model directory to be served |
 
 ``` python
 # A user can visit rpc service through paddle_serving_client API
