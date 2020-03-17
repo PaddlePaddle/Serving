@@ -15,7 +15,7 @@
 # pylint: disable=doc-string-missing
 
 from flask import Flask, request, abort
-from multiprocessing import Pool, Process
+from multiprocessing import Pool, Process, Queue
 from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
 import paddle_serving_server_gpu as serving
 from paddle_serving_client import Client
@@ -29,12 +29,13 @@ class WebService(object):
         self.name = name
         self.gpus = []
         self.rpc_service_list = []
+        self.input_queues = []
 
     def load_model_config(self, model_config):
         self.model_config = model_config
 
     def set_gpus(self, gpus):
-        self.gpus = gpus
+        self.gpus = [int(x) for x in gpus.split(",")]
 
     def default_rpc_service(self,
                             workdir="conf",
@@ -86,19 +87,48 @@ class WebService(object):
                         gpuid,
                         thread_num=10))
 
+    def producers(self, inputqueue, endpoint):
+        client = Client()
+        client.load_client_config("{}/serving_server_conf.prototxt".format(
+            self.model_config))
+        client.connect([endpoint])
+        while True:
+            request_json = inputqueue.get()
+            feed, fetch = self.preprocess(request_json, request_json["fetch"])
+            if "fetch" in feed:
+                del feed["fetch"]
+            fetch_map = client.predict(feed=feed, fetch=fetch)
+            fetch_map = self.postprocess(
+                feed=request_json, fetch=fetch, fetch_map=fetch_map)
+            self.output_queue.put(fetch_map)
+
     def _launch_web_service(self, gpu_num):
         app_instance = Flask(__name__)
-        client_list = []
-        if gpu_num > 1:
-            gpu_num = 0
-        for i in range(gpu_num):
-            client_service = Client()
-            client_service.load_client_config(
-                "{}/serving_server_conf.prototxt".format(self.model_config))
-            client_service.connect(["0.0.0.0:{}".format(self.port + i + 1)])
-            client_list.append(client_service)
-            time.sleep(1)
         service_name = "/" + self.name + "/prediction"
+
+        self.input_queues = []
+        self.output_queue = Queue()
+        for i in range(gpu_num):
+            self.input_queues.append(Queue())
+
+        producer_list = []
+        for i, input_q in enumerate(self.input_queues):
+            producer_processes = Process(
+                target=self.producers,
+                args=(
+                    input_q,
+                    "0.0.0.0:{}".format(self.port + 1 + i), ))
+            producer_list.append(producer_processes)
+
+        for p in producer_list:
+            p.start()
+
+        client = Client()
+        client.load_client_config("{}/serving_server_conf.prototxt".format(
+            self.model_config))
+        client.connect(["0.0.0.0:{}".format(self.port + 1)])
+
+        self.idx = 0
 
         @app_instance.route(service_name, methods=['POST'])
         def get_prediction():
@@ -106,18 +136,32 @@ class WebService(object):
                 abort(400)
             if "fetch" not in request.json:
                 abort(400)
+
+            self.input_queues[self.idx].put(request.json)
+
+            #self.input_queues[0].put(request.json)
+            self.idx += 1
+            if self.idx >= len(self.gpus):
+                self.idx = 0
+            result = self.output_queue.get()
+            return result
+            '''
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             if "fetch" in feed:
                 del feed["fetch"]
-            fetch_map = client_list[0].predict(feed=feed, fetch=fetch)
+            fetch_map = client.predict(feed=feed, fetch=fetch)
             fetch_map = self.postprocess(
                 feed=request.json, fetch=fetch, fetch_map=fetch_map)
             return fetch_map
+            '''
 
         app_instance.run(host="0.0.0.0",
                          port=self.port,
                          threaded=False,
                          processes=1)
+
+        for p in producer_list:
+            p.join()
 
     def run_server(self):
         import socket
@@ -125,21 +169,19 @@ class WebService(object):
         print("web service address:")
         print("http://{}:{}/{}/prediction".format(localIP, self.port,
                                                   self.name))
-
-        rpc_processes = []
-        for idx in range(len(self.rpc_service_list)):
-            p_rpc = Process(target=self._launch_rpc_service, args=(idx, ))
-            rpc_processes.append(p_rpc)
-
-        for p in rpc_processes:
+        server_pros = []
+        for i, service in enumerate(self.rpc_service_list):
+            p = Process(target=self._launch_rpc_service, args=(i, ))
+            server_pros.append(p)
+        for p in server_pros:
             p.start()
 
         p_web = Process(
             target=self._launch_web_service, args=(len(self.gpus), ))
         p_web.start()
-        for p in rpc_processes:
-            p.join()
         p_web.join()
+        for p in server_pros:
+            p.join()
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
