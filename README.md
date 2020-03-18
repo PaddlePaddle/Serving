@@ -91,7 +91,7 @@ print(fetch_map)
 
 ```
 
-<h2 align="center">Models waiting for you to deploy</h2>
+<h2 align="center">Applications you can do with Paddle Serving</h2>
 
 <center>
 
