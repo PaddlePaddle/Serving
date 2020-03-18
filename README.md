@@ -93,7 +93,9 @@ print(fetch_map)
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
-<h4 align="center">Chinese Word Segmentation</h4>
+<h3 align="center">Chinese Word Segmentation</h4>
+
+- Description: Chinese word segmentation service that can be deployed with one line command.
 
 - Download: 
 ``` shell
@@ -114,21 +116,12 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 ```
 
 
-<h4 align="center">Chinese Sentence To Vector</h4>
+<h3 align="center">Chinese Sentence To Vector</h4>
 
-<h4 align="center">Image To Vector</h4>
+<h3 align="center">Image To Vector</h4>
 
-<h4 align="center">Image Classification</h4>
+<h3 align="center">Image Classification</h4>
 
-<center>
-
-|      Model Name      	|              Resnet50              	|
-|:--------------------:	|:----------------------------------:	|
-|      Package URL     	|           To be released           	|
-|      Description     	| Get the representation of an image 	|
-| Training Data Source 	|              Imagenet              	|
-
-</center>
 
 
 <h2 align="center">Document</h2>
