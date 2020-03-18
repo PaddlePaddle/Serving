@@ -7,6 +7,6 @@ do
     echo "========================================"
     echo "batch size : $batch_size" >> profile_log
     $PYTHONROOT/bin/python ../util/show_profile.py profile $thread_num >> profile_log
-    tail -n 1 profile >> profile_log
+    tail -n 2 profile >> profile_log
 done
 done

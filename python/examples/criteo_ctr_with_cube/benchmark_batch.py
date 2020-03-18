@@ -15,21 +15,23 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from __future__ import unicode_literals, absolute_import
-import os
-import sys
-import time
 from paddle_serving_client import Client
+import sys
+import os
+import criteo as criteo
+import time
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
-import requests
-import json
-import criteo_reader as criteo
+from paddle_serving_client.metric import auc
 
 args = benchmark_args()
 
 
 def single_func(idx, resource):
+    client = Client()
+    print([resource["endpoint"][idx % len(resource["endpoint"])]])
+    client.load_client_config('ctr_client_conf/serving_client_conf.prototxt')
+    client.connect(['127.0.0.1:9292'])
     batch = 1
     buf_size = 100
     dataset = criteo.CriteoDataset()
@@ -41,19 +43,18 @@ def single_func(idx, resource):
                                   batch, buf_size)
     if args.request == "rpc":
         fetch = ["prob"]
-        client = Client()
-        client.load_client_config(args.model)
-        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
-
         start = time.time()
-        for i in range(1000):
-            if args.batch_size >= 1:
+        itr = 1000
+        for ei in range(itr):
+            if args.batch_size > 1:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    feed_dict = {}
                     data = reader().next()
+                    feed_dict = {}
+                    feed_dict['dense_input'] = data[0][0]
                     for i in range(1, 27):
-                        feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+                        feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][
+                            i]
                     feed_batch.append(feed_dict)
                 result = client.batch_predict(
                     feed_batch=feed_batch, fetch=fetch)
@@ -61,20 +62,24 @@ def single_func(idx, resource):
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        raise ("no batch predict for http")
+        raise ("Not support http service.")
     end = time.time()
-    return [[end - start]]
+    qps = itr * args.batch_size / (end - start)
+    return [[end - start, qps]]
 
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
     endpoint_list = ["127.0.0.1:9292"]
-    #endpoint_list = endpoint_list + endpoint_list + endpoint_list
+    #result = single_func(0, {"endpoint": endpoint_list})
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
-    #result = single_func(0, {"endpoint": endpoint_list})
+    print(result)
     avg_cost = 0
+    qps = 0
     for i in range(args.thread):
-        avg_cost += result[0][i]
+        avg_cost += result[0][i * 2 + 0]
+        qps += result[0][i * 2 + 1]
     avg_cost = avg_cost / args.thread
     print("average total cost {} s.".format(avg_cost))
+    print("qps {} ins/s".format(qps))
