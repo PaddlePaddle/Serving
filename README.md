@@ -95,22 +95,22 @@ print(fetch_map)
 
 <h3 align="center">Chinese Word Segmentation</h4>
 
-- Description: Chinese word segmentation service that can be deployed with one line command.
+- **Description**: Chinese word segmentation HTTP service that can be deployed with one line command.
 
-- Download: 
+- **Download**: 
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
 ```
-- Host web service: 
+- **Host web service**: 
 ``` shell
 tar -xzf lac_model_jieba_web.tar.gz
 python lac_web_service.py jieba_server_model/ lac_workdir 9292
 ```
-- Request sample: 
+- **Request sample**: 
 ``` shell
 curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["crf_decode"]}' http://127.0.0.1:9292/lac/prediction
 ```
-- Request result: 
+- **Request result**: 
 ``` shell
 {"word_seg":"我|爱|北京|天安门"}
 ```
