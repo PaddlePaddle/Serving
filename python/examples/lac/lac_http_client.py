@@ -11,30 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#coding=utf-8
 import requests
-import base64
 import json
 import time
-import os
-
-
-def predict(image_path, server):
-    image = base64.b64encode(open(image_path).read())
-    req = json.dumps({"image": image, "fetch": ["score"]})
-    r = requests.post(
-        server, data=req, headers={"Content-Type": "application/json"})
-    return r
-
 
 if __name__ == "__main__":
-    server = "http://127.0.0.1:9295/image/prediction"
-    #image_path = "./data/n01440764_10026.JPEG"
-    image_list = os.listdir("./data/image_data/n01440764/")
+    server = "http://127.0.0.1:9280/lac/prediction"
+    fin = open("jieba_test.txt", "r")
     start = time.time()
-    for img in image_list:
-        image_file = "./data/image_data/n01440764/" + img
-        res = predict(image_file, server)
-        print(res.json()["score"][0])
+    for line in fin:
+        req_data = {"words": line.strip(), "fetch": ["crf_decode"]}
+        r = requests.post(server, json=req_data)
     end = time.time()
     print(end - start)

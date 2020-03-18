@@ -42,7 +42,7 @@ def serve_args():
         "--device", type=str, default="gpu", help="Type of device")
     parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
     parser.add_argument(
-        "--name", type=str, default="default", help="Default service name")
+        "--name", type=str, default="None", help="Default service name")
     return parser.parse_args()
 
 

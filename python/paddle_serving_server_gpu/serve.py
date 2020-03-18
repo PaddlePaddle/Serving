@@ -89,4 +89,18 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
 
 if __name__ == "__main__":
     args = serve_args()
-    start_multi_card(args)
+    if args.name == "None":
+        start_multi_card(args)
+    else:
+        web_service = WebService(name=args.name)
+        web_service.load_model_config(args.model)
+        gpu_ids = []
+        if args.gpu_ids == "":
+            if "CUDA_VISIBLE_DEVICES" in os.environ:
+                gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
+        if len(gpu_ids) > 0:
+            gpus = [int(x) for x in gpu_ids.split(",")]
+            web_service.set_gpus(gpus)
+        web_service.prepare_server(
+            workdir=args.workdir, port=args.port, device=args.device)
+        web_service.run_server()

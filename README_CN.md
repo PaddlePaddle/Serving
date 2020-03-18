@@ -22,6 +22,8 @@ Paddle Serving 帮助深度学习开发者轻易部署在线预测服务。 **�
 
 ## 安装
 
+强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+
 ```shell
 pip install paddle-serving-client
 pip install paddle-serving-server
