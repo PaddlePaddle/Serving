@@ -91,7 +91,34 @@ print(fetch_map)
 
 ```
 
-<h2 align="center">Applications you can do with Paddle Serving</h2>
+<h2 align="center"> Pre-built services with Paddle Serving</h2>
+
+<h4 align="center">Chinese Word Segmentation</h4>
+
+- Download: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
+```
+- Host web service: 
+``` shell
+tar -xzf lac_model_jieba_web.tar.gz
+python lac_web_service.py jieba_server_model/ lac_workdir 9292
+```
+- Request sample: 
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["crf_decode"]}' http://127.0.0.1:9292/lac/prediction
+```
+- Request result: 
+``` shell
+{"word_seg":"我|爱|北京|天安门"}
+```
+
+
+<h4 align="center">Chinese Sentence To Vector</h4>
+
+<h4 align="center">Image To Vector</h4>
+
+<h4 align="center">Image Classification</h4>
 
 <center>
 
