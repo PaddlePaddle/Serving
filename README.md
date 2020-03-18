@@ -139,6 +139,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 
 ### About Efficiency
 - [How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [Benchmarks](doc/BENCHMARK.md)
 
 ### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)
