@@ -8,8 +8,6 @@ set(SRC_LIST ${CMAKE_CURRENT_LIST_DIR}/src/rockskvdb_impl.cpp
        
 add_library(kvdb ${SRC_LIST})
 add_dependencies(kvdb rocksdb)
-target_include_directories(kvdb PUBLIC
-${THIRD_PARTY_PATH}/install/rocksdb/include)
 install(TARGETS kvdb ARCHIVE DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/lib/)
 
 

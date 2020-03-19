@@ -1,4 +1,4 @@
-# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,32 +15,31 @@
 INCLUDE(ExternalProject)
 
 SET(ROCKSDB_SOURCES_DIR ${THIRD_PARTY_PATH}/rocksdb)
-SET(ROCKSDB_DOWNLOAD_DIR ${ROCKSDB_SOURCES_DIR}/src/extern_rocksdb)
-SET(ROCKSDB_INSTALL_DIR ${THIRD_PARTY_PATH}/install/rocksdb/)
-SET(ROCKSDB_INCLUDE_DIR "${ROCKSDB_INSTALL_DIR}/include" CACHE PATH "RocksDB include directory." FORCE)
-SET(ROCKSDB_LIBRARIES "${ROCKSDB_INSTALL_DIR}/lib/librocksdb.a" CACHE FILEPATH "RocksDB library." FORCE)
-
-message("rocksdb install dir: " ${ROCKSDB_INSTALL_DIR})
-
-# Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
-set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
-
-SET(ROCKSDB_VERSION "6.1")
-SET(ROCKSDB_LIB_PATH "http://paddle-serving.bj.bcebos.com/dev/gcc485/rocksdb.tar.gz")
+SET(ROCKSDB_INSTALL_DIR ${THIRD_PARTY_PATH}/install/rocksdb)
+SET(ROCKSDB_INCLUDE_DIR "${ROCKSDB_INSTALL_DIR}/include" CACHE PATH "rocksdb include directory." FORCE)
+SET(ROCKSDB_LIBRARIES "${ROCKSDB_INSTALL_DIR}/lib/librocksdb.a" CACHE FILEPATH "rocksdb library." FORCE)
+INCLUDE_DIRECTORIES(${ROCKSDB_INCLUDE_DIR})
 
 ExternalProject_Add(
-    "extern_rocksdb"
+    extern_rocksdb
     ${EXTERNAL_PROJECT_LOG_ARGS}
-    URL                 "${ROCKSDB_LIB_PATH}"
-    PREFIX              "${ROCKSDB_SOURCES_DIR}"
-    DOWNLOAD_DIR        "${ROCKSDB_DOWNLOAD_DIR}"
-    CONFIGURE_COMMAND   ""
-    BUILD_COMMAND       ""
-    UPDATE_COMMAND      ""
-    INSTALL_COMMAND
-        ${CMAKE_COMMAND} -E copy_directory ${ROCKSDB_DOWNLOAD_DIR}/include ${ROCKSDB_INSTALL_DIR}/include &&
-        ${CMAKE_COMMAND} -E copy_directory ${ROCKSDB_DOWNLOAD_DIR}/lib ${ROCKSDB_INSTALL_DIR}/lib 
+    PREFIX ${ROCKSDB_SOURCES_DIR}
+    GIT_REPOSITORY "https://github.com/facebook/rocksdb"
+    GIT_TAG 6.2.fb
+    UPDATE_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND CXXFLAGS=-fPIC make static_lib
+    INSTALL_COMMAND mkdir -p ${ROCKSDB_INSTALL_DIR}/lib/ 
+        && cp ${ROCKSDB_SOURCES_DIR}/src/extern_rocksdb/librocksdb.a ${ROCKSDB_LIBRARIES}
+        && cp -r ${ROCKSDB_SOURCES_DIR}/src/extern_rocksdb/include ${ROCKSDB_INSTALL_DIR}/
+    BUILD_IN_SOURCE 1
 )
-INCLUDE_DIRECTORIES(${ROCKSDB_INCLUDE_DIR})
+
+ADD_DEPENDENCIES(extern_rocksdb snappy)
+
 ADD_LIBRARY(rocksdb STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET rocksdb PROPERTY IMPORTED_LOCATION ${ROCKSDB_INSTALL_DIR}/lib/librocksdb.a)
+SET_PROPERTY(TARGET rocksdb PROPERTY IMPORTED_LOCATION ${ROCKSDB_LIBRARIES})
+ADD_DEPENDENCIES(rocksdb extern_rocksdb)
+
+LIST(APPEND external_project_dependencies rocksdb)
+
