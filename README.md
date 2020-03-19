@@ -108,7 +108,7 @@ python lac_web_service.py jieba_server_model/ lac_workdir 9292
 ```
 - **Request sample**: 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["crf_decode"]}' http://127.0.0.1:9292/lac/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
 ```
 - **Request result**: 
 ``` shell
