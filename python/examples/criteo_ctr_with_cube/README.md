@@ -33,11 +33,11 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 ### Benchmark
 
-设备 ：Intel(R) Xeon(R) CPU E5-2640 v3 @ 2.60GHz 
+设备 ：Intel(R) Xeon(R) CPU 61480 @ 2.40GHz 
 
 模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
 
-server thread num ： 16
+server thread num ： 8
 
 执行
 ```
