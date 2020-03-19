@@ -53,8 +53,9 @@ Paddle Serving provides HTTP and RPC based service for users to access
 
 ### HTTP service
 
+Paddle Serving provides a built-in python module called `paddle_serving_server.serve` that can start a rpc service or a http service with one-line command. If we specify the argument `--name uci`, it means that we will have a HTTP service with a url of `$IP:$PORT/uci/prediction`
 ``` shell
-python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 <center>
 
@@ -65,6 +66,7 @@ python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
 
+Here, we use `curl` to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
 
 ``` shell
@@ -73,6 +75,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 
 ### RPC service
 
+A user can also start a rpc service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
@@ -91,17 +94,37 @@ print(fetch_map)
 
 ```
 
-<h2 align="center">Applications you can do with Paddle Serving</h2>
+<h2 align="center"> Pre-built services with Paddle Serving</h2>
 
-<center>
+<h3 align="center">Chinese Word Segmentation</h4>
 
-|      Model Name      	|              Resnet50              	|
-|:--------------------:	|:----------------------------------:	|
-|      Package URL     	|           To be released           	|
-|      Description     	| Get the representation of an image 	|
-| Training Data Source 	|              Imagenet              	|
+- **Description**: Chinese word segmentation HTTP service that can be deployed with one line command.
 
-</center>
+- **Download**: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
+```
+- **Host web service**: 
+``` shell
+tar -xzf lac_model_jieba_web.tar.gz
+python lac_web_service.py jieba_server_model/ lac_workdir 9292
+```
+- **Request sample**: 
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
+```
+- **Request result**: 
+``` shell
+{"word_seg":"我|爱|北京|天安门"}
+```
+
+
+<h3 align="center">Chinese Sentence To Vector</h4>
+
+<h3 align="center">Image To Vector</h4>
+
+<h3 align="center">Image Classification</h4>
+
 
 
 <h2 align="center">Document</h2>
@@ -119,6 +142,7 @@ print(fetch_map)
 
 ### About Efficiency
 - [How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [Benchmarks](doc/BENCHMARK.md)
 
 ### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)

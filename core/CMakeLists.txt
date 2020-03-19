@@ -14,7 +14,7 @@
 
 if(NOT CLIENT_ONLY)
 add_subdirectory(cube)
-add_subdirectory(kvdb)
+#add_subdirectory(kvdb)
 endif()
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
