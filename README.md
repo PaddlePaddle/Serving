@@ -53,8 +53,9 @@ Paddle Serving provides HTTP and RPC based service for users to access
 
 ### HTTP service
 
+Paddle Serving provides a built-in python module called `paddle_serving_server.serve` that can start a rpc service or a http service with one-line command. If we specify the argument `--name uci`, it means that we will have a HTTP service with a url of `$IP:$PORT/uci/prediction`
 ``` shell
-python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 <center>
 
@@ -65,6 +66,7 @@ python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
 
+Here, we use curl to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
 
 ``` shell
@@ -73,6 +75,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 
 ### RPC service
 
+A user can also start a rpc service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
