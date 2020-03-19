@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import paddle_serving_client
 import os
@@ -27,10 +28,14 @@ float_type = 1
 class SDKConfig(object):
     def __init__(self):
         self.sdk_desc = sdk.SDKConf()
-        self.endpoints = []
+        self.tag_list = []
+        self.cluster_list = []
+        self.variant_weight_list = []
 
-    def set_server_endpoints(self, endpoints):
-        self.endpoints = endpoints
+    def add_server_variant(self, tag, cluster, variant_weight):
+        self.tag_list.append(tag)
+        self.cluster_list.append(cluster)
+        self.variant_weight_list.append(variant_weight)
 
     def gen_desc(self):
         predictor_desc = sdk.Predictor()
@@ -38,14 +43,15 @@ class SDKConfig(object):
         predictor_desc.service_name = \
             "baidu.paddle_serving.predictor.general_model.GeneralModelService"
         predictor_desc.endpoint_router = "WeightedRandomRender"
-        predictor_desc.weighted_random_render_conf.variant_weight_list = "100"
+        predictor_desc.weighted_random_render_conf.variant_weight_list = "|".join(
+            self.variant_weight_list)
 
-        variant_desc = sdk.VariantConf()
-        variant_desc.tag = "var1"
-        variant_desc.naming_conf.cluster = "list://{}".format(":".join(
-            self.endpoints))
-
-        predictor_desc.variants.extend([variant_desc])
+        for idx, tag in enumerate(self.tag_list):
+            variant_desc = sdk.VariantConf()
+            variant_desc.tag = tag
+            variant_desc.naming_conf.cluster = "list://{}".format(",".join(
+                self.cluster_list[idx]))
+            predictor_desc.variants.extend([variant_desc])
 
         self.sdk_desc.predictors.extend([predictor_desc])
         self.sdk_desc.default_variant_conf.tag = "default"
@@ -79,6 +85,7 @@ class Client(object):
         self.feed_names_to_idx_ = {}
         self.rpath()
         self.pid = os.getpid()
+        self.predictor_sdk_ = SDKConfig()
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -130,13 +137,15 @@ class Client(object):
 
         return
 
-    def connect(self, endpoints):
+    def add_variant(self, tag, cluster, variant_weight):
+        self.predictor_sdk_.add_server_variant(tag, cluster,
+                                               str(variant_weight))
+
+    def connect(self):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
-        predictor_sdk = SDKConfig()
-        predictor_sdk.set_server_endpoints(endpoints)
-        sdk_desc = predictor_sdk.gen_desc()
+        sdk_desc = self.predictor_sdk_.gen_desc()
         print(sdk_desc)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
@@ -155,7 +164,7 @@ class Client(object):
             raise SystemExit("The shape of feed tensor {} not match.".format(
                 key))
 
-    def predict(self, feed={}, fetch=[]):
+    def predict(self, feed={}, fetch=[], need_server_pid=False):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -190,9 +199,10 @@ class Client(object):
                 result_map[name] = self.result_handle_.get_float_by_name(name)[
                     0]
 
-        return result_map
+        return [result_map, self.result_handle_.server_pid()
+                ] if need_server_pid else result_map
 
-    def batch_predict(self, feed_batch=[], fetch=[]):
+    def batch_predict(self, feed_batch=[], fetch=[], need_server_pid=False):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -239,7 +249,8 @@ class Client(object):
                         index]
             result_map_batch.append(result_map)
 
-        return result_map_batch
+        return [result_map, self.result_handle_.server_pid()
+                ] if need_server_pid else result_map
 
     def release(self):
         self.client_handle_.destroy_predictor()

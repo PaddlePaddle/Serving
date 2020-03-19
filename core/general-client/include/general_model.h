@@ -53,10 +53,15 @@ class PredictorRes {
       const std::string& name) {
     return _float_map[name];
   }
+  void set_server_pid(int pid) { _server_pid = pid; }
+  int server_pid() { return _server_pid; }
 
  public:
   std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
   std::map<std::string, std::vector<std::vector<float>>> _float_map;
+
+ private:
+  int _server_pid;
 };
 
 class PredictorClient {
