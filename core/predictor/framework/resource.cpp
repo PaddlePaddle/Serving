@@ -170,7 +170,11 @@ int Resource::general_model_initialize(const std::string& path,
   if (this->cube_config_fullpath.size() != 0) {
     LOG(INFO) << "init cube by config file : " << this->cube_config_fullpath;
     rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
-    cube->init(this->cube_config_fullpath.c_str());
+    int ret = cube->init(this->cube_config_fullpath.c_str());
+    if (ret != 0) {
+      LOG(ERROR) << "cube init error";
+      return -1;
+    }
   }
   VLOG(2) << "general model path: " << path;
   VLOG(2) << "general model file: " << file;

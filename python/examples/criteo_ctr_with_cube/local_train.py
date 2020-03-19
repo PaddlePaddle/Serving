@@ -66,7 +66,7 @@ def train():
     ]
 
     print(whole_filelist)
-    dataset.set_filelist(whole_filelist[:thread_num])
+    dataset.set_filelist(whole_filelist[:100])
     dataset.load_into_memory()
     fluid.layers.Print(auc_var)
     epochs = 1

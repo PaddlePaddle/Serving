@@ -29,15 +29,14 @@ buf_size = 100
 dataset = criteo.CriteoDataset()
 dataset.setup(1000001)
 test_filelists = [
-    "{}/part-%d".format(sys.argv[2]) % x
-    for x in range(len(os.listdir(sys.argv[2])))
+    "{}/part-test".format(sys.argv[2])
 ]
-reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:], batch,
+reader = dataset.infer_reader(test_filelists, batch,
                               buf_size)
 label_list = []
 prob_list = []
 start = time.time()
-for ei in range(1000):
+for ei in range(10000):
     data = reader().next()
     feed_dict = {}
     feed_dict['dense_input'] = data[0][0]

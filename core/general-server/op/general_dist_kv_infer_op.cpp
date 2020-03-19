@@ -22,6 +22,7 @@
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"
 #include "core/util/include/timer.h"
+#include <utility>
 
 namespace baidu {
 namespace paddle_serving {
@@ -55,6 +56,8 @@ int GeneralDistKVInferOp::inference() {
   std::vector<rec::mcube::CubeValue> values;
   int sparse_count = 0;
   int dense_count = 0;
+  std::vector<std::pair<int64_t*, size_t>> dataptr_size_pairs;
+  size_t key_len = 0;
   for (size_t i = 0; i < in->size(); ++i) {
     if (in->at(i).dtype != paddle::PaddleDType::INT64) {
       ++dense_count;
@@ -65,22 +68,29 @@ int GeneralDistKVInferOp::inference() {
     for (size_t s = 0; s < in->at(i).shape.size(); ++s) {
       elem_num *= in->at(i).shape[s];
     }
+    key_len += elem_num;
     int64_t *data_ptr = static_cast<int64_t *>(in->at(i).data.data());
-    for (size_t j = 0; j < elem_num; ++j) {
-      keys.push_back(data_ptr[j]);
-    }
+    dataptr_size_pairs.push_back(std::make_pair(data_ptr, elem_num));
   }
-  // TODO: Add Seek CubeValues Here, and replace EMBEDDING_SIZE with variable.
+  keys.resize(key_len);
+  int key_idx = 0;
+  for (size_t i = 0; i < dataptr_size_pairs.size(); ++i) {
+     std::copy(dataptr_size_pairs[i].first, dataptr_size_pairs[i].first +  dataptr_size_pairs[i].second, keys.begin() + key_idx);
+     key_idx += dataptr_size_pairs[i].second;
+  }
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   // TODO: temp hard code "test_dict" here, fix this with next commit
   // related to cube conf
-  std::string table_name = "test_dict";
-  int ret = cube->seek(table_name, keys, &values);
+  std::vector<std::string> table_names = cube->get_table_names();
+  if (table_names.size() == 0) {
+    LOG(ERROR) << "cube init error or cube config not given.";
+  }
+  int ret = cube->seek(table_names[0], keys, &values);
 
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
     LOG(ERROR) << "cube value return null";
   }
-  size_t EMBEDDING_SIZE = values[0].buff.size() / 4;
+  size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
   TensorVector sparse_out;
   sparse_out.resize(sparse_count);
   TensorVector dense_out;
