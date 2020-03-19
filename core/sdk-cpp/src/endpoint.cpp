@@ -75,7 +75,7 @@ int Endpoint::thrd_finalize() {
       return -1;
     }
   }
-  LOG(INFO) << "Succ thrd finalize all vars: " << var_size;
+  VLOG(2) << "Succ thrd finalize all vars: " << var_size;
   return 0;
 }
 
