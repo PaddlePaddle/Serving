@@ -65,7 +65,7 @@ endif()
 
 if (NOT CLIENT_ONLY)
 include(external/jsoncpp)
-include(external/rocksdb)
+#include(external/rocksdb)
 endif()
 #include(external/gtest)
 
