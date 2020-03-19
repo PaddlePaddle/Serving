@@ -118,11 +118,6 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 {"word_seg":"我|爱|北京|天安门"}
 ```
 
-
-<h3 align="center">Chinese Sentence To Vector</h4>
-
-<h3 align="center">Image To Vector</h4>
-
 <h3 align="center">Image Classification</h4>
 
 - **Description**: Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
