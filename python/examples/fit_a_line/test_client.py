@@ -18,7 +18,8 @@ import sys
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+client.add_variant("var1", ["127.0.0.1:9393"], 50)
+client.connect()
 
 import paddle
 test_reader = paddle.batch(
@@ -27,5 +28,6 @@ test_reader = paddle.batch(
     batch_size=1)
 
 for data in test_reader():
-    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    [fetch_map, server_pid] = client.predict(
+        feed={"x": data[0][0]}, fetch=["price"], need_server_pid=True)
+    print("[{}] {} {}".format(server_pid, fetch_map["price"][0], data[0][1][0]))

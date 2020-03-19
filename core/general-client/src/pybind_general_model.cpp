@@ -39,7 +39,8 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorRes &self, std::string &name) {
              return self.get_float_by_name(name);
            },
-           py::return_value_policy::reference);
+           py::return_value_policy::reference)
+      .def("server_pid", [](PredictorRes &self) { return self.server_pid(); });
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())

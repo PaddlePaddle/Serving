@@ -237,6 +237,7 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
       }
       postprocess_end = timeline.TimeStampUS();
     }
+    predict_res.set_server_pid(res.server_pid());
   }
 
   if (FLAGS_profile_client) {
@@ -400,6 +401,7 @@ int PredictorClient::batch_predict(
       }
     }
     postprocess_end = timeline.TimeStampUS();
+    predict_res_batch.set_server_pid(res.server_pid());
   }
 
   if (FLAGS_profile_client) {
