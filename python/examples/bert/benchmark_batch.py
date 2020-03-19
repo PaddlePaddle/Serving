@@ -41,13 +41,13 @@ def single_func(idx, resource):
         client = Client()
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
+        feed_batch = []
+        for bi in range(args.batch_size):
+            feed_batch.append(reader.process(dataset[bi]))
 
         start = time.time()
         for i in range(1000):
             if args.batch_size >= 1:
-                feed_batch = []
-                for bi in range(args.batch_size):
-                    feed_batch.append(reader.process(dataset[i]))
                 result = client.batch_predict(
                     feed_batch=feed_batch, fetch=fetch)
             else:
@@ -61,7 +61,9 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9292"]
+    endpoint_list = [
+        "127.0.0.1:9295", "127.0.0.1:9296", "127.0.0.1:9297", "127.0.0.1:9298"
+    ]
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
     avg_cost = 0
