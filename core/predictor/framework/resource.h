@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 #include "core/cube/cube-api/include/cube_api.h"
-#include "core/kvdb/include/kvdb/paddle_rocksdb.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
@@ -101,8 +100,6 @@ class Resource {
   void print_general_model_config(
       const std::shared_ptr<PaddleGeneralModelConfig>& config);
 
-  std::shared_ptr<RocksDBWrapper> getDB();
-
   DynamicResource* get_dynamic_resource() {
     return reinterpret_cast<DynamicResource*>(
         THREAD_GETSPECIFIC(_tls_bspec_key));
@@ -110,7 +107,6 @@ class Resource {
 
  private:
   int thread_finalize() { return 0; }
-  std::shared_ptr<RocksDBWrapper> db;
   std::shared_ptr<PaddleGeneralModelConfig> _config;
   std::string cube_config_fullpath;
 
