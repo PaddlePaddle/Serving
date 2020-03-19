@@ -45,7 +45,7 @@ bash benchmark.sh
 ```
 客户端每个线程会发送1000个batch
 
-| client  thread num | prepro | client infer | op0    | op1   | op2    | postpro | avg_cost | qps   |
+| client  thread num | prepro | client infer | op0    | op1   | op2    | postpro | avg_latency | qps   |
 | ------------------ | ------ | ------------ | ------ | ----- | ------ | ------- | ----- | ----- |
 | 1                  | 0.027  | 1.582        | 0.019  | 0.856 | 0.0024 | 0.0019  | 5.984 | 167.4 |
 | 2                  | 0.028  | 1.674        | 0.021  | 0.870 | 0.0020 | 0.0021  | 6.305 | 311.7 |
