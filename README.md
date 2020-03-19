@@ -125,6 +125,28 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 
 <h3 align="center">Image Classification</h4>
 
+- **Description**: Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
+
+- **Download**: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
+```
+- **Host web service**: 
+``` shell
+tar -xzf imagenet_demo.tar.gz
+python image_classification_service_demo.py resnet50_serving_model
+```
+- **Request sample**: 
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+```
+- **Request result**: 
+``` shell
+{"label":"daisy","prob":0.9341403245925903}
+```
+
+
+
 
 
 <h2 align="center">Document</h2>
