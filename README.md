@@ -137,6 +137,13 @@ tar -xzf imagenet_demo.tar.gz
 python image_classification_service_demo.py resnet50_serving_model
 ```
 - **Request sample**: 
+
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
+    <br>
+<p>
+    
 ``` shell
 curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
 ```
