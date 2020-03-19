@@ -153,7 +153,6 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     this->cube_config_fullpath = cube_config_fullpath;
   }
 
-
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
   return 0;
 }
@@ -161,7 +160,6 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 // model config
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
-  // TODO: add serving dist op detection, if true, add cube instance init.
   if (this->cube_config_fullpath.size() != 0) {
     LOG(INFO) << "init cube by config file : " << this->cube_config_fullpath;
     rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();

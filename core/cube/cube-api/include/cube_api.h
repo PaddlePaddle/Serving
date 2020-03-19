@@ -98,13 +98,13 @@ class CubeAPI {
                const std::vector<uint64_t>& keys,
                std::function<void(DictValue*, size_t)> parse,
                std::string* version);
- 
+
   /**
    * @brief: get all table names from cube server, thread safe.
    * @param [out] vals: vector of table names
    *
-   */ 
-  std::vector<std::string>  get_table_names();  
+   */
+  std::vector<std::string> get_table_names();
 
  public:
   static const char* error_msg(int error_code);
