@@ -39,8 +39,6 @@ DynamicResource::~DynamicResource() {}
 
 int DynamicResource::initialize() { return 0; }
 
-std::shared_ptr<RocksDBWrapper> Resource::getDB() { return db; }
-
 std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
   return _config;
 }
@@ -142,10 +140,6 @@ int Resource::initialize(const std::string& path, const std::string& file) {
   if (THREAD_KEY_CREATE(&_tls_bspec_key, dynamic_resource_deleter) != 0) {
     LOG(ERROR) << "unable to create tls_bthread_key of thrd_data";
     return -1;
-  }
-  // init rocksDB instance
-  if (db.get() == nullptr) {
-    db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
   }
 
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
