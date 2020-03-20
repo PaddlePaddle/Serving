@@ -1,6 +1,6 @@
 # 使用PaddleServing快速搭建预测服务
 
-Paddle Serving是Paddle的高性能在线预测服务框架，可以灵活支持大多数模型的部署。本文中将以IMDB评论情感分析任务为例通过6步展示从模型的训练到部署预测服务的全流程。
+Paddle Serving是Paddle的高性能在线预测服务框架，可以灵活支持大多数模型的部署。本文中将以IMDB评论情感分析任务为例通过5步展示从模型的训练到部署预测服务的全流程。
 
 ## Step1：准备环境
 
@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
 执行loca_train.py脚本会进行训练并在训练结束时保存模型和配置文件。保存的文件分为imdb_cnn_client_conf和imdb_cnn_model文件夹，前者包含client端的配置文件，后者包含server端的配置文件和保存的模型文件。
 
-## Step6：部署预测服务
+## Step5：部署预测服务
 
 Paddle Serving框架支持两种预测服务方式，一种是通过RPC进行通信，一种是通过HTTP进行通信，下面将分别介绍这两种方式的部署方法。
 
