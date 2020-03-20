@@ -15,9 +15,10 @@ function check_cmd() {
 }
 
 function build_client() {
-    local TYPE=$1 # pwd: /Serving
+    local TYPE=$1
     local DIRNAME=build-client-$TYPE
-    mkdir $DIRNAME && cd $DIRNAME # pwd: /Serving/build-client-$TYPE
+    mkdir $DIRNAME # pwd: /Serving
+    cd $DIRNAME # pwd: /Serving/build-client-$TYPE
     case $TYPE in
         CPU|GPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
@@ -38,9 +39,10 @@ function build_client() {
 }
 
 function build_server() {
-    local TYPE=$1 # pwd: /Serving
+    local TYPE=$1
     local DIRNAME=build-server-$TYPE
-    mkdir $DIRNAME && cd $DIRNAME # pwd: /Serving/build-server-$TYPE
+    mkdir $DIRNAME # pwd: /Serving
+    cd $DIRNAME # pwd: /Serving/build-server-$TYPE
     case $TYPE in
         CPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
