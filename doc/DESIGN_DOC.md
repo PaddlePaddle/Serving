@@ -85,9 +85,9 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 ## 4. 用户类型
 <p align="center">
     <br>
-<img src='user_groups.png' width = "230" height = "350">
-<img src='blank.png' width = "50" height = "350">
-<img src='coding_mode.png' width = "200" height = "350">
+<img src='user_groups.png' width = "320" height = "470">
+<img src='blank.png' width = "50" height = "470">
+<img src='coding_mode.png' width = "260" height = "470">
     <br>
 <p>
 
