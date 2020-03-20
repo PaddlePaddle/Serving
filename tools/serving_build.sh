@@ -47,7 +47,7 @@ function build_server() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF ..
-            check_cmd "make -j2 >/dev/null"
+            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         GPU)
@@ -56,7 +56,7 @@ function build_server() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF \
                   -DWITH_GPU=ON ..
-            check_cmd "make -j2 >/dev/null"
+            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         *)
@@ -78,6 +78,7 @@ function python_test_fit_a_line() {
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     local TYPE=$1
+    echo $TYPE
     case $TYPE in
         CPU)
             # test rpc
@@ -127,12 +128,45 @@ function python_test_fit_a_line() {
     cd .. # pwd: /Serving/python/examples
 }
 
+function python_run_criteo_ctr_with_cube() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    yum install -y bc >/dev/null
+    cd criteo_ctr_with_cube # pwd: /Serving/python/examples/criteo_ctr_with_cube
+    check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+    check_cmd "tar xf ctr_cube_unittest.tar.gz"
+    check_cmd "mv models/ctr_client_conf ./"
+    check_cmd "mv models/ctr_serving_model_kv ./"
+    check_cmd "mv models/data ./cube/"
+    check_cmd "mv models/ut_data ./"
+    cp ../../../build-server-$TYPE/output/bin/cube* ./cube/ 
+    mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
+    yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
+
+    sh cube_prepare.sh &
+    check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"    
+    python test_server.py ctr_serving_model_kv &
+    check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
+    AUC=$(tail -n 2  score | awk 'NR==1')
+    VAR2="0.70"
+    RES=$( echo "$AUC>$VAR2" | bc )
+    if [[ $RES -eq 0 ]]; then
+        echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+        exit 1
+    fi
+    echo "criteo_ctr_with_cube inference auc test success"
+    ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+    ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+    cd .. # pwd: /Serving/python/examples
+}
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
     export SERVING_BIN=$PWD/build-server-${TYPE}/core/general-server/serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
+    python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
