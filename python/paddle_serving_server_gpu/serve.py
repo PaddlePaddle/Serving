@@ -91,6 +91,7 @@ if __name__ == "__main__":
     if args.name == "None":
         start_multi_card(args)
     else:
+        from .web_service import WebService
         web_service = WebService(name=args.name)
         web_service.load_model_config(args.model)
         gpu_ids = []
