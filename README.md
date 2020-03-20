@@ -98,7 +98,8 @@ print(fetch_map)
 
 <h3 align="center">Chinese Word Segmentation</h4>
 
-- **Description**: Chinese word segmentation HTTP service that can be deployed with one line command.
+- **Description**: 
+Chinese word segmentation HTTP service that can be deployed with one line command.
 
 - **Download Servable Package**: 
 ``` shell
@@ -120,7 +121,9 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 
 <h3 align="center">Image Classification</h4>
 
-- **Description**: Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
+- **Description**: 
+
+Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
 
 - **Download Servable Package**: 
 ``` shell
