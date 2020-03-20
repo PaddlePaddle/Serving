@@ -83,4 +83,12 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 ### 3.2 模型管理、在线A/B流量测试、模型热加载
 
 ## 4. 用户类型
+<p align="center">
+    <br>
+<img src='user_groups.png' width = "300" height = "430">
+  
+<img src='coding_mode.png' width = "200" height = "430">
+    <br>
+<p>
+
 
