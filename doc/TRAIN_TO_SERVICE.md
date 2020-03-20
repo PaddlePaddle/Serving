@@ -180,7 +180,7 @@ if __name__ == "__main__":
     data = fluid.layers.data(
         name="words", shape=[1], dtype="int64", lod_level=1)
     label = fluid.layers.data(name="label", shape=[1], dtype="int64")
-		#定义dataset，train_data为训练数据目录
+    #定义dataset，train_data为训练数据目录
     dataset = fluid.DatasetFactory().create_dataset()
     filelist = ["train_data/%s" % x for x in os.listdir("train_data")]
     dataset.set_use_var([data, label])
@@ -205,7 +205,7 @@ if __name__ == "__main__":
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
         if i == 5:
-          	#在第6个epoch时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
+            #在第6个epoch时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
             serving_io.save_model("{}_model".format(model_name),
                                   "{}_client_conf".format(model_name),
                                   {"words": data}, {"prediction": prediction},
