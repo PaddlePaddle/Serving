@@ -3,8 +3,6 @@
 function init() {
     source /root/.bashrc
     set -v
-    #export http_proxy=http://172.19.56.199:3128
-    #export https_proxy=http://172.19.56.199:3128
     export PYTHONROOT=/usr
     cd Serving
 }
@@ -71,6 +69,10 @@ function build_server() {
     rm -rf $DIRNAME
 }
 
+function kill_server_process() {
+    ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+}
+
 function python_test_fit_a_line() {
     cd fit_a_line
     sh get_data.sh
@@ -78,19 +80,35 @@ function python_test_fit_a_line() {
     case $TYPE in
         CPU)
             # test rpc
-            check_cmd "python test_server.py uci_housing_model/ > /dev/null &"
-            sleep 5
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 > /dev/null &"
+            sleep 5 # wait for the server to start
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
+
             # test web
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model/ --name uci --port 9399 --name uci > /dev/null &"
-            sleep 5
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9399/uci/prediction"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --name uci --port 9393 --thread 4 --name uci > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then exit 1; fi
+            kill_server_process
             ;;
         GPU)
-            echo "not support yet"
-            exit 1
+            # test rpc
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
+            kill_server_process
+
+            # test web
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 2 --gpu_ids 0 --name uci > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then exit 1; fi
+            kill_server_process
             ;;
         *)
             echo "error type"
@@ -103,10 +121,10 @@ function python_test_fit_a_line() {
 }
 
 function python_run_test() {
+    # Using the compiled binary
+    export SERVING_BIN=$PWD/build-server/core/general-server/serving
     cd python/examples
     local TYPE=$1
-    # Frist time run, downloading PaddleServing components ...
-    python -c "from paddle_serving_server import Server; server = Server(); server.download_bin()"
     python_test_fit_a_line $TYPE
     echo "test python $TYPE part finished as expected."
     cd ../..
