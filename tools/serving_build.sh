@@ -66,7 +66,7 @@ function build_server() {
     esac
     echo "build server $TYPE part finished as expected."
     cd ..
-    rm -rf $DIRNAME
+    # rm -rf $DIRNAME    for export SERVING_BIN
 }
 
 function kill_server_process() {
