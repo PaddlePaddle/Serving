@@ -24,11 +24,16 @@ serving_io.save_model("serving_model", "client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
- 
+
+#### 2.1.2 服务端模型加载
+
+#### 2.1.3 客户端访问API
 
 ### 2.2 底层通信机制
+Paddle Serving采用[baidu-rpc](https://github.com/apache/incubator-brpc)进行底层的通信。baidu-rpc是百度开源的一款PRC通信库，具有高并发、低延时等特点，已经支持了包括百度在内上百万在线预估实例、上千个在线预估服务，稳定可靠。Paddle Serving底层采用baidu-rpc的另一个原因是深度学习模型的远程调用服务通常对延时比较敏感，需要采用一款延时较低的rpc。
 
 ### 2.3 核心执行引擎
+Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节点代表预估服务的一个环节，例如计算模型预测打分就是其中一个环节。设计有向无环图的原因，一方面是在线服务的复杂性较高，通常需要支持复杂的预处理，多个模型的串联等，
 
 ## 3. 工业级特性
 
