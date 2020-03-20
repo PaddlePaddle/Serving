@@ -68,7 +68,6 @@ function build_server() {
     esac
     echo "build server $TYPE part finished as expected."
     cd ..
-    rm -rf $DIRNAME
 }
 
 function python_test_fit_a_line() {
@@ -104,7 +103,7 @@ function python_test_fit_a_line() {
 }
 
 function python_run_criteo_ctr_with_cube() {
-    TYPE="CPU"
+    local TYPE=$1
     yum install -y bc >/dev/null
     cd criteo_ctr_with_cube
     check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -136,7 +135,7 @@ function python_run_test() {
     # Frist time run, downloading PaddleServing components ...
     python -c "from paddle_serving_server import Server; server = Server(); server.download_bin()"
     python_test_fit_a_line $TYPE
-    python_run_criteo_ctr_with_cube
+    python_run_criteo_ctr_with_cube $TYPE
     echo "test python $TYPE part finished as expected."
     cd ../..
 }
