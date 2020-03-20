@@ -105,7 +105,7 @@ function python_test_fit_a_line() {
 
 function python_run_criteo_ctr_with_cube() {
     TYPE="CPU"
-    yum install -y bc
+    yum install -y bc >/dev/null
     cd criteo_ctr_with_cube
     check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
     check_cmd "tar xf ctr_cube_unittest.tar.gz"
@@ -125,6 +125,7 @@ function python_run_criteo_ctr_with_cube() {
         echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
         exit 1
     fi
+    echo "criteo_ctr_with_cube inference auc test success"
     ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
     ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
 }
