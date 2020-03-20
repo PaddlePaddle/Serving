@@ -12,7 +12,7 @@
 
 ``` python
 git clone https://github.com/PaddlePaddle/Serving
-git submodule update --init --recursive
+cd Serving && git submodule update --init --recursive
 ```
 
 ### 编译Server部分
@@ -44,3 +44,6 @@ make -j10
 
 ### 安装wheel包
 无论是client端还是server端，编译完成后，安装python/dist/下的whl包即可
+
+### 注意事项
+运行python端server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_PATH}/core/general-server/serving`。
