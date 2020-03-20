@@ -3,7 +3,7 @@ include(common/CMakeLists.txt)
 include(op/CMakeLists.txt)
 include(mempool/CMakeLists.txt)
 include(framework/CMakeLists.txt)
-#include(plugin/CMakeLists.txt)
+include(tools/CMakeLists.txt)
 include(src/CMakeLists.txt)
 
 
