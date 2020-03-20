@@ -1,4 +1,4 @@
-#	使用PaddleServing快速搭建预测服务
+# 使用PaddleServing快速搭建预测服务
 
 ## 准备环境
 
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     avg_cost, acc, prediction = cnn_net(data, label, dict_dim)
     optimizer = fluid.optimizer.SGD(learning_rate=0.01)
     optimizer.minimize(avg_cost)
-		#执行训练
+    #执行训练
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
     epochs = 6
