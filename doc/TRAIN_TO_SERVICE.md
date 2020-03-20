@@ -1,6 +1,8 @@
 # 使用PaddleServing快速搭建预测服务
 
-## 准备环境
+Paddle Serving是Paddle的高性能在线预测服务框架，可以灵活支持大多数模型的部署。本文中将以IMDB评论情感分析任务为例通过6步展示从模型的训练到部署预测服务的全流程。
+
+## Step1：准备环境
 
 Paddle Serving可以部署在Centos和Ubuntu等Linux环境上，在其他系统上或者不希望安装serving模块的环境中仍然可以通过http服务来访问server端的预测服务。
 
@@ -14,7 +16,7 @@ pip install paddle_serving_client #client端
 
 简单准备后，我们将以IMDB评论情感分析任务为例，展示从模型训练到部署预测服务的流程。示例中的所有代码都可以在Paddle Serving代码库的[IMDB示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb)中找到，示例中使用的数据和词典文件可以通过执行IMDB示例代码中的get_data.sh脚本得到。
 
-## 训练任务与数据集
+## Step2：确定任务和原始数据格式
 
 IMDB评论情感分析任务是对电影评论的内容进行二分类，判断该评论是属于正面评论还是负面评论。
 
@@ -26,7 +28,7 @@ saw a trailer for this on another video, and decided to rent when it came out. b
 
 这是一条英文评论样本，样本中使用|作为分隔符，分隔符之前为评论的内容，分隔符之后是样本的标签，0代表负样本，即负面评论，1代表正样本，即正面评论。
 
-## 数据预处理
+## Step3：定义Reader，划分训练集、测试集
 
 对于原始文本我们需要将它转化为神经网络可以使用的数字id。imdb_reader.py脚本中定义了文本id化的方法，通过词典文件imdb.vocab将单词映射为整形数。
 
@@ -104,7 +106,7 @@ class IMDBDataset(dg.MultiSlotDataGenerator):
 
 这样神经网络就可以将转化后的文本信息作为特征值进行训练。
 
-## 训练和保存模型
+## Step4：定义CNN网络进行训练并保存
 
 接下来我们使用[CNN模型](https://www.paddlepaddle.org.cn/documentation/docs/zh/user_guides/nlp_case/understand_sentiment/README.cn.html#cnn)来进行训练。在nets.py脚本中定义网络结构如下。
 
@@ -214,7 +216,7 @@ if __name__ == "__main__":
 
 执行loca_train.py脚本会进行训练并在训练结束时保存模型和配置文件。保存的文件分为imdb_cnn_client_conf和imdb_cnn_model文件夹，前者包含client端的配置文件，后者包含server端的配置文件和保存的模型文件。
 
-## 部署预测服务
+## Step6：部署预测服务
 
 Paddle Serving框架支持两种预测服务方式，一种是通过RPC进行通信，一种是通过HTTP进行通信，下面将分别介绍这两种方式的部署方法。
 
