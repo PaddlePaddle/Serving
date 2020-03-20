@@ -34,9 +34,38 @@ python -m paddle_serving_server.serve --model your_servable_model --thread 10 --
 python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
 ```
 服务端的预测逻辑也可以通过Paddle Serving Server端的API进行人工定义，一个例子：
+``` python
+``` python
+import paddle_serving_server as serving
+op_maker = serving.OpMaker()
+read_op = op_maker.create('general_reader')
+dist_kv_op = op_maker.create('general_dist_kv')
+general_infer_op = op_maker.create('general_infer')
+general_response_op = op_maker.create('general_response')
 
+op_seq_maker = serving.OpSeqMaker()
+op_seq_maker.add_op(read_op)
+op_seq_maker.add_op(dist_kv_op)
+op_seq_maker.add_op(general_infer_op)
+op_seq_maker.add_op(general_response_op)
+```
+
+当前Paddle Serving在Server端支持的主要Op请参考如下列表：
+
+<center>
+
+| Op 名称 | 描述 |
+|--------------|------|
+| `general_reader` | 通用数据格式的读取Op |
+| `genreal_infer` | 通用数据格式的Paddle预测Op |
+| `general_response` | 通用数据格式的响应Op |
+| `general_dist_kv` | 分布式索引Op |
+
+</center>
 
 #### 2.1.3 客户端访问API
+客户端访问远程服务的API非常简单
+
 
 ### 2.2 底层通信机制
 Paddle Serving采用[baidu-rpc](https://github.com/apache/incubator-brpc)进行底层的通信。baidu-rpc是百度开源的一款PRC通信库，具有高并发、低延时等特点，已经支持了包括百度在内上百万在线预估实例、上千个在线预估服务，稳定可靠。Paddle Serving底层采用baidu-rpc的另一个原因是深度学习模型的远程调用服务通常对延时比较敏感，需要采用一款延时较低的rpc。
