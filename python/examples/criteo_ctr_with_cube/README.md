@@ -15,11 +15,10 @@ python local_train.py
 ```
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
-cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/
 sh cube_prepare.sh &
 ```
 
-### 启动RPC预测服务
+### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
 ```
 python test_server.py ctr_serving_model_kv 
