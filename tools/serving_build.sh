@@ -1,4 +1,4 @@
-
+#!/usr/bin/env bash
 
 function init() {
     source /root/.bashrc
