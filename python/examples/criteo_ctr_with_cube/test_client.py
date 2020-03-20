@@ -28,7 +28,7 @@ batch = 1
 buf_size = 100
 dataset = criteo.CriteoDataset()
 dataset.setup(1000001)
-test_filelists = ["{}/part-test".format(sys.argv[2])]
+test_filelists = ["{}/part-0".format(sys.argv[2])]
 reader = dataset.infer_reader(test_filelists, batch, buf_size)
 label_list = []
 prob_list = []

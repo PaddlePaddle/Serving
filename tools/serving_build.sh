@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+
 
 function init() {
     source /root/.bashrc
@@ -49,7 +49,7 @@ function build_server() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF ..
-            check_cmd "make -j2 >/dev/null"
+            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
             pip install python/dist/paddle_serving_server* >/dev/null
             ;;
         GPU)
@@ -58,7 +58,7 @@ function build_server() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF \
                   -DWITH_GPU=ON ..
-            check_cmd "make -j2 >/dev/null"
+            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
             pip install python/dist/paddle_serving_server* >/dev/null
             ;;
         *)
@@ -75,6 +75,7 @@ function python_test_fit_a_line() {
     cd fit_a_line
     sh get_data.sh
     local TYPE=$1
+    echo $TYPE
     case $TYPE in
         CPU)
             # test rpc
@@ -102,12 +103,39 @@ function python_test_fit_a_line() {
     cd ..
 }
 
+function python_run_criteo_ctr_with_cube() {
+    TYPE="CPU"
+    yum install -y bc
+    cd criteo_ctr_with_cube
+    check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+    check_cmd "tar xf ctr_cube_unittest.tar.gz"
+    check_cmd "mv models/ctr_client_conf ./"
+    check_cmd "mv models/ctr_serving_model_kv ./"
+    check_cmd "mv models/data ./cube/"
+    check_cmd "mv models/ut_data ./"
+    cp ../../../build-server-$TYPE/output/bin/cube* ./cube/ 
+    sh cube_prepare.sh &
+    check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"    
+    python test_server.py ctr_serving_model_kv &
+    check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
+    AUC=$(tail -n 2  score | awk 'NR==1')
+    VAR2="0.70"
+    RES=$( echo "$AUC>$VAR2" | bc )
+    if [[ $RES -eq 0 ]]; then
+        echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+        exit 1
+    fi
+    ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+    ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+}
+
 function python_run_test() {
     cd python/examples
     local TYPE=$1
     # Frist time run, downloading PaddleServing components ...
     python -c "from paddle_serving_server import Server; server = Server(); server.download_bin()"
     python_test_fit_a_line $TYPE
+    python_run_criteo_ctr_with_cube
     echo "test python $TYPE part finished as expected."
     cd ../..
 }
@@ -117,6 +145,7 @@ function main() {
     init
     build_client $TYPE
     build_server $TYPE
+    cd Serving/
     python_run_test $TYPE
     echo "serving $TYPE part finished as expected."
 }
