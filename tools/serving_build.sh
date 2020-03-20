@@ -15,9 +15,9 @@ function check_cmd() {
 }
 
 function build_client() {
-    local TYPE=$1
+    local TYPE=$1 # pwd: /Serving
     local DIRNAME=build-client-$TYPE
-    mkdir $DIRNAME && cd $DIRNAME
+    mkdir $DIRNAME && cd $DIRNAME # pwd: /Serving/build-client-$TYPE
     case $TYPE in
         CPU|GPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
@@ -33,14 +33,14 @@ function build_client() {
             ;;
     esac
     echo "build client $TYPE part finished as expected."
-    cd ..
+    cd .. # pwd: /Serving
     rm -rf $DIRNAME
 }
 
 function build_server() {
-    local TYPE=$1
+    local TYPE=$1 # pwd: /Serving
     local DIRNAME=build-server-$TYPE
-    mkdir $DIRNAME && cd $DIRNAME
+    mkdir $DIRNAME && cd $DIRNAME # pwd: /Serving/build-server-$TYPE
     case $TYPE in
         CPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
@@ -65,7 +65,7 @@ function build_server() {
             ;;
     esac
     echo "build server $TYPE part finished as expected."
-    cd ..
+    cd .. # pwd: /Serving
     # rm -rf $DIRNAME    for export SERVING_BIN
 }
 
@@ -74,7 +74,8 @@ function kill_server_process() {
 }
 
 function python_test_fit_a_line() {
-    cd fit_a_line
+    # pwd: /Serving/python/examples
+    cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     local TYPE=$1
     case $TYPE in
@@ -123,25 +124,25 @@ function python_test_fit_a_line() {
     esac
     echo "test fit_a_line $TYPE part finished as expected."
     rm -rf image kvdb log uci_housing* work*
-    cd ..
+    cd .. # pwd: /Serving/python/examples
 }
 
 function python_run_test() {
     # Using the compiled binary
-    local TYPE=$1
+    local TYPE=$1 # pwd: /Serving
     export SERVING_BIN=$PWD/build-server-${TYPE}/core/general-server/serving
-    cd python/examples
-    python_test_fit_a_line $TYPE
+    cd python/examples # pwd: /Serving/python/examples
+    python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
-    cd ../..
+    cd ../.. # pwd: /Serving
 }
 
 function main() {
-    local TYPE=$1
-    init
-    build_client $TYPE
-    build_server $TYPE
-    python_run_test $TYPE
+    local TYPE=$1 # pwd: /
+    init # pwd: /Serving
+    build_client $TYPE # pwd: /Serving
+    build_server $TYPE # pwd: /Serving
+    python_run_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
 
