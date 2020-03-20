@@ -93,6 +93,7 @@ fetch_map = client.predict(feed={"x": data}, fetch=["price"])
 print(fetch_map)
 
 ```
+Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
