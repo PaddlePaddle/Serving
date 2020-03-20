@@ -27,7 +27,7 @@ function build_client() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=ON ..
             check_cmd "make -j2 >/dev/null"
-            pip install python/dist/paddle_serving_client* >/dev/null
+            pip install -U python/dist/paddle_serving_client* >/dev/null
             ;;
         *)
             echo "error type"
@@ -50,7 +50,7 @@ function build_server() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF ..
             check_cmd "make -j2 >/dev/null"
-            pip install python/dist/paddle_serving_server* >/dev/null
+            pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         GPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
@@ -59,7 +59,7 @@ function build_server() {
                   -DCLIENT_ONLY=OFF \
                   -DWITH_GPU=ON ..
             check_cmd "make -j2 >/dev/null"
-            pip install python/dist/paddle_serving_server* >/dev/null
+            pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         *)
             echo "error type"
