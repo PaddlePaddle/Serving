@@ -31,6 +31,7 @@ op_seq_maker.add_op(response_op)
 
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
+server.set_num_threads(4)
 server.load_model_config(sys.argv[1])
 server.prepare_server(workdir="work_dir1", port=9292, device="cpu")
 server.run_server()
