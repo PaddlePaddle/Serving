@@ -29,7 +29,6 @@ args = benchmark_args()
 
 def single_func(idx, resource):
     client = Client()
-    print([resource["endpoint"][idx % len(resource["endpoint"])]])
     client.load_client_config('ctr_client_conf/serving_client_conf.prototxt')
     client.connect(['127.0.0.1:9292'])
     batch = 1
