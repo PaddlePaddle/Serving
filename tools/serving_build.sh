@@ -70,7 +70,7 @@ function build_server() {
 }
 
 function kill_server_process() {
-    ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+    ps -ef | grep "serving" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
 }
 
 function python_test_fit_a_line() {
@@ -91,7 +91,10 @@ function python_test_fit_a_line() {
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
             http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then exit 1; fi
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
             kill_server_process
             ;;
         GPU)
@@ -107,7 +110,10 @@ function python_test_fit_a_line() {
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
             http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then exit 1; fi
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
             kill_server_process
             ;;
         *)
@@ -122,9 +128,9 @@ function python_test_fit_a_line() {
 
 function python_run_test() {
     # Using the compiled binary
-    export SERVING_BIN=$PWD/build-server/core/general-server/serving
-    cd python/examples
     local TYPE=$1
+    export SERVING_BIN=$PWD/build-server-${TYPE}/core/general-server/serving
+    cd python/examples
     python_test_fit_a_line $TYPE
     echo "test python $TYPE part finished as expected."
     cd ../..
