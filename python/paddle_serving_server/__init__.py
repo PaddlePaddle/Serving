@@ -32,6 +32,7 @@ class OpMaker(object):
             "general_text_reader": "GeneralTextReaderOp",
             "general_text_response": "GeneralTextResponseOp",
             "general_single_kv": "GeneralSingleKVOp",
+            "general_dist_kv_infer": "GeneralDistKVInferOp",
             "general_dist_kv": "GeneralDistKVOp",
             "general_copy": "GeneralCopyOp"
         }
@@ -82,6 +83,7 @@ class Server(object):
         self.infer_service_fn = "infer_service.prototxt"
         self.model_toolkit_fn = "model_toolkit.prototxt"
         self.general_model_config_fn = "general_model.prototxt"
+        self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
         self.num_threads = 4
@@ -157,6 +159,11 @@ class Server(object):
                       "w") as fout:
                 fout.write(str(self.model_conf))
             self.resource_conf = server_sdk.ResourceConf()
+            for workflow in self.workflow_conf.workflows:
+                for node in workflow.nodes:
+                    if "dist_kv" in node.name:
+                        self.resource_conf.cube_config_path = workdir
+                        self.resource_conf.cube_config_file = self.cube_config_fn
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
@@ -295,6 +302,6 @@ class Server(object):
                       self.workdir,
                       self.workflow_fn,
                       self.num_threads)
-        print("Going to Run Comand")
+        print("Going to Run Command")
         print(command)
         os.system(command)
