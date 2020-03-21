@@ -26,6 +26,27 @@ function check_cmd() {
     fi
 }
 
+function rerun() {
+    if [ $# -ne 2 ]; then
+        echo "usage: rerun command rerun-times"
+        exit 1
+    fi
+    local command=$1
+    local times=$2
+    for((i=1;i<=${times};i++))
+    do
+        if [ ${i} != 1 ]; then
+            echo "${i}-th run command: ${command}..."
+        fi
+        eval $command
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
+        echo "${i}-th run(command: ${command}) failed."
+    done
+    exit 1
+}
+
 function build_client() {
     local TYPE=$1
     local DIRNAME=build-client-$TYPE
@@ -37,7 +58,7 @@ function build_client() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=ON ..
-            check_cmd "make -j2 >/dev/null"
+            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
             pip install -U python/dist/paddle_serving_client* >/dev/null
             ;;
         *)
@@ -47,7 +68,7 @@ function build_client() {
     esac
     echo "build client $TYPE part finished as expected."
     cd .. # pwd: /Serving
-    rm -rf $DIRNAME
+    # rm -rf $DIRNAME
 }
 
 function build_server() {
@@ -61,7 +82,8 @@ function build_server() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF ..
-            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
+            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            check_cmd "make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         GPU)
@@ -70,7 +92,8 @@ function build_server() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT_ONLY=OFF \
                   -DWITH_GPU=ON ..
-            check_cmd "make -j2 >/dev/null && make install -j2 >/dev/null"
+            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            check_cmd "make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
         *)
