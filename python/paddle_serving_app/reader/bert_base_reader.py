@@ -11,4 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .reader.chinese_bert_reader import ChineseBertReader
+from .reader import ReaderBase
+
+
+class BertBaseReader(ReaderBase):
+    def __init__(self):
+        super(BertBaseReader, self).__init__()
+        pass
+
+    def process(self, line):
+        super(BertBaseReader, self).process(line)
+        pass
