@@ -17,6 +17,7 @@ function init() {
     set -v
     export PYTHONROOT=/usr
     cd Serving
+    export SERVING_WORKDIR=$PWD
 }
 
 function check_cmd() {
@@ -115,7 +116,7 @@ function python_test_fit_a_line() {
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     local TYPE=$1
-    echo $TYPE
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             # test rpc
@@ -166,6 +167,7 @@ function python_test_fit_a_line() {
     esac
     echo "test fit_a_line $TYPE part finished as expected."
     rm -rf image kvdb log uci_housing* work*
+    unset SERVING_BIN
     cd .. # pwd: /Serving/python/examples
 }
 
@@ -215,7 +217,6 @@ function python_run_criteo_ctr_with_cube() {
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
-    export SERVING_BIN=$PWD/build-server-${TYPE}/core/general-server/serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
