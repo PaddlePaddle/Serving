@@ -91,15 +91,15 @@ if __name__ == "__main__":
     if args.name == "None":
         start_multi_card(args)
     else:
+        from .web_service import WebService
         web_service = WebService(name=args.name)
         web_service.load_model_config(args.model)
-        gpu_ids = []
-        if args.gpu_ids == "":
+        gpu_ids = args.gpu_ids
+        if gpu_ids == "":
             if "CUDA_VISIBLE_DEVICES" in os.environ:
                 gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
         if len(gpu_ids) > 0:
-            gpus = [int(x) for x in gpu_ids.split(",")]
-            web_service.set_gpus(gpus)
+            web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
         web_service.run_server()

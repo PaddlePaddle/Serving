@@ -50,7 +50,6 @@ serving_io.save_model("serving_model", "client_conf",
 
 服务端的预测逻辑可以通过Paddle Serving Server端的API进行人工定义，一个例子：
 ``` python
-``` python
 import paddle_serving_server as serving
 op_maker = serving.OpMaker()
 read_op = op_maker.create('general_reader')
@@ -221,6 +220,3 @@ imdb_service.run_server()
 
 ### 5.3 向量检索、树结构检索
 在推荐与广告场景的召回系统中，通常需要采用基于向量的快速检索或者基于树结构的快速检索，Paddle Serving会对这方面的检索引擎进行集成或扩展。
-
-
-
