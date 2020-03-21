@@ -58,7 +58,7 @@ function build_client() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=ON ..
+                  -DCLIENT=ON ..
             rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
             pip install -U python/dist/paddle_serving_client* >/dev/null
             ;;
@@ -82,7 +82,7 @@ function build_server() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=OFF ..
+                  -DSERVER=OFF ..
             rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
             check_cmd "make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
@@ -91,7 +91,7 @@ function build_server() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=OFF \
+                  -DSERVER=ON \
                   -DWITH_GPU=ON ..
             rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
             check_cmd "make install -j2 >/dev/null"
@@ -110,6 +110,7 @@ function build_server() {
 function kill_server_process() {
     ps -ef | grep "serving" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
 }
+
 
 function python_test_fit_a_line() {
     # pwd: /Serving/python/examples
