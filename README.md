@@ -61,7 +61,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 | Argument | Type | Default | Description |
 |--------------|------|-----------|--------------------------------|
-| `thread` | int | `10` | Concurrency of current service |
+| `thread` | int | `4` | Concurrency of current service |
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
@@ -178,8 +178,9 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)
 
+
 ### Design
-- [Design Doc(Chinese)](doc/DESIGN.md)
+- [Design Doc(Chinese)](doc/DESIGN_DOC.md)
 
 <h2 align="center">Community</h2>
 
