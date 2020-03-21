@@ -64,7 +64,18 @@ op_seq_maker.add_op(general_response_op)
 </center>
 
 #### 2.1.3 客户端访问API
-客户端访问远程服务的API非常简单
+Paddle Serving支持远程服务访问的协议一种是基于RPC，另一种是HTTP。用户通过RPC访问，可以使用Paddle Serving提供的Python Client API，通过定制输入数据的格式来实现服务访问。下面的例子解释Paddle Serving Client如何定义输入数据。保存可部署模型时需要指定每个输入的别名，例如`sparse`和`dense`，对应的数据可以是离散的ID序列`[1, 1001, 100001]`，也可以是稠密的向量`[0.2, 0.5, 0.1, 0.4, 0.11, 0.22]`。当前Client的设计，对于离散的ID序列，支持Paddle中的`lod_level=0`和`lod_level=1`的情况，即张量以及一维变长张量。对于稠密的向量，支持`N-D Tensor`。用户不想要显式指定输入数据的形状，Paddle Serving的Client API会通过保存配置时记录的输入形状进行对应的检查。
+``` python
+feed_dict["sparse"] = [1, 1001, 100001]
+feed_dict["dense"] = [0.2, 0.5, 0.1, 0.4, 0.11, 0.22]
+fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
+```
+Client链接Server的代码，通常只需要加载保存模型时保存的Client端配置，以及指定要去访问的服务端点即可。为了保持内部访问进行数据并行的扩展能力，Paddle Serving Client允许定义多个服务端点。
+``` python
+client = Client()
+client.load_client_config('servable_client_configs')
+client.connect(["127.0.0.1:9292"])
+```
 
 
 ### 2.2 底层通信机制
