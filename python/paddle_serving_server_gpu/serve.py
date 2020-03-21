@@ -23,14 +23,14 @@ from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 
 
-def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
+def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-missing
     gpuid = int(gpuid)
     device = "gpu"
     port = args.port
     if gpuid == -1:
         device = "cpu"
     elif gpuid >= 0:
-        port = args.port + gpuid
+        port = args.port + index
     thread_num = args.thread
     model = args.model
     workdir = "{}_{}".format(args.workdir, gpuid)
@@ -78,6 +78,7 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
             p = Process(
                 target=start_gpu_card_model, args=(
                     i,
+                    gpu_id,
                     args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
