@@ -25,7 +25,7 @@ function build_client() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=ON ..
+                  -DCLIENT=ON ..
             check_cmd "make -j2 >/dev/null"
             pip install python/dist/paddle_serving_client* >/dev/null
             ;;
@@ -48,7 +48,7 @@ function build_server() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=OFF ..
+                  -DSERVER=ON ..
             check_cmd "make -j2 >/dev/null"
             pip install python/dist/paddle_serving_server* >/dev/null
             ;;
@@ -56,7 +56,7 @@ function build_server() {
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DCLIENT_ONLY=OFF \
+                  -DSERVER=ON \
                   -DWITH_GPU=ON ..
             check_cmd "make -j2 >/dev/null"
             pip install python/dist/paddle_serving_server* >/dev/null
@@ -70,6 +70,7 @@ function build_server() {
     cd ..
     rm -rf $DIRNAME
 }
+
 
 function python_test_fit_a_line() {
     cd fit_a_line

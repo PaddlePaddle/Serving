@@ -12,19 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if(NOT CLIENT_ONLY)
+if(SERVER)
 add_subdirectory(cube)
 add_subdirectory(kvdb)
 endif()
+
+if (CLIENT OR SERVER)
 add_subdirectory(configure)
 add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
-if(CLIENT_ONLY)
+endif()
+
+if(CLIENT)
 add_subdirectory(general-client)
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
 add_subdirectory(predictor)
 add_subdirectory(general-server)
 endif()
+
+if (CLIENT OR SERVER)
 add_subdirectory(util)
+endif()
