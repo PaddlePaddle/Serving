@@ -24,6 +24,27 @@ serving_io.save_model("serving_model", "client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
+代码示例中，`{"words": data}`和`{"prediction": prediction}`分别指定了模型的输入和输出，`"words"`和`"prediction"`是输出和输出变量的别名，设计别名的目的是为了使开发者能够记忆自己训练模型的输入输出对应的字段。`data`和`prediction`则是Paddle训练过程中的`[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)`，通常代表张量([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor))或变长张量([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor))。调用保存命令后，会按照用户指定的`"serving_model"`和`"client_conf"`生成两个目录，内容如下：
+``` shell
+.
+├── client_conf
+│   ├── serving_client_conf.prototxt
+│   └── serving_client_conf.stream.prototxt
+└── serving_model
+    ├── embedding_0.w_0
+    ├── fc_0.b_0
+    ├── fc_0.w_0
+    ├── fc_1.b_0
+    ├── fc_1.w_0
+    ├── fc_2.b_0
+    ├── fc_2.w_0
+    ├── lstm_0.b_0
+    ├── lstm_0.w_0
+    ├── __model__
+    ├── serving_server_conf.prototxt
+    └── serving_server_conf.stream.prototxt
+```
+其中，`"serving_client_conf.prototxt"`和`"serving_server_conf.prototxt"`是Paddle Serving的Client和Server端需要加载的配置，`"serving_client_conf.stream.prototxt"`和`"serving_server_conf.stream.prototxt"`是配置文件的二进制形式。`"serving_model"`下保存的其他内容和Paddle保存的模型文件是一致的。我们会考虑未来在Paddle框架中直接保存可服务的配置，实现配置保存对用户无感。
 
 #### 2.1.2 服务端模型加载
 当前Paddle Serving中的预估引擎支持在CPU/GPU上进行预测，对应的预测服务安装包以及镜像也有两个。但无论是CPU上进行模型预估还是GPU上进行模型预估，普通模型的预测都可用一行命令进行启动。
