@@ -10,6 +10,6 @@ RUN yum -y install wget && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && rm get-pip.py && \
     ln -s /usr/local/cuda-9.0/lib64/libcublas.so.9.0 /usr/local/cuda-9.0/lib64/libcublas.so && \
-    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64':$LD_LIBRARY_PATH >> /root/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> /root/.bashrc && \
     ln -s /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so.7 /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so && \
     echo 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH' >> /root/.bashrc
