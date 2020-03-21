@@ -54,6 +54,20 @@ python -m paddle_serving_server.serve --model your_servable_model --thread 10 --
 ``` shell
 python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
 ```
+启动命令的选项列表如下：
+<center>
+
+| 参数 | 类型 | 默认值 | 描述 |
+|--------------|------|-----------|--------------------------------|
+| `thread` | int | `4` | 服务端的并发数，通常与CPU核数一致即可 |
+| `port` | int | `9292` | 服务暴露给用户的端口 |
+| `name` | str | `""` | 服务名称，当用户指定时代表直接启动的是HTTP服务 |
+| `model` | str | `""` | 服务端模型文件夹路径 |
+| `gpu_ids` | str | `""` | 仅在paddle_serving_server_gpu中可以使用，功能与CUDA_VISIBLE_DEVICES一致 |
+
+</center>
+
+
 服务端的预测逻辑也可以通过Paddle Serving Server端的API进行人工定义，一个例子：
 ``` python
 ``` python
