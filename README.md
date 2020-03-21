@@ -18,12 +18,12 @@
 
 <h2 align="center">Motivation</h2>
 
-Paddle Serving helps deep learning developers deploy an online inference service without much effort. **The goal of this project**: once you have trained a deep neural nets with [Paddle](https://github.com/PaddlePaddle/Paddle), you already have a model inference service. A demo of serving is as follows:
+We consider deep learning inference online deployment to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you can put the model online without much effort. A demo of serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
-<h2 align="center">Key Features</h2>
+<h2 align="center">Some Key Features</h2>
 
 - Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
 - **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
