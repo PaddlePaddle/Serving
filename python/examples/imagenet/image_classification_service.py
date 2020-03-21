@@ -25,11 +25,21 @@ class ImageService(WebService):
         reader = ImageReader()
         if "image" not in feed:
             raise ("feed data error!")
-        sample = base64.b64decode(feed["image"])
-        img = reader.process_image(sample)
-        res_feed = {}
-        res_feed["image"] = img.reshape(-1)
-        return res_feed, fetch
+        if isinstance(feed["image"], list):
+            feed_batch = []
+            for image in feed["image"]:
+                sample = base64.b64decode(image)
+                img = reader.process_image(sample)
+                res_feed = {}
+                res_feed["image"] = img.reshape(-1)
+                feed_batch.append(res_feed)
+            return feed_batch, fetch
+        else:
+            sample = base64.b64decode(feed["image"])
+            img = reader.process_image(sample)
+            res_feed = {}
+            res_feed["image"] = img.reshape(-1)
+            return res_feed, fetch
 
 
 image_service = ImageService(name="image")
