@@ -210,7 +210,7 @@ if __name__ == "__main__":
     #执行训练
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
-    epochs = 60
+    epochs = 100
 		
     import paddle_serving_client.io as serving_io
 
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         exe.train_from_dataset(
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
-        if i == 59:
+        if i == 99:
             #在训练结束时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
             serving_io.save_model("{}_model".format(model_name),
                                   "{}_client_conf".format(model_name),
@@ -290,7 +290,7 @@ for line in sys.stdin:
 cat test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 
-使用test_data/part-0文件中的2084个样本进行测试测试，模型预测的准确率为64.25%。
+使用test_data/part-0文件中的2084个样本进行测试测试，模型预测的准确率为86.90%,。
 
 ## Step8：部署HTTP预测服务
 
