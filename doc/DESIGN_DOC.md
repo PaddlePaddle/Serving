@@ -47,26 +47,6 @@ serving_io.save_model("serving_model", "client_conf",
 其中，`"serving_client_conf.prototxt"`和`"serving_server_conf.prototxt"`是Paddle Serving的Client和Server端需要加载的配置，`"serving_client_conf.stream.prototxt"`和`"serving_server_conf.stream.prototxt"`是配置文件的二进制形式。`"serving_model"`下保存的其他内容和Paddle保存的模型文件是一致的。我们会考虑未来在Paddle框架中直接保存可服务的配置，实现配置保存对用户无感。
 
 #### 2.1.2 服务端模型加载
-当前Paddle Serving中的预估引擎支持在CPU/GPU上进行预测，对应的预测服务安装包以及镜像也有两个。但无论是CPU上进行模型预估还是GPU上进行模型预估，普通模型的预测都可用一行命令进行启动。
-``` shell
-python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292
-```
-``` shell
-python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
-```
-启动命令的选项列表如下：
-<center>
-
-| 参数 | 类型 | 默认值 | 描述 |
-|--------------|------|-----------|--------------------------------|
-| `thread` | int | `4` | 服务端的并发数，通常与CPU核数一致即可 |
-| `port` | int | `9292` | 服务暴露给用户的端口 |
-| `name` | str | `""` | 服务名称，当用户指定时代表直接启动的是HTTP服务 |
-| `model` | str | `""` | 服务端模型文件夹路径 |
-| `gpu_ids` | str | `""` | 仅在paddle_serving_server_gpu中可以使用，功能与CUDA_VISIBLE_DEVICES一致 |
-
-</center>
-
 
 服务端的预测逻辑也可以通过Paddle Serving Server端的API进行人工定义，一个例子：
 ``` python
@@ -98,7 +78,28 @@ op_seq_maker.add_op(general_response_op)
 
 </center>
 
-当前Paddle Serving的Server端提供了有向无环图的定义，加载模型，启动服务的基本接口，示例如下：
+
+当前Paddle Serving中的预估引擎支持在CPU/GPU上进行预测，对应的预测服务安装包以及镜像也有两个。但无论是CPU上进行模型预估还是GPU上进行模型预估，普通模型的预测都可用一行命令进行启动。
+``` shell
+python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292
+```
+``` shell
+python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
+```
+启动命令的选项列表如下：
+<center>
+
+| 参数 | 类型 | 默认值 | 描述 |
+|--------------|------|-----------|--------------------------------|
+| `thread` | int | `4` | 服务端的并发数，通常与CPU核数一致即可 |
+| `port` | int | `9292` | 服务暴露给用户的端口 |
+| `name` | str | `""` | 服务名称，当用户指定时代表直接启动的是HTTP服务 |
+| `model` | str | `""` | 服务端模型文件夹路径 |
+| `gpu_ids` | str | `""` | 仅在paddle_serving_server_gpu中可以使用，功能与CUDA_VISIBLE_DEVICES一致 |
+
+</center>
+
+举例`python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292`对应到具体的Server端具体配置如下
 ``` python
 from paddle_serving_server import OpMaker, OpSeqMaker, Server
 
@@ -112,10 +113,9 @@ op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.set_num_threads(16)
-server.load_model_config(self.model_config)
-server.prepare_server(
-    workdir=self.workdir, port=self.port + 1, device=self.device)
+server.set_num_threads(10)
+server.load_model_config(”your_servable_model“)
+server.prepare_server(port=9292, device="cpu")
 server.run_server()
 ```
 
