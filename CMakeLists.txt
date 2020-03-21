@@ -67,7 +67,7 @@ endif()
 
 if (SERVER)
 include(external/jsoncpp)
-include(external/rocksdb)
+#include(external/rocksdb)
 endif()
 
 if (SERVER OR CLIENT)

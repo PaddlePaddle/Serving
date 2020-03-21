@@ -14,7 +14,7 @@
 
 if(SERVER)
 add_subdirectory(cube)
-add_subdirectory(kvdb)
+#add_subdirectory(kvdb)
 endif()
 
 if (CLIENT OR SERVER)

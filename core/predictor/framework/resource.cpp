@@ -39,8 +39,6 @@ DynamicResource::~DynamicResource() {}
 
 int DynamicResource::initialize() { return 0; }
 
-std::shared_ptr<RocksDBWrapper> Resource::getDB() { return db; }
-
 std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
   return _config;
 }
@@ -143,9 +141,16 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     LOG(ERROR) << "unable to create tls_bthread_key of thrd_data";
     return -1;
   }
-  // init rocksDB instance
-  if (db.get() == nullptr) {
-    db = RocksDBWrapper::RocksDBWrapperFactory("kvdb");
+  // init rocksDB or cube instance
+  if (resource_conf.has_cube_config_file() &&
+      resource_conf.has_cube_config_path()) {
+    LOG(INFO) << "init cube client, path[ " << resource_conf.cube_config_path()
+              << " ], config file [ " << resource_conf.cube_config_file()
+              << " ].";
+    rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
+    std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +
+                                       "/" + resource_conf.cube_config_file();
+    this->cube_config_fullpath = cube_config_fullpath;
   }
 
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
@@ -155,6 +160,15 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 // model config
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
+  if (this->cube_config_fullpath.size() != 0) {
+    LOG(INFO) << "init cube by config file : " << this->cube_config_fullpath;
+    rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
+    int ret = cube->init(this->cube_config_fullpath.c_str());
+    if (ret != 0) {
+      LOG(ERROR) << "cube init error";
+      return -1;
+    }
+  }
   VLOG(2) << "general model path: " << path;
   VLOG(2) << "general model file: " << file;
   if (!FLAGS_enable_general_model) {
