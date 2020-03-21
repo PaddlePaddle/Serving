@@ -121,7 +121,7 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 
 <p align="center">
     <br>
-<img src='cube.png' width = "450" height = "250">
+<img src='cube_eng.png' width = "450" height = "230">
     <br>
 <p>
                     
