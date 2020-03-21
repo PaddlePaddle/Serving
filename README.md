@@ -18,7 +18,7 @@
 
 <h2 align="center">Motivation</h2>
 
-We consider deep learning inference online deployment to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you can put the model online without much effort. A demo of serving is as follows:
+We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you can put the model online without much effort. A demo of serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
