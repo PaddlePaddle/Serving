@@ -7,7 +7,7 @@ serving_io.save_model("imdb_model", "imdb_client_conf",
                       fluid.default_main_program())
 ```
 `imdb_model` is the server side model with serving configurations. `imdb_client_conf` is the client rpc configurations. Serving has a 
-dictionary for `Feed` and `Fetch` variables for client to assign. An alias name can be defined for each variable. An example of how to use alias name
+dictionary for `Feed` and `Fetch` variables for client to assign. In the example, `{"words": data}` is the feed dict that specify the input of saved inference model. `{"prediction": prediction}` is the fetch dic that specify the output of saved inference model. An alias name can be defined for feed and fetch variables. An example of how to use alias name
  is as follows:
  ``` python
  from paddle_serving_client import Client
