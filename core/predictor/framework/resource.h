@@ -108,6 +108,7 @@ class Resource {
  private:
   int thread_finalize() { return 0; }
   std::shared_ptr<PaddleGeneralModelConfig> _config;
+  std::string cube_config_fullpath;
 
   THREAD_KEY_T _tls_bspec_key;
 };
