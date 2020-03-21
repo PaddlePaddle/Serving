@@ -48,7 +48,7 @@ serving_io.save_model("serving_model", "client_conf",
 
 #### 2.1.2 服务端模型加载
 
-服务端的预测逻辑也可以通过Paddle Serving Server端的API进行人工定义，一个例子：
+服务端的预测逻辑可以通过Paddle Serving Server端的API进行人工定义，一个例子：
 ``` python
 ``` python
 import paddle_serving_server as serving
@@ -77,7 +77,6 @@ op_seq_maker.add_op(general_response_op)
 | `general_dist_kv` | 分布式索引Op |
 
 </center>
-
 
 当前Paddle Serving中的预估引擎支持在CPU/GPU上进行预测，对应的预测服务安装包以及镜像也有两个。但无论是CPU上进行模型预估还是GPU上进行模型预估，普通模型的预测都可用一行命令进行启动。
 ``` shell
