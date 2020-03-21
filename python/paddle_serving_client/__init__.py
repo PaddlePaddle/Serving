@@ -156,6 +156,9 @@ class Client(object):
                 key))
 
     def predict(self, feed=None, fetch=None):
+        if feed is None or fetch is None:
+            raise ValueError("You should specify feed and fetch for prediction")
+
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
