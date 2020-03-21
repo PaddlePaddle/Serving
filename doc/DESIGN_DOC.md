@@ -84,6 +84,27 @@ op_seq_maker.add_op(general_response_op)
 
 </center>
 
+当前Paddle Serving的Server端提供了有向无环图的定义，加载模型，启动服务的基本接口，示例如下：
+``` python
+from paddle_serving_server import OpMaker, OpSeqMaker, Server
+
+op_maker = OpMaker()
+read_op = op_maker.create('general_reader')
+general_infer_op = op_maker.create('general_infer')
+general_response_op = op_maker.create('general_response')
+op_seq_maker = OpSeqMaker()
+op_seq_maker.add_op(read_op)
+op_seq_maker.add_op(general_infer_op)
+op_seq_maker.add_op(general_response_op)
+server = Server()
+server.set_op_sequence(op_seq_maker.get_op_sequence())
+server.set_num_threads(16)
+server.load_model_config(self.model_config)
+server.prepare_server(
+    workdir=self.workdir, port=self.port + 1, device=self.device)
+server.run_server()
+```
+
 #### 2.1.3 客户端访问API
 Paddle Serving支持远程服务访问的协议一种是基于RPC，另一种是HTTP。用户通过RPC访问，可以使用Paddle Serving提供的Python Client API，通过定制输入数据的格式来实现服务访问。下面的例子解释Paddle Serving Client如何定义输入数据。保存可部署模型时需要指定每个输入的别名，例如`sparse`和`dense`，对应的数据可以是离散的ID序列`[1, 1001, 100001]`，也可以是稠密的向量`[0.2, 0.5, 0.1, 0.4, 0.11, 0.22]`。当前Client的设计，对于离散的ID序列，支持Paddle中的`lod_level=0`和`lod_level=1`的情况，即张量以及一维变长张量。对于稠密的向量，支持`N-D Tensor`。用户不想要显式指定输入数据的形状，Paddle Serving的Client API会通过保存配置时记录的输入形状进行对应的检查。
 ``` python
@@ -132,11 +153,50 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 Paddle Serving的C++引擎支持模型管理、在线A/B流量测试、模型热加载等功能，当前在Python API还有没完全开放这部分功能的配置，敬请期待。
 
 ## 4. 用户类型
+Paddle Serving面向的用户提供RPC和HTTP两种访问协议。对于HTTP协议，我们更倾向于流量中小型的服务使用，并且对延时没有严格要求的AI服务开发者。对于RPC协议，我们面向流量较大，对延时要求更高的用户，此外RPC的客户端可能也处在一个大系统的服务中，这种情况下非常适合使用Paddle Serving提供的RPC服务。对于使用分布式稀疏参数索引服务而言，Paddle Serving的用户不需要关心底层的细节，其调用本质也是通过RPC服务再调用RPC服务。下图给出了当前设计的Paddle Serving可能会使用Serving服务的几种场景。
+
 <p align="center">
     <br>
 <img src='user_groups.png' width = "700" height = "470">
     <br>
 <p>
+
+对于普通的模型而言（具体指通过Serving提供的IO保存的模型，并且没有对模型进行后处理），用户使用RPC服务不需要额外的开发即可实现服务启动，但需要开发一些Client端的代码来使用服务。对于Web服务的开发，需要用户现在Paddle Serving提供的Web Service框架中进行前后处理的开发，从而实现整个HTTP服务。
+
+### 4.1 Web服务开发
+
+Web服务有很多开源的框架，Paddle Serving当前集成了Flask框架，但这部分对用户不可见，在未来可能会提供性能更好的Web框架作为底层HTTP服务集成引擎。用户需要继承WebService，从而实现对rpc服务的输入输出进行加工的目的。
+
+``` python
+from paddle_serving_server.web_service import WebService
+from imdb_reader import IMDBDataset
+import sys
+
+
+class IMDBService(WebService):
+    def prepare_dict(self, args={}):
+        if len(args) == 0:
+            exit(-1)
+        self.dataset = IMDBDataset()
+        self.dataset.load_resource(args["dict_file_path"])
+
+    def preprocess(self, feed={}, fetch=[]):
+        if "words" not in feed:
+            exit(-1)
+        res_feed = {}
+        res_feed["words"] = self.dataset.get_words_only(feed["words"])[0]
+        return res_feed, fetch
+
+
+imdb_service = IMDBService(name="imdb")
+imdb_service.load_model_config(sys.argv[1])
+imdb_service.prepare_server(
+    workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
+imdb_service.prepare_dict({"dict_file_path": sys.argv[4]})
+imdb_service.run_server()
+```
+
+`WebService`作为基类，提供将用户接受的HTTP请求转化为RPC输入的接口`preprocess`，同时提供对RPC请求返回的结果进行后处理的接口`postprocess`，继承`WebService`的子类，可以定义各种类型的成员函数。`WebService`的启动命令和普通RPC服务提供的启动API一致。
 
 ## 5. 未来计划
 
