@@ -78,27 +78,29 @@ Current Paddle Serving supports operator list on the server side as follows:
 
 </center>
 
-当前Paddle Serving中的预估引擎支持在CPU/GPU上进行预测，对应的预测服务安装包以及镜像也有两个。但无论是CPU上进行模型预估还是GPU上进行模型预估，普通模型的预测都可用一行命令进行启动。
+Paddle Serving supports inference engine on multiple devices. Current supports are CPU and GPU engine. Docker Images of CPU and GPU are provided officially. User can use one line command to start an inference service either on CPU or on GPU. 
+
 ``` shell
 python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292
 ```
 ``` shell
 python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
 ```
-启动命令的选项列表如下：
+
+Options of startup command are listed below: 
 <center>
 
-| 参数 | 类型 | 默认值 | 描述 |
+| Arguments | Types | Defaults | Descriptions |
 |--------------|------|-----------|--------------------------------|
-| `thread` | int | `4` | 服务端的并发数，通常与CPU核数一致即可 |
-| `port` | int | `9292` | 服务暴露给用户的端口 |
-| `name` | str | `""` | 服务名称，当用户指定时代表直接启动的是HTTP服务 |
-| `model` | str | `""` | 服务端模型文件夹路径 |
-| `gpu_ids` | str | `""` | 仅在paddle_serving_server_gpu中可以使用，功能与CUDA_VISIBLE_DEVICES一致 |
+| `thread` | int | `4` | Concurrency on server side, usually equal to the number of CPU core |
+| `port` | int | `9292` | Port exposed to users |
+| `name` | str | `""` | Service name that if a user specifies, the name of HTTP service is allocated |
+| `model` | str | `""` | Servable models for Paddle Serving |
+| `gpu_ids` | str | `""` | Supported only in paddle_serving_server_gpu, similar to the usage of CUDA_VISIBLE_DEVICES |
 
 </center>
 
-举例`python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292`对应到具体的Server端具体配置如下
+For example, `python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292` is the same as the following code as user can define: 
 ``` python
 from paddle_serving_server import OpMaker, OpSeqMaker, Server
 
