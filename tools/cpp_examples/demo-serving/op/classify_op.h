@@ -14,8 +14,8 @@
 
 #pragma once
 #include <vector>
-#include "paddle_inference_api.h"  // NOLINT
 #include "examples/demo-serving/image_class.pb.h"
+#include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 from paddle.fluid import Executor
 from paddle.fluid.compiler import CompiledProgram
@@ -22,6 +23,7 @@ from paddle.fluid.io import save_inference_model
 from ..proto import general_model_config_pb2 as model_conf
 import os
 
+
 def save_model(server_model_folder,
                client_config_folder,
                feed_var_dict,
@@ -32,8 +34,12 @@ def save_model(server_model_folder,
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
     target_vars = fetch_var_dict.values()
 
-    save_inference_model(server_model_folder, feed_var_names,
-                         target_vars, executor, main_program=main_program)
+    save_inference_model(
+        server_model_folder,
+        feed_var_names,
+        target_vars,
+        executor,
+        main_program=main_program)
 
     config = model_conf.GeneralModelConfig()
 
@@ -62,6 +68,13 @@ def save_model(server_model_folder,
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
         fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
+           fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
+            fetch_var.fetch_type = 0
+
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
+            fetch_var.fetch_type = 1
+
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
@@ -75,15 +88,15 @@ def save_model(server_model_folder,
     cmd = "mkdir -p {}".format(client_config_folder)
 
     os.system(cmd)
-    with open("{}/serving_client_conf.prototxt".format(client_config_folder), "w") as fout:
+    with open("{}/serving_client_conf.prototxt".format(client_config_folder),
+              "w") as fout:
         fout.write(str(config))
-    with open("{}/serving_server_conf.prototxt".format(server_model_folder), "w") as fout:
+    with open("{}/serving_server_conf.prototxt".format(server_model_folder),
+              "w") as fout:
         fout.write(str(config))
-    with open("{}/serving_client_conf.stream.prototxt".format(client_config_folder), "wb") as fout:
+    with open("{}/serving_client_conf.stream.prototxt".format(
+            client_config_folder), "wb") as fout:
         fout.write(config.SerializeToString())
-    with open("{}/serving_server_conf.stream.prototxt".format(server_model_folder), "wb") as fout:
+    with open("{}/serving_server_conf.stream.prototxt".format(
+            server_model_folder), "wb") as fout:
         fout.write(config.SerializeToString())
-
-
-    
-

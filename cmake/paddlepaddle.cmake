@@ -31,7 +31,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "latest")
+SET(PADDLE_VERSION "1.7.1")
 
 if (WITH_GPU)
     SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda${CUDA_VERSION_MAJOR}-cudnn7-avx-mkl")

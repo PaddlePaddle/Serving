@@ -22,6 +22,14 @@ from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_server.version import serving_server_version
+from pkg_resources import DistributionNotFound, get_distribution
+
+def find_package(pkgname):
+    try:
+        get_distribution(pkgname)
+        return True
+    except DistributionNotFound:
+        return False
 
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
@@ -29,8 +37,12 @@ def python_version():
 max_version, mid_version, min_version = python_version()
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'protobuf >= 3.1.0','paddlepaddle'
+    'six >= 1.10.0', 'protobuf >= 3.1.0',
+    'paddle_serving_client', 'flask >= 1.1.1'
 ]
+
+if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
+    REQUIRED_PACKAGES.append("paddlepaddle")
 
 packages=['paddle_serving_server',
           'paddle_serving_server.proto']
@@ -72,4 +84,3 @@ setup(
     ],
     license='Apache 2.0',
     keywords=('paddle-serving serving-server deployment industrial easy-to-use'))
-

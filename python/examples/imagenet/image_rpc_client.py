@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
-from paddle_serving_server_gpu import OpMaker
-from paddle_serving_server_gpu import OpSeqMaker
-from paddle_serving_server_gpu import Server
+from image_reader import ImageReader
+from paddle_serving_client import Client
+import time
 
-op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
+client = Client()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9295"])
+reader = ImageReader()
 
-op_seq_maker = OpSeqMaker()
-op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(general_infer_op)
+start = time.time()
+for i in range(1000):
+    with open("./data/n01440764_10026.JPEG") as f:
+        img = f.read()
+    img = reader.process_image(img).reshape(-1)
+    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+    print(i)
+end = time.time()
+print(end - start)
 
-server = Server()
-server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.set_num_threads(12)
-server.load_model_config(sys.argv[1])
-port = int(sys.argv[2])
-server.prepare_server(workdir="work_dir1", port=port, device="gpu")
-server.run_server()
+#print(fetch_map["score"])

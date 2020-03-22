@@ -16,7 +16,7 @@
 #include <fstream>
 #include <iterator>
 #include <sstream>
-#include <thread>
+#include <thread>  // NOLINT
 #include "core/kvdb/include/kvdb/rocksdb_impl.h"
 
 std::vector<FileReaderPtr> ParamDict::GetDictReaderLst() {
@@ -33,8 +33,10 @@ void ParamDict::SetFileReaderLst(std::vector<std::string> lst) {
 
 std::vector<float> ParamDict::GetSparseValue(std::string feasign,
                                              std::string slot) {
-  auto BytesToFloat = [](uint8_t* byte_array) { return *((float*)byte_array); };
-  // TODO: the concatation of feasign and slot is TBD.
+  auto BytesToFloat = [](uint8_t* byte_array) {
+    return *((float*)byte_array);  // NOLINT
+  };
+  // NOLINT TODO: the concatation of feasign and slot is TBD.
   std::string result = front_db->Get(feasign + slot);
   std::vector<float> value;
   if (result == "NOT_FOUND") return value;
@@ -87,7 +89,7 @@ bool ParamDict::InsertSparseValue(std::string feasign,
     value.push_back(raw_values_ptr[i]);
   }
   back_db->Set(key, value);
-  // TODO: change stateless to stateful
+  // NOLINT TODO: change stateless to stateful
   return true;
 }
 
@@ -140,5 +142,4 @@ void ParamDict::CreateKVDB() {
   this->back_db->CreateDB();
 }
 
-ParamDict::~ParamDict() {
-}
+ParamDict::~ParamDict() {}

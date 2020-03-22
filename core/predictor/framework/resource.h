@@ -13,12 +13,11 @@
 // limitations under the License.
 
 #pragma once
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 #include "core/cube/cube-api/include/cube_api.h"
-#include "core/kvdb/include/kvdb/paddle_rocksdb.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
@@ -36,15 +35,15 @@ class PaddleGeneralModelConfig {
  public:
   std::vector<std::string> _feed_name;
   std::vector<std::string> _feed_alias_name;
-  std::vector<int> _feed_type;     // 0 int64, 1 float
-  std::vector<bool> _is_lod_feed;  // true lod tensor
+  std::vector<int> _feed_type;      // 0 int64, 1 float
+  std::vector<bool> _is_lod_feed;   // true lod tensor
   std::vector<bool> _is_lod_fetch;  // whether a fetch var is lod_tensor
-  std::vector<int> _capacity;      //  capacity for each tensor
-                                   /*
-                                     feed_shape_ for feeded variable
-                                     feed_shape_[i][j] represents the jth dim for ith input Tensor
-                                     if is_lod_feed_[i] == False, feed_shape_[i][0] = -1
-                                    */
+  std::vector<int> _capacity;       //  capacity for each tensor
+                                    /*
+                                      feed_shape_ for feeded variable
+                                      feed_shape_[i][j] represents the jth dim for ith input Tensor
+                                      if is_lod_feed_[i] == False, feed_shape_[i][0] = -1
+                                     */
   std::vector<std::vector<int>> _feed_shape;
 
   std::vector<std::string> _fetch_name;
@@ -101,8 +100,6 @@ class Resource {
   void print_general_model_config(
       const std::shared_ptr<PaddleGeneralModelConfig>& config);
 
-  std::shared_ptr<RocksDBWrapper> getDB();
-
   DynamicResource* get_dynamic_resource() {
     return reinterpret_cast<DynamicResource*>(
         THREAD_GETSPECIFIC(_tls_bspec_key));
@@ -110,8 +107,8 @@ class Resource {
 
  private:
   int thread_finalize() { return 0; }
-  std::shared_ptr<RocksDBWrapper> db;
   std::shared_ptr<PaddleGeneralModelConfig> _config;
+  std::string cube_config_fullpath;
 
   THREAD_KEY_T _tls_bspec_key;
 };

@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-#include <sys/time.h>
 #include "core/util/include/timer.h"
+#include <sys/time.h>
 
 namespace baidu {
 namespace paddle_serving {
@@ -56,7 +56,7 @@ double Timer::ElapsedSec() { return _elapsed / 1000000.0; }
 
 int64_t Timer::TimeStampUS() {
   gettimeofday(&_now, NULL);
-  return _now.tv_usec;
+  return _now.tv_sec * 1000 * 1000L + _now.tv_usec;
 }
 
 int64_t Timer::Tickus() {

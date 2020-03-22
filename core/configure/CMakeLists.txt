@@ -33,7 +33,7 @@ py_proto_compile(general_model_config_py_proto SRCS proto/general_model_config.p
 add_custom_target(general_model_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(general_model_config_py_proto general_model_config_py_proto_init)
 
-if (CLIENT_ONLY)
+if (CLIENT)
 py_proto_compile(sdk_configure_py_proto SRCS proto/sdk_configure.proto)
 add_custom_target(sdk_configure_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(sdk_configure_py_proto sdk_configure_py_proto_init)
@@ -51,7 +51,7 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
 py_proto_compile(server_config_py_proto SRCS proto/server_configure.proto)
 add_custom_target(server_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(server_config_py_proto server_config_py_proto_init)
@@ -87,4 +87,3 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 endif()
-

@@ -23,8 +23,8 @@
 #include <vector>
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
-#include "paddle_inference_api.h"  // NOLINT
 #include "core/predictor/framework/infer.h"
+#include "paddle_inference_api.h"  // NOLINT
 
 DECLARE_int32(gpuid);
 
@@ -334,13 +334,13 @@ class SigmoidModel {
       return -1;
     }
     VLOG(2) << "load sigmoid_w [" << _sigmoid_w._params[0] << "] ["
-                 << _sigmoid_w._params[1] << "].";
+            << _sigmoid_w._params[1] << "].";
     if (0 != _sigmoid_b.init(2, 1, sigmoid_b_file) || 0 != _sigmoid_b.load()) {
       LOG(ERROR) << "load params sigmoid_b failed.";
       return -1;
     }
     VLOG(2) << "load sigmoid_b [" << _sigmoid_b._params[0] << "] ["
-                 << _sigmoid_b._params[1] << "].";
+            << _sigmoid_b._params[1] << "].";
     _exp_max_input = exp_max;
     _exp_min_input = exp_min;
     return 0;

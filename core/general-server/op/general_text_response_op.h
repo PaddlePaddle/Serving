@@ -40,7 +40,6 @@ class GeneralTextResponseOp
   DECLARE_OP(GeneralTextResponseOp);
 
   int inference();
-
 };
 
 }  // namespace serving

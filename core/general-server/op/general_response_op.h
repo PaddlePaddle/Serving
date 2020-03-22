@@ -39,7 +39,6 @@ class GeneralResponseOp
   DECLARE_OP(GeneralResponseOp);
 
   int inference();
-
 };
 
 }  // namespace serving

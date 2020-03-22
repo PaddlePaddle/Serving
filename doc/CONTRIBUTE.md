@@ -38,20 +38,27 @@ Paddle Serving uses this [Git branching model](http://nvie.com/posts/a-successfu
    pre-commit install
    ```
 
-   Our pre-commit configuration requires clang-format 3.8 for auto-formating C/C++ code and yapf for Python.
+   Our pre-commit configuration requires clang-format 3.8 for auto-formating C/C++ code and yapf for Python. At the same time, cpplint and pylint are required to check the code style of C/C++ and Python respectively. You may need to install cpplint and pylint by running the following commands:
+
+   ```bash
+   pip install cpplint pylint
+   ```
 
    Once installed, `pre-commit` checks the style of code and documentation in every commit.  We will see something like the following when you run `git commit`:
 
    ```shell
    $  git commit
    CRLF end-lines remover...............................(no files to check)Skipped
-   yapf.................................................(no files to check)Skipped
+   yapf.....................................................................Passed
    Check for added large files..............................................Passed
    Check for merge conflicts................................................Passed
    Check for broken symlinks................................................Passed
    Detect Private Key...................................(no files to check)Skipped
-   Fix End of Files.....................................(no files to check)Skipped
-   clang-formater.......................................(no files to check)Skipped
+   Fix End of Files.........................................................Passed
+   clang-format.............................................................Passed
+   cpplint..................................................................Passed
+   pylint...................................................................Passed
+   copyright_checker........................................................Passed
    [my-cool-stuff c703c041] add test file
     1 file changed, 0 insertions(+), 0 deletions(-)
     create mode 100644 233
@@ -149,7 +156,6 @@ GLOG_minloglevel=1 bin/serving
 
 1 - WARNING
 
-2 -ERROR
+2 - ERROR
 
 3 - FATAL (Be careful as FATAL log will generate a coredump)
-
