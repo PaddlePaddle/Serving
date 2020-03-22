@@ -12,19 +12,21 @@ Paddle Serving is the official open source online deployment framework. The long
 - Extensibility: Paddle Serving supports C++, Python and Golang client, and will support more clients with different languages. It is very easy to extend Paddle Serving to support other machine learning inference library, although currently Paddle inference library is the only official supported inference backend.
 
 
-## 2. 模块设计与实现
+## 2. Module design and implementation
 
-### 2.1 Python API接口设计
+### 2.1 Python API interface design
 
-#### 2.1.1 训练模型的保存
-Paddle的模型预测需要重点关注的内容：1）模型的输入变量；2）模型的输出变量；3）模型结构和模型参数。Paddle Serving Python API提供用户可以在训练过程中保存模型的接口，并将Paddle Serving在部署阶段需要保存的配置打包保存，一个示例如下：
+#### 2.1.1 save a servable model
+The inference phase of Paddle model focuses on 1) input variables of the model. 2) output variables of the model. 3) model structure and model parameters. Paddle Serving Python API provides a `save_model` interface for trained model, and save necessary information for Paddle Serving to use during deployment phase. An example is as follows:
+
 ``` python
 import paddle_serving_client.io as serving_io
 serving_io.save_model("serving_model", "client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
-代码示例中，`{"words": data}`和`{"prediction": prediction}`分别指定了模型的输入和输出，`"words"`和`"prediction"`是输出和输出变量的别名，设计别名的目的是为了使开发者能够记忆自己训练模型的输入输出对应的字段。`data`和`prediction`则是Paddle训练过程中的`[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)`，通常代表张量([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor))或变长张量([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor))。调用保存命令后，会按照用户指定的`"serving_model"`和`"client_conf"`生成两个目录，内容如下：
+In the example, `{"words": data}` and `{"prediction": prediction}` assign the inputs and outputs of a model. `"words"` and `"prediction"` are alias names of inputs and outputs. The design of alias name is to help developers to memorize model inputs and model outputs. `data` and `prediction` are Paddle `[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)` in training phase that often represents ([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor)) or ([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor)). When the `save_model` API is called, two directories called `"serving_model"` and `"client_conf"` will be generated. The content of the saved model is as follows:
+
 ``` shell
 .
 ├── client_conf
@@ -44,11 +46,11 @@ serving_io.save_model("serving_model", "client_conf",
     ├── serving_server_conf.prototxt
     └── serving_server_conf.stream.prototxt
 ```
-其中，`"serving_client_conf.prototxt"`和`"serving_server_conf.prototxt"`是Paddle Serving的Client和Server端需要加载的配置，`"serving_client_conf.stream.prototxt"`和`"serving_server_conf.stream.prototxt"`是配置文件的二进制形式。`"serving_model"`下保存的其他内容和Paddle保存的模型文件是一致的。我们会考虑未来在Paddle框架中直接保存可服务的配置，实现配置保存对用户无感。
+`"serving_client_conf.prototxt"` and `"serving_server_conf.prototxt"` are the client side and the server side configurations of Paddle Serving, and `"serving_client_conf.stream.prototxt"` and `"serving_server_conf.stream.prototxt"` are the corresponding parts. Other contents saved in the directory are the same as Paddle saved inference model. We are considering to support `save_model` interface in Paddle training framework so that a user is not aware of the servable configurations. 
 
-#### 2.1.2 服务端模型加载
+#### 2.1.2 Model loading on the server side
 
-服务端的预测逻辑可以通过Paddle Serving Server端的API进行人工定义，一个例子：
+Prediction logics on the server side can be defined through Paddle Serving Server API with a few lines of code, an example is as follows:
 ``` python
 import paddle_serving_server as serving
 op_maker = serving.OpMaker()
@@ -63,17 +65,16 @@ op_seq_maker.add_op(dist_kv_op)
 op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
-
-当前Paddle Serving在Server端支持的主要Op请参考如下列表：
+Current Paddle Serving supports operator list on the server side as follows:
 
 <center>
 
-| Op 名称 | 描述 |
+| Op Name | Description |
 |--------------|------|
-| `general_reader` | 通用数据格式的读取Op |
-| `genreal_infer` | 通用数据格式的Paddle预测Op |
-| `general_response` | 通用数据格式的响应Op |
-| `general_dist_kv` | 分布式索引Op |
+| `general_reader` | General Data Reading Operator |
+| `genreal_infer` | General Data Inference with Paddle Operator |
+| `general_response` | General Data Response Operator |
+| `general_dist_kv` | Distributed Sparse Embedding Indexing |
 
 </center>
 
