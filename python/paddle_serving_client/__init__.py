@@ -79,6 +79,8 @@ class Client(object):
         self.feed_names_to_idx_ = {}
         self.rpath()
         self.pid = os.getpid()
+        self.producers = []
+        self.consumer = None
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -137,9 +139,11 @@ class Client(object):
         predictor_sdk = SDKConfig()
         predictor_sdk.set_server_endpoints(endpoints)
         sdk_desc = predictor_sdk.gen_desc()
-        print(sdk_desc)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
+
+        self.producers = [Queue() for ep in endpoints]
+        self.consumer = Queue()
 
     def get_feed_names(self):
         return self.feed_names_
@@ -228,7 +232,10 @@ class Client(object):
                 single_result[key] = result_map[key][i]
             result_map_batch.append(single_result)
 
-        return result_map_batch
+        if batch_size == 1:
+            return result_map_batch[0]
+        else:
+            return result_map_batch
 
     def release(self):
         self.client_handle_.destroy_predictor()
