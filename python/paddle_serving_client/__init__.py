@@ -142,9 +142,6 @@ class Client(object):
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
 
-        self.producers = [Queue() for ep in endpoints]
-        self.consumer = Queue()
-
     def get_feed_names(self):
         return self.feed_names_
 
@@ -196,21 +193,20 @@ class Client(object):
                 "fetch names should not be empty or out of saved fetch list")
             return {}
 
-        for feed_i in feed_batch:
+        for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
             for key in feed_i:
                 if key not in self.feed_names_:
                     continue
                 if self.feed_types_[key] == int_type:
-                    if counter == 0:
+                    if i == 0:
                         int_feed_names.append(key)
                     int_slot.append(feed[key])
                 elif self.feed_types_[key] == float_type:
-                    if counter == 0:
+                    if i == 0:
                         float_feed_names.append(key)
                     float_slot.append(feed_i[key])
-            counter += 1
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
