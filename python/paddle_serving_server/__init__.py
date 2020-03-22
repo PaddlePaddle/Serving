@@ -19,7 +19,7 @@ import google.protobuf.text_format
 import tarfile
 import socket
 import paddle_serving_server as paddle_serving_server
-from version import serving_server_version
+from .version import serving_server_version
 from contextlib import closing
 
 
@@ -32,7 +32,9 @@ class OpMaker(object):
             "general_text_reader": "GeneralTextReaderOp",
             "general_text_response": "GeneralTextResponseOp",
             "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp"
+            "general_dist_kv_infer": "GeneralDistKVInferOp",
+            "general_dist_kv": "GeneralDistKVOp",
+            "general_copy": "GeneralCopyOp"
         }
 
     # currently, inputs and outputs are not used
@@ -81,6 +83,7 @@ class Server(object):
         self.infer_service_fn = "infer_service.prototxt"
         self.model_toolkit_fn = "model_toolkit.prototxt"
         self.general_model_config_fn = "general_model.prototxt"
+        self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
         self.num_threads = 4
@@ -109,9 +112,10 @@ class Server(object):
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
-    def set_local_bin(self, path):
-        self.use_local_bin = True
-        self.bin_path = path
+    def check_local_bin(self):
+        if "SERVING_BIN" in os.environ:
+            self.use_local_bin = True
+            self.bin_path = os.environ["SERVING_BIN"]
 
     def _prepare_engine(self, model_config_path, device):
         if self.model_toolkit_conf == None:
@@ -155,6 +159,11 @@ class Server(object):
                       "w") as fout:
                 fout.write(str(self.model_conf))
             self.resource_conf = server_sdk.ResourceConf()
+            for workflow in self.workflow_conf.workflows:
+                for node in workflow.nodes:
+                    if "dist_kv" in node.name:
+                        self.resource_conf.cube_config_path = workdir
+                        self.resource_conf.cube_config_file = self.cube_config_fn
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
@@ -204,9 +213,11 @@ class Server(object):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
-                print('Download failed')
                 if os.path.exists(tar_name):
                     os.remove(tar_name)
+                raise SystemExit(
+                    'Download failed, please check your network or permission of {}.'.
+                    format(self.module_path))
             else:
                 try:
                     print('Decompressing files ..')
@@ -216,6 +227,9 @@ class Server(object):
                 except:
                     if os.path.exists(exe_path):
                         os.remove(exe_path)
+                    raise SystemExit(
+                        'Decompressing failed, please check your permission of {} or disk space left.'.
+                        foemat(self.module_path))
                 finally:
                     os.remove(tar_name)
         os.chdir(self.cur_path)
@@ -229,7 +243,7 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
-        if not self.check_port(port):
+        if not self.port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_path, device)
@@ -246,10 +260,10 @@ class Server(object):
         self._write_pb_str(resource_fn, self.resource_conf)
         self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
 
-    def check_port(self, port):
+    def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex(('127.0.0.1', port))
+            result = sock.connect_ex(('0.0.0.0', port))
         if result != 0:
             return True
         else:
@@ -258,10 +272,11 @@ class Server(object):
     def run_server(self):
         # just run server with system command
         # currently we do not load cube
+        self.check_local_bin()
         if not self.use_local_bin:
             self.download_bin()
         else:
-            print("Use local bin")
+            print("Use local bin : {}".format(self.bin_path))
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
@@ -287,6 +302,6 @@ class Server(object):
                       self.workdir,
                       self.workflow_fn,
                       self.num_threads)
-        print("Going to Run Comand")
+        print("Going to Run Command")
         print(command)
         os.system(command)

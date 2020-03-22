@@ -20,8 +20,6 @@
 
 namespace py = pybind11;
 
-using baidu::paddle_serving::general_model::FetchedMap;
-
 namespace baidu {
 namespace paddle_serving {
 namespace general_model {
@@ -29,6 +27,20 @@ namespace general_model {
 PYBIND11_MODULE(serving_client, m) {
   m.doc() = R"pddoc(this is a practice
        )pddoc";
+
+  py::class_<PredictorRes>(m, "PredictorRes", py::buffer_protocol())
+      .def(py::init())
+      .def("get_int64_by_name",
+           [](PredictorRes &self, std::string &name) {
+             return self.get_int64_by_name(name);
+           },
+           py::return_value_policy::reference)
+      .def("get_float_by_name",
+           [](PredictorRes &self, std::string &name) {
+             return self.get_float_by_name(name);
+           },
+           py::return_value_policy::reference);
+
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
       .def("init_gflags",
@@ -46,8 +58,9 @@ PYBIND11_MODULE(serving_client, m) {
              self.set_predictor_conf(conf_path, conf_file);
            })
       .def("create_predictor_by_desc",
-           [](PredictorClient &self, const std::string & sdk_desc) {
-             self.create_predictor_by_desc(sdk_desc); })
+           [](PredictorClient &self, const std::string &sdk_desc) {
+             self.create_predictor_by_desc(sdk_desc);
+           })
       .def("create_predictor",
            [](PredictorClient &self) { self.create_predictor(); })
       .def("destroy_predictor",
@@ -58,14 +71,17 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::string> &float_feed_name,
               const std::vector<std::vector<int64_t>> &int_feed,
               const std::vector<std::string> &int_feed_name,
-              const std::vector<std::string> &fetch_name) {
+              const std::vector<std::string> &fetch_name,
+              PredictorRes &predict_res,
+              const int &pid) {
              return self.predict(float_feed,
                                  float_feed_name,
                                  int_feed,
                                  int_feed_name,
-                                 fetch_name);
+                                 fetch_name,
+                                 predict_res,
+                                 pid);
            })
-
       .def("batch_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<std::vector<float>>>
@@ -74,12 +90,16 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<std::vector<int64_t>>>
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
-              const std::vector<std::string> &fetch_name) {
+              const std::vector<std::string> &fetch_name,
+              PredictorRes &predict_res_batch,
+              const int &pid) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
                                        int_feed_batch,
                                        int_feed_name,
-                                       fetch_name);
+                                       fetch_name,
+                                       predict_res_batch,
+                                       pid);
            });
 }
 

@@ -27,11 +27,11 @@
 // limitations under the License.
 
 #pragma once
-#include <chrono>
+#include <chrono>  // NOLINT
+#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include <functional>
 class AbstractKVDB;
 class FileReader;
 class ParamDict;
@@ -65,7 +65,7 @@ class FileReader {
       std::string data;
       FILE *stream = nullptr;
       const int max_buffer = 256;
-      char buffer[max_buffer];
+      char buffer[max_buffer];  // NOLINT
       cmd.append(" 2>&1");
       stream = popen(cmd.c_str(), "r");
       if (stream) {
@@ -76,7 +76,8 @@ class FileReader {
       return data;
     };
     std::string cmd = "md5sum " + this->filename_;
-    // TODO: throw exception if error occurs during execution of shell command
+    // NOLINT TODO: throw exception if error occurs during execution of shell
+    // command
     std::string md5val = getCmdOut(cmd);
     this->time_stamp_ = md5val == this->last_md5_val_
                             ? this->time_stamp_
@@ -93,7 +94,7 @@ class FileReader {
     return this->time_stamp_;
   }
 
-  inline virtual ~FileReader(){};
+  inline virtual ~FileReader() {}
 
  private:
   std::string filename_;
@@ -128,7 +129,7 @@ class ParamDict {
   virtual ~ParamDict();
 
  private:
-  std::function<std::pair<Key, Value>(std::string)> read_func_;
+  std::function<std::pair<Key, Value>(std::string)> read_func_;  // NOLINT
   std::vector<FileReaderPtr> file_reader_lst_;
   AbsKVDBPtr front_db, back_db;
 };
@@ -139,5 +140,5 @@ class ParamDictMgr {
   void InsertParamDict(std::string, ParamDictPtr);
 
  private:
-  std::unordered_map<std::string, ParamDictPtr> ParamDictMap;
+  std::unordered_map<std::string, ParamDictPtr> ParamDictMap;  // NOLINT
 };

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "core/general-server/op/general_text_reader_op.h"
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include "core/general-server/op/general_text_reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/util/include/timer.h"
@@ -31,7 +31,6 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-
 
 int GeneralTextReaderOp::inference() {
   // reade request from client
@@ -132,11 +131,9 @@ int GeneralTextReaderOp::inference() {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = 0;
-             k < req->insts(j).tensor_array(i).int_data_size();
+        for (int k = 0; k < req->insts(j).tensor_array(i).int_data_size();
              ++k) {
-          dst_ptr[offset + k] =
-              req->insts(j).tensor_array(i).int_data(k);
+          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];
@@ -148,11 +145,9 @@ int GeneralTextReaderOp::inference() {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
-        for (int k = 0;
-             k < req->insts(j).tensor_array(i).int_data_size();
+        for (int k = 0; k < req->insts(j).tensor_array(i).int_data_size();
              ++k) {
-          dst_ptr[offset + k] =
-              req->insts(j).tensor_array(i).int_data(k);
+          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];

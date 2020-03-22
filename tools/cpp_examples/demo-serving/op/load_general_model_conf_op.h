@@ -15,25 +15,23 @@
 #pragma once
 #include <memory>
 
-#include "examples/demo-serving/load_general_model_service.pb.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/op_repository.h"
-#include "core/predictor/op/op.h"
 #include "core/predictor/framework/resource.h"
+#include "core/predictor/op/op.h"
+#include "examples/demo-serving/load_general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
 class LoadGeneralModelConfOp
-    : public OpWithChannel<
-    baidu::paddle_serving::predictor::
-    load_general_model_service::RequestAndResponse> {
+    : public OpWithChannel<baidu::paddle_serving::predictor::
+                               load_general_model_service::RequestAndResponse> {
  public:
-  typedef baidu::paddle_serving::predictor::
-      load_general_model_service::RequestAndResponse
-      RequestAndResponse;
+  typedef baidu::paddle_serving::predictor::load_general_model_service::
+      RequestAndResponse RequestAndResponse;
 
   DECLARE_OP(LoadGeneralModelConfOp);
 

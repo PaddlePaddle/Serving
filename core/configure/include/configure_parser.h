@@ -20,16 +20,16 @@ namespace baidu {
 namespace paddle_serving {
 namespace configure {
 
-  int read_proto_conf(const std::string &conf_full_path,
-                      google::protobuf::Message *conf);
-  
-  int read_proto_conf(const std::string &conf_path,
-                      const std::string &conf_file,
-                      google::protobuf::Message *conf);
-  
-  int write_proto_conf(google::protobuf::Message *message,
-                       const std::string &output_path,
-                       const std::string &output_file);
+int read_proto_conf(const std::string &conf_full_path,
+                    google::protobuf::Message *conf);
+
+int read_proto_conf(const std::string &conf_path,
+                    const std::string &conf_file,
+                    google::protobuf::Message *conf);
+
+int write_proto_conf(google::protobuf::Message *message,
+                     const std::string &output_path,
+                     const std::string &output_file);
 
 }  // namespace configure
 }  // namespace paddle_serving

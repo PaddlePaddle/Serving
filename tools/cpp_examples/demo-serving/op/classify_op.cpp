@@ -13,9 +13,9 @@
 // limitations under the License.
 
 #include "examples/demo-serving/op/classify_op.h"
-#include "examples/demo-serving/op/reader_op.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
+#include "examples/demo-serving/op/reader_op.h"
 
 namespace baidu {
 namespace paddle_serving {

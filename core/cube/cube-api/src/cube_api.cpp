@@ -682,5 +682,13 @@ int CubeAPI::opt_seek(const std::string& dict_name,
   return ret;
 }
 
+std::vector<std::string> CubeAPI::get_table_names() {
+  const std::vector<const MetaInfo*> metas = _meta->metas();
+  std::vector<std::string> table_names;
+  for (auto itr = metas.begin(); itr != metas.end(); ++itr) {
+    table_names.push_back((*itr)->dict_name);
+  }
+  return table_names;
+}
 }  // namespace mcube
 }  // namespace rec

@@ -16,8 +16,8 @@
 #include <map>
 #include <string>
 #include <utility>
-#include "glog/raw_logging.h"
 #include "core/predictor/common/inner_common.h"
+#include "glog/raw_logging.h"
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {

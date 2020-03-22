@@ -7,6 +7,7 @@ LIST(APPEND protofiles
         ${CMAKE_CURRENT_LIST_DIR}/./builtin_format.proto
         ${CMAKE_CURRENT_LIST_DIR}/./msg_data.proto
         ${CMAKE_CURRENT_LIST_DIR}/./xrecord_format.proto
+        ${CMAKE_CURRENT_LIST_DIR}/./framework.proto
 )
 
 PROTOBUF_GENERATE_SERVING_CPP(TRUE PROTO_SRCS PROTO_HDRS ${protofiles})

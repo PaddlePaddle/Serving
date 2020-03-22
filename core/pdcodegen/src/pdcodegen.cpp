@@ -15,14 +15,14 @@
 #include <list>
 #include "boost/algorithm/string.hpp"
 #include "boost/scoped_ptr.hpp"
+#include "core/pdcodegen/pds_option.pb.h"
+#include "core/pdcodegen/plugin/strutil.h"
+#include "core/pdcodegen/plugin/substitute.h"
 #include "google/protobuf/compiler/code_generator.h"
 #include "google/protobuf/compiler/plugin.h"
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/io/printer.h"
 #include "google/protobuf/io/zero_copy_stream.h"
-#include "core/pdcodegen/pds_option.pb.h"
-#include "core/pdcodegen/plugin/strutil.h"
-#include "core/pdcodegen/plugin/substitute.h"
 using std::string;
 using google::protobuf::Descriptor;
 using google::protobuf::FileDescriptor;
@@ -115,7 +115,8 @@ class PdsCodeGenerator : public CodeGenerator {
           printer.Print("#include \"core/predictor/common/inner_common.h\"\n");
           printer.Print("#include \"core/predictor/framework/service.h\"\n");
           printer.Print("#include \"core/predictor/framework/manager.h\"\n");
-          printer.Print("#include \"core/predictor/framework/service_manager.h\"\n");
+          printer.Print(
+              "#include \"core/predictor/framework/service_manager.h\"\n");
         }
         if (generate_stub) {
           printer.Print("#include <baidu/rpc/parallel_channel.h>\n");
@@ -845,7 +846,8 @@ class PdsCodeGenerator : public CodeGenerator {
           printer.Print("#include \"core/predictor/common/inner_common.h\"\n");
           printer.Print("#include \"core/predictor/framework/service.h\"\n");
           printer.Print("#include \"core/predictor/framework/manager.h\"\n");
-          printer.Print("#include \"core/predictor/framework/service_manager.h\"\n");
+          printer.Print(
+              "#include \"core/predictor/framework/service_manager.h\"\n");
         }
         if (generate_stub) {
           printer.Print("#include <brpc/parallel_channel.h>\n");
