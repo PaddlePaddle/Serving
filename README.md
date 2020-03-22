@@ -181,6 +181,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### Design
 - [Design Doc(Chinese)](doc/DESIGN_DOC.md)
+- [Design Doc(English)](doc/DESIGN_DOC_EN.md)
 
 <h2 align="center">Community</h2>
 
