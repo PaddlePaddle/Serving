@@ -23,8 +23,7 @@ import time
 def batch_predict(batch_size=4):
     client = Client()
     client.load_client_config(conf_file)
-    client.add_variant("var1", ["127.0.0.1:9292"], 50)
-    client.connect()
+    client.connect(["127.0.0.1:9292"])
     fetch = ["acc", "cost", "prediction"]
     feed_batch = []
     for line in sys.stdin:

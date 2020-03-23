@@ -91,8 +91,7 @@ class WebService(object):
         client = Client()
         client.load_client_config("{}/serving_server_conf.prototxt".format(
             self.model_config))
-        client.add_variant("var1", [endpoint], 100)
-        client.connect()
+        client.connect([endpoint])
         while True:
             request_json = inputqueue.get()
             feed, fetch = self.preprocess(request_json, request_json["fetch"])
@@ -135,8 +134,7 @@ class WebService(object):
         client = Client()
         client.load_client_config("{}/serving_server_conf.prototxt".format(
             self.model_config))
-        client.add_variant("var1", ["0.0.0.0:{}".format(self.port + 1)], 100)
-        client.connect()
+        client.connect(["0.0.0.0:{}".format(self.port + 1)])
 
         self.idx = 0
 

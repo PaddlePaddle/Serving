@@ -22,8 +22,7 @@ import io
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.add_variant("var1", ["127.0.0.1:9280"], 50)
-client.connect()
+client.connect(["127.0.0.1:9280"])
 
 reader = LACReader(sys.argv[2])
 for line in sys.stdin:

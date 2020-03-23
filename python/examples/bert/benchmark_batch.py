@@ -40,9 +40,7 @@ def single_func(idx, resource):
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
-        client.add_variant(
-            "var1", [resource["endpoint"][idx % len(resource["endpoint"])]], 50)
-        client.connect()
+        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
         feed_batch = []
         for bi in range(args.batch_size):
             feed_batch.append(reader.process(dataset[bi]))

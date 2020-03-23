@@ -19,8 +19,7 @@ import time
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.add_variant("var1", ["127.0.0.1:9295"], 50)
-client.connect()
+client.connect(["127.0.0.1:9295"])
 reader = ImageReader()
 
 start = time.time()
