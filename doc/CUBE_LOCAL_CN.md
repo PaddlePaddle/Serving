@@ -1,6 +1,6 @@
 # 单机版稀疏参数服务器Cube
 
-([简体中文](./CUBE_LOCAL.md)|English)
+(简体中文|[English](./CUBE_LOCAL.md))
 
 ## 引言
 
