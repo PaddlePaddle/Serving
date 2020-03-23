@@ -1,4 +1,4 @@
-## Criteo CTR with Sparse Parameter Indexing Service3
+## Criteo CTR with Sparse Parameter Indexing Service
 
 ([简体中文](./README_CN.md)|English)
 
