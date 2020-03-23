@@ -18,6 +18,8 @@ cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
+此处，模型当中的稀疏参数会被存放在稀疏参数服务器Cube当中，关于稀疏参数服务器Cube的介绍，请阅读[单机版稀疏参数服务器Cube](../../../doc/CUBE_LOCAL_CN.md)
+
 ### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
 ```
