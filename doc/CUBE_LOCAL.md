@@ -10,10 +10,11 @@ The local mode of Cube is different from distributed Cube, which is designed to 
 
 # Example
 in directory python/example/criteo_ctr_with_cube, run
+
 ```
-sh local_train.py
-seq_generaotr ctr_serving_conf/SparseFeatFactors ./cube_model
-cube_prepare.sh &
+python local_train.py # train model
+cp ../../../build_server/core/predictor/seq_generator seq_generator # copy the sequence file generator
+cube_prepare.sh & # generate shard file and cube load it
 ```
 you will convert the Sparse Parameters from trained model to the Cube Server.
 
@@ -50,8 +51,9 @@ seq_generator SparseFeatFactor SparseSeqFile
 For the local version of Cube, the number of shard is 1. run
 
 ```
-cube-builder -shard_num 1 -version 0 -input ./input -output ./output
+cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=./cube/data -shard_num=1  -only_build=false
 ```
+
 
 ## Deliver to Cube-Server
 
