@@ -23,14 +23,14 @@ from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 
 
-def start_gpu_card_model(gpuid, args):  # pylint: disable=doc-string-missing
+def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-missing
     gpuid = int(gpuid)
     device = "gpu"
     port = args.port
     if gpuid == -1:
         device = "cpu"
     elif gpuid >= 0:
-        port = args.port + gpuid
+        port = args.port + index
     thread_num = args.thread
     model = args.model
     workdir = "{}_{}".format(args.workdir, gpuid)
@@ -78,6 +78,7 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
             p = Process(
                 target=start_gpu_card_model, args=(
                     i,
+                    gpu_id,
                     args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
@@ -91,15 +92,15 @@ if __name__ == "__main__":
     if args.name == "None":
         start_multi_card(args)
     else:
+        from .web_service import WebService
         web_service = WebService(name=args.name)
         web_service.load_model_config(args.model)
-        gpu_ids = []
-        if args.gpu_ids == "":
+        gpu_ids = args.gpu_ids
+        if gpu_ids == "":
             if "CUDA_VISIBLE_DEVICES" in os.environ:
                 gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
         if len(gpu_ids) > 0:
-            gpus = [int(x) for x in gpu_ids.split(",")]
-            web_service.set_gpus(gpus)
+            web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
         web_service.run_server()

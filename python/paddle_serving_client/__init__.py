@@ -240,16 +240,17 @@ class Client(object):
             fetch_names, result_batch, self.pid)
 
         result_map_batch = []
-        for index in range(batch_size):
-            result_map = {}
-            for i, name in enumerate(fetch_names):
-                if self.fetch_names_to_type_[name] == int_type:
-                    result_map[name] = result_batch.get_int64_by_name(name)[
-                        index]
-                elif self.fetch_names_to_type_[name] == float_type:
-                    result_map[name] = result_batch.get_float_by_name(name)[
-                        index]
-            result_map_batch.append(result_map)
+        result_map = {}
+        for i, name in enumerate(fetch_names):
+            if self.fetch_names_to_type_[name] == int_type:
+                result_map[name] = result_batch.get_int64_by_name(name)
+            elif self.fetch_names_to_type_[name] == float_type:
+                result_map[name] = result_batch.get_float_by_name(name)
+        for i in range(batch_size):
+            single_result = {}
+            for key in result_map:
+                single_result[key] = result_map[key][i]
+            result_map_batch.append(single_result)
 
         return [
             result_map,

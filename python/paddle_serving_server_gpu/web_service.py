@@ -96,12 +96,20 @@ class WebService(object):
         while True:
             request_json = inputqueue.get()
             feed, fetch = self.preprocess(request_json, request_json["fetch"])
-            if "fetch" in feed:
-                del feed["fetch"]
-            fetch_map = client.predict(feed=feed, fetch=fetch)
-            fetch_map = self.postprocess(
-                feed=request_json, fetch=fetch, fetch_map=fetch_map)
-            self.output_queue.put(fetch_map)
+            if isinstance(feed, list):
+                fetch_map_batch = client.batch_predict(
+                    feed_batch=feed, fetch=fetch)
+                fetch_map_batch = self.postprocess(
+                    feed=request_json, fetch=fetch, fetch_map=fetch_map_batch)
+                result = {"result": fetch_map_batch}
+            elif isinstance(feed, dict):
+                if "fetch" in feed:
+                    del feed["fetch"]
+                fetch_map = client.predict(feed=feed, fetch=fetch)
+                result = self.postprocess(
+                    feed=request_json, fetch=fetch, fetch_map=fetch_map)
+
+            self.output_queue.put(result)
 
     def _launch_web_service(self, gpu_num):
         app_instance = Flask(__name__)
@@ -188,5 +196,5 @@ class WebService(object):
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
 
-    def postprocess(self, feed={}, fetch=[], fetch_map={}):
+    def postprocess(self, feed={}, fetch=[], fetch_map=None):
         return fetch_map
