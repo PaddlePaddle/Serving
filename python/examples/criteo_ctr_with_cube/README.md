@@ -1,4 +1,4 @@
-## Criteo CTR with Sparse Parameter Server
+## Criteo CTR with Sparse Parameter Indexing Service3
 
 ([简体中文](./README_CN.md)|English)
 
@@ -14,14 +14,14 @@ python local_train.py
 ```
 the trained model will be in ./ctr_server_model and ./ctr_client_config, and ctr_server_model_kv, ctr_client_conf_kv。
 
-### Start Sparse Parameter Server
+### Start Sparse Parameter Indexing Service
 ```
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-Here, the sparse parameter is loaded by cube sparse parameter server，for more details please read [Cube: Sparse Parameter Indexing Service (Local Mode)](../../../doc/CUBE_LOCAL.md)
+Here, the sparse parameter is loaded by cube sparse parameter indexing service Cube，for more details please read [Cube: Sparse Parameter Indexing Service (Local Mode)](../../../doc/CUBE_LOCAL.md)
 
 ### Start RPC Predictor, the number of serving thread is 4（configurable in test_server.py）
 
