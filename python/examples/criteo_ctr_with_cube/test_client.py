@@ -22,7 +22,7 @@ from paddle_serving_client.metric import auc
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(['127.0.0.1:9292'])
+client.connect(["127.0.0.1:9292"])
 
 batch = 1
 buf_size = 100
