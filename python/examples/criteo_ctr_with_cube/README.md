@@ -1,6 +1,6 @@
 ## Criteo CTR with Sparse Parameter Server
 
-([简体中文](README_CN.md)|English)
+([简体中文](./README_CN.md)|English)
 
 ### Get Sample Dataset
 
