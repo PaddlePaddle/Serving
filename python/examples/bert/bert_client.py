@@ -33,7 +33,8 @@ fetch = ["pooled_output"]
 endpoint_list = ["127.0.0.1:9494"]
 client = Client()
 client.load_client_config(args.model)
-client.connect(endpoint_list)
+client.add_variant("var1", endpoint_list, 50)
+client.connect()
 
 for line in fin:
     feed_dict = reader.process(line)

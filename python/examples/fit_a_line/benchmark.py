@@ -28,7 +28,8 @@ def single_func(idx, resource):
     if args.request == "rpc":
         client = Client()
         client.load_client_config(args.model)
-        client.connect([args.endpoint])
+        client.add_variant("var1", [args.endpoint], 50)
+        client.connect()
         train_reader = paddle.batch(
             paddle.reader.shuffle(
                 paddle.dataset.uci_housing.train(), buf_size=500),
