@@ -16,6 +16,7 @@ cp ../../../build_server/output/bin/cube* ./cube/ #复制Cube应用程序
 cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/ # 复制Cube-Cli
 cube_prepare.sh & #启动配送脚本
 ```
+此示例是从模型训练到配送给Cube的全套流程，接下来会一一介绍。
 
 ## 单机版Cube组件介绍
 
