@@ -157,7 +157,7 @@ class Client(object):
                 self.add_variant('var1', endpoints, 100)
             else:
                 print(
-                    "endpoints({}) will not be enabled because you use the add_variant function.".
+                    "parameter endpoints({}) will not take effect, because you use the add_variant function.".
                     format(endpoints))
         sdk_desc = self.predictor_sdk_.gen_desc()
         print(sdk_desc)
