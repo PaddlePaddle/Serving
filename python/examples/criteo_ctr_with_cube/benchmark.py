@@ -30,8 +30,7 @@ args = benchmark_args()
 def single_func(idx, resource):
     client = Client()
     client.load_client_config('ctr_client_conf/serving_client_conf.prototxt')
-    client.add_variant("var1", ['127.0.0.1:9292'], 50)
-    client.connect()
+    client.connect(['127.0.0.1:9292'])
     batch = 1
     buf_size = 100
     dataset = criteo.CriteoDataset()

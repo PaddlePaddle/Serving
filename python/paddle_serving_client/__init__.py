@@ -85,7 +85,7 @@ class Client(object):
         self.feed_names_to_idx_ = {}
         self.rpath()
         self.pid = os.getpid()
-        self.predictor_sdk_ = SDKConfig()
+        self.predictor_sdk_ = None
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -138,13 +138,27 @@ class Client(object):
         return
 
     def add_variant(self, tag, cluster, variant_weight):
+        if self.predictor_sdk_ is None:
+            self.predictor_sdk_ = SDKConfig()
         self.predictor_sdk_.add_server_variant(tag, cluster,
                                                str(variant_weight))
 
-    def connect(self):
+    def connect(self, endpoints=None):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
+        if endpoints is None:
+            if self.predictor_sdk_ is None:
+                raise SystemExit(
+                    "You must set the endpoints parameter or use add_variant function to create a variant."
+                )
+        else:
+            if self.predictor_sdk_ is None:
+                self.add_variant('var1', endpoints, 100)
+            else:
+                print(
+                    "endpoints({}) will not be enabled because you use the add_variant function.".
+                    format(endpoints))
         sdk_desc = self.predictor_sdk_.gen_desc()
         print(sdk_desc)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(

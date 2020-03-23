@@ -18,8 +18,7 @@ import sys
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.add_variant("var1", ["127.0.0.1:9292"], 50)
-client.connect()
+client.connect(["127.0.0.1:9292"])
 
 # you can define any english sentence or dataset here
 # This example reuses imdb reader in training, you
