@@ -7,7 +7,7 @@
 单机版Cube是分布式Cube的弱化版本，旨在方便开发者做实验和Demo时使用。如果有分布式稀疏参数服务的需求，请在读完此文档之后，继续阅读  [分布式Cube使用指南](分布式Cube)（正在建设中）。
 
 
-# 示例
+## 示例
 在python/example/criteo_ctr_with_cube下执行
 ```
 python local_train.py # 训练模型
@@ -17,23 +17,23 @@ cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/ # 复制Cube-Cli
 cube_prepare.sh & #启动配送脚本
 ```
 
-# 单机版Cube组件介绍
+## 单机版Cube组件介绍
 
 
-## cube-builder
+### cube-builder
 
 cube-builder是把模型生成分片文件和版本管理的工具。由于cube是用于分布式的稀疏参数服务，对于分布式当中的每一个节点，需要加载不同的分片，然而生成的稀疏参数文件往往一个大文件，就需要用哈希函数将其分割为不同的分片。与此同时，工业级的场景需要支持定期模型的配送和流式训练，因此对于模型的版本管理十分重要，这也是在训练保存模型时缺失的部分，因此cube-builder在生成分片的同时，也可以人为指定增加版本信息。
 
-## cube-server
+### cube-server
 
 cube-server也就是稀疏参数服务器本身，它通过brpc提供高性能分布式查询服务，通过RestAPI来进行远端调用。
 
-## cube-cli
+### cube-cli
 
 cube-cli是cube-server的客户端，这部分已经被整合到paddle serving当中，当我们准备好cube.conf配置文件并在paddle serving server的代码中指定kv_infer相关的op时，cube-cli就会在serving端准备就绪。
 
-# 模型配送步骤
-## 前序步骤
+## 模型配送步骤
+### 前序步骤
 
 需要训练出模型文件，并复制相关build_server目录下的应用程序
 ```
@@ -43,7 +43,7 @@ cp ../../../build_server/output/bin/cube* ./cube/ #复制Cube应用程序
 cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/ # 复制Cube-Cli
 ```
 
-## 模型文件生成Sequence File
+### 模型文件生成Sequence File
 
 为了让模型参数从训练端配送到预测端，我们需要把训练好的模型从Paddle 模型保存格式转换成Sequence File格式。
 
@@ -56,7 +56,7 @@ mkdir -p cube/data
 ./seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature
 ```
 
-## 生成分片文件
+### 生成分片文件
 
 在单机版的环境下，分片数为1。执行
 
@@ -65,7 +65,7 @@ mkdir -p cube/data
 
 ```
 
-## 配送给Cube-Server
+### 配送给Cube-Server
 
 
 单机版本的配送过程非常简单，只需要在cube二进制程序所在目录下的data文件夹存放index.前缀的文件即可。
@@ -75,7 +75,7 @@ mv ./cube/data/0_0/test_dict_part0/* ./cube/data/
 cd cube && ./cube &
 ```
 
-## Cube-Client 验证配送是否成功
+### Cube-Client 验证配送是否成功
 此步非必须，用于测试配送是否成功
 ```
 cd cube
@@ -90,7 +90,7 @@ cd cube
 </p>
 
 
-# 注： 配置文件
+## 注： 配置文件
 以python/examples/criteo_ctr_with_cube/cube/conf下的cube.conf示例，此文件被上述的cube-cli所使用，单机版用户可以直接使用不用关注此部分，它在分布式部署中更为重要。
 
 ```
