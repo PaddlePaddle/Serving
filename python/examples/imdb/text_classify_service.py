@@ -29,7 +29,7 @@ class IMDBService(WebService):
         if "words" not in feed:
             exit(-1)
         res_feed = {}
-        res_feed["words"] = self.dataset.get_words_only(feed["words"])[0]
+        res_feed["words"] = self.dataset.get_words_only(feed["words"])
         return res_feed, fetch
 
 
