@@ -1,4 +1,4 @@
-## 带稀疏参数服务器的CTR预测服务
+## 带稀疏参数索引服务的CTR预测服务
 (简体中文|[English](./README.md))
 
 ### 获取样例数据
@@ -12,14 +12,14 @@ python local_train.py
 ```
 执行脚本后会在当前目录生成ctr_server_model和ctr_client_config文件夹,以及ctr_server_model_kv, ctr_client_conf_kv。
 
-### 启动稀疏参数服务器
+### 启动稀疏参数索引服务
 ```
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-此处，模型当中的稀疏参数会被存放在稀疏参数服务器Cube当中，关于稀疏参数服务器Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
+此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中，关于稀疏参数索引服务Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
 
 ### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
