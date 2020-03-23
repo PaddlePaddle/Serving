@@ -34,7 +34,7 @@ saw a trailer for this on another video, and decided to rent when it came out. b
 
 <details>
   <summary>imdb_reader.py</summary>
-	
+
 ```python
 import sys
 import os
@@ -200,12 +200,12 @@ if __name__ == "__main__":
     dataset.set_use_var([data, label])
     pipe_command = "python imdb_reader.py"
     dataset.set_pipe_command(pipe_command)
-    dataset.set_batch_size(128)
+    dataset.set_batch_size(4)
     dataset.set_filelist(filelist)
     dataset.set_thread(10)
     #定义模型
     avg_cost, acc, prediction = cnn_net(data, label, dict_dim)
-    optimizer = fluid.optimizer.SGD(learning_rate=0.01)
+    optimizer = fluid.optimizer.SGD(learning_rate=0.001)
     optimizer.minimize(avg_cost)
     #执行训练
     exe = fluid.Executor(fluid.CPUPlace())
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         exe.train_from_dataset(
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
-        if i == 99:
+        if i == 64:
             #在训练结束时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
             serving_io.save_model("{}_model".format(model_name),
                                   "{}_client_conf".format(model_name),
@@ -228,8 +228,9 @@ if __name__ == "__main__":
 
 </details>
 
-执行loca_train.py脚本会进行训练并在训练结束时保存模型和配置文件。保存的文件分为imdb_cnn_client_conf和imdb_cnn_model文件夹，前者包含client端的配置文件，后者包含server端的配置文件和保存的模型文件。
+![训练过程](./imdb_loss.png)由上图可以看出模型的损失在第65轮之后开始收敛，我们在第65轮训练完成后保存模型和配置文件。保存的文件分为imdb_cnn_client_conf和imdb_cnn_model文件夹，前者包含client端的配置文件，后者包含server端的配置文件和保存的模型文件。
 save_model函数的参数列表如下：
+
 | 参数                 | 含义                                                         |
 | -------------------- | ------------------------------------------------------------ |
 | server_model_folder  | 保存server端配置文件和模型文件的目录                         |
@@ -290,7 +291,9 @@ for line in sys.stdin:
 cat test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 
-使用test_data/part-0文件中的2084个样本进行测试测试，模型预测的准确率为86.90%,。
+使用test_data/part-0文件中的2084个样本进行测试测试，模型预测的准确率为88.19%。
+
+**注意**：每次模型训练的效果可能略有不同，使用训练出的模型预测的准确率会与示例中接近但有可能不完全一致。
 
 ## Step8：部署HTTP预测服务
 
@@ -350,4 +353,10 @@ python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
-预测流程正常时，会返回预测概率。
+预测流程正常时，会返回预测概率，示例如下。
+
+```
+{"prediction":[0.5592559576034546,0.44074398279190063]}
+```
+
+**注意**：每次模型训练的效果可能略有不同，使用训练出的模型预测概率数值可能与示例不一致。
