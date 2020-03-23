@@ -41,7 +41,6 @@ message Request {
 message Response {
   repeated FetchInst insts = 1;
   repeated int64 profile_time = 2;
-  optional int64 server_pid = 3;
 };
 
 service GeneralModelService {

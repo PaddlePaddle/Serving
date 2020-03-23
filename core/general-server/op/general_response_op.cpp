@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "core/general-server/op/general_response_op.h"
-#include <unistd.h>
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -74,11 +73,6 @@ int GeneralResponseOp::inference() {
 
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
-
-  // to let the client know which server the current response comes from
-  int server_pid = static_cast<int>(getpid());
-  VLOG(2) << "getpid: " << server_pid;
-  res->set_server_pid(server_pid);
 
   for (int i = 0; i < batch_size; ++i) {
     FetchInst *fetch_inst = res->add_insts();

@@ -43,9 +43,9 @@ class Endpoint {
 
   int thrd_finalize();
 
-  Predictor* get_predictor(const void* params);
+  Predictor* get_predictor(const void* params, std::string* variant_tag);
 
-  Predictor* get_predictor();
+  Predictor* get_predictor(std::string* variant_tag);
 
   int ret_predictor(Predictor* predictor);
 

@@ -144,7 +144,9 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
   _api.thrd_clear();
-  _predictor = _api.fetch_predictor("general_model");
+  std::string variant_tag;
+  _predictor = _api.fetch_predictor("general_model", &variant_tag);
+  predict_res.set_variant_tag(variant_tag);
 
   Request req;
   for (auto &name : fetch_name) {
@@ -237,7 +239,6 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
       }
       postprocess_end = timeline.TimeStampUS();
     }
-    predict_res.set_server_pid(res.server_pid());
   }
 
   if (FLAGS_profile_client) {
@@ -283,7 +284,9 @@ int PredictorClient::batch_predict(
   int fetch_name_num = fetch_name.size();
 
   _api.thrd_clear();
-  _predictor = _api.fetch_predictor("general_model");
+  std::string variant_tag;
+  _predictor = _api.fetch_predictor("general_model", &variant_tag);
+  predict_res_batch.set_variant_tag(variant_tag);
   VLOG(2) << "fetch general model predictor done.";
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
@@ -401,7 +404,6 @@ int PredictorClient::batch_predict(
       }
     }
     postprocess_end = timeline.TimeStampUS();
-    predict_res_batch.set_server_pid(res.server_pid());
   }
 
   if (FLAGS_profile_client) {

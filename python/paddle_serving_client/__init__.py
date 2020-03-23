@@ -164,7 +164,7 @@ class Client(object):
             raise SystemExit("The shape of feed tensor {} not match.".format(
                 key))
 
-    def predict(self, feed={}, fetch=[], need_server_pid=False):
+    def predict(self, feed={}, fetch=[], need_variant_tag=False):
         int_slot = []
         float_slot = []
         int_feed_names = []
@@ -199,10 +199,12 @@ class Client(object):
                 result_map[name] = self.result_handle_.get_float_by_name(name)[
                     0]
 
-        return [result_map, self.result_handle_.server_pid()
-                ] if need_server_pid else result_map
+        return [
+            result_map,
+            self.result_handle_.variant_tag(),
+        ] if need_variant_tag else result_map
 
-    def batch_predict(self, feed_batch=[], fetch=[], need_server_pid=False):
+    def batch_predict(self, feed_batch=[], fetch=[], need_variant_tag=False):
         int_slot_batch = []
         float_slot_batch = []
         int_feed_names = []
@@ -249,8 +251,10 @@ class Client(object):
                         index]
             result_map_batch.append(result_map)
 
-        return [result_map, self.result_handle_.server_pid()
-                ] if need_server_pid else result_map
+        return [
+            result_map,
+            self.result_handle_.variant_tag(),
+        ] if need_variant_tag else result_map
 
     def release(self):
         self.client_handle_.destroy_predictor()

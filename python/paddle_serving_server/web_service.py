@@ -54,7 +54,9 @@ class WebService(object):
         client_service = Client()
         client_service.load_client_config(
             "{}/serving_server_conf.prototxt".format(self.model_config))
-        client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
+        client_service.add_variant("var1",
+                                   ["0.0.0.0:{}".format(self.port + 1)], 100)
+        client_service.connect()
         service_name = "/" + self.name + "/prediction"
 
         @app_instance.route(service_name, methods=['POST'])
