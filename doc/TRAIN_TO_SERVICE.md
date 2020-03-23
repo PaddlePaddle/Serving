@@ -1,6 +1,8 @@
 # 使用PaddleServing快速搭建预测服务
 
-## 准备环境
+Paddle Serving是Paddle的高性能在线预测服务框架，可以灵活支持大多数模型的部署。本文中将以IMDB评论情感分析任务为例通过9步展示从模型的训练到部署预测服务的全流程。
+
+## Step1：准备环境
 
 Paddle Serving可以部署在Centos和Ubuntu等Linux环境上，在其他系统上或者不希望安装serving模块的环境中仍然可以通过http服务来访问server端的预测服务。
 
@@ -14,7 +16,7 @@ pip install paddle_serving_client #client端
 
 简单准备后，我们将以IMDB评论情感分析任务为例，展示从模型训练到部署预测服务的流程。示例中的所有代码都可以在Paddle Serving代码库的[IMDB示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb)中找到，示例中使用的数据和词典文件可以通过执行IMDB示例代码中的get_data.sh脚本得到。
 
-## 训练任务与数据集
+## Step2：确定任务和原始数据格式
 
 IMDB评论情感分析任务是对电影评论的内容进行二分类，判断该评论是属于正面评论还是负面评论。
 
@@ -26,10 +28,13 @@ saw a trailer for this on another video, and decided to rent when it came out. b
 
 这是一条英文评论样本，样本中使用|作为分隔符，分隔符之前为评论的内容，分隔符之后是样本的标签，0代表负样本，即负面评论，1代表正样本，即正面评论。
 
-## 数据预处理
+## Step3：定义Reader，划分训练集、测试集
 
 对于原始文本我们需要将它转化为神经网络可以使用的数字id。imdb_reader.py脚本中定义了文本id化的方法，通过词典文件imdb.vocab将单词映射为整形数。
 
+<details>
+  <summary>imdb_reader.py</summary>
+	
 ```python
 import sys
 import os
@@ -95,6 +100,7 @@ class IMDBDataset(dg.MultiSlotDataGenerator):
 
         return data_iter
 ```
+</details>
 
 映射之后的样本类似于以下的格式：
 
@@ -104,9 +110,12 @@ class IMDBDataset(dg.MultiSlotDataGenerator):
 
 这样神经网络就可以将转化后的文本信息作为特征值进行训练。
 
-## 训练和保存模型
+## Step4：定义CNN网络进行训练并保存
 
-接下来我们使用[CNN模型](https://www.paddlepaddle.org.cn/documentation/docs/zh/user_guides/nlp_case/understand_sentiment/README.cn.html#cnn)来进行训练。在nets.py脚本中定义网络结构如下。
+接下来我们使用[CNN模型](https://www.paddlepaddle.org.cn/documentation/docs/zh/user_guides/nlp_case/understand_sentiment/README.cn.html#cnn)来进行训练。在nets.py脚本中定义网络结构。
+
+<details>
+  <summary>nets.py</summary>
 
 ```python
 import sys
@@ -145,7 +154,12 @@ def cnn_net(data,
     return avg_cost, acc, prediction
 ```
 
-使用训练样本进行训练，训练脚本为local_train.py
+</details>
+
+使用训练样本进行训练，训练脚本为local_train.py。在训练结束后使用paddle_serving_client.io.save_model函数来保存部署预测服务使用的模型文件和配置文件。
+
+<details>
+  <summary>local_train.py</summary>
 
 ```python
 import os
@@ -196,7 +210,7 @@ if __name__ == "__main__":
     #执行训练
     exe = fluid.Executor(fluid.CPUPlace())
     exe.run(fluid.default_startup_program())
-    epochs = 6
+    epochs = 100
 		
     import paddle_serving_client.io as serving_io
 
@@ -204,21 +218,29 @@ if __name__ == "__main__":
         exe.train_from_dataset(
             program=fluid.default_main_program(), dataset=dataset, debug=False)
         logger.info("TRAIN --> pass: {}".format(i))
-        if i == 5:
-            #在第6个epoch时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
+        if i == 99:
+            #在训练结束时使用PaddleServing中的模型保存接口保存出Serving所需的模型和配置文件
             serving_io.save_model("{}_model".format(model_name),
                                   "{}_client_conf".format(model_name),
                                   {"words": data}, {"prediction": prediction},
                                   fluid.default_main_program())
 ```
 
+</details>
+
 执行loca_train.py脚本会进行训练并在训练结束时保存模型和配置文件。保存的文件分为imdb_cnn_client_conf和imdb_cnn_model文件夹，前者包含client端的配置文件，后者包含server端的配置文件和保存的模型文件。
+save_model函数的参数列表如下：
+| 参数                 | 含义                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| server_model_folder  | 保存server端配置文件和模型文件的目录                         |
+| client_config_folder | 保存client端配置文件的目录                                   |
+| feed_var_dict        | 用于预测的模型的输入，dict类型，key可以自定义，value为模型中的input variable，每个key对应一个variable，使用预测服务时，输入数据使用key作为输入的名称 |
+| fetch_var_dict       | 用于预测的模型的输出，dict类型，key可以自定义，value为模型中的input variable，每个key对应一个variable，使用预测服务时，通过key来获取返回数据 |
+| main_program         | 模型的program                                                |
 
-## 部署预测服务
+## Step5：部署RPC预测服务
 
-Paddle Serving框架支持两种预测服务方式，一种是通过RPC进行通信，一种是通过HTTP进行通信，下面将分别介绍这两种方式的部署方法。
-
-### RPC预测服务
+Paddle Serving框架支持两种预测服务方式，一种是通过RPC进行通信，一种是通过HTTP进行通信，下面将先介绍RPC预测服务的部署和使用方法，在Step8开始介绍HTTP预测服务的部署和使用。
 
 ```shell
 python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 #cpu预测服务
@@ -229,7 +251,11 @@ python -m paddle_serving_server_gpu.serve --model imdb_cnn_model/ --port 9292 --
 
 执行完以上命令之一，就完成了IMDB 情感分析任务的RPC预测服务部署。
 
+## Step6:复用Reader，定义远程RPC客户端
 下面我们通过Python代码来访问RPC预测服务，脚本为test_client.py
+
+<details>
+  <summary>test_client.py</summary>
 
 ```python
 from paddle_serving_client import Client
@@ -252,17 +278,21 @@ for line in sys.stdin:
     print("{} {}".format(fetch_map["prediction"][1], label[0]))
 ```
 
+</details>
+
 脚本从标准输入接收数据，并打印出样本预测为1的概率与真实的label。
 
-使用方式如下：
+## Step7：调用RPC服务，测试模型效果
+
+以上一步实现的客户端为例运行预测服务，使用方式如下：
 
 ```shell
 cat test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 
-使用test_data/part-0文件中的2084个样本测试，模型预测的准确率为64.25%。
+使用test_data/part-0文件中的2084个样本进行测试测试，模型预测的准确率为86.90%,。
 
-### HTTP预测服务
+## Step8：部署HTTP预测服务
 
 使用HTTP预测服务时，client端不需要安装Paddle Serving的任何模块，仅需要能发送HTTP请求即可。当然HTTP的通信方式会相较于RPC的通信方式在通信阶段消耗更多的时间。
 
@@ -271,6 +301,9 @@ cat test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_clien
 Serving提供了示例代码，通过执行[IMDB示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb)中的imdb_web_service_demo.sh脚本来获取。
 
 下面我们来看一下启动HTTP预测服务的脚本text_classify_service.py。
+
+<details>
+  <summary>text_clssify_service.py</summary>
 
 ```python
 from paddle_serving_server.web_service import WebService
@@ -301,6 +334,7 @@ imdb_service.prepare_server(
 imdb_service.prepare_dict({"dict_file_path": sys.argv[4]})
 imdb_service.run_server()
 ```
+</details>
 
 启动命令
 
@@ -310,8 +344,10 @@ python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
 
 以上命令中参数1为保存的server端模型和配置文件，参数2为工作目录会保存一些预测服务工作时的配置文件，该目录可以不存在但需要指定名称，预测服务会自行创建，参数3为端口号，参数4为词典文件。
 
+## Step9：明文数据调用预测服务
 启动完HTTP预测服务，即可通过一行命令进行预测：
 
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
+预测流程正常时，会返回预测概率。
