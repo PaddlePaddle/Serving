@@ -4,7 +4,7 @@
 
 <img src="abtest.png" style="zoom:33%;" />
 
-需要注意的是：A/B Test只适用于RPC模式，而不适用于WEB模式。
+需要注意的是：A/B Test只适用于RPC模式，不适用于WEB模式。
 
 ### 下载数据以及模型
 
