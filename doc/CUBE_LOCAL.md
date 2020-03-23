@@ -1,10 +1,10 @@
-# Cube: Sparse Parameter Server (Local Mode)
+# Cube: Sparse Parameter Indexing Service (Local Mode)
 
 ([简体中文](./CUBE_LOCAL_CN.md)|English)
 
 ## Overview
 
-There are two examples on CTR under python / examples, they are criteo_ctr, criteo_ctr_with_cube. The former is to save the entire model during training, including sparse parameters. The latter is to cut out the sparse parameters and save them into two parts, one is the sparse parameter and the other is the dense parameter. Because the scale of sparse parameters is very large in industrial cases, reaching the order of 10 ^ 9. Therefore, it is not practical to start large-scale sparse parameter prediction on one machine. Therefore, we introduced Baidu's industrial-grade product Cube on the sparse parameter server for many years to provide distributed sparse parameter services.
+There are two examples on CTR under python / examples, they are criteo_ctr, criteo_ctr_with_cube. The former is to save the entire model during training, including sparse parameters. The latter is to cut out the sparse parameters and save them into two parts, one is the sparse parameter and the other is the dense parameter. Because the scale of sparse parameters is very large in industrial cases, reaching the order of 10 ^ 9. Therefore, it is not practical to start large-scale sparse parameter prediction on one machine. Therefore, we introduced Baidu's industrial-grade product Cube to provide the sparse parameter service for many years to provide distributed sparse parameter services.
 
 The local mode of Cube is different from distributed Cube, which is designed to be convenient for developers to use in experiments and demos. If there is a demand for distributed sparse parameter service, please continue reading [Distributed Cube User Guide](./Distributed_Cube) after reading this document (still developing).
 
@@ -29,7 +29,7 @@ cube-builder is a tool for generating model shard files and version management. 
 
 ### cube-server
 
-The cube-server is the sparse parameter server itself. It provides high-performance distributed query service through brpc, and makes remote calls through RestAPI.
+The cube-server is based on the sparse parameter indexing, providing the sparse parameter service. It provides high-performance distributed query service through brpc, and makes remote calls through RestAPI.
 
 ### cube-cli
 
