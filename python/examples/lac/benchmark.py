@@ -30,7 +30,8 @@ def single_func(idx, resource):
     if args.request == "rpc":
         client = Client()
         client.load_client_config(args.model)
-        client.connect([args.endpoint])
+        client.add_variant("var1", [args.endpoint], 50)
+        client.connect()
         fin = open("jieba_test.txt")
         for line in fin:
             feed_data = reader.process(line)

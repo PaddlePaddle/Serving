@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import sys
 from image_reader import ImageReader
@@ -35,7 +36,9 @@ def single_func(idx, resource):
         fetch = ["score"]
         client = Client()
         client.load_client_config(args.model)
-        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
+        client.add_variant(
+            "var1", [resource["endpoint"][idx % len(resource["endpoint"])]], 50)
+        client.connect()
 
         start = time.time()
         for i in range(1000):

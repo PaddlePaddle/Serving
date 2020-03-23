@@ -43,7 +43,9 @@ def single_func(idx, resource):
         fetch = ["prob"]
         client = Client()
         client.load_client_config(args.model)
-        client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
+        client.add_variant(
+            "var1", [resource["endpoint"][idx % len(resource["endpoint"])]], 50)
+        client.connect()
 
         start = time.time()
         for i in range(1000):
