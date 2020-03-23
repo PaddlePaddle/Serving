@@ -21,7 +21,7 @@ cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-Here, the sparse parameter is loaded by cube sparse parameter server，for more details please read [Cube: Sparse Parameter Server (Local Mode)](../../../doc/CUBE_LOCAL.md)
+Here, the sparse parameter is loaded by cube sparse parameter server，for more details please read [Cube: Sparse Parameter Indexing Service (Local Mode)](../../../doc/CUBE_LOCAL.md)
 
 ### Start RPC Predictor, the number of serving thread is 4（configurable in test_server.py）
 
