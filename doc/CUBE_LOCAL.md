@@ -110,4 +110,3 @@ the config file is cube.config located in python/examples/criteo_ctr_with_cube/c
     }]
 }]
 ```
-
