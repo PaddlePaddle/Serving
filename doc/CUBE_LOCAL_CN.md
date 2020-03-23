@@ -10,11 +10,11 @@
 # 示例
 在python/example/criteo_ctr_with_cube下执行
 ```
-sh local_train.py
-
-seq_generaotr ctr_serving_conf/SparseFeatFactors ./cube_model
-
-cube_prepare.sh &
+python local_train.py # 训练模型
+cp ../../../build_server/core/predictor/seq_generator seq_generator #复制Sequence File模型生成工具
+cp ../../../build_server/output/bin/cube* ./cube/ #复制Cube应用程序
+cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/ # 复制Cube-Cli
+cube_prepare.sh & #启动配送脚本
 ```
 
 # 单机版Cube组件介绍
@@ -33,6 +33,16 @@ cube-server也就是稀疏参数服务器本身，它通过brpc提供高性能�
 cube-cli是cube-server的客户端，这部分已经被整合到paddle serving当中，当我们准备好cube.conf配置文件并在paddle serving server的代码中指定kv_infer相关的op时，cube-cli就会在serving端准备就绪。
 
 # 模型配送步骤
+## 前序步骤
+
+需要训练出模型文件，并复制相关build_server目录下的应用程序
+```
+python local_train.py
+cp ../../../build_server/core/predictor/seq_generator seq_generator #复制Sequence File模型生成工具
+cp ../../../build_server/output/bin/cube* ./cube/ #复制Cube应用程序
+cp ../../../build_server/core/cube/cube-api/cube-cli ./cube/ # 复制Cube-Cli
+```
+
 ## 模型文件生成Sequence File
 
 为了让模型参数从训练端配送到预测端，我们需要把训练好的模型从Paddle 模型保存格式转换成Sequence File格式。
@@ -40,12 +50,10 @@ cube-cli是cube-server的客户端，这部分已经被整合到paddle serving�
 **为什么是 Sequence File?**
 Sequence File是Hadoop File System的通用格式。在文章的开头提到了分布式Cube可以为超大规模稀疏参数服务提供支持，而大规模的稀疏参数在实际生产环境中保存在分布式文件系统当中，Hadoop File System是业界开源的最稳定的分布式文件系统之一，因此Sequence File格式成为了Cube加载模型的文件格式。
 
-<![endif]-->
-
 ```
-
-seq_generator SparseFeatFactor SparseSeqFile
-
+mkdir -p cube_model
+mkdir -p cube/data
+./seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature
 ```
 
 ## 生成分片文件
@@ -53,24 +61,24 @@ seq_generator SparseFeatFactor SparseSeqFile
 在单机版的环境下，分片数为1。执行
 
 ```
-cube-builder -shard_num 1 -version 0 -input ./input -output ./output
+./cube/cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=./cube/data -shard_num=1  -only_build=false
+
 ```
 
 ## 配送给Cube-Server
 
-<![endif]-->
 
 单机版本的配送过程非常简单，只需要在cube二进制程序所在目录下的data文件夹存放index.前缀的文件即可。
 
 ```
-cp ../../../build_server/output/bin/cube* ./cube
-bash cube_prepare.sh
+mv ./cube/data/0_0/test_dict_part0/* ./cube/data/
+cd cube && ./cube &
 ```
-
 
 ## Cube-Client 验证配送是否成功
 此步非必须，用于测试配送是否成功
 ```
+cd cube
 ./cube-cli -dict_name=test_dict -keys  keys -conf ./cube/cube.conf
 ```
 
