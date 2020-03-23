@@ -83,3 +83,29 @@ cd cube
 ```
 
 如果查看到每个key都有对应的value输出，就说明配送成功。此文件也可以被Serving使用，用作Serving中 general kv infer op中进行cube查询。
+
+如果执行成功，会看到如下结果
+<p align="center">
+    <img src="doc/cube_cli.png" width="700">
+</p>
+
+
+# 注： 配置文件
+以python/examples/criteo_ctr_with_cube/cube/conf下的cube.conf示例，此文件被上述的cube-cli所使用，单机版用户可以直接使用不用关注此部分，它在分布式部署中更为重要。
+
+```
+[{
+    "dict_name": "test_dict",  //表名
+    "shard": 1,  //分片数
+    "dup": 1,  //副本数
+    "timeout": 200,
+    "retry": 3,
+    "backup_request": 100,
+    "type": "ipport_list",
+    "load_balancer": "rr",
+    "nodes": [{
+        "ipport_list": "list://127.0.0.1:8027" //IP列表
+    }]
+}]
+```
+
