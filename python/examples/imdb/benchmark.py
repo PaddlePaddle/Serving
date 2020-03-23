@@ -35,8 +35,7 @@ def single_func(idx, resource):
     if args.request == "rpc":
         client = Client()
         client.load_client_config(args.model)
-        client.add_variant("var1", [args.endpoint], 50)
-        client.connect()
+        client.connect([args.endpoint])
         for i in range(1000):
             if args.batch_size == 1:
                 word_ids, label = imdb_dataset.get_words_and_label(line)
