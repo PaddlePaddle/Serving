@@ -56,6 +56,7 @@ message ResourceConf {
   optional string general_model_file = 4;
   optional string cube_config_path = 5;
   optional string cube_config_file = 6;
+  optional int32 cube_quant_bits = 7; // set 0 if no quant.
 };
 
 // DAG node depency info

@@ -202,14 +202,6 @@ int main(int argc, char** argv) {
   }
   VLOG(2) << "Succ call pthread worker start function";
 
-  if (Resource::instance().cube_initialize(FLAGS_resource_path,
-                                           FLAGS_resource_file) != 0) {
-    LOG(ERROR) << "Failed initialize cube, conf: " << FLAGS_resource_path << "/"
-               << FLAGS_resource_file;
-    return -1;
-  }
-  VLOG(2) << "Succ initialize cube";
-
 #ifndef BCLOUD
 
   if (Resource::instance().general_model_initialize(FLAGS_resource_path,
