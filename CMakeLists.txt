@@ -49,7 +49,9 @@ set(THIRD_PARTY_BUILD_TYPE Release)
 option(WITH_AVX	    "Compile Paddle Serving with AVX intrinsics"    OFF)
 option(WITH_MKL	    "Compile Paddle Serving with MKL support."      OFF)
 option(WITH_GPU	    "Compile Paddle Serving with NVIDIA GPU"        OFF)
-option(CLIENT_ONLY  "Compile client libraries and demos only"       OFF)
+option(CLIENT  	    "Compile Paddle Serving Client"		    OFF)
+option(SERVER	    "Compile Paddle Serving Server"		    OFF)
+option(APP          "Compile Paddle Serving App package"	    OFF)
 option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              OFF)
 option(PACK         "Compile for whl"                               OFF)
 
@@ -63,12 +65,12 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
 include(external/jsoncpp)
 #include(external/rocksdb)
 endif()
-#include(external/gtest)
 
+if (SERVER OR CLIENT)
 include(external/snappy)
 include(external/leveldb)
 include(external/zlib)
@@ -81,8 +83,9 @@ include(external/pybind11)
 include(external/python)
 include(generic)
 include(flags)
+endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
 include(external/cudnn)
 include(paddlepaddle)
 endif()
@@ -91,7 +94,7 @@ message("paddle serving source dir: " ${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_SOURCE_DIR})
 include_directories(${PADDLE_SERVING_BINARY_DIR})
 
-if(NOT CLIENT_ONLY)
+if(SERVER)
     set(EXTERNAL_LIBS
 	jsoncpp
 	gflags
@@ -109,28 +112,27 @@ set(EXTERNAL_LIBS
 	brpc
 )
 
-if(NOT CLIENT_ONLY)
+if(SERVER)
 if(WITH_MKLML)
     list(APPEND EXTERNAL_LIBS ${MKLML_IOMP_LIB})
 endif()
 endif()
 
 
-if(NOT CLIENT_ONLY)
+if(SERVER)
 if(WITH_MKLDNN)
     list(APPEND EXTERNAL_LIBS ${MKLDNN_LIB})
 endif()
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
     list(APPEND EXTERNAL_LIBS paddlepaddle)
 endif()
 
 add_subdirectory(core)
 
-if(NOT CLIENT_ONLY)
+if(SERVER)
 add_subdirectory(paddle_inference)
 endif()
 
 add_subdirectory(python)
-#add_subdirectory(examples)
