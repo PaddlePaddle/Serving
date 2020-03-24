@@ -82,7 +82,6 @@ class Resource {
   }
 
   int initialize(const std::string& path, const std::string& file);
-  int cube_initialize(const std::string& path, const std::string& file);
 
   int general_model_initialize(const std::string& path,
                                const std::string& file);
@@ -104,11 +103,13 @@ class Resource {
     return reinterpret_cast<DynamicResource*>(
         THREAD_GETSPECIFIC(_tls_bspec_key));
   }
+  size_t get_cube_quant_bits();
 
  private:
   int thread_finalize() { return 0; }
   std::shared_ptr<PaddleGeneralModelConfig> _config;
   std::string cube_config_fullpath;
+  int cube_quant_bits;  // 0 if no empty
 
   THREAD_KEY_T _tls_bspec_key;
 };
