@@ -202,7 +202,7 @@ class Client(object):
                 if self.feed_types_[key] == int_type:
                     if i == 0:
                         int_feed_names.append(key)
-                    int_slot.append(feed[key])
+                    int_slot.append(feed_i[key])
                 elif self.feed_types_[key] == float_type:
                     if i == 0:
                         float_feed_names.append(key)
