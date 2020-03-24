@@ -1,11 +1,11 @@
-if (CLIENT_ONLY)
+if (CLIENT)
     file(GLOB_RECURSE SERVING_CLIENT_PY_FILES paddle_serving_client/*.py)
     set(PY_FILES ${SERVING_CLIENT_PY_FILES})
     SET(PACKAGE_NAME "serving_client")
     set(SETUP_LOG_FILE "setup.py.client.log")
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
     if (NOT WITH_GPU)
         file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server/*.py)
     else()
@@ -16,12 +16,17 @@ if (NOT CLIENT_ONLY)
         set(SETUP_LOG_FILE "setup.py.server.log")
 endif()
 
-if (CLIENT_ONLY)
+if (CLIENT)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.client.in
     ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
 endif()
 
-if (NOT CLIENT_ONLY)
+if (APP)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.app.in
+    ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+endif()
+
+if (SERVER)
     if (NOT WITH_GPU)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.server.in
             ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
@@ -34,7 +39,15 @@ endif()
 set (SERVING_CLIENT_CORE ${PADDLE_SERVING_BINARY_DIR}/core/general-client/*.so)
 message("python env: " ${py_env})
 
-if (CLIENT_ONLY)
+if (APP)
+add_custom_command(
+        OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
+        COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_app/ ${PADDLE_SERVING_BINARY_DIR}/python/
+        COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel)
+add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+endif()
+
+if (CLIENT)
 add_custom_command(
 	OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
 	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_client/ ${PADDLE_SERVING_BINARY_DIR}/python/
@@ -44,7 +57,7 @@ add_custom_command(
 add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
     if(NOT WITH_GPU)
         add_custom_command(
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
@@ -66,20 +79,22 @@ endif()
 set(SERVING_CLIENT_PYTHON_PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/dist/)
 set(SERVING_SERVER_PYTHON_PACKAGE_DIR ${CMAKE_CURRENT_BINARY_DIR}/dist/)
 
-if (CLIENT_ONLY)
+if (CLIENT)
 install(DIRECTORY ${SERVING_CLIENT_PYTHON_PACKAGE_DIR}
     DESTINATION opt/serving_client/share/wheels
 )
 endif()
 
-if (NOT CLIENT_ONLY)
+if (SERVER)
 install(DIRECTORY ${SERVING_SERVER_PYTHON_PACKAGE_DIR}
     DESTINATION opt/serving_server/share/wheels
 )
 endif()
 
+if (CLIENT OR SERVER)
 find_program(PATCHELF_EXECUTABLE patchelf)
-if(NOT PATCHELF_EXECUTABLE)
+if (NOT PATCHELF_EXECUTABLE)
   message(FATAL_ERROR "patchelf not found, please install it.\n"
          "For Ubuntu, the command is: apt-get install -y patchelf.")
+endif()
 endif()

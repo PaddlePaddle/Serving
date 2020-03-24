@@ -1,35 +1,33 @@
-## Criteo CTR with Sparse Parameter Indexing Service
+## 带稀疏参数索引服务的CTR预测服务
+(简体中文|[English](./README.md))
 
-([简体中文](./README_CN.md)|English)
-
-### Get Sample Dataset
-
+### 获取样例数据
 ```
 sh get_data.sh
 ```
 
-### Train and Save Model
+### 保存模型和配置文件
 ```
 python local_train.py
 ```
-the trained model will be in ./ctr_server_model and ./ctr_client_config, and ctr_server_model_kv, ctr_client_conf_kv。
+执行脚本后会在当前目录生成ctr_server_model和ctr_client_config文件夹,以及ctr_server_model_kv, ctr_client_conf_kv。
 
-### Start Sparse Parameter Indexing Service
+### 启动稀疏参数索引服务
 ```
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-Here, the sparse parameter is loaded by cube sparse parameter indexing service Cube，for more details please read [Cube: Sparse Parameter Indexing Service (Local Mode)](../../../doc/CUBE_LOCAL.md)
+此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中，关于稀疏参数索引服务Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
 
-### Start RPC Predictor, the number of serving thread is 4（configurable in test_server.py）
+### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
 ```
 python test_server.py ctr_serving_model_kv 
 ```
 
-### Run Prediction
+### 执行预测
 
 ```
 python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
@@ -37,17 +35,17 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 ### Benchmark
 
-CPU ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
+设备 ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
 
-Model ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
+模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
 
 server core/thread num ： 4/8
 
-Run
+执行
 ```
 bash benchmark.sh
 ```
-1000 batches will be sent by every client
+客户端每个线程会发送1000个batch
 
 | client  thread num | prepro | client infer | op0    | op1   | op2    | postpro | avg_latency | qps   |
 | ------------------ | ------ | ------------ | ------ | ----- | ------ | ------- | ----- | ----- |
@@ -57,10 +55,10 @@ bash benchmark.sh
 | 8                  | 0.044  | 8.230        | 0.028  | 0.464 | 0.0023 | 0.0034  | 14.191 | 563.8 |
 | 16                 | 0.048  | 21.037       | 0.028  | 0.455 | 0.0025 | 0.0041  | 27.236 | 587.5 |
 
-the average latency of threads
+平均每个线程耗时图如下
 
 ![avg cost](../../../doc/criteo-cube-benchmark-avgcost.png)
 
-The QPS is 
+每个线程QPS耗时如下
 
 ![qps](../../../doc/criteo-cube-benchmark-qps.png)

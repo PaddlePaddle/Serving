@@ -24,17 +24,26 @@ def predict(image_path, server):
     req = json.dumps({"image": image, "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
+    print(r.json()["score"][0])
+    return r
+
+
+def batch_predict(image_path, server):
+    image = base64.b64encode(open(image_path).read())
+    req = json.dumps({"image": [image, image], "fetch": ["score"]})
+    r = requests.post(
+        server, data=req, headers={"Content-Type": "application/json"})
+    print(r.json()["result"][1]["score"][0])
     return r
 
 
 if __name__ == "__main__":
-    server = "http://127.0.0.1:9295/image/prediction"
+    server = "http://127.0.0.1:9393/image/prediction"
     #image_path = "./data/n01440764_10026.JPEG"
-    image_list = os.listdir("./data/image_data/n01440764/")
+    image_list = os.listdir("./image_data/n01440764/")
     start = time.time()
     for img in image_list:
-        image_file = "./data/image_data/n01440764/" + img
+        image_file = "./image_data/n01440764/" + img
         res = predict(image_file, server)
-        print(res.json()["score"][0])
     end = time.time()
     print(end - start)
