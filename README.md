@@ -162,7 +162,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### New to Paddle Serving
 - [How to save a servable model?](doc/SAVE.md)
 - [An end-to-end tutorial from training to serving](doc/END_TO_END.md)
-- [Write Bert-as-Service in 10 minutes](doc/Bert_10_mins.md)
+- [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
