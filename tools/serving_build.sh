@@ -125,7 +125,7 @@ function python_test_fit_a_line() {
             sleep 5 # wait for the server to start
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
-            
+
             # test web
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --name uci --port 9393 --thread 4 --name uci > /dev/null &"
