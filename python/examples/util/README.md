@@ -25,4 +25,3 @@ python timeline_trace.py profile trace
 效果如下图，图中展示了client端启动4进程时的bert示例的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，每个进进程的第二行展示的是server各个op的timeline。
 
 ![timeline](../../../doc/timeline-example.png)
-
