@@ -48,4 +48,3 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 ```
 
 用户可以将量化后的AUC结果同量化前的AUC做比较
-
