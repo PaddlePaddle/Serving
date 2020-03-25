@@ -1,0 +1,92 @@
+#   Copyright (c) 2020  PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Setup for pip package."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import platform
+import os
+
+from setuptools import setup, Distribution, Extension
+from setuptools import find_packages
+from setuptools import setup
+from paddle_serving_app.version import serving_app_version
+from pkg_resources import DistributionNotFound, get_distribution
+        
+def python_version():
+    return [int(v) for v in platform.python_version().split(".")]
+
+def find_package(pkgname):
+    try:
+        get_distribution(pkgname)
+        return True
+    except DistributionNotFound:
+        return False
+
+max_version, mid_version, min_version = python_version()
+
+if '${PACK}' == 'ON':
+    copy_lib()
+
+
+REQUIRED_PACKAGES = [
+    'six >= 1.10.0', 'sentencepiece'
+]
+
+packages=['paddle_serving_app',
+          'paddle_serving_app.reader',
+	  'paddle_serving_app.utils']
+
+package_data={}
+package_dir={'paddle_serving_app':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app',
+             'paddle_serving_app.reader':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader',
+	     'paddle_serving_app.utils':
+	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/utils',}
+
+setup(
+    name='paddle-serving-app',
+    version=serving_app_version.replace('-', ''),
+    description=
+    ('Paddle Serving Package for saved model with PaddlePaddle'),
+    url='https://github.com/PaddlePaddle/Serving',
+    author='PaddlePaddle Author',
+    author_email='guru4elephant@gmail.com',
+    install_requires=REQUIRED_PACKAGES,
+    packages=packages,
+    package_data=package_data,
+    package_dir=package_dir,
+    # PyPI package information.
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Mathematics',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
+    license='Apache 2.0',
+    keywords=('paddle-serving serving-client deployment industrial easy-to-use'))
