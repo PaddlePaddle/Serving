@@ -25,6 +25,8 @@ from paddlehub.common.logger import logger
 import socket
 from paddle_serving_client import Client
 from paddle_serving_client.utils import benchmark_args
+from bert_reader import BertReader
+
 args = benchmark_args()
 
 fin = open("data-c.txt")

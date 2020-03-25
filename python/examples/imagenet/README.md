@@ -34,6 +34,6 @@ python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 
 
 client端进行预测
 ```
-python image_rpc_client.py conf_and_model/serving_client_conf/serving_client_conf.prototxt
+python image_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
 *server端示例中服务端口为9393端口，client端示例中数据来自./data文件夹，server端地址为本地9393端口，可根据实际情况更改脚本。*
