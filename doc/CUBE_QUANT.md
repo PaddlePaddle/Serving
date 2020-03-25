@@ -48,4 +48,3 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 ```
 
 Users can compare AUC results after quantization with AUC before quantization. 
-
