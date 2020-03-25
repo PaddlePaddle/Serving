@@ -4,7 +4,7 @@
 
 The goal of Bert-As-Service is to give a sentence, and the service can represent the sentence as a semantic vector and return it to the user. [Bert model](https://arxiv.org/abs/1810.04805) is a popular model in the current NLP field. It has achieved good results on a variety of public NLP tasks. The semantic vector calculated by the Bert model is used as input to other NLP models, which will also greatly improve the performance of the model. Bert-As-Service allows users to easily obtain the semantic vector representation of text and apply it to their own tasks. In order to achieve this goal, we have shown in four steps that using Paddle Serving can build such a service in ten minutes. All the code and files in the example can be found in [Example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) of Paddle Serving.
 
-#### Step1：Save the serviceable model
+#### Step1: Save the serviceable model
 
 Paddle Serving supports various models trained based on Paddle, and saves the serviceable model by specifying the input and output variables of the model. For convenience, we can load a trained bert Chinese model from paddlehub and save a deployable service with two lines of code. The server and client configurations are placed in the `bert_seq20_model` and` bert_seq20_client` folders, respectively.
 
@@ -25,7 +25,7 @@ serving_io.save_model("bert_seq20_model", "bert_seq20_client",
                       feed_dict, fetch_dict, program)
 ```
 
-#### Step2：Launch Service
+#### Step2: Launch Service
 
 ``` shell
 python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
