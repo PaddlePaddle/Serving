@@ -13,7 +13,7 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 1. 直接拉取镜像
 
    ```bash
-   docker pull hub.baidubce.com/ctr/paddleserving:0.1.3
+   docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3
    ```
 
 2. 基于Dockerfile构建镜像
@@ -21,13 +21,13 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
    建立新目录，复制[Dockerfile](../tools/Dockerfile)内容到该目录下Dockerfile文件。执行
 
    ```bash
-   docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3 .
    ```
 
 ### 创建容器并进入
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/ctr/paddleserving:0.1.3
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3
 docker exec -it test bash
 ```
 
@@ -97,7 +97,7 @@ GPU版本与CPU版本基本一致，只有部分接口命名的差别（GPU版�
 1. 直接拉取镜像
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/ctr/paddleserving:0.1.3-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
    ```
 
 2. 基于Dockerfile构建镜像
@@ -105,13 +105,13 @@ GPU版本与CPU版本基本一致，只有部分接口命名的差别（GPU版�
    建立新目录，复制[Dockerfile.gpu](../tools/Dockerfile.gpu)内容到该目录下Dockerfile文件。执行
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu .
    ```
 
 ### 创建容器并进入
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/ctr/paddleserving:0.1.3-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
 nvidia-docker exec -it test bash
 ```
 
