@@ -127,6 +127,12 @@ pip install paddle-serving-server-gpu
 
 ### 测试example
 
+GPU版本在运行Server端代码前需要设置`CUDA_VISIBLE_DEVICES`环境变量来指定预测服务使用的GPU，下面的示例为指定索引为0和1两块GPU：
+
+```bash
+ export CUDA_VISIBLE_DEVICES=0,1
+```
+
 通过下面命令获取训练好的Boston房价预估模型：
 
 ```bash
