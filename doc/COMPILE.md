@@ -1,6 +1,7 @@
 # 如何编译PaddleServing
 
-### 编译环境设置
+## 编译环境设置
+
 - os: CentOS 6u3
 - gcc: 4.8.2及以上
 - go: 1.9.2及以上
@@ -8,39 +9,116 @@
 - cmake：3.2.2及以上
 - python：2.7.2及以上
 
-### 获取代码
+推荐使用Docker准备Paddle Serving编译环境：[CPU Dockerfile.devel](../tools/Dockerfile.devel)，[GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+
+## 获取代码
 
 ``` python
 git clone https://github.com/PaddlePaddle/Serving
-git submodule update --init --recursive
+cd Serving && git submodule update --init --recursive
 ```
 
-### 编译Server部分
+## PYTHONROOT设置
 
-#### PYTHONROOT设置
-``` shell
+```shell
 # 例如python的路径为/usr/bin/python，可以设置PYTHONROOT
 export PYTHONROOT=/usr/
 ```
 
-#### 集成CPU版本Paddle Inference Library
+## 编译Server部分
+
+### 集成CPU版本Paddle Inference Library
+
 ``` shell
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT_ONLY=OFF ..
+mkdir build && cd build
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
 make -j10
 ```
 
-#### 集成GPU版本Paddle Inference Library
+可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
+
+### 集成GPU版本Paddle Inference Library
+
 ``` shell
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT_ONLY=OFF -DWITH_GPU=ON ..
+mkdir build && cd build
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
 make -j10
 ```
 
-### 编译Client部分
+执行`make install`可以把目标产出放在`./output`目录下。
+
+## 编译Client部分
 
 ``` shell
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT_ONLY=ON ..
+mkdir build && cd build
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
 make -j10
 ```
 
-### 安装wheel包
-无论是client端还是server端，编译完成后，安装python/dist/下的whl包即可
+执行`make install`可以把目标产出放在`./output`目录下。
+
+## 编译App部分
+
+```bash
+mkdir build && cd build
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
+make
+```
+
+## 安装wheel包
+
+无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
+
+## 注意事项
+
+运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+
+## CMake选项说明
+
+|     编译选项     |                    说明                    | 默认 |
+| :--------------: | :----------------------------------------: | :--: |
+|     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
+|     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
+|     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
+|    CUDNN_ROOT    |    Define CuDNN library and header path    |      |
+|      CLIENT      |       Compile Paddle Serving Client        | OFF  |
+|      SERVER      |       Compile Paddle Serving Server        | OFF  |
+|       APP        |     Compile Paddle Serving App package     | OFF  |
+| WITH_ELASTIC_CTR |        Compile ELASITC-CTR solution        | OFF  |
+|       PACK       |              Compile for whl               | OFF  |
+
+### WITH_GPU选项
+
+Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选项用于检测系统上CUDA/CUDNN等基础库，如检测到合适版本，在编译PaddlePaddle时就会编译出GPU版本的OP Kernel。
+
+在裸机上编译Paddle Serving GPU版本，需要安装这些基础库：
+
+- CUDA
+- CuDNN
+- NCCL2
+
+这里要注意的是：
+
+1. 编译Serving所在的系统上所安装的CUDA/CUDNN等基础库版本，需要兼容实际的GPU设备。例如，Tesla V100卡至少要CUDA 9.0。如果编译时所用CUDA等基础库版本过低，由于生成的GPU代码和实际硬件设备不兼容，会导致Serving进程无法启动，或出现coredump等严重问题。
+2. 运行Paddle Serving的系统上安装与实际GPU设备兼容的CUDA driver，并安装与编译期所用的CUDA/CuDNN等版本兼容的基础库。如运行Paddle Serving的系统上安装的CUDA/CuDNN的版本低于编译时所用版本，可能会导致奇怪的cuda函数调用失败等问题。
+
+以下是PaddlePaddle发布版本所使用的基础库版本匹配关系，供参考：
+
+|        |  CUDA   |          CuDNN           | NCCL2  |
+| :----: | :-----: | :----------------------: | :----: |
+| CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
+| CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
+
+### 如何让Paddle Serving编译系统探测到CuDNN库
+
+从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_ROOT`参数，指定CuDNN库所在路径。
+
+### 如何让Paddle Serving编译系统探测到nccl库
+
+从NVIDIA developer官网下载对应版本nccl2库并解压后，增加如下环境变量 (以nccl2.1.4为例)：
+
+```shell
+export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$CPLUS_INCLUDE_PATH
+export LD_LIBRARY_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/lib/:$LD_LIBRARY_PATH
+```
