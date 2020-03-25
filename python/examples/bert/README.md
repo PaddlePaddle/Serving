@@ -5,12 +5,17 @@
 ### 获取模型
 
 示例中采用[Paddlehub](https://github.com/PaddlePaddle/PaddleHub)中的[BERT中文模型](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel)。
+请先安装paddlehub
+```
+pip install paddlehub
+```
 执行
 ```
-python prepare_model.py
+python prepare_model.py 20
 ```
-生成server端配置文件与模型文件，存放在serving_server_model文件夹
-生成client端配置文件，存放在serving_client_conf文件夹
+参数20表示BERT模型中的max_seq_len，即预处理后的样本长度。
+生成server端配置文件与模型文件，存放在bert_seq20_model文件夹
+生成client端配置文件，存放在bert_seq20_client文件夹
 
 ### 获取词典和样例数据
 
@@ -22,19 +27,19 @@ sh get_data.sh
 ### 启动RPC预测服务
 执行
 ```
-python -m paddle_serving_server.serve --model serving_server_model/ --port 9292  #启动cpu预测服务
+python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292  #启动cpu预测服务
 ```
 或者
 ```
-python -m paddle_serving_server_gpu.serve --model serving_server_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
+python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
 ```
 
 ### 执行预测
 
 ```
-python bert_rpc_client.py --thread 4 
+cat data-c.txt | python bert_client.py 
 ```
-启动client读取data-c.txt中的数据进行预测，--thread参数控制client的进程数，预测结束后会打印出每个进程的耗时,server端的地址在脚本中修改。
+启动client读取data-c.txt中的数据进行预测，预测结果为文本的向量表示（由于数据较多，脚本中没有讲输出进行打印），server端的地址在脚本中修改。
 
 ### 启动HTTP预测服务
 ```
@@ -42,7 +47,7 @@ python bert_rpc_client.py --thread 4
 ```
 通过环境变量指定gpu预测服务使用的gpu，示例中指定索引为0和1的两块gpu
 ```
- python bert_web_service.py serving_server_model/ 9292 #启动gpu预测服务
+ python bert_web_service.py bert_seq20_model/ 9292 #启动gpu预测服务
 ```
 ### 执行预测
 
