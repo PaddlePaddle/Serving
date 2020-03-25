@@ -32,7 +32,7 @@ seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature 8 #quanti
 ```
 This command will convert the sparse parameter file SparseFeatFactors in the ctr_serving_model directory into a feature file (Sequence File format) in the cube_model directory. At present, the quantization tool only supports 8-bit quantization. In the future, it will support higher compression rates and more types of quantization methods.
 
-## Launch Serving by quantized model
+## Launch Serving by Quantized Model
 
 In Serving, a quantized model is used when using general_dist_kv_quant_infer op to make predictions. See python/examples/criteo_ctr_with_cube/test_server_quant.py for details. No changes are required on the client side.
 
