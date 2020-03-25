@@ -112,7 +112,7 @@ In this way, the neural network can train the transformed text information as fe
 
 ## Step4：Define CNN network for training and saving
 
-Net we use[CNN Model](https://www.paddlepaddle.org.cn/documentation/docs/zh/user_guides/nlp_case/understand_sentiment/README.cn.html#cnn)for training, in nets.py we define the network structure.
+Net we use [CNN Model](https://www.paddlepaddle.org.cn/documentation/docs/zh/user_guides/nlp_case/understand_sentiment/README.cn.html#cnn) for training, in nets.py we define the network structure.
 
 <details>
   <summary>nets.py</summary>
