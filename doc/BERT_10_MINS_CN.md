@@ -1,5 +1,7 @@
 ## 十分钟构建Bert-As-Service
 
+(简体中文|[English](./BERT_10_MINS.md))
+
 Bert-As-Service的目标是给定一个句子，服务可以将句子表示成一个语义向量返回给用户。[Bert模型](https://arxiv.org/abs/1810.04805)是目前NLP领域的热门模型，在多种公开的NLP任务上都取得了很好的效果，使用Bert模型计算出的语义向量来做其他NLP模型的输入对提升模型的表现也有很大的帮助。Bert-As-Service可以让用户很方便地获取文本的语义向量表示并应用到自己的任务中。为了实现这个目标，我们通过四个步骤说明使用Paddle Serving在十分钟内就可以搭建一个这样的服务。示例中所有的代码和文件均可以在Paddle Serving的[示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)中找到。
 
 #### Step1：保存可服务模型
