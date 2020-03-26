@@ -2,7 +2,7 @@
 
 (简体中文|[English](./IMDB_GO_CLIENT.md))
 
-本文档说明了如何将Go用作客户端语言。对于Paddle Serving中的Go客户端，提供了一个简单的客户端程序包https://github.com/PaddlePaddle/Serving/tree/develop/go/serving_client，用户可以根据需要引用该程序包。这是一个基于IMDB数据集的情感分析任务的简单示例。
+本文档说明了如何将Go用作客户端语言。对于Paddle Serving中的Go客户端，提供了一个简单的客户端程序包https://github.com/PaddlePaddle/Serving/tree/develop/go/serving_client, 用户可以根据需要引用该程序包。这是一个基于IMDB数据集的情感分析任务的简单示例。
 
 ### 安装
 
@@ -16,7 +16,7 @@ pip install paddle-serving-server
 ### 下载文本分类模型
 
 ```shell
-wget https://paddle-serving.bj.bcebos.com/data%2Ftext_classification%2Fimdb_serving_example.tar.gz
+wget https://paddle-serving.bj.bcebos.com/data/text_classification/imdb_serving_example.tar.gz
 tar -xzf imdb_serving_example.tar.gz
 ```
 
