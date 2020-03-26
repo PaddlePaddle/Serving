@@ -5,11 +5,11 @@
 ## Compilation environment requirements
 
 - os: CentOS 6u3
-- gcc: 4.8.2及以上
-- go: 1.9.2及以上
-- git：2.17.1及以上
-- cmake：3.2.2及以上
-- python：2.7.2及以上
+- gcc: 4.8.2 and later
+- go: 1.9.2 and later
+- git：2.17.1 and later
+- cmake：3.2.2 and later
+- python：2.7.2 and later
 
 It is recommended to use Docker to prepare the compilation environment for the Paddle service: [CPU Dockerfile.devel](../tools/Dockerfile.devel), [GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
 
