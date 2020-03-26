@@ -18,6 +18,9 @@
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
 #include "core/predictor/op/op.h"
+#define BLOG(fmt, ...) \
+  printf(              \
+      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -199,25 +202,110 @@ const DagStage* Dag::stage_by_index(uint32_t index) { return _stages[index]; }
 
 int Dag::topo_sort() {
   std::stringstream ss;
-  for (uint32_t nid = 0; nid < _index_nodes.size(); nid++) {
-    DagStage* stage = new (std::nothrow) DagStage();
-    if (stage == NULL) {
-      LOG(ERROR) << "Invalid stage!";
-      return ERR_MEM_ALLOC_FAILURE;
+  uint32_t nodes_size = _index_nodes.size();
+  std::vector<uint32_t> in_degree(nodes_size, 0);
+  std::vector<std::vector<uint32_t>> in_egde(nodes_size);
+  for (uint32_t nid = 0; nid < nodes_size; nid++) {
+    in_degree[nid] += _index_nodes[nid]->depends.size();
+    for (auto it = _index_nodes[nid]->depends.begin();
+         it != _index_nodes[nid]->depends.end();
+         ++it) {
+      uint32_t pnid = Dag::node_by_name(it->first)->id -
+                      1;  // 0 is reserved for begginer-op
+      in_egde[pnid].push_back(nid);
+      BLOG("inegde[%d]: %d", pnid, nid);
     }
-    stage->nodes.push_back(_index_nodes[nid]);
+  }
+  for (int i = 0; i < in_degree.size(); ++i) {
+    BLOG("(%s) in_degree[%d]: %d",
+         _index_nodes[i]->name.c_str(),
+         i,
+         in_degree[i]);
+  }
+  int sorted_num = 0;
+  DagStage* stage = new (std::nothrow) DagStage();
+  if (stage == NULL) {
+    LOG(ERROR) << "Invalid stage!";
+    return ERR_MEM_ALLOC_FAILURE;
+  }
+  ss.str("");
+  ss << _stages.size();
+  stage->name = ss.str();
+  stage->full_name = full_name() + NAME_DELIMITER + stage->name;
+  BLOG("stage->full_name: %s", stage->full_name.c_str());
+  for (uint32_t nid = 0; nid < nodes_size; ++nid) {
+    if (in_degree[nid] == 0) {
+      BLOG("nid: %d", nid);
+      ++sorted_num;
+      stage->nodes.push_back(_index_nodes[nid]);
+      // assign stage number after stage created
+      _index_nodes[nid]->stage = _stages.size();
+      // assign dag node full name after stage created
+      _index_nodes[nid]->full_name =
+          stage->full_name + NAME_DELIMITER + _index_nodes[nid]->name;
+    }
+  }
+
+  if (stage->nodes.size() == 0) {
+    LOG(ERROR) << "Invalid Dag!";
+    return ERR_INTERNAL_FAILURE;
+  }
+  _stages.push_back(stage);
+
+  while (sorted_num < nodes_size) {
+    auto pre_nodes = _stages.back()->nodes;
+    DagStage* stage = new (std::nothrow) DagStage();
     ss.str("");
     ss << _stages.size();
     stage->name = ss.str();
     stage->full_name = full_name() + NAME_DELIMITER + stage->name;
+    BLOG("stage->full_name: %s", stage->full_name.c_str());
+    for (uint32_t pi = 0; pi < pre_nodes.size(); ++pi) {
+      uint32_t pnid = pre_nodes[pi]->id - 1;
+      BLOG("pnid: %d", pnid);
+      for (uint32_t ei = 0; ei < in_egde[pnid].size(); ++ei) {
+        uint32_t nid = in_egde[pnid][ei];
+        --in_degree[nid];
+        BLOG("nid: %d, indeg: %d", nid, in_degree[nid]);
+        if (in_degree[nid] == 0) {
+          BLOG("nid: %d", nid);
+          ++sorted_num;
+          stage->nodes.push_back(_index_nodes[nid]);
+          // assign stage number after stage created
+          _index_nodes[nid]->stage = _stages.size();
+          // assign dag node full name after stage created
+          _index_nodes[nid]->full_name =
+              stage->full_name + NAME_DELIMITER + _index_nodes[nid]->name;
+        }
+      }
+    }
+    if (stage->nodes.size() == 0) {
+      LOG(ERROR) << "Invalid Dag!";
+      return ERR_INTERNAL_FAILURE;
+    }
     _stages.push_back(stage);
-
-    // assign stage number after stage created
-    _index_nodes[nid]->stage = nid;
-    // assign dag node full name after stage created
-    _index_nodes[nid]->full_name =
-        stage->full_name + NAME_DELIMITER + _index_nodes[nid]->name;
   }
+  /*std::stringstream ss;*/
+  // for (uint32_t nid = 0; nid < _index_nodes.size(); nid++) {
+  // DagStage* stage = new (std::nothrow) DagStage();
+  // if (stage == NULL) {
+  // LOG(ERROR) << "Invalid stage!";
+  // return ERR_MEM_ALLOC_FAILURE;
+  //}
+  // stage->nodes.push_back(_index_nodes[nid]);
+  // ss.str("");
+  // ss << _stages.size();
+  // stage->name = ss.str();
+  // stage->full_name = full_name() + NAME_DELIMITER + stage->name;
+  // BLOG("stage->full_name: %s", stage->full_name.c_str());
+  //_stages.push_back(stage);
+
+  //// assign stage number after stage created
+  //_index_nodes[nid]->stage = nid;
+  //// assign dag node full name after stage created
+  //_index_nodes[nid]->full_name =
+  // stage->full_name + NAME_DELIMITER + _index_nodes[nid]->name;
+  /*}*/
   return ERR_OK;
 }
 

@@ -30,6 +30,9 @@
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
 #include "core/predictor/framework/resource.h"
 #include "core/predictor/framework/server.h"
+#define BLOG(fmt, ...) \
+  printf(              \
+      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -161,6 +164,7 @@ int InferService::inference(const google::protobuf::Message* request,
         return ERR_INTERNAL_FAILURE;
       }
       TRACEPRINTF("start to execute workflow[%s]", workflow->name().c_str());
+      BLOG("start to execute workflow[%s]", workflow->name().c_str());
       int errcode = _execute_workflow(workflow, request, response, debug_os);
       TRACEPRINTF("finish to execute workflow[%s]", workflow->name().c_str());
       if (errcode < 0) {
@@ -220,6 +224,7 @@ int InferService::_execute_workflow(Workflow* workflow,
 
   // call actual inference interface
   int errcode = dv->execute(debug_os);
+  BLOG("execute_workflow");
   if (errcode < 0) {
     LOG(ERROR) << "Failed execute dag for workflow:" << workflow->name();
     return errcode;
