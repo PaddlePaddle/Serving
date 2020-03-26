@@ -1,4 +1,4 @@
-＃ 如何在Paddle Serving使用Go Client
+# 如何在Paddle Serving使用Go Client
 
 (简体中文|[English](./IMDB_GO_CLIENT.md))
 
