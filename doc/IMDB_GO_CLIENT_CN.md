@@ -1,10 +1,10 @@
-＃如何在Paddle Serving使用Go Client
+＃ 如何在Paddle Serving使用Go Client
 
 (简体中文|[English](./IMDB_GO_CLIENT.md))
 
 本文档说明了如何将Go用作客户端语言。对于Paddle Serving中的Go客户端，提供了一个简单的客户端程序包https://github.com/PaddlePaddle/Serving/tree/develop/go/serving_client，用户可以根据需要引用该程序包。这是一个基于IMDB数据集的情感分析任务的简单示例。
 
-###安装
+### 安装
 
 我们假设您已经安装了Go 1.9.2或更高版本，并且安装了python 2.7版本
 
@@ -13,14 +13,14 @@ go get github.com/PaddlePaddle/Serving/go/serving_client
 go get github.com/PaddlePaddle/Serving/go/proto
 pip install paddle-serving-server
 ```
-###下载文本分类模型
+### 下载文本分类模型
 
 ```shell
 wget https://paddle-serving.bj.bcebos.com/data%2Ftext_classification%2Fimdb_serving_example.tar.gz
 tar -xzf imdb_serving_example.tar.gz
 ```
 
-###服务器端代码
+### 服务器端代码
 
 ```python
 # test_server_go.py
@@ -47,13 +47,13 @@ server.prepare_server (workdir = "work_dir1", port = 9292, device = "cpu")
 server.run_server ()
 ```
 
-###启动服务器
+### 启动服务器
 
 ```shell
 python test_server_go.py ./serving_server_model/ 9292
 ```
 
-###客户端代码示例
+### 客户端代码示例
 
 ```go
 // imdb_client.go
@@ -123,13 +123,13 @@ fmt.Println (result ["prediction"] [1], "\ t", int64 (label))
 }
 ```
 
-###基于IMDB测试集的预测
+### 基于IMDB测试集的预测
 
 ```python
 go run imdb_client.go serving_client_conf / serving_client_conf.stream.prototxt test.data> result
 ```
 
-###计算精度
+### 计算精度
 
 ```python
 // acc.go
