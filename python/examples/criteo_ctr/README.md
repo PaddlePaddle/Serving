@@ -14,7 +14,8 @@ python local_train.py
 ### 启动RPC预测服务
 
 ```
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292
+python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
+python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
 ```
 
 ### 执行预测
@@ -22,3 +23,4 @@ python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292
 ```
 python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/
 ```
+预测完毕会输出预测过程的耗时。
