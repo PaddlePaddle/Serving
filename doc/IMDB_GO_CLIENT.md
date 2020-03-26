@@ -17,7 +17,7 @@ pip install paddle-serving-server
 ### Download Text Classification Model
 
 ``` shell
-wget https://paddle-serving.bj.bcebos.com/data%2Ftext_classification%2Fimdb_serving_example.tar.gz
+wget https://paddle-serving.bj.bcebos.com/data/text_classification/imdb_serving_example.tar.gz
 tar -xzf imdb_serving_example.tar.gz
 ```
 
