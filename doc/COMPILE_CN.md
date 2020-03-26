@@ -1,6 +1,6 @@
 # 如何编译PaddleServing
 
-(简体中文|[English](./COMPILE.MD))
+(简体中文|[English](./COMPILE.md))
 
 ## 编译环境设置
 
