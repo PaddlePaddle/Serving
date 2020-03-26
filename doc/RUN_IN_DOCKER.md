@@ -61,7 +61,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
   ```
 
   Running on the Client side (inside or outside the container):
@@ -147,7 +147,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci
   ```
 
   Running on the Client side (inside or outside the container):
