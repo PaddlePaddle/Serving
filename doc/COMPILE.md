@@ -1,6 +1,8 @@
-# 如何编译PaddleServing
+# How to compile PaddleServing
 
-## 编译环境设置
+([简体中文](./COMPILE_CN.md)|English)
+
+## Compilation environment requirements
 
 - os: CentOS 6u3
 - gcc: 4.8.2及以上
@@ -9,25 +11,25 @@
 - cmake：3.2.2及以上
 - python：2.7.2及以上
 
-推荐使用Docker准备Paddle Serving编译环境：[CPU Dockerfile.devel](../tools/Dockerfile.devel)，[GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+It is recommended to use Docker to prepare the compilation environment for the Paddle service: [CPU Dockerfile.devel](../tools/Dockerfile.devel), [GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
 
-## 获取代码
+## Get Code
 
 ``` python
 git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
-## PYTHONROOT设置
+## PYTHONROOT Setting
 
 ```shell
-# 例如python的路径为/usr/bin/python，可以设置PYTHONROOT
+# for example, the path of python is /usr/bin/python, you can set /usr as PYTHONROOT
 export PYTHONROOT=/usr/
 ```
 
-## 编译Server部分
+## Compile Server
 
-### 集成CPU版本Paddle Inference Library
+### Integrated CPU version paddle inference library
 
 ``` shell
 mkdir build && cd build
@@ -35,9 +37,9 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make -j10
 ```
 
-可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
+you can execute `make install` to put targets under directory `./output`, you need to add`-DCMAKE_INSTALL_PREFIX=./output`to specify output path to cmake command shown above.
 
-### 集成GPU版本Paddle Inference Library
+### Integrated GPU version paddle inference library
 
 ``` shell
 mkdir build && cd build
@@ -45,9 +47,9 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make -j10
 ```
 
-执行`make install`可以把目标产出放在`./output`目录下。
+execute `make install` to put targets under directory `./output`
 
-## 编译Client部分
+## Compile Client
 
 ``` shell
 mkdir build && cd build
@@ -55,9 +57,9 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make -j10
 ```
 
-执行`make install`可以把目标产出放在`./output`目录下。
+execute `make install` to put targets under directory `./output`
 
-## 编译App部分
+## Compile the App
 
 ```bash
 mkdir build && cd build
@@ -65,17 +67,18 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make
 ```
 
-## 安装wheel包
+## Install wheel package
 
-无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
+Regardless of the client, server or App part, after compiling, install the whl package under `python/dist/`.
 
-## 注意事项
+## Note
 
-运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+When running the python server, it will check the `SERVING_BIN` environment variable. If you want to use your own compiled binary file, set the environment variable to the path of the corresponding binary file, usually`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`.
 
-## CMake选项说明
 
-|     编译选项     |                    说明                    | 默认 |
+## CMake Option Description
+
+| Compile Options  |                    Description             | Default |
 | :--------------: | :----------------------------------------: | :--: |
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
@@ -87,35 +90,36 @@ make
 | WITH_ELASTIC_CTR |        Compile ELASITC-CTR solution        | OFF  |
 |       PACK       |              Compile for whl               | OFF  |
 
-### WITH_GPU选项
+### WITH_GPU Option
 
-Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选项用于检测系统上CUDA/CUDNN等基础库，如检测到合适版本，在编译PaddlePaddle时就会编译出GPU版本的OP Kernel。
+Paddle Serving supports prediction on the GPU through the PaddlePaddle inference library. The WITH_GPU option is used to detect basic libraries such as CUDA/CUDNN on the system. If an appropriate version is detected, the GPU Kernel will be compiled when PaddlePaddle is compiled.
 
-在裸机上编译Paddle Serving GPU版本，需要安装这些基础库：
+To compile the Paddle Serving GPU version on bare metal, you need to install these basic libraries:
 
 - CUDA
 - CuDNN
 - NCCL2
 
-这里要注意的是：
+Note here:
 
-1. 编译Serving所在的系统上所安装的CUDA/CUDNN等基础库版本，需要兼容实际的GPU设备。例如，Tesla V100卡至少要CUDA 9.0。如果编译时所用CUDA等基础库版本过低，由于生成的GPU代码和实际硬件设备不兼容，会导致Serving进程无法启动，或出现coredump等严重问题。
-2. 运行Paddle Serving的系统上安装与实际GPU设备兼容的CUDA driver，并安装与编译期所用的CUDA/CuDNN等版本兼容的基础库。如运行Paddle Serving的系统上安装的CUDA/CuDNN的版本低于编译时所用版本，可能会导致奇怪的cuda函数调用失败等问题。
+1. The basic library versions such as CUDA/CUDNN installed on the system where Serving is compiled, needs to be compatible with the actual GPU device. For example, the Tesla V100 card requires at least CUDA 9.0. If the version of the basic library such as CUDA used during compilation is too low, the generated GPU code is not compatible with the actual hardware device, which will cause the Serving process to fail to start or serious problems such as coredump.
+2. Install the CUDA driver compatible with the actual GPU device on the system running Paddle Serving, and install the basic library compatible with the CUDA/CuDNN version used during compilation. If the version of CUDA/CuDNN installed on the system running Paddle Serving is lower than the version used at compile time, it may cause some cuda function call failures and other problems.
 
-以下是PaddlePaddle发布版本所使用的基础库版本匹配关系，供参考：
+
+The following is the base library version matching relationship used by the PaddlePaddle release version for reference:
 
 |        |  CUDA   |          CuDNN           | NCCL2  |
 | :----: | :-----: | :----------------------: | :----: |
 | CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
 | CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
 
-### 如何让Paddle Serving编译系统探测到CuDNN库
+### How to make the compiler detect the CuDNN library
 
-从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_ROOT`参数，指定CuDNN库所在路径。
+Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
 
-### 如何让Paddle Serving编译系统探测到nccl库
+### How to make the compiler detect the nccl library
 
-从NVIDIA developer官网下载对应版本nccl2库并解压后，增加如下环境变量 (以nccl2.1.4为例)：
+After downloading the corresponding version of the nccl2 library from the NVIDIA developer official website and decompressing it, add the following environment variables (take nccl2.1.4 as an example):
 
 ```shell
 export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
