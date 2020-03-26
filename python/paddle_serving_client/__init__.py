@@ -215,6 +215,9 @@ class Client(object):
             float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
             fetch_names, result_batch, self.pid)
 
+        if res == -1:
+            return None
+
         result_map_batch = []
         result_map = {}
         for i, name in enumerate(fetch_names):
