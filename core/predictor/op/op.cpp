@@ -25,6 +25,12 @@
 #include "core/predictor/common/utils.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/dag.h"
+#define BLOG(fmt, ...)           \
+  printf("[%s:%s]:%d " fmt "\n", \
+         __FILE__,               \
+         __FUNCTION__,           \
+         __LINE__,               \
+         ##__VA_ARGS__);
 
 namespace baidu {
 namespace paddle_serving {
@@ -133,6 +139,7 @@ int Op::process(bool debug) {
   }
 
   // 2. current inference
+  BLOG("Op: %s->inference()", _name.c_str());
   if (inference() != 0) {
     return ERR_OP_INFER_FAILURE;
   }

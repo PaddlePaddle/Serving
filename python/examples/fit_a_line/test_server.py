@@ -21,16 +21,20 @@ from paddle_serving_server import Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
+g1_infer_op = op_maker.create('general_infer', node_name='g1')
+g2_infer_op = op_maker.create('general_infer', node_name='g2')
 response_op = op_maker.create('general_response')
 
 op_seq_maker = OpSeqMaker()
 op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(general_infer_op)
-op_seq_maker.add_op(response_op)
+op_seq_maker.add_op(g1_infer_op, dependent_nodes=[read_op])
+op_seq_maker.add_op(g2_infer_op, dependent_nodes=[read_op])
+op_seq_maker.add_op(response_op, dependent_nodes=[g1_infer_op, g2_infer_op])
 
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.load_model_config(sys.argv[1])
+# server.load_model_config(sys.argv[1])
+model_configs = {'g1': 'uci_housing_model', 'g2': 'uci_housing_model'}
+server.load_model_config(model_configs)
 server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
 server.run_server()
