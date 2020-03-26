@@ -1,5 +1,7 @@
 # Docker编译环境准备
 
+(简体中文|[English](./DOCKER.md))
+
 ## 环境要求
 
 + 开发机上已安装Docker。
