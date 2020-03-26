@@ -1,5 +1,7 @@
 # Docker compilation environment preparation
 
+([简体中文](./DOCKER_CN.md)|English)
+
 ## Environmental requirements
 
 + Docker is installed on the development machine.
@@ -65,6 +67,6 @@ The list of supported environments is as follows:：
 
 
 
-** Remarks: **
+**Remarks:**
 + If you cannot find libcrypto.so.10 and libssl.so.10 when you execute the pre-compiled version, you can change /usr/lib64/libssl.so.10 and /usr/lib64/libcrypto.so in the Docker environment. 10 Copy to the directory where the executable is located.
 + CPU pre-compiled version can only be executed on CPU machines, GPU pre-compiled version can only be executed on GPU machines.
