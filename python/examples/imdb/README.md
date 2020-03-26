@@ -11,11 +11,11 @@ sh get_data.sh
 ### 启动RPC预测服务
 
 ```
-python -m paddle_serving_server.serve --model imdb_bow_model/ --port 9292
+python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292
 ```
 ### 执行预测
 ```
-head test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
+head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 预测test_data/part-0的前十个样例。
 

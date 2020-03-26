@@ -13,10 +13,10 @@ module = hub.Module(model_name)
 inputs, outputs, program = module.context(
     trainable=True, max_seq_len=20)
 feed_keys = ["input_ids", "position_ids", "segment_ids",
-             "input_mask", "pooled_output", "sequence_output"]
+             "input_mask"]
 fetch_keys = ["pooled_output", "sequence_output"]
 feed_dict = dict(zip(feed_keys, [inputs[x] for x in feed_keys]))
-fetch_dict = dict(zip(fetch_keys, [outputs[x]] for x in fetch_keys))
+fetch_dict = dict(zip(fetch_keys, [outputs[x] for x in fetch_keys]))
 
 import paddle_serving_client.io as serving_io
 serving_io.save_model("bert_seq20_model", "bert_seq20_client",

@@ -25,12 +25,13 @@ from paddlehub.common.logger import logger
 import socket
 from paddle_serving_client import Client
 from paddle_serving_client.utils import benchmark_args
+from paddle_serving_app import ChineseBertReader
+
 args = benchmark_args()
 
-fin = open("data-c.txt")
-reader = BertReader(vocab_file="vocab.txt", max_seq_len=128)
+reader = ChineseBertReader(max_seq_len=20)
 fetch = ["pooled_output"]
-endpoint_list = ["127.0.0.1:9494"]
+endpoint_list = ["127.0.0.1:9292"]
 client = Client()
 client.load_client_config(args.model)
 client.connect(endpoint_list)
