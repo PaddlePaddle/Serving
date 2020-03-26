@@ -1,5 +1,7 @@
 # How to use Go Client of Paddle Serving
 
+([简体中文](./IMDB_GO_CLIENT_CN.md)|English)
+
 This document shows how to use Go as your client language. For Go client in Paddle Serving, a simple client package is provided https://github.com/PaddlePaddle/Serving/tree/develop/go/serving_client, a user can import this package as needed. Here is a simple example of sentiment analysis task based on IMDB dataset.
 
 ### Install
