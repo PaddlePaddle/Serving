@@ -31,7 +31,7 @@ args = benchmark_args()
 
 reader = ChineseBertReader(max_seq_len=20)
 fetch = ["pooled_output"]
-endpoint_list = ["127.0.0.1:9494"]
+endpoint_list = ["127.0.0.1:9292"]
 client = Client()
 client.load_client_config(args.model)
 client.connect(endpoint_list)
