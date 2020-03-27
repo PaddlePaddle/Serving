@@ -77,7 +77,7 @@ class Monitor(object):
 
     def run(self):
         '''
-        Monitor the remote address model by polling and update the local model.
+        Monitor the remote model by polling and update the local model.
         '''
         self._check_params()
         if not os.path.exists(self._local_tmp_dir):
