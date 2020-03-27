@@ -126,6 +126,7 @@ class FTPMonitor(Monitor):
         self._ftp.login(username, password)
 
     def _exist_remote_donefile(self):
+        import ftplib
         try:
             donefile_path = '{}/{}'.format(self._remote_path,
                                            self._remote_donefile_name)
