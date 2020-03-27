@@ -77,7 +77,7 @@ for pass_id in range(30):
 ```shell
 .
 ├── donefile           # timestamp file 
-├── local_train.py
+├── produce_model.py
 ├── uci_housing_client
 └── uci_housing_model  # output model
 ```
