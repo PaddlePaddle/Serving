@@ -42,7 +42,7 @@ pip install paddle_serving_app
 ```
 执行
 ```
-cat data-c.txt | python bert_client.py 
+head data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt
 ```
 启动client读取data-c.txt中的数据进行预测，预测结果为文本的向量表示（由于数据较多，脚本中没有将输出进行打印），server端的地址在脚本中修改。
 
