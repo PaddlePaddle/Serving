@@ -25,6 +25,7 @@ from setuptools import setup
 from paddle_serving_client.version import serving_client_version
 from pkg_resources import DistributionNotFound, get_distribution
 
+py_version = sys.version_info[0]
         
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
@@ -37,8 +38,9 @@ def find_package(pkgname):
         return False
 
 def copy_lib():
+    lib_list = ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10'] if py_version == 2 else ['libpython3.6m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
     os.popen('mkdir -p paddle_serving_client/lib')
-    for lib in ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10']:
+    for lib in lib_list:
         r = os.popen('whereis {}'.format(lib))
         text = r.read()
         os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip().split(' ')[1]))
