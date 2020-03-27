@@ -53,6 +53,7 @@ function build_app() {
     local DIRNAME=build-app-$TYPE
     mkdir $DIRNAME # pwd: /Serving
     cd $DIRNAME # pwd: /Serving/build-app-$TYPE
+    pip install numpy sentencepiece
     case $TYPE in
         CPU|GPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
