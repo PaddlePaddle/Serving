@@ -79,13 +79,15 @@ int Endpoint::thrd_finalize() {
   return 0;
 }
 
-Predictor* Endpoint::get_predictor() {
+Predictor* Endpoint::get_predictor(std::string* variant_tag) {
   if (_variant_list.size() == 1) {
     if (_variant_list[0] == NULL) {
       LOG(ERROR) << "Not valid variant info";
       return NULL;
     }
-    return _variant_list[0]->get_predictor();
+    Variant* var = _variant_list[0];
+    *variant_tag = var->variant_tag();
+    return var->get_predictor();
   }
 
   if (_abtest_router == NULL) {
@@ -99,6 +101,7 @@ Predictor* Endpoint::get_predictor() {
     return NULL;
   }
 
+  *variant_tag = var->variant_tag();
   return var->get_predictor();
 }
 

@@ -55,7 +55,7 @@ tar -xzf uci_housing.tar.gz
   在Server端（容器内）运行：
 
   ```bash
-  python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
   ```
 
   在Client端（容器内或容器外）运行：
@@ -127,6 +127,12 @@ pip install paddle-serving-server-gpu
 
 ### 测试example
 
+GPU版本在运行Server端代码前需要设置`CUDA_VISIBLE_DEVICES`环境变量来指定预测服务使用的GPU，下面的示例为指定索引为0和1两块GPU：
+
+```bash
+ export CUDA_VISIBLE_DEVICES=0,1
+```
+
 通过下面命令获取训练好的Boston房价预估模型：
 
 ```bash
@@ -139,7 +145,7 @@ tar -xzf uci_housing.tar.gz
   在Server端（容器内）运行：
 
   ```bash
-  python -m paddle_serving_server_gpu.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci 
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci 
   ```
 
   在Client端（容器内或容器外）运行：

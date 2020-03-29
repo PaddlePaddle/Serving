@@ -33,7 +33,7 @@ class OpMaker(object):
             "general_text_response": "GeneralTextResponseOp",
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv_infer": "GeneralDistKVInferOp",
-            "general_dist_kv": "GeneralDistKVOp",
+            "general_dist_kv_quant_infer": "GeneralDistKVQuantInferOp",
             "general_copy": "GeneralCopyOp"
         }
 
@@ -164,6 +164,8 @@ class Server(object):
                     if "dist_kv" in node.name:
                         self.resource_conf.cube_config_path = workdir
                         self.resource_conf.cube_config_file = self.cube_config_fn
+                        if "quant" in node.name:
+                            self.resource_conf.cube_quant_bits = 8
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
