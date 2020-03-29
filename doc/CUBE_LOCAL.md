@@ -8,6 +8,8 @@ There are two examples on CTR under python / examples, they are criteo_ctr, crit
 
 The local mode of Cube is different from distributed Cube, which is designed to be convenient for developers to use in experiments and demos. If there is a demand for distributed sparse parameter service, please continue reading [Distributed Cube User Guide](./Distributed_Cube) after reading this document (still developing).
 
+This document uses the original model without any compression algorithm. If there is a need for a quantitative model to go online, please read the [Quantization Storage on Cube Sparse Parameter Indexing](./CUBE_QUANT.md)
+
 
 ## Example
 in directory python/example/criteo_ctr_with_cube, run

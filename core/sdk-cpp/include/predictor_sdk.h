@@ -48,24 +48,26 @@ class PredictorApi {
     return api;
   }
 
-  Predictor* fetch_predictor(std::string ep_name) {
+  Predictor* fetch_predictor(std::string ep_name, std::string* variant_tag) {
     std::map<std::string, Endpoint*>::iterator it = _endpoints.find(ep_name);
     if (it == _endpoints.end() || !it->second) {
       LOG(ERROR) << "Failed fetch predictor:"
                  << ", ep_name: " << ep_name;
       return NULL;
     }
-    return it->second->get_predictor();
+    return it->second->get_predictor(variant_tag);
   }
 
-  Predictor* fetch_predictor(std::string ep_name, const void* params) {
+  Predictor* fetch_predictor(std::string ep_name,
+                             const void* params,
+                             std::string* variant_tag) {
     std::map<std::string, Endpoint*>::iterator it = _endpoints.find(ep_name);
     if (it == _endpoints.end() || !it->second) {
       LOG(ERROR) << "Failed fetch predictor:"
                  << ", ep_name: " << ep_name;
       return NULL;
     }
-    return it->second->get_predictor(params);
+    return it->second->get_predictor(params, variant_tag);
   }
 
   int free_predictor(Predictor* predictor) {

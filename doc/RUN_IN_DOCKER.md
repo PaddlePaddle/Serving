@@ -43,6 +43,12 @@ pip install paddle-serving-server
 
 ### Test example
 
+Before running the GPU version of the Server side code, you need to set the `CUDA_VISIBLE_DEVICES` environment variable to specify which GPUs the prediction service uses. The following example specifies two GPUs with indexes 0 and 1:
+
+```bash
+export CUDA_VISIBLE_DEVICES=0,1
+```
+
 Get the trained Boston house price prediction model by the following command:
 
 ```bash
@@ -55,7 +61,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
   ```
 
   Running on the Client side (inside or outside the container):
@@ -141,7 +147,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci
   ```
 
   Running on the Client side (inside or outside the container):

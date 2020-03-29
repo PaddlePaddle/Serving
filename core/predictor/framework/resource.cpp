@@ -151,6 +151,18 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +
                                        "/" + resource_conf.cube_config_file();
     this->cube_config_fullpath = cube_config_fullpath;
+    this->cube_quant_bits = resource_conf.has_cube_quant_bits()
+                                ? resource_conf.cube_quant_bits()
+                                : 0;
+    if (this->cube_quant_bits != 0 && this->cube_quant_bits != 8) {
+      LOG(ERROR) << "Cube quant bits illegal! should be 0 or 8.";
+      return -1;
+    }
+    if (this->cube_quant_bits == 0) {
+      LOG(INFO) << "cube quant mode OFF";
+    } else {
+      LOG(INFO) << "cube quant mode ON, quant bits: " << this->cube_quant_bits;
+    }
   }
 
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
@@ -258,38 +270,6 @@ int Resource::general_model_initialize(const std::string& path,
   return 0;
 }
 
-int Resource::cube_initialize(const std::string& path,
-                              const std::string& file) {
-  // cube
-  if (!FLAGS_enable_cube) {
-    return 0;
-  }
-
-  ResourceConf resource_conf;
-  if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
-    LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
-    return -1;
-  }
-
-  int err = 0;
-  std::string cube_config_file = resource_conf.cube_config_file();
-  if (err != 0) {
-    LOG(ERROR) << "reade cube_config_file failed, path[" << path << "], file["
-               << cube_config_file << "]";
-    return -1;
-  }
-  err = CubeAPI::instance()->init(cube_config_file.c_str());
-  if (err != 0) {
-    LOG(ERROR) << "failed initialize cube, config: " << cube_config_file
-               << " error code : " << err;
-    return -1;
-  }
-
-  LOG(INFO) << "Successfully initialize cube";
-
-  return 0;
-}
-
 int Resource::thread_initialize() {
   // mempool
   if (MempoolWrapper::instance().thread_initialize() != 0) {
@@ -373,6 +353,7 @@ int Resource::thread_clear() {
   // ...
   return 0;
 }
+size_t Resource::get_cube_quant_bits() { return this->cube_quant_bits; }
 
 int Resource::reload() {
   if (FLAGS_enable_model_toolkit && InferManager::instance().reload() != 0) {
