@@ -1,5 +1,7 @@
 # 如何开发一个新的General Op?
 
+(简体中文|[English](./NEW_OPERATOR.md))
+
 在本文档中，我们主要集中于如何为Paddle Serving开发新的服务器端运算符。 在开始编写新运算符之前，让我们看一些示例代码以获得为服务器编写新运算符的基本思想。 我们假设您已经知道Paddle Serving服务器端的基本计算逻辑。 下面的代码您可以在 Serving代码库下的 `core/general-server/op` 目录查阅。
 
 

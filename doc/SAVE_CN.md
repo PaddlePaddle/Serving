@@ -1,5 +1,7 @@
 ## 怎样保存用于Paddle Serving的模型？
 
+(简体中文|[English](./SAVE.md))
+
 - 目前，Paddle服务提供了一个save_model接口供用户访问，该接口与Paddle的`save_inference_model`类似。
 
 ``` python

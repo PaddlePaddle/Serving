@@ -1,4 +1,7 @@
 ## How to save a servable model of Paddle Serving?
+
+([简体中文](./SAVE_CN.md)|English)
+
 - Currently, paddle serving provides a save_model interface for users to access, the interface is similar with `save_inference_model` of Paddle.
 ``` python
 import paddle_serving_client.io as serving_io
