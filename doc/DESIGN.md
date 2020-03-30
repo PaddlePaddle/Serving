@@ -24,7 +24,7 @@ The result is a complete serving solution.
 - Node: An Op operator instance composed of an Op operator class combined with parameter configuration, which is also an execution unit in Workflow
 - Workflow: executes the inference interface of each OP in order according to the topology described by DAG
 - DAG/Workflow: consists of several interdependent Nodes. Each Node can obtain the Request object through a specific interface. The node Op obtains the output object of its pre-op through the dependency relationship. The output of the last Node is the Response object by default.
-- Service: encapsulates a pv request, can configure several Workflows, reuse the current PV's Request object with each other, and then execute each in parallel / serial execution, and finally write the Response to the corresponding output slot; a Paddle-serving process Multiple sets of Service interfaces can be configured. The upstream determines the Service interface currently accessed based on the ServiceName.
+- Service: encapsulates a pv request, can configure several Workflows, reuse the current PV's Request object with each other, and then execute each in parallel/serial execution, and finally write the Response to the corresponding output slot; a Paddle-serving process Multiple sets of Service interfaces can be configured. The upstream determines the Service interface currently accessed based on the ServiceName.
 
 ## 3. Python Interface Design
 
@@ -104,7 +104,7 @@ With reference to the abstract idea of model calculation of the TensorFlow frame
 
 ![Infer Service](predict-service.png)
 
-Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](CREATING.md) (simplified Chinese Version)
+Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](./deprecated/CREATING.md) (simplified Chinese Version)
 
 Server instance perspective
 
@@ -115,7 +115,7 @@ Server instance perspective
 
 ![Paddle Serving multi-service](multi-service.png)
 
-Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
+Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
 
 #### 4.2.3 Hierarchical relationship of business scheduling
 
