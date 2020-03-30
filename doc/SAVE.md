@@ -6,11 +6,9 @@ serving_io.save_model("imdb_model", "imdb_client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
-`imdb_model`是具有服务配置的服务器端模型。 `imdb_client_conf`是客户端rpc配置。 Serving有一个
-提供给用户存放`Feed`和`Fetch`变量信息的字典。 在示例中，`{{words”：data}`是用于指定已保存推理模型输入的提要字典。 `{{"prediction"：projection}`是指定保存的推理模型输出的字典。可以为feed和fetch变量定义一个别名。 如何使用别名的例子
-示例如下：
-
-
+`imdb_model` is the server side model with serving configurations. `imdb_client_conf` is the client rpc configurations. Serving has a 
+dictionary for `Feed` and `Fetch` variables for client to assign. In the example, `{"words": data}` is the feed dict that specify the input of saved inference model. `{"prediction": prediction}` is the fetch dic that specify the output of saved inference model. An alias name can be defined for feed and fetch variables. An example of how to use alias name
+ is as follows:
  ``` python
  from paddle_serving_client import Client
 import sys
