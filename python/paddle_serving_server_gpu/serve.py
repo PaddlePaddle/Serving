@@ -71,7 +71,7 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
     else:
         gpus = args.gpu_ids.split(",")
     if len(gpus) <= 0:
-        start_gpu_card_model(-1, args)
+        start_gpu_card_model(-1, 0, args)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
