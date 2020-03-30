@@ -160,14 +160,6 @@ class HDFSMonitor(Monitor):
         if os.system(cmd) != 0:
             raise Exception('pull remote dir failed.')
 
-    def _update_local_model(self, local_tmp_path, remote_model_name, local_path,
-                            local_model_name):
-        tmp_model_path = os.path.join(local_tmp_path, remote_model_name)
-        local_model_path = os.path.join(local_path, local_model_name)
-        cmd = 'cp -r {}/* {}'.format(tmp_model_path, local_model_path)
-        if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
-
 
 class FTPMonitor(Monitor):
     ''' FTP Monitor. '''
