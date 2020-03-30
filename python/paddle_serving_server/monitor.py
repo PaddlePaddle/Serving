@@ -235,7 +235,7 @@ def parse_args():
     parser.add_argument("--ftp_ip", type=str, help="Ip the ftp")
     parser.add_argument("--ftp_port", type=int, help="Port the ftp")
     parser.add_argument(
-        "--hdfs_bin", type=str, default='hdfs', help="Hdfs binary file")
+        "--hdfs_bin", type=str, default='hdfs', help="Hdfs binary file path")
     return parser.parse_args()
 
 
