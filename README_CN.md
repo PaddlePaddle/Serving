@@ -1,10 +1,20 @@
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "127">
-
-[![Build Status](https://img.shields.io/travis/com/PaddlePaddle/Serving/develop)](https://travis-ci.com/PaddlePaddle/Serving)
-[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
-[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
-[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
-[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
+    <br>
+<p>
+    
+<p align="center">
+    <br>
+    <a href="https://travis-ci.com/PaddlePaddle/Serving">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
+    </a>
+    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
+    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
+    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
+    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
+    <br>
+<p>
 
 <h2 align="center">动机</h2>
 Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
