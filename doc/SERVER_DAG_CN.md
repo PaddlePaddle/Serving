@@ -1,5 +1,7 @@
 # Server端的计算图
 
+(简体中文|[English](./SERVER_DAG.md))
+
 本文档显示了Server端上计算图的概念。 如何使用PaddleServing内置运算符定义计算图。 还显示了一些顺序执行逻辑的示例。
 
 ## Server端的计算图
