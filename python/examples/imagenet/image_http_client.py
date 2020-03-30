@@ -39,7 +39,6 @@ def batch_predict(image_path, server):
 
 if __name__ == "__main__":
     server = "http://127.0.0.1:9393/image/prediction"
-    #image_path = "./data/n01440764_10026.JPEG"
     image_list = os.listdir("./image_data/n01440764/")
     start = time.time()
     for img in image_list:
