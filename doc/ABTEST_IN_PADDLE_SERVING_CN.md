@@ -1,5 +1,7 @@
 # 如何使用Paddle Serving做ABTEST
 
+(简体中文|[English](./ABTEST_IN_PADDLE_SERVING.md))
+
 该文档将会用一个基于IMDB数据集的文本分类任务的例子，介绍如何使用Paddle Serving搭建A/B Test框架，例中的Client端、Server端结构如下图所示。
 
 <img src="abtest.png" style="zoom:33%;" />
