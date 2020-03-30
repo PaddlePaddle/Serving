@@ -10,7 +10,7 @@ serving_io.save_model("imdb_model", "imdb_client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
-imdb_model是具有服务配置的服务器端模型。 imdb_client_conf是客户端rpc配置。 Serving有一个 提供给用户存放Feed和Fetch变量信息的字典。 在示例中，{{words”：data}是用于指定已保存推理模型输入的提要字典。 {{"prediction"：projection}是指定保存的推理模型输出的字典。可以为feed和fetch变量定义一个别名。 如何使用别名的例子 示例如下：
+imdb_model是具有服务配置的服务器端模型。 imdb_client_conf是客户端rpc配置。 Serving有一个 提供给用户存放Feed和Fetch变量信息的字典。 在示例中，`{{words”：data}` 是用于指定已保存推理模型输入的提要字典。`{{"prediction"：projection}`是指定保存的推理模型输出的字典。可以为feed和fetch变量定义一个别名。 如何使用别名的例子 示例如下：
 
  ``` python
  from paddle_serving_client import Client
