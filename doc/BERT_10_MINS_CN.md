@@ -83,4 +83,3 @@ cat data.txt | python bert_client.py
 我们基于V100对基于Padde Serving研发的Bert-As-Service的性能进行测试并与基于Tensorflow实现的Bert-As-Service进行对比，从用户配置的角度，采用相同的batch size和并发数进行压力测试，得到4块V100下的整体吞吐性能数据如下。
 
 ![4v100_bert_as_service_benchmark](4v100_bert_as_service_benchmark.png)
-
