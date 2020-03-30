@@ -12,7 +12,7 @@ Paddle Serving当前的develop版本支持轻量级Python API进行快速预测�
 
 #### 安装
 
-强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)
 
 ```
 pip install paddle-serving-client
@@ -113,7 +113,7 @@ for data in test_reader():
 
 ### 资深开发者使用指南
 
-[编译指南](doc/COMPILE_CN.md)
+[编译指南](COMPILE_CN.md)
 
 ## 贡献
 如果你想要给Paddle Serving做贡献，请参考[贡献指南](CONTRIBUTE.md)
