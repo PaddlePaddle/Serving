@@ -38,7 +38,7 @@ op_seq_maker.add_op(general_response_op)
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-## More Examples
+## 更多示例
 
 如果用户将稀疏特征作为输入，并且模型将对每个特征进行嵌入查找，则我们可以进行分布式嵌入查找操作，该操作不在Paddle训练计算图中。 示例如下：
 
