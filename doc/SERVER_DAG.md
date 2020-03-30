@@ -1,6 +1,6 @@
 # Computation Graph On Server
 
-([简体中文]|(./SERVER_DAG_CN.md)|English)
+([简体中文](./SERVER_DAG_CN.md)|English)
 
 This document shows the concept of computation graph on server. How to define computation graph with PaddleServing built-in operators. Examples for some sequential execution logics are shown as well.
 
