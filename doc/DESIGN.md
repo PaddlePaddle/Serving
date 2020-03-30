@@ -121,12 +121,12 @@ Paddle Serving instances can load multiple models at the same time, and each mod
 
 From the client's perspective, a Paddle Serving service can be divided into three levels: Service, Endpoint, and Variant from top to bottom.
 
-! [Call hierarchy relationship](multi-variants.png)
+![Call hierarchy relationship](multi-variants.png)
 
 One Service corresponds to one inference model, and there is one endpoint under the model. Different versions of the model are implemented through multiple variant concepts under endpoint:
 The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) section 3.2).
 
-! [Client-side proxy function](client-side-proxy.png)
+![Client-side proxy function](client-side-proxy.png)
 
 ## 5. User Interface
 
