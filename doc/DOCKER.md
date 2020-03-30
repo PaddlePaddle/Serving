@@ -9,9 +9,9 @@
 
 ## Dockerfile
 
-[CPU Version Dockerfile](../Dockerfile)
+[CPU Version Dockerfile](../tools/Dockerfile)
 
-[GPU Version Dockerfile](../Dockerfile.gpu)
+[GPU Version Dockerfile](../tools/Dockerfile.gpu)
 
 ## Instructions
 
