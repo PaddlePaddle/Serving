@@ -18,19 +18,19 @@
 
 <h2 align="center">Motivation</h2>
 
-We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you can put the model online without much effort. A demo of serving is as follows:
+We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you are also capable to deploy the model online easily. A demo of serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
 <h2 align="center">Some Key Features</h2>
 
-- Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
 - **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported that is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python
-- **Extensible framework design** that can support model serving beyond Paddle.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
+- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Installation</h2>
 
