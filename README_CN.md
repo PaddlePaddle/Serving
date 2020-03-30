@@ -7,7 +7,7 @@
 [![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
 
 ## 动机
-Paddle Serving 帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 只要你使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，你就同时拥有了该模型的预测服务。
+Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
@@ -31,11 +31,15 @@ pip install paddle-serving-server
 
 ## 快速启动示例
 
+### 波士顿房价预测
+
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
+
+Paddle Serving provides HTTP and RPC based service for users to access
+Paddle Serving 提供了 HTTP 和 RPC 的
 
 Python客户端请求
 
