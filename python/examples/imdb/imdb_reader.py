@@ -19,15 +19,23 @@ import paddle
 import re
 import paddle.fluid.incubate.data_generator as dg
 
+py_version = sys.version_info[0]
+
 
 class IMDBDataset(dg.MultiSlotDataGenerator):
     def load_resource(self, dictfile):
         self._vocab = {}
         wid = 0
-        with open(dictfile) as f:
-            for line in f:
-                self._vocab[line.strip()] = wid
-                wid += 1
+        if py_version == 2:
+            with open(dictfile) as f:
+                for line in f:
+                    self._vocab[line.strip()] = wid
+                    wid += 1
+        else:
+            with open(dictfile, encoding="utf-8") as f:
+                for line in f:
+                    self._vocab[line.strip()] = wid
+                    wid += 1
         self._unk_id = len(self._vocab)
         self._pattern = re.compile(r'(;|,|\.|\?|!|\s|\(|\))')
         self.return_value = ("words", [1, 2, 3, 4, 5, 6]), ("label", [0])
