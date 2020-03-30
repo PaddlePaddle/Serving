@@ -48,6 +48,30 @@ function rerun() {
     exit 1
 }
 
+function build_app() {
+    local TYPE=$1
+    local DIRNAME=build-app-$TYPE
+    mkdir $DIRNAME # pwd: /Serving
+    cd $DIRNAME # pwd: /Serving/build-app-$TYPE
+    pip install numpy sentencepiece
+    case $TYPE in
+        CPU|GPU)
+            cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+                  -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+                  -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+                  -DAPP=ON ..
+            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            pip install -U python/dist/paddle_serving_app* >/dev/null
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "build app $TYPE part finished as expected."
+    cd .. # pwd: /Serving
+}
+
 function build_client() {
     local TYPE=$1
     local DIRNAME=build-client-$TYPE
@@ -230,6 +254,7 @@ function main() {
     init # pwd: /Serving
     build_client $TYPE # pwd: /Serving
     build_server $TYPE # pwd: /Serving
+    build_app $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
