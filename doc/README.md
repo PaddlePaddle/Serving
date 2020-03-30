@@ -105,13 +105,13 @@ for data in test_reader():
 
 ### Document
 
-[Design Doc](doc/DESIGN.md)
+[Design Doc](DESIGN.md)
 
-[FAQ](doc/FAQ.md)
+[FAQ](FAQ.md)
 
 ### Senior Developer Guildlines
 
-[Compile Tutorial](doc/INSTALL.md)
+[Compile Tutorial](INSTALL.md)
 
 ## Contribution
-If you want to make contributions to Paddle Serving Please refer to [CONRTIBUTE](doc/CONTRIBUTE.md)
+If you want to make contributions to Paddle Serving Please refer to [CONRTIBUTE](CONTRIBUTE.md)
