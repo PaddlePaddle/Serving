@@ -1,5 +1,7 @@
 # How to write an general operator?
 
+([简体中文](./NEW_OPERATOR_CN.md)|English)
+
 In this document, we mainly focus on how to develop a new server side operator for PaddleServing. Before we start to write a new operator, let's look at some sample code to get the basic idea of writing a new operator for server. We assume you have known the basic computation logic on server side of PaddleServing, please reference to []() if you do not know much about it. The following code can be visited at `core/general-server/op` of Serving repo.
 
 ``` c++
