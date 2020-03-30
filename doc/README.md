@@ -1,25 +1,25 @@
 # Paddle Serving
 
-(简体中文|[English](./README.md))
+([简体中文](./README_CN.md)|English)
 
-Paddle Serving是PaddlePaddle的在线预估服务框架，能够帮助开发者轻松实现从移动端、服务器端调用深度学习模型的远程预测服务。当前Paddle Serving以支持PaddlePaddle训练的模型为主，可以与Paddle训练框架联合使用，快速部署预估服务。Paddle Serving围绕常见的工业级深度学习模型部署场景进行设计，一些常见的功能包括多模型管理、模型热加载、基于[Baidu-rpc](https://github.com/apache/incubator-brpc)的高并发低延迟响应能力、在线模型A/B实验等。与Paddle训练框架互相配合的API可以使用户在训练与远程部署之间无缝过度，提升深度学习模型的落地效率。
+Paddle Serving is PaddlePaddle's online estimation service framework, which can help developers easily implement remote prediction services that call deep learning models from mobile and server ends. At present, Paddle Serving is mainly based on models that support PaddlePaddle training. It can be used in conjunction with the Paddle training framework to quickly deploy inference services. Paddle Serving is designed around common industrial-level deep learning model deployment scenarios. Some common functions include multi-model management, model hot loading, [Baidu-rpc](https://github.com/apache/incubator-brpc)-based high-concurrency low-latency response capabilities, and online model A/B tests. The API that cooperates with the Paddle training framework can enable users to seamlessly transition between training and remote deployment, improving the landing efficiency of deep learning models.
 
 ------------
 
-## 快速上手指南
+## Quick Start
 
-Paddle Serving当前的develop版本支持轻量级Python API进行快速预测，并且与Paddle的训练可以打通。我们以最经典的波士顿房价预测为示例，完整说明在单机进行模型训练以及使用Paddle Serving进行模型部署的过程。
+Paddle Serving's current develop version supports lightweight Python API for fast predictions, and training with Paddle can get through. We take the most classic Boston house price prediction as an example to fully explain the process of model training on a single machine and model deployment using Paddle Serving.
 
-#### 安装
+#### Install
 
-强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)
+It is highly recommended that you build Paddle Serving inside Docker, please read [How to run PaddleServing in Docker](RUN_IN_DOCKER.md)
 
 ```
 pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-#### 训练脚本
+#### Training Script
 ``` python
 import sys
 import paddle
@@ -59,7 +59,7 @@ serving_io.save_model(
     {"x": x}, {"y": y_predict}, fluid.default_main_program())
 ```
 
-#### 服务器端代码
+#### Server Side Code
 ``` python
 import sys
 from paddle_serving.serving_server import OpMaker
@@ -81,12 +81,12 @@ server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
 server.run_server()
 ```
 
-#### 服务器端启动
+#### Launch Server End
 ``` shell
 python test_server.py serving_server_model
 ```
 
-#### 客户端预测
+#### Client Prediction
 ``` python
 from paddle_serving_client import Client
 import paddle
@@ -105,15 +105,15 @@ for data in test_reader():
 
 ```
 
-### 文档
+### Document
 
-[设计文档](DESIGN_CN.md)
+[Design Doc](DESIGN.md)
 
 [FAQ](FAQ.md)
 
-### 资深开发者使用指南
+### Senior Developer Guildlines
 
-[编译指南](COMPILE_CN.md)
+[Compile Tutorial](COMPILE.md)
 
-## 贡献
-如果你想要给Paddle Serving做贡献，请参考[贡献指南](CONTRIBUTE.md)
+## Contribution
+If you want to make contributions to Paddle Serving Please refer to [CONRTIBUTE](CONTRIBUTE.md)
