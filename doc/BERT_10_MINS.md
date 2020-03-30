@@ -82,4 +82,3 @@ read samples from data.txt, print results at the standard output.
 We tested the performance of Bert-As-Service based on Padde Serving based on V100 and compared it with the Bert-As-Service based on Tensorflow. From the perspective of user configuration, we used the same batch size and concurrent number for stress testing. The overall throughput performance data obtained under 4 V100s is as follows.
 
 ![4v100_bert_as_service_benchmark](4v100_bert_as_service_benchmark.png)
-
