@@ -119,7 +119,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 ```
 - **Request result**: 
 ``` shell
-{"word_seg":"我|爱|北京|天安门"}
+{"word_seg":"我|爱|北京|天安门" or {"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"} if Chinese Dataset is not installed}
 ```
 
 <h3 align="center">Image Classification</h4>
