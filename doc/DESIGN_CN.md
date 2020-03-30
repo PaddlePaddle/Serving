@@ -21,9 +21,9 @@ PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学�
 - **Channel**: 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
 - **Bus**: 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
 - **Stage**: Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
-- **Node**: 由某个Op算子类结合参数配置组成的OP算子实例，也是Workflow中的一个执行单元
+- **Node**: 由某个OP算子类结合参数配置组成的OP算子实例，也是Workflow中的一个执行单元
 - **Workflow**: 按照DAG描述的拓扑，有序执行每个OP的inference接口
-- **DAG/Workflow**: 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点OP通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象
+- **DAG/Workflow**: 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点OP通过依赖关系获得其前置OP的输出对象，最后一个Node的输出默认就是Response对象
 - **Service**: 对一次PV的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
 
 ## 3. Python Interface设计
