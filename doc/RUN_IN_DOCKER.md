@@ -1,5 +1,7 @@
 # How to run PaddleServing in Docker
 
+([简体中文](./RUN_IN_DOCKER_CN.md)|English)
+
 ## Requirements
 
 Docker (GPU version requires nvidia-docker to be installed on the GPU machine)
