@@ -159,7 +159,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci --gpu_ids 0
   ```
 
   Running on the Client side (inside or outside the container):
@@ -173,7 +173,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0
   ```
 
   Running following Python code on the Client side (inside or outside the container, The `paddle-serving-client` package needs to be installed):
