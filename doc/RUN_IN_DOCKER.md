@@ -135,6 +135,18 @@ pip install paddle-serving-server-gpu
 
 ### Test example
 
+When running the GPU Server, you need to set the GPUs used by the prediction service. By default, the GPU with index 0 is used. You can configure it in two ways:
+
+1. Using the `CUDA_VISIBLE_DEVICES` environment variable, the following example specifies two GPUs with an index of 0 and 1:
+
+   ```shell
+    export CUDA_VISIBLE_DEVICES=0,1
+   ```
+
+2. Using the `--gpu_ids` option, which will overrides the configuration of `CUDA_VISIBLE_DEVICES`.
+
+
+
 Get the trained Boston house price prediction model by the following command:
 
 ```bash
