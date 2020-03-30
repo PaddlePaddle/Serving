@@ -12,7 +12,7 @@ Paddle Serving's current develop version supports lightweight Python API for fas
 
 #### Install
 
-It is highly recommended that you build Paddle Serving inside Docker, please read [How to run PaddleServing in Docker](doc/RUN_IN_DOCKER.md)
+It is highly recommended that you build Paddle Serving inside Docker, please read [How to run PaddleServing in Docker](RUN_IN_DOCKER.md)
 
 ```
 pip install paddle-serving-client
@@ -113,7 +113,7 @@ for data in test_reader():
 
 ### Senior Developer Guildlines
 
-[Compile Tutorial](INSTALL.md)
+[Compile Tutorial](COMPILE.md)
 
 ## Contribution
 If you want to make contributions to Paddle Serving Please refer to [CONRTIBUTE](CONTRIBUTE.md)
