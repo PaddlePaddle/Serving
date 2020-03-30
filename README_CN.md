@@ -17,12 +17,15 @@
 <p>
 
 <h2 align="center">动机</h2>
+
 Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
+
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
 <h2 align="center">核心功能</h2>
+
 - 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
 - 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
 - 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
