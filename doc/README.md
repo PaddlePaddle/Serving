@@ -109,7 +109,7 @@ for data in test_reader():
 
 [Design Doc](DESIGN.md)
 
-[FAQ](FAQ.md)
+[FAQ](./deprecated/FAQ.md)
 
 ### Senior Developer Guildlines
 
