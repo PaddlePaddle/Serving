@@ -6,13 +6,13 @@
 [![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
 [![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
 
-## 动机
+<h2 align="center">动机</h2>
 Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
-## 核心功能
+<h2 align="center">核心功能</h2>
 - 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
 - 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
 - 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
@@ -20,7 +20,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 - 支持 **多种编程语言** 开发客户端，例如Golang，C++和Python.
 - **可伸缩框架设计** 可支持不限于Paddle的模型服务.
 
-## 安装
+<h2 align="center">安装</h2>
 
 强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
@@ -29,9 +29,9 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-## 快速启动示例
+<h2 align="center">快速启动示例</h2>
 
-### 波士顿房价预测
+<h3 align="center">波士顿房价预测</h3>
 
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
@@ -41,7 +41,7 @@ tar -xzf uci_housing.tar.gz
 Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
 
 
-### HTTP服务
+<h3 align="center">HTTP服务</h3>
 
 Paddle Serving提供了一个名为`paddle_serving_server.serve`的内置python模块，可以使用单行命令启动RPC服务或HTTP服务。如果我们指定参数`--name uci`，则意味着我们将拥有一个HTTP服务，其URL为$IP:$PORT/uci/prediction`。
 
@@ -64,9 +64,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
 
-### RPC service
+<h3 align="center">RPC服务</h3>
 
-用户还可以使用`paddle_serving_server.serve`启动rpc服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
+用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
