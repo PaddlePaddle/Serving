@@ -107,13 +107,13 @@ for data in test_reader():
 
 ### 文档
 
-[设计文档](doc/DESIGN.md)
+[设计文档](DESIGN.md)
 
-[FAQ](doc/FAQ.md)
+[FAQ](FAQ.md)
 
 ### 资深开发者使用指南
 
 [编译指南](doc/INSTALL.md)
 
 ## 贡献
-如果你想要给Paddle Serving做贡献，请参考[贡献指南](doc/CONTRIBUTE.md)
+如果你想要给Paddle Serving做贡献，请参考[贡献指南](CONTRIBUTE.md)
