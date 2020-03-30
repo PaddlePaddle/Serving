@@ -1,5 +1,7 @@
 # How to run PaddleServing in Docker
 
+([简体中文](./RUN_IN_DOCKER_CN.md)|English)
+
 ## Requirements
 
 Docker (GPU version requires nvidia-docker to be installed on the GPU machine)
@@ -135,7 +137,7 @@ pip install paddle-serving-server-gpu
 
 ### Test example
 
-When running the GPU Server, you need to set the GPUs used by the prediction service. By default, the GPU with index 0 is used. You can configure it in two ways:
+When running the GPU Server, you need to set the GPUs used by the prediction service. By default, CPU version is used. You can configure it in two ways:
 
 1. Using the `CUDA_VISIBLE_DEVICES` environment variable, the following example specifies two GPUs with an index of 0 and 1:
 
