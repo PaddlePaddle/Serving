@@ -115,7 +115,7 @@ class FluidFamilyCore {
 
 ![Paddle Serving的多服务机制](multi-service.png)
 
-Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
+Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../tools/cpp_examples/demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
 #### 4.2.3 业务调度层级关系
 
@@ -124,7 +124,7 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 ![调用层级关系](multi-variants.png)
 
 一个Service对应一个预测模型，模型下有1个endpoint。模型的不同版本，通过endpoint下多个variant概念实现：
-同一个模型预测服务，可以配置多个variant，每个variant有自己的下游IP列表。客户端代码可以对各个variant配置相对权重，以达到调节流量比例的关系（参考[客户端配置](CLIENT_CONFIGURE.md)第3.2节中关于variant_weight_list的说明）。
+同一个模型预测服务，可以配置多个variant，每个variant有自己的下游IP列表。客户端代码可以对各个variant配置相对权重，以达到调节流量比例的关系（参考[客户端配置](./deprecated/CLIENT_CONFIGURE.md)第3.2节中关于variant_weight_list的说明）。
 
 ![Client端proxy功能](client-side-proxy.png)
 
@@ -141,7 +141,7 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 
 ### 5.1 数据压缩方法
 
-Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
+Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](./deprecated/CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
 
 ### 5.2 C++ SDK API接口
 
