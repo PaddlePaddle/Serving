@@ -1,5 +1,7 @@
 # Paddle Serving
 
+([简体中文](./README_CN.md)|English)
+
 Paddle Serving is PaddlePaddle's online estimation service framework, which can help developers easily implement remote prediction services that call deep learning models from mobile and server ends. At present, Paddle Serving is mainly based on models that support PaddlePaddle training. It can be used in conjunction with the Paddle training framework to quickly deploy inference services. Paddle Serving is designed around common industrial-level deep learning model deployment scenarios. Some common functions include multi-model management, model hot loading, [Baidu-rpc](https://github.com/apache/incubator-brpc)-based high-concurrency low-latency response capabilities, and online model A/B tests. The API that cooperates with the Paddle training framework can enable users to seamlessly transition between training and remote deployment, improving the landing efficiency of deep learning models.
 
 ------------
