@@ -181,3 +181,7 @@ tar -xzf uci_housing.tar.gz
   fetch_map = client.predict(feed={"x": data}, fetch=["price"])
   print(fetch_map)
   ```
+
+## 注意事项
+
+该文档提供的镜像均为运行镜像，不支持开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。

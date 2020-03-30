@@ -190,4 +190,9 @@ tar -xzf uci_housing.tar.gz
   print(fetch_map)
   ```
 
-  
+
+
+
+## Attention
+
+The images provided by this document are all running images, which do not support compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
