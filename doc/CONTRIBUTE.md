@@ -1,4 +1,4 @@
-# Contribute Code
+Contribute Code
 
 You are welcome to contribute to project Paddle Serving.
 
