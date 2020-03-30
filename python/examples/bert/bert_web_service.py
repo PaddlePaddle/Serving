@@ -32,8 +32,7 @@ bert_service = BertService(name="bert")
 bert_service.load()
 bert_service.load_model_config(sys.argv[1])
 gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
-gpus = [int(x) for x in gpu_ids.split(",")]
-bert_service.set_gpus(gpus)
+bert_service.set_gpus(gpu_ids)
 bert_service.prepare_server(
     workdir="workdir", port=int(sys.argv[2]), device="gpu")
 bert_service.run_server()
