@@ -17,23 +17,20 @@ import base64
 import json
 import time
 import os
+import sys
+
+py_version = sys.version_info[0]
 
 
 def predict(image_path, server):
-    image = base64.b64encode(open(image_path).read())
+    if py_version == 2:
+        image = base64.b64encode(open(image_path).read())
+    else:
+        image = base64.b64encode(open(image_path, "rb").read()).decode("utf-8")
     req = json.dumps({"image": image, "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
     print(r.json()["score"][0])
-    return r
-
-
-def batch_predict(image_path, server):
-    image = base64.b64encode(open(image_path).read())
-    req = json.dumps({"image": [image, image], "fetch": ["score"]})
-    r = requests.post(
-        server, data=req, headers={"Content-Type": "application/json"})
-    print(r.json()["result"][1]["score"][0])
     return r
 
 
