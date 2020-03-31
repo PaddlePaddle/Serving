@@ -1,4 +1,3 @@
-
 #   Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +16,10 @@ import os
 import re
 import sys
 
+
 def ReadMarkDown(file):
     folder = 'test'
-    os.system('rm -rf '+ folder + ' && mkdir -p ' + folder)
+    os.system('rm -rf ' + folder + ' && mkdir -p ' + folder)
     with open(file, 'r') as f:
         lines = f.readlines()
     for i, line in enumerate(lines):
@@ -31,9 +31,11 @@ def ReadMarkDown(file):
             GetTestFile(lines, i, os.path.join(folder, filename))
 
 
-def GetCodeFile(lines, i , filename):
-    if '```' not in lines[i+1]:
-        raise ValueError('Syntax Error, code block should be tightly followed by "[//file]:#" ')
+def GetCodeFile(lines, i, filename):
+    if '```' not in lines[i + 1]:
+        raise ValueError(
+            'Syntax Error, code block should be tightly followed by "[//file]:#" '
+        )
     i += 2
     code = ''
     while True:
@@ -43,7 +45,8 @@ def GetCodeFile(lines, i , filename):
         i += 1
     with open(filename, 'w+') as f:
         f.write(code)
-        
+
+
 def GetTestFile(lines, i, filename):
     i += 1
     code = ''
@@ -53,12 +56,14 @@ def GetTestFile(lines, i, filename):
         code += lines[i]
         i += 1
     with open(filename, 'w+') as f:
-        f.write(code) 
+        f.write(code)
+
 
 def RunTest():
     folder = 'test'
     os.system('cd ' + folder + ' && sh start.sh')
-    os.system('cd .. && rm -rf ' + folder)     
+    os.system('cd .. && rm -rf ' + folder)
+
 
 if __name__ == '__main__':
     ReadMarkDown(os.path.join(sys.argv[1], sys.argv[2]))
