@@ -4,7 +4,7 @@
 
 ## 1. 项目背景
 
-PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle Serving设计方案。
+PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle Serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle Serving设计方案。
 
 1. 模型是Paddle Serving预测的核心，包括模型数据和推理计算的管理；
 2. 预测框架封装模型推理计算，对外提供RPC接口，对接不同上游；
@@ -14,23 +14,23 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 
 ## 2. 名词解释
 
-- baidu-rpc 百度官方开源RPC框架，支持多种常见通信协议，提供基于protobuf的自定义接口体验
-- Variant Paddle Serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
-- Endpoint 多个Variant组成一个Endpoint，逻辑上看，Endpoint代表一个model，Endpoint内部的Variant代表不同的版本
-- OP PaddlePaddle用来封装一种数值计算的算子，Paddle Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
-- Channel 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
-- Bus 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
-- Stage Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
-- Node 由某个Op算子类结合参数配置组成的Op算子实例，也是Workflow中的一个执行单元
-- Workflow 按照DAG描述的拓扑，有序执行每个OP的inference接口
-- DAG/Workflow 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点Op通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象
-- Service 对一次pv的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
+- **baidu-rpc**: 百度官方开源RPC框架，支持多种常见通信协议，提供基于protobuf的自定义接口体验
+- **Variant**: Paddle Serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
+- **Endpoint**: 多个Variant组成一个Endpoint，逻辑上看，Endpoint代表一个model，Endpoint内部的Variant代表不同的版本
+- **OP**: PaddlePaddle用来封装一种数值计算的算子，Paddle Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
+- **Channel**: 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
+- **Bus**: 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
+- **Stage**: Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
+- **Node**: 由某个OP算子类结合参数配置组成的OP算子实例，也是Workflow中的一个执行单元
+- **Workflow**: 按照DAG描述的拓扑，有序执行每个OP的inference接口
+- **DAG/Workflow**: 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点OP通过依赖关系获得其前置OP的输出对象，最后一个Node的输出默认就是Response对象
+- **Service**: 对一次PV的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
 
 ## 3. Python Interface设计
 
 ### 3.1 核心目标：
 
-一套Paddle Serving的动态库，支持Paddle保存的通用模型的远程预估服务，通过Python Interface调用PaddleServing底层的各种功能。
+完成一整套Paddle Serving的动态库，支持Paddle保存的通用模型的远程预估服务，通过Python Interface调用PaddleServing底层的各种功能。
 
 ### 3.2 通用模型：
 
@@ -38,10 +38,10 @@ PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学�
 
 ### 3.3 整体设计：
 
-用户通过Python Client启动Client和Server，Python API有检查互联和待访问模型是否匹配的功能
-Python API背后调用的是Paddle Serving实现的client和server对应功能的pybind，互传的信息通过RPC实现
-Client Python API当前有两个简单的功能，load_inference_conf和predict，分别用来执行加载待预测的模型和预测
-Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
+- 用户通过Python Client启动Client和Server，Python API有检查互联和待访问模型是否匹配的功能
+- Python API背后调用的是Paddle Serving实现的client和server对应功能的pybind，互传的信息通过RPC实现
+- Client Python API当前有两个简单的功能，load_inference_conf和predict，分别用来执行加载待预测的模型和预测
+- Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
 
 ### 3.4 Server Inferface
 
