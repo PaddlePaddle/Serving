@@ -145,7 +145,7 @@ function python_test_fit_a_line() {
             sleep 5 # wait for the server to start
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
- 
+
             # test web
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 2 --gpu_ids 0 --name uci > /dev/null &"
@@ -184,11 +184,11 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mv models/ctr_serving_model_kv ./"
             check_cmd "mv models/data ./cube/"
             check_cmd "mv models/ut_data ./"
-            cp ../../../build-server-$TYPE/output/bin/cube* ./cube/ 
+            cp ../../../build-server-$TYPE/output/bin/cube* ./cube/
             mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             sh cube_prepare.sh &
-            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"    
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server.py ctr_serving_model_kv &
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
             tail -n 2 score
@@ -204,6 +204,30 @@ function python_run_criteo_ctr_with_cube() {
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         GPU)
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../build-server-$TYPE/output/bin/cube* ./cube/
+            mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server_gpu/serving-gpu-0.1.3/
+            yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server_gpu/serving-gpu-0.1.3/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server_gpu.py ctr_serving_model_kv &
+            check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
+            tail -n 2 score | awk 'NR==1'
+            AUC=$(tail -n 2  score | awk 'NR==1')
+            VAR2="0.67"
+            RES=$( echo "$AUC>$VAR2" | bc )
+            if [[ $RES -eq 0 ]]; then
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+                exit 1
+            fi
+            echo "criteo_ctr_with_cube inference auc test success"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         *)
             echo "error type"
