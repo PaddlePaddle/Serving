@@ -2,31 +2,44 @@
 
 ## 背景
 
-在实际的工业场景下，通常是定期不间断产出模型，服务端需要在服务不中断的情况下按时更新迭代模型。
+在实际的工业场景下，通常是远端定期不间断产出模型，线上服务端需要在服务不中断的情况下拉取新模型对旧模型进行更新迭代。
 
-这里用本地搭建FTP的形式，模拟监控远程模型，拉取更新本地模型，来展示Paddle Serving的模型热加载功能。
+Paddle Serving目前支持下面几种类型的远端监控Monitor：
 
-## 示例
+| Monitor类型 |                    描述                    |                           特殊选项                           |
+| :---------: | :----------------------------------------: | :----------------------------------------------------------: |
+|   General   | 远端无认证，可以通过`wget`直接访问下载文件 |                `--general_host` 通用远端host                 |
+|    HDFS     |   远端为HDFS，通过HDFS二进制执行相关命令   |                `--hdfs_bin` HDFS二进制的位置                 |
+|     FTP     |    远端为FTP，可以通过用户名、密码访问     | `--ftp_host` FTP host<br>`--ftp_port` FTP port<br>`--ftp_username` FTP username<br>`--ftp_password` FTP password |
+|     AFS     |                    TODO                    |                             TODO                             |
 
-示例目录结构，示例中用`local_path`来模拟本地，用`remote_path`来模拟远程：
+|     Monitor通用选项      |                             描述                             |
+| :----------------------: | :----------------------------------------------------------: |
+|         `--type`         |                       指定Monitor类型                        |
+|     `--remote_path`      |                      指定远端的基础路径                      |
+|  `--remote_model_name`   |                   指定远端需要拉取的模型名                   |
+| `--remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |
+|      `--local_path`      |                       指定本地工作路径                       |
+|   `--local_model_name`   |                        指定本地模型名                        |
+| `--local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。默认为`fluid_time_file` |
+|    `--local_tmp_path`    | 指定本地存放临时文件的文件夹路径。默认为`_serving_monitor_tmp`，若不存在则自动创建 |
+|       `--interval`       |                       指定轮询间隔时间                       |
+
+下面通过HDFSMonitor示例来展示Paddle Serving的模型热加载功能。
+
+## HDFSMonitor示例
+
+示例中在`product_path`中生产模型上传至hdfs，在`server_path`中模拟服务端模型热加载：
 
 ```shell
 .
-├── local_path
-└── remote_path
+├── server_path
+└── product_path
 ```
 
-### 远程部分
+### 生产模型
 
-进入`remote_path`文件夹：
-
-```shell
-cd remote_path
-```
-
-#### 生产远程模型
-
-运行下面的Python代码生产模型。
+在`product_path`下运行下面的Python代码生产模型，每隔 60 秒会产出 Boston 房价预测模型`uci_housing_model`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
 
 ```python
 import os
@@ -59,6 +72,11 @@ feeder = fluid.DataFeeder(place=place, feed_list=[x, y])
 exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
+def push_to_hdfs(local_file_path, remote_path):
+    hdfs_bin = 'hdfs'
+    os.system('{} dfs -put -f {} {}'.format(
+      hdfs_bin, local_file_path, remote_path))
+
 for pass_id in range(30):
     for data_train in train_reader():
         avg_loss_value, = exe.run(fluid.default_main_program(),
@@ -68,37 +86,23 @@ for pass_id in range(30):
     serving_io.save_model("uci_housing_model", "uci_housing_client",
                           {"x": x}, {"price": y_predict},
                           fluid.default_main_program())
+    push_to_hdfs('uci_housing_model', '/')
     os.system('touch donefile')
-    print('save {}'.format(pass_id))
+    push_to_hdfs('donefile', '/')
 ```
 
-上面的代码会每隔 60 秒在当前目录下产出 Boston 房价预测模型`uci_housing_model`，并在每次产出后更新时间戳文件`donefile`：
+hdfs上的文件如下列所示：
 
-```shell
-.
-├── donefile           # timestamp file 
-├── produce_model.py
-├── uci_housing_client
-└── uci_housing_model  # output model
+```bash
+# hdfs dfs -ls /
+Found 2 items
+-rw-r--r--   1 root supergroup          0 2020-03-30 09:27 /donefile
+drwxr-xr-x   - root supergroup          0 2020-03-30 09:27 /uci_housing_model
 ```
 
-#### 启动FTP服务
+### 服务端加载模型
 
-这里使用`pyftpdlib`开启FTP服务，执行下面的命令（您可能需要使用`pip install pyftpdlib `来安装相关的库）：
-
-```shell
-python -m pyftpdlib -p 8080
-```
-
-
-
-### 本地部分
-
-进入`local_path`文件夹：
-
-```shell
-cd local_path
-```
+进入`server_path`文件夹。
 
 #### 用初始模型启动Server端
 
@@ -117,13 +121,22 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 #### 执行监控程序
 
-用下面的命令来执行监控程序，通过轮询方式监控远程地址的时间戳文件`donefile`，当时间戳变更则认为远程模型已经更新，将远程模型拉取到本地临时路径下（默认为`./tmp`），更新本地模型以及Paddle Serving的时间戳文件`fluid_time_file`：
+用下面的命令来执行HDFS监控程序：
 
 ```shell
-python -m paddle_serving_server.monitor --type='ftp' --ftp_ip='127.0.0.1' --ftp_port='8080' --remote_path='/' --remote_model_name='uci_housing_model' --remote_donefile_name='donefile' --local_path='./' --local_model_name='uci_housing_model' --local_donefile_name='fluid_time_file' --local_tmp_dir='tmp'
+python -m paddle_serving_server.monitor \
+					--type='hdfs' \
+					--hdfs_bin='hdfs' \
+					--remote_path='/' \
+					--remote_model_name='uci_housing_model' \
+					--remote_donefile_name='donefile' \
+					--local_path='.' \
+					--local_model_name='uci_housing_model' \
+					--local_timestamp_file='fluid_time_file' \
+					--local_tmp_path='_tmp'
 ```
 
-上面的代码会监控远程路径`ftp://127.0.0.1:8080/`下的`donefile`文件来判断远程模型是否更新，若已经更新则将远程模型`ftp://127.0.0.1:8080/uci_housing_model`拉取到本地`./tmp`路径下，之后更新本地路径的模型`./uci_housing_model`，并更新Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
+上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程模型`/uci_housing_model`拉取到本地临时路径`./_tmp/uci_housing_model`下，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
 
 #### 查看Server日志
 
@@ -136,58 +149,25 @@ tail -f log/serving.INFO
 日志中显示模型已经被热加载：
 
 ```shell
-W0327 19:00:38.498729  5559 infer.h:509] td_core[0x7f20e8068f10] clone model from pd_core[0x7f20e8005f90] succ, cur_idx[1].
-W0327 19:00:38.498737  5559 infer.h:489] Succ load clone model, path[uci_housing_model]
-W0327 19:00:38.498744  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:00:38.498752  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:00:48.498860  5559 server.cpp:150] Begin reload framework...
-W0327 19:00:48.498947  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:00:48.498970  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:00:58.499076  5559 server.cpp:150] Begin reload framework...
-W0327 19:00:58.499167  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:00:58.499181  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:01:08.499277  5559 server.cpp:150] Begin reload framework...
-W0327 19:01:08.499366  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:01:08.499379  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:01:18.499492  5559 server.cpp:150] Begin reload framework...
-W0327 19:01:18.499637  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:01:18.499655  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:01:28.499745  5559 server.cpp:150] Begin reload framework...
-W0327 19:01:28.499814  5559 infer.h:250] begin reload model[uci_housing_model].
-I0327 19:01:28.500083  5559 infer.h:66] InferEngineCreationParams: model_path = uci_housing_model, enable_memory_optimization = 0, static_optimization = 0, force_update_static_cache = 0
-I0327 19:01:28.500160  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.500176  5559 init.cc:159] AVX is available, Please re-compile on local machine
-I0327 19:01:28.500628  5559 analysis_predictor.cc:833] MODEL VERSION: 0.0.0
-I0327 19:01:28.500653  5559 analysis_predictor.cc:835] PREDICTOR VERSION: 1.7.1
-I0327 19:01:28.502399  5559 graph_pattern_detector.cc:101] ---  detected 1 subgraphs
-I0327 19:01:28.504007  5559 analysis_predictor.cc:462] ======= optimize end =======
-W0327 19:01:28.504101  5559 infer.h:472] Succ load common model[0x7f20e806b8b0], path[uci_housing_model].
-I0327 19:01:28.504154  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504194  5559 infer.h:509] td_core[0x7f20e80b9680] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504287  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504330  5559 infer.h:509] td_core[0x7f20e80bf1e0] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504365  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504403  5559 infer.h:509] td_core[0x7f20e80af2a0] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504436  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504483  5559 infer.h:509] td_core[0x7f20e8004a00] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504516  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504551  5559 infer.h:509] td_core[0x7f20e80a8960] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504580  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504611  5559 infer.h:509] td_core[0x7f20e80a4bd0] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504639  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504669  5559 infer.h:509] td_core[0x7f20e80b8f20] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504699  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504730  5559 infer.h:509] td_core[0x7f20e80a4ab0] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504760  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504796  5559 infer.h:509] td_core[0x7f20e807ee40] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.504827  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.504904  5559 infer.h:509] td_core[0x7f20e8085900] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-I0327 19:01:28.505043  5559 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
-W0327 19:01:28.505097  5559 infer.h:509] td_core[0x7f20e8088500] clone model from pd_core[0x7f20e806b8b0] succ, cur_idx[0].
-W0327 19:01:28.505110  5559 infer.h:489] Succ load clone model, path[uci_housing_model]
-W0327 19:01:28.505120  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:01:28.505131  5559 manager.h:131] Finish reload 1 workflow(s)
-I0327 19:01:38.505468  5559 server.cpp:150] Begin reload framework...
-W0327 19:01:38.505568  5559 infer.h:656] Succ reload version engine: 18446744073709551615
-I0327 19:01:38.505584  5559 manager.h:131] Finish reload 1 workflow(s)
+I0330 09:38:40.087316  7361 server.cpp:150] Begin reload framework...
+W0330 09:38:40.087399  7361 infer.h:656] Succ reload version engine: 18446744073709551615
+I0330 09:38:40.087414  7361 manager.h:131] Finish reload 1 workflow(s)
+I0330 09:38:50.087535  7361 server.cpp:150] Begin reload framework...
+W0330 09:38:50.087641  7361 infer.h:250] begin reload model[uci_housing_model].
+I0330 09:38:50.087972  7361 infer.h:66] InferEngineCreationParams: model_path = uci_housing_model, enable_memory_optimization = 0, static_optimization = 0, force_update_static_cache = 0
+I0330 09:38:50.088027  7361 analysis_predictor.cc:88] Profiler is deactivated, and no profiling report will be generated.
+I0330 09:38:50.088393  7361 analysis_predictor.cc:841] MODEL VERSION: 1.7.1
+I0330 09:38:50.088413  7361 analysis_predictor.cc:843] PREDICTOR VERSION: 1.6.3
+I0330 09:38:50.089519  7361 graph_pattern_detector.cc:96] ---  detected 1 subgraphs
+I0330 09:38:50.090925  7361 analysis_predictor.cc:470] ======= optimize end =======
+W0330 09:38:50.090986  7361 infer.h:472] Succ load common model[0x7fc83c06abd0], path[uci_housing_model].
+I0330 09:38:50.091022  7361 analysis_predictor.cc:88] Profiler is deactivated, and no profiling report will be generated.
+W0330 09:38:50.091050  7361 infer.h:509] td_core[0x7fc83c0ad770] clone model from pd_core[0x7fc83c06abd0] succ, cur_idx[0].
+...
+W0330 09:38:50.091784  7361 infer.h:489] Succ load clone model, path[uci_housing_model]
+W0330 09:38:50.091794  7361 infer.h:656] Succ reload version engine: 18446744073709551615
+I0330 09:38:50.091820  7361 manager.h:131] Finish reload 1 workflow(s)
+I0330 09:39:00.091987  7361 server.cpp:150] Begin reload framework...
+W0330 09:39:00.092161  7361 infer.h:656] Succ reload version engine: 18446744073709551615
+I0330 09:39:00.092177  7361 manager.h:131] Finish reload 1 workflow(s)
 ```
