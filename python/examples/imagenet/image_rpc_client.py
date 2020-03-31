@@ -19,16 +19,15 @@ import time
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9295"])
+client.connect(["127.0.0.1:9393"])
 reader = ImageReader()
 
 start = time.time()
 for i in range(1000):
-    with open("./data/n01440764_10026.JPEG") as f:
+    with open("./data/n01440764_10026.JPEG", "rb") as f:
         img = f.read()
     img = reader.process_image(img).reshape(-1)
     fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-    print(i)
 end = time.time()
 print(end - start)
 
