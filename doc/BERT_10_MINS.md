@@ -95,7 +95,8 @@ sh pip_app.sh
 python bert_10.py
 sh server.sh &
 wget https://paddle-serving.bj.bcebos.com/bert_example/data-c.txt --no-check-certificate
-cat data-c.txt | python bert_client.py
+head -n 500 data-c.txt > data.txt
+cat data.txt | python bert_client.py
 if [[ $? -eq 0 ]]; then
     echo "test success"
 else

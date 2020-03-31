@@ -58,7 +58,8 @@ def GetTestFile(lines, i, filename):
 def RunTest():
     folder = 'test'
     os.system('cd ' + folder + ' && sh start.sh')
+    os.system('cd .. && rm -rf ' + folder)     
 
 if __name__ == '__main__':
-    ReadMarkDown(sys.argv[1])
+    ReadMarkDown(os.path.join(sys.argv[1], sys.argv[2]))
     RunTest()
