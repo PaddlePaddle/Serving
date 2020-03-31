@@ -1,6 +1,6 @@
 # 如何在Docker中运行PaddleServing
 
-(简体中文|[English](./RUN_IN_DOCKER.md))
+(简体中文|[English](RUN_IN_DOCKER.md))
 
 ## 环境要求
 
