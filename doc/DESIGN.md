@@ -14,17 +14,17 @@ The result is a complete serving solution.
 
 ## 2. Terms explanation
 
-- baidu-rpc: Baidu's official open source RPC framework, supports multiple common communication protocols, and provides a custom interface experience based on protobuf
-- Variant: Paddle Serving architecture is an abstraction of a minimal prediction cluster, which is characterized by all internal instances (replicas) being completely homogeneous and logically corresponding to a fixed version of a model
-- Endpoint: Multiple Variants form an Endpoint. Logically, Endpoint represents a model, and Variants within the Endpoint represent different versions.
-- OP: PaddlePaddle is used to encapsulate a numerical calculation operator, Paddle Serving is used to represent a basic business operation operator, and the core interface is inference. OP configures its dependent upstream OP to connect multiple OPs into a workflow
-- Channel: An abstraction of all request-level intermediate data of the OP; data exchange between OPs through Channels
-- Bus: manages all channels in a thread, and schedules the access relationship between the two sets of OP and Channel according to the DAG dependency graph between DAGs
-- Stage: Workflow according to the topology diagram described by DAG, a collection of OPs that belong to the same link and can be executed in parallel
-- Node: An Op operator instance composed of an Op operator class combined with parameter configuration, which is also an execution unit in Workflow
-- Workflow: executes the inference interface of each OP in order according to the topology described by DAG
-- DAG/Workflow: consists of several interdependent Nodes. Each Node can obtain the Request object through a specific interface. The node Op obtains the output object of its pre-op through the dependency relationship. The output of the last Node is the Response object by default.
-- Service: encapsulates a pv request, can configure several Workflows, reuse the current PV's Request object with each other, and then execute each in parallel/serial execution, and finally write the Response to the corresponding output slot; a Paddle-serving process Multiple sets of Service interfaces can be configured. The upstream determines the Service interface currently accessed based on the ServiceName.
+- **baidu-rpc**: Baidu's official open source RPC framework, supports multiple common communication protocols, and provides a custom interface experience based on protobuf
+- **Variant**: Paddle Serving architecture is an abstraction of a minimal prediction cluster, which is characterized by all internal instances (replicas) being completely homogeneous and logically corresponding to a fixed version of a model
+- **Endpoint**: Multiple Variants form an Endpoint. Logically, Endpoint represents a model, and Variants within the Endpoint represent different versions.
+- **OP**: PaddlePaddle is used to encapsulate a numerical calculation operator, Paddle Serving is used to represent a basic business operation operator, and the core interface is inference. OP configures its dependent upstream OP to connect multiple OPs into a workflow
+- **Channel**: An abstraction of all request-level intermediate data of the OP; data exchange between OPs through Channels
+- **Bus**: manages all channels in a thread, and schedules the access relationship between the two sets of OP and Channel according to the DAG dependency graph between DAGs
+- **Stage**: Workflow according to the topology diagram described by DAG, a collection of OPs that belong to the same link and can be executed in parallel
+- **Node**: An OP operator instance composed of an OP operator class combined with parameter configuration, which is also an execution unit in Workflow
+- **Workflow**: executes the inference interface of each OP in order according to the topology described by DAG
+- **DAG/Workflow**: consists of several interdependent Nodes. Each Node can obtain the Request object through a specific interface. The node Op obtains the output object of its pre-op through the dependency relationship. The output of the last Node is the Response object by default.
+- **Service**: encapsulates a pv request, can configure several Workflows, reuse the current PV's Request object with each other, and then execute each in parallel/serial execution, and finally write the Response to the corresponding output slot; a Paddle-serving process Multiple sets of Service interfaces can be configured. The upstream determines the Service interface currently accessed based on the ServiceName.
 
 ## 3. Python Interface Design
 
@@ -38,10 +38,10 @@ Models that can be predicted using the Paddle Inference Library, models saved du
 
 ### 3.3 Overall design:
 
-The user starts the Client and Server through the Python Client. The Python API has a function to check whether the interconnection and the models to be accessed match.
-The Python API calls the pybind corresponding to the client and server functions implemented by Paddle Serving, and the information transmitted through RPC is implemented through RPC.
-The Client Python API currently has two simple functions, load_inference_conf and predict, which are used to perform loading of the model to be predicted and prediction, respectively.
-The Server Python API is mainly responsible for loading the estimation model and generating various configurations required by Paddle Serving, including engines, workflow, resources, etc.
+- The user starts the Client and Server through the Python Client. The Python API has a function to check whether the interconnection and the models to be accessed match.
+- The Python API calls the pybind corresponding to the client and server functions implemented by Paddle Serving, and the information transmitted through RPC is implemented through RPC.
+- The Client Python API currently has two simple functions, load_inference_conf and predict, which are used to perform loading of the model to be predicted and prediction, respectively.
+- The Server Python API is mainly responsible for loading the inference model and generating various configurations required by Paddle Serving, including engines, workflow, resources, etc.
 
 ### 3.4 Server Inferface
 
@@ -69,8 +69,8 @@ def save_model(server_model_folder,
 ![Paddle-Serging Overall Architecture](framework.png)
 
 **Model Management Framework**: Connects model files of multiple machine learning platforms and provides a unified inference interface
-**Business Scheduling Framework**: Abstracts the calculation logic of various different prediction models, provides a general DAG scheduling framework, and connects different operators through DAG diagrams to complete a prediction service together. This abstract model allows users to conveniently implement their own calculation logic, and at the same time facilitates operator sharing. (Users build their own forecasting services. A large part of their work is to build DAGs and provide operators.)
-**PredictService**: Encapsulation of the externally provided prediction service interface. Define communication fields with the client through protobuf.
+**Business Scheduling Framework**: Abstracts the calculation logic of various different inference models, provides a general DAG scheduling framework, and connects different operators through DAG diagrams to complete a prediction service together. This abstract model allows users to conveniently implement their own calculation logic, and at the same time facilitates operator sharing. (Users build their own forecasting services. A large part of their work is to build DAGs and provide operators.)
+**Predict Service**: Encapsulation of the externally provided prediction service interface. Define communication fields with the client through protobuf.
 
 ### 4.1 Model Management Framework
 
