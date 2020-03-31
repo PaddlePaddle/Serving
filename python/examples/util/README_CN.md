@@ -1,5 +1,7 @@
 ## Timeline工具使用
 
+(简体中文|[English](./README.md))
+
 serving框架中内置了预测服务中各阶段时间打点的功能，在client端通过环境变量来控制是否开启，开启后会将打点信息输出到屏幕。
 ```
 export FLAGS_profile_client=1 #开启client端各阶段时间打点
