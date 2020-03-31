@@ -1,6 +1,6 @@
 ## Timeline工具使用
 
-serving框架中内置了预测服务中各阶段时间打点的功能，通过环境变量来控制是否开启。
+serving框架中内置了预测服务中各阶段时间打点的功能，在client端通过环境变量来控制是否开启，开启后会将打点信息输出到屏幕。
 ```
 export FLAGS_profile_client=1 #开启client端各阶段时间打点
 export FLAGS_profile_server=1 #开启server端各阶段时间打点
@@ -13,6 +13,8 @@ export FLAGS_profile_server=1 #开启server端各阶段时间打点
 ```
 python show_profile.py profile ${thread_num}
 ```
+这里thread_num参数为client运行时的进程数，脚本将按照这个参数来计算各阶段的平均耗时。
+
 脚本将计算各阶段的耗时，并除以线程数做平均，打印到标准输出。
 
 ```
@@ -22,6 +24,6 @@ python timeline_trace.py profile trace
 
 具体操作：打开chrome浏览器，在地址栏输入chrome://tracing/，跳转至tracing页面，点击load按钮，打开保存的trace文件，即可将预测服务的各阶段时间信息可视化。
 
-效果如下图，图中展示了client端启动4进程时的bert示例的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，每个进进程的第二行展示的是server各个op的timeline。
+效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
 
 ![timeline](../../../doc/timeline-example.png)
