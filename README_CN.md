@@ -124,7 +124,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 ```
 - **返回结果示例**: 
 ``` shell
-{"word_seg":"我|爱|北京|天安门"}，如未安装字符集则返回 {"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"}
+{"word_seg":"我|爱|北京|天安门"}
 ```
 
 <h3 align="center">图像分类模型</h4>
@@ -170,7 +170,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
 - [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
-- [如何编译PaddleServing](doc/COMPILE_CN.md)
+- [如何编译PaddleServing?](doc/COMPILE_CN.md)
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
