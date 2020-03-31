@@ -1,5 +1,7 @@
 # Paddle Serving Design Doc
 
+([简体中文](./DESIGN_DOC_CN.md)|English)
+
 ## 1. Design Objectives
 
 - Long Term Vision: Online deployment of deep learning models will be a user-facing application in the future. Any AI developer will face the problem of deploying an online service for his or her trained model.
