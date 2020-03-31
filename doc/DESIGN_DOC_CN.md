@@ -1,5 +1,7 @@
 # Paddle Serving设计文档
 
+(简体中文|[English](./DESIGN_DOC.md))
+
 ## 1. 整体设计目标
 
 - 长期使命：Paddle Serving是一个PaddlePaddle开源的在线服务框架，长期目标就是围绕着人工智能落地的最后一公里提供越来越专业、可靠、易用的服务。
