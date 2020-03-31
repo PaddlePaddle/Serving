@@ -109,7 +109,7 @@ for data in test_reader():
 
 [设计文档](DESIGN_CN.md)
 
-[FAQ](FAQ.md)
+[FAQ](./deprecated/FAQ.md)
 
 ### 资深开发者使用指南
 
