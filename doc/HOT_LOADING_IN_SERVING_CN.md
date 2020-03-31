@@ -8,22 +8,22 @@ Paddle Serving目前支持下面几种类型的远端监控Monitor：
 
 | Monitor类型 |                    描述                    |                           特殊选项                           |
 | :---------: | :----------------------------------------: | :----------------------------------------------------------: |
-|   General   | 远端无认证，可以通过`wget`直接访问下载文件 |                `--general_host` 通用远端host                 |
-|    HDFS     |   远端为HDFS，通过HDFS二进制执行相关命令   |                `--hdfs_bin` HDFS二进制的位置                 |
-|     FTP     |    远端为FTP，可以通过用户名、密码访问     | `--ftp_host` FTP host<br>`--ftp_port` FTP port<br>`--ftp_username` FTP username<br>`--ftp_password` FTP password |
-|     AFS     |                    TODO                    |                             TODO                             |
+|   General   | 远端无认证，可以通过`wget`直接访问下载文件 |                 `general_host` 通用远端host                  |
+|    HDFS     |   远端为HDFS，通过HDFS二进制执行相关命令   |                 `hdfs_bin` HDFS二进制的路径                  |
+|     FTP     |    远端为FTP，可以通过用户名、密码访问     | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
+|     AFS     |  远端为AFS，通过Hadoop-client执行相关命令  | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
 
-|     Monitor通用选项      |                             描述                             |
-| :----------------------: | :----------------------------------------------------------: |
-|         `--type`         |                       指定Monitor类型                        |
-|     `--remote_path`      |                      指定远端的基础路径                      |
-|  `--remote_model_name`   |                   指定远端需要拉取的模型名                   |
-| `--remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |
-|      `--local_path`      |                       指定本地工作路径                       |
-|   `--local_model_name`   |                        指定本地模型名                        |
-| `--local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。默认为`fluid_time_file` |
-|    `--local_tmp_path`    | 指定本地存放临时文件的文件夹路径。默认为`_serving_monitor_tmp`，若不存在则自动创建 |
-|       `--interval`       |                       指定轮询间隔时间                       |
+|    Monitor通用选项     |                             描述                             |
+| :--------------------: | :----------------------------------------------------------: |
+|         `type`         |                       指定Monitor类型                        |
+|     `remote_path`      |                      指定远端的基础路径                      |
+|  `remote_model_name`   |                   指定远端需要拉取的模型名                   |
+| `remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |
+|      `local_path`      |                       指定本地工作路径                       |
+|   `local_model_name`   |                        指定本地模型名                        |
+| `local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。默认为`fluid_time_file` |
+|    `local_tmp_path`    | 指定本地存放临时文件的文件夹路径。默认为`_serving_monitor_tmp`，若不存在则自动创建 |
+|       `interval`       |                       指定轮询间隔时间                       |
 
 下面通过HDFSMonitor示例来展示Paddle Serving的模型热加载功能。
 
