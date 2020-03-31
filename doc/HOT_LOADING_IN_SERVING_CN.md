@@ -6,12 +6,12 @@
 
 Paddle Serving目前支持下面几种类型的远端监控Monitor：
 
-| Monitor类型 |                    描述                    |                           特殊选项                           |
-| :---------: | :----------------------------------------: | :----------------------------------------------------------: |
-|   General   | 远端无认证，可以通过`wget`直接访问下载文件 |                 `general_host` 通用远端host                  |
-|    HDFS     |   远端为HDFS，通过HDFS二进制执行相关命令   |                 `hdfs_bin` HDFS二进制的路径                  |
-|     FTP     |    远端为FTP，可以通过用户名、密码访问     | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
-|     AFS     |  远端为AFS，通过Hadoop-client执行相关命令  | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
+| Monitor类型 |                             描述                             |                           特殊选项                           |
+| :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|   General   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，OBS等） |                 `general_host` 通用远端host                  |
+|    HDFS     |            远端为HDFS，通过HDFS二进制执行相关命令            |                 `hdfs_bin` HDFS二进制的路径                  |
+|     FTP     |             远端为FTP，可以通过用户名、密码访问              | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
+|     AFS     |           远端为AFS，通过Hadoop-client执行相关命令           | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
 
 |    Monitor通用选项     |                             描述                             |
 | :--------------------: | :----------------------------------------------------------: |
@@ -33,8 +33,8 @@ Paddle Serving目前支持下面几种类型的远端监控Monitor：
 
 ```shell
 .
-├── server_path
-└── product_path
+├── product_path
+└── server_path
 ```
 
 ### 生产模型
@@ -125,15 +125,10 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ```shell
 python -m paddle_serving_server.monitor \
-					--type='hdfs' \
-					--hdfs_bin='hdfs' \
-					--remote_path='/' \
-					--remote_model_name='uci_housing_model' \
-					--remote_donefile_name='donefile' \
-					--local_path='.' \
-					--local_model_name='uci_housing_model' \
-					--local_timestamp_file='fluid_time_file' \
-					--local_tmp_path='_tmp'
+--type='hdfs' --hdfs_bin='/hadoop-3.1.2/bin/hdfs' --remote_path='/' \
+--remote_model_name='uci_housing_model' --remote_donefile_name='donefile' \
+--local_path='.' --local_model_name='uci_housing_model' \
+--local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp'
 ```
 
 上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程模型`/uci_housing_model`拉取到本地临时路径`./_tmp/uci_housing_model`下，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
