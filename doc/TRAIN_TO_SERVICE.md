@@ -1,8 +1,8 @@
-# End-to-end process from training to deployment
+An End-to-end Tutorial from Training to Inference Service Deployment
 
 ([简体中文](./TRAIN_TO_SERVICE_CN.md)|English)
 
-Paddle Serving is Paddle's high-performance online prediction service framework, which can flexibly support the deployment of most models. In this article, the IMDB review sentiment analysis task is used as an example to show the entire process from model training to deployment of prediction service through 9 steps.
+Paddle Serving is Paddle's high-performance online inference service framework, which can flexibly support the deployment of most models. In this article, the IMDB review sentiment analysis task is used as an example to show the entire process from model training to deployment of inference service through 9 steps.
 
 ## Step1：Prepare for Running Environment
 Paddle Serving can be deployed on Linux environments such as Centos and Ubuntu. On other systems or in environments where you do not want to install the serving module, you can still access the server-side prediction service through the http service.
