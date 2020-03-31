@@ -57,7 +57,8 @@ def single_func(idx, resource):
                         os.getpid(),
                         int(round(b_start * 1000000)),
                         int(round(b_end * 1000000))))
-                result = client.predict(feed_batch=feed_batch, fetch=fetch)
+                result = client.batch_predict(
+                    feed_batch=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
