@@ -21,6 +21,10 @@ import time
 import criteo_reader as criteo
 from paddle_serving_client.metric import auc
 
+import sys
+
+py_version = sys.version_info[0]
+
 client = Client()
 client.load_client_config(sys.argv[1])
 client.connect(["127.0.0.1:9292"])
@@ -39,7 +43,10 @@ label_list = []
 prob_list = []
 start = time.time()
 for ei in range(1000):
-    data = reader().next()
+    if py_version == 2:
+        data = reader().next()
+    else:
+        data = reader().__next__()
     feed_dict = {}
     for i in range(1, 27):
         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
