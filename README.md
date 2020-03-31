@@ -119,7 +119,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 ```
 - **Request result**: 
 ``` shell
-{"word_seg":"我|爱|北京|天安门" or {"word_seg":"\u6211|\u7231|\u5317\u4eac|\u5929\u5b89\u95e8"} if Chinese Dataset is not installed}
+{"word_seg":"我|爱|北京|天安门"}
 ```
 
 <h3 align="center">Image Classification</h4>
@@ -162,17 +162,17 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### New to Paddle Serving
 - [How to save a servable model?](doc/SAVE.md)
-- [End-to-end process from training to deployment](doc/TRAIN_TO_SERVICE.md)
+- [An End-to-end tutorial from training to inference service deployment](doc/TRAIN_TO_SERVICE.md)
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
-- [How to develop a new Serving operator](doc/NEW_OPERATOR.md)
+- [How to develop a new Serving operator?](doc/NEW_OPERATOR.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
 
 ### About Efficiency
-- [How to profile Paddle Serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [How to profile Paddle Serving latency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
