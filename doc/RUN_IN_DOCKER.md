@@ -1,6 +1,6 @@
 # How to run PaddleServing in Docker
 
-([简体中文](./RUN_IN_DOCKER_CN.md)|English)
+([简体中文](RUN_IN_DOCKER_CN.md)|English)
 
 ## Requirements
 
@@ -137,16 +137,11 @@ pip install paddle-serving-server-gpu
 
 ### Test example
 
-When running the GPU Server, you need to set the GPUs used by the prediction service. By default, CPU version is used. You can configure it in two ways:
-
-1. Using the `CUDA_VISIBLE_DEVICES` environment variable, the following example specifies two GPUs with an index of 0 and 1:
-
-   ```shell
-    export CUDA_VISIBLE_DEVICES=0,1
-   ```
-
-2. Using the `--gpu_ids` option, which will overrides the configuration of `CUDA_VISIBLE_DEVICES`.
-
+When running the GPU Server, you need to set the GPUs used by the prediction service through the `--gpu_ids` option, and the CPU is used by default. An error will be reported when the value of `--gpu_ids` exceeds the environment variable `CUDA_VISIBLE_DEVICES`. The following example specifies to use a GPU with index 0:
+```shell
+export CUDA_VISIBLE_DEVICES=0,1
+python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --gpu_ids 0
+```
 
 
 Get the trained Boston house price prediction model by the following command:
