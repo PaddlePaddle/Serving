@@ -142,12 +142,12 @@ class AFSMonitor(Monitor):
     ''' AFS Monitor(by hadoop-client). '''
 
     def __init__(self,
-                 hadoop_bin_path,
+                 hadoop_bin,
                  hadoop_host=None,
                  hadoop_ugi=None,
                  interval=10):
         super(AFSMonitor, self).__init__(interval)
-        self._hadoop_bin = hadoop_bin_path
+        self._hadoop_bin = hadoop_bin
         self._hadoop_host = hadoop_host
         self._hadoop_ugi = hadoop_ugi
         self._cmd_prefix = '{} fs '.format(self._hadoop_bin)
@@ -217,45 +217,43 @@ class FTPMonitor(Monitor):
     def _exist_remote_file(self, path, filename, local_tmp_path):
         import ftplib
         try:
-            filepath = os.path.join(path, filename)
-            timestamp = self._ftp.voidcmd('MDTM {}'.format(filepath))[4:].strip(
+            self._ftp.cwd(path)
+            timestamp = self._ftp.voidcmd('MDTM {}'.format(filename))[4:].strip(
             )
             return [True, timestamp]
         except ftplib.error_perm:
             return [False, None]
 
-    def _download_remote_files(remote_path,
+    def _download_remote_files(self,
+                               remote_path,
                                remote_dirname,
                                local_tmp_path,
                                overwrite=True):
-        try:
-            remote_dirpath = os.path.join(remote_path, remote_dirname)
-            self._ftp.cwd(remote_dirpath)
-            os.mkdir(os.path.join(local_tmp_path, remote_dirname))
-        except OSError:
-            # folder already exists at the local_tmp_path
-            pass
-        except ftplib.error_perm:
-            raise Exception('remote_path({}) not exist.'.format(remote_path))
+        local_dirpath = os.path.join(local_tmp_path, remote_dirname)
+        if not os.path.exists(local_dirpath):
+            os.mkdir(local_dirpath)
 
-        filelist = [x for x in self_ftp.mlsd()]
-        for file in filelist:
-            if file[1]['type'] == 'file':
-                fullpath = os.path.join(local_tmp_path, remote_dirname, file[0])
+        remote_dirpath = os.path.join(remote_path, remote_dirname)
+        output = []
+        self._ftp.cwd(remote_dirpath)
+        self._ftp.dir(output.append)
+        for line in output:
+            [attr, _, _, _, _, _, _, _, name] = line.split()
+            if attr[0] == 'd':
+                self._download_remote_files(
+                    os.path.join(remote_path, remote_dirname), name,
+                    os.path.join(local_tmp_path, remote_dirname), overwrite)
+            else:
+                fullpath = os.path.join(local_tmp_path, remote_dirname, name)
                 if not overwrite and os.path.isfile(fullpath):
                     continue
                 else:
                     with open(fullpath, 'wb') as f:
-                        self._ftp.retrbinary('RETR ' + file[0], f.write)
-            elif file[1]['type'] == 'dir':
-                self._download_remote_files(
-                    os.path.join(remote_path, remote_dirname), file[0],
-                    os.path.join(local_tmp_path, remote_dirname), overwrite)
-            else:
-                print('Unknown type: ' + file[1]['type'])
+                        self._ftp.cwd(remote_dirpath)
+                        self._ftp.retrbinary('RETR {}'.format(name), f.write)
 
     def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
-        self._exist_remote_file(
+        self._download_remote_files(
             remote_path, dirname, local_tmp_path, overwrite=True)
 
 
@@ -335,7 +333,7 @@ def parse_args():
         "--ftp_password", type=str, default='', help="Password of ftp")
     # afs monitor
     parser.add_argument(
-        "--hadoop_bin_path", type=str, help="Hadoop_bin_path for afs")
+        "--hadoop_bin", type=str, help="Hadoop_bin_path for afs")
     parser.add_argument(
         "--hadoop_host", type=str, default=None, help="Hadoop_host for afs")
     parser.add_argument(
@@ -365,7 +363,7 @@ def get_monitor(mtype):
         return GeneralMonitor(args.general_host, interval=args.interval)
     elif mtype == 'afs':
         return AFSMonitor(
-            args.hadoop_bin_path,
+            args.hadoop_bin,
             args.hadoop_host,
             args.hadoop_ugi,
             interval=args.interval)
