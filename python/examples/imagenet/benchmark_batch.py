@@ -50,7 +50,7 @@ def single_func(idx, resource):
                     img = reader.process_image(img_list[i])
                     img = img.reshape(-1)
                     feed_batch.append({"image": img})
-                result = client.predict(feed_batch=feed_batch, fetch=fetch)
+                result = client.predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 

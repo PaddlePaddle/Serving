@@ -42,8 +42,7 @@ def single_func(idx, resource):
                 for bi in range(args.batch_size):
                     word_ids, label = imdb_dataset.get_words_and_label(line)
                     feed_batch.append({"words": word_ids})
-                result = client.predict(
-                    feed_batch=feed_batch, fetch=["prediction"])
+                result = client.predict(feed=feed_batch, fetch=["prediction"])
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
