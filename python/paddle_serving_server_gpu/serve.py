@@ -69,11 +69,12 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
         gpus = args.gpu_ids.split(",")
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-            if int(gpus[-1]) >= len(env_gpus):
-                print(
-                    " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}.".
-                    format(len(env_gpus)))
-                exit(-1)
+            for ids in gpus:
+                if int(ids) >= len(env_gpus):
+                    print(
+                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}.".
+                        format(len(env_gpus)))
+                    exit(-1)
         else:
             env_gpus = []
     if len(gpus) <= 0:
