@@ -145,7 +145,7 @@ tar -xzf uci_housing.tar.gz
   在Server端（容器内）运行：
 
   ```bash
-  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci 
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci --gpu_ids 0
   ```
 
   在Client端（容器内或容器外）运行：
@@ -159,7 +159,7 @@ tar -xzf uci_housing.tar.gz
   在Server端（容器内）运行：
 
   ```bash
-  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0
   ```
 
   在Client端（容器内或容器外，需要安装`paddle-serving-client`包）运行下面Python代码：
