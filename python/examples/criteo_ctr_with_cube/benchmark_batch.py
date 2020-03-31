@@ -56,8 +56,7 @@ def single_func(idx, resource):
                         feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][
                             i]
                     feed_batch.append(feed_dict)
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=fetch)
+                result = client.batch_predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
