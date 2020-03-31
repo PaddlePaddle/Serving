@@ -1,6 +1,6 @@
 ## 图像分类示例
 
-([简体中文](./README_CN.md)|English)
+(简体中文|[English](./README.md))
 
 示例中采用ResNet50_vd模型执行imagenet 1000分类任务。
 
