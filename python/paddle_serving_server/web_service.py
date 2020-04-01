@@ -65,7 +65,7 @@ class WebService(object):
                 abort(400)
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             if isinstance(feed, list):
-                fetch_map_batch = client_service.batch_predict(
+                fetch_map_batch = client_service.predict(
                     feed_batch=feed, fetch=fetch)
                 fetch_map_batch = self.postprocess(
                     feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
