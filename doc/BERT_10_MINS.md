@@ -6,6 +6,7 @@ Bert-As-Service的目标是给定一个句子，服务可以将句子表示成�
 
 Paddle Serving支持基于Paddle进行训练的各种模型，并通过指定模型的输入和输出变量来保存可服务模型。为了方便，我们可以从paddlehub加载一个已经训练好的bert中文模型，并利用两行代码保存一个可部署的服务，服务端和客户端的配置分别放在`bert_seq20_model`和`bert_seq20_client`文件夹。
 
+[//file]:#bert_10.py
 ``` python
 import paddlehub as hub
 model_name = "bert_chinese_L-12_H-768_A-12"
@@ -25,6 +26,7 @@ serving_io.save_model("bert_seq20_model", "bert_seq20_client",
 
 #### Step2：启动服务
 
+[//file]:#server.sh
 ``` shell
 python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
 ```
@@ -42,6 +44,7 @@ Paddle Serving内建了很多经典典型对应的数据预处理逻辑，对于
 
 安装paddle_serving_app
 
+[//file]:#pip_app.sh
 ```shell
 pip install paddle_serving_app
 ```
@@ -50,6 +53,7 @@ pip install paddle_serving_app
 
 客户端脚本 bert_client.py内容如下
 
+[//file]:#bert_client.py
 ``` python
 import os
 import sys
@@ -70,6 +74,7 @@ for line in sys.stdin:
 
 执行
 
+[//file]:#bert_10_cli.sh
 ```shell
 cat data.txt | python bert_client.py
 ```
@@ -81,3 +86,19 @@ cat data.txt | python bert_client.py
 我们基于V100对基于Padde Serving研发的Bert-As-Service的性能进行测试并与基于Tensorflow实现的Bert-As-Service进行对比，从用户配置的角度，采用相同的batch size和并发数进行压力测试，得到4块V100下的整体吞吐性能数据如下。
 
 ![4v100_bert_as_service_benchmark](4v100_bert_as_service_benchmark.png)
+
+<!--
+yum install -y libXext libSM libXrender
+pip install paddlehub paddle_serving_server paddle_serving_client
+sh pip_app.sh
+python bert_10.py
+sh server.sh &
+wget https://paddle-serving.bj.bcebos.com/bert_example/data-c.txt --no-check-certificate
+head -n 500 data-c.txt > data.txt
+cat data.txt | python bert_client.py
+if [[ $? -eq 0 ]]; then
+    echo "test success"
+else
+    echo "test fail"
+fi
+-->
