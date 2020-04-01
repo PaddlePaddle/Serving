@@ -154,9 +154,86 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 {"label":"daisy","prob":0.9341403245925903}
 ```
 
+<h3 align="center">More Demos</h4>
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | Bert-Base-Baike                                              |
+| URL                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
+| Description        | Get semantic representation from a Chinese Sentence          |
 
 
 
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | Resnet50-Imagenet                                            |
+| URL                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| Description        | Get image semantic representation from an image              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | Resnet101-Imagenet                                           |
+| URL                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| Description        | Get image semantic representation from an image              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | CNN-IMDB                                                     |
+| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| Description        | Get category probability from an English Sentence            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | LSTM-IMDB                                                    |
+| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| Description        | Get category probability from an English Sentence            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | BOW-IMDB                                                     |
+| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| Description        | Get category probability from an English Sentence            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | Jieba-LAC                                                    |
+| URL                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
+| Description        | Get word segmentation from a Chinese Sentence                |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | DNN-CTR                                                      |
+| URL                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
+| Description        | Get click probability from a feature vector of item          |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| Model Name         | DNN-CTR(with cube)                                           |
+| URL                | None(Get model by [local_train.py](python/examples/criteo_ctr_with_cube/local_train.py))                            |
+| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr_with_cube |
+| Description        | Get click probability from a feature vector of item          |
 
 <h2 align="center">Document</h2>
 
