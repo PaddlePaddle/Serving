@@ -220,7 +220,7 @@ function python_run_criteo_ctr_with_cube() {
             VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
             RES=$( echo "$AUC>$VAR2" | bc )
             if [[ $RES -eq 0 ]]; then
-                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
@@ -246,7 +246,7 @@ function python_run_criteo_ctr_with_cube() {
             VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
             RES=$( echo "$AUC>$VAR2" | bc )
             if [[ $RES -eq 0 ]]; then
-                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
