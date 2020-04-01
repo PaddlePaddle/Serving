@@ -55,8 +55,7 @@ def single_func(idx, resource):
                     for i in range(1, 27):
                         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
                     feed_batch.append(feed_dict)
-                result = client.batch_predict(
-                    feed_batch=feed_batch, fetch=fetch)
+                result = client.predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
