@@ -1,31 +1,30 @@
-## IMDB comment sentiment inference service
+## IMDB评论情绪预测服务
 
-([简体中文](./README_CN.md)|English)
+(简体中文|[English](./README.md))
 
-### Get model files and sample data
+### 获取模型文件和样例数据
 
 ```
 sh get_data.sh
 ```
-the package downloaded contains cnn, lstm and bow model config along with their test_data and train_data.
+脚本会下载和解压出cnn、lstm和bow三种模型的配置文文件以及test_data和train_data。
 
-### Start RPC inference service
+### 启动RPC预测服务
 
 ```
 python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292
 ```
-### RPC Infer
+### 执行预测
 ```
 head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
+预测test_data/part-0的前十个样例。
 
-it will get predict results of the first 10 test cases.
-
-### Start HTTP inference service
+### 启动HTTP预测服务
 ```
 python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
 ```
-### HTTP Infer
+### 执行预测
 
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
@@ -33,13 +32,13 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0
 
 ### Benchmark
 
-CPU ：Intel(R) Xeon(R)  Gold 6271 CPU @ 2.60GHz * 48
+设备 ：Intel(R) Xeon(R)  Gold 6271 CPU @ 2.60GHz * 48
 
-Model ：[CNN](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/imdb/nets.py)
+模型 ：[CNN](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/imdb/nets.py)
 
 server thread num ： 16
 
-In this test, client sends 25000 test samples totally, the bar chart given later is the latency of single thread, the unit is second, from which we know the predict efficiency is improved greatly by multi-thread compared to single-thread. 8.7 times improvement is made by 16 threads prediction.
+测试中，client共发送25000条测试样本，图中数据为单个线程的耗时，时间单位为秒。可以看出，client端多线程的预测速度相比单线程有明显提升，在16线程时预测速度是单线程的8.7倍。
 
 | client  thread num | prepro | client infer | op0    | op1   | op2    | postpro | total |
 | ------------------ | ------ | ------------ | ------ | ----- | ------ | ------- | ----- |
@@ -51,6 +50,6 @@ In this test, client sends 25000 test samples totally, the bar chart given later
 | 20                 | 0.049  | 3.77         | 0.0047 | 1.03  | 0.0025 | 0.0022  | 3.91  |
 | 24                 | 0.041  | 3.86         | 0.0039 | 0.85  | 0.002  | 0.0017  | 3.98  |
 
-The thread-latency bar chart is as follow：
+预测总耗时变化规律如下：
 
 ![total cost](../../../doc/imdb-benchmark-server-16.png)

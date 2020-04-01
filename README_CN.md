@@ -51,6 +51,169 @@ fetch_map = client.predict(feed={"x": data}, fetch=["price"])
 print(fetch_map)
 
 ```
+在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
+
+<h2 align="center">Paddle Serving预装的服务</h2>
+
+<h3 align="center">中文分词模型</h4>
+
+- **介绍**: 
+``` shell
+本示例为中文分词HTTP服务一键部署
+```
+
+- **下载服务包**: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
+```
+- **启动web服务**: 
+``` shell
+tar -xzf lac_model_jieba_web.tar.gz
+python lac_web_service.py jieba_server_model/ lac_workdir 9292
+```
+- **客户端请求示例**: 
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
+```
+- **返回结果示例**: 
+``` shell
+{"word_seg":"我|爱|北京|天安门"}
+```
+
+<h3 align="center">图像分类模型</h4>
+
+- **介绍**: 
+``` shell
+图像分类模型由Imagenet数据集训练而成，该服务会返回一个标签及其概率
+```
+
+- **下载服务包**: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
+```
+- **启动web服务**: 
+``` shell
+tar -xzf imagenet_demo.tar.gz
+python image_classification_service_demo.py resnet50_serving_model
+```
+- **客户端请求示例**: 
+
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
+    <br>
+<p>
+    
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+```
+- **返回结果示例**: 
+``` shell
+{"label":"daisy","prob":0.9341403245925903}
+```
+
+<h3 align="center">更多示例</h3>
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名              | Bert-Base-Baike                                              |
+| 下载链接                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
+| 客户端/服务端代码     | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
+| 介绍                | 获得一个中文语句的语义表示          |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | Resnet50-Imagenet                                            |
+| 下载链接                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| 介绍        | 获得一张图片的图像语义表示              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名       | Resnet101-Imagenet                                           |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| 介绍      | 获得一张图片的图像语义表示              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名        | CNN-IMDB                                                     |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍       | 从一个中文语句获得类别及其概率           |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | LSTM-IMDB                                                    |
+| 下载链接               | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍        | 从一个英文语句获得类别及其概率            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | BOW-IMDB                                                     |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍       | 从一个英文语句获得类别及其概率            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | Jieba-LAC                                                    |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
+| 介绍       | 获取中文语句的分词                |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | DNN-CTR                                                      |
+| 下载链接                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
+| 介绍        | 从项目的特征向量中获得点击概率        |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | DNN-CTR(with cube)                                           |
+| 下载链接               | None(Get model by [local_train.py](python/examples/criteo_ctr_with_cube/local_train.py))                            |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr_with_cube |
+| 介绍        | 从项目的特征向量中获得点击概率         |
+
+
+<h2 align="center">文档</h2>
+
+### 新手教程
+- [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
+- [端到端完成从训练到部署全流程](doc/TRAIN_TO_SERVICE_CN.md)
+- [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
+
+### 开发者教程
+- [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
+- [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
+- [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
+- [如何编译PaddleServing?](doc/COMPILE_CN.md)
+
+### 关于Paddle Serving性能
+- [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util/)
+- [CPU版Benchmarks](doc/BENCHMARKING.md)
+- [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
+
+### FAQ
+- [常见问答](doc/deprecated/FAQ.md)
 
 ## 文档
 

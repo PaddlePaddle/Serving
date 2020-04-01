@@ -1,60 +1,66 @@
-## 语义理解预测服务
+## Bert as service
 
-示例中采用BERT模型进行语义理解预测，将文本表示为向量的形式，可以用来做进一步的分析和预测。
+([简体中文](./README_CN.md)|English)
 
-### 获取模型
+In the example, a BERT model is used for semantic understanding prediction, and the text is represented as a vector, which can be used for further analysis and prediction.
 
-示例中采用[Paddlehub](https://github.com/PaddlePaddle/PaddleHub)中的[BERT中文模型](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel)。
-请先安装paddlehub
+### Getting Model
+
+This example use model [BERT Chinese Model](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel) from [Paddlehub](https://github.com/PaddlePaddle/PaddleHub).
+
+Install paddlehub first
 ```
 pip install paddlehub
 ```
-执行
+
+run 
 ```
 python prepare_model.py 20
 ```
-参数20表示BERT模型中的max_seq_len，即预处理后的样本长度。
-生成server端配置文件与模型文件，存放在bert_seq20_model文件夹
-生成client端配置文件，存放在bert_seq20_client文件夹
 
-### 获取词典和样例数据
+the 20 in the command above means max_seq_len in BERT model, which is the length of sample after preprocessing.
+the config file and model file for server side are saved in the folder bert_seq20_model.
+the config file generated for client side is saved in the folder bert_seq20_client.
+
+### Getting Dict and Sample Dataset
 
 ```
 sh get_data.sh
 ```
-脚本将下载中文词典vocab.txt和中文样例数据data-c.txt
+this script will download Chinese Dictionary File vocab.txt and Chinese Sample Data data-c.txt
 
-### 启动RPC预测服务
-执行
+### RPC Inference Service
+Run
 ```
-python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292  #启动cpu预测服务
+python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292  #cpu inference service
 ```
-或者
+Or
 ```
-python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
+python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
 ```
 
-### 执行预测
+### RPC Inference
 
-执行预测前需要安装paddle_serving_app，模块中提供了BERT模型的数据预处理方法。
+before prediction we should install paddle_serving_app. This module provides data preprocessing for BERT model.
 ```
 pip install paddle_serving_app
 ```
-执行
+Run
 ```
 head data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt
 ```
-启动client读取data-c.txt中的数据进行预测，预测结果为文本的向量表示（由于数据较多，脚本中没有将输出进行打印），server端的地址在脚本中修改。
 
-### 启动HTTP预测服务
+the client reads data from data-c.txt and send prediction request, the prediction is given by word vector. (Due to massive data in the word vector, we do not print it).
+
+### HTTP Inference Service
 ```
  export CUDA_VISIBLE_DEVICES=0,1
 ```
-通过环境变量指定gpu预测服务使用的gpu，示例中指定索引为0和1的两块gpu
+set environmental variable to specify which gpus are used, the command above means gpu 0 and gpu 1 is used.
 ```
- python bert_web_service.py bert_seq20_model/ 9292 #启动gpu预测服务
+ python bert_web_service.py bert_seq20_model/ 9292 #launch gpu inference service
 ```
-### 执行预测
+### HTTP Inference 
 
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
@@ -62,16 +68,17 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":[
 
 ### Benchmark
 
-模型：bert_chinese_L-12_H-768_A-12
+Model：bert_chinese_L-12_H-768_A-12
 
-设备：GPU V100 * 1
+GPU：GPU V100 * 1
 
-环境：CUDA 9.2，cudnn 7.1.4
+CUDA/cudnn Version：CUDA 9.2，cudnn 7.1.4
 
-测试中将样例数据中的1W个样本复制为10W个样本，每个client线程发送线程数分之一个样本，batch size为1，max_seq_len为20，时间单位为秒.
 
-在client线程数为4时，预测速度可以达到432样本每秒。
-由于单张GPU内部只能串行计算，client线程增多只能减少GPU的空闲时间，因此在线程数达到4之后，线程数增多对预测速度没有提升。
+In the test, 10 thousand samples in the sample data are copied into 100 thousand samples. Each client thread sends a sample of the number of threads. The batch size is 1, the max_seq_len is 20, and the time unit is seconds.
+
+When the number of client threads is 4, the prediction speed can reach 432 samples per second.
+Because a single GPU can only perform serial calculations internally, increasing the number of client threads can only reduce the idle time of the GPU. Therefore, after the number of threads reaches 4, the increase in the number of threads does not improve the prediction speed.
 
 | client  thread num | prepro | client infer | op0   | op1    | op2  | postpro | total  |
 | ------------------ | ------ | ------------ | ----- | ------ | ---- | ------- | ------ |
@@ -81,5 +88,5 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":[
 | 12                 | 0.32   | 225.26       | 0.029 | 73.87  | 0.53 | 0.078   | 231.45 |
 | 16                 | 0.23   | 227.26       | 0.022 | 55.61  | 0.4  | 0.056   | 231.9  |
 
-总耗时变化规律如下：  
+the following is the client thread num - latency bar chart:
 ![bert benchmark](../../../doc/bert-benchmark-batch-size-1.png)

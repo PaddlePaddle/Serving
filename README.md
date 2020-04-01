@@ -154,7 +154,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 {"label":"daisy","prob":0.9341403245925903}
 ```
 
-<h3 align="center">More Demos</h4>
+<h3 align="center">More Demos</h3>
 
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
@@ -249,8 +249,9 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [Compile from source code(Chinese)](doc/COMPILE.md)
 
 ### About Efficiency
-- [How profile serving efficiency?(Chinese)](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
-- [Benchmarks](doc/BENCHMARK.md)
+- [How to profile Paddle Serving latency?](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
+- [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)
