@@ -8,6 +8,7 @@ The goal of Bert-As-Service is to give a sentence, and the service can represent
 
 Paddle Serving supports various models trained based on Paddle, and saves the serviceable model by specifying the input and output variables of the model. For convenience, we can load a trained bert Chinese model from paddlehub and save a deployable service with two lines of code. The server and client configurations are placed in the `bert_seq20_model` and` bert_seq20_client` folders, respectively.
 
+[//file]:#bert_10.py
 ``` python
 import paddlehub as hub
 model_name = "bert_chinese_L-12_H-768_A-12"
@@ -27,6 +28,7 @@ serving_io.save_model("bert_seq20_model", "bert_seq20_client",
 
 #### Step2: Launch Service
 
+[//file]:#server.sh
 ``` shell
 python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
 ```
@@ -43,6 +45,7 @@ Paddle Serving has many built-in corresponding data preprocessing logics. For th
 
 Install paddle_serving_app
 
+[//file]:#pip_app.sh
 ```shell
 pip install paddle_serving_app
 ```
@@ -51,6 +54,7 @@ pip install paddle_serving_app
 
 the script of client side bert_client.py is as follow:
 
+[//file]:#bert_client.py
 ``` python
 import os
 import sys
@@ -71,6 +75,7 @@ for line in sys.stdin:
 
 run
 
+[//file]:#bert_10_cli.sh
 ```shell
 cat data.txt | python bert_client.py
 ```
@@ -82,3 +87,19 @@ read samples from data.txt, print results at the standard output.
 We tested the performance of Bert-As-Service based on Padde Serving based on V100 and compared it with the Bert-As-Service based on Tensorflow. From the perspective of user configuration, we used the same batch size and concurrent number for stress testing. The overall throughput performance data obtained under 4 V100s is as follows.
 
 ![4v100_bert_as_service_benchmark](4v100_bert_as_service_benchmark.png)
+
+<!--
+yum install -y libXext libSM libXrender
+pip install paddlehub paddle_serving_server paddle_serving_client
+sh pip_app.sh
+python bert_10.py
+sh server.sh &
+wget https://paddle-serving.bj.bcebos.com/bert_example/data-c.txt --no-check-certificate
+head -n 500 data-c.txt > data.txt
+cat data.txt | python bert_client.py
+if [[ $? -eq 0 ]]; then
+    echo "test success"
+else
+    echo "test fail"
+fi
+-->
