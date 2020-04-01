@@ -48,30 +48,6 @@ function rerun() {
     exit 1
 }
 
-function build_app() {
-    local TYPE=$1
-    local DIRNAME=build-app-$TYPE
-    mkdir $DIRNAME # pwd: /Serving
-    cd $DIRNAME # pwd: /Serving/build-app-$TYPE
-    pip install numpy sentencepiece
-    case $TYPE in
-        CPU|GPU)
-            cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-                  -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-                  -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-                  -DAPP=ON ..
-            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
-            pip install -U python/dist/paddle_serving_app* >/dev/null
-            ;;
-        *)
-            echo "error type"
-            exit 1
-            ;;
-    esac
-    echo "build app $TYPE part finished as expected."
-    cd .. # pwd: /Serving
-}
-
 function build_client() {
     local TYPE=$1
     local DIRNAME=build-client-$TYPE
@@ -211,16 +187,17 @@ function python_run_criteo_ctr_with_cube() {
             cp ../../../build-server-$TYPE/output/bin/cube* ./cube/ 
             mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
+
             sh cube_prepare.sh &
             check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"    
             python test_server.py ctr_serving_model_kv &
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
-            tail -n 2 score | awk 'NR==1'
+            tail -n 2 score
             AUC=$(tail -n 2  score | awk 'NR==1')
             VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
             RES=$( echo "$AUC>$VAR2" | bc )
             if [[ $RES -eq 0 ]]; then
-                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
@@ -246,7 +223,7 @@ function python_run_criteo_ctr_with_cube() {
             VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
             RES=$( echo "$AUC>$VAR2" | bc )
             if [[ $RES -eq 0 ]]; then
-                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.70"
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
@@ -277,7 +254,6 @@ function main() {
     init # pwd: /Serving
     build_client $TYPE # pwd: /Serving
     build_server $TYPE # pwd: /Serving
-    build_app $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }

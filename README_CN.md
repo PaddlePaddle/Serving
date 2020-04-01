@@ -1,31 +1,18 @@
-<p align="center">
-    <br>
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
-    <br>
-<p>
-    
-<p align="center">
-    <br>
-    <a href="https://travis-ci.com/PaddlePaddle/Serving">
-        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
-    </a>
-    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
-    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
-    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
-    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
-    <br>
-<p>
+<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "127">
 
-<h2 align="center">动机</h2>
+[![Build Status](https://img.shields.io/travis/com/PaddlePaddle/Serving/develop)](https://travis-ci.com/PaddlePaddle/Serving)
+[![Release](https://img.shields.io/badge/Release-0.0.3-yellowgreen)](Release)
+[![Issues](https://img.shields.io/github/issues/PaddlePaddle/Serving)](Issues)
+[![License](https://img.shields.io/github/license/PaddlePaddle/Serving)](LICENSE)
+[![Slack](https://img.shields.io/badge/Join-Slack-green)](https://paddleserving.slack.com/archives/CU0PB4K35)
 
-Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
-
+## 动机
+Paddle Serving 帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 只要你使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，你就同时拥有了该模型的预测服务。
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
-<h2 align="center">核心功能</h2>
-
+## 核心功能
 - 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
 - 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
 - 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
@@ -33,7 +20,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 - 支持 **多种编程语言** 开发客户端，例如Golang，C++和Python.
 - **可伸缩框架设计** 可支持不限于Paddle的模型服务.
 
-<h2 align="center">安装</h2>
+## 安装
 
 强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
@@ -42,51 +29,17 @@ pip install paddle-serving-client
 pip install paddle-serving-server
 ```
 
-<h2 align="center">快速启动示例</h2>
-
-<h3 align="center">波士顿房价预测</h3>
+## 快速启动示例
 
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
-```
-
-Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
-
-
-<h3 align="center">HTTP服务</h3>
-
-Paddle Serving提供了一个名为`paddle_serving_server.serve`的内置python模块，可以使用单行命令启动RPC服务或HTTP服务。如果我们指定参数`--name uci`，则意味着我们将拥有一个HTTP服务，其URL为$IP:$PORT/uci/prediction`。
-
-``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
-```
-<center>
-
-| Argument | Type | Default | Description |
-|--------------|------|-----------|--------------------------------|
-| `thread` | int | `4` | Concurrency of current service |
-| `port` | int | `9292` | Exposed port of current service to users|
-| `name` | str | `""` | Service name, can be used to generate HTTP request url |
-| `model` | str | `""` | Path of paddle model directory to be served |
-
-我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
-</center>
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
-```
-
-<h3 align="center">RPC服务</h3>
-
-用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
-
-``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
+Python客户端请求
+
 ``` python
-# A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
 
 client = Client()
@@ -159,6 +112,88 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 {"label":"daisy","prob":0.9341403245925903}
 ```
 
+<h3 align="center">更多示例</h3>
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名              | Bert-Base-Baike                                              |
+| 下载链接                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
+| 客户端/服务端代码     | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
+| 介绍                | 获得一个中文语句的语义表示          |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | Resnet50-Imagenet                                            |
+| 下载链接                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| 介绍        | 获得一张图片的图像语义表示              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名       | Resnet101-Imagenet                                           |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
+| 介绍      | 获得一张图片的图像语义表示              |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名        | CNN-IMDB                                                     |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍       | 从一个中文语句获得类别及其概率           |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | LSTM-IMDB                                                    |
+| 下载链接               | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍        | 从一个英文语句获得类别及其概率            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | BOW-IMDB                                                     |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
+| 介绍       | 从一个英文语句获得类别及其概率            |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | Jieba-LAC                                                    |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
+| 介绍       | 获取中文语句的分词                |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | DNN-CTR                                                      |
+| 下载链接                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
+| 介绍        | 从项目的特征向量中获得点击概率        |
+
+
+
+| Key                | Value                                                        |
+| :----------------- | :----------------------------------------------------------- |
+| 模型名         | DNN-CTR(with cube)                                           |
+| 下载链接               | None(Get model by [local_train.py](python/examples/criteo_ctr_with_cube/local_train.py))                            |
+| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr_with_cube |
+| 介绍        | 从项目的特征向量中获得点击概率         |
+
+
 <h2 align="center">文档</h2>
 
 ### 新手教程
@@ -173,30 +208,30 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 
 ### 关于Paddle Serving性能
-- [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util/)
 - [CPU版Benchmarks](doc/BENCHMARKING.md)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
 - [常见问答](doc/deprecated/FAQ.md)
 
-### 设计文档
-- [Paddle Serving设计文档](doc/DESIGN_DOC_CN.md)
+## 文档
 
-<h2 align="center">社区</h2>
+[开发文档](doc/DESIGN.md)
 
-### Slack
+[如何在服务器端配置本地Op?](doc/SERVER_DAG.md)
 
-想要同开发者和其他用户沟通吗？欢迎加入我们的 [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
+[如何开发一个新的Op?](doc/NEW_OPERATOR.md)
 
-### 贡献代码
+[Golang 客户端](doc/IMDB_GO_CLIENT.md)
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/CONTRIBUTE.md)
+[从源码编译](doc/COMPILE.md)
 
-### 反馈
+[常见问答](doc/FAQ.md)
 
-如有任何反馈或是bug，请在 [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues)提交
+## 加入社区
+如果您想要联系其他用户和开发者，欢迎加入我们的 [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
-### License
+## 如何贡献代码
 
-[Apache 2.0 License](https://github.com/PaddlePaddle/Serving/blob/develop/LICENSE)
+如果您想要贡献代码给Paddle Serving，请参考[Contribution Guidelines](doc/CONTRIBUTE.md)

@@ -1,29 +1,31 @@
-## Timeline工具使用
+## Timeline Tool Tutorial
 
-serving框架中内置了预测服务中各阶段时间打点的功能，在client端通过环境变量来控制是否开启，开启后会将打点信息输出到屏幕。
+([简体中文](./README_CN.md)|English)
+
+The serving framework has a built-in function for predicting the timing of each stage of the service. The client controls whether to turn on the environment through environment variables. After opening, the information will be output to the screen.
 ```
-export FLAGS_profile_client=1 #开启client端各阶段时间打点
-export FLAGS_profile_server=1 #开启server端各阶段时间打点
+export FLAGS_profile_client=1 #turn on the client timing tool for each stage
+export FLAGS_profile_server=1 #turn on the server timing tool for each stage
 ```
-开启该功能后，client端在预测的过程中会将对应的日志信息打印到标准输出。
+After enabling this function, the client will print the corresponding log information to standard output during the prediction process.
 
-为了更直观地展现各阶段的耗时，提供脚本对日志文件做进一步的分析处理。
+In order to show the time consuming of each stage more intuitively, a script is provided to further analyze and process the log file.
 
-使用时先将client的输出保存到文件，以profile为例。
+When using, first save the output of the client to a file, taking `profile` as an example.
 ```
 python show_profile.py profile ${thread_num}
 ```
-这里thread_num参数为client运行时的进程数，脚本将按照这个参数来计算各阶段的平均耗时。
+Here the `thread_num` parameter is the number of processes when the client is running, and the script will calculate the average time spent in each phase according to this parameter.
 
-脚本将计算各阶段的耗时，并除以线程数做平均，打印到标准输出。
+The script calculates the time spent in each stage, divides by the number of threads to average, and prints to standard output.
 
 ```
 python timeline_trace.py profile trace
 ```
-脚本将日志中的时间打点信息转换成json格式保存到trace文件，trace文件可以通过chrome浏览器的tracing功能进行可视化。
+The script converts the time-dot information in the log into a json format and saves it to a trace file. The trace file can be visualized through the tracing function of the Chrome browser.
 
-具体操作：打开chrome浏览器，在地址栏输入chrome://tracing/，跳转至tracing页面，点击load按钮，打开保存的trace文件，即可将预测服务的各阶段时间信息可视化。
+Specific operation: Open the chrome browser, enter `chrome://tracing/` in the address bar, jump to the tracing page, click the `load` button, and open the saved trace file to visualize the time information of each stage of the prediction service.
 
-效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
+The data visualization output is shown as follow, it uses [bert as service example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) GPU inference service. The server starts 4 GPU prediction, the client starts 4 `processes`, and the timeline of each stage when the batch size is 1. Among them, `bert_pre` represents the data preprocessing stage of the client, and `client_infer` represents the stage where the client completes sending and receiving prediction requests. `process` represents the process number of the client, and the second line of each process shows the timeline of each op of the server.
 
 ![timeline](../../../doc/timeline-example.png)
