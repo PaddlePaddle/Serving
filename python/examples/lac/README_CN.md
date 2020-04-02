@@ -30,6 +30,3 @@ python lac_web_service.py jieba_server_model/ lac_workdir 9292
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
 ```
-
-
-
