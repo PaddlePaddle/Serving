@@ -15,7 +15,7 @@ Currently, the following types of Monitors are supported:
 | Monitor Type |                         Description                          |                       Specific options                       |
 | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
-|     hdfs     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
+|     hdfs/afs     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
 |     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
 
 | Monitor Shared options |                         Description                          |               Default                |
@@ -82,9 +82,9 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hdfs_bin = '/hadoop-3.1.2/bin/hadoop'
+    hadoop_bin = '/hadoop-3.1.2/bin/hadoop'
     os.system('{} fs -put -f {} {}'.format(
-      hdfs_bin, local_file_path, remote_path))
+      hadoop_bin, local_file_path, remote_path))
 
 name = "uci_housing"
 for pass_id in range(30):
