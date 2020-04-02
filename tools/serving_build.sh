@@ -262,12 +262,71 @@ function python_run_criteo_ctr_with_cube() {
     cd .. # pwd: /Serving/python/examples
 }
 
+function python_test_bert() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    cd bert # pwd: /Serving/python/examples/bert
+    case $TYPE in
+        CPU)
+            pip install paddlehub
+            python prepare_model.py 20
+            sh get_data.sh
+            python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292 &
+            pip install paddle_serving_app
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "bert RPC inference pass" 
+            ;;
+        GPU)
+            pip install paddlehub
+            python prepare_model.py 20
+            sh get_data.sh
+            python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 &
+            pip install paddle_serving_app
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "bert RPC inference pass"
+            ;;
+        *)
+    esac
+    echo "test bert $TYPE finished as expected."
+    cd ..
+}
+
+function python_test_imdb() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    cd imdb # pwd: /Serving/python/examples/bert
+    case $TYPE in
+        CPU)
+            sh get_data.sh
+            python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 &
+            check_cmd "head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab"
+            echo "imdb CPU RPC inference pass"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+
+            python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &
+            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "imdb CPU HTTP inference pass"           
+            ;;
+        GPU)
+            echo "imdb ignore GPU test"
+            ;;
+        *)
+    esac
+    echo "test imdb $TYPE finished as expected."
+    cd ..
+}
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
+    python_test_bert $TYPE # pwd: /Serving/python/examples
+    
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
@@ -275,9 +334,9 @@ function python_run_test() {
 function main() {
     local TYPE=$1 # pwd: /
     init # pwd: /Serving
-    build_client $TYPE # pwd: /Serving
-    build_server $TYPE # pwd: /Serving
-    build_app $TYPE # pwd: /Serving
+#    build_client $TYPE # pwd: /Serving
+#    build_server $TYPE # pwd: /Serving
+#    build_app $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
