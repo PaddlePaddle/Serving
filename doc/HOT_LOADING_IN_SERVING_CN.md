@@ -82,9 +82,9 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hdfs_bin = '/hadoop-3.1.2/bin/hadoop'
+    hadoop_bin = '/hadoop-3.1.2/bin/hadoop'
     os.system('{} fs -put -f {} {}'.format(
-      hdfs_bin, local_file_path, remote_path))
+      hadoop_bin, local_file_path, remote_path))
 
 name = "uci_housing"
 for pass_id in range(30):
