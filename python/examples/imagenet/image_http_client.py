@@ -30,7 +30,10 @@ def predict(image_path, server):
     req = json.dumps({"image": image, "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
-    print(r.json()["score"][0])
+    try:
+        print(r.json()["score"][0])
+    except ValueError:
+        print(r.text)
     return r
 
 
