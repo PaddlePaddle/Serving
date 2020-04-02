@@ -63,19 +63,25 @@ class WebService(object):
                 abort(400)
             if "fetch" not in request.json:
                 abort(400)
-            feed, fetch = self.preprocess(request.json, request.json["fetch"])
-            if isinstance(feed, list):
-                fetch_map_batch = client_service.batch_predict(
-                    feed_batch=feed, fetch=fetch)
-                fetch_map_batch = self.postprocess(
-                    feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
-                result = {"result": fetch_map_batch}
-            elif isinstance(feed, dict):
-                if "fetch" in feed:
-                    del feed["fetch"]
-                fetch_map = client_service.predict(feed=feed, fetch=fetch)
-                result = self.postprocess(
-                    feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            try:
+                feed, fetch = self.preprocess(request.json,
+                                              request.json["fetch"])
+                if isinstance(feed, list):
+                    fetch_map_batch = client_service.predict(
+                        feed_batch=feed, fetch=fetch)
+                    fetch_map_batch = self.postprocess(
+                        feed=request.json,
+                        fetch=fetch,
+                        fetch_map=fetch_map_batch)
+                    result = {"result": fetch_map_batch}
+                elif isinstance(feed, dict):
+                    if "fetch" in feed:
+                        del feed["fetch"]
+                    fetch_map = client_service.predict(feed=feed, fetch=fetch)
+                    result = self.postprocess(
+                        feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            except ValueError:
+                result = {"result": "Request Value Error"}
             return result
 
         app_instance.run(host="0.0.0.0",
