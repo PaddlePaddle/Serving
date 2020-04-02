@@ -101,10 +101,8 @@ class LACReader(object):
         return word_ids
 
     def parse_result(self, words, crf_decode):
-        tags = [
-            self.id2label_dict[str(x)] for x in crf_decode
-        ]
-        
+        tags = [self.id2label_dict[str(x)] for x in crf_decode]
+
         sent_out = []
         tags_out = []
         partial_word = ""
@@ -119,10 +117,8 @@ class LACReader(object):
                 partial_word = words[ind]
                 continue
             partial_word += words[ind]
-        
+
         if len(sent_out) < len(tags_out):
             sent_out.append(partial_word)
 
         return sent_out
-                
-        
