@@ -70,7 +70,7 @@ include(external/jsoncpp)
 #include(external/rocksdb)
 endif()
 
-if (SERVER OR CLIENT)
+if (SERVER OR CLIENT OR APP)
 include(external/snappy)
 include(external/leveldb)
 include(external/zlib)

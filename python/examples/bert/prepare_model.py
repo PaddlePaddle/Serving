@@ -15,7 +15,8 @@
 import paddlehub as hub
 import paddle.fluid as fluid
 import sys
-import paddle_serving_client.io as serving_io
+import paddle_serving_app.io as serving_io
+import six
 
 model_name = "bert_chinese_L-12_H-768_A-12"
 module = hub.Module(model_name)

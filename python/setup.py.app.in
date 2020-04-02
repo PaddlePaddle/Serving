@@ -47,13 +47,19 @@ REQUIRED_PACKAGES = [
 
 packages=['paddle_serving_app',
           'paddle_serving_app.reader',
-	  'paddle_serving_app.utils']
+          'paddle_serving_app.io',
+          'paddle_serving_app.proto',
+          'paddle_serving_app.utils']
 
 package_data={}
 package_dir={'paddle_serving_app':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app',
              'paddle_serving_app.reader':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader',
+             'paddle_serving_app.io':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/io',
+             'paddle_serving_app.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/proto',
 	     'paddle_serving_app.utils':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/utils',}
 

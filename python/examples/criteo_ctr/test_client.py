@@ -14,7 +14,6 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-import paddle
 import sys
 import os
 import time
@@ -27,7 +26,7 @@ py_version = sys.version_info[0]
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9292"])
+client.connect(["127.0.0.1:9393"])
 
 batch = 1
 buf_size = 100

@@ -61,7 +61,6 @@ if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
 
 packages=['paddle_serving_client',
           'paddle_serving_client.proto',
-          'paddle_serving_client.io',
 	  'paddle_serving_client.metric',
 	  'paddle_serving_client.utils',]
 package_data={'paddle_serving_client': ['serving_client.so','lib/*'],}
@@ -69,8 +68,6 @@ package_dir={'paddle_serving_client':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client',
              'paddle_serving_client.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto',
-             'paddle_serving_client.io':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/io',
 	     'paddle_serving_client.metric':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/metric',
 	     'paddle_serving_client.utils':
