@@ -83,18 +83,26 @@ class Monitor(object):
         if self._local_tmp_path is None:
             raise Exception('local_tmp_path not set.')
 
-    def _decompress_model_file(local_tmp_path, model_name, unpacked_filename):
+    def _decompress_model_file(self, local_tmp_path, model_name,
+                               unpacked_filename):
+        import sys
+        print(unpacked_filename)
+        sys.stdout.flush()
         if unpacked_filename is None:
             return model_name
         tar_model_path = os.path.join(local_tmp_path, model_name)
+        print(tar_model_path)
+        sys.stdout.flush()
         if not tarfile.is_tarfile(tar_model_path):
             raise Exception(
                 'the model({}) of remote production is not a tar packaged file type.'.
                 format(tar_model_path))
         try:
             tar = tarfile.open(tar_model_path)
-            tar.extractall(path=os.join(local_tmp_path))
+            tar.extractall(local_tmp_path)
             tar.close()
+            print('ok')
+            sys.stdout.flush()
         except:
             raise Exception(
                 'Decompressing failed, please check your permission of {} or disk space left.'.
@@ -256,33 +264,49 @@ class FTPMonitor(Monitor):
         except ftplib.error_perm:
             return [False, None]
 
+    def _download_remote_file(self,
+                              remote_path,
+                              remote_filename,
+                              local_tmp_path,
+                              overwrite=True):
+        local_fullpath = os.path.join(local_tmp_path, remote_filename)
+        if not overwrite and os.path.isfile(fullpath):
+            return
+        else:
+            with open(local_fullpath, 'wb') as f:
+                self._ftp.cwd(remote_path)
+                self._ftp.retrbinary('RETR {}'.format(remote_filename), f.write)
+
     def _download_remote_files(self,
                                remote_path,
                                remote_dirname,
                                local_tmp_path,
                                overwrite=True):
-        local_dirpath = os.path.join(local_tmp_path, remote_dirname)
-        if not os.path.exists(local_dirpath):
-            os.mkdir(local_dirpath)
-
+        import ftplib
         remote_dirpath = os.path.join(remote_path, remote_dirname)
-        output = []
-        self._ftp.cwd(remote_dirpath)
-        self._ftp.dir(output.append)
-        for line in output:
-            [attr, _, _, _, _, _, _, _, name] = line.split()
-            if attr[0] == 'd':
-                self._download_remote_files(
-                    os.path.join(remote_path, remote_dirname), name,
-                    os.path.join(local_tmp_path, remote_dirname), overwrite)
-            else:
-                fullpath = os.path.join(local_tmp_path, remote_dirname, name)
-                if not overwrite and os.path.isfile(fullpath):
-                    continue
+        # Check whether remote_dirpath is a file or a folder
+        try:
+            self._ftp.cwd(remote_dirpath)
+
+            local_dirpath = os.path.join(local_tmp_path, remote_dirname)
+            if not os.path.exists(local_dirpath):
+                os.mkdir(local_dirpath)
+
+            output = []
+            self._ftp.dir(output.append)
+            for line in output:
+                [attr, _, _, _, _, _, _, _, name] = line.split()
+                if attr[0] == 'd':
+                    self._download_remote_files(
+                        os.path.join(remote_path, remote_dirname), name,
+                        os.path.join(local_tmp_path, remote_dirname), overwrite)
                 else:
-                    with open(fullpath, 'wb') as f:
-                        self._ftp.cwd(remote_dirpath)
-                        self._ftp.retrbinary('RETR {}'.format(name), f.write)
+                    self._download_remote_file(remote_dirname, name,
+                                               local_tmp_path, overwrite)
+        except ftplib.error_perm:
+            self._download_remote_file(remote_path, remote_dirname,
+                                       local_tmp_path, overwrite)
+            return
 
     def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
         self._download_remote_files(
