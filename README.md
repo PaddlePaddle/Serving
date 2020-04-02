@@ -254,7 +254,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
-- [FAQ(Chinese)](doc/FAQ.md)
+- [FAQ(Chinese)](doc/deprecated/FAQ.md)
 
 
 ### Design
