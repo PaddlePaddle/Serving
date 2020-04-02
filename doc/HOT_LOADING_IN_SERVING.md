@@ -15,9 +15,9 @@ Currently, the following types of Monitors are supported:
 | Monitor Type |                         Description                          |                       Specific options                       |
 | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
-|     HDFS     | The remote is HDFS, and relevant commands are executed through HDFS binary |             `hdfs_bin` Path of HDFS binary file.             |
+|     hdfs     | The remote is HDFS, and relevant commands are executed through HDFS binary |             `hdfs_bin` Path of HDFS binary file.             |
 |     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
-|     Afs      | The remote is AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br>`hadoop_host` AFS host. Not used if set in Hadoop-client.<br>`hadoop_ugi` AFS ugi, Not used if set in Hadoop-client. |
+|     afs      | The remote is AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br>`hadoop_host` AFS host. Not used if set in Hadoop-client.<br>`hadoop_ugi` AFS ugi, Not used if set in Hadoop-client. |
 
 | Monitor Shared options |                         Description                          |               Default                |
 | :--------------------: | :----------------------------------------------------------: | :----------------------------------: |

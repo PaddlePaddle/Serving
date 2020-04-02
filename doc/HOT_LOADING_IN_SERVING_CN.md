@@ -14,10 +14,10 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 
 | Monitor类型 |                             描述                             |                           特殊选项                           |
 | :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|   General   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
-|    HDFS     |            远端为HDFS，通过HDFS二进制执行相关命令            |                 `hdfs_bin` HDFS二进制的路径                  |
-|     FTP     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
-|     AFS     |           远端为AFS，通过Hadoop-client执行相关命令           | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
+|   general   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
+|    hdfs     |            远端为HDFS，通过HDFS二进制执行相关命令            |                 `hdfs_bin` HDFS二进制的路径                  |
+|     ftp     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
+|     afs     |           远端为AFS，通过Hadoop-client执行相关命令           | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
 
 |    Monitor通用选项     |                             描述                             |         默认值         |
 | :--------------------: | :----------------------------------------------------------: | :--------------------: |
