@@ -1,53 +1,55 @@
-# Docker编译环境准备
+# Docker compilation environment preparation
 
-## 环境要求
+([简体中文](./DOCKER_CN.md)|English)
 
-+ 开发机上已安装Docker。
-+ 编译GPU版本需要安装nvidia-docker。
+## Environmental requirements
 
-## Dockerfile文件
++ Docker is installed on the development machine.
++ Compiling the GPU version requires nvidia-docker.
 
-[CPU版本Dockerfile](../Dockerfile)
+## Dockerfile
 
-[GPU版本Dockerfile](../Dockerfile.gpu)
+[CPU Version Dockerfile](../tools/Dockerfile)
 
-## 使用方法
+[GPU Version Dockerfile](../tools/Dockerfile.gpu)
 
-### 构建Docker镜像
+## Instructions
 
-建立新目录，复制Dockerfile内容到该目录下Dockerfile文件。
+### Building Docker Image
 
-执行
+Create a new directory and copy the Dockerfile to this directory.
+
+Run
 
 ```bash
 docker build -t serving_compile:cpu .
 ```
 
-或者
+Or
 
 ```bash
 docker build -t serving_compile:cuda9 .
 ```
 
-## 进入Docker
+## Enter Docker Container
 
-CPU版本请执行
+CPU Version please run
 
 ```bash
 docker run -it serving_compile:cpu bash
 ```
 
-GPU版本请执行
+GPU Version please run
 
 ```bash
 docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 ```
 
-## Docker编译出的可执行文件支持的环境列表
+##  List of supported environments compiled by Docker
 
-经过验证的环境列表如下：
+The list of supported environments is as follows:：
 
-| CPU Docker编译出的可执行文件支持的系统环境 |
+| System Environment Supported by CPU Docker Compiled Executables |
 | -------------------------- |
 | Centos6                    |
 | Centos7                    |
@@ -56,7 +58,7 @@ docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 
 
 
-| GPU Docker编译出的可执行文件支持的系统环境 |
+| System Environment Supported by GPU Docker Compiled Executables |
 | ---------------------------------- |
 | Centos6_cuda9_cudnn7                       |
 | Centos7_cuda9_cudnn7                  |
@@ -65,6 +67,6 @@ docker run -it --runtime=nvidia -it serving_compile:cuda9 bash
 
 
 
-**备注：** 
-+ 若执行预编译版本出现找不到libcrypto.so.10、libssl.so.10的情况，可以将Docker环境中的/usr/lib64/libssl.so.10与/usr/lib64/libcrypto.so.10复制到可执行文件所在目录。
-+ CPU预编译版本仅可在CPU机器上执行，GPU预编译版本仅可在GPU机器上执行。
+**Remarks:**
++ If you cannot find libcrypto.so.10 and libssl.so.10 when you execute the pre-compiled version, you can change /usr/lib64/libssl.so.10 and /usr/lib64/libcrypto.so in the Docker environment. 10 Copy to the directory where the executable is located.
++ CPU pre-compiled version can only be executed on CPU machines, GPU pre-compiled version can only be executed on GPU machines.
