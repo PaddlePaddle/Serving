@@ -1,5 +1,7 @@
 # Paddle Serving中的模型热加载
 
+(简体中文|[English](HOT_LOADING_IN_SERVING.md))
+
 ## 背景
 
 在实际的工业场景下，通常是远端定期不间断产出模型，线上服务端需要在服务不中断的情况下拉取新模型对旧模型进行更新迭代。
@@ -29,6 +31,7 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 |    `local_tmp_path`    |    指定本地存放临时文件的文件夹路径，若不存在则自动创建。    | `_serving_monitor_tmp` |
 |       `interval`       |                 指定轮询间隔时间，单位为秒。                 |          `10`          |
 |  `unpacked_filename`   | Monitor支持tarfile打包的远程模型。如果远程模型是打包格式，则需要设置该选项来告知Monitor解压后的文件名。 |         `None`         |
+|        `debug`         |       如果添加`--debug`选项，则输出更详细的中间信息。        |    默认不添加该选项    |
 
 下面通过HDFSMonitor示例来展示Paddle Serving的模型热加载功能。
 
@@ -148,14 +151,45 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ```shell
 python -m paddle_serving_server.monitor \
---type='hdfs' --hdfs_bin='/hadoop-3.1.2/bin/hdfs' --remote_path='/' \
---remote_model_name='uci_housing.tar.gz' --remote_donefile_name='donefile' \
---local_path='.' --local_model_name='uci_housing_model' \
---local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp' \
---unpacked_filename='uci_housing_model'
+	--type='hdfs' --hdfs_bin='/hadoop-3.1.2/bin/hdfs' --remote_path='/' \
+	--remote_model_name='uci_housing.tar.gz' --remote_donefile_name='donefile' \
+	--local_path='.' --local_model_name='uci_housing_model' \
+	--local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp' \
+	--unpacked_filename='uci_housing_model' --debug
 ```
 
 上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程打包模型`/uci_housing.tar.gz`拉取到本地临时路径`./_tmp/uci_housing.tar.gz`下，解包出模型文件`./_tmp/uci_housing_model`后，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
+
+预计输出如下：
+
+```shell
+2020-04-02 08:38 INFO     [monitor.py:85] _hdfs_bin: /hadoop-3.1.2/bin/hdfs
+2020-04-02 08:38 INFO     [monitor.py:244] HDFS prefix cmd: /hadoop-3.1.2/bin/hdfs dfs
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_path: /
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_donefile_name: donefile
+2020-04-02 08:38 INFO     [monitor.py:85] _local_model_name: uci_housing_model
+2020-04-02 08:38 INFO     [monitor.py:85] _local_path: .
+2020-04-02 08:38 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
+2020-04-02 08:38 INFO     [monitor.py:85] _local_tmp_path: _tmp
+2020-04-02 08:38 INFO     [monitor.py:85] _interval: 10
+2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
+2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
+2020-04-02 08:38 INFO     [monitor.py:138] doneilfe(donefile) changed.
+2020-04-02 08:38 DEBUG    [monitor.py:261] pull cmd: /hadoop-3.1.2/bin/hdfs dfs  -get -f /uci_housing.tar.gz _tmp
+2020-04-02 08:38 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
+2020-04-02 08:38 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
+2020-04-02 08:38 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
+2020-04-02 08:38 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
+2020-04-02 08:38 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
+2020-04-02 08:38 INFO     [monitor.py:152] update local model(uci_housing_model).
+2020-04-02 08:38 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
+2020-04-02 08:38 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
+2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
+2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
+2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+```
 
 #### 查看Server日志
 
