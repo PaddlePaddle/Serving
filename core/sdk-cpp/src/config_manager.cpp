@@ -31,6 +31,7 @@ int EndpointConfigManager::create(const std::string& sdk_desc_str) {
     LOG(ERROR) << "Failed reload endpoint config";
     return -1;
   }
+
   return 0;
 }
 
