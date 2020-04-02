@@ -23,6 +23,7 @@ import argparse
 import commands
 import datetime
 import shutil
+import tarfile
 
 
 class Monitor(object):
@@ -40,6 +41,7 @@ class Monitor(object):
         self._interval = interval
         self._remote_donefile_timestamp = None
         self._local_tmp_path = None
+        self._unpacked_filename = None
 
     def set_remote_path(self, remote_path):
         self._remote_path = remote_path
@@ -62,6 +64,13 @@ class Monitor(object):
     def set_local_tmp_path(self, tmp_path):
         self._local_tmp_path = tmp_path
 
+    def set_unpacked_filename(self, unpacked_filename):
+        self._unpacked_filename = unpacked_filename
+
+    def _check_param_help(self, param_name, param_value):
+        return "Please check the {}({}) parameter.".format(param_name,
+                                                           param_value)
+
     def _check_params(self):
         if self._remote_path is None:
             raise Exception('remote_path not set.')
@@ -77,6 +86,30 @@ class Monitor(object):
             raise Exception('local_timestamp_file not set.')
         if self._local_tmp_path is None:
             raise Exception('local_tmp_path not set.')
+
+    def _decompress_model_file(self, local_tmp_path, model_name,
+                               unpacked_filename):
+        if unpacked_filename is None:
+            return model_name
+        tar_model_path = os.path.join(local_tmp_path, model_name)
+        if not tarfile.is_tarfile(tar_model_path):
+            raise Exception('not a tar packaged file type. {}'.format(
+                self._check_param_help('remote_model_name', model_name)))
+        try:
+            tar = tarfile.open(tar_model_path)
+            tar.extractall(local_tmp_path)
+            tar.close()
+        except:
+            raise Exception(
+                'Decompressing failed, maybe no disk space left. {}'.foemat(
+                    self._check_param_help('local_tmp_path', local_tmp_path)))
+        finally:
+            os.remove(tar_model_path)
+            if not os.path.exists(unpacked_filename):
+                raise Exception('file not exist. {}'.format(
+                    self._check_param_help('unpacked_filename',
+                                           unpacked_filename)))
+            return unpacked_filename
 
     def run(self):
         '''
@@ -98,8 +131,11 @@ class Monitor(object):
                                           self._local_tmp_path)
                     print('{} [INFO] pull remote model'.format(
                         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-                    self._update_local_model(
+                    unpacked_filename = self._decompress_model_file(
                         self._local_tmp_path, self._remote_model_name,
+                        self._unpacked_filename)
+                    self._update_local_model(
+                        self._local_tmp_path, unpacked_filename,
                         self._local_path, self._local_model_name)
                     print('{} [INFO] update model'.format(datetime.datetime.now(
                     ).strftime('%Y-%m-%d %H:%M:%S')))
@@ -175,7 +211,8 @@ class AFSMonitor(Monitor):
         cmd = '{} -get {} {}'.format(self._cmd_prefix, remote_dirpath,
                                      local_dirpath)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 class HDFSMonitor(Monitor):
@@ -200,7 +237,8 @@ class HDFSMonitor(Monitor):
         cmd = '{} -get -f {} {}'.format(self._prefix_cmd, remote_dirpath,
                                         local_tmp_path)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 class FTPMonitor(Monitor):
@@ -224,33 +262,49 @@ class FTPMonitor(Monitor):
         except ftplib.error_perm:
             return [False, None]
 
+    def _download_remote_file(self,
+                              remote_path,
+                              remote_filename,
+                              local_tmp_path,
+                              overwrite=True):
+        local_fullpath = os.path.join(local_tmp_path, remote_filename)
+        if not overwrite and os.path.isfile(fullpath):
+            return
+        else:
+            with open(local_fullpath, 'wb') as f:
+                self._ftp.cwd(remote_path)
+                self._ftp.retrbinary('RETR {}'.format(remote_filename), f.write)
+
     def _download_remote_files(self,
                                remote_path,
                                remote_dirname,
                                local_tmp_path,
                                overwrite=True):
-        local_dirpath = os.path.join(local_tmp_path, remote_dirname)
-        if not os.path.exists(local_dirpath):
-            os.mkdir(local_dirpath)
-
+        import ftplib
         remote_dirpath = os.path.join(remote_path, remote_dirname)
-        output = []
-        self._ftp.cwd(remote_dirpath)
-        self._ftp.dir(output.append)
-        for line in output:
-            [attr, _, _, _, _, _, _, _, name] = line.split()
-            if attr[0] == 'd':
-                self._download_remote_files(
-                    os.path.join(remote_path, remote_dirname), name,
-                    os.path.join(local_tmp_path, remote_dirname), overwrite)
-            else:
-                fullpath = os.path.join(local_tmp_path, remote_dirname, name)
-                if not overwrite and os.path.isfile(fullpath):
-                    continue
+        # Check whether remote_dirpath is a file or a folder
+        try:
+            self._ftp.cwd(remote_dirpath)
+
+            local_dirpath = os.path.join(local_tmp_path, remote_dirname)
+            if not os.path.exists(local_dirpath):
+                os.mkdir(local_dirpath)
+
+            output = []
+            self._ftp.dir(output.append)
+            for line in output:
+                [attr, _, _, _, _, _, _, _, name] = line.split()
+                if attr[0] == 'd':
+                    self._download_remote_files(
+                        os.path.join(remote_path, remote_dirname), name,
+                        os.path.join(local_tmp_path, remote_dirname), overwrite)
                 else:
-                    with open(fullpath, 'wb') as f:
-                        self._ftp.cwd(remote_dirpath)
-                        self._ftp.retrbinary('RETR {}'.format(name), f.write)
+                    self._download_remote_file(remote_dirname, name,
+                                               local_tmp_path, overwrite)
+        except ftplib.error_perm:
+            self._download_remote_file(remote_path, remote_dirname,
+                                       local_tmp_path, overwrite)
+            return
 
     def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
         self._download_remote_files(
@@ -270,7 +324,7 @@ class GeneralMonitor(Monitor):
     def _exist_remote_file(self, path, filename, local_tmp_path):
         remote_filepath = os.path.join(path, filename)
         url = '{}/{}'.format(self._host, remote_filepath)
-        cmd = 'wget -N -P {} {}'.format(local_tmp_path, url)
+        cmd = 'wget -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         if os.system(cmd) != 0:
             return [False, None]
         else:
@@ -281,9 +335,10 @@ class GeneralMonitor(Monitor):
     def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
         remote_dirpath = os.path.join(remote_path, dirname)
         url = '{}/{}'.format(self._host, remote_dirpath)
-        cmd = 'wget -nH -r -P {} {} &> /dev/null'.format(local_tmp_path, url)
+        cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(local_tmp_path, url)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 def parse_args():
@@ -317,6 +372,12 @@ def parse_args():
         type=str,
         default='_serving_monitor_tmp',
         help="Local tmp path")
+    parser.add_argument(
+        "--unpacked_filename",
+        type=str,
+        default=None,
+        help="If the model of the remote production is a packaged file, the unpacked file name should be set. Currently, only tar packaging format is supported."
+    )
     parser.add_argument(
         "--interval", type=int, default=10, help="Time interval")
     # general monitor
@@ -379,6 +440,7 @@ def start_monitor(monitor, args):
     monitor.set_local_model_name(args.local_model_name)
     monitor.set_local_timestamp_file(args.local_timestamp_file)
     monitor.set_local_tmp_path(args.local_tmp_path)
+    monitor.set_unpacked_filename(args.unpacked_filename)
     monitor.run()
 
 
