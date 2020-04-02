@@ -391,31 +391,37 @@ def parse_args():
     parser.add_argument(
         "--type", type=str, default='general', help="Type of remote server")
     parser.add_argument(
-        "--remote_path", type=str, required=True, help="Remote path")
+        "--remote_path",
+        type=str,
+        required=True,
+        help="The base path for the remote")
     parser.add_argument(
         "--remote_model_name",
         type=str,
         required=True,
-        help="Remote model name")
+        help="The model name to be pulled from the remote")
     parser.add_argument(
         "--remote_donefile_name",
         type=str,
         required=True,
-        help="Remote donefile name")
+        help="The donefile name that marks the completion of the remote model update"
+    )
     parser.add_argument(
-        "--local_path", type=str, required=True, help="Local path")
+        "--local_path", type=str, required=True, help="Local work path")
     parser.add_argument(
         "--local_model_name", type=str, required=True, help="Local model name")
     parser.add_argument(
         "--local_timestamp_file",
         type=str,
         default='fluid_time_file',
-        help="Local timestamp file name(fluid_time_file in model file)")
+        help="The timestamp file used locally for hot loading, The file is considered to be placed in the `local_path/local_model_name` folder."
+    )
     parser.add_argument(
         "--local_tmp_path",
         type=str,
         default='_serving_monitor_tmp',
-        help="Local tmp path")
+        help="The path of the folder where temporary files are stored locally. If it does not exist, it will be created automatically"
+    )
     parser.add_argument(
         "--unpacked_filename",
         type=str,
@@ -423,29 +429,43 @@ def parse_args():
         help="If the model of the remote production is a packaged file, the unpacked file name should be set. Currently, only tar packaging format is supported."
     )
     parser.add_argument(
-        "--interval", type=int, default=10, help="Time interval")
+        "--interval",
+        type=int,
+        default=10,
+        help="The polling interval in seconds")
     parser.add_argument(
-        "--debug", action='store_true', help="If true, output more details")
+        "--debug", action='store_true', help="If set, output more details")
     parser.set_defaults(debug=False)
     # general monitor
-    parser.add_argument(
-        "--general_host", type=str, help="Host of general remote server")
+    parser.add_argument("--general_host", type=str, help="General remote host")
     # hdfs monitor
-    parser.add_argument("--hdfs_bin", type=str, help="Hdfs binary file path")
+    parser.add_argument("--hdfs_bin", type=str, help="Path of HDFS binary file")
     # ftp monitor
-    parser.add_argument("--ftp_host", type=str, help="Host of ftp")
-    parser.add_argument("--ftp_port", type=int, help="Port of ftp")
+    parser.add_argument("--ftp_host", type=str, help="FTP remote host")
+    parser.add_argument("--ftp_port", type=int, help="FTP remote port")
     parser.add_argument(
-        "--ftp_username", type=str, default='', help="Username of ftp")
+        "--ftp_username",
+        type=str,
+        default='',
+        help="FTP username. Not used if anonymous access.")
     parser.add_argument(
-        "--ftp_password", type=str, default='', help="Password of ftp")
+        "--ftp_password",
+        type=str,
+        default='',
+        help="FTP password. Not used if anonymous access")
     # afs monitor
     parser.add_argument(
-        "--hadoop_bin", type=str, help="Hadoop_bin_path for afs")
+        "--hadoop_bin", type=str, help="Path of Hadoop binary file")
     parser.add_argument(
-        "--hadoop_host", type=str, default=None, help="Hadoop_host for afs")
+        "--hadoop_host",
+        type=str,
+        default=None,
+        help="AFS host. Not used if set in Hadoop-client.")
     parser.add_argument(
-        "--hadoop_ugi", type=str, default=None, help="Hadoop_ugi for afs")
+        "--hadoop_ugi",
+        type=str,
+        default=None,
+        help="AFS ugi, Not used if set in Hadoop-client")
     return parser.parse_args()
 
 
