@@ -29,8 +29,7 @@ class LACService(WebService):
         return {"words": feed_data}, fetch
 
     def postprocess(self, feed={}, fetch=[], fetch_map={}):
-        segs = self.reader.parse_result(
-            feed["words"], fetch_map["crf_decode"])
+        segs = self.reader.parse_result(feed["words"], fetch_map["crf_decode"])
         return {"word_seg": "|".join(segs)}
 
 
