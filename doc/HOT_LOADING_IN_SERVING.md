@@ -1,8 +1,12 @@
 # Hot Loading in Paddle Serving
 
+([简体中文](HOT_LOADING_IN_SERVING_CN.md)|English)
+
 ## Background
 
 In the industrial scenario, it is usually the remote periodic output model, and the online server needs to pull down the new model to update the old model without service interruption.
+
+## Server Monitor
 
 Paddle Serving provides an automatic monitoring script. After the remote address updates the model, the new model will be pulled to update the local model. At the same time, the `fluid_time_stamp` in the local model folder will be updated to realize model hot loading.
 
@@ -10,23 +14,24 @@ Currently, the following types of Monitors are supported:
 
 | Monitor Type |                         Description                          |                       Specific options                       |
 | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|   General    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
+|   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
 |     HDFS     | The remote is HDFS, and relevant commands are executed through HDFS binary |             `hdfs_bin` Path of HDFS binary file.             |
-|     FTP      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
-|     AFS      | The remote is AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br>`hadoop_host` AFS host. Not used if set in Hadoop-client.<br>`hadoop_ugi` AFS ugi, Not used if set in Hadoop-client. |
+|     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
+|     Afs      | The remote is AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br>`hadoop_host` AFS host. Not used if set in Hadoop-client.<br>`hadoop_ugi` AFS ugi, Not used if set in Hadoop-client. |
 
-| Monitor Shared options |                         Description                          |        Default         |
-| :--------------------: | :----------------------------------------------------------: | :--------------------: |
-|         `type`         |                 Specify the type of monitor                  |           /            |
-|     `remote_path`      |             Specify the base path for the remote             |           /            |
-|  `remote_model_name`   |     Specify the model name to be pulled from the remote      |           /            |
-| `remote_donefile_name` | Specify the donefile name that marks the completion of the remote model update |           /            |
-|      `local_path`      |                   Specify local work path                    |           /            |
-|   `local_model_name`   |                   Specify local model name                   |           /            |
-| `local_timestamp_file` | Specify the timestamp file used locally for hot loading, The file is considered to be placed in the `local_path/local_model_name` folder. |   `fluid_time_file`    |
-|    `local_tmp_path`    | Specify the path of the folder where temporary files are stored locally. If it does not exist, it will be created automatically. | `_serving_monitor_tmp` |
-|       `interval`       |           Specify the polling interval in seconds.           |          `10`          |
-|  `unpacked_filename`   | Monitor supports the `tarfile` packaged remote model file. If the remote model is in a packaged format, you need to set this option to tell monitor the name of the extracted file. |         `None`         |
+| Monitor Shared options |                         Description                          |               Default                |
+| :--------------------: | :----------------------------------------------------------: | :----------------------------------: |
+|         `type`         |                 Specify the type of monitor                  |                  /                   |
+|     `remote_path`      |             Specify the base path for the remote             |                  /                   |
+|  `remote_model_name`   |     Specify the model name to be pulled from the remote      |                  /                   |
+| `remote_donefile_name` | Specify the donefile name that marks the completion of the remote model update |                  /                   |
+|      `local_path`      |                   Specify local work path                    |                  /                   |
+|   `local_model_name`   |                   Specify local model name                   |                  /                   |
+| `local_timestamp_file` | Specify the timestamp file used locally for hot loading, The file is considered to be placed in the `local_path/local_model_name` folder. |          `fluid_time_file`           |
+|    `local_tmp_path`    | Specify the path of the folder where temporary files are stored locally. If it does not exist, it will be created automatically. |        `_serving_monitor_tmp`        |
+|       `interval`       |           Specify the polling interval in seconds.           |                 `10`                 |
+|  `unpacked_filename`   | Monitor supports the `tarfile` packaged remote model file. If the remote model is in a packaged format, you need to set this option to tell monitor the name of the extracted file. |                `None`                |
+|        `debug`         | If the `-- debug` option is added, more detailed intermediate information will be output. | This option is not added by default. |
 
 The following is an example of HDFSMonitor to show the model hot loading of Paddle Serving.
 
@@ -150,10 +155,43 @@ python -m paddle_serving_server.monitor \
 	--remote_model_name='uci_housing.tar.gz' --remote_donefile_name='donefile' \
 	--local_path='.' --local_model_name='uci_housing_model' \
 	--local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp' \
-	--unpacked_filename='uci_housing_model'
+	--unpacked_filename='uci_housing_model' --debug
 ```
 
 The above code monitors the remote timestamp file `/donefile` of the remote HDFS address `/` every 10 seconds by polling. When the remote timestamp file changes, the remote model is considered to have been updated. Pull the remote packaging model `/uci_housing.tar.gz` to the local temporary path `./_tmp/uci_housing.tar.gz`. After unpacking to get the model file `./_tmp/uci_housing_model`, update the local model `./uci_housing_model` and the model timestamp file `./uci_housing_model/fluid_time_file` of Paddle Serving.
+
+The expected output is as follows:
+
+```shell
+2020-04-02 08:38 INFO     [monitor.py:85] _hdfs_bin: /hadoop-3.1.2/bin/hdfs
+2020-04-02 08:38 INFO     [monitor.py:244] HDFS prefix cmd: /hadoop-3.1.2/bin/hdfs dfs
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_path: /
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
+2020-04-02 08:38 INFO     [monitor.py:85] _remote_donefile_name: donefile
+2020-04-02 08:38 INFO     [monitor.py:85] _local_model_name: uci_housing_model
+2020-04-02 08:38 INFO     [monitor.py:85] _local_path: .
+2020-04-02 08:38 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
+2020-04-02 08:38 INFO     [monitor.py:85] _local_tmp_path: _tmp
+2020-04-02 08:38 INFO     [monitor.py:85] _interval: 10
+2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
+2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
+2020-04-02 08:38 INFO     [monitor.py:138] doneilfe(donefile) changed.
+2020-04-02 08:38 DEBUG    [monitor.py:261] pull cmd: /hadoop-3.1.2/bin/hdfs dfs  -get -f /uci_housing.tar.gz _tmp
+2020-04-02 08:38 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
+2020-04-02 08:38 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
+2020-04-02 08:38 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
+2020-04-02 08:38 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
+2020-04-02 08:38 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
+2020-04-02 08:38 INFO     [monitor.py:152] update local model(uci_housing_model).
+2020-04-02 08:38 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
+2020-04-02 08:38 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
+2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
+2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
+2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+```
+
+
 
 #### View server logs
 

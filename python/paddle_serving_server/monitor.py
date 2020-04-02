@@ -240,15 +240,15 @@ class HDFSMonitor(Monitor):
         super(HDFSMonitor, self).__init__(interval)
         self._hdfs_bin = hdfs_bin
         self._print_params(['_hdfs_bin'])
-        self._prefix_cmd = '{} dfs '.format(self._hdfs_bin_path)
-        _LOGGER.info('HDFS prefix cmd: {}'.format(self._cmd_prefix))
+        self._prefix_cmd = '{} dfs '.format(self._hdfs_bin)
+        _LOGGER.info('HDFS prefix cmd: {}'.format(self._prefix_cmd))
 
     def _exist_remote_file(self, path, filename, local_tmp_path):
         remote_filepath = os.path.join(path, filename)
         cmd = '{} -stat "%Y" {}'.format(self._prefix_cmd, remote_filepath)
         _LOGGER.debug('check cmd: {}'.format(cmd))
         [status, timestamp] = commands.getstatusoutput(cmd)
-        _LOGGER.debug('resp: {}'.format(output))
+        _LOGGER.debug('resp: {}'.format(timestamp))
         if status == 0:
             return [True, timestamp]
         else:
@@ -302,9 +302,10 @@ class FTPMonitor(Monitor):
             return
         else:
             with open(local_fullpath, 'wb') as f:
-                _LOGGER.debug('cwd: {}'.format(path))
+                _LOGGER.debug('cwd: {}'.format(remote_path))
                 self._ftp.cwd(remote_path)
-                _LOGGER.debug('download remote file({})'.format(remote_path))
+                _LOGGER.debug('download remote file({})'.format(
+                    remote_filename))
                 self._ftp.retrbinary('RETR {}'.format(remote_filename), f.write)
 
     def _download_remote_files(self,
@@ -423,6 +424,9 @@ def parse_args():
     )
     parser.add_argument(
         "--interval", type=int, default=10, help="Time interval")
+    parser.add_argument(
+        "--debug", action='store_true', help="If true, output more details")
+    parser.set_defaults(debug=False)
     # general monitor
     parser.add_argument(
         "--general_host", type=str, help="Host of general remote server")
@@ -488,10 +492,16 @@ def start_monitor(monitor, args):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-        datefmt='%Y-%m-%d %H:%M',
-        level=logging.INFO)
     args = parse_args()
+    if args.debug:
+        logging.basicConfig(
+            format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+            datefmt='%Y-%m-%d %H:%M',
+            level=logging.DEBUG)
+    else:
+        logging.basicConfig(
+            format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+            datefmt='%Y-%m-%d %H:%M',
+            level=logging.INFO)
     monitor = get_monitor(args.type)
     start_monitor(monitor, args)
