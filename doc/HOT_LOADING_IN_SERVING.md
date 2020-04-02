@@ -15,7 +15,7 @@ Currently, the following types of Monitors are supported:
 | Monitor Type |                         Description                          |                       Specific options                       |
 | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
-|     hdfs/afs     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
+|     hdfs/afs(HadoopMonitor)     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
 |     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
 
 | Monitor Shared options |                         Description                          |               Default                |
@@ -30,11 +30,11 @@ Currently, the following types of Monitors are supported:
 |    `local_tmp_path`    | Specify the path of the folder where temporary files are stored locally. If it does not exist, it will be created automatically. |        `_serving_monitor_tmp`        |
 |       `interval`       |           Specify the polling interval in seconds.           |                 `10`                 |
 |  `unpacked_filename`   | Monitor supports the `tarfile` packaged remote model file. If the remote model is in a packaged format, you need to set this option to tell monitor the name of the extracted file. |                `None`                |
-|        `debug`         | If the `-- debug` option is added, more detailed intermediate information will be output. | This option is not added by default. |
+|        `debug`         | If the `--debug` option is added, more detailed intermediate information will be output. | This option is not added by default. |
 
-The following is an example of HDFSMonitor to show the model hot loading of Paddle Serving.
+The following is an example of HadoopMonitor to show the model hot loading of Paddle Serving.
 
-## HDFSMonitor example
+## HadoopMonitor example
 
 In this example, the production model is uploaded to HDFS in `product_path` folder, and the server hot loads the model in `server_path` folder:
 

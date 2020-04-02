@@ -15,7 +15,7 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 | Monitor类型 |                             描述                             |                           特殊选项                           |
 | :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
-|  hdfs/afs   |        远端为HDFS或AFS，通过Hadoop-Client执行相关命令        | `hadoop_bin` Hadoop二进制的路径<br/>`fs_name` Hadoop fs_name，默认为空<br/>`fs_ugi` Hadoop fs_ugi，默认为空 |
+|  hdfs/afs(HadoopMonitor)   |        远端为HDFS或AFS，通过Hadoop-Client执行相关命令        | `hadoop_bin` Hadoop二进制的路径<br/>`fs_name` Hadoop fs_name，默认为空<br/>`fs_ugi` Hadoop fs_ugi，默认为空 |
 |     ftp     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
 
 |    Monitor通用选项     |                             描述                             |         默认值         |
