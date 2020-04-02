@@ -186,24 +186,21 @@ class Monitor(object):
             raise Exception('update local donefile failed.')
 
 
-class AFSMonitor(Monitor):
-    ''' AFS Monitor(by hadoop-client). '''
+class HadoopMonitor(Monitor):
+    ''' Monitor HDFS or AFS by Hadoop-client. '''
 
-    def __init__(self,
-                 hadoop_bin,
-                 hadoop_host=None,
-                 hadoop_ugi=None,
-                 interval=10):
-        super(AFSMonitor, self).__init__(interval)
+    def __init__(self, hadoop_bin, fs_name='', fs_ugi='', interval=10):
+        super(HadoopMonitor, self).__init__(interval)
         self._hadoop_bin = hadoop_bin
-        self._hadoop_host = hadoop_host
-        self._hadoop_ugi = hadoop_ugi
-        self._print_params(['_hadoop_bin', '_hadoop_host', '_hadoop_ugi'])
+        self._fs_name = fs_name
+        self._fs_ugi = fs_ugi
+        self._print_params(['_hadoop_bin', '_fs_name', '_fs_ugi'])
         self._cmd_prefix = '{} fs '.format(self._hadoop_bin)
-        if self._hadoop_host and self._hadoop_ugi:
-            self._cmd_prefix += '-D fs.default.name={} -D hadoop.job.ugi={} '.format(
-                self._hadoop_host, self._hadoop_ugi)
-        _LOGGER.info('AFS prefix cmd: {}'.format(self._cmd_prefix))
+        if self._fs_name:
+            self._cmd_prefix += '-D fs.default.name={} '.format(self._fs_name)
+        if self._fs_ugi:
+            self._cmd_prefix += '-D hadoop.job.ugi={} '.format(self._fs_ugi)
+        _LOGGER.info('Hadoop prefix cmd: {}'.format(self._cmd_prefix))
 
     def _exist_remote_file(self, path, filename, local_tmp_path):
         remote_filepath = os.path.join(path, filename)
@@ -227,37 +224,6 @@ class AFSMonitor(Monitor):
         remote_dirpath = os.path.join(remote_path, dirname)
         cmd = '{} -get {} {} 2>/dev/null'.format(self._cmd_prefix,
                                                  remote_dirpath, local_dirpath)
-        _LOGGER.debug('pull cmd: {}'.format(cmd))
-        if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed. {}'.format(
-                self._check_param_help('remote_model_name', dirname)))
-
-
-class HDFSMonitor(Monitor):
-    ''' HDFS Monitor. '''
-
-    def __init__(self, hdfs_bin, interval=10):
-        super(HDFSMonitor, self).__init__(interval)
-        self._hdfs_bin = hdfs_bin
-        self._print_params(['_hdfs_bin'])
-        self._prefix_cmd = '{} dfs '.format(self._hdfs_bin)
-        _LOGGER.info('HDFS prefix cmd: {}'.format(self._prefix_cmd))
-
-    def _exist_remote_file(self, path, filename, local_tmp_path):
-        remote_filepath = os.path.join(path, filename)
-        cmd = '{} -stat "%Y" {}'.format(self._prefix_cmd, remote_filepath)
-        _LOGGER.debug('check cmd: {}'.format(cmd))
-        [status, timestamp] = commands.getstatusoutput(cmd)
-        _LOGGER.debug('resp: {}'.format(timestamp))
-        if status == 0:
-            return [True, timestamp]
-        else:
-            return [False, None]
-
-    def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
-        remote_dirpath = os.path.join(remote_path, dirname)
-        cmd = '{} -get -f {} {}'.format(self._prefix_cmd, remote_dirpath,
-                                        local_tmp_path)
         _LOGGER.debug('pull cmd: {}'.format(cmd))
         if os.system(cmd) != 0:
             raise Exception('pull remote dir failed. {}'.format(
@@ -438,8 +404,6 @@ def parse_args():
     parser.set_defaults(debug=False)
     # general monitor
     parser.add_argument("--general_host", type=str, help="General remote host")
-    # hdfs monitor
-    parser.add_argument("--hdfs_bin", type=str, help="Path of HDFS binary file")
     # ftp monitor
     parser.add_argument("--ftp_host", type=str, help="FTP remote host")
     parser.add_argument("--ftp_port", type=int, help="FTP remote port")
@@ -453,19 +417,19 @@ def parse_args():
         type=str,
         default='',
         help="FTP password. Not used if anonymous access")
-    # afs monitor
+    # afs/hdfs monitor
     parser.add_argument(
         "--hadoop_bin", type=str, help="Path of Hadoop binary file")
     parser.add_argument(
-        "--hadoop_host",
+        "--fs_name",
         type=str,
-        default=None,
-        help="AFS host. Not used if set in Hadoop-client.")
+        default='',
+        help="AFS/HDFS fs_name. Not used if set in Hadoop-client.")
     parser.add_argument(
-        "--hadoop_ugi",
+        "--fs_ugi",
         type=str,
-        default=None,
-        help="AFS ugi, Not used if set in Hadoop-client")
+        default='',
+        help="AFS/HDFS fs_ugi, Not used if set in Hadoop-client")
     return parser.parse_args()
 
 
@@ -485,16 +449,11 @@ def get_monitor(mtype):
             username=args.ftp_username,
             password=args.ftp_password,
             interval=args.interval)
-    elif mtype == 'hdfs':
-        return HDFSMonitor(args.hdfs_bin, interval=args.interval)
     elif mtype == 'general':
         return GeneralMonitor(args.general_host, interval=args.interval)
-    elif mtype == 'afs':
-        return AFSMonitor(
-            args.hadoop_bin,
-            args.hadoop_host,
-            args.hadoop_ugi,
-            interval=args.interval)
+    elif mtype == 'afs' or mtype == 'hdfs':
+        return HadoopMonitor(
+            args.hadoop_bin, args.fs_name, args.fs_ugi, interval=args.interval)
     else:
         raise Exception('unsupport type.')
 
