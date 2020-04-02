@@ -4,27 +4,31 @@
 
 在实际的工业场景下，通常是远端定期不间断产出模型，线上服务端需要在服务不中断的情况下拉取新模型对旧模型进行更新迭代。
 
-Paddle Serving目前支持下面几种类型的远端监控Monitor：
+## Server Monitor
+
+Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会拉取新模型更新本地模型，同时更新本地模型文件夹中的时间戳文件`fluid_time_stamp`实现热加载。
+
+目前支持下面几种类型的远端监控Monitor：
 
 | Monitor类型 |                             描述                             |                           特殊选项                           |
 | :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|   General   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，OBS等） |                 `general_host` 通用远端host                  |
+|   General   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
 |    HDFS     |            远端为HDFS，通过HDFS二进制执行相关命令            |                 `hdfs_bin` HDFS二进制的路径                  |
-|     FTP     |             远端为FTP，可以通过用户名、密码访问              | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
+|     FTP     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
 |     AFS     |           远端为AFS，通过Hadoop-client执行相关命令           | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
 
-|    Monitor通用选项     |                             描述                             |                    默认值                    |
-| :--------------------: | :----------------------------------------------------------: | :------------------------------------------: |
-|         `type`         |                       指定Monitor类型                        |                      无                      |
-|     `remote_path`      |                      指定远端的基础路径                      |                      无                      |
-|  `remote_model_name`   |                   指定远端需要拉取的模型名                   |                      无                      |
-| `remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |                      无                      |
-|      `local_path`      |                       指定本地工作路径                       |                      无                      |
-|   `local_model_name`   |                        指定本地模型名                        |                      无                      |
-| `local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。 |              `fluid_time_file`               |
-|    `local_tmp_path`    |              指定本地存放临时文件的文件夹路径。              | `_serving_monitor_tmp`（若不存在则自动创建） |
-|       `interval`       |                      指定轮询间隔时间。                      |                   10（秒）                   |
-|  `unpacked_filename`   | Monitor支持tarfile打包的远程模型。如果远程模型是打包格式，则需要设置该选项来告知Monitor解压后的文件名。 |                     None                     |
+|    Monitor通用选项     |                             描述                             |         默认值         |
+| :--------------------: | :----------------------------------------------------------: | :--------------------: |
+|         `type`         |                       指定Monitor类型                        |           无           |
+|     `remote_path`      |                      指定远端的基础路径                      |           无           |
+|  `remote_model_name`   |                   指定远端需要拉取的模型名                   |           无           |
+| `remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |           无           |
+|      `local_path`      |                       指定本地工作路径                       |           无           |
+|   `local_model_name`   |                        指定本地模型名                        |           无           |
+| `local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。 |   `fluid_time_file`    |
+|    `local_tmp_path`    |    指定本地存放临时文件的文件夹路径，若不存在则自动创建。    | `_serving_monitor_tmp` |
+|       `interval`       |                 指定轮询间隔时间，单位为秒。                 |          `10`          |
+|  `unpacked_filename`   | Monitor支持tarfile打包的远程模型。如果远程模型是打包格式，则需要设置该选项来告知Monitor解压后的文件名。 |         `None`         |
 
 下面通过HDFSMonitor示例来展示Paddle Serving的模型热加载功能。
 
@@ -40,7 +44,7 @@ Paddle Serving目前支持下面几种类型的远端监控Monitor：
 
 ### 生产模型
 
-在`product_path`下运行下面的Python代码生产模型，每隔 60 秒会产出 Boston 房价预测模型`uci_housing_model`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
+在`product_path`下运行下面的Python代码生产模型，每隔 60 秒会产出 Boston 房价预测模型的打包文件`uci_housing.tar.gz`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
 
 ```python
 import os
@@ -93,7 +97,7 @@ for pass_id in range(30):
     serving_io.save_model(model_name, client_name,
                           {"x": x}, {"price": y_predict},
                           fluid.default_main_program())
-    # Package model
+    # Packing model
     tar_name = "{}.tar.gz".format(name)
     tar = tarfile.open(tar_name, 'w:gz')
     tar.add(model_name)
@@ -151,7 +155,7 @@ python -m paddle_serving_server.monitor \
 --unpacked_filename='uci_housing_model'
 ```
 
-上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程模型`/uci_housing_model`拉取到本地临时路径`./_tmp/uci_housing_model`下，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
+上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程打包模型`/uci_housing.tar.gz`拉取到本地临时路径`./_tmp/uci_housing.tar.gz`下，解包出模型文件`./_tmp/uci_housing_model`后，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
 
 #### 查看Server日志
 
