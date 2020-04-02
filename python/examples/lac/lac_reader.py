@@ -99,3 +99,26 @@ class LACReader(object):
         words = sent.strip()
         word_ids = self.word_to_ids(words)
         return word_ids
+
+    def parse_result(self, words, crf_decode):
+        tags = [self.id2label_dict[str(x)] for x in crf_decode]
+
+        sent_out = []
+        tags_out = []
+        partial_word = ""
+        for ind, tag in enumerate(tags):
+            if partial_word == "":
+                partial_word = words[ind]
+                tags_out.append(tag.split('-')[0])
+                continue
+            if tag.endswith("-B") or (tag == "O" and tag[ind - 1] != "O"):
+                sent_out.append(partial_word)
+                tags_out.append(tag.split('-')[0])
+                partial_word = words[ind]
+                continue
+            partial_word += words[ind]
+
+        if len(sent_out) < len(tags_out):
+            sent_out.append(partial_word)
+
+        return sent_out
