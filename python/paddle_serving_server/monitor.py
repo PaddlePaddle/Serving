@@ -23,6 +23,7 @@ import argparse
 import commands
 import datetime
 import shutil
+import tarfile
 
 
 class Monitor(object):
@@ -40,6 +41,7 @@ class Monitor(object):
         self._interval = interval
         self._remote_donefile_timestamp = None
         self._local_tmp_path = None
+        self._unpacked_filename = None
 
     def set_remote_path(self, remote_path):
         self._remote_path = remote_path
@@ -62,6 +64,9 @@ class Monitor(object):
     def set_local_tmp_path(self, tmp_path):
         self._local_tmp_path = tmp_path
 
+    def set_unpacked_filename(self, unpacked_filename):
+        self._unpacked_filename = unpacked_filename
+
     def _check_params(self):
         if self._remote_path is None:
             raise Exception('remote_path not set.')
@@ -77,6 +82,30 @@ class Monitor(object):
             raise Exception('local_timestamp_file not set.')
         if self._local_tmp_path is None:
             raise Exception('local_tmp_path not set.')
+
+    def _decompress_model_file(local_tmp_path, model_name, unpacked_filename):
+        if unpacked_filename is None:
+            return model_name
+        tar_model_path = os.path.join(local_tmp_path, model_name)
+        if not tarfile.is_tarfile(tar_model_path):
+            raise Exception(
+                'the model({}) of remote production is not a tar packaged file type.'.
+                format(tar_model_path))
+        try:
+            tar = tarfile.open(tar_model_path)
+            tar.extractall(path=os.join(local_tmp_path))
+            tar.close()
+        except:
+            raise Exception(
+                'Decompressing failed, please check your permission of {} or disk space left.'.
+                foemat(local_tmp_path))
+        finally:
+            os.remove(tar_model_path)
+            if not os.path.exists(unpacked_filename):
+                raise Exception(
+                    '{} not exists. Please check the unpacked_filename parameter.'.
+                    format(unpacked_filename))
+            return unpacked_filename
 
     def run(self):
         '''
@@ -98,8 +127,11 @@ class Monitor(object):
                                           self._local_tmp_path)
                     print('{} [INFO] pull remote model'.format(
                         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-                    self._update_local_model(
+                    unpacked_filename = self._decompress_model_file(
                         self._local_tmp_path, self._remote_model_name,
+                        self._unpacked_filename)
+                    self._update_local_model(
+                        self._local_tmp_path, unpacked_filename,
                         self._local_path, self._local_model_name)
                     print('{} [INFO] update model'.format(datetime.datetime.now(
                     ).strftime('%Y-%m-%d %H:%M:%S')))
@@ -318,6 +350,12 @@ def parse_args():
         default='_serving_monitor_tmp',
         help="Local tmp path")
     parser.add_argument(
+        "--unpacked_filename",
+        type=str,
+        default=None,
+        help="If the model of the remote production is a packaged file, the unpacked file name should be set. Currently, only tar packaging format is supported."
+    )
+    parser.add_argument(
         "--interval", type=int, default=10, help="Time interval")
     # general monitor
     parser.add_argument(
@@ -379,6 +417,7 @@ def start_monitor(monitor, args):
     monitor.set_local_model_name(args.local_model_name)
     monitor.set_local_timestamp_file(args.local_timestamp_file)
     monitor.set_local_tmp_path(args.local_tmp_path)
+    monitor.set_unpacked_filename(args.unpacked_filename)
     monitor.run()
 
 
