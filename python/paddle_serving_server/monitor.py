@@ -67,6 +67,10 @@ class Monitor(object):
     def set_unpacked_filename(self, unpacked_filename):
         self._unpacked_filename = unpacked_filename
 
+    def _check_param_help(self, param_name, param_value):
+        return "Please check the {}({}) parameter.".format(param_name,
+                                                           param_value)
+
     def _check_params(self):
         if self._remote_path is None:
             raise Exception('remote_path not set.')
@@ -85,34 +89,26 @@ class Monitor(object):
 
     def _decompress_model_file(self, local_tmp_path, model_name,
                                unpacked_filename):
-        import sys
-        print(unpacked_filename)
-        sys.stdout.flush()
         if unpacked_filename is None:
             return model_name
         tar_model_path = os.path.join(local_tmp_path, model_name)
-        print(tar_model_path)
-        sys.stdout.flush()
         if not tarfile.is_tarfile(tar_model_path):
-            raise Exception(
-                'the model({}) of remote production is not a tar packaged file type.'.
-                format(tar_model_path))
+            raise Exception('not a tar packaged file type. {}'.format(
+                self._check_param_help('remote_model_name', model_name)))
         try:
             tar = tarfile.open(tar_model_path)
             tar.extractall(local_tmp_path)
             tar.close()
-            print('ok')
-            sys.stdout.flush()
         except:
             raise Exception(
-                'Decompressing failed, please check your permission of {} or disk space left.'.
-                foemat(local_tmp_path))
+                'Decompressing failed, maybe no disk space left. {}'.foemat(
+                    self._check_param_help('local_tmp_path', local_tmp_path)))
         finally:
             os.remove(tar_model_path)
             if not os.path.exists(unpacked_filename):
-                raise Exception(
-                    '{} not exists. Please check the unpacked_filename parameter.'.
-                    format(unpacked_filename))
+                raise Exception('file not exist. {}'.format(
+                    self._check_param_help('unpacked_filename',
+                                           unpacked_filename)))
             return unpacked_filename
 
     def run(self):
@@ -215,7 +211,8 @@ class AFSMonitor(Monitor):
         cmd = '{} -get {} {}'.format(self._cmd_prefix, remote_dirpath,
                                      local_dirpath)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 class HDFSMonitor(Monitor):
@@ -240,7 +237,8 @@ class HDFSMonitor(Monitor):
         cmd = '{} -get -f {} {}'.format(self._prefix_cmd, remote_dirpath,
                                         local_tmp_path)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 class FTPMonitor(Monitor):
@@ -326,7 +324,7 @@ class GeneralMonitor(Monitor):
     def _exist_remote_file(self, path, filename, local_tmp_path):
         remote_filepath = os.path.join(path, filename)
         url = '{}/{}'.format(self._host, remote_filepath)
-        cmd = 'wget -N -P {} {}'.format(local_tmp_path, url)
+        cmd = 'wget -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         if os.system(cmd) != 0:
             return [False, None]
         else:
@@ -337,9 +335,10 @@ class GeneralMonitor(Monitor):
     def _pull_remote_dir(self, remote_path, dirname, local_tmp_path):
         remote_dirpath = os.path.join(remote_path, dirname)
         url = '{}/{}'.format(self._host, remote_dirpath)
-        cmd = 'wget -nH -r -P {} {} &> /dev/null'.format(local_tmp_path, url)
+        cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(local_tmp_path, url)
         if os.system(cmd) != 0:
-            raise Exception('pull remote dir failed.')
+            raise Exception('pull remote dir failed. {}'.format(
+                self._check_param_help('remote_model_name', dirname)))
 
 
 def parse_args():
