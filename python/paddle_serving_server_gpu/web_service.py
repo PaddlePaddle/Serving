@@ -94,21 +94,26 @@ class WebService(object):
         client.connect([endpoint])
         while True:
             request_json = inputqueue.get()
-            feed, fetch = self.preprocess(request_json, request_json["fetch"])
-            if isinstance(feed, list):
-                fetch_map_batch = client.batch_predict(
-                    feed_batch=feed, fetch=fetch)
-                fetch_map_batch = self.postprocess(
-                    feed=request_json, fetch=fetch, fetch_map=fetch_map_batch)
-                result = {"result": fetch_map_batch}
-            elif isinstance(feed, dict):
-                if "fetch" in feed:
-                    del feed["fetch"]
-                fetch_map = client.predict(feed=feed, fetch=fetch)
-                result = self.postprocess(
-                    feed=request_json, fetch=fetch, fetch_map=fetch_map)
-
-            self.output_queue.put(result)
+            try:
+                feed, fetch = self.preprocess(request_json,
+                                              request_json["fetch"])
+                if isinstance(feed, list):
+                    fetch_map_batch = client.predict(
+                        feed_batch=feed, fetch=fetch)
+                    fetch_map_batch = self.postprocess(
+                        feed=request_json,
+                        fetch=fetch,
+                        fetch_map=fetch_map_batch)
+                    result = {"result": fetch_map_batch}
+                elif isinstance(feed, dict):
+                    if "fetch" in feed:
+                        del feed["fetch"]
+                    fetch_map = client.predict(feed=feed, fetch=fetch)
+                    result = self.postprocess(
+                        feed=request_json, fetch=fetch, fetch_map=fetch_map)
+                self.output_queue.put(result)
+            except ValueError:
+                self.output_queue.put(-1)
 
     def _launch_web_service(self, gpu_num):
         app_instance = Flask(__name__)
@@ -152,6 +157,8 @@ class WebService(object):
             if self.idx >= len(self.gpus):
                 self.idx = 0
             result = self.output_queue.get()
+            if not isinstance(result, dict) and result == -1:
+                result = {"result": "Request Value Error"}
             return result
             '''
             feed, fetch = self.preprocess(request.json, request.json["fetch"])

@@ -1,45 +1,47 @@
-# Paddle Serving设计方案
+# Paddle Serving Design
 
-## 1. 项目背景
+([简体中文](./DESIGN_CN.md)|English)
 
-PaddlePaddle是公司开源的机器学习框架，广泛支持各种深度学习模型的定制化开发; Paddle serving是Paddle的在线预测部分，与Paddle模型训练环节无缝衔接，提供机器学习预测云服务。本文将从模型、服务、接入等层面，自底向上描述Paddle Serving设计方案。
+## 1. Background
 
-1. 模型是Paddle Serving预测的核心，包括模型数据和推理计算的管理；
-2. 预测框架封装模型推理计算，对外提供RPC接口，对接不同上游；
-3. 预测服务SDK提供一套接入框架
+PaddlePaddle is the Baidu's open source machine learning framework, which supports a wide range of customized development of deep learning models; Paddle serving is the online prediction framework of Paddle, which seamlessly connects with Paddle model training, and provides cloud services for machine learning prediction. This article will describe the Paddle Serving design from the bottom up, from the model, service, and access levels.
 
-最终形成一套完整的serving解决方案。
+1. The model is the core of Paddle Serving prediction, including the management of model data and inference calculations;
+2. Prediction framework encapsulation model for inference calculations, providing external RPC interface to connect different upstream
+3. The prediction service SDK provides a set of access frameworks
 
-## 2. 名词解释
+The result is a complete serving solution.
 
-- baidu-rpc 百度官方开源RPC框架，支持多种常见通信协议，提供基于protobuf的自定义接口体验
-- Variant Paddle Serving架构对一个最小预测集群的抽象，其特点是内部所有实例（副本）完全同质，逻辑上对应一个model的一个固定版本
-- Endpoint 多个Variant组成一个Endpoint，逻辑上看，Endpoint代表一个model，Endpoint内部的Variant代表不同的版本
-- OP PaddlePaddle用来封装一种数值计算的算子，Paddle Serving用来表示一种基础的业务操作算子，核心接口是inference。OP通过配置其依赖的上游OP，将多个OP串联成一个workflow
-- Channel 一个OP所有请求级中间数据的抽象；OP之间通过Channel进行数据交互
-- Bus 对一个线程中所有channel的管理，以及根据DAG之间的DAG依赖图对OP和Channel两个集合间的访问关系进行调度
-- Stage Workflow按照DAG描述的拓扑图中，属于同一个环节且可并行执行的OP集合
-- Node 由某个Op算子类结合参数配置组成的Op算子实例，也是Workflow中的一个执行单元
-- Workflow 按照DAG描述的拓扑，有序执行每个OP的inference接口
-- DAG/Workflow 由若干个相互依赖的Node组成，每个Node均可通过特定接口获得Request对象，节点Op通过依赖关系获得其前置Op的输出对象，最后一个Node的输出默认就是Response对象
-- Service 对一次pv的请求封装，可配置若干条Workflow，彼此之间复用当前PV的Request对象，然后各自并行/串行执行，最后将Response写入对应的输出slot中；一个Paddle-serving进程可配置多套Service接口，上游根据ServiceName决定当前访问的Service接口。
+## 2. Terms explanation
 
-## 3. Python Interface设计
+- **baidu-rpc**: Baidu's official open source RPC framework, supports multiple common communication protocols, and provides a custom interface experience based on protobuf
+- **Variant**: Paddle Serving architecture is an abstraction of a minimal prediction cluster, which is characterized by all internal instances (replicas) being completely homogeneous and logically corresponding to a fixed version of a model
+- **Endpoint**: Multiple Variants form an Endpoint. Logically, Endpoint represents a model, and Variants within the Endpoint represent different versions.
+- **OP**: PaddlePaddle is used to encapsulate a numerical calculation operator, Paddle Serving is used to represent a basic business operation operator, and the core interface is inference. OP configures its dependent upstream OP to connect multiple OPs into a workflow
+- **Channel**: An abstraction of all request-level intermediate data of the OP; data exchange between OPs through Channels
+- **Bus**: manages all channels in a thread, and schedules the access relationship between the two sets of OP and Channel according to the DAG dependency graph between DAGs
+- **Stage**: Workflow according to the topology diagram described by DAG, a collection of OPs that belong to the same link and can be executed in parallel
+- **Node**: An OP operator instance composed of an OP operator class combined with parameter configuration, which is also an execution unit in Workflow
+- **Workflow**: executes the inference interface of each OP in order according to the topology described by DAG
+- **DAG/Workflow**: consists of several interdependent Nodes. Each Node can obtain the Request object through a specific interface. The node Op obtains the output object of its pre-op through the dependency relationship. The output of the last Node is the Response object by default.
+- **Service**: encapsulates a pv request, can configure several Workflows, reuse the current PV's Request object with each other, and then execute each in parallel/serial execution, and finally write the Response to the corresponding output slot; a Paddle-serving process Multiple sets of Service interfaces can be configured. The upstream determines the Service interface currently accessed based on the ServiceName.
 
-### 3.1 核心目标：
+## 3. Python Interface Design
 
-一套Paddle Serving的动态库，支持Paddle保存的通用模型的远程预估服务，通过Python Interface调用PaddleServing底层的各种功能。
+### 3.1 Core Targets:
 
-### 3.2 通用模型：
+A set of Paddle Serving dynamic library, support the remote estimation service of the common model saved by Paddle, and call the various underlying functions of PaddleServing through the Python Interface.
 
-能够使用Paddle Inference Library进行预测的模型，在训练过程中保存的模型，包含Feed Variable和Fetch Variable
+### 3.2 General Model:
 
-### 3.3 整体设计：
+Models that can be predicted using the Paddle Inference Library, models saved during training, including Feed Variable and Fetch Variable
 
-用户通过Python Client启动Client和Server，Python API有检查互联和待访问模型是否匹配的功能
-Python API背后调用的是Paddle Serving实现的client和server对应功能的pybind，互传的信息通过RPC实现
-Client Python API当前有两个简单的功能，load_inference_conf和predict，分别用来执行加载待预测的模型和预测
-Server Python API主要负责加载预估模型，以及生成Paddle Serving需要的各种配置，包括engines，workflow，resource等
+### 3.3 Overall design:
+
+- The user starts the Client and Server through the Python Client. The Python API has a function to check whether the interconnection and the models to be accessed match.
+- The Python API calls the pybind corresponding to the client and server functions implemented by Paddle Serving, and the information transmitted through RPC is implemented through RPC.
+- The Client Python API currently has two simple functions, load_inference_conf and predict, which are used to perform loading of the model to be predicted and prediction, respectively.
+- The Server Python API is mainly responsible for loading the inference model and generating various configurations required by Paddle Serving, including engines, workflow, resources, etc.
 
 ### 3.4 Server Inferface
 
@@ -49,10 +51,10 @@ Server Python API主要负责加载预估模型，以及生成Paddle Serving需�
 
 <img src='client_inferface.png' width = "600" height = "200">
 
-### 3.6 训练过程中使用的Client io
+### 3.6 Client io used during Training
 
-PaddleServing设计可以在训练过程中使用的保存模型接口，与Paddle保存inference model的接口基本一致，feed_var_dict与fetch_var_dict
-可以为输入和输出变量起别名，serving启动需要读取的配置会保存在client端和server端的保存目录中。
+PaddleServing is designed to saves the model interface that can be used during the training process, which is basically the same as the Paddle save inference model interface, feed_var_dict and fetch_var_dict
+You can alias the input and output variables. The configuration that needs to be read when the serving starts is saved in the client and server storage directories.
 
 ``` python
 def save_model(server_model_folder,
@@ -62,29 +64,29 @@ def save_model(server_model_folder,
                main_program=None)
 ```
 
-## 4. Paddle Serving底层框架
+## 4. Paddle Serving Underlying Framework
 
-![Paddle-Serging总体框图](framework.png)
+![Paddle-Serging Overall Architecture](framework.png)
 
-**模型管理框架**：对接多种机器学习平台的模型文件，向上提供统一的inference接口
-**业务调度框架**：对各种不同预测模型的计算逻辑进行抽象，提供通用的DAG调度框架，通过DAG图串联不同的算子，共同完成一次预测服务。该抽象模型使用户可以方便的实现自己的计算逻辑，同时便于算子共用。（用户搭建自己的预测服务，很大一部分工作是搭建DAG和提供算子的实现）
-**PredictService**:对外部提供的预测服务接口封装。通过protobuf定义与客户端的通信字段。
+**Model Management Framework**: Connects model files of multiple machine learning platforms and provides a unified inference interface
+**Business Scheduling Framework**: Abstracts the calculation logic of various different inference models, provides a general DAG scheduling framework, and connects different operators through DAG diagrams to complete a prediction service together. This abstract model allows users to conveniently implement their own calculation logic, and at the same time facilitates operator sharing. (Users build their own forecasting services. A large part of their work is to build DAGs and provide operators.)
+**Predict Service**: Encapsulation of the externally provided prediction service interface. Define communication fields with the client through protobuf.
 
-### 4.1 模型管理框架
+### 4.1 Model Management Framework
 
-模型管理框架负责管理机器学习框架训练出来的模型，总体可抽象成模型加载、模型数据和模型推理等3个层次。
+The model management framework is responsible for managing the models trained by the machine learning framework. It can be abstracted into three levels: model loading, model data, and model reasoning.
 
-#### 模型加载
+#### Model Loading
 
-将模型从磁盘加载到内存，支持多版本、热加载、增量更新等功能
+Load model from disk to memory, support multi-version, hot-load, incremental update, etc.
 
-#### 模型数据
+#### Model data
 
-模型在内存中的数据结构，集成fluid预测lib
+Model data structure in memory, integrated fluid inference lib
 
 #### inferencer
 
-向上为预测服务提供统一的预测接口
+it provided united inference interface for upper layers
 
 ```C++
 class FluidFamilyCore {
@@ -94,54 +96,54 @@ class FluidFamilyCore {
 };
 ```
 
-### 4.2 业务调度框架
+### 4.2 Business Scheduling Framework
 
-#### 4.2.1 预测服务Service
+#### 4.2.1 Inference Service
 
-参考TF框架的模型计算的抽象思想，将业务逻辑抽象成DAG图，由配置驱动，生成workflow，跳过C++代码编译。业务的每个具体步骤，对应一个具体的OP，OP可配置自己依赖的上游OP。OP之间消息传递统一由线程级Bus和channel机制实现。例如，一个简单的预测服务的服务过程，可以抽象成读请求数据->调用预测接口->写回预测结果等3个步骤，相应的实现到3个OP: ReaderOp->ClassifyOp->WriteOp
+With reference to the abstract idea of model calculation of the TensorFlow framework, the business logic is abstracted into a DAG diagram, driven by configuration, generating a workflow, and skipping C ++ code compilation. Each specific step of the service corresponds to a specific OP. The OP can configure the upstream OP that it depends on. Unified message passing between OPs is achieved by the thread-level bus and channel mechanisms. For example, the service process of a simple prediction service can be abstracted into 3 steps including reading request data-> calling the prediction interface-> writing back the prediction result, and correspondingly implemented to 3 OP: ReaderOp-> ClassifyOp-> WriteOp
 
-![预测服务Service](predict-service.png)
+![Infer Service](predict-service.png)
 
-关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](CREATING.md)的相关章节
+Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](./deprecated/CREATING.md) (simplified Chinese Version)
 
-服务端实例透视图
+Server instance perspective
 
-![服务端实例透视图](server-side.png)
+![Server instance perspective](server-side.png)
 
 
-#### 4.2.2 Paddle Serving的多服务机制
+#### 4.2.2 Paddle Serving Multi-Service Mechanism
 
-![Paddle Serving的多服务机制](multi-service.png)
+![Paddle Serving multi-service](multi-service.png)
 
-Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
+Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
 
-#### 4.2.3 业务调度层级关系
+#### 4.2.3 Hierarchical relationship of business scheduling
 
-从客户端看，一个Paddle Serving service从顶向下可分为Service, Endpoint, Variant等3个层级
+From the client's perspective, a Paddle Serving service can be divided into three levels: Service, Endpoint, and Variant from top to bottom.
 
-![调用层级关系](multi-variants.png)
+![Call hierarchy relationship](multi-variants.png)
 
-一个Service对应一个预测模型，模型下有1个endpoint。模型的不同版本，通过endpoint下多个variant概念实现：
-同一个模型预测服务，可以配置多个variant，每个variant有自己的下游IP列表。客户端代码可以对各个variant配置相对权重，以达到调节流量比例的关系（参考[客户端配置](CLIENT_CONFIGURE.md)第3.2节中关于variant_weight_list的说明）。
+One Service corresponds to one inference model, and there is one endpoint under the model. Different versions of the model are implemented through multiple variant concepts under endpoint:
+The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) section 3.2).
 
-![Client端proxy功能](client-side-proxy.png)
+![Client-side proxy function](client-side-proxy.png)
 
-## 5. 用户接口
+## 5. User Interface
 
-在满足一定的接口规范前提下，服务框架不对用户数据字段做任何约束，以应对各种预测服务的不同业务接口。Baidu-rpc继承了Protobuf serice的接口，用户按照Protobuf语法规范描述Request和Response业务接口。Paddle Serving基于Baidu-rpc框架搭建，默认支持该特性。
+Under the premise of meeting certain interface specifications, the service framework does not make any restrictions on user data fields to meet different business interfaces of various forecast services. Baidu-rpc inherits the interface of Protobuf serice, and the user describes the Request and Response business interfaces according to the Protobuf syntax specification. Paddle Serving is built on the Baidu-rpc framework and supports this feature by default.
 
-无论通信协议如何变化，框架只需确保Client和Server间通信协议和业务数据两种信息的格式同步，即可保证正常通信。这些信息又可细分如下：
+No matter how the communication protocol changes, the framework only needs to ensure that the communication protocol between the client and server and the format of the business data are synchronized to ensure normal communication. This information can be broken down as follows:
 
-- 协议：Server和Client之间事先约定的、确保相互识别数据格式的包头信息。Paddle Serving用Protobuf作为基础通信格式
-- 数据：用来描述Request和Response的接口，例如待预测样本数据，和预测返回的打分。包括：
-  - 数据字段：请求包Request和返回包Response两种数据结构包含的字段定义
-  - 描述接口：跟协议接口类似，默认支持Protobuf
+-Protocol: Header information agreed in advance between Server and Client to ensure mutual recognition of data format. Paddle Serving uses Protobuf as the basic communication format
+-Data: Used to describe the interface of Request and Response, such as the sample data to be predicted, and the score returned by the prediction. include:
+   -Data fields: Field definitions included in the two data structures of Request and Return.
+   -Description interface: similar to the protocol interface, it supports Protobuf by default
 
-### 5.1 数据压缩方法
+### 5.1 Data Compression Method
 
-Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
+Baidu-rpc has built-in data compression methods such as snappy, gzip, zlib, which can be configured in the configuration file (refer to [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) Section 3.1 for an introduction to compress_type)
 
-### 5.2 C++ SDK API接口
+### 5.2 C ++ SDK API Interface
 
 ```C++
 class PredictorApi {
@@ -176,7 +178,7 @@ class Predictor {
 
 ```
 
-### 5.3 OP相关接口
+### 5.3 Inferfaces related to Op
 
 ```C++
 class Op {
@@ -258,7 +260,7 @@ class Op {
 
 ```
 
-### 5.4 框架相关接口
+### 5.4 Interfaces related to framework
 
 Service
 

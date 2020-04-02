@@ -64,14 +64,22 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
 def start_multi_card(args):  # pylint: disable=doc-string-missing
     gpus = ""
     if args.gpu_ids == "":
-        if "CUDA_VISIBLE_DEVICES" in os.environ:
-            gpus = os.environ["CUDA_VISIBLE_DEVICES"]
-        else:
-            gpus = []
+        gpus = []
     else:
         gpus = args.gpu_ids.split(",")
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+            for ids in gpus:
+                if int(ids) >= len(env_gpus):
+                    print(
+                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}.".
+                        format(len(env_gpus)))
+                    exit(-1)
+        else:
+            env_gpus = []
     if len(gpus) <= 0:
-        start_gpu_card_model(-1, args)
+        print("gpu_ids not set, going to run cpu service.")
+        start_gpu_card_model(-1, -1, args)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):

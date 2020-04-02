@@ -1,8 +1,9 @@
-# How to write an general operator?
+# 如何开发一个新的General Op?
 
-([简体中文](./NEW_OPERATOR_CN.md)|English)
+(简体中文|[English](./NEW_OPERATOR.md))
 
-In this document, we mainly focus on how to develop a new server side operator for PaddleServing. Before we start to write a new operator, let's look at some sample code to get the basic idea of writing a new operator for server. We assume you have known the basic computation logic on server side of PaddleServing, please reference to []() if you do not know much about it. The following code can be visited at `core/general-server/op` of Serving repo.
+在本文档中，我们主要集中于如何为Paddle Serving开发新的服务器端运算符。 在开始编写新运算符之前，让我们看一些示例代码以获得为服务器编写新运算符的基本思想。 我们假设您已经知道Paddle Serving服务器端的基本计算逻辑。 下面的代码您可以在 Serving代码库下的 `core/general-server/op` 目录查阅。
+
 
 ``` c++
 // Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
@@ -54,13 +55,13 @@ class GeneralInferOp
 }  // namespace baidu
 ```
 
-## Define an operator
+## 定义一个Op
 
-The header file above declares a PaddleServing operator called `GeneralInferOp`. At runtime, the function `int inference()` will be called. Usually we define a server side operator to be a subclass of`baidu::paddle_serving::predictor::OpWithChannel`, and `GeneralBlob` data structure is used. 
+上面的头文件声明了一个名为`GeneralInferOp`的PaddleServing运算符。 在运行时，将调用函数 `int inference（)`。 通常，我们将服务器端运算符定义为baidu::paddle_serving::predictor::OpWithChannel的子类，并使用 `GeneralBlob` 数据结构。
 
-## Use `GeneralBlob`  between operators
+## 在Op之间使用 `GeneralBlob` 
 
-`GeneralBlob` is a data structure that can be used between server side operators. The `tensor_vector` is the most important data structure in `GeneralBlob`. An operator on server side can have multiple `paddle::PaddleTensor` as inputs, and have multiple `paddle::PaddleTensor` as outputs. In particular, `tensor_vector` can be feed into Paddle inference engine directly with zero copy.
+`GeneralBlob` 是一种可以在服务器端运算符之间使用的数据结构。 `tensor_vector`是`GeneralBlob`中最重要的数据结构。 服务器端的操作员可以将多个`paddle::PaddleTensor`作为输入，并可以将多个`paddle::PaddleTensor`作为输出。 特别是，`tensor_vector`可以在没有内存拷贝的操作下输入到Paddle推理引擎中。
 
 ``` c++
 struct GeneralBlob {
@@ -85,7 +86,7 @@ struct GeneralBlob {
 };
 ```
 
-### Implement `int Inference()`
+### 实现 `int Inference()`
 
 ``` c++
 int GeneralInferOp::inference() {
@@ -126,15 +127,16 @@ int GeneralInferOp::inference() {
 DEFINE_OP(GeneralInferOp);
 ```
 
-`input_blob` and `output_blob` both have multiple `paddle::PaddleTensor`, and the Paddle Inference library can be called through `InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)`. Most of the other code in this function is about profiling, we may remove redudant code in the future as well.
+`input_blob` 和 `output_blob` 都有很多的 `paddle::PaddleTensor`, 且Paddle预测库会被 `InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)`调用。此函数中的其他大多数代码都与性能分析有关，将来我们也可能会删除多余的代码。
 
-Basically, the above code can implement a new operator. If you want to visit dictionary resource, you can reference `core/predictor/framework/resource.cpp` to add global visible resources. The initialization of resources is executed at the runtime of starting server.
 
-## Define Python API
+基本上，以上代码可以实现一个新的运算符。如果您想访问字典资源，可以参考`core/predictor/framework/resource.cpp`来添加全局可见资源。资源的初始化在启动服务器的运行时执行。
 
-After you have defined a C++ operator on server side for Paddle Serving, the last step is to add a registration in Python API for PaddleServing server API, `python/paddle_serving_server/__init__.py` in the repo has the code piece.
+## 定义 Python API
 
-``` c++
+在服务器端为Paddle Serving定义C++运算符后，最后一步是在Python API中为Paddle Serving服务器API添加注册， `python/paddle_serving_server/__init__.py`文件里有关于API注册的代码如下
+
+``` python
 self.op_dict = {
             "general_infer": "GeneralInferOp",
             "general_reader": "GeneralReaderOp",
