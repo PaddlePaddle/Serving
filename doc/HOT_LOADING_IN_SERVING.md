@@ -15,9 +15,8 @@ Currently, the following types of Monitors are supported:
 | Monitor Type |                         Description                          |                       Specific options                       |
 | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
-|     hdfs     | The remote is HDFS, and relevant commands are executed through HDFS binary |             `hdfs_bin` Path of HDFS binary file.             |
+|     hdfs     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
 |     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
-|     afs      | The remote is AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br>`hadoop_host` AFS host. Not used if set in Hadoop-client.<br>`hadoop_ugi` AFS ugi, Not used if set in Hadoop-client. |
 
 | Monitor Shared options |                         Description                          |               Default                |
 | :--------------------: | :----------------------------------------------------------: | :----------------------------------: |
@@ -83,8 +82,8 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hdfs_bin = '/hadoop-3.1.2/bin/hdfs'
-    os.system('{} dfs -put -f {} {}'.format(
+    hdfs_bin = '/hadoop-3.1.2/bin/hadoop'
+    os.system('{} fs -put -f {} {}'.format(
       hdfs_bin, local_file_path, remote_path))
 
 name = "uci_housing"
@@ -120,7 +119,7 @@ for pass_id in range(30):
 The files on HDFS are as follows:
 
 ```bash
-# hdfs dfs -ls /
+# hadoop fs -ls /
 Found 2 items
 -rw-r--r--   1 root supergroup          0 2020-04-02 02:54 /donefile
 -rw-r--r--   1 root supergroup       2101 2020-04-02 02:54 /uci_housing.tar.gz
@@ -151,11 +150,11 @@ Use the following command to execute the HDFSMonitor:
 
 ```shell
 python -m paddle_serving_server.monitor \
-	--type='hdfs' --hdfs_bin='/hadoop-3.1.2/bin/hdfs' --remote_path='/' \
-	--remote_model_name='uci_housing.tar.gz' --remote_donefile_name='donefile' \
-	--local_path='.' --local_model_name='uci_housing_model' \
-	--local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp' \
-	--unpacked_filename='uci_housing_model' --debug
+	--type='hdfs' --hadoop_bin='/hadoop-3.1.2/bin/hadoop' \
+	--remote_path='/' --remote_model_name='uci_housing.tar.gz' \
+	--remote_donefile_name='donefile' --local_path='.' \
+	--local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+	--local_tmp_path='_tmp' --unpacked_filename='uci_housing_model' --debug
 ```
 
 The above code monitors the remote timestamp file `/donefile` of the remote HDFS address `/` every 10 seconds by polling. When the remote timestamp file changes, the remote model is considered to have been updated. Pull the remote packaging model `/uci_housing.tar.gz` to the local temporary path `./_tmp/uci_housing.tar.gz`. After unpacking to get the model file `./_tmp/uci_housing_model`, update the local model `./uci_housing_model` and the model timestamp file `./uci_housing_model/fluid_time_file` of Paddle Serving.
@@ -163,32 +162,34 @@ The above code monitors the remote timestamp file `/donefile` of the remote HDFS
 The expected output is as follows:
 
 ```shell
-2020-04-02 08:38 INFO     [monitor.py:85] _hdfs_bin: /hadoop-3.1.2/bin/hdfs
-2020-04-02 08:38 INFO     [monitor.py:244] HDFS prefix cmd: /hadoop-3.1.2/bin/hdfs dfs
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_path: /
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_donefile_name: donefile
-2020-04-02 08:38 INFO     [monitor.py:85] _local_model_name: uci_housing_model
-2020-04-02 08:38 INFO     [monitor.py:85] _local_path: .
-2020-04-02 08:38 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
-2020-04-02 08:38 INFO     [monitor.py:85] _local_tmp_path: _tmp
-2020-04-02 08:38 INFO     [monitor.py:85] _interval: 10
-2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
-2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
-2020-04-02 08:38 INFO     [monitor.py:138] doneilfe(donefile) changed.
-2020-04-02 08:38 DEBUG    [monitor.py:261] pull cmd: /hadoop-3.1.2/bin/hdfs dfs  -get -f /uci_housing.tar.gz _tmp
-2020-04-02 08:38 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
-2020-04-02 08:38 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
-2020-04-02 08:38 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
-2020-04-02 08:38 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
-2020-04-02 08:38 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
-2020-04-02 08:38 INFO     [monitor.py:152] update local model(uci_housing_model).
-2020-04-02 08:38 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
-2020-04-02 08:38 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
-2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
-2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
-2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
-2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 10:12 INFO     [monitor.py:85] _hadoop_bin: /hadoop-3.1.2/bin/hadoop
+2020-04-02 10:12 INFO     [monitor.py:85] _fs_name:
+2020-04-02 10:12 INFO     [monitor.py:85] _fs_ugi:
+2020-04-02 10:12 INFO     [monitor.py:209] AFS prefix cmd: /hadoop-3.1.2/bin/hadoop fs
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_path: /
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_donefile_name: donefile
+2020-04-02 10:12 INFO     [monitor.py:85] _local_model_name: uci_housing_model
+2020-04-02 10:12 INFO     [monitor.py:85] _local_path: .
+2020-04-02 10:12 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
+2020-04-02 10:12 INFO     [monitor.py:85] _local_tmp_path: _tmp
+2020-04-02 10:12 INFO     [monitor.py:85] _interval: 10
+2020-04-02 10:12 DEBUG    [monitor.py:214] check cmd: /hadoop-3.1.2/bin/hadoop fs  -ls /donefile 2>/dev/null
+2020-04-02 10:12 DEBUG    [monitor.py:216] resp: -rw-r--r--   1 root supergroup          0 2020-04-02 10:11 /donefile
+2020-04-02 10:12 INFO     [monitor.py:138] doneilfe(donefile) changed.
+2020-04-02 10:12 DEBUG    [monitor.py:233] pull cmd: /hadoop-3.1.2/bin/hadoop fs  -get /uci_housing.tar.gz _tmp/uci_housing.tar.gz 2>/dev/null
+2020-04-02 10:12 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
+2020-04-02 10:12 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
+2020-04-02 10:12 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
+2020-04-02 10:12 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
+2020-04-02 10:12 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
+2020-04-02 10:12 INFO     [monitor.py:152] update local model(uci_housing_model).
+2020-04-02 10:12 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
+2020-04-02 10:12 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
+2020-04-02 10:12 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 10:12 DEBUG    [monitor.py:214] check cmd: /hadoop-3.1.2/bin/hadoop fs  -ls /donefile 2>/dev/null
+2020-04-02 10:12 DEBUG    [monitor.py:216] resp: -rw-r--r--   1 root supergroup          0 2020-04-02 10:11 /donefile
+2020-04-02 10:12 INFO     [monitor.py:161] sleep 10s.
 ```
 
 

@@ -15,9 +15,8 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 | Monitor类型 |                             描述                             |                           特殊选项                           |
 | :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |   general   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
-|    hdfs     |            远端为HDFS，通过HDFS二进制执行相关命令            |                 `hdfs_bin` HDFS二进制的路径                  |
+|  hdfs/afs   |        远端为HDFS或AFS，通过Hadoop-Client执行相关命令        | `hadoop_bin` Hadoop二进制的路径<br/>`fs_name` Hadoop fs_name，默认为空<br/>`fs_ugi` Hadoop fs_ugi，默认为空 |
 |     ftp     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
-|     afs     |           远端为AFS，通过Hadoop-client执行相关命令           | `hadoop_bin` Hadoop二进制的路径<br>`hadoop_host` AFS host，默认为空<br>`hadoop_ugi` AFS ugi，默认为空 |
 
 |    Monitor通用选项     |                             描述                             |         默认值         |
 | :--------------------: | :----------------------------------------------------------: | :--------------------: |
@@ -33,9 +32,9 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 |  `unpacked_filename`   | Monitor支持tarfile打包的远程模型。如果远程模型是打包格式，则需要设置该选项来告知Monitor解压后的文件名。 |         `None`         |
 |        `debug`         |       如果添加`--debug`选项，则输出更详细的中间信息。        |    默认不添加该选项    |
 
-下面通过HDFSMonitor示例来展示Paddle Serving的模型热加载功能。
+下面通过HadoopMonitor示例来展示Paddle Serving的模型热加载功能。
 
-## HDFSMonitor示例
+## HadoopMonitor示例
 
 示例中在`product_path`中生产模型上传至hdfs，在`server_path`中模拟服务端模型热加载：
 
@@ -83,8 +82,8 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hdfs_bin = '/hadoop-3.1.2/bin/hdfs'
-    os.system('{} dfs -put -f {} {}'.format(
+    hdfs_bin = '/hadoop-3.1.2/bin/hadoop'
+    os.system('{} fs -put -f {} {}'.format(
       hdfs_bin, local_file_path, remote_path))
 
 name = "uci_housing"
@@ -120,7 +119,7 @@ for pass_id in range(30):
 hdfs上的文件如下列所示：
 
 ```bash
-# hdfs dfs -ls /
+# hadoop fs -ls /
 Found 2 items
 -rw-r--r--   1 root supergroup          0 2020-04-02 02:54 /donefile
 -rw-r--r--   1 root supergroup       2101 2020-04-02 02:54 /uci_housing.tar.gz
@@ -151,11 +150,11 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ```shell
 python -m paddle_serving_server.monitor \
-	--type='hdfs' --hdfs_bin='/hadoop-3.1.2/bin/hdfs' --remote_path='/' \
-	--remote_model_name='uci_housing.tar.gz' --remote_donefile_name='donefile' \
-	--local_path='.' --local_model_name='uci_housing_model' \
-	--local_timestamp_file='fluid_time_file' --local_tmp_path='_tmp' \
-	--unpacked_filename='uci_housing_model' --debug
+	--type='hdfs' --hadoop_bin='/hadoop-3.1.2/bin/hadoop' \
+	--remote_path='/' --remote_model_name='uci_housing.tar.gz' \
+	--remote_donefile_name='donefile' --local_path='.' \
+	--local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+	--local_tmp_path='_tmp' --unpacked_filename='uci_housing_model' --debug
 ```
 
 上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程打包模型`/uci_housing.tar.gz`拉取到本地临时路径`./_tmp/uci_housing.tar.gz`下，解包出模型文件`./_tmp/uci_housing_model`后，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
@@ -163,32 +162,34 @@ python -m paddle_serving_server.monitor \
 预计输出如下：
 
 ```shell
-2020-04-02 08:38 INFO     [monitor.py:85] _hdfs_bin: /hadoop-3.1.2/bin/hdfs
-2020-04-02 08:38 INFO     [monitor.py:244] HDFS prefix cmd: /hadoop-3.1.2/bin/hdfs dfs
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_path: /
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
-2020-04-02 08:38 INFO     [monitor.py:85] _remote_donefile_name: donefile
-2020-04-02 08:38 INFO     [monitor.py:85] _local_model_name: uci_housing_model
-2020-04-02 08:38 INFO     [monitor.py:85] _local_path: .
-2020-04-02 08:38 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
-2020-04-02 08:38 INFO     [monitor.py:85] _local_tmp_path: _tmp
-2020-04-02 08:38 INFO     [monitor.py:85] _interval: 10
-2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
-2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
-2020-04-02 08:38 INFO     [monitor.py:138] doneilfe(donefile) changed.
-2020-04-02 08:38 DEBUG    [monitor.py:261] pull cmd: /hadoop-3.1.2/bin/hdfs dfs  -get -f /uci_housing.tar.gz _tmp
-2020-04-02 08:38 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
-2020-04-02 08:38 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
-2020-04-02 08:38 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
-2020-04-02 08:38 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
-2020-04-02 08:38 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
-2020-04-02 08:38 INFO     [monitor.py:152] update local model(uci_housing_model).
-2020-04-02 08:38 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
-2020-04-02 08:38 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
-2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
-2020-04-02 08:38 DEBUG    [monitor.py:249] check cmd: /hadoop-3.1.2/bin/hdfs dfs  -stat "%Y" /donefile
-2020-04-02 08:38 DEBUG    [monitor.py:251] resp: 1585816693193
-2020-04-02 08:38 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 10:12 INFO     [monitor.py:85] _hadoop_bin: /hadoop-3.1.2/bin/hadoop
+2020-04-02 10:12 INFO     [monitor.py:85] _fs_name:
+2020-04-02 10:12 INFO     [monitor.py:85] _fs_ugi:
+2020-04-02 10:12 INFO     [monitor.py:209] AFS prefix cmd: /hadoop-3.1.2/bin/hadoop fs
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_path: /
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_model_name: uci_housing.tar.gz
+2020-04-02 10:12 INFO     [monitor.py:85] _remote_donefile_name: donefile
+2020-04-02 10:12 INFO     [monitor.py:85] _local_model_name: uci_housing_model
+2020-04-02 10:12 INFO     [monitor.py:85] _local_path: .
+2020-04-02 10:12 INFO     [monitor.py:85] _local_timestamp_file: fluid_time_file
+2020-04-02 10:12 INFO     [monitor.py:85] _local_tmp_path: _tmp
+2020-04-02 10:12 INFO     [monitor.py:85] _interval: 10
+2020-04-02 10:12 DEBUG    [monitor.py:214] check cmd: /hadoop-3.1.2/bin/hadoop fs  -ls /donefile 2>/dev/null
+2020-04-02 10:12 DEBUG    [monitor.py:216] resp: -rw-r--r--   1 root supergroup          0 2020-04-02 10:11 /donefile
+2020-04-02 10:12 INFO     [monitor.py:138] doneilfe(donefile) changed.
+2020-04-02 10:12 DEBUG    [monitor.py:233] pull cmd: /hadoop-3.1.2/bin/hadoop fs  -get /uci_housing.tar.gz _tmp/uci_housing.tar.gz 2>/dev/null
+2020-04-02 10:12 INFO     [monitor.py:144] pull remote model(uci_housing.tar.gz).
+2020-04-02 10:12 INFO     [monitor.py:98] unpack remote file(uci_housing.tar.gz).
+2020-04-02 10:12 DEBUG    [monitor.py:108] remove packed file(uci_housing.tar.gz).
+2020-04-02 10:12 INFO     [monitor.py:110] using unpacked filename: uci_housing_model.
+2020-04-02 10:12 DEBUG    [monitor.py:175] update model cmd: cp -r _tmp/uci_housing_model/* ./uci_housing_model
+2020-04-02 10:12 INFO     [monitor.py:152] update local model(uci_housing_model).
+2020-04-02 10:12 DEBUG    [monitor.py:184] update timestamp cmd: touch ./uci_housing_model/fluid_time_file
+2020-04-02 10:12 INFO     [monitor.py:157] update model timestamp(fluid_time_file).
+2020-04-02 10:12 INFO     [monitor.py:161] sleep 10s.
+2020-04-02 10:12 DEBUG    [monitor.py:214] check cmd: /hadoop-3.1.2/bin/hadoop fs  -ls /donefile 2>/dev/null
+2020-04-02 10:12 DEBUG    [monitor.py:216] resp: -rw-r--r--   1 root supergroup          0 2020-04-02 10:11 /donefile
+2020-04-02 10:12 INFO     [monitor.py:161] sleep 10s.
 ```
 
 #### 查看Server日志
