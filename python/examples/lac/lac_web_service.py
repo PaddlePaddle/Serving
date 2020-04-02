@@ -25,7 +25,13 @@ class LACService(WebService):
         if "words" not in feed:
             raise ("feed data error!")
         feed_data = self.reader.process(feed["words"])
+        fetch = ["crf_decode"]
         return {"words": feed_data}, fetch
+
+    def postprocess(self, feed={}, fetch=[], fetch_map={}):
+        segs = self.reader.parse_result(
+            feed["words"], fetch_map["crf_decode"])
+        return {"word_seg": "|".join(segs)}
 
 
 lac_service = LACService(name="lac")
