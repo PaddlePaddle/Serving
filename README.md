@@ -18,19 +18,19 @@
 
 <h2 align="center">Motivation</h2>
 
-We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you can put the model online without much effort. A demo of serving is as follows:
+We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you are also capable to deploy the model online easily. A demo of Paddle Serving is as follows:
 <p align="center">
     <img src="doc/demo.gif" width="700">
 </p>
 
 <h2 align="center">Some Key Features</h2>
 
-- Integrate with Paddle training pipeline seemlessly, most paddle models can be deployed **with one line command**.
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
 - **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported that is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python
-- **Extensible framework design** that can support model serving beyond Paddle.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
+- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Installation</h2>
 
@@ -53,7 +53,7 @@ Paddle Serving provides HTTP and RPC based service for users to access
 
 ### HTTP service
 
-Paddle Serving provides a built-in python module called `paddle_serving_server.serve` that can start a rpc service or a http service with one-line command. If we specify the argument `--name uci`, it means that we will have a HTTP service with a url of `$IP:$PORT/uci/prediction`
+Paddle Serving provides a built-in python module called `paddle_serving_server.serve` that can start a RPC service or a http service with one-line command. If we specify the argument `--name uci`, it means that we will have a HTTP service with a url of `$IP:$PORT/uci/prediction`
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
@@ -76,7 +76,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.25
 
 ### RPC service
 
-A user can also start a rpc service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
+A user can also start a RPC service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
@@ -240,14 +240,14 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### New to Paddle Serving
 - [How to save a servable model?](doc/SAVE.md)
-- [An end-to-end tutorial from training to serving(Chinese)](doc/TRAIN_TO_SERVICE.md)
-- [Write Bert-as-Service in 10 minutes(Chinese)](doc/BERT_10_MINS.md)
+- [An End-to-end tutorial from training to inference service deployment](doc/TRAIN_TO_SERVICE.md)
+- [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
-- [How to develop a new Serving operator](doc/NEW_OPERATOR.md)
+- [How to develop a new Serving operator?](doc/NEW_OPERATOR.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
-- [Compile from source code(Chinese)](doc/COMPILE.md)
+- [Compile from source code](doc/COMPILE.md)
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
@@ -259,8 +259,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 
 ### Design
-- [Design Doc(Chinese)](doc/DESIGN_DOC.md)
-- [Design Doc(English)](doc/DESIGN_DOC_EN.md)
+- [Design Doc](doc/DESIGN_DOC.md)
 
 <h2 align="center">Community</h2>
 

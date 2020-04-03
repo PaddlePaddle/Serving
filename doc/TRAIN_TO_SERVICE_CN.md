@@ -6,9 +6,11 @@ Paddle Serving是Paddle的高性能在线预测服务框架，可以灵活支持
 
 ## Step1：准备环境
 
+
 Paddle Serving可以部署在Linux环境上，目前server端支持在Centos7上部署，推荐使用[Docker部署](RUN_IN_DOCKER_CN.md)。rpc client端可以在Centos7和Ubuntu18上部署，在其他系统上或者不希望安装serving模块的环境中仍然可以通过http服务来访问server端的预测服务。
 
 可以根据需求和机器环境来选择安装cpu或gpu版本的server模块，在client端机器上安装client模块。使用http请求的方式来访问server时，client端机器不需要安装client模块。
+
 
 ```shell
 pip install paddle_serving_server #cpu版本server端
