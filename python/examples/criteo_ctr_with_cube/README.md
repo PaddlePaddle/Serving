@@ -19,11 +19,15 @@ go to directory `python/examples/criteo_ctr_with_cube`
 sh get_data.sh
 ```
 
-### Train and Save Model
+### Download Model and Sparse Parameter Sequence Files
 ```
-python local_train.py
+wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+tar xf ctr_cube_unittest.tar.gz
+mv models/ctr_client_conf ./
+mv models/ctr_serving_model_kv ./
+mv models/data ./cube/
 ```
-the trained model will be in ./ctr_server_model and ./ctr_client_config, and ctr_server_model_kv, ctr_client_conf_kv。
+the model will be in ./ctr_server_model and ./ctr_client_config, and ctr_server_model_kv, ctr_client_conf_kv。
 
 ### Start Sparse Parameter Indexing Service
 ```
