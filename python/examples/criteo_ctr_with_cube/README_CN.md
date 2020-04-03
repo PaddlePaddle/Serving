@@ -25,7 +25,7 @@ mv models/ctr_client_conf ./
 mv models/ctr_serving_model_kv ./
 mv models/data ./cube/
 ```
-执行脚本后会在当前目录生成ctr_server_model和ctr_client_config文件夹,以及ctr_server_model_kv, ctr_client_conf_kv。
+执行脚本后会在当前目录有ctr_server_model_kv和ctr_client_config文件夹。
 
 ### 启动稀疏参数索引服务
 ```
