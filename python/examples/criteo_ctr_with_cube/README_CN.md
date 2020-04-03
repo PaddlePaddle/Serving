@@ -17,9 +17,13 @@ make install -j10
 sh get_data.sh
 ```
 
-### 保存模型和配置文件
+### 下载模型和稀疏参数序列文件
 ```
-python local_train.py
+wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+tar xf ctr_cube_unittest.tar.gz
+mv models/ctr_client_conf ./
+mv models/ctr_serving_model_kv ./
+mv models/data ./cube/
 ```
 执行脚本后会在当前目录生成ctr_server_model和ctr_client_config文件夹,以及ctr_server_model_kv, ctr_client_conf_kv。
 
