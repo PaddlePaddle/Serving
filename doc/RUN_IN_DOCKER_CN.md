@@ -129,11 +129,12 @@ pip install paddle-serving-server-gpu
 
 ### 测试example
 
-GPU版本在运行Server端代码前需要设置`CUDA_VISIBLE_DEVICES`环境变量来指定预测服务使用的GPU，下面的示例为指定索引为0和1两块GPU：
-
-```bash
- export CUDA_VISIBLE_DEVICES=0,1
+在运行GPU版Server时需要通过`--gpu_ids`选项设置预测服务使用的GPU，缺省状态默认使用CPU。当设置的`--gpu_ids`超出环境变量`CUDA_VISIBLE_DEVICES`时会报错。下面的示例为指定使用索引为0的GPU：
+```shell
+export CUDA_VISIBLE_DEVICES=0,1
+python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --gpu_ids 0
 ```
+
 
 通过下面命令获取训练好的Boston房价预估模型：
 
@@ -177,3 +178,7 @@ tar -xzf uci_housing.tar.gz
   fetch_map = client.predict(feed={"x": data}, fetch=["price"])
   print(fetch_map)
   ```
+
+## 注意事项
+
+该文档提供的镜像均为运行镜像，不支持开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。

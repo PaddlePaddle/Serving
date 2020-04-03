@@ -53,7 +53,7 @@ def single_func(idx, resource):
                     feed_batch.append(reader.process(dataset[bi]))
                 b_end = time.time()
                 if profile_flags:
-                    print("PROFILE\tpid:{}\tbert+pre_0:{} bert_pre_1:{}".format(
+                    print("PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}".format(
                         os.getpid(),
                         int(round(b_start * 1000000)),
                         int(round(b_end * 1000000))))
@@ -69,9 +69,7 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = [
-        "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
-    ]
+    endpoint_list = ["127.0.0.1:9292"]
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
     avg_cost = 0
