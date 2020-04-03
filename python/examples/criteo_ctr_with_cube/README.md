@@ -14,6 +14,7 @@ make install -j10
 
 ### Get Sample Dataset
 
+go to directory `python/examples/criteo_ctr_with_cube`
 ```
 sh get_data.sh
 ```
