@@ -31,7 +31,6 @@ the model will be in ./ctr_server_model_kv and ./ctr_client_config.
 
 ### Start Sparse Parameter Indexing Service
 ```
-cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
