@@ -293,7 +293,7 @@ cat test_data/part-0 | python test_client.py imdb_lstm_client_conf / serving_cli
 
 Using 2084 samples in the test_data/part-0 file for test testing, the model prediction accuracy is 88.19%.
 
-** Note **: The effect of each model training may be slightly different, and the accuracy of predictions using the trained model will be close to the examples but may not be exactly the same.
+**Note**: The effect of each model training may be slightly different, and the accuracy of predictions using the trained model will be close to the examples but may not be exactly the same.
 
 ## Step8: Deploy HTTP Prediction Service
 
@@ -358,4 +358,4 @@ When the inference process is normal, the prediction probability is returned, as
 {"prediction": [0.5592559576034546,0.44074398279190063]}
 ```
 
-** Note **: The effect of each model training may be slightly different, and the inferred probability value using the trained model may not be consistent with the example.
+**Note**: The effect of each model training may be slightly different, and the inferred probability value using the trained model may not be consistent with the example.
