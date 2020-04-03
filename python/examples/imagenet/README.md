@@ -1,39 +1,41 @@
-## 图像分类示例
+## Image Classification
 
-示例中采用ResNet50_vd模型执行imagenet 1000分类任务。
+([简体中文](./README_CN.md)|English)
 
-### 获取模型配置文件和样例数据
+The example uses the ResNet50_vd model to perform the imagenet 1000 classification task.
+
+### Get model config and sample dataset
 ```
 sh get_model.sh
 ```
-### 执行HTTP预测服务
+### HTTP Infer
 
-启动server端
+launch server side
 ```
-python image_classification_service.py ResNet50_vd_model workdir 9393 #cpu预测服务
+python image_classification_service.py ResNet50_vd_model workdir 9393 #cpu inference service
 ```
 ```
-python image_classification_service_gpu.py ResNet50_vd_model workdir 9393 #gpu预测服务
+python image_classification_service_gpu.py ResNet50_vd_model workdir 9393 #gpu inference service
 ```
 
 
-client端进行预测
+client send inference request
 ```
 python image_http_client.py
 ```
-### 执行RPC预测服务
+### RPC Infer
 
-启动server端
+launch server side
 ```
-python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9393 #cpu预测服务
-```
-
-```
-python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0 #gpu预测服务
+python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9393 #cpu inference service
 ```
 
-client端进行预测
 ```
-python image_rpc_client.py conf_and_model/serving_client_conf/serving_client_conf.prototxt
+python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0 #gpu inference service
 ```
-*server端示例中服务端口为9393端口，client端示例中数据来自./data文件夹，server端地址为本地9393端口，可根据实际情况更改脚本。*
+
+client send inference request
+```
+python image_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
+```
+*the port of server side in this example is 9393, the sample data used by client side is in the folder ./data. These parameter can be modified in practice*

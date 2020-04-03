@@ -1,5 +1,7 @@
 # How to run PaddleServing in Docker
 
+([简体中文](RUN_IN_DOCKER_CN.md)|English)
+
 ## Requirements
 
 Docker (GPU version requires nvidia-docker to be installed on the GPU machine)
@@ -13,7 +15,7 @@ You can get images in two ways:
 1. Pull image directly
 
    ```bash
-   docker pull hub.baidubce.com/ctr/paddleserving:0.1.3
+   docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3
    ```
 
 2. Building image based on dockerfile
@@ -21,13 +23,13 @@ You can get images in two ways:
    Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
 
    ```bash
-   docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3 .
    ```
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/ctr/paddleserving:0.1.3
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3
 docker exec -it test bash
 ```
 
@@ -43,6 +45,12 @@ pip install paddle-serving-server
 
 ### Test example
 
+Before running the GPU version of the Server side code, you need to set the `CUDA_VISIBLE_DEVICES` environment variable to specify which GPUs the prediction service uses. The following example specifies two GPUs with indexes 0 and 1:
+
+```bash
+export CUDA_VISIBLE_DEVICES=0,1
+```
+
 Get the trained Boston house price prediction model by the following command:
 
 ```bash
@@ -55,7 +63,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
   ```
 
   Running on the Client side (inside or outside the container):
@@ -99,7 +107,7 @@ You can also get images in two ways:
 1. Pull image directly
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/ctr/paddleserving:0.1.3-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
    ```
 
 2. Building image based on dockerfile
@@ -107,13 +115,13 @@ You can also get images in two ways:
    Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/ctr/paddleserving:0.1.3-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu .
    ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/ctr/paddleserving:0.1.3-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -129,6 +137,13 @@ pip install paddle-serving-server-gpu
 
 ### Test example
 
+When running the GPU Server, you need to set the GPUs used by the prediction service through the `--gpu_ids` option, and the CPU is used by default. An error will be reported when the value of `--gpu_ids` exceeds the environment variable `CUDA_VISIBLE_DEVICES`. The following example specifies to use a GPU with index 0:
+```shell
+export CUDA_VISIBLE_DEVICES=0,1
+python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --gpu_ids 0
+```
+
+
 Get the trained Boston house price prediction model by the following command:
 
 ```bash
@@ -141,7 +156,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.web_serve --model uci_housing_model --thread 10 --port 9292 --name uci
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --name uci --gpu_ids 0
   ```
 
   Running on the Client side (inside or outside the container):
@@ -155,7 +170,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292
+  python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0
   ```
 
   Running following Python code on the Client side (inside or outside the container, The `paddle-serving-client` package needs to be installed):
@@ -172,4 +187,9 @@ tar -xzf uci_housing.tar.gz
   print(fetch_map)
   ```
 
-  
+
+
+
+## Attention
+
+The images provided by this document are all runtime images, which do not support compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
