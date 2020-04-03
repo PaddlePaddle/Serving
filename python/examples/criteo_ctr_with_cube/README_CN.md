@@ -19,7 +19,7 @@ sh get_data.sh
 
 ### 下载模型和稀疏参数序列文件
 ```
-wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz
 tar xf ctr_cube_unittest.tar.gz
 mv models/ctr_client_conf ./
 mv models/ctr_serving_model_kv ./
@@ -29,7 +29,6 @@ mv models/data ./cube/
 
 ### 启动稀疏参数索引服务
 ```
-cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
 sh cube_prepare.sh &
 ```
