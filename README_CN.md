@@ -208,7 +208,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 
 ### 关于Paddle Serving性能
-- [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util/)
+- [如何测试Paddle Serving性能？](python/examples/util/)
 - [CPU版Benchmarks](doc/BENCHMARKING.md)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
