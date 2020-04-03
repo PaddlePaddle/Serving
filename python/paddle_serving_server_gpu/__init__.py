@@ -43,6 +43,8 @@ def serve_args():
     parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
     parser.add_argument(
         "--name", type=str, default="None", help="Default service name")
+    parser.add_argument(
+        "--mem_optim", type=bool, default=False, help="Memory optimize")
     return parser.parse_args()
 
 
