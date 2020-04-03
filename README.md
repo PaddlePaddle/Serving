@@ -249,7 +249,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [Compile from source code](doc/COMPILE.md)
 
 ### About Efficiency
-- [How to profile Paddle Serving latency?](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util)
+- [How to profile Paddle Serving latency?](python/examples/util)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
