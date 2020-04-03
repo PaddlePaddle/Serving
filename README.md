@@ -223,7 +223,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
 | Model Name         | DNN-CTR                                                      |
-| URL                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| URL                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                            |
 | Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
 | Description        | Get click probability from a feature vector of item          |
 
