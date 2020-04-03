@@ -21,7 +21,7 @@ sh get_data.sh
 
 ### Download Model and Sparse Parameter Sequence Files
 ```
-wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz
 tar xf ctr_cube_unittest.tar.gz
 mv models/ctr_client_conf ./
 mv models/ctr_serving_model_kv ./
