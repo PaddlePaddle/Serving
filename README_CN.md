@@ -34,6 +34,40 @@ pip install paddle-serving-server
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
+```
+
+Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
+
+
+<h3 align="center">HTTP服务</h3>
+
+Paddle Serving提供了一个名为`paddle_serving_server.serve`的内置python模块，可以使用单行命令启动RPC服务或HTTP服务。如果我们指定参数`--name uci`，则意味着我们将拥有一个HTTP服务，其URL为$IP:$PORT/uci/prediction`。
+
+``` shell
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+```
+<center>
+
+| Argument | Type | Default | Description |
+|--------------|------|-----------|--------------------------------|
+| `thread` | int | `4` | Concurrency of current service |
+| `port` | int | `9292` | Exposed port of current service to users|
+| `name` | str | `""` | Service name, can be used to generate HTTP request url |
+| `model` | str | `""` | Path of paddle model directory to be served |
+| `mem_optim` | bool | `False` | Enable memory optimization |
+
+我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
+</center>
+
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+```
+
+<h3 align="center">RPC服务</h3>
+
+用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
+
+``` shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
