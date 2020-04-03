@@ -223,7 +223,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
 | 模型名         | DNN-CTR(with cube)                                           |
-| 下载链接               | None(Get model by [local_train.py](python/examples/criteo_ctr_with_cube/local_train.py))                            |
+| 下载链接               | https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz                            |
 | 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr_with_cube |
 | 介绍        | 从项目的特征向量中获得点击概率         |
 
