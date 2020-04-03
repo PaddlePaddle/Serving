@@ -2,6 +2,16 @@
 
 ([简体中文](./README_CN.md)|English)
 
+### Compile Source Code
+in the root directory of this git project
+```
+mkdir build_server
+cd build_server
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/  -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so  -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python  -DCLIENT_ONLY=OFF ..
+make -j10
+make install -j10
+```
+
 ### Get Sample Dataset
 
 ```
