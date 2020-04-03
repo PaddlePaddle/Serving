@@ -32,7 +32,7 @@ def save_model(server_model_folder,
     executor = Executor(place=CPUPlace())
 
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
-    target_vars = fetch_var_dict.values()
+    target_vars = list(fetch_var_dict.values())
 
     save_inference_model(
         server_model_folder,

@@ -33,6 +33,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
         port = args.port + index
     thread_num = args.thread
     model = args.model
+    mem_optim = args.mem_optim
     workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
@@ -53,6 +54,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
+    server.set_memory_optimize(mem_optim)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
@@ -64,14 +66,22 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
 def start_multi_card(args):  # pylint: disable=doc-string-missing
     gpus = ""
     if args.gpu_ids == "":
-        if "CUDA_VISIBLE_DEVICES" in os.environ:
-            gpus = os.environ["CUDA_VISIBLE_DEVICES"]
-        else:
-            gpus = []
+        gpus = []
     else:
         gpus = args.gpu_ids.split(",")
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+            for ids in gpus:
+                if int(ids) >= len(env_gpus):
+                    print(
+                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}.".
+                        format(len(env_gpus)))
+                    exit(-1)
+        else:
+            env_gpus = []
     if len(gpus) <= 0:
-        start_gpu_card_model(-1, args)
+        print("gpu_ids not set, going to run cpu service.")
+        start_gpu_card_model(-1, -1, args)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
