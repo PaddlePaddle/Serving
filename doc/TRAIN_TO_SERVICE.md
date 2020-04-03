@@ -5,9 +5,9 @@
 Paddle Serving is Paddle's high-performance online inference service framework, which can flexibly support the deployment of most models. In this article, the IMDB review sentiment analysis task is used as an example to show the entire process from model training to deployment of inference service through 9 steps.
 
 ## Step1：Prepare for Running Environment
-Paddle Serving can be deployed on Linux environments such as Centos and Ubuntu. On other systems or in environments where you do not want to install the serving module, you can still access the server-side prediction service through the http service.
+Paddle Serving can be deployed on Linux environments.Currently the server supports deployment on Centos7. [Docker deployment is recommended](RUN_IN_DOCKER.md). The rpc client supports deploymen on Centos7 and Ubuntu 18.On other systems or in environments where you do not want to install the serving module, you can still access the server-side prediction service through the http service.
 
-You can choose to install the cpu or gpu version of the server module according to the requirements and machine environment, and install the client module on the client machine. When you want to access the server with http
+You can choose to install the cpu or gpu version of the server module according to the requirements and machine environment, and install the client module on the client machine. When you want to access the server with http, there is not need to install client module.
 
 ```shell
 pip install paddle_serving_server #cpu version server side 

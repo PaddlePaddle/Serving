@@ -69,6 +69,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
+| `mem_optim` | bool | `False` | Enable memory optimization |
 
 我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
 </center>
@@ -227,7 +228,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
 | 模型名         | DNN-CTR                                                      |
-| 下载链接                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| 下载链接                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                            |
 | 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
 | 介绍        | 从项目的特征向量中获得点击概率        |
 
@@ -236,7 +237,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
 | 模型名         | DNN-CTR(with cube)                                           |
-| 下载链接               | None(Get model by [local_train.py](python/examples/criteo_ctr_with_cube/local_train.py))                            |
+| 下载链接               | https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz                            |
 | 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr_with_cube |
 | 介绍        | 从项目的特征向量中获得点击概率         |
 
@@ -255,7 +256,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 
 ### 关于Paddle Serving性能
-- [如何测试Paddle Serving性能？](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/util/)
+- [如何测试Paddle Serving性能？](python/examples/util/)
 - [CPU版Benchmarks](doc/BENCHMARKING.md)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
