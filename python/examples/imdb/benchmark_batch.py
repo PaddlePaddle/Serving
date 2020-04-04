@@ -61,4 +61,7 @@ def single_func(idx, resource):
 
 multi_thread_runner = MultiThreadRunner()
 result = multi_thread_runner.run(single_func, args.thread, {})
-print(result)
+avg_cost = 0
+for cost in result[0]:
+    avg_cost += cost
+print("total cost of each thread".format(avg_cost / args.thread))
