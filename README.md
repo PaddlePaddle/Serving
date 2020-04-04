@@ -65,6 +65,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
+| `mem_optim` | bool | `False` | Enable memory optimization |
 
 Here, we use `curl` to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
@@ -222,7 +223,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 | Key                | Value                                                        |
 | :----------------- | :----------------------------------------------------------- |
 | Model Name         | DNN-CTR                                                      |
-| URL                | None(Get model by [local_train.py](./python/examples/criteo_ctr/local_train.py))                            |
+| URL                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                            |
 | Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
 | Description        | Get click probability from a feature vector of item          |
 
