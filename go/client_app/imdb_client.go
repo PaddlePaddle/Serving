@@ -28,7 +28,7 @@ func main() {
      var config_file_path string
      config_file_path = os.Args[1]
      handle := serving_client.LoadModelConfig(config_file_path)
-     handle = serving_client.Connect("127.0.0.1", "9393", handle)
+     handle = serving_client.Connect("127.0.0.1", "9292", handle)
 
      test_file_path := os.Args[2]
      fi, err := os.Open(test_file_path)
