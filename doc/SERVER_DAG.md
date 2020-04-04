@@ -14,7 +14,7 @@ Deep neural nets often have some preprocessing steps on input data, and postproc
 
 ## How to define Node
 
-PaddleServing has some predefined Computation Node in the framework. A very commonly used Computation Graph is the simple reader-inference-response mode that can cover most of the single model inference scenarios. A example graph and the corresponding DAG defination code is as follows.
+PaddleServing has some predefined Computation Node in the framework. A very commonly used Computation Graph is the simple reader-inference-response mode that can cover most of the single model inference scenarios. A example graph and the corresponding DAG definition code is as follows.
 <center>
 <img src='simple_dag.png' width = "260" height = "370" align="middle"/>
 </center>

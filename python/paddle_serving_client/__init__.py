@@ -156,7 +156,9 @@ class Client(object):
                 )
         else:
             if self.predictor_sdk_ is None:
-                self.add_variant('var1', endpoints, 100)
+                timestamp = time.time()
+                self.add_variant('default_tag_{}'.format(timestamp), endpoints,
+                                 100)
             else:
                 print(
                     "parameter endpoints({}) will not take effect, because you use the add_variant function.".

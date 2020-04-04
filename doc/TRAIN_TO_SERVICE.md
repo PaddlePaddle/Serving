@@ -5,9 +5,9 @@
 Paddle Serving is Paddle's high-performance online inference service framework, which can flexibly support the deployment of most models. In this article, the IMDB review sentiment analysis task is used as an example to show the entire process from model training to deployment of inference service through 9 steps.
 
 ## Step1：Prepare for Running Environment
-Paddle Serving can be deployed on Linux environments such as Centos and Ubuntu. On other systems or in environments where you do not want to install the serving module, you can still access the server-side prediction service through the http service.
+Paddle Serving can be deployed on Linux environments.Currently the server supports deployment on Centos7. [Docker deployment is recommended](RUN_IN_DOCKER.md). The rpc client supports deploymen on Centos7 and Ubuntu 18.On other systems or in environments where you do not want to install the serving module, you can still access the server-side prediction service through the http service.
 
-You can choose to install the cpu or gpu version of the server module according to the requirements and machine environment, and install the client module on the client machine. When you want to access the server with http
+You can choose to install the cpu or gpu version of the server module according to the requirements and machine environment, and install the client module on the client machine. When you want to access the server with http, there is not need to install client module.
 
 ```shell
 pip install paddle_serving_server #cpu version server side 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
 </details>
 
-! [Training process](./ imdb_loss.png) As can be seen from the above figure, the loss of the model starts to converge after the 65th round. We save the model and configuration file after the 65th round of training is completed. The saved files are divided into imdb_cnn_client_conf and imdb_cnn_model folders. The former contains client-side configuration files, and the latter contains server-side configuration files and saved model files.
+![Training process](./imdb_loss.png) As can be seen from the above figure, the loss of the model starts to converge after the 65th round. We save the model and configuration file after the 65th round of training is completed. The saved files are divided into imdb_cnn_client_conf and imdb_cnn_model folders. The former contains client-side configuration files, and the latter contains server-side configuration files and saved model files.
 The parameter list of the save_model function is as follows:
 
 | Parameter            | Meaning                                                        |
@@ -243,10 +243,10 @@ The parameter list of the save_model function is as follows:
 
 The Paddle Serving framework supports two types of prediction service methods. One is to communicate through RPC and the other is to communicate through HTTP. The deployment and use of RPC prediction service will be introduced first. The deployment and use of HTTP prediction service will be introduced at Step 8. .
 
-`` `shell
+```shell
 python -m paddle_serving_server.serve --model imdb_cnn_model / --port 9292 #cpu prediction service
 python -m paddle_serving_server_gpu.serve --model imdb_cnn_model / --port 9292 --gpu_ids 0 #gpu prediction service
-`` `
+```
 
 The parameter --model in the command specifies the server-side model and configuration file directory previously saved, --port specifies the port of the prediction service. When deploying the gpu prediction service using the gpu version, you can use --gpu_ids to specify the gpu used.
 
@@ -287,13 +287,13 @@ The script receives data from standard input and prints out the probability that
 
 The client implemented in the previous step runs the prediction service as an example. The usage method is as follows:
 
-`` `shell
+```shell
 cat test_data/part-0 | python test_client.py imdb_lstm_client_conf / serving_client_conf.prototxt imdb.vocab
-`` `
+```
 
 Using 2084 samples in the test_data/part-0 file for test testing, the model prediction accuracy is 88.19%.
 
-** Note **: The effect of each model training may be slightly different, and the accuracy of predictions using the trained model will be close to the examples but may not be exactly the same.
+**Note**: The effect of each model training may be slightly different, and the accuracy of predictions using the trained model will be close to the examples but may not be exactly the same.
 
 ## Step8: Deploy HTTP Prediction Service
 
@@ -349,13 +349,13 @@ In the above command, the first parameter is the saved server-side model and con
 ## Step9: Call the prediction service with plaintext data
 After starting the HTTP prediction service, you can make prediction with a single command:
 
-`` `
+```
 curl -H "Content-Type: application / json" -X POST -d '{"words": "i am very sad | 0", "fetch": ["prediction"]}' http://127.0.0.1:9292/imdb/prediction
-`` `
+```
 When the inference process is normal, the prediction probability is returned, as shown below.
 
-`` `
+```
 {"prediction": [0.5592559576034546,0.44074398279190063]}
-`` `
+```
 
-** Note **: The effect of each model training may be slightly different, and the inferred probability value using the trained model may not be consistent with the example.
+**Note**: The effect of each model training may be slightly different, and the inferred probability value using the trained model may not be consistent with the example.
