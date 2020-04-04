@@ -20,37 +20,10 @@ wget https://paddle-serving.bj.bcebos.com/data/text_classification/imdb_serving_
 tar -xzf imdb_serving_example.tar.gz
 ```
 
-### 服务器端代码
-
-```python
-# test_server_go.py
-import os
-import sys
-from paddle_serving_server import OpMaker
-from paddle_serving_server import OpSeqMaker
-from paddle_serving_server import Server
-
-op_maker = OpMaker ()
-read_op = op_maker.create ('general_text_reader')
-general_infer_op = op_maker.create ('general_infer')
-general_response_op = op_maker.create ('general_text_response')
-
-op_seq_maker = OpSeqMaker ()
-op_seq_maker.add_op (read_op)
-op_seq_maker.add_op (general_infer_op)
-op_seq_maker.add_op (general_response_op)
-
-server = Server ()
-server.set_op_sequence (op_seq_maker.get_op_sequence ())
-server.load_model_config (sys.argv [1])
-server.prepare_server (workdir = "work_dir1", port = 9292, device = "cpu")
-server.run_server ()
-```
-
 ### 启动服务器
 
 ```shell
-python test_server_go.py ./serving_server_model/ 9292
+python -m paddle_serving_server.serve --model ./serving_server_model/ --port 9292
 ```
 
 ### 客户端代码示例
