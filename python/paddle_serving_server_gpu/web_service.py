@@ -66,6 +66,12 @@ class WebService(object):
         return server
 
     def _launch_rpc_service(self, service_idx):
+        if service_idx == 0:
+            self.rpc_service_list[service_idx].check_local_bin()
+            if not self.rpc_service_list[service_idx].use_local_bin:
+                self.rpc_service_list[service_idx].download_bin()
+        else:
+            time.sleep(3)
         self.rpc_service_list[service_idx].run_server()
 
     def prepare_server(self, workdir="", port=9393, device="gpu", gpuid=0):
@@ -160,15 +166,6 @@ class WebService(object):
             if not isinstance(result, dict) and result == -1:
                 result = {"result": "Request Value Error"}
             return result
-            '''
-            feed, fetch = self.preprocess(request.json, request.json["fetch"])
-            if "fetch" in feed:
-                del feed["fetch"]
-            fetch_map = client.predict(feed=feed, fetch=fetch)
-            fetch_map = self.postprocess(
-                feed=request.json, fetch=fetch, fetch_map=fetch_map)
-            return fetch_map
-            '''
 
         app_instance.run(host="0.0.0.0",
                          port=self.port,

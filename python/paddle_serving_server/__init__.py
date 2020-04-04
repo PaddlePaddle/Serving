@@ -211,6 +211,7 @@ class Server(object):
         tar_name = floder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
         self.server_path = os.path.join(self.module_path, floder_name)
+
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
