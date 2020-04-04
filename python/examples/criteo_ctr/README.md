@@ -1,26 +1,31 @@
-## CTR预测服务
+## CTR Prediction Service
 
-### 获取样例数据
+([简体中文](./README_CN.md)|English)
+
+### download criteo dataset
 ```
 sh get_data.sh
 ```
 
-### 保存模型和配置文件
+### download inference model
 ```
-python local_train.py
+wget https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz
+tar xf criteo_ctr_demo_model.tar.gz
+mv models/ctr_client_conf .
+mv models/ctr_serving_model .
 ```
-执行脚本后会在当前目录生成serving_server_model和serving_client_config文件夹。
+the directories like serving_server_model and serving_client_config will appear.
 
-### 启动RPC预测服务
+### Start RPC Inference Service
 
 ```
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
-python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
+python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #CPU RPC Service
+python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #RPC Service on GPU 0
 ```
 
-### 执行预测
+### RPC Infer
 
 ```
 python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/
 ```
-预测完毕会输出预测过程的耗时。
+the latency will display in the end.
