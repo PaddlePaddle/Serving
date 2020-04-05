@@ -176,6 +176,7 @@ function python_run_criteo_ctr_with_cube() {
     local TYPE=$1
     yum install -y bc >/dev/null
     cd criteo_ctr_with_cube # pwd: /Serving/python/examples/criteo_ctr_with_cube
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -237,6 +238,7 @@ function python_run_criteo_ctr_with_cube() {
             exit 1
             ;;
     esac
+    unset SERVING_BIN
     echo "test criteo_ctr_with_cube $TYPE part finished as expected."
     cd .. # pwd: /Serving/python/examples
 }
