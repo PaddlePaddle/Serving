@@ -266,6 +266,7 @@ function python_test_bert() {
     # pwd: /Serving/python/examples
     local TYPE=$1
     yum install -y libXext libSM libXrender >/dev/null
+    pip install ujson
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
