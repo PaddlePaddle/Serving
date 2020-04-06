@@ -136,7 +136,7 @@ pip install paddle-serving-server-gpu
 您可能需要使用国内镜像源（例如清华源）来加速下载。
 
 ```shell
-pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install paddle-serving-server-gpu -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 测试example

@@ -144,7 +144,7 @@ pip install paddle-serving-server-gpu
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source of the following example) to speed up the download:
 
 ```shell
-pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install paddle-serving-server-gpu -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### Test example
