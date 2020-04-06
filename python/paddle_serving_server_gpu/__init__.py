@@ -116,7 +116,7 @@ class Server(object):
         self.reload_interval_s = 10
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.check_cuda
+        self.check_cuda()
         self.use_local_bin = False
         self.gpuid = 0
 
@@ -144,7 +144,7 @@ class Server(object):
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        r = os.system("whereis cuda")
+        r = os.system("whereis cuda > /dev/null")
         if r != 0:
             raise SystemExit(
                 "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
