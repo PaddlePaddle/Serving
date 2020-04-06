@@ -20,6 +20,7 @@ import google.protobuf.text_format
 import tarfile
 import socket
 import paddle_serving_server_gpu as paddle_serving_server
+import time
 from .version import serving_server_version
 from contextlib import closing
 import argparse
@@ -115,6 +116,7 @@ class Server(object):
         self.reload_interval_s = 10
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
+        self.check_cuda
         self.use_local_bin = False
         self.gpuid = 0
 
@@ -140,6 +142,13 @@ class Server(object):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
             self.bin_path = os.environ["SERVING_BIN"]
+
+    def check_cuda(self):
+        r = os.system("whereis cuda")
+        if r != 0:
+            raise SystemExit(
+                "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
+            )
 
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
@@ -215,11 +224,21 @@ class Server(object):
         os.chdir(self.module_path)
         need_download = False
         device_version = "serving-gpu-"
-        floder_name = device_version + serving_server_version
-        tar_name = floder_name + ".tar.gz"
+        folder_name = device_version + serving_server_version
+        tar_name = folder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
-        self.server_path = os.path.join(self.module_path, floder_name)
+        self.server_path = os.path.join(self.module_path, folder_name)
+
+        download_flag = "{}/{}.is_download".format(self.module_path,
+                                                   folder_name)
+        if os.path.exists(download_flag):
+            os.chdir(self.cur_path)
+            self.bin_path = self.server_path + "/serving"
+            return
+
         if not os.path.exists(self.server_path):
+            os.system("touch {}/{}.is_download".format(self.module_path,
+                                                       folder_name))
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
@@ -318,4 +337,8 @@ class Server(object):
                       self.gpuid,)
         print("Going to Run Comand")
         print(command)
+        # wait for other process to download server bin
+        while not os.path.exists(self.server_path):
+            time.sleep(1)
+
         os.system(command)

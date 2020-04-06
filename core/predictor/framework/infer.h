@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
@@ -588,12 +589,14 @@ class VersionedInferEngine : public InferEngine {
       LOG(ERROR) << "Failed generate engine with type:" << engine_type;
       return -1;
     }
-
+    VLOG(2) << "FLGS_logtostderr " << FLAGS_logtostderr;
+    int tmp = FLAGS_logtostderr;
     if (engine->proc_initialize(conf, version) != 0) {
       LOG(ERROR) << "Failed initialize engine, type:" << engine_type;
       return -1;
     }
-
+    VLOG(2) << "FLGS_logtostderr " << FLAGS_logtostderr;
+    FLAGS_logtostderr = tmp;
     auto r = _versions.insert(std::make_pair(engine->version(), engine));
     if (!r.second) {
       LOG(ERROR) << "Failed insert item: " << engine->version()
@@ -760,7 +763,6 @@ class InferManager {
       LOG(ERROR) << "failed load infer config, path: " << path << "/" << file;
       return -1;
     }
-
     size_t engine_num = model_toolkit_conf.engines_size();
     for (size_t ei = 0; ei < engine_num; ++ei) {
       std::string engine_name = model_toolkit_conf.engines(ei).name();
@@ -769,12 +771,10 @@ class InferManager {
         LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
         return -1;
       }
-
       if (engine->proc_initialize(model_toolkit_conf.engines(ei)) != 0) {
         LOG(ERROR) << "Failed initialize version engine, name:" << engine_name;
         return -1;
       }
-
       auto r = _map.insert(std::make_pair(engine_name, engine));
       if (!r.second) {
         LOG(ERROR) << "Failed insert item: " << engine_name;
@@ -782,7 +782,6 @@ class InferManager {
       }
       LOG(WARNING) << "Succ proc initialize engine: " << engine_name;
     }
-
     return 0;
   }
 
