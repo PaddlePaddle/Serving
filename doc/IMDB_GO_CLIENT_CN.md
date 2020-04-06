@@ -11,7 +11,7 @@
 ```shell
 go get github.com/PaddlePaddle/Serving/go/serving_client
 go get github.com/PaddlePaddle/Serving/go/proto
-pip install paddle-serving-server
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 ### 下载文本分类模型
 

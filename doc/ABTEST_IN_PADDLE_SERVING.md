@@ -38,7 +38,7 @@ Here, we [use docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/R
 First, start the BOW server, which enables the `8000` port:
 
 ``` shell
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:0.1.3
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:0.2.0
 docker exec -it bow-server bash
 pip install paddle-serving-server
 python -m paddle_serving_server.serve --model model --port 8000 >std.log 2>err.log &
@@ -48,7 +48,7 @@ exit
 Similarly, start the LSTM server, which enables the `9000` port:
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:0.1.3
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:0.2.0
 docker exec -it lstm-server bash
 pip install paddle-serving-server
 python -m paddle_serving_server.serve --model model --port 9000 >std.log 2>err.log &
