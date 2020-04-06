@@ -15,7 +15,7 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 1. 直接拉取镜像
 
    ```bash
-   docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3
+   docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
    ```
 
 2. 基于Dockerfile构建镜像
@@ -23,13 +23,13 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
    建立新目录，复制[Dockerfile](../tools/Dockerfile)内容到该目录下Dockerfile文件。执行
 
    ```bash
-   docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0 .
    ```
 
 ### 创建容器并进入
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
 docker exec -it test bash
 ```
 
@@ -37,10 +37,16 @@ docker exec -it test bash
 
 ### 安装PaddleServing
 
-为了减小镜像的体积，镜像中没有安装Serving包，要执行下面命令进行安装
+为了减小镜像的体积，镜像中没有安装Serving包，要执行下面命令进行安装。
 
 ```bash
 pip install paddle-serving-server
+```
+
+您可能需要使用国内镜像源（例如清华源）来加速下载。
+
+```shell
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 测试example
@@ -99,7 +105,7 @@ GPU版本与CPU版本基本一致，只有部分接口命名的差别（GPU版�
 1. 直接拉取镜像
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
    ```
 
 2. 基于Dockerfile构建镜像
@@ -107,13 +113,13 @@ GPU版本与CPU版本基本一致，只有部分接口命名的差别（GPU版�
    建立新目录，复制[Dockerfile.gpu](../tools/Dockerfile.gpu)内容到该目录下Dockerfile文件。执行
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu .
    ```
 
 ### 创建容器并进入
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -121,10 +127,16 @@ nvidia-docker exec -it test bash
 
 ### 安装PaddleServing
 
-为了减小镜像的体积，镜像中没有安装Serving包，要执行下面命令进行安装
+为了减小镜像的体积，镜像中没有安装Serving包，要执行下面命令进行安装。
 
 ```bash
 pip install paddle-serving-server-gpu
+```
+
+您可能需要使用国内镜像源（例如清华源）来加速下载。
+
+```shell
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### 测试example

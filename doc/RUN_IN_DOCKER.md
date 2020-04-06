@@ -15,7 +15,7 @@ You can get images in two ways:
 1. Pull image directly
 
    ```bash
-   docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3
+   docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
    ```
 
 2. Building image based on dockerfile
@@ -23,13 +23,13 @@ You can get images in two ways:
    Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
 
    ```bash
-   docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0 .
    ```
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
 docker exec -it test bash
 ```
 
@@ -37,10 +37,16 @@ The `-p` option is to map the `9292` port of the container to the `9292` port of
 
 ### Install PaddleServing
 
-In order to make the image smaller, the PaddleServing package is not installed in the image. You can run the following command to install it
+In order to make the image smaller, the PaddleServing package is not installed in the image. You can run the following command to install it:
 
 ```bash
 pip install paddle-serving-server
+```
+
+You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source of the following example) to speed up the download:
+
+```shell
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### Test example
@@ -107,7 +113,7 @@ You can also get images in two ways:
 1. Pull image directly
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
    ```
 
 2. Building image based on dockerfile
@@ -115,13 +121,13 @@ You can also get images in two ways:
    Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu .
    ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.1.3-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -133,6 +139,12 @@ In order to make the image smaller, the PaddleServing package is not installed i
 
 ```bash
 pip install paddle-serving-server-gpu
+```
+
+You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source of the following example) to speed up the download:
+
+```shell
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ### Test example
