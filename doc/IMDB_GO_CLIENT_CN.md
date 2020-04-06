@@ -28,71 +28,71 @@ python -m paddle_serving_server.serve --model ./serving_server_model/ --port 929
 
 ### 客户端代码示例
 
-```go
+``` go
 // imdb_client.go
 package main
 
 import (
-       "io"
-       "fmt"
-       "strings"
-       "bufio"
-       "strconv"
-       "os"
-       serving_client "github.com/PaddlePaddle/Serving/go/serving_client"
+       "io"
+       "fmt"
+       "strings"
+       "bufio"
+       "strconv"
+       "os"
+       serving_client "github.com/PaddlePaddle/Serving/go/serving_client"
 )
 
-func main () {
-     var config_file_path string
-     config_file_path = os.Args [1]
-     handle: = serving_client.LoadModelConfig (config_file_path)
-     handle = serving_client.Connect ("127.0.0.1", "9292", handle)
+func main() {
+     var config_file_path string
+     config_file_path = os.Args[1]
+     handle := serving_client.LoadModelConfig(config_file_path)
+     handle = serving_client.Connect("127.0.0.1", "9292", handle)
 
-     test_file_path: = os.Args [2]
-     fi, err: = os.Open (test_file_path)
-     if err! = nil {
-     fmt.Print (err)
-     }
+     test_file_path := os.Args[2]
+     fi, err := os.Open(test_file_path)
+     if err != nil {
+     	fmt.Print(err)
+     }
 
-     defer fi.Close ()
-     br: = bufio.NewReader (fi)
+     defer fi.Close()
+     br := bufio.NewReader(fi)
 
-     fetch: = [] string {"cost", "acc", "prediction"}
+     fetch := []string{"cost", "acc", "prediction"}     
 
-     var result map [string] [] float32
+     var result map[string][]float32
 
-     for {
-     line, err: = br.ReadString ('\ n')
-if err == io.EOF {
-break
-}
+     for {
+     	 line, err := br.ReadString('\n')
+	 if err == io.EOF {
+	       break
+	 }
 
-line = strings.Trim (line, "\ n")
+	 line = strings.Trim(line, "\n")
 
-var words = [] int64 {}
+	 var words = []int64{}
 
-s: = strings.Split (line, "")
-value, err: = strconv.Atoi (s [0])
-var feed_int_map map [string] [] int64
-       
-for _, v: = range s [1: value + 1] {
-int_v, _: = strconv.Atoi (v)
-words = append (words, int64 (int_v))
-}
+	 s := strings.Split(line, " ")
+	 value, err := strconv.Atoi(s[0])
+	 var feed_int_map map[string][]int64
+       
+	 for _, v := range s[1:value + 1] {
+	       int_v, _ := strconv.Atoi(v)
+	       words = append(words, int64(int_v))
+	 }
 
-label, err: = strconv.Atoi (s [len (s) -1])
+	 label, err := strconv.Atoi(s[len(s)-1])
 
-if err! = nil {
-panic (err)
-}
+	 if err != nil {
+	       panic(err)
+	 }
 
-feed_int_map = map [string] [] int64 {}
-feed_int_map ["words"] = words
-feed_int_map ["label"] = [] int64 {int64 (label)}
-Ranch
-result = serving_client.Predict (handle, feed_int_map, fetch)
-fmt.Println (result ["prediction"] [1], "\ t", int64 (label))
-    }
+	 feed_int_map = map[string][]int64{}
+	 feed_int_map["words"] = words
+	 feed_int_map["label"] = []int64{int64(label)}
+	 
+	 result = serving_client.Predict(handle, feed_int_map, fetch)
+	 fmt.Println(result["prediction"][1], "\t", int64(label))
+    }
 }
 ```
 
