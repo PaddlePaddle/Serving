@@ -3,7 +3,7 @@
 <img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
     <br>
 <p>
-    
+
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
@@ -40,6 +40,8 @@ We highly recommend you to run Paddle Serving in Docker, please visit [Run in Do
 pip install paddle-serving-client
 pip install paddle-serving-server
 ```
+
+You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source) to speed up the download.
 
 <h2 align="center">Quick Start Example</h2>
 
@@ -146,7 +148,7 @@ python image_classification_service_demo.py resnet50_serving_model
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-    
+
 ``` shell
 curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
 ```
