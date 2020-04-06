@@ -1,11 +1,14 @@
-## 十分钟构建Bert-As-Service
+## Build Bert-As-Service in 10 minutes
 
-Bert-As-Service的目标是给定一个句子，服务可以将句子表示成一个语义向量返回给用户。[Bert模型](https://arxiv.org/abs/1810.04805)是目前NLP领域的热门模型，在多种公开的NLP任务上都取得了很好的效果，使用Bert模型计算出的语义向量来做其他NLP模型的输入对提升模型的表现也有很大的帮助。Bert-As-Service可以让用户很方便地获取文本的语义向量表示并应用到自己的任务中。为了实现这个目标，我们通过四个步骤说明使用Paddle Serving在十分钟内就可以搭建一个这样的服务。示例中所有的代码和文件均可以在Paddle Serving的[示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)中找到。
+([简体中文](./BERT_10_MINS_CN.md)|English)
 
-#### Step1：保存可服务模型
+The goal of Bert-As-Service is to give a sentence, and the service can represent the sentence as a semantic vector and return it to the user. [Bert model](https://arxiv.org/abs/1810.04805) is a popular model in the current NLP field. It has achieved good results on a variety of public NLP tasks. The semantic vector calculated by the Bert model is used as input to other NLP models, which will also greatly improve the performance of the model. Bert-As-Service allows users to easily obtain the semantic vector representation of text and apply it to their own tasks. In order to achieve this goal, we have shown in four steps that using Paddle Serving can build such a service in ten minutes. All the code and files in the example can be found in [Example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) of Paddle Serving.
 
-Paddle Serving支持基于Paddle进行训练的各种模型，并通过指定模型的输入和输出变量来保存可服务模型。为了方便，我们可以从paddlehub加载一个已经训练好的bert中文模型，并利用两行代码保存一个可部署的服务，服务端和客户端的配置分别放在`bert_seq20_model`和`bert_seq20_client`文件夹。
+#### Step1: Save the serviceable model
 
+Paddle Serving supports various models trained based on Paddle, and saves the serviceable model by specifying the input and output variables of the model. For convenience, we can load a trained bert Chinese model from paddlehub and save a deployable service with two lines of code. The server and client configurations are placed in the `bert_seq20_model` and` bert_seq20_client` folders, respectively.
+
+[//file]:#bert_10.py
 ``` python
 import paddlehub as hub
 model_name = "bert_chinese_L-12_H-768_A-12"
@@ -23,33 +26,35 @@ serving_io.save_model("bert_seq20_model", "bert_seq20_client",
                       feed_dict, fetch_dict, program)
 ```
 
-#### Step2：启动服务
+#### Step2: Launch Service
 
+[//file]:#server.sh
 ``` shell
 python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
 ```
+| Parameters | Meaning                                  |
+| ---------- | ---------------------------------------- |
+| model      | server configuration and model file path |
+| thread     | server-side threads                      |
+| port       | server port number                       |
+| gpu_ids    | GPU index number                         |
 
-| 参数    | 含义                       |
-| ------- | -------------------------- |
-| model   | server端配置与模型文件路径 |
-| thread  | server端线程数             |
-| port    | server端端口号             |
-| gpu_ids | GPU索引号                  |
+#### Step3: data preprocessing logic on Client Side
 
-#### Step3：客户端数据预处理逻辑
+Paddle Serving has many built-in corresponding data preprocessing logics. For the calculation of Chinese Bert semantic representation, we use the ChineseBertReader class under paddle_serving_app for data preprocessing. Model input fields  of multiple models corresponding to a raw Chinese sentence can be easily fetched by developers
 
-Paddle Serving内建了很多经典典型对应的数据预处理逻辑，对于中文Bert语义表示的计算，我们采用paddle_serving_app下的ChineseBertReader类进行数据预处理，开发者可以很容易获得一个原始的中文句子对应的多个模型输入字段。
+Install paddle_serving_app
 
-安装paddle_serving_app
-
+[//file]:#pip_app.sh
 ```shell
 pip install paddle_serving_app
 ```
 
-#### Step4：客户端访问
+#### Step4: Client Visit Serving
 
-客户端脚本 bert_client.py内容如下
+the script of client side bert_client.py is as follow:
 
+[//file]:#bert_client.py
 ``` python
 import os
 import sys
@@ -68,16 +73,33 @@ for line in sys.stdin:
     result = client.predict(feed=feed_dict, fetch=fetch)
 ```
 
-执行
+run
 
+[//file]:#bert_10_cli.sh
 ```shell
 cat data.txt | python bert_client.py
 ```
 
-从data.txt文件中读取样例，并将结果打印到标准输出。
+read samples from data.txt, print results at the standard output.
 
-### 性能测试
+### Benchmark
 
-我们基于V100对基于Padde Serving研发的Bert-As-Service的性能进行测试并与基于Tensorflow实现的Bert-As-Service进行对比，从用户配置的角度，采用相同的batch size和并发数进行压力测试，得到4块V100下的整体吞吐性能数据如下。
+We tested the performance of Bert-As-Service based on Padde Serving based on V100 and compared it with the Bert-As-Service based on Tensorflow. From the perspective of user configuration, we used the same batch size and concurrent number for stress testing. The overall throughput performance data obtained under 4 V100s is as follows.
 
 ![4v100_bert_as_service_benchmark](4v100_bert_as_service_benchmark.png)
+
+<!--
+yum install -y libXext libSM libXrender
+pip install paddlehub paddle_serving_server paddle_serving_client
+sh pip_app.sh
+python bert_10.py
+sh server.sh &
+wget https://paddle-serving.bj.bcebos.com/bert_example/data-c.txt --no-check-certificate
+head -n 500 data-c.txt > data.txt
+cat data.txt | python bert_client.py
+if [[ $? -eq 0 ]]; then
+    echo "test success"
+else
+    echo "test fail"
+fi
+-->
