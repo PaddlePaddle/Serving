@@ -19,7 +19,7 @@ sh get_data.sh
 
 The following Python code will process the data `test_data/part-0` and write to the `processed.data` file.
 
-[//file]:process.py
+[//file]:#process.py
 ``` python
 from imdb_reader import IMDBDataset
 imdb_dataset = IMDBDataset()
@@ -60,7 +60,7 @@ exit
 
 Run the following Python code on the host computer to start client. Make sure that the host computer is installed with the `paddle-serving-client` package.
 
-[//file]:ab_client.py
+[//file]:#ab_client.py
 ``` python
 from paddle_serving_client import Client
 
@@ -98,14 +98,17 @@ When making prediction on the client side, if the parameter `need_variant_tag=Tr
 ```
 
 <!--
-mv ../Serving/python/examples/imdb/get_data.sh .
+cp ../Serving/python/examples/imdb/get_data.sh .
+cp ../Serving/python/examples/imdb/imdb_reader.py .
 pip install -U paddle_serving_server
 pip install -U paddle_serving_client
 pip install -U paddlepaddle
 sh get_data.sh
 python process.py
-python -m paddle_serving_server.serve --model imdb_bow_model --port 8000 >std.log 2>err.log &
-python -m paddle_serving_server.serve --model imdb_lstm_model --port 9000 >std.log 2>err.log &
+python -m paddle_serving_server.serve --model imdb_bow_model --port 8000 --workdir workdir1 &
+sleep 5
+python -m paddle_serving_server.serve --model imdb_lstm_model --port 9000  --workdir workdir2 &
+sleep 5
 python ab_client.py >log.txt
 if [[ $? -eq 0 ]]; then
     echo "test success"
