@@ -10,7 +10,7 @@ time_dict = collections.OrderedDict()
 def prase(line):
     profile_list = line.split(" ")
     num = len(profile_list)
-    for idx in range(num / 2):
+    for idx in range(int(num / 2)):
         profile_0_list = profile_list[idx * 2].split(":")
         profile_1_list = profile_list[idx * 2 + 1].split(":")
         if len(profile_0_list[0].split("_")) == 2:
@@ -18,7 +18,7 @@ def prase(line):
         else:
             name = profile_0_list[0].split("_")[0] + "_" + profile_0_list[
                 0].split("_")[1]
-        cost = long(profile_1_list[1]) - long(profile_0_list[1])
+        cost = int(profile_1_list[1]) - int(profile_0_list[1])
         if name not in time_dict:
             time_dict[name] = cost
         else:
