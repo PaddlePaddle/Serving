@@ -144,7 +144,7 @@ class Server(object):
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        r = os.system("nvcc --version > /dev/null")
+        r = os.system("cat /usr/local/cuda/version.txt")
         if r != 0:
             raise SystemExit(
                 "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
