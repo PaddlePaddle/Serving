@@ -37,8 +37,9 @@ We consider deploying deep learning inference service online to be a user-facing
 We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server
+pip install paddle-serving-client 
+pip install paddle-serving-server # CPU
+pip install paddle-serving-server-gpu # GPU
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source) to speed up the download.
@@ -130,6 +131,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 - **Description**: 
 ``` shell
 Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
+Note: This demo needs paddle-serving-server-gpu. 
 ```
 
 - **Download Servable Package**: 
