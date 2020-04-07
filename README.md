@@ -35,6 +35,18 @@ We consider deploying deep learning inference service online to be a user-facing
 <h2 align="center">Installation</h2>
 
 We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+```
+# Run CPU Docker
+docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker exec -it test bash
+```
+```
+# Run GPU Docker
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker exec -it test bash
+```
 
 ```shell
 pip install paddle-serving-client 
@@ -42,7 +54,9 @@ pip install paddle-serving-server # CPU
 pip install paddle-serving-server-gpu # GPU
 ```
 
-You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add "-i https://pypi.tuna.tsinghua.edu.cn/simple" to pip command) to speed up the download. 
+You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add "-i https://pypi.tuna.tsinghua.edu.cn/simple" to pip command) to speed up the download.
+ 
+Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
 <h2 align="center">Quick Start Example</h2>
 

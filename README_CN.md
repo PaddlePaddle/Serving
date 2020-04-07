@@ -37,6 +37,18 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
+```
+# 启动 CPU Docker
+docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker exec -it test bash
+```
+```
+# 启动 GPU Docker
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker exec -it test bash
+```
 ```shell
 pip install paddle-serving-client
 pip install paddle-serving-server # CPU
@@ -44,6 +56,8 @@ pip install paddle-serving-server-gpu # GPU
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加"-i https://pypi.tuna.tsinghua.edu.cn/simple"）来加速下载。
+
+客户端安装包支持Centos 7和Ubuntu 18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
 
 <h2 align="center">快速启动示例</h2>
 
