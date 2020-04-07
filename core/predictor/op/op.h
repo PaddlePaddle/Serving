@@ -144,6 +144,16 @@ class Op {
 
   uint32_t id() const;
 
+  // Set the name of the Op as the key of the matching engine.
+  // Notes that this key is only used by infer_op (only the
+  // infer_op needs to find the corresponding engine).
+  // At present, there is only general_infer_op.
+  void set_engine_name(const std::string engine_name) {
+    _engine_name = engine_name;
+  }
+
+  const std::string& engine_name() const { return _engine_name; }
+
   // --------------- Default implements ----------------
 
   virtual int custom_init() { return 0; }
@@ -196,6 +206,7 @@ class Op {
   bool _has_calc;
   bool _has_init;
   TimerFlow* _timer;
+  std::string _engine_name;  // only for infer_op
 };
 
 template <typename T>

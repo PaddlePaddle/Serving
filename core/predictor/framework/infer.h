@@ -23,6 +23,9 @@
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
+#define BLOG(fmt, ...) \
+  printf(              \
+      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -765,6 +768,9 @@ class InferManager {
     }
     size_t engine_num = model_toolkit_conf.engines_size();
     for (size_t ei = 0; ei < engine_num; ++ei) {
+      BLOG("model_toolkit_conf.engines(%d).name: %s",
+           ei,
+           model_toolkit_conf.engines(ei).name().c_str());
       std::string engine_name = model_toolkit_conf.engines(ei).name();
       VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
       if (!engine) {
@@ -845,8 +851,10 @@ class InferManager {
             void* out,
             uint32_t batch_size = -1) {
     auto it = _map.find(model_name);
+    BLOG("find model_name: %s", model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
+      BLOG("Cannot find engine in map, model name: %s", model_name);
       return -1;
     }
     return it->second->infer(in, out, batch_size);

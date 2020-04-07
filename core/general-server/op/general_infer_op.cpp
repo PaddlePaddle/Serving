@@ -59,8 +59,11 @@ int GeneralInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
 
-  if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
+  BLOG("engine name: %s", engine_name().c_str());
+  if (InferManager::instance().infer(
+          GeneralInferOp::engine_name().c_str(), in, out, batch_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: "
+               << GeneralInferOp::engine_name();
     return -1;
   }
 
