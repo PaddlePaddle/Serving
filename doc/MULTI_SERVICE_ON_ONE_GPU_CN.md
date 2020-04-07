@@ -11,4 +11,5 @@ python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 
 
 在卡0上，同时部署了bert示例和iamgenet示例。
 
-**注意：** 单张显卡内部进行推理计算时仍然为串行计算，这种方式是为了减少server端显卡的空闲时间。 
+**注意：** 单张显卡内部进行推理计算时仍然为串行计算，这种方式是为了减少server端显卡的空闲时间。
+ 
