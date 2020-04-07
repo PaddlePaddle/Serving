@@ -43,6 +43,8 @@ pip install paddle-serving-server # CPU
 pip install paddle-serving-server-gpu # GPU
 ```
 
+您可能需要使用国内镜像源（例如清华源, 在pip命令中添加"-i https://pypi.tuna.tsinghua.edu.cn/simple"）来加速下载。
+
 <h2 align="center">快速启动示例</h2>
 
 <h3 align="center">波士顿房价预测</h3>
