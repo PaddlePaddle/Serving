@@ -39,7 +39,8 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 ```shell
 pip install paddle-serving-client
-pip install paddle-serving-server
+pip install paddle-serving-server # CPU
+pip install paddle-serving-server-gpu # GPU
 ```
 
 您可能需要使用国内镜像源（例如清华源）来加速下载。
@@ -135,6 +136,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 - **介绍**: 
 ``` shell
 图像分类模型由Imagenet数据集训练而成，该服务会返回一个标签及其概率
+注意：本示例需要安装paddle-serving-server-gpu
 ```
 
 - **下载服务包**: 
