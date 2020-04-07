@@ -251,6 +251,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](python/examples/util/)
+- [如何优化性能?](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
+- [在一张GPU上启动多个预测服务](doc/PERFORMANCE_OPTIM_CN.md)
 - [CPU版Benchmarks](doc/BENCHMARKING.md)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
