@@ -27,7 +27,8 @@ import (
 type Tensor struct {
      Data   []byte `json:"data"`
      FloatData	   []float32 `json:"float_data"`
-     IntData	   []int64 `json:"int_data"`
+     IntData	   []int `json:"int_data"`
+     Int64Data	   []int64 `json:"int64_data"`
      ElemType	int `json:"elem_type"`
      Shape	[]int `json:"shape"`
 }
@@ -116,9 +117,9 @@ func Predict(handle Handle, int_feed_map map[string][]int64, fetch []string) map
      for i := 0; i < len(handle.FeedAliasNames); i++ {
      	 key_i := handle.FeedAliasNames[i]
 	 var tmp Tensor
-	 tmp.IntData = []int64{}
+	 tmp.IntData = []int{}
 	 tmp.Shape = []int{}
-	 tmp.IntData = int_feed_map[key_i]
+	 tmp.Int64Data = int_feed_map[key_i]
 	 tmp.ElemType = 0
 	 tmp.Shape = handle.FeedShapeMap[key_i]
 	 tensor_array = append(tensor_array, tmp)
