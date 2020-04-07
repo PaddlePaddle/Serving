@@ -278,7 +278,9 @@ function python_test_bert() {
             sleep 5
             pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "serving" | grep -v grep | awk '{print $2}' | xargs kill
             echo "bert RPC inference pass" 
             ;;
         GPU)
@@ -289,6 +291,7 @@ function python_test_bert() {
             sleep 5
             pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             echo "bert RPC inference pass"
             ;;
@@ -307,13 +310,15 @@ function python_test_imdb() {
     case $TYPE in
         CPU)
             sh get_data.sh
-            check_cmd "python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 &"
             sleep 5
+            check_cmd "python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 &"
             check_cmd "head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab"
             echo "imdb CPU RPC inference pass"
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf work_dir1
+            sleep 5
 
-            check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
+            check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
             sleep 5
             check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
