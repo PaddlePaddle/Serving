@@ -37,12 +37,27 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
+```
+# 启动 CPU Docker
+docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker exec -it test bash
+```
+```
+# 启动 GPU Docker
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker exec -it test bash
+```
 ```shell
 pip install paddle-serving-client
-pip install paddle-serving-server
+pip install paddle-serving-server # CPU
+pip install paddle-serving-server-gpu # GPU
 ```
 
-您可能需要使用国内镜像源（例如清华源）来加速下载。
+您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
+
+客户端安装包支持Centos 7和Ubuntu 18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
 
 <h2 align="center">快速启动示例</h2>
 
@@ -135,6 +150,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 - **介绍**: 
 ``` shell
 图像分类模型由Imagenet数据集训练而成，该服务会返回一个标签及其概率
+注意：本示例需要安装paddle-serving-server-gpu
 ```
 
 - **下载服务包**: 
@@ -251,6 +267,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](python/examples/util/)
+- [如何优化性能?](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
+- [在一张GPU上启动多个预测服务](doc/PERFORMANCE_OPTIM_CN.md)
 - [CPU版Benchmarks](doc/BENCHMARKING.md)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
