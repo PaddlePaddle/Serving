@@ -106,5 +106,10 @@ sh get_data.sh
 python process.py
 python -m paddle_serving_server.serve --model imdb_bow_model --port 8000 >std.log 2>err.log &
 python -m paddle_serving_server.serve --model imdb_lstm_model --port 9000 >std.log 2>err.log &
-python ab_client.py
+python ab_client.py >log.txt
+if [[ $? -eq 0 ]]; then
+    echo "test success"
+else
+    echo "test fail"
+fi
 -->
