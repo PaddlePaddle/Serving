@@ -55,7 +55,7 @@ pip install paddle-serving-server # CPU
 pip install paddle-serving-server-gpu # GPU
 ```
 
-您可能需要使用国内镜像源（例如清华源, 在pip命令中添加"-i https://pypi.tuna.tsinghua.edu.cn/simple"）来加速下载。
+您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
 客户端安装包支持Centos 7和Ubuntu 18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
 
