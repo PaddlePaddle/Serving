@@ -102,4 +102,5 @@ if [[ $? -eq 0 ]]; then
 else
     echo "test fail"
 fi
+ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
 -->
