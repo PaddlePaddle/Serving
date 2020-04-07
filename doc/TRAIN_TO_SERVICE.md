@@ -288,7 +288,7 @@ The script receives data from standard input and prints out the probability that
 The client implemented in the previous step runs the prediction service as an example. The usage method is as follows:
 
 ```shell
-cat test_data/part-0 | python test_client.py imdb_lstm_client_conf / serving_client_conf.prototxt imdb.vocab
+cat test_data/part-0 | python test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 
 Using 2084 samples in the test_data/part-0 file for test testing, the model prediction accuracy is 88.19%.
@@ -350,7 +350,7 @@ In the above command, the first parameter is the saved server-side model and con
 After starting the HTTP prediction service, you can make prediction with a single command:
 
 ```
-curl -H "Content-Type: application / json" -X POST -d '{"words": "i am very sad | 0", "fetch": ["prediction"]}' http://127.0.0.1:9292/imdb/prediction
+curl -H "Content-Type: application/json" -X POST -d '{"words": "i am very sad | 0", "fetch": ["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
 When the inference process is normal, the prediction probability is returned, as shown below.
 
