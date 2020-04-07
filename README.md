@@ -35,11 +35,28 @@ We consider deploying deep learning inference service online to be a user-facing
 <h2 align="center">Installation</h2>
 
 We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+```
+# Run CPU Docker
+docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker exec -it test bash
+```
+```
+# Run GPU Docker
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker exec -it test bash
+```
 
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server
+pip install paddle-serving-client 
+pip install paddle-serving-server # CPU
+pip install paddle-serving-server-gpu # GPU
 ```
+
+You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
+ 
+Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
 <h2 align="center">Quick Start Example</h2>
 
@@ -128,6 +145,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天�
 - **Description**: 
 ``` shell
 Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
+Note: This demo needs paddle-serving-server-gpu. 
 ```
 
 - **Download Servable Package**: 
@@ -243,6 +261,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
+- [How to optimize performance?(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
+- [Deploy multi-services on one GPU(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
