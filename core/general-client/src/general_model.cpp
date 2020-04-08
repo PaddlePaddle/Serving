@@ -309,7 +309,7 @@ int PredictorClient::batch_predict(
       tensor_vec.push_back(inst->add_tensor_array());
     }
 
-    VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name"
+    VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name "
             << "prepared";
     int vec_idx = 0;
     for (auto &name : float_feed_name) {
@@ -375,9 +375,11 @@ int PredictorClient::batch_predict(
       predict_res_batch._int64_map[name].resize(batch_size);
       predict_res_batch._float_map[name].resize(batch_size);
     }
+    VLOG(2) << "response batch size " << res.insts_size();
+    VLOG(2) << "response var nmae " << res.insts(0).tensor_array_size();
     for (int bi = 0; bi < batch_size; bi++) {
+      int idx = 0;
       for (auto &name : fetch_name) {
-        int idx = _fetch_name_to_idx[name];
         int len = res.insts(bi).tensor_array(idx).data_size();
         if (_fetch_name_to_type[name] == 0) {
           int len = res.insts(bi).tensor_array(idx).int64_data_size();
@@ -401,6 +403,7 @@ int PredictorClient::batch_predict(
                 res.insts(bi).tensor_array(idx).float_data(i);
           }
         }
+        idx += 1;
       }
     }
     postprocess_end = timeline.TimeStampUS();
