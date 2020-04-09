@@ -11,7 +11,12 @@
 - cmake：3.2.2 and later
 - python：2.7.2 and later
 
-It is recommended to use Docker to prepare the compilation environment for the Paddle service: [CPU Dockerfile.devel](../tools/Dockerfile.devel), [GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you: 
+
+- CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
+- GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+
+This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python 3, just adjust the python options of cmake.
 
 ## Get Code
 
