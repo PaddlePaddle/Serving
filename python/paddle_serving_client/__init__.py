@@ -259,7 +259,7 @@ class Client(object):
 
         if batch_size == 1:
             return [result_map_batch[0], self.result_handle_.variant_tag()
-                    ] if need_variant_tag else result_map_batch[0]
+                    ] if need_variant_tag else result_map_batch
         else:
             return [result_map_batch, self.result_handle_.variant_tag()
                     ] if need_variant_tag else result_map_batch
