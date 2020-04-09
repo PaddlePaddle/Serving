@@ -18,6 +18,7 @@ python prepare_model.py 128
 参数128表示BERT模型中的max_seq_len，即预处理后的样本长度。
 生成server端配置文件与模型文件，存放在bert_seq128_model文件夹。
 生成client端配置文件，存放在bert_seq128_client文件夹。
+
 您也可以从bos上直接下载上述模型（max_seq_len=128），解压后server端配置文件与模型文件存放在bert_chinese_L-12_H-768_A-12_model文件夹，client端配置文件存放在bert_chinese_L-12_H-768_A-12_client文件夹：
 ```shell
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz

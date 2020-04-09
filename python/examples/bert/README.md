@@ -21,6 +21,7 @@ python prepare_model.py 128
 the 128 in the command above means max_seq_len in BERT model, which is the length of sample after preprocessing.
 the config file and model file for server side are saved in the folder bert_seq128_model.
 the config file generated for client side is saved in the folder bert_seq128_client.
+
 You can also download the above model from BOS(max_seq_len=128). After decompression, the config file and model file for server side are stored in the bert_chinese_L-12_H-768_A-12_model folder, and the config file generated for client side is stored in the bert_chinese_L-12_H-768_A-12_client folder:
 ```shell
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
