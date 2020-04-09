@@ -11,7 +11,12 @@
 - cmake：3.2.2及以上
 - python：2.7.2及以上
 
-推荐使用Docker准备Paddle Serving编译环境：[CPU Dockerfile.devel](../tools/Dockerfile.devel)，[GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
+
+- CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
+- GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+
+本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可。
 
 ## 获取代码
 
