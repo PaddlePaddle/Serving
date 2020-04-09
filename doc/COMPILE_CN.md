@@ -4,12 +4,12 @@
 
 ## 编译环境设置
 
-- os: CentOS 6u3
-- gcc: 4.8.2及以上
-- go: 1.9.2及以上
-- git：2.17.1及以上
-- cmake：3.2.2及以上
-- python：2.7.2及以上
+- OS: CentOS 7
+- GCC: 4.8.2及以上
+- Golang: 1.9.2及以上
+- Git：2.17.1及以上
+- CMake：3.2.2及以上
+- Python：2.7.2及以上
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
 
