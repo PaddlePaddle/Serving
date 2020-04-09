@@ -29,7 +29,7 @@ from paddle_serving_app import ChineseBertReader
 
 args = benchmark_args()
 
-reader = ChineseBertReader({"max_seq_len": 20})
+reader = ChineseBertReader({"max_seq_len": 128})
 fetch = ["pooled_output"]
 endpoint_list = ["127.0.0.1:9292"]
 client = Client()
