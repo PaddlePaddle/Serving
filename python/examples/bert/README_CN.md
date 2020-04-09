@@ -76,7 +76,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":[
 
 环境：CUDA 9.2，cudnn 7.1.4
 
-测试中将样例数据中的1W个样本复制为10W个样本，每个client线程发送线程数分之一个样本，batch size为1，max_seq_len为20(而非上面的128)，时间单位为秒.
+测试中将样例数据中的1W个样本复制为10W个样本，每个client线程发送线程数分之一个样本，batch size为1，max_seq_len为20（而不是上面的128），时间单位为秒.
 
 在client线程数为4时，预测速度可以达到432样本每秒。
 由于单张GPU内部只能串行计算，client线程增多只能减少GPU的空闲时间，因此在线程数达到4之后，线程数增多对预测速度没有提升。
