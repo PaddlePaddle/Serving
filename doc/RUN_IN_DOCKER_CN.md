@@ -6,6 +6,8 @@
 
 Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 
+该文档以Python2为例展示如何在Docker中运行Paddle Serving，您也可以通过将`python`更换成`python3`来用Python3运行相关命令。
+
 ## CPU版本
 
 ### 获取镜像
