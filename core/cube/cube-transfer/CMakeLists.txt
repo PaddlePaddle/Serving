@@ -18,9 +18,9 @@ project(cube-transfer Go)
 
 include(cmake/golang.cmake)
 
-ExternalGoProject_Add(docopt-go github.com/docopt/docopt-go)
 ExternalGoProject_Add(rfw github.com/mipearson/rfw)
-ExternalGoProject_Add(logex github.com/Badangel/logex)
+ExternalGoProject_Add_With_Deps(docopt-go github.com/docopt/docopt-go github.com/mipearson/rfw)
+ExternalGoProject_Add_With_Deps(logex github.com/Badangel/logex github.com/mipearson/rfw)
 
 add_subdirectory(src)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION ${PADDLE_SERVING_INSTALL_DIR})
