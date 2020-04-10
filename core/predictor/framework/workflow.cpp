@@ -16,6 +16,7 @@
 #include <string>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
+#define BLOG(fmt, ...) printf("[%s:%s]:%d "fmt"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -51,6 +52,7 @@ DagView* Workflow::fetch_dag_view(const std::string& service_name) {
 }
 
 void Workflow::return_dag_view(DagView* view) {
+  BLOG("Workflow::return_dag_vie");
   view->deinit();
   if (_type == "Sequence") {
     butil::return_object<DagView>(view);

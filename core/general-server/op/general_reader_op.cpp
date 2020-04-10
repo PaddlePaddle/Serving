@@ -21,9 +21,6 @@
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/util/include/timer.h"
-#define BLOG(fmt, ...) \
-  printf(              \
-      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -101,7 +98,6 @@ int GeneralReaderOp::inference() {
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "get resource pointer done.";
-  BLOG("engine name: %s", engine_name().c_str());
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
