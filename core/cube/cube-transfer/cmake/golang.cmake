@@ -21,7 +21,7 @@ endfunction(ExternalGoProject_Add)
 
 function(ExternalGoProject_Add_With_Deps TARG DEPS)
   add_custom_target(${TARG}
-                    COMMAND env GOPATH=${GOPATH} ${CMAKE_Go_COMPILER} get ${ARGN}
+                    env GOPATH=${GOPATH} ${CMAKE_Go_COMPILER} get ${ARGN}
                     DEPENDS ${DEPS})
 endfunction(ExternalGoProject_Add_With_Deps)
 
