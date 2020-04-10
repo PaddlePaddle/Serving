@@ -19,12 +19,6 @@ function(ExternalGoProject_Add TARG)
   add_custom_target(${TARG} env GOPATH=${GOPATH} ${CMAKE_Go_COMPILER} get ${ARGN})
 endfunction(ExternalGoProject_Add)
 
-function(ExternalGoProject_Add_With_Deps TARG DEPS)
-  add_custom_target(${TARG}
-                    env GOPATH=${GOPATH} ${CMAKE_Go_COMPILER} get ${ARGN}
-                    DEPENDS ${DEPS})
-endfunction(ExternalGoProject_Add_With_Deps)
-
 function(add_go_executable NAME)
   file(GLOB GO_SOURCE RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.go")
   add_custom_command(OUTPUT ${OUTPUT_DIR}/.timestamp
