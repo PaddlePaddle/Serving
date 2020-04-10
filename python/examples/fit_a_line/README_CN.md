@@ -5,7 +5,7 @@
 ## 开启RPC服务端
 ``` shell
 sh get_data.sh
-python test_server.py uci_housing_model/
+python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4
 ```
 
 ## RPC预测

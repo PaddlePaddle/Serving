@@ -28,4 +28,4 @@ test_reader = paddle.batch(
 
 for data in test_reader():
     fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    print("{} {}".format(fetch_map[0]["price"][0], data[0][1][0]))
