@@ -19,7 +19,7 @@ project(cube-transfer Go)
 include(cmake/golang.cmake)
 
 ExternalGoProject_Add(rfw github.com/mipearson/rfw)
-ExternalGoProject_Add_With_Deps(docopt-go github.com/docopt/docopt-go github.com/mipearson/rfw)
+ExternalGoProject_Add(docopt-go github.com/docopt/docopt-go)
 ExternalGoProject_Add_With_Deps(logex github.com/Badangel/logex github.com/mipearson/rfw)
 
 add_subdirectory(src)
