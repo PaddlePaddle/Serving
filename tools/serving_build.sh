@@ -164,6 +164,7 @@ function python_test_fit_a_line() {
             fi
             ;;
         GPU)
+            export CUDA_VISIBLE_DEVICES=0
             # test rpc
             check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 > /dev/null &"
             sleep 5 # wait for the server to start
@@ -298,6 +299,7 @@ function python_test_bert() {
             echo "bert RPC inference pass" 
             ;;
         GPU)
+            export CUDA_VISIBLE_DEVICES=0
             pip install paddlehub
             # Because download from paddlehub may timeout,
             # download the model from bos(max_seq_len=128).
