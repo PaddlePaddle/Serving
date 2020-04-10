@@ -400,7 +400,7 @@ function python_run_test() {
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     python_test_bert $TYPE # pwd: /Serving/python/examples
-    python_test_imdb $TYPE 
+    python_test_imdb $TYPE # pwd: /Serving/python/examples 
     python_test_lac $TYPE    
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
