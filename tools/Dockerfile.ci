@@ -26,6 +26,8 @@ RUN yum -y install wget >/dev/null \
     && make >/dev/null && make install >/dev/null \
     && cd .. \
     && rm -rf patchelf-0.10* \
+    && yum install -y python3 python3-devel \
+    && pip3 install google protobuf setuptools wheel flask \
     && yum -y update >/dev/null \
     && yum -y install dnf >/dev/null \
     && yum -y install dnf-plugins-core >/dev/null \
