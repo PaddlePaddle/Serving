@@ -227,7 +227,7 @@ function python_run_criteo_ctr_with_cube() {
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         GPU)
@@ -254,7 +254,7 @@ function python_run_criteo_ctr_with_cube() {
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         *)
@@ -270,7 +270,6 @@ function python_run_criteo_ctr_with_cube() {
 function python_test_bert() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    yum install -y libXext libSM libXrender >/dev/null
     pip install ujson
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
@@ -347,6 +346,7 @@ function python_test_imdb() {
             check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
             sleep 5
             check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
             echo "imdb CPU HTTP inference pass"           
@@ -378,6 +378,7 @@ function python_test_lac() {
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
             check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
             echo "lac CPU HTTP inference pass"
