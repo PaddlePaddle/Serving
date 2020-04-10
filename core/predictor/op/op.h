@@ -94,6 +94,10 @@ class Op {
   template <typename T>
   T* mutable_data() {
     Channel* channel = mutable_channel();
+    LOG(INFO) << "succ to get channel!";
+    auto x = (dynamic_cast<OpChannel<T>*>(channel))->data();
+    LOG(INFO) << "succ to x!";
+    return x;
     return (dynamic_cast<OpChannel<T>*>(channel))->data();
   }
 
@@ -132,12 +136,16 @@ class Op {
 
   const std::string& full_name() const { return _full_name; }
 
-  const std::string& pre_name() const { return _pre_node_name; }
+  //const std::string& pre_name() const { return _pre_node_name; }
+  const std::vector<std::string>& pre_names() const { return _pre_node_names; }
 
   void set_full_name(const std::string full_name) { _full_name = full_name; }
 
-  void set_pre_node_name(const std::string pre_name) {
-    _pre_node_name = pre_name;
+  /*void set_pre_node_name(const std::string pre_name) {*/
+    //_pre_node_name = pre_name;
+  /*}*/
+  void add_pre_node_name(const std::string pre_name) {
+    _pre_node_names.push_back(pre_name);
   }
 
   const std::string& type() const;
@@ -199,7 +207,8 @@ class Op {
   Bus* _bus;
   Dag* _dag;
   uint32_t _id;
-  std::string _pre_node_name;  // only for sequential execution
+  //std::string _pre_node_name;  // only for sequential execution
+  std::vector<std::string> _pre_node_names;  // for dag execution
   std::string _name;
   std::string _full_name;  // service_workflow_stageindex_opname
   std::string _type;
@@ -222,15 +231,20 @@ class OpWithChannel : public Op {
   // ---------- Implements ----------
 
   Channel* mutable_channel() {
+    LOG(INFO) << "op->mutable_data";
     if (_channel != NULL) {
+      LOG(INFO) << "op->mutable_data: return _channel";
       return _channel;
     }
+    LOG(INFO) << "op->mutable_data: _channel == NULL";
 
     _channel = butil::get_object<ChannelType>();
     if (!_channel) {
+      LOG(INFO) << "op->mutable_data: fail to get _channel";
       LOG(ERROR) << "Failed mutable channel of type:" << typeid(T).name();
       return NULL;
     }
+    LOG(INFO) << "op->mutable_data: succ to get _channel";
     _channel->init(this->id(), this->name());
     return _channel;
   }

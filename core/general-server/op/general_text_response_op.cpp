@@ -36,10 +36,13 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralTextResponseOp::inference() {
-  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
+  const std::vector<std::string> pre_node_names = pre_names();
+  VLOG(2) << "pre node names size: " << pre_node_names.size();
+
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_node_names[0]);
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name();
+    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[0];
     return -1;
   }
 

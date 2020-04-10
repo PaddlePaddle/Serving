@@ -33,6 +33,7 @@ namespace paddle_serving {
 namespace predictor {
 
 int DagView::init(Dag* dag, const std::string& service_name) {
+  BLOG("DagView::init.");
   _name = dag->name();
   _full_name = service_name + NAME_DELIMITER + dag->name();
   _bus = butil::get_object<Bus>();
@@ -89,20 +90,30 @@ int DagView::init(Dag* dag, const std::string& service_name) {
 
       vnode->conf = node;
       vnode->op = op;
+      // Add depends
+      for (auto it = vnode->conf->depends.begin(); 
+              it != vnode->conf->depends.end(); ++it) {
+        std::string pre_node_name = it->first;
+        VLOG(2) << "add op pre name: \n"
+                << "current op name: " << vnode->op->op_name()
+                << ", previous op name: " << pre_node_name;
+        vnode->op->add_pre_node_name(pre_node_name);
+      }
       vstage->nodes.push_back(vnode);
     }
     // TODO(guru4elephant): this seems buggy, please review later
-    if (si > 0) {
-      VLOG(2) << "set op pre name: \n"
-              << "current op name: " << vstage->nodes.back()->op->op_name()
-              << " previous op name: "
-              << _view[si - 1]->nodes.back()->op->op_name();
-      vstage->nodes.back()->op->set_pre_node_name(
-          _view[si - 1]->nodes.back()->op->op_name());
-    }
+    /*if (si > 0) {*/
+      //VLOG(2) << "set op pre name: \n"
+              //<< "current op name: " << vstage->nodes.back()->op->op_name()
+              //<< " previous op name: "
+              //<< _view[si - 1]->nodes.back()->op->op_name();
+      //vstage->nodes.back()->op->set_pre_node_name(
+          //_view[si - 1]->nodes.back()->op->op_name());
+    /*}*/
     _view.push_back(vstage);
   }
 
+  BLOG("DagView::finish.");
   return ERR_OK;
 }
 
