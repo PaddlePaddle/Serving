@@ -19,5 +19,7 @@ RUN yum -y install wget >/dev/null \
     && python get-pip.py >/dev/null \
     && pip install google protobuf setuptools wheel flask >/dev/null \
     && rm get-pip.py \
+    && yum install -y python3 python3-devel \
+    && pip3 install google protobuf setuptools wheel flask \
     && yum -y install epel-release && yum -y install patchelf \
     && yum clean all
