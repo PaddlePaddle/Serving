@@ -85,8 +85,10 @@ class PredictorClient {
 
   int predict(const std::vector<std::vector<float>>& float_feed,
               const std::vector<std::string>& float_feed_name,
+              const std::vector<std::vector<int>>& float_shape,
               const std::vector<std::vector<int64_t>>& int_feed,
               const std::vector<std::string>& int_feed_name,
+              const std::vector<std::vector<int>>& int_shape,
               const std::vector<std::string>& fetch_name,
               PredictorRes& predict_res,  // NOLINT
               const int& pid);
@@ -94,8 +96,10 @@ class PredictorClient {
   int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<int>>& float_shape,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
+      const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,
       PredictorRes& predict_res_batch,  // NOLINT
       const int& pid);
