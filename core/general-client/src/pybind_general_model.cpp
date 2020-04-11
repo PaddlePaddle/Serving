@@ -71,15 +71,19 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self,
               const std::vector<std::vector<float>> &float_feed,
               const std::vector<std::string> &float_feed_name,
+              const std::vector<std::vector<int>> &float_shape,
               const std::vector<std::vector<int64_t>> &int_feed,
               const std::vector<std::string> &int_feed_name,
+              const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res,
               const int &pid) {
              return self.predict(float_feed,
                                  float_feed_name,
+                                 float_shape,
                                  int_feed,
                                  int_feed_name,
+                                 int_shape,
                                  fetch_name,
                                  predict_res,
                                  pid);
@@ -89,16 +93,20 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<std::vector<float>>>
                   &float_feed_batch,
               const std::vector<std::string> &float_feed_name,
+              const std::vector<std::vector<int>> &float_shape,
               const std::vector<std::vector<std::vector<int64_t>>>
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
+              const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
               const int &pid) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
+                                       float_shape,
                                        int_feed_batch,
                                        int_feed_name,
+                                       int_shape,
                                        fetch_name,
                                        predict_res_batch,
                                        pid);

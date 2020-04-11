@@ -134,8 +134,10 @@ int PredictorClient::create_predictor() {
 
 int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
                              const std::vector<std::string> &float_feed_name,
+                             const std::vector<std::vector<int>> &float_shape,
                              const std::vector<std::vector<int64_t>> &int_feed,
                              const std::vector<std::string> &int_feed_name,
+                             const std::vector<std::vector<int>> &int_shape,
                              const std::vector<std::string> &fetch_name,
                              PredictorRes &predict_res,
                              const int &pid) {  // NOLINT
@@ -164,11 +166,17 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   }
 
   int vec_idx = 0;
-  for (auto &name : float_feed_name) {
-    int idx = _feed_name_to_idx[name];
+  for (int i = 0; i < float_feed_name.size(); ++i) {
+    int idx = _feed_name_to_idx[float_feed_name[i]];
     Tensor *tensor = tensor_vec[idx];
-    for (int j = 0; j < _shape[idx].size(); ++j) {
-      tensor->add_shape(_shape[idx][j]);
+    if (float_shape.size() == 0) {
+      for (int j = 0; j < _shape[idx].size(); ++j) {
+        tensor->add_shape(_shape[idx][j]);
+      }
+    } else {
+      for (int j = 0; j < float_shape[i].size(); ++j) {
+        tensor->add_shape(float_shape[i][j]);
+      }
     }
     tensor->set_elem_type(1);
     for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
@@ -180,11 +188,17 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   VLOG(2) << "feed float feed var done.";
   vec_idx = 0;
 
-  for (auto &name : int_feed_name) {
-    int idx = _feed_name_to_idx[name];
+  for (int i = 0; i < int_feed_name.size(); ++i) {
+    int idx = _feed_name_to_idx[int_feed_name[i]];
     Tensor *tensor = tensor_vec[idx];
-    for (int j = 0; j < _shape[idx].size(); ++j) {
-      tensor->add_shape(_shape[idx][j]);
+    if (int_shape.size() == 0) {
+      for (int j = 0; j < int_shape[i].size(); ++j) {
+        tensor->add_shape(int_shape[i][j]);
+      }
+    } else {
+      for (int j = 0; j < _shape[idx].size(); ++j) {
+        tensor->add_shape(_shape[idx][j]);
+      }
     }
     tensor->set_elem_type(0);
     for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
@@ -269,8 +283,10 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
 int PredictorClient::batch_predict(
     const std::vector<std::vector<std::vector<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
+    const std::vector<std::vector<int>> &float_shape,
     const std::vector<std::vector<std::vector<int64_t>>> &int_feed_batch,
     const std::vector<std::string> &int_feed_name,
+    const std::vector<std::vector<int>> &int_shape,
     const std::vector<std::string> &fetch_name,
     PredictorRes &predict_res_batch,
     const int &pid) {
@@ -312,11 +328,17 @@ int PredictorClient::batch_predict(
     VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name "
             << "prepared";
     int vec_idx = 0;
-    for (auto &name : float_feed_name) {
-      int idx = _feed_name_to_idx[name];
+    for (int i = 0; i < float_feed_name.size(); ++i) {
+      int idx = _feed_name_to_idx[float_feed_name[i]];
       Tensor *tensor = tensor_vec[idx];
-      for (int j = 0; j < _shape[idx].size(); ++j) {
-        tensor->add_shape(_shape[idx][j]);
+      if (float_shape.size() == float_feed_name.size()) {
+        for (int j = 0; j < float_shape[i].size(); ++j) {
+          tensor->add_shape(float_shape[i][j]);
+        }
+      } else {
+        for (int j = 0; j < _shape[idx].size(); ++j) {
+          tensor->add_shape(_shape[idx][j]);
+        }
       }
       tensor->set_elem_type(1);
       for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
@@ -329,14 +351,20 @@ int PredictorClient::batch_predict(
             << "float feed value prepared";
 
     vec_idx = 0;
-    for (auto &name : int_feed_name) {
-      int idx = _feed_name_to_idx[name];
+    for (int i = 0; i < int_feed_name.size(); ++i) {
+      int idx = _feed_name_to_idx[int_feed_name[i]];
       Tensor *tensor = tensor_vec[idx];
-      for (int j = 0; j < _shape[idx].size(); ++j) {
-        tensor->add_shape(_shape[idx][j]);
+      if (int_shape.size() == int_feed_name.size()) {
+        for (int j = 0; j < int_shape[i].size(); ++j) {
+          tensor->add_shape(int_shape[i][j]);
+        }
+      } else {
+        for (int j = 0; j < _shape[idx].size(); ++j) {
+          tensor->add_shape(_shape[idx][j]);
+        }
       }
       tensor->set_elem_type(0);
-      VLOG(3) << "feed var name " << name << " index " << vec_idx
+      VLOG(3) << "feed var name " << float_feed_name[i] << " index " << vec_idx
               << "first data " << int_feed[vec_idx][0];
       for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
         tensor->add_int64_data(int_feed[vec_idx][j]);

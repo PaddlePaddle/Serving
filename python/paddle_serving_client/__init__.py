@@ -18,6 +18,7 @@ import os
 from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
+import numpy as np
 import time
 import sys
 
@@ -205,6 +206,8 @@ class Client(object):
         float_slot_batch = []
         int_feed_names = []
         float_feed_names = []
+        int_shape = []
+        float_shape = []
         fetch_names = []
         counter = 0
         batch_size = len(feed_batch)
@@ -221,6 +224,8 @@ class Client(object):
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
+            int_shape = []
+            float_shape = []
             for key in feed_i:
                 if key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
@@ -228,13 +233,21 @@ class Client(object):
                 if self.feed_types_[key] == int_type:
                     if i == 0:
                         int_feed_names.append(key)
-                    int_slot.append(feed_i[key])
+                        if isinstance(feed_i[key], np.ndarray):
+                            int_shape.append(feed_i[key].shape)
+                    if isinstance(feed_i[key], np.ndarray):
+                        int_slot.append(feed_i[key].tolist())
+                    else:
+                        int_slot.append(feed_i[key])
                 elif self.feed_types_[key] == float_type:
                     if i == 0:
                         float_feed_names.append(key)
-                    float_slot.append(feed_i[key])
-            if len(int_slot) + len(float_slot) == 0:
-                raise ValueError("No feed data for predict.")
+                        if isinstance(feed_i[key], np.ndarray):
+                            float_shape.append(feed_i[key].shape)
+                    if isinstance(feed_i[key], np.ndarray):
+                        float_slot.append(feed_i[key].tolist())
+                    else:
+                        float_slot.append(feed_i[key])
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
