@@ -350,7 +350,7 @@ function python_test_imdb() {
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
-            echo "imdb CPU HTTP inference pass"           
+            echo "imdb CPU HTTP inference pass"
             ;;
         GPU)
             echo "imdb ignore GPU test"
