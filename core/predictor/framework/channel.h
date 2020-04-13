@@ -152,13 +152,9 @@ class OpChannel : public Channel {
 
   // functions of derived class
 
-  T* data() {
-      LOG(INFO) << "get data from channel.";
-      return &_data; }
+  T* data() { return &_data; }
 
-  const T* data() const { 
-      LOG(INFO) << "get data from channel.";
-      return &_data; }
+  const T* data() const { return &_data; }
 
   Channel& operator=(const T& obj) {
     _data = obj;

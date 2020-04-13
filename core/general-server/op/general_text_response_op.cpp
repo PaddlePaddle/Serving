@@ -36,20 +36,21 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralTextResponseOp::inference() {
-  const std::vector<std::string> pre_node_names = pre_names();
-  VLOG(2) << "pre node names size: " << pre_node_names.size();
+  VLOG(2) << "Going to run inference";
+  //TODO: multi-predecessor
+  if (pre_node_names.size() != 1) {
+    LOG(ERROR) << "This op(" << op_name() <<") can only have one predecessor op, but received " << pre_node_names.size();
+    return -1;
+  }
+  const std::string pre_name = pre_node_names[0];
 
-  const GeneralBlob *input_blob =
-      get_depend_argument<GeneralBlob>(pre_node_names[0]);
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[0];
+    LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name;
     return -1;
   }
 
-  LOG(ERROR) << "Error!";
-  return -1;
-  /*
   const TensorVector *in = &input_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
 
@@ -131,7 +132,7 @@ int GeneralTextResponseOp::inference() {
     // TODO(guru4elephant): find more elegant way to do this
     res->add_profile_time(start);
     res->add_profile_time(end);
-  }*/
+  }
 
   return 0;
 }

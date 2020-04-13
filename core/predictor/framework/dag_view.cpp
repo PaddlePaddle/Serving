@@ -21,19 +21,12 @@
 #include <string>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/op_repository.h"
-#define BLOG(fmt, ...)           \
-  printf("[%s:%s]:%d " fmt "\n", \
-         __FILE__,               \
-         __FUNCTION__,           \
-         __LINE__,               \
-         ##__VA_ARGS__);
 
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
 int DagView::init(Dag* dag, const std::string& service_name) {
-  BLOG("DagView::init.");
   _name = dag->name();
   _full_name = service_name + NAME_DELIMITER + dag->name();
   _bus = butil::get_object<Bus>();
@@ -85,7 +78,7 @@ int DagView::init(Dag* dag, const std::string& service_name) {
       op->set_full_name(service_name + NAME_DELIMITER + node->full_name);
 
       // Set the name of the Op as the key of the matching engine.
-      BLOG("op->set_engine_name(%s)", node->name.c_str());
+      VLOG(2) << "op->set_engine_name(" << node->name.c_str() << ")";
       op->set_engine_name(node->name);
 
       vnode->conf = node;
@@ -114,7 +107,6 @@ int DagView::init(Dag* dag, const std::string& service_name) {
     _view.push_back(vstage);
   }
 
-  BLOG("DagView::finish.");
   return ERR_OK;
 }
 
@@ -144,7 +136,6 @@ int DagView::deinit() {
 int DagView::execute(butil::IOBufBuilder* debug_os) {
   uint32_t stage_size = _view.size();
   for (uint32_t si = 0; si < stage_size; si++) {
-    BLOG("start to execute stage[%u] %s", si, _view[si]->full_name.c_str());
     TRACEPRINTF("start to execute stage[%u]", si);
     int errcode = execute_one_stage(_view[si], debug_os);
     TRACEPRINTF("finish to execute stage[%u]", si);
@@ -163,16 +154,13 @@ int DagView::execute_one_stage(ViewStage* vstage,
                                butil::IOBufBuilder* debug_os) {
   butil::Timer stage_time(butil::Timer::STARTED);
   uint32_t node_size = vstage->nodes.size();
-  BLOG("vstage->nodes.size(): %d", node_size);
+  VLOG(2) << "vstage->nodes.size(): " << node_size;
   for (uint32_t ni = 0; ni < node_size; ni++) {
     ViewNode* vnode = vstage->nodes[ni];
     DagNode* conf = vnode->conf;
     Op* op = vnode->op;
-    BLOG("start to execute op[%s]", op->name());
-    BLOG("Op engine name: %s", op->engine_name().c_str());
     TRACEPRINTF("start to execute op[%s]", op->name());
     int errcode = op->process(debug_os != NULL);
-    BLOG("finish to execute op[%s]", op->name());
     TRACEPRINTF("finish to execute op[%s]", op->name());
     if (errcode < 0) {
       LOG(ERROR) << "Execute failed, Op:" << op->debug_string();

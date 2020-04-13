@@ -34,8 +34,7 @@ class OpMaker(object):
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv_infer": "GeneralDistKVInferOp",
             "general_dist_kv_quant_infer": "GeneralDistKVQuantInferOp",
-            "general_copy": "GeneralCopyOp",
-            "general_add": "GeneralAddOp"
+            "general_copy": "GeneralCopyOp"
         }
 
     # currently, inputs and outputs are not used

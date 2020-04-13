@@ -18,9 +18,6 @@
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
 #include "core/predictor/op/op.h"
-#define BLOG(fmt, ...) \
-  printf(              \
-      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -213,14 +210,11 @@ int Dag::topo_sort() {
       uint32_t pnid = Dag::node_by_name(it->first)->id -
                       1;  // 0 is reserved for begginer-op
       in_egde[pnid].push_back(nid);
-      BLOG("inegde[%d]: %d", pnid, nid);
+      LOG(INFO) << "inegde[" << pnid << "]: " << nid;
     }
   }
   for (int i = 0; i < in_degree.size(); ++i) {
-    BLOG("(%s) in_degree[%d]: %d",
-         _index_nodes[i]->name.c_str(),
-         i,
-         in_degree[i]);
+    LOG(INFO) << "(" << _index_nodes[i]->name << ") in_degree[" << i << "]: " << in_degree[i];
   }
   int sorted_num = 0;
   DagStage* stage = new (std::nothrow) DagStage();
@@ -232,10 +226,9 @@ int Dag::topo_sort() {
   ss << _stages.size();
   stage->name = ss.str();
   stage->full_name = full_name() + NAME_DELIMITER + stage->name;
-  BLOG("stage->full_name: %s", stage->full_name.c_str());
   for (uint32_t nid = 0; nid < nodes_size; ++nid) {
     if (in_degree[nid] == 0) {
-      BLOG("nid: %d", nid);
+      LOG(INFO) << "nid:" << nid;
       ++sorted_num;
       stage->nodes.push_back(_index_nodes[nid]);
       // assign stage number after stage created
@@ -259,16 +252,15 @@ int Dag::topo_sort() {
     ss << _stages.size();
     stage->name = ss.str();
     stage->full_name = full_name() + NAME_DELIMITER + stage->name;
-    BLOG("stage->full_name: %s", stage->full_name.c_str());
     for (uint32_t pi = 0; pi < pre_nodes.size(); ++pi) {
       uint32_t pnid = pre_nodes[pi]->id - 1;
-      BLOG("pnid: %d", pnid);
+      LOG(INFO) << "pnid: " <<  pnid;
       for (uint32_t ei = 0; ei < in_egde[pnid].size(); ++ei) {
         uint32_t nid = in_egde[pnid][ei];
         --in_degree[nid];
-        BLOG("nid: %d, indeg: %d", nid, in_degree[nid]);
+        LOG(INFO) << "nid: " << nid << ", indeg: " << in_degree[nid];
         if (in_degree[nid] == 0) {
-          BLOG("nid: %d", nid);
+          LOG(INFO) << "nid: " << nid;
           ++sorted_num;
           stage->nodes.push_back(_index_nodes[nid]);
           // assign stage number after stage created
@@ -297,7 +289,6 @@ int Dag::topo_sort() {
   // ss << _stages.size();
   // stage->name = ss.str();
   // stage->full_name = full_name() + NAME_DELIMITER + stage->name;
-  // BLOG("stage->full_name: %s", stage->full_name.c_str());
   //_stages.push_back(stage);
 
   //// assign stage number after stage created

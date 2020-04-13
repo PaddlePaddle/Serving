@@ -20,8 +20,6 @@
 #include "core/predictor/framework/op_repository.h"
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
 #include <cstdlib>
-#define BLOG(fmt, ...) printf("[%s:%s]:%d "fmt"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#include<stdexcept>
 
 namespace baidu {
 namespace paddle_serving {
@@ -231,14 +229,13 @@ class OpWithChannel : public Op {
 
   Channel* mutable_channel() {
     if (_channel != NULL) {
-      LOG(INFO) << "op->mutable_data: _channel != NULL";
       return _channel;
     }
-    LOG(INFO) << "try to get_object: _channel";
 
+    //TODO: some bug in using butil::get_object
     //_channel = butil::get_object<ChannelType>();
-    //LOG(INFO) << butil::describe_objects<ChannelType>();
     _channel = new ChannelType();
+
     if (!_channel) {
       LOG(ERROR) << "Failed mutable channel of type:" << typeid(T).name();
       return NULL;
@@ -250,11 +247,11 @@ class OpWithChannel : public Op {
   const Channel* get_channel() const { return _channel; }
 
   int release_channel() {
-    LOG(INFO) << "=====> _chaneel deinit";
     if (_channel) {
        _channel->deinit();
       delete _channel;
     }
+    //TODO: some bug in using butil::get_object
     /*if (_channel) {*/
       //_channel->deinit();
       //butil::return_object<ChannelType>(_channel);
