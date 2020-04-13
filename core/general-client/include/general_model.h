@@ -39,11 +39,10 @@ namespace baidu {
 namespace paddle_serving {
 namespace general_model {
 
-class PredictorRes {
+class ModelRes {
  public:
-  PredictorRes() {}
-  ~PredictorRes() {}
-
+  ModelRes() {}
+  ~ModelRes() {}
  public:
   const std::vector<std::vector<int64_t>>& get_int64_by_name(
       const std::string& name) {
@@ -53,14 +52,33 @@ class PredictorRes {
       const std::string& name) {
     return _float_map[name];
   }
+ public:
+  std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
+  std::map<std::string, std::vector<std::vector<float>>> _float_map;
+};
+
+class PredictorRes {
+ public:
+  PredictorRes() {}
+  ~PredictorRes() {}
+
+ public:
+  void clear() { _models.clear();}
+  const std::vector<std::vector<int64_t>>& get_int64_by_name(
+      const int model_idx, const std::string& name) {
+    return _models[model_idx].get_int64_by_name(name);
+  }
+  const std::vector<std::vector<float>>& get_float_by_name(
+      const int model_idx, const std::string& name) {
+    return _models[model_idx].get_float_by_name(name);
+  }
   void set_variant_tag(const std::string& variant_tag) {
     _variant_tag = variant_tag;
   }
   const std::string& variant_tag() { return _variant_tag; }
+  int models_num() {return _models.size();}
 
- public:
-  std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
-  std::map<std::string, std::vector<std::vector<float>>> _float_map;
+  std::vector<ModelRes> _models;
 
  private:
   std::string _variant_tag;

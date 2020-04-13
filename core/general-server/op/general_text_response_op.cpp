@@ -39,13 +39,17 @@ int GeneralTextResponseOp::inference() {
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
 
-  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_node_names[0]);
+  const GeneralBlob *input_blob =
+      get_depend_argument<GeneralBlob>(pre_node_names[0]);
 
   if (!input_blob) {
     LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[0];
     return -1;
   }
 
+  LOG(ERROR) << "Error!";
+  return -1;
+  /*
   const TensorVector *in = &input_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
 
@@ -127,7 +131,7 @@ int GeneralTextResponseOp::inference() {
     // TODO(guru4elephant): find more elegant way to do this
     res->add_profile_time(start);
     res->add_profile_time(end);
-  }
+  }*/
 
   return 0;
 }

@@ -80,6 +80,7 @@ int GeneralReaderOp::inference() {
   std::vector<int64_t> capacity;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
+  fprintf(stderr, "[reader] out blob address %x\n", res);
   TensorVector *out = &res->tensor_vector;
 
   res->SetBatchSize(batch_size);

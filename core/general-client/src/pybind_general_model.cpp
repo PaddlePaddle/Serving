@@ -31,17 +31,19 @@ PYBIND11_MODULE(serving_client, m) {
   py::class_<PredictorRes>(m, "PredictorRes", py::buffer_protocol())
       .def(py::init())
       .def("get_int64_by_name",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_int64_by_name(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_int64_by_name(model_idx, name);
            },
            py::return_value_policy::reference)
       .def("get_float_by_name",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_float_by_name(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_float_by_name(model_idx, name);
            },
            py::return_value_policy::reference)
       .def("variant_tag",
-           [](PredictorRes &self) { return self.variant_tag(); });
+           [](PredictorRes &self) { return self.variant_tag(); })
+      .def("models_num",
+           [](PredictorRes &self) {return self.models_num(); });
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
