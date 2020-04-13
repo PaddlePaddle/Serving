@@ -4,14 +4,19 @@
 
 ## 编译环境设置
 
-- os: CentOS 6u3
-- gcc: 4.8.2及以上
-- go: 1.9.2及以上
-- git：2.17.1及以上
-- cmake：3.2.2及以上
-- python：2.7.2及以上
+- OS: CentOS 7
+- GCC: 4.8.2及以上
+- Golang: 1.9.2及以上
+- Git：2.17.1及以上
+- CMake：3.2.2及以上
+- Python：2.7.2及以上
 
-推荐使用Docker准备Paddle Serving编译环境：[CPU Dockerfile.devel](../tools/Dockerfile.devel)，[GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
+
+- CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
+- GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+
+本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可。
 
 ## 获取代码
 
