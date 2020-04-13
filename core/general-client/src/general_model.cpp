@@ -214,7 +214,7 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
     VLOG(2) << "predict done.";
     client_infer_end = timeline.TimeStampUS();
     postprocess_start = client_infer_end;
-    // severaal model output
+    // multi-model output
     uint32_t model_num = res.outputs_size();
     predict_res._models.resize(model_num);
     for (uint32_t m_idx = 0; m_idx < model_num; ++m_idx) {
@@ -242,9 +242,10 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
                 output.insts(0).tensor_array(idx).float_data(i);
           }
         }
+        //TODO
+        postprocess_end = timeline.TimeStampUS();
       }
     }
-    postprocess_end = timeline.TimeStampUS();
   }
 
   if (FLAGS_profile_client) {
@@ -414,11 +415,11 @@ int PredictorClient::batch_predict(
                   output.insts(bi).tensor_array(idx).float_data(i);
             }
           }
+          idx += 1;
         }
-        idx += 1;
       }
+      postprocess_end = timeline.TimeStampUS();
     }
-    postprocess_end = timeline.TimeStampUS();
   }
 
   if (FLAGS_profile_client) {

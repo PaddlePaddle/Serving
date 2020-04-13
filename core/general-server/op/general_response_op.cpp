@@ -46,7 +46,7 @@ int GeneralResponseOp::inference() {
   Response *res = mutable_data<Response>();
 
   Timer timeline;
-  // double resionse_time = 0.0;
+  // double response_time = 0.0;
   // timeline.Start();
   int64_t start = timeline.TimeStampUS();
 
