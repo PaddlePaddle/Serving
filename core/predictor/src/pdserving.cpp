@@ -32,6 +32,7 @@
 #include "core/predictor/framework/server.h"
 #include "core/predictor/framework/service.h"
 #include "core/predictor/framework/workflow.h"
+#define BLOG(fmt, ...) printf("[%s:%s]:%d "fmt"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;
@@ -217,6 +218,7 @@ int main(int argc, char** argv) {
   FLAGS_stderrthreshold = 3;
 #endif
 
+  BLOG("\nServerManager::instance().start_and_wait()\n");
   if (ServerManager::instance().start_and_wait() != 0) {
     LOG(ERROR) << "Failed start server and wait!";
     return -1;

@@ -15,6 +15,7 @@
 from paddle_serving_client import Client
 from imdb_reader import IMDBDataset
 import sys
+import time
 
 client = Client()
 client.load_client_config('imdb_bow_client_conf/serving_client_conf.prototxt')
@@ -26,12 +27,13 @@ client.connect(["127.0.0.1:9393"])
 imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource('imdb.vocab')
 
-for i in range(40):
+for i in range(500):
     line = 'i am very sad | 0'
     word_ids, label = imdb_dataset.get_words_and_label(line)
     feed = {"words": word_ids}
     fetch = ["acc", "cost", "prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
     print("{} {}".format(i, fetch_map["prediction"][1]))
-    exit(0)
+    # time.sleep(1)
+    # exit(0)
 print('0.633530199528')

@@ -91,8 +91,9 @@ int DagView::init(Dag* dag, const std::string& service_name) {
       vnode->conf = node;
       vnode->op = op;
       // Add depends
-      for (auto it = vnode->conf->depends.begin(); 
-              it != vnode->conf->depends.end(); ++it) {
+      for (auto it = vnode->conf->depends.begin();
+           it != vnode->conf->depends.end();
+           ++it) {
         std::string pre_node_name = it->first;
         VLOG(2) << "add op pre name: \n"
                 << "current op name: " << vnode->op->op_name()
@@ -103,12 +104,12 @@ int DagView::init(Dag* dag, const std::string& service_name) {
     }
     // TODO(guru4elephant): this seems buggy, please review later
     /*if (si > 0) {*/
-      //VLOG(2) << "set op pre name: \n"
-              //<< "current op name: " << vstage->nodes.back()->op->op_name()
-              //<< " previous op name: "
-              //<< _view[si - 1]->nodes.back()->op->op_name();
-      //vstage->nodes.back()->op->set_pre_node_name(
-          //_view[si - 1]->nodes.back()->op->op_name());
+    // VLOG(2) << "set op pre name: \n"
+    //<< "current op name: " << vstage->nodes.back()->op->op_name()
+    //<< " previous op name: "
+    //<< _view[si - 1]->nodes.back()->op->op_name();
+    // vstage->nodes.back()->op->set_pre_node_name(
+    //_view[si - 1]->nodes.back()->op->op_name());
     /*}*/
     _view.push_back(vstage);
   }

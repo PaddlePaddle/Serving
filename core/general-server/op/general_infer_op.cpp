@@ -37,40 +37,41 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
   VLOG(2) << "Going to run inference";
-  //const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
+  // const GeneralBlob *input_blob =
+  // get_depend_argument<GeneralBlob>(pre_name());
+  VLOG(2) << "try to get output_blob";
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
-  VLOG(2) << "finish get output_blob";
+  fprintf(stderr, "[output] blob address %x\n", output_blob);
   TensorVector *out = &output_blob->tensor_vector;
-  VLOG(2) << "finish get *out";
-  
+
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
+
   TensorVector input;
   int batch_size = 0;
   const GeneralBlob *input_blob;
-  for (int i = 0; i < (int)pre_node_names.size(); ++i) {
-    VLOG(2) << "pre names[" << i << "]: "
-            << pre_node_names[i];
-    input_blob =
-        get_depend_argument<GeneralBlob>(pre_node_names[i]);
-    fprintf(stderr, "input blob address %x\n", input_blob);
+  for (uint32_t i = 0; i < pre_node_names.size(); ++i) {
+    VLOG(2) << "pre names[" << i << "]: " << pre_node_names[i];
+    input_blob = get_depend_argument<GeneralBlob>(pre_node_names[i]);
     if (!input_blob) {
-      LOG(ERROR) << "Failed mutable depended argument, op:" << pre_node_names[i];
+      LOG(ERROR) << "Failed mutable depended argument, op:"
+                 << pre_node_names[i];
       return -1;
     }
+    fprintf(stderr, "[input] blob address %x\n", input_blob);
+
     batch_size = input_blob->GetBatchSize();
     VLOG(2) << "batch size of input: " << batch_size;
-    for (int j = 0; j < input_blob->tensor_vector.size(); ++j) {
-      VLOG(2) << "input tensor[" << j << "]: "
-              << input_blob->tensor_vector[j].name;
+    for (uint32_t j = 0; j < input_blob->tensor_vector.size(); ++j) {
+      VLOG(2) << "input tensor[" << j
+              << "]: " << input_blob->tensor_vector[j].name;
       input.push_back(input_blob->tensor_vector[j]);
-      VLOG(2) << "add an input tensor name: " << input_blob->tensor_vector[j].name;
+      VLOG(2) << "add an input tensor name: "
+              << input_blob->tensor_vector[j].name;
     }
   }
 
-  VLOG(2) << "get output blob done.";
   const TensorVector *in = &input;
-  VLOG(2) << "get input done.";
 
   batch_size = 1;
   VLOG(2) << "infer batch size: " << batch_size;
@@ -81,7 +82,7 @@ int GeneralInferOp::inference() {
   timeline.Start();
 
   VLOG(2) << "input of op " << op_name();
-  for (int i = 0; i < in->size(); ++i) {
+  for (uint32_t i = 0; i < in->size(); ++i) {
     VLOG(2) << in->at(i).name;
   }
 
@@ -94,7 +95,7 @@ int GeneralInferOp::inference() {
   }
 
   VLOG(2) << "output of op " << op_name();
-  for (int i = 0; i < out->size(); ++i) {
+  for (uint32_t i = 0; i < out->size(); ++i) {
     VLOG(2) << out->at(i).name;
   }
 

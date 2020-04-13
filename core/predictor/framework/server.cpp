@@ -28,6 +28,7 @@
 #include "core/predictor/framework/manager.h"
 #include "core/predictor/framework/resource.h"
 #include "core/predictor/framework/service_manager.h"
+#define BLOG(fmt, ...) printf("[%s:%s]:%d "fmt"\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 namespace baidu {
 namespace paddle_serving {
@@ -85,6 +86,7 @@ int ServerManager::start_and_wait() {
 
   boost::unordered_map<std::string, Service*>::iterator it;
   for (it = _format_services.begin(); it != _format_services.end(); it++) {
+    BLOG("\n\nservice name: %s", it->first.c_str());
     if (_server.AddService(it->second, brpc::SERVER_DOESNT_OWN_SERVICE) != 0) {
       LOG(ERROR) << "Failed to add service of format:" << it->first << "!";
       return -1;

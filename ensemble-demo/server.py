@@ -36,7 +36,8 @@ op_seq_maker.add_op(response_op, dependent_nodes=[add_op])
 server = Server()
 server.set_op_sequence(op_seq_maker.get_op_sequence())
 # server.load_model_config(sys.argv[1])
-model_configs = {'g1': 'imdb_bow_model', 'g2': 'imdb_cnn_model'}
+model_configs = {'g1': 'imdb_bow_model', 'g2': 'imdb_bow_model'}
+# model_configs = {'g1': 'imdb_bow_model', 'g2': 'imdb_cnn_model'}
 server.load_model_config(model_configs)
 server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
 server.run_server()

@@ -139,6 +139,7 @@ const std::string& InferService::name() const { return _infer_service_format; }
 int InferService::inference(const google::protobuf::Message* request,
                             google::protobuf::Message* response,
                             butil::IOBufBuilder* debug_os) {
+  BLOG("\n=====> start to inference");
   TRACEPRINTF("start to inference");
   // when funtion call begins, framework will reset
   // thread local variables&resources automatically.
