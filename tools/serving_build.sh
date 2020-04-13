@@ -266,12 +266,119 @@ function python_run_criteo_ctr_with_cube() {
     cd .. # pwd: /Serving/python/examples
 }
 
+function python_test_bert() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    yum install -y libXext libSM libXrender >/dev/null
+    pip install ujson
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd bert # pwd: /Serving/python/examples/bert
+    case $TYPE in
+        CPU)
+            pip install paddlehub
+            python prepare_model.py 20
+            sh get_data.sh
+            check_cmd "python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292 &"
+            sleep 5
+            pip install paddle_serving_app
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            kill_server_process
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "serving" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "bert RPC inference pass" 
+            ;;
+        GPU)
+            pip install paddlehub
+            python prepare_model.py 20
+            sh get_data.sh
+            check_cmd "python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 &"
+            sleep 5
+            pip install paddle_serving_app
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            kill_server_process
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "bert RPC inference pass"
+            ;;
+        *)
+    esac
+    echo "test bert $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
+function python_test_imdb() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd imdb # pwd: /Serving/python/examples/imdb
+    case $TYPE in
+        CPU)
+            sh get_data.sh
+            sleep 5
+            check_cmd "python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 &"
+            check_cmd "head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab"
+            echo "imdb CPU RPC inference pass"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf work_dir1
+            sleep 5
+
+            check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
+            sleep 5
+            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "imdb CPU HTTP inference pass"           
+            ;;
+        GPU)
+            echo "imdb ignore GPU test"
+            ;;
+        *)
+    esac
+    echo "test imdb $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
+function python_test_lac() {
+    # pwd: /Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd lac # pwd: /Serving/python/examples/lac
+    case $TYPE in
+        CPU)
+            sh get_data.sh
+            check_cmd "python -m paddle_serving_server.serve --model jieba_server_model/ --port 9292 &"
+            sleep 5
+            check_cmd "echo "我爱北京天安门" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/"
+            echo "lac CPU RPC inference pass"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+
+            check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
+            sleep 5
+            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction"
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            echo "lac CPU HTTP inference pass"
+            ;;
+        GPU)
+            echo "lac ignore GPU test"
+            ;;
+        *)
+    esac
+    echo "test lac $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
+    python_test_bert $TYPE # pwd: /Serving/python/examples
+    python_test_imdb $TYPE 
+    python_test_lac $TYPE    
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }

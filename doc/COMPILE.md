@@ -4,14 +4,19 @@
 
 ## Compilation environment requirements
 
-- os: CentOS 6u3
-- gcc: 4.8.2 and later
-- go: 1.9.2 and later
-- git：2.17.1 and later
-- cmake：3.2.2 and later
-- python：2.7.2 and later
+- OS: CentOS 7
+- GCC: 4.8.2 and later
+- Golang: 1.9.2 and later
+- Git：2.17.1 and later
+- CMake：3.2.2 and later
+- Python：2.7.2 and later
 
-It is recommended to use Docker to prepare the compilation environment for the Paddle service: [CPU Dockerfile.devel](../tools/Dockerfile.devel), [GPU Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you: 
+
+- CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
+- GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+
+This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python 3, just adjust the Python options of cmake.
 
 ## Get Code
 

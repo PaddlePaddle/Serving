@@ -6,6 +6,8 @@
 
 Docker (GPU version requires nvidia-docker to be installed on the GPU machine)
 
+This document takes Python2 as an example to show how to run Paddle Serving in docker. You can also use Python3 to run related commands by replacing `python` with `python3`.
+
 ## CPU
 
 ### Get docker image
