@@ -76,7 +76,7 @@ class PredictorRes {
     _variant_tag = variant_tag;
   }
   const std::string& variant_tag() { return _variant_tag; }
-  int models_num() {return _models.size();}
+  int model_num() {return _models.size();}
 
   std::vector<ModelRes> _models;
 

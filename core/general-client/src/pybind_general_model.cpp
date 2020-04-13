@@ -42,8 +42,8 @@ PYBIND11_MODULE(serving_client, m) {
            py::return_value_policy::reference)
       .def("variant_tag",
            [](PredictorRes &self) { return self.variant_tag(); })
-      .def("models_num",
-           [](PredictorRes &self) {return self.models_num(); });
+      .def("model_num",
+           [](PredictorRes &self) {return self.model_num(); });
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())

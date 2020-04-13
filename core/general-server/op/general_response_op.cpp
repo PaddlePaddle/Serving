@@ -66,14 +66,14 @@ int GeneralResponseOp::inference() {
   }
 
   const GeneralBlob *input_blob;
-  for (uint32_t i = 0; i < pre_node_names.size(); ++i) {
-    VLOG(2) << "pre names[" << i << "]: "
-            << pre_node_names[i] << " ("
+  for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
+    VLOG(2) << "pre names[" << pi << "]: "
+            << pre_node_names[pi] << " ("
             << pre_node_names.size() << ")";
-    input_blob = get_depend_argument<GeneralBlob>(pre_node_names[i]);
-    fprintf(stderr, "input(%s) blob address %x\n", pre_node_names[i].c_str(), input_blob);
+    input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
+    fprintf(stderr, "input(%s) blob address %x\n", pre_node_names[pi].c_str(), input_blob);
     if (!input_blob) {
-      LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[0];
+      LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[pi];
       return -1;
     }
 
@@ -81,7 +81,6 @@ int GeneralResponseOp::inference() {
     int batch_size = input_blob->GetBatchSize();
     VLOG(2) << "input batch size: " << batch_size;
 
-    //TODO
     ModelOutput *output = res->add_outputs();
     for (int i = 0; i < batch_size; ++i) {
       FetchInst *fetch_inst = output->add_insts();
