@@ -248,14 +248,14 @@ class Client(object):
 
         multi_result_map_batch = []
         model_num = result_batch.model_num()
-        for i in range(model_num):
+        for mi in range(model_num):
             result_map_batch = []
             result_map = {}
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int_type:
-                    result_map[name] = result_batch.get_int64_by_name(i, name)
+                    result_map[name] = result_batch.get_int64_by_name(mi, name)
                 elif self.fetch_names_to_type_[name] == float_type:
-                    result_map[name] = result_batch.get_float_by_name(i, name)
+                    result_map[name] = result_batch.get_float_by_name(mi, name)
             for i in range(batch_size):
                 single_result = {}
                 for key in result_map:
