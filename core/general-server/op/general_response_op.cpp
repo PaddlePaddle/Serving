@@ -176,12 +176,22 @@ int GeneralResponseOp::inference() {
 
   if (req->profile_server()) {
     int64_t end = timeline.TimeStampUS();
-    for (uint32_t i = 0; i < pre_node_names.size(); ++i) {
-      input_blob = get_depend_argument<GeneralBlob>(pre_node_names[i]);
+    // TODO(barriery): multi-model profile_time.
+    // At present, only the response_op is multi-input, so here we get
+    // the profile_time by hard coding. It needs to be replaced with
+    // a more elegant way.
+    for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
+      input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
       VLOG(2) << "p size for input blob: " << input_blob->p_size;
-      ModelOutput *output = res->mutable_outputs(i);
-      for (int i = 0; i < input_blob->p_size; ++i) {
-        output->add_profile_time(input_blob->time_stamp[i]);
+      ModelOutput *output = res->mutable_outputs(pi);
+      int profile_time_idx = -1;
+      if (pi == 0) {
+        profile_time_idx = 0;
+      } else {
+        profile_time_idx = input_blob->p_size - 2;
+      }
+      for (; profile_time_idx < input_blob->p_size; ++profile_time_idx) {
+        res->add_profile_time(input_blob->time_stamp[profile_time_idx]);
       }
     }
     // TODO(guru4elephant): find more elegant way to do this
