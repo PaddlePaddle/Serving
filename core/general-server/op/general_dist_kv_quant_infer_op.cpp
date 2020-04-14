@@ -41,6 +41,7 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralDistKVQuantInferOp::inference() {
   VLOG(2) << "Going to run inference";
+  const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() != 1) {
     LOG(ERROR) << "This op(" << op_name()
                << ") can only have one predecessor op, but received "
