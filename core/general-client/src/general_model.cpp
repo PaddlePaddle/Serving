@@ -262,7 +262,6 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    // TODO(barriery): multi-model profile time
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {
@@ -442,7 +441,6 @@ int PredictorClient::batch_predict(
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    // TODO(barriery): multi-model profile time
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {

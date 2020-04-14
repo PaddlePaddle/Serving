@@ -14,12 +14,13 @@
 
 #pragma once
 #include <bvar/bvar.h>  // bvar::LatencyRecorder
+#include <cstdlib>
 #include <string>
+#include <vector>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/op_repository.h"
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
-#include <cstdlib>
 
 namespace baidu {
 namespace paddle_serving {
@@ -133,14 +134,10 @@ class Op {
 
   const std::string& full_name() const { return _full_name; }
 
-  // const std::string& pre_name() const { return _pre_node_name; }
   const std::vector<std::string>& pre_names() const { return _pre_node_names; }
 
   void set_full_name(const std::string full_name) { _full_name = full_name; }
 
-  /*void set_pre_node_name(const std::string pre_name) {*/
-  //_pre_node_name = pre_name;
-  /*}*/
   void add_pre_node_name(const std::string pre_name) {
     _pre_node_names.push_back(pre_name);
   }
@@ -204,8 +201,7 @@ class Op {
   Bus* _bus;
   Dag* _dag;
   uint32_t _id;
-  // std::string _pre_node_name;  // only for sequential execution
-  std::vector<std::string> _pre_node_names;  // for dag execution
+  std::vector<std::string> _pre_node_names;  // for DAG execution
   std::string _name;
   std::string _full_name;  // service_workflow_stageindex_opname
   std::string _type;
@@ -232,8 +228,8 @@ class OpWithChannel : public Op {
       return _channel;
     }
 
-    //TODO: some bug in using butil::get_object
-    //_channel = butil::get_object<ChannelType>();
+    // TODO(barriery): There are some problems in using butil::get_object
+    // _channel = butil::get_object<ChannelType>();
     _channel = new ChannelType();
 
     if (!_channel) {
@@ -248,14 +244,15 @@ class OpWithChannel : public Op {
 
   int release_channel() {
     if (_channel) {
-       _channel->deinit();
+      _channel->deinit();
       delete _channel;
     }
-    //TODO: some bug in using butil::get_object
-    /*if (_channel) {*/
-      //_channel->deinit();
-      //butil::return_object<ChannelType>(_channel);
-    /*}*/
+    // TODO(barriery): There are some problems in using butil::get_object
+    /*
+    if (_channel) {
+      _channel->deinit();
+      butil::return_object<ChannelType>(_channel);
+    } */
 
     _channel = NULL;
     return 0;
