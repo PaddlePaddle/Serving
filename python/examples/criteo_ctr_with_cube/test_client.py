@@ -40,7 +40,7 @@ for ei in range(10000):
     for i in range(1, 27):
         feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    prob_list.append(fetch_map['prob'][1])
+    prob_list.append(fetch_map[0]['prob'][1])
     label_list.append(data[0][-1][0])
 
 print(auc(label_list, prob_list))
