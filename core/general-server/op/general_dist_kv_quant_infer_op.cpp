@@ -189,8 +189,8 @@ int GeneralDistKVQuantInferOp::inference() {
   timeline.Start();
 
   if (InferManager::instance().infer(
-          GENERAL_MODEL_NAME, &infer_in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
+          engine_name().c_str(), &infer_in, out, batch_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
     return -1;
   }
 
