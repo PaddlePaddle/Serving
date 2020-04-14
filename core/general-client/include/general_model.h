@@ -27,6 +27,9 @@
 #include "core/sdk-cpp/general_model_service.pb.h"
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
+#define BLOG(fmt, ...) \
+  printf(              \
+      "[%s:%s]:%d " fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
@@ -42,8 +45,19 @@ namespace general_model {
 class ModelRes {
  public:
   ModelRes() {}
+  ModelRes(const ModelRes& res) {
+    _engine_name = res._engine_name;
+    _int64_map.insert(res._int64_map.begin(), res._int64_map.end());
+    _float_map.insert(res._float_map.begin(), res._float_map.end());
+  }
+  ModelRes(ModelRes&& res) {
+    _engine_name = std::move(res._engine_name);
+    _int64_map.insert(std::make_move_iterator(std::begin(res._int64_map)),
+                      std::make_move_iterator(std::end(res._int64_map)));
+    _float_map.insert(std::make_move_iterator(std::begin(res._float_map)),
+                      std::make_move_iterator(std::end(res._float_map)));
+  }
   ~ModelRes() {}
- public:
   const std::vector<std::vector<int64_t>>& get_int64_by_name(
       const std::string& name) {
     return _int64_map[name];
@@ -55,19 +69,18 @@ class ModelRes {
   void set_engine_name(const std::string& engine_name) {
     _engine_name = engine_name;
   }
-  const std::string& engine_name() {
-    return engine_name;
-  }
-  ModelRes& operator = (ModelRes&& res) {
-    std::cout << "move ++++++++>";
+  const std::string& engine_name() { return _engine_name; }
+  ModelRes& operator=(ModelRes&& res) {
     if (this != &res) {
-      _int64_map = res._int64_map;
-      _float_map = res._float_map;
-      res._int64_map = nullptr;
-      res._float_map = nullptr;
+      _engine_name = std::move(res._engine_name);
+      _int64_map.insert(std::make_move_iterator(std::begin(res._int64_map)),
+                        std::make_move_iterator(std::end(res._int64_map)));
+      _float_map.insert(std::make_move_iterator(std::begin(res._float_map)),
+                        std::make_move_iterator(std::end(res._float_map)));
     }
     return *this;
   }
+
  public:
   std::string _engine_name;
   std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
@@ -82,7 +95,7 @@ class PredictorRes {
  public:
   void clear() {
     _models.clear();
-    _engine_names.clear();    
+    _engine_names.clear();
   }
   const std::vector<std::vector<int64_t>>& get_int64_by_name(
       const int model_idx, const std::string& name) {
@@ -94,16 +107,13 @@ class PredictorRes {
   }
   void add_model_res(ModelRes&& res) {
     _engine_names.push_back(res.engine_name());
-    _models.emplace_back(res);
+    _models.emplace_back(std::move(res));
   }
   void set_variant_tag(const std::string& variant_tag) {
     _variant_tag = variant_tag;
   }
   const std::string& variant_tag() { return _variant_tag; }
-  int model_num() {return _models.size();}
-  const std::vector<std::string>& get_engine_names() {
-    return _engine_names;
-  }
+  const std::vector<std::string>& get_engine_names() { return _engine_names; }
 
  private:
   std::vector<ModelRes> _models;

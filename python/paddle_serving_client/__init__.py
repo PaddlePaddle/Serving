@@ -247,8 +247,8 @@ class Client(object):
             return None
 
         multi_result_map_batch = []
-        model_num = result_batch.model_num()
-        for mi in range(model_num):
+        model_engine_names = result_batch.get_engine_names()
+        for mi, engine_name in enumerate(model_engine_names):
             result_map_batch = []
             result_map = {}
             for i, name in enumerate(fetch_names):
@@ -263,21 +263,23 @@ class Client(object):
                 result_map_batch.append(single_result)
             multi_result_map_batch.append(result_map_batch)
 
-        if model_num == 1:
+        ret = None
+        if len(model_engine_names) == 1:
             if batch_size == 1:
-                return [multi_result_map_batch[0][0], self.result_handle_.variant_tag()
-                        ] if need_variant_tag else multi_result_map_batch[0][0]
+                ret = multi_result_map_batch[0][0]
             else:
-                return [multi_result_map_batch[0], self.result_handle_.variant_tag()
-                        ] if need_variant_tag else multi_result_map_batch[0]
+                ret = multi_result_map_batch[0]
         else:
+            ret = {}
             if batch_size == 1:
-                multi_result_map = [result_map_batch[0] for result_map_batch in multi_result_map_batch]
-                return [multi_result_map, self.result_handle_.variant_tag()
-                        ] if need_variant_tag else multi_result_map
+                for mi, result_map_batch in enumerate(multi_result_map_batch):
+                    ret[model_engine_names[mi]] = result_map_batch[0]
             else:
-                return [multi_result_map_batch, self.result_handle_.variant_tag()
-                        ] if need_variant_tag else multi_result_map_batch
+                for mi, result_map_batch in enumerate(multi_result_map_batch):
+                    ret[model_engine_names[mi]] = result_map_batch
+        return [ret, self.result_handle_.variant_tag()
+                ] if need_variant_tag else ret
+
     def release(self):
         self.client_handle_.destroy_predictor()
         self.client_handle_ = None
