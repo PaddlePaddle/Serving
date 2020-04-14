@@ -47,7 +47,7 @@ function rerun() {
     done
     exit 1
 }
-
+ 
 function build_app() {
     local TYPE=$1
     local DIRNAME=build-app-$TYPE
