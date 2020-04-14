@@ -37,7 +37,9 @@ int GeneralCopyOp::inference() {
   // reade request from client
   const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() != 1) {
-    LOG(ERROR) << "This op(" << op_name() <<") can only have one predecessor op, but received " << pre_node_names.size();
+    LOG(ERROR) << "This op(" << op_name()
+               << ") can only have one predecessor op, but received "
+               << pre_node_names.size();
     return -1;
   }
   const std::string pre_name = pre_node_names[0];
