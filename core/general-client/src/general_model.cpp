@@ -219,35 +219,39 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
     postprocess_start = client_infer_end;
     // multi-model output
     uint32_t model_num = res.outputs_size();
-    predict_res._models.resize(model_num);
+    // predict_res._models.resize(model_num);
     for (uint32_t m_idx = 0; m_idx < model_num; ++m_idx) {
       VLOG(2) << "process model output index: " << m_idx;
       auto output = res.outputs(m_idx);
+      ModelRes model;
+      model.set_engine_name(output.engine_name());
       for (auto &name : fetch_name) {
         int idx = _fetch_name_to_idx[name];
         VLOG(2) << "fetch name: " << name;
         if (_fetch_name_to_type[name] == 0) {
           int len = output.insts(0).tensor_array(idx).int64_data_size();
           VLOG(2) << "fetch tensor : " << name << " type: int64 len : " << len;
-          predict_res._models[m_idx]._int64_map[name].resize(1);
-          predict_res._models[m_idx]._int64_map[name][0].resize(len);
+          model._int64_map[name].resize(1);
+          model._int64_map[name][0].resize(len);
           for (int i = 0; i < len; ++i) {
-            predict_res._models[m_idx]._int64_map[name][0][i] =
+            model._int64_map[name][0][i] =
                 output.insts(0).tensor_array(idx).int64_data(i);
           }
         } else if (_fetch_name_to_type[name] == 1) {
           int len = output.insts(0).tensor_array(idx).float_data_size();
-          VLOG(2) << "fetch tensor : " << name << " type: float32 len : " << len;
-          predict_res._models[m_idx]._float_map[name].resize(1);
-          predict_res._models[m_idx]._float_map[name][0].resize(len);
+          VLOG(2) << "fetch tensor : " << name
+                  << " type: float32 len : " << len;
+          model._float_map[name].resize(1);
+          model._float_map[name][0].resize(len);
           for (int i = 0; i < len; ++i) {
-            predict_res._models[m_idx]._float_map[name][0][i] =
+            model._float_map[name][0][i] =
                 output.insts(0).tensor_array(idx).float_data(i);
           }
         }
-        //TODO
+        // TODO
         postprocess_end = timeline.TimeStampUS();
       }
+      predict_res.add_model_res(std::move(model));
     }
   }
 
@@ -259,7 +263,7 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    //TODO: multi-model
+    // TODO: multi-model
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {
@@ -303,7 +307,7 @@ int PredictorClient::batch_predict(
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
-  
+
   for (int bi = 0; bi < batch_size; bi++) {
     VLOG(2) << "prepare batch " << bi;
     std::vector<Tensor *> tensor_vec;
@@ -382,13 +386,15 @@ int PredictorClient::batch_predict(
     postprocess_start = client_infer_end;
 
     uint32_t model_num = res.outputs_size();
-    predict_res_batch._models.resize(model_num);
+    // predict_res_batch._models.resize(model_num);
     for (uint32_t m_idx = 0; m_idx < model_num; ++m_idx) {
       VLOG(2) << "process model output index: " << m_idx;
       auto output = res.outputs(m_idx);
+      ModelRes model;
+      model.set_engine_name(output.engine_name());
       for (auto &name : fetch_name) {
-        predict_res_batch._models[m_idx]._int64_map[name].resize(batch_size);
-        predict_res_batch._models[m_idx]._float_map[name].resize(batch_size);
+        model._int64_map[name].resize(batch_size);
+        model._float_map[name].resize(batch_size);
       }
       VLOG(2) << "response batch size " << output.insts_size();
       VLOG(2) << "response var nmae " << output.insts(0).tensor_array_size();
@@ -398,29 +404,33 @@ int PredictorClient::batch_predict(
           int len = output.insts(bi).tensor_array(idx).data_size();
           if (_fetch_name_to_type[name] == 0) {
             int len = output.insts(bi).tensor_array(idx).int64_data_size();
-            VLOG(2) << "fetch tensor : " << name << " type: int64 len : " << len;
-            predict_res_batch._models[m_idx]._int64_map[name][bi].resize(len);
-            VLOG(2) << "fetch name " << name << " index " << idx << " first data "
+            VLOG(2) << "fetch tensor : " << name
+                    << " type: int64 len : " << len;
+            model._int64_map[name][bi].resize(len);
+            VLOG(2) << "fetch name " << name << " index " << idx
+                    << " first data "
                     << output.insts(bi).tensor_array(idx).int64_data(0);
             for (int i = 0; i < len; ++i) {
-              predict_res_batch._models[m_idx]._int64_map[name][bi][i] =
+              model._int64_map[name][bi][i] =
                   output.insts(bi).tensor_array(idx).int64_data(i);
             }
           } else if (_fetch_name_to_type[name] == 1) {
             int len = output.insts(bi).tensor_array(idx).float_data_size();
             VLOG(2) << "fetch tensor : " << name
                     << " type: float32 len : " << len;
-            predict_res_batch._models[m_idx]._float_map[name][bi].resize(len);
-            VLOG(2) << "fetch name " << name << " index " << idx << " first data "
+            model._float_map[name][bi].resize(len);
+            VLOG(2) << "fetch name " << name << " index " << idx
+                    << " first data "
                     << output.insts(bi).tensor_array(idx).float_data(0);
             for (int i = 0; i < len; ++i) {
-              predict_res_batch._models[m_idx]._float_map[name][bi][i] =
+              model._float_map[name][bi][i] =
                   output.insts(bi).tensor_array(idx).float_data(i);
             }
           }
           idx += 1;
         }
       }
+      predict_res_batch.add_model_res(std::move(model));
       postprocess_end = timeline.TimeStampUS();
     }
   }
@@ -433,7 +443,7 @@ int PredictorClient::batch_predict(
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    //TODO: multi-models
+    // TODO: multi-models
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {

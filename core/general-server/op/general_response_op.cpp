@@ -40,7 +40,7 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 int GeneralResponseOp::inference() {
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
-  
+
   const Request *req = dynamic_cast<const Request *>(get_request_message());
   // response inst with only fetch_var_names
   Response *res = mutable_data<Response>();
@@ -67,13 +67,14 @@ int GeneralResponseOp::inference() {
 
   const GeneralBlob *input_blob;
   for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
-    VLOG(2) << "pre names[" << pi << "]: "
-            << pre_node_names[pi] << " ("
+    const std::string &pre_name = pre_node_names[pi];
+    VLOG(2) << "pre names[" << pi << "]: " << pre_name << " ("
             << pre_node_names.size() << ")";
-    input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
-    fprintf(stderr, "input(%s) blob address %x\n", pre_node_names[pi].c_str(), input_blob);
+    input_blob = get_depend_argument<GeneralBlob>(pre_name);
+    // fprintf(stderr, "input(%s) blob address %x\n", pre_names.c_str(),
+    // input_blob);
     if (!input_blob) {
-      LOG(ERROR) << "Failed mutable depended argument, op: " << pre_node_names[pi];
+      LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name;
       return -1;
     }
 
@@ -82,6 +83,8 @@ int GeneralResponseOp::inference() {
     VLOG(2) << "input batch size: " << batch_size;
 
     ModelOutput *output = res->add_outputs();
+    output->set_engine_name(
+        pre_name);  // To get the order of model return values
     for (int i = 0; i < batch_size; ++i) {
       FetchInst *fetch_inst = output->add_insts();
       for (auto &idx : fetch_index) {
@@ -114,7 +117,8 @@ int GeneralResponseOp::inference() {
             for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
                  k++) {
               FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[k]);
+              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
+                  data_ptr[k]);
             }
           }
         } else {
@@ -130,7 +134,8 @@ int GeneralResponseOp::inference() {
           } else {
             for (int j = 0; j < batch_size; ++j) {
               FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[0]);
+              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
+                  data_ptr[0]);
             }
           }
         }
@@ -142,7 +147,8 @@ int GeneralResponseOp::inference() {
             for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
                  k++) {
               FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[k]);
+              fetch_p->mutable_tensor_array(var_idx)->add_float_data(
+                  data_ptr[k]);
             }
           }
         } else {
@@ -158,7 +164,8 @@ int GeneralResponseOp::inference() {
           } else {
             for (int j = 0; j < batch_size; ++j) {
               FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[0]);
+              fetch_p->mutable_tensor_array(var_idx)->add_float_data(
+                  data_ptr[0]);
             }
           }
         }
@@ -169,10 +176,10 @@ int GeneralResponseOp::inference() {
 
   if (req->profile_server()) {
     int64_t end = timeline.TimeStampUS();
-    for (uint32_t i = 0; i< pre_node_names.size(); ++i) {
+    for (uint32_t i = 0; i < pre_node_names.size(); ++i) {
       input_blob = get_depend_argument<GeneralBlob>(pre_node_names[i]);
       VLOG(2) << "p size for input blob: " << input_blob->p_size;
-      ModelOutput* output = res->mutable_outputs(i);
+      ModelOutput *output = res->mutable_outputs(i);
       for (int i = 0; i < input_blob->p_size; ++i) {
         output->add_profile_time(input_blob->time_stamp[i]);
       }

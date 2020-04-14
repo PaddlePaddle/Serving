@@ -37,9 +37,11 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralTextResponseOp::inference() {
   VLOG(2) << "Going to run inference";
-  //TODO: multi-predecessor
+  const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() != 1) {
-    LOG(ERROR) << "This op(" << op_name() <<") can only have one predecessor op, but received " << pre_node_names.size();
+    LOG(ERROR) << "This op(" << op_name()
+               << ") can only have one predecessor op, but received "
+               << pre_node_names.size();
     return -1;
   }
   const std::string pre_name = pre_node_names[0];
@@ -51,6 +53,8 @@ int GeneralTextResponseOp::inference() {
     return -1;
   }
 
+  // TODO: multi-predecessor
+  /*
   const TensorVector *in = &input_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
 
@@ -133,7 +137,7 @@ int GeneralTextResponseOp::inference() {
     res->add_profile_time(start);
     res->add_profile_time(end);
   }
-
+  */
   return 0;
 }
 DEFINE_OP(GeneralTextResponseOp);
