@@ -306,6 +306,7 @@ class Server(object):
         self.check_local_bin()
         if not self.use_local_bin:
             self.download_bin()
+            # wait for other process to download server bin
             while not os.path.exists(self.server_path):
                 time.sleep(1)
         else:
@@ -339,6 +340,5 @@ class Server(object):
                       self.gpuid,)
         print("Going to Run Comand")
         print(command)
-        # wait for other process to download server bin
 
         os.system(command)
