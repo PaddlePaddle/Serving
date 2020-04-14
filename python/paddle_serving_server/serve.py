@@ -19,6 +19,7 @@ Usage:
 """
 import argparse
 from .web_service import WebService
+from flask import Flask, request
 
 
 def parse_args():  # pylint: disable=doc-string-missing
@@ -88,3 +89,20 @@ if __name__ == "__main__":
         service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
         service.run_server()
+
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            service._launch_web_service()
+
+        service_name = "/" + service.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return service.get_prediction(request)
+
+        app_instance.run(host="0.0.0.0",
+                         port=service.port,
+                         threaded=False,
+                         processes=4)
