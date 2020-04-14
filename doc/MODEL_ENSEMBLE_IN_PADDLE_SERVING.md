@@ -1,5 +1,7 @@
 # Model Ensemble in Paddle Serving
 
+([简体中文](MODEL_ENSEMBLE_IN_PADDLE_SERVING_CN.md)|English)
+
 In some scenarios, multiple models with the same input may be used to predict in parallel and integrate predicted results for better prediction effect. Paddle Serving also supports this feature.
 
 Next, we will take the text classification task as an example to show model ensemble in Paddle Serving (This feature is still serial prediction for the time being. We will support parallel prediction as soon as possible).

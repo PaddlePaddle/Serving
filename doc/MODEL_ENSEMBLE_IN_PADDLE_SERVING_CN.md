@@ -1,5 +1,7 @@
 # Paddle Serving中的集成预测
 
+(简体中文|[English](MODEL_ENSEMBLE_IN_PADDLE_SERVING.md))
+
 在一些场景中，可能使用多个相同输入的模型并行集成预测以获得更好的预测效果，Paddle Serving提供了这项功能。
 
 下面将以文本分类任务为例，来展示Paddle Serving的集成预测功能（暂时还是串行预测，我们会尽快支持并行化）。
