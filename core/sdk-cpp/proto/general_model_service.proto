@@ -45,8 +45,7 @@ message Response {
 
 message ModelOutput {
   repeated FetchInst insts = 1;
-  repeated int64 profile_time = 2;
-  optional string engine_name = 3;
+  optional string engine_name = 2;
 }
 
 service GeneralModelService {

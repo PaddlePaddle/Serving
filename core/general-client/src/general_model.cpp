@@ -248,11 +248,10 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
                 output.insts(0).tensor_array(idx).float_data(i);
           }
         }
-        // TODO
-        postprocess_end = timeline.TimeStampUS();
       }
       predict_res.add_model_res(std::move(model));
     }
+    postprocess_end = timeline.TimeStampUS();
   }
 
   if (FLAGS_profile_client) {
@@ -263,7 +262,7 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    // TODO: multi-model
+    // TODO(barriery): multi-model profile time
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {
@@ -431,8 +430,8 @@ int PredictorClient::batch_predict(
         }
       }
       predict_res_batch.add_model_res(std::move(model));
-      postprocess_end = timeline.TimeStampUS();
     }
+    postprocess_end = timeline.TimeStampUS();
   }
 
   if (FLAGS_profile_client) {
@@ -443,7 +442,7 @@ int PredictorClient::batch_predict(
         << "prepro_1:" << preprocess_end << " "
         << "client_infer_0:" << client_infer_start << " "
         << "client_infer_1:" << client_infer_end << " ";
-    // TODO: multi-models
+    // TODO(barriery): multi-model profile time
     if (FLAGS_profile_server) {
       int op_num = res.profile_time_size() / 2;
       for (int i = 0; i < op_num; ++i) {
