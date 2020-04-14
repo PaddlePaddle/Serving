@@ -112,6 +112,7 @@ void PredictorClient::set_predictor_conf(const std::string &conf_path,
 int PredictorClient::destroy_predictor() {
   _api.thrd_finalize();
   _api.destroy();
+  return 0;
 }
 
 int PredictorClient::create_predictor_by_desc(const std::string &sdk_desc) {
@@ -120,6 +121,7 @@ int PredictorClient::create_predictor_by_desc(const std::string &sdk_desc) {
     return -1;
   }
   _api.thrd_initialize();
+  return 0;
 }
 
 int PredictorClient::create_predictor() {
@@ -130,6 +132,7 @@ int PredictorClient::create_predictor() {
     return -1;
   }
   _api.thrd_initialize();
+  return 0;
 }
 
 int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
@@ -166,11 +169,11 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   for (auto &name : float_feed_name) {
     int idx = _feed_name_to_idx[name];
     Tensor *tensor = tensor_vec[idx];
-    for (int j = 0; j < _shape[idx].size(); ++j) {
+    for (uint32_t j = 0; j < _shape[idx].size(); ++j) {
       tensor->add_shape(_shape[idx][j]);
     }
     tensor->set_elem_type(1);
-    for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
+    for (uint32_t j = 0; j < float_feed[vec_idx].size(); ++j) {
       tensor->add_float_data(float_feed[vec_idx][j]);
     }
     vec_idx++;
@@ -182,11 +185,11 @@ int PredictorClient::predict(const std::vector<std::vector<float>> &float_feed,
   for (auto &name : int_feed_name) {
     int idx = _feed_name_to_idx[name];
     Tensor *tensor = tensor_vec[idx];
-    for (int j = 0; j < _shape[idx].size(); ++j) {
+    for (uint32_t j = 0; j < _shape[idx].size(); ++j) {
       tensor->add_shape(_shape[idx][j]);
     }
     tensor->set_elem_type(0);
-    for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
+    for (uint32_t j = 0; j < int_feed[vec_idx].size(); ++j) {
       tensor->add_int64_data(int_feed[vec_idx][j]);
     }
     vec_idx++;
@@ -321,11 +324,11 @@ int PredictorClient::batch_predict(
     for (auto &name : float_feed_name) {
       int idx = _feed_name_to_idx[name];
       Tensor *tensor = tensor_vec[idx];
-      for (int j = 0; j < _shape[idx].size(); ++j) {
+      for (uint32_t j = 0; j < _shape[idx].size(); ++j) {
         tensor->add_shape(_shape[idx][j]);
       }
       tensor->set_elem_type(1);
-      for (int j = 0; j < float_feed[vec_idx].size(); ++j) {
+      for (uint32_t j = 0; j < float_feed[vec_idx].size(); ++j) {
         tensor->add_float_data(float_feed[vec_idx][j]);
       }
       vec_idx++;
@@ -338,13 +341,13 @@ int PredictorClient::batch_predict(
     for (auto &name : int_feed_name) {
       int idx = _feed_name_to_idx[name];
       Tensor *tensor = tensor_vec[idx];
-      for (int j = 0; j < _shape[idx].size(); ++j) {
+      for (uint32_t j = 0; j < _shape[idx].size(); ++j) {
         tensor->add_shape(_shape[idx][j]);
       }
       tensor->set_elem_type(0);
       VLOG(3) << "feed var name " << name << " index " << vec_idx
               << "first data " << int_feed[vec_idx][0];
-      for (int j = 0; j < int_feed[vec_idx].size(); ++j) {
+      for (uint32_t j = 0; j < int_feed[vec_idx].size(); ++j) {
         tensor->add_int64_data(int_feed[vec_idx][j]);
       }
       vec_idx++;

@@ -52,7 +52,24 @@ class ModelRes {
       const std::string& name) {
     return _float_map[name];
   }
+  void set_engine_name(const std::string& engine_name) {
+    _engine_name = engine_name;
+  }
+  const std::string& engine_name() {
+    return engine_name;
+  }
+  ModelRes& operator = (ModelRes&& res) {
+    std::cout << "move ++++++++>";
+    if (this != &res) {
+      _int64_map = res._int64_map;
+      _float_map = res._float_map;
+      res._int64_map = nullptr;
+      res._float_map = nullptr;
+    }
+    return *this;
+  }
  public:
+  std::string _engine_name;
   std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
   std::map<std::string, std::vector<std::vector<float>>> _float_map;
 };
@@ -63,7 +80,10 @@ class PredictorRes {
   ~PredictorRes() {}
 
  public:
-  void clear() { _models.clear();}
+  void clear() {
+    _models.clear();
+    _engine_names.clear();    
+  }
   const std::vector<std::vector<int64_t>>& get_int64_by_name(
       const int model_idx, const std::string& name) {
     return _models[model_idx].get_int64_by_name(name);
@@ -72,16 +92,23 @@ class PredictorRes {
       const int model_idx, const std::string& name) {
     return _models[model_idx].get_float_by_name(name);
   }
+  void add_model_res(ModelRes&& res) {
+    _engine_names.push_back(res.engine_name());
+    _models.emplace_back(res);
+  }
   void set_variant_tag(const std::string& variant_tag) {
     _variant_tag = variant_tag;
   }
   const std::string& variant_tag() { return _variant_tag; }
   int model_num() {return _models.size();}
-
-  std::vector<ModelRes> _models;
+  const std::vector<std::string>& get_engine_names() {
+    return _engine_names;
+  }
 
  private:
+  std::vector<ModelRes> _models;
   std::string _variant_tag;
+  std::vector<std::string> _engine_names;
 };
 
 class PredictorClient {
