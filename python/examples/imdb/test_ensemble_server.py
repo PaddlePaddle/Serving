@@ -13,8 +13,6 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-import os
-import sys
 from paddle_serving_server import OpMaker
 from paddle_serving_server import OpGraphMaker
 from paddle_serving_server import Server

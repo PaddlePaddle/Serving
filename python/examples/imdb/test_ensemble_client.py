@@ -15,7 +15,6 @@
 
 from paddle_serving_client import Client
 from imdb_reader import IMDBDataset
-import sys
 
 client = Client()
 # If you have more than one model, make sure that the input
@@ -29,7 +28,7 @@ client.connect(["127.0.0.1:9393"])
 imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource('imdb.vocab')
 
-for i in range(10):
+for i in range(3):
     line = 'i am very sad | 0'
     word_ids, label = imdb_dataset.get_words_and_label(line)
     feed = {"words": word_ids}
