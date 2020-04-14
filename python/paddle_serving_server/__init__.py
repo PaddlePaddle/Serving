@@ -40,8 +40,6 @@ class OpMaker(object):
         }
         self.node_name_suffix_ = collections.defaultdict(int)
 
-    # currently, inputs and outputs are not used
-    # when we have OpGraphMaker, inputs and outputs are necessary
     def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
         if node_type not in self.op_dict:
             raise Exception("Op type {} is not supported right now".format(
