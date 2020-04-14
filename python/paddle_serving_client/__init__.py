@@ -277,8 +277,8 @@ class Client(object):
             else:
                 for mi, result_map_batch in enumerate(multi_result_map_batch):
                     ret[model_engine_names[mi]] = result_map_batch
-        return [ret, self.result_handle_.variant_tag()
-                ] if need_variant_tag else ret
+        return [ret,
+                self.result_handle_.variant_tag()] if need_variant_tag else ret
 
     def release(self):
         self.client_handle_.destroy_predictor()
