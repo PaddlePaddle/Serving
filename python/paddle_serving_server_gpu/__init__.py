@@ -274,7 +274,7 @@ class Server(object):
             # it from workflow_conf.
             default_engine_names = [
                 'general_infer_0', 'general_dist_kv_infer_0',
-                'general_dist_kv_quant_infer'
+                'general_dist_kv_quant_infer_0'
             ]
             engine_name = None
             for node in self.workflow_conf.nodes:
