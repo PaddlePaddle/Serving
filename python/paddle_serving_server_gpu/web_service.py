@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#!flask/bin/python
-# pylint: disable=doc-string-missing
 
 from flask import Flask, request, abort
-from multiprocessing import Pool, Process, Queue
 from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
 import paddle_serving_server_gpu as serving
+from multiprocessing import Pool, Process, Queue
 from paddle_serving_client import Client
-from .serve import start_multi_card
-import time
-import random
+from paddle_serving_server_gpu.serve import start_multi_card
+
+import sys
+import numpy as np
 
 
 class WebService(object):
@@ -29,7 +28,6 @@ class WebService(object):
         self.name = name
         self.gpus = []
         self.rpc_service_list = []
-        self.input_queues = []
 
     def load_model_config(self, model_config):
         self.model_config = model_config
@@ -66,12 +64,6 @@ class WebService(object):
         return server
 
     def _launch_rpc_service(self, service_idx):
-        if service_idx == 0:
-            self.rpc_service_list[service_idx].check_local_bin()
-            if not self.rpc_service_list[service_idx].use_local_bin:
-                self.rpc_service_list[service_idx].download_bin()
-        else:
-            time.sleep(3)
         self.rpc_service_list[service_idx].run_server()
 
     def prepare_server(self, workdir="", port=9393, device="gpu", gpuid=0):
@@ -93,9 +85,10 @@ class WebService(object):
                         gpuid,
                         thread_num=10))
 
-    def producers(self, inputqueue, endpoint):
-        client = Client()
-        client.load_client_config("{}/serving_server_conf.prototxt".format(
+    def _launch_web_service(self):
+        gpu_num = len(self.gpus)
+        self.client = Client()
+        self.client.load_client_config("{}/serving_server_conf.prototxt".format(
             self.model_config))
         client.connect([endpoint])
         while True:
@@ -191,13 +184,6 @@ class WebService(object):
             server_pros.append(p)
         for p in server_pros:
             p.start()
-
-        p_web = Process(
-            target=self._launch_web_service, args=(len(self.gpus), ))
-        p_web.start()
-        p_web.join()
-        for p in server_pros:
-            p.join()
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch

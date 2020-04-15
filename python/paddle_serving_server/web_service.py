@@ -50,12 +50,10 @@ class WebService(object):
         self.device = device
 
     def _launch_web_service(self):
-        app_instance = Flask(__name__)
-        client_service = Client()
-        client_service.load_client_config(
+        self.client_service = Client()
+        self.client_service.load_client_config(
             "{}/serving_server_conf.prototxt".format(self.model_config))
-        client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
-        service_name = "/" + self.name + "/prediction"
+        self.client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
 
         @app_instance.route(service_name, methods=['POST'])
         def get_prediction():
@@ -100,11 +98,7 @@ class WebService(object):
         print("http://{}:{}/{}/prediction".format(localIP, self.port,
                                                   self.name))
         p_rpc = Process(target=self._launch_rpc_service)
-        p_web = Process(target=self._launch_web_service)
         p_rpc.start()
-        p_web.start()
-        p_web.join()
-        p_rpc.join()
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
