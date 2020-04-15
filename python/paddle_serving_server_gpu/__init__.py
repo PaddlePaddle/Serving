@@ -269,9 +269,24 @@ class Server(object):
         # of multiple models are the same
         workflow_oi_config_path = None
         if isinstance(model_config_paths, str):
-            # the default engine name is "general_infer"
-            self.model_config_paths = {"general_infer_0": model_config_paths}
-            workflow_oi_config_path = self.model_config_paths["general_infer_0"]
+            # If there is only one model path, use the default infer_op.
+            # Because there are several infer_op type, we need to find 
+            # it from workflow_conf.
+            default_engine_names = [
+                'general_infer_0', 'general_dist_kv_infer_0',
+                'general_dist_kv_quant_infer'
+            ]
+            engine_name = None
+            for node in self.workflow_conf.nodes:
+                if node.name in default_engine_names:
+                    engine_name = node.name
+                    break
+            if engine_name is None:
+                raise Exception(
+                    "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
+                )
+            self.model_config_paths = {engine_name: model_config_paths}
+            workflow_oi_config_path = self.model_config_paths[engine_name]
         elif isinstance(model_config_paths, dict):
             self.model_config_paths = {}
             for node_str, path in model_config_paths.items():
