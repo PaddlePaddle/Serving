@@ -110,11 +110,15 @@ class WebService(object):
                         feed=request_json,
                         fetch=fetch,
                         fetch_map=fetch_map_batch)
+                    for key in fetch_map_batch:
+                        fetch_map_batch[key] = fetch_map_batch[key].tolist()
                     result = {"result": fetch_map_batch}
                 elif isinstance(feed, dict):
                     if "fetch" in feed:
                         del feed["fetch"]
                     fetch_map = client.predict(feed=feed, fetch=fetch)
+                    for key in fetch_map:
+                        fetch_map[key] = fetch_map[key][0].tolist()
                     result = self.postprocess(
                         feed=request_json, fetch=fetch, fetch_map=fetch_map)
                 self.output_queue.put(result)

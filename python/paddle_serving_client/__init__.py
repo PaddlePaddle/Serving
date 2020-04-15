@@ -236,6 +236,8 @@ class Client(object):
                         int_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
                             int_shape.append(list(feed_i[key].shape))
+                        else:
+                            int_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
                         int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
                     else:
@@ -245,6 +247,8 @@ class Client(object):
                         float_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
                             float_shape.append(list(feed_i[key].shape))
+                        else:
+                            float_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
                         float_slot.append(
                             np.reshape(feed_i[key], (-1)).tolist())
