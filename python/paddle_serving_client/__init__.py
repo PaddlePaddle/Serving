@@ -158,8 +158,7 @@ class Client(object):
                 )
         else:
             if self.predictor_sdk_ is None:
-                timestamp = time.time()
-                self.add_variant('default_tag_{}'.format(timestamp), endpoints,
+                self.add_variant('default_tag_{}'.format(id(self)), endpoints,
                                  100)
             else:
                 print(
