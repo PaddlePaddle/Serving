@@ -18,7 +18,6 @@ import os
 from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
-import time
 import sys
 
 int_type = 0
@@ -156,8 +155,7 @@ class Client(object):
                 )
         else:
             if self.predictor_sdk_ is None:
-                timestamp = time.time()
-                self.add_variant('default_tag_{}'.format(timestamp), endpoints,
+                self.add_variant('default_tag_{}'.format(id(self)), endpoints,
                                  100)
             else:
                 print(
