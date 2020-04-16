@@ -138,7 +138,6 @@ int GeneralTextResponseOp::inference() {
     for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
       input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
       VLOG(2) << "p size for input blob: " << input_blob->p_size;
-      ModelOutput *output = res->mutable_outputs(pi);
       int profile_time_idx = -1;
       if (pi == 0) {
         profile_time_idx = 0;
