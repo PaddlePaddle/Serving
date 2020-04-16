@@ -266,7 +266,7 @@ class Server(object):
         # At present, Serving needs to configure the model path in
         # the resource.prototxt file to determine the input and output
         # format of the workflow. To ensure that the input and output
-        # of multiple models are the same
+        # of multiple models are the same.
         workflow_oi_config_path = None
         if isinstance(model_config_paths, str):
             # If there is only one model path, use the default infer_op.
