@@ -16,12 +16,20 @@ from paddle_serving_client import Client
 import sys
 import os
 import time
-from paddle_serving_app.pddet import infer, ArgParse
+from paddle_serving_app.pddet import preprocess, postprocess, ArgParse
 import numpy as np
 
 py_version = sys.version_info[0]
 
 feed_var_names = ['image', 'im_shape', 'im_info']
 fetch_var_names = ['multiclass_nms']
-ArgParse()
-infer(['127.0.0.1:9494'], feed_var_names, fetch_var_names)
+FLAGS = ArgParse()
+feed_dict = preprocess(feed_var_names)
+client = Client()
+client.load_client_config(FLAGS.serving_client_conf)
+client.connect(['127.0.0.1:9494'])
+fetch_map = client.predict(feed=feed_dict, fetch=fetch_var_names)
+print(fetch_map)
+outs = fetch_map.values()
+print (len(outs[0]), len(outs[0][0]))
+postprocess(fetch_map, fetch_var_names)
