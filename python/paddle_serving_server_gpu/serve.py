@@ -21,6 +21,7 @@ import argparse
 import os
 from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
+from flask import Flask, request
 
 
 def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-missing
@@ -114,3 +115,20 @@ if __name__ == "__main__":
         web_service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
         web_service.run_server()
+
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            web_service._launch_web_service()
+
+        service_name = "/" + web_service.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return web_service.get_prediction(request)
+
+        app_instance.run(host="0.0.0.0",
+                         port=web_service.port,
+                         threaded=False,
+                         processes=4)

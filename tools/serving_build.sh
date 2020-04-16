@@ -165,6 +165,7 @@ function python_test_fit_a_line() {
             fi
             ;;
         GPU)
+            export CUDA_VISIBLE_DEVICES=0
             # test rpc
             check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 > /dev/null &"
             sleep 5 # wait for the server to start
@@ -227,7 +228,7 @@ function python_run_criteo_ctr_with_cube() {
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         GPU)
@@ -254,7 +255,7 @@ function python_run_criteo_ctr_with_cube() {
                 exit 1
             fi
             echo "criteo_ctr_with_cube inference auc test success"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         *)
@@ -277,27 +278,48 @@ function python_test_bert() {
     case $TYPE in
         CPU)
             pip install paddlehub
-            python prepare_model.py 20
+            # Because download from paddlehub may timeout,
+            # download the model from bos(max_seq_len=128).
+            wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
+            tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
             sh get_data.sh
-            check_cmd "python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292 &"
+            check_cmd "python -m paddle_serving_server.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 &"
             sleep 5
             pip install paddle_serving_app
-            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
-            ps -ef | grep "serving" | grep -v grep | awk '{print $2}' | xargs kill
+            # python prepare_model.py 20
+            # sh get_data.sh
+            # check_cmd "python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9292 &"
+            # sleep 5
+            # pip install paddle_serving_app
+            # check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            # kill_server_process
+            # ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            # ps -ef | grep "serving" | grep -v grep | awk '{print $2}' | xargs kill
             echo "bert RPC inference pass" 
             ;;
         GPU)
+            export CUDA_VISIBLE_DEVICES=0
             pip install paddlehub
-            python prepare_model.py 20
+            # Because download from paddlehub may timeout,
+            # download the model from bos(max_seq_len=128).
+            wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
+            tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
             sh get_data.sh
-            check_cmd "python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 &"
+            check_cmd "python -m paddle_serving_server_gpu.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 --gpu_ids 0 &"
             sleep 5
             pip install paddle_serving_app
-            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            # python prepare_model.py 20
+            # sh get_data.sh
+            # check_cmd "python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9292 --gpu_ids 0 &"
+            # sleep 5
+            # pip install paddle_serving_app
+            # check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_seq20_client/serving_client_conf.prototxt"
+            # kill_server_process
+            # ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             echo "bert RPC inference pass"
             ;;
         *)
@@ -326,9 +348,10 @@ function python_test_imdb() {
             check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
             sleep 5
             check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
-            echo "imdb CPU HTTP inference pass"           
+            echo "imdb CPU HTTP inference pass"
             ;;
         GPU)
             echo "imdb ignore GPU test"
@@ -357,6 +380,7 @@ function python_test_lac() {
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
             check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction"
+            kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
             echo "lac CPU HTTP inference pass"
@@ -378,7 +402,7 @@ function python_run_test() {
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     python_test_bert $TYPE # pwd: /Serving/python/examples
-    python_test_imdb $TYPE 
+    python_test_imdb $TYPE # pwd: /Serving/python/examples 
     python_test_lac $TYPE    
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
