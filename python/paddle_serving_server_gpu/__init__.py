@@ -277,7 +277,7 @@ class Server(object):
                 'general_dist_kv_quant_infer_0'
             ]
             engine_name = None
-            for node in self.workflow_conf.nodes:
+            for node in self.workflow_conf.workflows[0].nodes:
                 if node.name in default_engine_names:
                     engine_name = node.name
                     break
