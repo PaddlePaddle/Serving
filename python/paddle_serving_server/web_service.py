@@ -55,41 +55,32 @@ class WebService(object):
             "{}/serving_server_conf.prototxt".format(self.model_config))
         self.client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
 
-        @app_instance.route(service_name, methods=['POST'])
-        def get_prediction():
-            if not request.json:
-                abort(400)
-            if "fetch" not in request.json:
-                abort(400)
-            try:
-                feed, fetch = self.preprocess(request.json,
-                                              request.json["fetch"])
-                if isinstance(feed, list):
-                    fetch_map_batch = client_service.predict(
-                        feed_batch=feed, fetch=fetch)
-                    fetch_map_batch = self.postprocess(
-                        feed=request.json,
-                        fetch=fetch,
-                        fetch_map=fetch_map_batch)
-                    for key in fetch_map_batch:
-                        fetch_map_batch[key] = fetch_map_batch[key].tolist()
-                    result = {"result": fetch_map_batch}
-                elif isinstance(feed, dict):
-                    if "fetch" in feed:
-                        del feed["fetch"]
-                    fetch_map = client_service.predict(feed=feed, fetch=fetch)
-                    for key in fetch_map:
-                        fetch_map[key] = fetch_map[key][0].tolist()
-                    result = self.postprocess(
-                        feed=request.json, fetch=fetch, fetch_map=fetch_map)
-            except ValueError:
-                result = {"result": "Request Value Error"}
-            return result
-
-        app_instance.run(host="0.0.0.0",
-                         port=self.port,
-                         threaded=False,
-                         processes=1)
+    def get_prediction():
+        if not request.json:
+            abort(400)
+        if "fetch" not in request.json:
+            abort(400)
+        try:
+            feed, fetch = self.preprocess(request.json, request.json["fetch"])
+            if isinstance(feed, list):
+                fetch_map_batch = client_service.predict(
+                    feed_batch=feed, fetch=fetch)
+                fetch_map_batch = self.postprocess(
+                    feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
+                for key in fetch_map_batch:
+                    fetch_map_batch[key] = fetch_map_batch[key].tolist()
+                result = {"result": fetch_map_batch}
+            elif isinstance(feed, dict):
+                if "fetch" in feed:
+                    del feed["fetch"]
+                fetch_map = client_service.predict(feed=feed, fetch=fetch)
+                for key in fetch_map:
+                    fetch_map[key] = fetch_map[key][0].tolist()
+                result = self.postprocess(
+                    feed=request.json, fetch=fetch, fetch_map=fetch_map)
+        except ValueError:
+            result = {"result": "Request Value Error"}
+        return result
 
     def run_server(self):
         import socket

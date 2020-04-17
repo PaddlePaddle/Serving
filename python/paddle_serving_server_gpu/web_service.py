@@ -147,30 +147,21 @@ class WebService(object):
 
         self.idx = 0
 
-        @app_instance.route(service_name, methods=['POST'])
-        def get_prediction():
-            if not request.json:
-                abort(400)
-            if "fetch" not in request.json:
-                abort(400)
+    def get_prediction():
+        if not request.json:
+            abort(400)
+        if "fetch" not in request.json:
+            abort(400)
 
-            self.input_queues[self.idx].put(request.json)
+        self.input_queues[self.idx].put(request.json)
 
-            self.idx += 1
-            if self.idx >= len(self.gpus):
-                self.idx = 0
-            result = self.output_queue.get()
-            if not isinstance(result, dict) and result == -1:
-                result = {"result": "Request Value Error"}
-            return result
-
-        app_instance.run(host="0.0.0.0",
-                         port=self.port,
-                         threaded=False,
-                         processes=1)
-
-        for p in producer_list:
-            p.join()
+        self.idx += 1
+        if self.idx >= len(self.gpus):
+            self.idx = 0
+        result = self.output_queue.get()
+        if not isinstance(result, dict) and result == -1:
+            result = {"result": "Request Value Error"}
+        return result
 
     def run_server(self):
         import socket
