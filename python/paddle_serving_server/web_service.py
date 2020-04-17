@@ -55,7 +55,7 @@ class WebService(object):
             "{}/serving_server_conf.prototxt".format(self.model_config))
         self.client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
 
-    def get_prediction():
+    def get_prediction(self, request):
         if not request.json:
             abort(400)
         if "fetch" not in request.json:
