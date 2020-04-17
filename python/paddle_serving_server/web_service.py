@@ -63,7 +63,7 @@ class WebService(object):
         try:
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             if isinstance(feed, list):
-                fetch_map_batch = client_service.predict(
+                fetch_map_batch = self.client_service.predict(
                     feed_batch=feed, fetch=fetch)
                 fetch_map_batch = self.postprocess(
                     feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
@@ -73,7 +73,7 @@ class WebService(object):
             elif isinstance(feed, dict):
                 if "fetch" in feed:
                     del feed["fetch"]
-                fetch_map = client_service.predict(feed=feed, fetch=fetch)
+                fetch_map = self.client_service.predict(feed=feed, fetch=fetch)
                 for key in fetch_map:
                     fetch_map[key] = fetch_map[key][0].tolist()
                 result = self.postprocess(
