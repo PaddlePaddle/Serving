@@ -156,7 +156,6 @@ class WebService(object):
 
             self.input_queues[self.idx].put(request.json)
 
-            #self.input_queues[0].put(request.json)
             self.idx += 1
             if self.idx >= len(self.gpus):
                 self.idx = 0
