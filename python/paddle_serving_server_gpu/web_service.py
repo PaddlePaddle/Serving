@@ -115,7 +115,7 @@ class WebService(object):
             elif isinstance(feed, dict):
                 if "fetch" in feed:
                     del feed["fetch"]
-                fetch_map = self.client_service.predict(feed=feed, fetch=fetch)
+                fetch_map = self.client.predict(feed=feed, fetch=fetch)
                 result = self.postprocess(
                     feed=request.json, fetch=fetch, fetch_map=fetch_map)
         except ValueError:
