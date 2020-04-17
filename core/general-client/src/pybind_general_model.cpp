@@ -77,6 +77,7 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self) { self.create_predictor(); })
       .def("destroy_predictor",
            [](PredictorClient &self) { self.destroy_predictor(); })
+
       .def("batch_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<std::vector<float>>>
@@ -99,7 +100,8 @@ PYBIND11_MODULE(serving_client, m) {
                                        fetch_name,
                                        predict_res_batch,
                                        pid);
-           });
+           },
+           py::call_guard<py::gil_scoped_release>());
 }
 
 }  // namespace general_model
