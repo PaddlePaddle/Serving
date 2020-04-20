@@ -40,6 +40,16 @@ PYBIND11_MODULE(serving_client, m) {
              return self.get_float_by_name(name);
            },
            py::return_value_policy::reference)
+      .def("get_shape",
+           [](PredictorRes &self, std::string &name) {
+             return self.get_shape(name);
+           },
+           py::return_value_policy::reference)
+      .def("get_lod",
+           [](PredictorRes &self, std::string &name) {
+             return self.get_lod(name);
+           },
+           py::return_value_policy::reference)
       .def("variant_tag",
            [](PredictorRes &self) { return self.variant_tag(); });
 
@@ -67,39 +77,26 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self) { self.create_predictor(); })
       .def("destroy_predictor",
            [](PredictorClient &self) { self.destroy_predictor(); })
-      .def("predict",
-           [](PredictorClient &self,
-              const std::vector<std::vector<float>> &float_feed,
-              const std::vector<std::string> &float_feed_name,
-              const std::vector<std::vector<int64_t>> &int_feed,
-              const std::vector<std::string> &int_feed_name,
-              const std::vector<std::string> &fetch_name,
-              PredictorRes &predict_res,
-              const int &pid) {
-             return self.predict(float_feed,
-                                 float_feed_name,
-                                 int_feed,
-                                 int_feed_name,
-                                 fetch_name,
-                                 predict_res,
-                                 pid);
-           },
-           py::call_guard<py::gil_scoped_release>())
+
       .def("batch_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<std::vector<float>>>
                   &float_feed_batch,
               const std::vector<std::string> &float_feed_name,
+              const std::vector<std::vector<int>> &float_shape,
               const std::vector<std::vector<std::vector<int64_t>>>
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
+              const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
               const int &pid) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
+                                       float_shape,
                                        int_feed_batch,
                                        int_feed_name,
+                                       int_shape,
                                        fetch_name,
                                        predict_res_batch,
                                        pid);
