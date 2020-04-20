@@ -45,15 +45,19 @@ class ModelRes {
   ModelRes() {}
   ModelRes(const ModelRes& res) {
     _engine_name = res._engine_name;
-    _int64_map.insert(res._int64_map.begin(), res._int64_map.end());
-    _float_map.insert(res._float_map.begin(), res._float_map.end());
+    _int64_value_map.insert(res._int64_value_map.begin(),
+                            res._int64_value_map.end());
+    _float_value_map.insert(res._float_value_map.begin(),
+                            res._float_value_map.end());
   }
   ModelRes(ModelRes&& res) {
     _engine_name = std::move(res._engine_name);
-    _int64_map.insert(std::make_move_iterator(std::begin(res._int64_map)),
-                      std::make_move_iterator(std::end(res._int64_map)));
-    _float_map.insert(std::make_move_iterator(std::begin(res._float_map)),
-                      std::make_move_iterator(std::end(res._float_map)));
+    _int64_value_map.insert(
+        std::make_move_iterator(std::begin(res._int64_value_map)),
+        std::make_move_iterator(std::end(res._int64_value_map)));
+    _float_value_map.insert(
+        std::make_move_iterator(std::begin(res._float_value_map)),
+        std::make_move_iterator(std::end(res._float_value_map)));
   }
   ~ModelRes() {}
   const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
@@ -75,10 +79,12 @@ class ModelRes {
   ModelRes& operator=(ModelRes&& res) {
     if (this != &res) {
       _engine_name = std::move(res._engine_name);
-      _int64_map.insert(std::make_move_iterator(std::begin(res._int64_map)),
-                        std::make_move_iterator(std::end(res._int64_map)));
-      _float_map.insert(std::make_move_iterator(std::begin(res._float_map)),
-                        std::make_move_iterator(std::end(res._float_map)));
+      _int64_value_map.insert(
+          std::make_move_iterator(std::begin(res._int64_value_map)),
+          std::make_move_iterator(std::end(res._int64_value_map)));
+      _float_value_map.insert(
+          std::make_move_iterator(std::begin(res._float_value_map)),
+          std::make_move_iterator(std::end(res._float_value_map)));
     }
     return *this;
   }
