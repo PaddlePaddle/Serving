@@ -100,11 +100,11 @@ for i in range(3):
     fetch = ["acc", "cost", "prediction"]
     fetch_maps = client.predict(feed=feed, fetch=fetch)
     if len(fetch_maps) == 1:
-        print("step: {}, res: {}".format(i, fetch_maps['prediction'][1]))
+        print("step: {}, res: {}".format(i, fetch_maps['prediction'][0][1]))
     else:
         for model, fetch_map in fetch_maps.items():
             print("step: {}, model: {}, res: {}".format(i, model, fetch_map[
-                'prediction'][1]))
+                'prediction'][0][1]))
 ```
 
 Compared with the normal prediction service, the client side has not changed much. When multiple model predictions are used, the prediction service will return a dictionary with engine name `engine_name`(the value is defined on the server side) as the key, and the corresponding model prediction results as the value.

@@ -35,8 +35,8 @@ for i in range(3):
     fetch = ["acc", "cost", "prediction"]
     fetch_maps = client.predict(feed=feed, fetch=fetch)
     if len(fetch_maps) == 1:
-        print("step: {}, res: {}".format(i, fetch_maps['prediction'][1]))
+        print("step: {}, res: {}".format(i, fetch_maps['prediction'][0][1]))
     else:
         for model, fetch_map in fetch_maps.items():
             print("step: {}, model: {}, res: {}".format(i, model, fetch_map[
-                'prediction'][1]))
+                'prediction'][0][1]))
