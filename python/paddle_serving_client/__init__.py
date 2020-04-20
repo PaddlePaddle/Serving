@@ -299,6 +299,7 @@ class Client(object):
                 for mi, engine_name in enumerate(model_engine_names)
             }
 
+        # When using the A/B test, the tag of variant needs to be returned
         return ret if not need_variant_tag else [
             ret, self.result_handle_.variant_tag()
         ]
