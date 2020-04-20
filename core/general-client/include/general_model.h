@@ -45,13 +45,17 @@ class PredictorRes {
   ~PredictorRes() {}
 
  public:
-  const std::vector<std::vector<int64_t>>& get_int64_by_name(
-      const std::string& name) {
-    return _int64_map[name];
+  const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
+    return _int64_value_map[name];
   }
-  const std::vector<std::vector<float>>& get_float_by_name(
-      const std::string& name) {
-    return _float_map[name];
+  const std::vector<float>& get_float_by_name(const std::string& name) {
+    return _float_value_map[name];
+  }
+  const std::vector<int>& get_shape(const std::string& name) {
+    return _shape_map[name];
+  }
+  const std::vector<int>& get_lod(const std::string& name) {
+    return _lod_map[name];
   }
   void set_variant_tag(const std::string& variant_tag) {
     _variant_tag = variant_tag;
@@ -59,8 +63,10 @@ class PredictorRes {
   const std::string& variant_tag() { return _variant_tag; }
 
  public:
-  std::map<std::string, std::vector<std::vector<int64_t>>> _int64_map;
-  std::map<std::string, std::vector<std::vector<float>>> _float_map;
+  std::map<std::string, std::vector<int64_t>> _int64_value_map;
+  std::map<std::string, std::vector<float>> _float_value_map;
+  std::map<std::string, std::vector<int>> _shape_map;
+  std::map<std::string, std::vector<int>> _lod_map;
 
  private:
   std::string _variant_tag;
@@ -81,21 +87,16 @@ class PredictorClient {
   int create_predictor_by_desc(const std::string& sdk_desc);
 
   int create_predictor();
-  int destroy_predictor();
 
-  int predict(const std::vector<std::vector<float>>& float_feed,
-              const std::vector<std::string>& float_feed_name,
-              const std::vector<std::vector<int64_t>>& int_feed,
-              const std::vector<std::string>& int_feed_name,
-              const std::vector<std::string>& fetch_name,
-              PredictorRes& predict_res,  // NOLINT
-              const int& pid);
+  int destroy_predictor();
 
   int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<int>>& float_shape,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
+      const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,
       PredictorRes& predict_res_batch,  // NOLINT
       const int& pid);

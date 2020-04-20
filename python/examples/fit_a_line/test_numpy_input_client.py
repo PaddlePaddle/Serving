@@ -12,23 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
+
 from paddle_serving_client import Client
-from imdb_reader import IMDBDataset
+import numpy as np
 import sys
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9292"])
+client.connect(["127.0.0.1:9393"])
 
-# you can define any english sentence or dataset here
-# This example reuses imdb reader in training, you
-# can define your own data preprocessing easily.
-imdb_dataset = IMDBDataset()
-imdb_dataset.load_resource(sys.argv[2])
+import paddle
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=1)
 
-for line in sys.stdin:
-    word_ids, label = imdb_dataset.get_words_and_label(line)
-    feed = {"words": word_ids}
-    fetch = ["acc", "cost", "prediction"]
-    fetch_map = client.predict(feed=feed, fetch=fetch)
-    print("{} {}".format(fetch_map["prediction"][0][1], label[0]))
+for data in test_reader():
+    fetch_map = client.predict(
+        feed={"x": np.array(data[0][0])}, fetch=["price"])
+    print("{} {}".format(fetch_map["price"][0][0], data[0][1][0]))

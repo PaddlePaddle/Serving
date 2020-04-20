@@ -18,6 +18,8 @@ import os
 from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
+import numpy as np
+import time
 import sys
 
 int_type = 0
@@ -119,6 +121,7 @@ class Client(object):
         self.fetch_names_to_idx_ = {}
         self.lod_tensor_set = set()
         self.feed_tensor_len = {}
+
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
             self.feed_types_[var.alias_name] = var.feed_type
@@ -131,11 +134,11 @@ class Client(object):
                 for dim in self.feed_shapes_[var.alias_name]:
                     counter *= dim
                 self.feed_tensor_len[var.alias_name] = counter
-
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_names_to_idx_[var.alias_name] = i
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
-
+            if var.is_lod_tensor:
+                self.lod_tensor_set.add(var.alias_name)
         return
 
     def add_variant(self, tag, cluster, variant_weight):
@@ -162,7 +165,6 @@ class Client(object):
                     "parameter endpoints({}) will not take effect, because you use the add_variant function.".
                     format(endpoints))
         sdk_desc = self.predictor_sdk_.gen_desc()
-        print(sdk_desc)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
 
@@ -203,6 +205,8 @@ class Client(object):
         float_slot_batch = []
         int_feed_names = []
         float_feed_names = []
+        int_shape = []
+        float_shape = []
         fetch_names = []
         counter = 0
         batch_size = len(feed_batch)
@@ -219,50 +223,69 @@ class Client(object):
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
+            int_shape = []
+            float_shape = []
             for key in feed_i:
                 if key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
-                self.shape_check(feed_i, key)
+                if not isinstance(feed_i[key], np.ndarray):
+                    self.shape_check(feed_i, key)
                 if self.feed_types_[key] == int_type:
                     if i == 0:
                         int_feed_names.append(key)
-                    int_slot.append(feed_i[key])
+                        if isinstance(feed_i[key], np.ndarray):
+                            int_shape.append(list(feed_i[key].shape))
+                        else:
+                            int_shape.append(self.feed_shapes_[key])
+                    if isinstance(feed_i[key], np.ndarray):
+                        int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
+                    else:
+                        int_slot.append(feed_i[key])
                 elif self.feed_types_[key] == float_type:
                     if i == 0:
                         float_feed_names.append(key)
-                    float_slot.append(feed_i[key])
-            if len(int_slot) + len(float_slot) == 0:
-                raise ValueError("No feed data for predict.")
+                        if isinstance(feed_i[key], np.ndarray):
+                            float_shape.append(list(feed_i[key].shape))
+                        else:
+                            float_shape.append(self.feed_shapes_[key])
+                    if isinstance(feed_i[key], np.ndarray):
+                        float_slot.append(
+                            np.reshape(feed_i[key], (-1)).tolist())
+                    else:
+                        float_slot.append(feed_i[key])
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
         result_batch = self.result_handle_
         res = self.client_handle_.batch_predict(
-            float_slot_batch, float_feed_names, int_slot_batch, int_feed_names,
-            fetch_names, result_batch, self.pid)
+            float_slot_batch, float_feed_names, float_shape, int_slot_batch,
+            int_feed_names, int_shape, fetch_names, result_batch, self.pid)
 
         if res == -1:
             return None
 
         result_map_batch = []
         result_map = {}
+        # result map needs to be a numpy array
         for i, name in enumerate(fetch_names):
             if self.fetch_names_to_type_[name] == int_type:
                 result_map[name] = result_batch.get_int64_by_name(name)
+                shape = result_batch.get_shape(name)
+                result_map[name] = np.array(result_map[name])
+                result_map[name].shape = shape
+                if name in self.lod_tensor_set:
+                    result_map["{}.lod".format(name)] = result_batch.get_lod(
+                        name)
             elif self.fetch_names_to_type_[name] == float_type:
                 result_map[name] = result_batch.get_float_by_name(name)
-        for i in range(batch_size):
-            single_result = {}
-            for key in result_map:
-                single_result[key] = result_map[key][i]
-            result_map_batch.append(single_result)
+                shape = result_batch.get_shape(name)
+                result_map[name] = np.array(result_map[name])
+                result_map[name].shape = shape
+                if name in self.lod_tensor_set:
+                    result_map["{}.lod".format(name)] = result_batch.get_lod(
+                        name)
 
-        if batch_size == 1:
-            return [result_map_batch[0], self.result_handle_.variant_tag()
-                    ] if need_variant_tag else result_map_batch[0]
-        else:
-            return [result_map_batch, self.result_handle_.variant_tag()
-                    ] if need_variant_tag else result_map_batch
+        return result_map
 
     def release(self):
         self.client_handle_.destroy_predictor()
