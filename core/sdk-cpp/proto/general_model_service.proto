@@ -26,6 +26,7 @@ message Tensor {
   repeated float float_data = 4;
   optional int32 elem_type = 5;
   repeated int32 shape = 6;
+  repeated int32 lod = 7; // only for fetch tensor currently
 };
 
 message FeedInst { repeated Tensor tensor_array = 1; };

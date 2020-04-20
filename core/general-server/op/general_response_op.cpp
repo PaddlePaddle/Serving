@@ -79,27 +79,25 @@ int GeneralResponseOp::inference() {
     }
 
     const TensorVector *in = &input_blob->tensor_vector;
-    int batch_size = input_blob->GetBatchSize();
-    VLOG(2) << "input batch size: " << batch_size;
 
     ModelOutput *output = res->add_outputs();
-    output->set_engine_name(
-        pre_name);  // To get the order of model return values
-    for (int i = 0; i < batch_size; ++i) {
-      FetchInst *fetch_inst = output->add_insts();
-      for (auto &idx : fetch_index) {
-        Tensor *tensor = fetch_inst->add_tensor_array();
-        // currently only response float tensor or lod_tensor
-        tensor->set_elem_type(1);
-        if (model_config->_is_lod_fetch[idx]) {
-          VLOG(2) << "out[" << idx << " is lod_tensor";
-          tensor->add_shape(-1);
-        } else {
-          VLOG(2) << "out[" << idx << "] is tensor";
-          for (int k = 1; k < in->at(idx).shape.size(); ++k) {
-            VLOG(2) << "shape[" << k - 1 << "]: " << in->at(idx).shape[k];
-            tensor->add_shape(in->at(idx).shape[k]);
-          }
+    // To get the order of model return values
+    output->set_engine_name(pre_name);
+    FetchInst *fetch_inst = output->add_insts();
+    for (auto &idx : fetch_index) {
+      Tensor *tensor = fetch_inst->add_tensor_array();
+      tensor->set_elem_type(1);
+      if (model_config->_is_lod_fetch[idx]) {
+        VLOG(2) << "out[" << idx << "] is lod_tensor";
+        for (int k = 0; k < in->at(idx).shape.size(); ++k) {
+          VLOG(2) << "shape[" << k << "]: " << in->at(idx).shape[k];
+          tensor->add_shape(in->at(idx).shape[k]);
+        }
+      } else {
+        VLOG(2) << "out[" << idx << "] is tensor";
+        for (int k = 0; k < in->at(idx).shape.size(); ++k) {
+          VLOG(2) << "shape[" << k << "]: " << in->at(idx).shape[k];
+          tensor->add_shape(in->at(idx).shape[k]);
         }
       }
     }
@@ -107,66 +105,42 @@ int GeneralResponseOp::inference() {
     int var_idx = 0;
     for (auto &idx : fetch_index) {
       int cap = 1;
-      for (int j = 1; j < in->at(idx).shape.size(); ++j) {
+      for (int j = 0; j < in->at(idx).shape.size(); ++j) {
         cap *= in->at(idx).shape[j];
       }
       if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
         int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
         if (model_config->_is_lod_fetch[idx]) {
-          for (int j = 0; j < batch_size; ++j) {
-            for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
-                 k++) {
-              FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
-                  data_ptr[k]);
-            }
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_lod(
+                in->at(idx).lod[0][j]);
+          }
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[j]);
           }
         } else {
-          int var_size = in->at(idx).shape[0];
-          if (var_size == batch_size) {
-            for (int j = 0; j < batch_size; ++j) {
-              for (int k = j * cap; k < (j + 1) * cap; ++k) {
-                FetchInst *fetch_p = output->mutable_insts(j);
-                fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
-                    data_ptr[k]);
-              }
-            }
-          } else {
-            for (int j = 0; j < batch_size; ++j) {
-              FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_int64_data(
-                  data_ptr[0]);
-            }
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
           }
         }
         var_idx++;
       } else if (in->at(idx).dtype == paddle::PaddleDType::FLOAT32) {
         float *data_ptr = static_cast<float *>(in->at(idx).data.data());
         if (model_config->_is_lod_fetch[idx]) {
-          for (int j = 0; j < batch_size; ++j) {
-            for (int k = in->at(idx).lod[0][j]; k < in->at(idx).lod[0][j + 1];
-                 k++) {
-              FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_float_data(
-                  data_ptr[k]);
-            }
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_lod(
+                in->at(idx).lod[0][j]);
+          }
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
           }
         } else {
-          int var_size = in->at(idx).shape[0];
-          if (var_size == batch_size) {
-            for (int j = 0; j < batch_size; ++j) {
-              for (int k = j * cap; k < (j + 1) * cap; ++k) {
-                FetchInst *fetch_p = output->mutable_insts(j);
-                fetch_p->mutable_tensor_array(var_idx)->add_float_data(
-                    data_ptr[k]);
-              }
-            }
-          } else {
-            for (int j = 0; j < batch_size; ++j) {
-              FetchInst *fetch_p = output->mutable_insts(j);
-              fetch_p->mutable_tensor_array(var_idx)->add_float_data(
-                  data_ptr[0]);
-            }
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
           }
         }
         var_idx++;
