@@ -107,6 +107,8 @@ class WebService(object):
         fetch_map_batch = self.client.predict(feed=feed, fetch=fetch)
         fetch_map_batch = self.postprocess(
             feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
+        for key in fetch_map_batch:
+            fetch_map_batch[key] = fetch_map_batch[key].tolist()
         result = {"result": fetch_map_batch}
         return result
 
