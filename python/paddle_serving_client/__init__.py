@@ -111,7 +111,7 @@ class Client(object):
         self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
-        read_env_flags = ["profile_client", "profile_server"]
+        read_env_flags = ["profile_client", "profile_server", "max_body_size"]
         self.client_handle_.init_gflags([sys.argv[
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
