@@ -99,7 +99,8 @@ PYBIND11_MODULE(serving_client, m) {
                                        fetch_name,
                                        predict_res_batch,
                                        pid);
-           });
+           },
+           py::call_guard<py::gil_scoped_release>());
 }
 
 }  // namespace general_model

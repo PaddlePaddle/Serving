@@ -51,6 +51,5 @@ for ei in range(1000):
     for i in range(1, 27):
         feed_dict["sparse_{}".format(i - 1)] = data[0][i]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    #print(fetch_map)
 end = time.time()
 print(end - start)
