@@ -49,6 +49,8 @@ class ModelRes {
                             res._int64_value_map.end());
     _float_value_map.insert(res._float_value_map.begin(),
                             res._float_value_map.end());
+    _shape_map.insert(res._shape_map.begin(), res._shape_map.end());
+    _lod_map.insert(res._lod_map.begin(), res._lod_map.end());
   }
   ModelRes(ModelRes&& res) {
     _engine_name = std::move(res._engine_name);
@@ -58,6 +60,10 @@ class ModelRes {
     _float_value_map.insert(
         std::make_move_iterator(std::begin(res._float_value_map)),
         std::make_move_iterator(std::end(res._float_value_map)));
+    _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
+                      std::make_move_iterator(std::end(res._shape_map)));
+    _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
+                    std::make_move_iterator(std::end(res._lod_map)));
   }
   ~ModelRes() {}
   const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
@@ -85,6 +91,10 @@ class ModelRes {
       _float_value_map.insert(
           std::make_move_iterator(std::begin(res._float_value_map)),
           std::make_move_iterator(std::end(res._float_value_map)));
+      _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
+                        std::make_move_iterator(std::end(res._shape_map)));
+      _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
+                      std::make_move_iterator(std::end(res._lod_map)));
     }
     return *this;
   }
