@@ -106,22 +106,14 @@ class WebService(object):
             abort(400)
         try:
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
-            if isinstance(feed, list):
-                fetch_map_batch = self.client.predict(
-                    feed_batch=feed, fetch=fetch)
-                fetch_map_batch = self.postprocess(
-                    feed=request.json, fetch=fetch, fetch_map=fetch_map_batch)
-                for key in fetch_map_batch:
-                    fetch_map_batch[key] = fetch_map_batch[key].tolist()
-                result = {"result": fetch_map_batch}
-            elif isinstance(feed, dict):
-                if "fetch" in feed:
-                    del feed["fetch"]
-                fetch_map = self.client.predict(feed=feed, fetch=fetch)
-                for key in fetch_map:
-                    fetch_map[key] = fetch_map[key][0].tolist()
-                result = self.postprocess(
-                    feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            if isinstance(feed, dict) and "fetch" in feed:
+                del feed["fetch"]
+            fetch_map = self.client.predict(feed=feed, fetch=fetch)
+            for key in fetch_map:
+                fetch_map[key] = fetch_map[key][0].tolist()
+            result = self.postprocess(
+                feed=request.json, fetch=fetch, fetch_map=fetch_map)
+            result = {"result": result}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
