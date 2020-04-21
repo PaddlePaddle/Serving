@@ -91,6 +91,7 @@ class Monitor(object):
                 model_name))
             return model_name
         tar_model_path = os.path.join(local_tmp_path, model_name)
+        _LOGGER.info("try to unpack remote file({})".format(tar_model_path))
         if not tarfile.is_tarfile(tar_model_path):
             raise Exception('not a tar packaged file type. {}'.format(
                 self._check_param_help('remote_model_name', model_name)))
@@ -105,10 +106,11 @@ class Monitor(object):
                     self._check_param_help('local_tmp_path', local_tmp_path)))
         finally:
             os.remove(tar_model_path)
-            _LOGGER.debug('remove packed file({}).'.format(model_name))
+            _LOGGER.debug('remove packed file({}).'.format(tar_model_path))
             _LOGGER.info('using unpacked filename: {}.'.format(
                 unpacked_filename))
-            if not os.path.exists(unpacked_filename):
+            if not os.path.exists(
+                    os.path.join(local_tmp_path, unpacked_filename)):
                 raise Exception('file not exist. {}'.format(
                     self._check_param_help('unpacked_filename',
                                            unpacked_filename)))
@@ -124,13 +126,14 @@ class Monitor(object):
             '_local_tmp_path', '_interval'
         ]
         self._print_params(params)
-        if not os.path.exists(self._local_tmp_path):
-            _LOGGER.info('mkdir: {}'.format(self._local_tmp_path))
-            os.makedirs(self._local_tmp_path)
+        local_tmp_path = os.path.join(self._local_path, self._local_tmp_path)
+        _LOGGER.info('local_tmp_path: {}'.format(local_tmp_path))
+        if not os.path.exists(local_tmp_path):
+            _LOGGER.info('mkdir: {}'.format(local_tmp_path))
+            os.makedirs(local_tmp_path)
         while True:
             [flag, timestamp] = self._exist_remote_file(
-                self._remote_path, self._remote_donefile_name,
-                self._local_tmp_path)
+                self._remote_path, self._remote_donefile_name, local_tmp_path)
             if flag:
                 if self._remote_donefile_timestamp is None or \
                         timestamp != self._remote_donefile_timestamp:
@@ -139,15 +142,15 @@ class Monitor(object):
                     self._remote_donefile_timestamp = timestamp
                     self._pull_remote_dir(self._remote_path,
                                           self._remote_model_name,
-                                          self._local_tmp_path)
+                                          local_tmp_path)
                     _LOGGER.info('pull remote model({}).'.format(
                         self._remote_model_name))
                     unpacked_filename = self._decompress_model_file(
-                        self._local_tmp_path, self._remote_model_name,
+                        local_tmp_path, self._remote_model_name,
                         self._unpacked_filename)
-                    self._update_local_model(
-                        self._local_tmp_path, unpacked_filename,
-                        self._local_path, self._local_model_name)
+                    self._update_local_model(local_tmp_path, unpacked_filename,
+                                             self._local_path,
+                                             self._local_model_name)
                     _LOGGER.info('update local model({}).'.format(
                         self._local_model_name))
                     self._update_local_donefile(self._local_path,
@@ -325,17 +328,17 @@ class GeneralMonitor(Monitor):
     def _get_local_file_timestamp(self, filename):
         return os.path.getmtime(filename)
 
-    def _exist_remote_file(self, path, filename, local_tmp_path):
-        remote_filepath = os.path.join(path, filename)
+    def _exist_remote_file(self, remote_path, filename, local_tmp_path):
+        remote_filepath = os.path.join(remote_path, filename)
         url = '{}/{}'.format(self._general_host, remote_filepath)
         _LOGGER.debug('remote file url: {}'.format(url))
-        cmd = 'wget -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
+        # only for check donefile, which is not a folder.
+        cmd = 'wget -nd -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         _LOGGER.debug('wget cmd: {}'.format(cmd))
         if os.system(cmd) != 0:
-            _LOGGER.debug('remote file({}) not exist.'.format(filename))
+            _LOGGER.debug('remote file({}) not exist.'.format(remote_filepath))
             return [False, None]
         else:
-            _LOGGER.debug('download remote file({}).'.format(filename))
             timestamp = self._get_local_file_timestamp(
                 os.path.join(local_tmp_path, filename))
             return [True, timestamp]
@@ -344,15 +347,27 @@ class GeneralMonitor(Monitor):
         remote_dirpath = os.path.join(remote_path, dirname)
         url = '{}/{}'.format(self._general_host, remote_dirpath)
         _LOGGER.debug('remote file url: {}'.format(url))
-        cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(local_tmp_path, url)
+        if self._unpacked_filename is None:
+            # the remote file is model folder
+            cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(
+                os.path.join(local_tmp_path, dirname), url)
+        else:
+            # the remote file is a package file
+            cmd = 'wget -nd -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         _LOGGER.debug('wget cmd: {}'.format(cmd))
+        if os.system(cmd) != 0:
+            raise Exception('{} failed.'.format(cmd))
         if os.system(cmd) != 0:
             raise Exception('pull remote dir failed. {}'.format(
                 self._check_param_help('remote_model_name', dirname)))
 
 
 def parse_args():
-    ''' parse args. '''
+    """ parse args.
+
+    Returns:
+        parser.parse_args().
+    """
     parser = argparse.ArgumentParser(description="Monitor")
     parser.add_argument(
         "--type", type=str, default='general', help="Type of remote server")
