@@ -223,7 +223,12 @@ class HadoopMonitor(Monitor):
         local_dirpath = os.path.join(local_tmp_path, dirname)
         if os.path.exists(local_dirpath):
             _LOGGER.info('remove old temporary model file({}).'.format(dirname))
-            shutil.rmtree(local_dirpath)
+            if self._unpacked_filename is None:
+                # the remote file is model folder.
+                shutil.rmtree(local_dirpath)
+            else:
+                # the remote file is a packed model file
+                os.remove(local_dirpath)
         remote_dirpath = os.path.join(remote_path, dirname)
         cmd = '{} -get {} {} 2>/dev/null'.format(self._cmd_prefix,
                                                  remote_dirpath, local_dirpath)
@@ -304,8 +309,8 @@ class FTPMonitor(Monitor):
                         os.path.join(remote_path, remote_dirname), name,
                         os.path.join(local_tmp_path, remote_dirname), overwrite)
                 else:
-                    self._download_remote_file(remote_dirname, name,
-                                               local_tmp_path, overwrite)
+                    self._download_remote_file(remote_dirpath, name,
+                                               local_dirpath, overwrite)
         except ftplib.error_perm:
             _LOGGER.debug('{} is file.'.format(remote_dirname))
             self._download_remote_file(remote_path, remote_dirname,
@@ -348,7 +353,7 @@ class GeneralMonitor(Monitor):
         url = '{}/{}'.format(self._general_host, remote_dirpath)
         _LOGGER.debug('remote file url: {}'.format(url))
         if self._unpacked_filename is None:
-            # the remote file is model folder
+            # the remote file is model folder.
             cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(
                 os.path.join(local_tmp_path, dirname), url)
         else:
