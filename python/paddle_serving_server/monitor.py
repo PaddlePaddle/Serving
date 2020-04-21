@@ -348,7 +348,7 @@ class GeneralMonitor(Monitor):
         url = '{}/{}'.format(self._general_host, remote_dirpath)
         _LOGGER.debug('remote file url: {}'.format(url))
         if self._unpacked_filename is None:
-            # the remote file is model folder
+            # the remote file is model folder.
             cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(
                 os.path.join(local_tmp_path, dirname), url)
         else:
