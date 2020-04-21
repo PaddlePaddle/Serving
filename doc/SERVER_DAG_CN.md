@@ -11,6 +11,7 @@
 <center>
 <img src='server_dag.png' width = "450" height = "500" align="middle"/>
 </center>
+
 ## 如何定义节点
 
 ### 简单的串联结构
@@ -43,6 +44,7 @@ op_seq_maker.add_op(general_response_op)
 ``` python
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
+
 
 ###包含多个输入的节点
 
