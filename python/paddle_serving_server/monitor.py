@@ -352,7 +352,7 @@ class GeneralMonitor(Monitor):
             cmd = 'wget -nH -r -P {} {} &>/dev/null'.format(
                 os.path.join(local_tmp_path, dirname), url)
         else:
-            # the remote file is a package file
+            # the remote file is a packed model file
             cmd = 'wget -nd -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         _LOGGER.debug('wget cmd: {}'.format(cmd))
         if os.system(cmd) != 0:
