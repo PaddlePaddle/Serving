@@ -49,7 +49,7 @@ def serve_args():
     parser.add_argument(
         "--max_body_size",
         type=int,
-        default=64 * 1024 * 1024,
+        default=512 * 1024 * 1024,
         help="Limit sizes of messages")
     return parser.parse_args()
 
