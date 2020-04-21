@@ -356,8 +356,6 @@ class GeneralMonitor(Monitor):
             cmd = 'wget -nd -N -P {} {} &>/dev/null'.format(local_tmp_path, url)
         _LOGGER.debug('wget cmd: {}'.format(cmd))
         if os.system(cmd) != 0:
-            raise Exception('{} failed.'.format(cmd))
-        if os.system(cmd) != 0:
             raise Exception('pull remote dir failed. {}'.format(
                 self._check_param_help('remote_model_name', dirname)))
 
