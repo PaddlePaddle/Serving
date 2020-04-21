@@ -64,6 +64,8 @@ int GeneralResponseOp::inference() {
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
+  VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
+
   std::vector<int> fetch_index;
   fetch_index.resize(req->fetch_var_names_size());
   for (int i = 0; i < req->fetch_var_names_size(); ++i) {

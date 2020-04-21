@@ -111,6 +111,8 @@ class Client(object):
         self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
+        if "FLAGS_max_body_size" not in os.environ:
+            os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
         read_env_flags = ["profile_client", "profile_server", "max_body_size"]
         self.client_handle_.init_gflags([sys.argv[
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
@@ -223,8 +225,6 @@ class Client(object):
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
-            int_shape = []
-            float_shape = []
             for key in feed_i:
                 if key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
