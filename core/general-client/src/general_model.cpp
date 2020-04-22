@@ -108,7 +108,6 @@ void PredictorClient::set_predictor_conf(const std::string &conf_path,
   _predictor_path = conf_path;
   _predictor_conf = conf_file;
 }
-
 int PredictorClient::destroy_predictor() {
   _api.thrd_finalize();
   _api.destroy();
@@ -160,6 +159,7 @@ int PredictorClient::batch_predict(
   VLOG(2) << "fetch general model predictor done.";
   VLOG(2) << "float feed name size: " << float_feed_name.size();
   VLOG(2) << "int feed name size: " << int_feed_name.size();
+  VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
@@ -179,12 +179,16 @@ int PredictorClient::batch_predict(
       tensor_vec.push_back(inst->add_tensor_array());
     }
 
-    VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name"
+    VLOG(2) << "batch [" << bi << "] int_feed_name and float_feed_name "
             << "prepared";
     int vec_idx = 0;
+    VLOG(2) << "tensor_vec size " << tensor_vec.size() << " float shape "
+            << float_shape.size();
     for (auto &name : float_feed_name) {
       int idx = _feed_name_to_idx[name];
       Tensor *tensor = tensor_vec[idx];
+      VLOG(2) << "prepare float feed " << name << " shape size "
+              << float_shape[vec_idx].size();
       for (uint32_t j = 0; j < float_shape[vec_idx].size(); ++j) {
         tensor->add_shape(float_shape[vec_idx][j]);
       }
@@ -202,6 +206,8 @@ int PredictorClient::batch_predict(
     for (auto &name : int_feed_name) {
       int idx = _feed_name_to_idx[name];
       Tensor *tensor = tensor_vec[idx];
+      VLOG(2) << "prepare int feed " << name << " shape size "
+              << int_shape[vec_idx].size();
       for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
         tensor->add_shape(int_shape[vec_idx][j]);
       }
@@ -250,8 +256,11 @@ int PredictorClient::batch_predict(
       model.set_engine_name(output.engine_name());
 
       for (auto &name : fetch_name) {
-        int idx = _fetch_name_to_idx[name];
+        // int idx = _fetch_name_to_idx[name];
+        int idx = 0;
         int shape_size = output.insts(0).tensor_array(idx).shape_size();
+        VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
+                << shape_size;
         model._shape_map[name].resize(shape_size);
         for (int i = 0; i < shape_size; ++i) {
           model._shape_map[name][i] =
@@ -264,11 +273,14 @@ int PredictorClient::batch_predict(
             model._lod_map[name][i] = output.insts(0).tensor_array(idx).lod(i);
           }
         }
+        idx += 1;
       }
 
       for (auto &name : fetch_name) {
-        int idx = _fetch_name_to_idx[name];
+        // int idx = _fetch_name_to_idx[name];
+        int idx = 0;
         if (_fetch_name_to_type[name] == 0) {
+          VLOG(2) << "ferch var " << name << "type int";
           model._int64_value_map[name].resize(
               output.insts(0).tensor_array(idx).int64_data_size());
           int size = output.insts(0).tensor_array(idx).int64_data_size();
@@ -277,6 +289,7 @@ int PredictorClient::batch_predict(
                 output.insts(0).tensor_array(idx).int64_data(i);
           }
         } else {
+          VLOG(2) << "fetch var " << name << "type float";
           model._float_value_map[name].resize(
               output.insts(0).tensor_array(idx).float_data_size());
           int size = output.insts(0).tensor_array(idx).float_data_size();
@@ -285,6 +298,7 @@ int PredictorClient::batch_predict(
                 output.insts(0).tensor_array(idx).float_data(i);
           }
         }
+        idx += 1;
       }
       predict_res_batch.add_model_res(std::move(model));
     }
