@@ -1,5 +1,7 @@
 # Faster RCNN模型
 
+(简体中文|[English](./README.md))
+
 本文需要[Paddle Detection](https://github.com/PaddlePaddle/PaddleDetection)训练的模型和配置文件。如果用户想要快速部署在Paddle Serving上，请直接阅读第二章节。
 
 ## 1. 训练物体检测模型
