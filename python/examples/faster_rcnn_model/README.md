@@ -2,7 +2,7 @@
 
 ([简体中文](./README_CN.md)|English)
 
-This article requires [Paddle Detection](https://github.com/PaddlePaddle/PaddleDetection) trained models and configuration files. If users want to quickly deploy on Paddle Serving, please read the chapter 2 directly.
+This article requires [Paddle Detection](https://github.com/PaddlePaddle/PaddleDetection) trained models and configuration files. If users want to quickly deploy on Paddle Serving, please read the Chapter 2 directly.
 
 ## 1. Train an object detection model
 
@@ -66,6 +66,7 @@ This is the input picture
 <img src = '000000570688_bbox.jpg'>
     <br>
 <p>
+  
 This is the picture after adding bbox. You can see that the client has done post-processing for the picture. In addition, the output/bbox.json also has the number and coordinate information of each box.
 
 
