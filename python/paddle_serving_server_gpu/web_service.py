@@ -82,7 +82,7 @@ class WebService(object):
         self.device = device
         self.gpuid = gpuid
         self.port_list = []
-        default_port = 6000
+        default_port = 12000
         for i in range(1000):
             if self.port_is_available(default_port + i):
                 self.port_list.append(default_port + i)

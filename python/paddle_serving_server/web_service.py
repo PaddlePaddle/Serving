@@ -59,7 +59,7 @@ class WebService(object):
         self.workdir = workdir
         self.port = port
         self.device = device
-        default_port = 6000
+        default_port = 12000
         self.port_list = []
         for i in range(1000):
             if self.port_is_available(default_port + i):
