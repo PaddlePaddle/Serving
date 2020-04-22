@@ -31,7 +31,7 @@ python export_model.py
 ```
 
 ## 2. 启动模型并预测
-如果用户没有用Paddle Detection项目训练模型，我们也在此为您提供示例模型下载。
+如果用户没有用Paddle Detection项目训练模型，我们也在此为您提供示例模型下载。如果您用Paddle Detection训练了模型，可以跳过 **下载模型** 部分。
 
 ### 下载模型
 ```
