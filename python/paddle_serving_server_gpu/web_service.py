@@ -143,6 +143,24 @@ class WebService(object):
         for p in server_pros:
             p.start()
 
+    def run_flask(self):
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            self._launch_web_service()
+
+        service_name = "/" + self.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return self.get_prediction(request)
+
+        app_instance.run(host="0.0.0.0",
+                         port=self.port,
+                         threaded=False,
+                         processes=4)
+
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
 

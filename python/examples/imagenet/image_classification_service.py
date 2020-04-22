@@ -47,3 +47,4 @@ image_service.load_model_config(sys.argv[1])
 image_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 image_service.run_server()
+image_service.run_flask()
