@@ -18,6 +18,8 @@ from flask import Flask, request, abort
 from multiprocessing import Pool, Process
 from paddle_serving_server import OpMaker, OpSeqMaker, Server
 from paddle_serving_client import Client
+from contextlib import closing
+import socket
 
 
 class WebService(object):
@@ -41,19 +43,34 @@ class WebService(object):
         server.set_num_threads(16)
         server.load_model_config(self.model_config)
         server.prepare_server(
-            workdir=self.workdir, port=self.port + 1, device=self.device)
+            workdir=self.workdir, port=self.port_list[0], device=self.device)
         server.run_server()
+
+    def port_is_available(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('0.0.0.0', port))
+        if result != 0:
+            return True
+        else:
+            return False
 
     def prepare_server(self, workdir="", port=9393, device="cpu"):
         self.workdir = workdir
         self.port = port
         self.device = device
+        default_port = 6000
+        self.port_list = []
+        for i in range(1000):
+            if self.port_is_available(default_port + i):
+                self.port_list.append(default_port + i)
+                break
 
     def _launch_web_service(self):
         self.client_service = Client()
         self.client_service.load_client_config(
             "{}/serving_server_conf.prototxt".format(self.model_config))
-        self.client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
+        self.client_service.connect(["0.0.0.0:{}".format(self.port_list[0])])
 
     def get_prediction(self, request):
         if not request.json:
