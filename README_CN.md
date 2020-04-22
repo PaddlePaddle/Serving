@@ -50,9 +50,9 @@ nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/se
 nvidia-docker exec -it test bash
 ```
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server # CPU
-pip install paddle-serving-server-gpu # GPU
+pip install paddle_serving_client
+pip install paddle_serving_server # CPU
+pip install paddle_serving_server_gpu # GPU
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
