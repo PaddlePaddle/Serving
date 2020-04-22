@@ -139,6 +139,7 @@ class Server(object):
         self.num_threads = 4
         self.port = 8080
         self.reload_interval_s = 10
+        self.max_body_size = 64 * 1024 * 1024
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.use_local_bin = False
@@ -150,6 +151,14 @@ class Server(object):
 
     def set_num_threads(self, threads):
         self.num_threads = threads
+
+    def set_max_body_size(self, body_size):
+        if body_size >= self.max_body_size:
+            self.max_body_size = body_size
+        else:
+            print(
+                "max_body_size is less than default value, will use default value in service."
+            )
 
     def set_port(self, port):
         self.port = port
@@ -383,7 +392,8 @@ class Server(object):
                   "-resource_file {} " \
                   "-workflow_path {} " \
                   "-workflow_file {} " \
-                  "-bthread_concurrency {} ".format(
+                  "-bthread_concurrency {} " \
+                  "-max_body_size {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -395,7 +405,8 @@ class Server(object):
                       self.resource_fn,
                       self.workdir,
                       self.workflow_fn,
-                      self.num_threads)
+                      self.num_threads,
+                      self.max_body_size)
         print("Going to Run Command")
         print(command)
         os.system(command)
