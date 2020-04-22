@@ -46,6 +46,11 @@ def serve_args():
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
         "--mem_optim", type=bool, default=False, help="Memory optimize")
+    parser.add_argument(
+        "--max_body_size",
+        type=int,
+        default=512 * 1024 * 1024,
+        help="Limit sizes of messages")
     return parser.parse_args()
 
 
@@ -114,6 +119,7 @@ class Server(object):
         self.num_threads = 4
         self.port = 8080
         self.reload_interval_s = 10
+        self.max_body_size = 64 * 1024 * 1024
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.check_cuda()
@@ -125,6 +131,14 @@ class Server(object):
 
     def set_num_threads(self, threads):
         self.num_threads = threads
+
+    def set_max_body_size(self, body_size):
+        if body_size >= self.max_body_size:
+            self.max_body_size = body_size
+        else:
+            print(
+                "max_body_size is less than default value, will use default value in service."
+            )
 
     def set_port(self, port):
         self.port = port
@@ -324,7 +338,8 @@ class Server(object):
                   "-workflow_path {} " \
                   "-workflow_file {} " \
                   "-bthread_concurrency {} " \
-                  "-gpuid {} ".format(
+                  "-gpuid {} " \
+                  "-max_body_size {} ".format(
                       self.bin_path,
                       self.workdir,
                       self.infer_service_fn,
@@ -337,7 +352,8 @@ class Server(object):
                       self.workdir,
                       self.workflow_fn,
                       self.num_threads,
-                      self.gpuid,)
+                      self.gpuid,
+                      self.max_body_size)
         print("Going to Run Comand")
         print(command)
 
