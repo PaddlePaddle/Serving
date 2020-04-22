@@ -54,14 +54,14 @@ python test_client.py --config_path=infer_cfg.yml --infer_img=000000570688.jpg -
 ## 3. 结果分析
 <p align="center">
     <br>
-<img src='000000570688.jpg' width = "200" height = "200">
+<img src='000000570688.jpg' >
     <br>
 <p>
 这是输入图片
   
 <p align="center">
     <br>
-<img src='000000570688_bbox.jpg' width = "200" height = "200">
+<img src='000000570688_bbox.jpg' >
     <br>
 <p>
 这是实现添加了bbox之后的图片，可以看到客户端已经为图片做好了后处理，此外在output/bbox.json也有各个框的编号和坐标信息。
