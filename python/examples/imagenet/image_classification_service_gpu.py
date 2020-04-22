@@ -32,14 +32,14 @@ class ImageService(WebService):
                 sample = base64.b64decode(image)
                 img = reader.process_image(sample)
                 res_feed = {}
-                res_feed["image"] = img.reshape(-1)
+                res_feed["image"] = img
                 feed_batch.append(res_feed)
             return feed_batch, fetch
         else:
             sample = base64.b64decode(feed["image"])
             img = reader.process_image(sample)
             res_feed = {}
-            res_feed["image"] = img.reshape(-1)
+            res_feed["image"] = img
             return res_feed, fetch
 
 
