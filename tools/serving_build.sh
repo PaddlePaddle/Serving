@@ -527,7 +527,118 @@ function monitor_test() {
             ps -ef | grep "pyftpdlib" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         GPU):
-            echo "monitor ignore GPU test"
+            pip install pyftpdlib
+            mkdir remote_path
+            mkdir local_path
+            cd remote_path # pwd: /Serving/_monitor_test/remote_path
+            check_cmd "python -m pyftpdlib -p 8000 &>/dev/null &"
+            cd .. # pwd: /Serving/_monitor_test
+
+            # type: ftp
+            # remote_path: /
+            # remote_model_name: uci_housing.tar.gz
+            # local_tmp_path: ___tmp
+            # local_path: local_path
+            cd remote_path # pwd: /Serving/_monitor_test/remote_path
+            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
+            touch donefile
+            cd ..  # pwd: /Serving/_monitor_test
+            mkdir -p local_path/uci_housing_model
+            python -m paddle_serving_server_gpu.monitor \
+                    --type='ftp' --ftp_host='127.0.0.1' --ftp_port='8000' \
+                    --remote_path='/' --remote_model_name='uci_housing.tar.gz' \
+                    --remote_donefile_name='donefile' --local_path='local_path' \
+                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+                    --local_tmp_path='___tmp' --unpacked_filename='uci_housing_model' \
+                    --interval='1' >/dev/null &
+            sleep 10
+            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
+                echo "local_path/uci_housing_model/fluid_time_file not exist."
+                exit 1
+            fi
+            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf remote_path/*
+            rm -rf local_path/*
+
+            # type: ftp
+            # remote_path: /tmp_dir
+            # remote_model_name: uci_housing_model
+            # local_tmp_path: ___tmp
+            # local_path: local_path
+            mkdir -p remote_path/tmp_dir && cd remote_path/tmp_dir # pwd: /Serving/_monitor_test/remote_path/tmp_dir
+            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
+            tar -xzf uci_housing.tar.gz
+            touch donefile
+            cd ../.. # pwd: /Serving/_monitor_test
+            mkdir -p local_path/uci_housing_model
+            python -m paddle_serving_server_gpu.monitor \
+                    --type='ftp' --ftp_host='127.0.0.1' --ftp_port='8000' \
+                    --remote_path='/tmp_dir' --remote_model_name='uci_housing_model' \
+                    --remote_donefile_name='donefile' --local_path='local_path' \
+                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+                    --local_tmp_path='___tmp' --interval='1' >/dev/null &
+            sleep 10
+            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
+                echo "local_path/uci_housing_model/fluid_time_file not exist."
+                exit 1
+            fi
+            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf remote_path/*
+            rm -rf local_path/*
+
+            # type: general
+            # remote_path: /
+            # remote_model_name: uci_housing.tar.gz
+            # local_tmp_path: ___tmp
+            # local_path: local_path
+            cd remote_path # pwd: /Serving/_monitor_test/remote_path
+            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
+            touch donefile
+            cd ..  # pwd: /Serving/_monitor_test
+            mkdir -p local_path/uci_housing_model
+            python -m paddle_serving_server_gpu.monitor \
+                    --type='general' --general_host='ftp://127.0.0.1:8000' \
+                    --remote_path='/' --remote_model_name='uci_housing.tar.gz' \
+                    --remote_donefile_name='donefile' --local_path='local_path' \
+                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+                    --local_tmp_path='___tmp' --unpacked_filename='uci_housing_model' \
+                    --interval='1' >/dev/null &
+            sleep 10
+            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
+                echo "local_path/uci_housing_model/fluid_time_file not exist."
+                exit 1
+            fi
+            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf remote_path/*
+            rm -rf local_path/*
+
+            # type: general
+            # remote_path: /tmp_dir
+            # remote_model_name: uci_housing_model
+            # local_tmp_path: ___tmp
+            # local_path: local_path
+            mkdir -p remote_path/tmp_dir && cd remote_path/tmp_dir # pwd: /Serving/_monitor_test/remote_path/tmp_dir
+            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
+            tar -xzf uci_housing.tar.gz
+            touch donefile
+            cd ../.. # pwd: /Serving/_monitor_test
+            mkdir -p local_path/uci_housing_model
+            python -m paddle_serving_server_gpu.monitor \
+                    --type='general' --general_host='ftp://127.0.0.1:8000' \
+                    --remote_path='/tmp_dir' --remote_model_name='uci_housing_model' \
+                    --remote_donefile_name='donefile' --local_path='local_path' \
+                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
+                    --local_tmp_path='___tmp' --interval='1' >/dev/null &
+            sleep 10
+            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
+                echo "local_path/uci_housing_model/fluid_time_file not exist."
+                exit 1
+            fi
+            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
+            rm -rf remote_path/*
+            rm -rf local_path/*
+
+            ps -ef | grep "pyftpdlib" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         *)
     esac
