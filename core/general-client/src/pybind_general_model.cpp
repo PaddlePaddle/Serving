@@ -31,27 +31,28 @@ PYBIND11_MODULE(serving_client, m) {
   py::class_<PredictorRes>(m, "PredictorRes", py::buffer_protocol())
       .def(py::init())
       .def("get_int64_by_name",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_int64_by_name(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_int64_by_name(model_idx, name);
            },
            py::return_value_policy::reference)
       .def("get_float_by_name",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_float_by_name(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_float_by_name(model_idx, name);
            },
            py::return_value_policy::reference)
       .def("get_shape",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_shape(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_shape(model_idx, name);
            },
            py::return_value_policy::reference)
       .def("get_lod",
-           [](PredictorRes &self, std::string &name) {
-             return self.get_lod(name);
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_lod(model_idx, name);
            },
            py::return_value_policy::reference)
-      .def("variant_tag",
-           [](PredictorRes &self) { return self.variant_tag(); });
+      .def("variant_tag", [](PredictorRes &self) { return self.variant_tag(); })
+      .def("get_engine_names",
+           [](PredictorRes &self) { return self.get_engine_names(); });
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())

@@ -35,8 +35,17 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralCopyOp::inference() {
   // reade request from client
-  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
-  VLOG(2) << "precedent name: " << pre_name();
+  const std::vector<std::string> pre_node_names = pre_names();
+  if (pre_node_names.size() != 1) {
+    LOG(ERROR) << "This op(" << op_name()
+               << ") can only have one predecessor op, but received "
+               << pre_node_names.size();
+    return -1;
+  }
+  const std::string pre_name = pre_node_names[0];
+
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
+  VLOG(2) << "precedent name: " << pre_name;
   const TensorVector *in = &input_blob->tensor_vector;
   VLOG(2) << "input size: " << in->size();
   int batch_size = input_blob->GetBatchSize();
