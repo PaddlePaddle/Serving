@@ -37,12 +37,21 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
   VLOG(2) << "Going to run inference";
-  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name());
-  VLOG(2) << "Get precedent op name: " << pre_name();
+  const std::vector<std::string> pre_node_names = pre_names();
+  if (pre_node_names.size() != 1) {
+    LOG(ERROR) << "This op(" << op_name()
+               << ") can only have one predecessor op, but received "
+               << pre_node_names.size();
+    return -1;
+  }
+  const std::string pre_name = pre_node_names[0];
+
+  const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
+  VLOG(2) << "Get precedent op name: " << pre_name;
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name();
+    LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name;
     return -1;
   }
 
@@ -59,8 +68,9 @@ int GeneralInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
 
-  if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
+  if (InferManager::instance().infer(
+          engine_name().c_str(), in, out, batch_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
 

@@ -765,6 +765,8 @@ class InferManager {
     }
     size_t engine_num = model_toolkit_conf.engines_size();
     for (size_t ei = 0; ei < engine_num; ++ei) {
+      LOG(INFO) << "model_toolkit_conf.engines(" << ei
+                << ").name: " << model_toolkit_conf.engines(ei).name();
       std::string engine_name = model_toolkit_conf.engines(ei).name();
       VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
       if (!engine) {
