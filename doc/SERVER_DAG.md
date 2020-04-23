@@ -14,13 +14,19 @@ Deep neural nets often have some preprocessing steps on input data, and postproc
 
 ## How to define Node
 
+### Simple series structure
+
 PaddleServing has some predefined Computation Node in the framework. A very commonly used Computation Graph is the simple reader-inference-response mode that can cover most of the single model inference scenarios. A example graph and the corresponding DAG definition code is as follows.
+
 <center>
 <img src='simple_dag.png' width = "260" height = "370" align="middle"/>
 </center>
 
 ``` python
 import paddle_serving_server as serving
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpSeqMaker
+
 op_maker = serving.OpMaker()
 read_op = op_maker.create('general_reader')
 general_infer_op = op_maker.create('general_infer')
@@ -32,11 +38,44 @@ op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
 
+For simple series logic, we simplify it and build it with `OpSeqMaker`. You can determine the successor by default according to the order of joining `OpSeqMaker` without specifying the successor of each node.
+
 Since the code will be commonly used and users do not have to change the code, PaddleServing releases a easy-to-use launching command for service startup. An example is as follows: 
 
 ``` python
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
+
+### Nodes with multiple inputs
+
+An example containing multiple input nodes is given in the [MODEL_ENSEMBLE_IN_PADDLE_SERVING](MODEL_ENSEMBLE_IN_PADDLE_SERVING.md). A example graph and the corresponding DAG definition code is as follows.
+
+<center>
+<img src='complex_dag.png' width = "480" height = "400" align="middle"/>
+</center>
+
+```python
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpGraphMaker
+from paddle_serving_server import Server
+
+op_maker = OpMaker()
+read_op = op_maker.create('general_reader')
+cnn_infer_op = op_maker.create(
+    'general_infer', engine_name='cnn', inputs=[read_op])
+bow_infer_op = op_maker.create(
+    'general_infer', engine_name='bow', inputs=[read_op])
+response_op = op_maker.create(
+    'general_response', inputs=[cnn_infer_op, bow_infer_op])
+
+op_graph_maker = OpGraphMaker()
+op_graph_maker.add_op(read_op)
+op_graph_maker.add_op(cnn_infer_op)
+op_graph_maker.add_op(bow_infer_op)
+op_graph_maker.add_op(response_op)
+```
+
+For a graph with multiple input nodes, we need to use `OpGraphMaker` to build it, and you must give the predecessor of each node.
 
 ## More Examples
 
@@ -44,6 +83,9 @@ If a user has sparse features as inputs, and the model will do embedding lookup 
 
 ``` python
 import paddle_serving_server as serving
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpSeqMaker
+
 op_maker = serving.OpMaker()
 read_op = op_maker.create('general_reader')
 dist_kv_op = op_maker.create('general_dist_kv')
