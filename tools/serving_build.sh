@@ -323,6 +323,9 @@ function python_test_bert() {
             echo "bert RPC inference pass"
             ;;
         *)
+            echo "error type"
+            exit 1
+            ;;
     esac
     echo "test bert $TYPE finished as expected."
     unset SERVING_BIN
@@ -357,6 +360,9 @@ function python_test_imdb() {
             echo "imdb ignore GPU test"
             ;;
         *)
+            echo "error type"
+            exit 1
+            ;;
     esac
     echo "test imdb $TYPE finished as expected."
     unset SERVING_BIN
@@ -389,6 +395,9 @@ function python_test_lac() {
             echo "lac ignore GPU test"
             ;;
         *)
+            echo "error type"
+            exit 1
+            ;;
     esac
     echo "test lac $TYPE finished as expected."
     unset SERVING_BIN
@@ -641,6 +650,9 @@ function monitor_test() {
             ps -ef | grep "pyftpdlib" | grep -v grep | awk '{print $2}' | xargs kill
             ;;
         *)
+            echo "error type"
+            exit 1
+            ;;
     esac
     cd .. # pwd: /Serving
     rm -rf _monitor_test
