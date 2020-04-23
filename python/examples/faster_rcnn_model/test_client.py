@@ -16,7 +16,7 @@ from paddle_serving_client import Client
 import sys
 import os
 import time
-from paddle_serving_app.pddet import preprocess, postprocess, ArgParse
+from paddle_serving_app.pddet import Detection, ArgParse
 import numpy as np
 
 py_version = sys.version_info[0]
@@ -24,12 +24,12 @@ py_version = sys.version_info[0]
 feed_var_names = ['image', 'im_shape', 'im_info']
 fetch_var_names = ['multiclass_nms']
 FLAGS = ArgParse()
-feed_dict = preprocess(feed_var_names)
+pddet = Detection(FLAGS.config_path, FLAGS.visualize, FLAGS.dump_result,
+                  FLAGS.output_dir)
+feed_dict = pddet.preprocess(feed_var_names, FLAGS.infer_img)
 client = Client()
 client.load_client_config(FLAGS.serving_client_conf)
 client.connect(['127.0.0.1:9494'])
 fetch_map = client.predict(feed=feed_dict, fetch=fetch_var_names)
-print(type(fetch_map['multiclass_nms']))
 outs = fetch_map.values()
-print(len(outs[0]), len(outs[0][0]))
-postprocess(fetch_map, fetch_var_names)
+pddet.postprocess(fetch_map, fetch_var_names)
