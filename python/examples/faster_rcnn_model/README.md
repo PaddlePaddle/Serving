@@ -68,6 +68,3 @@ This is the input picture
 <p>
   
 This is the picture after adding bbox. You can see that the client has done post-processing for the picture. In addition, the output/bbox.json also has the number and coordinate information of each box.
-
-
-
