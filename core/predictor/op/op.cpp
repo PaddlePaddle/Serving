@@ -60,6 +60,7 @@ int Op::init(Bus* bus,
     return -1;
   }
 
+  _pre_node_names.clear();
   return custom_init();
 }
 

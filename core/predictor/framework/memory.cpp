@@ -56,11 +56,11 @@ int MempoolWrapper::thread_initialize() {
   im::fugue::memory::Region* region = new im::fugue::memory::Region();
   region->init();
   im::Mempool* mempool = new (std::nothrow) im::Mempool(region);
-  MempoolRegion* mempool_region = new MempoolRegion(region, mempool);
   if (mempool == NULL) {
     LOG(ERROR) << "Failed create thread mempool";
     return -1;
   }
+  MempoolRegion* mempool_region = new MempoolRegion(region, mempool);
 
   if (THREAD_SETSPECIFIC(_bspec_key, mempool_region) != 0) {
     LOG(ERROR) << "unable to set the thrd_data";

@@ -31,8 +31,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-static const char* GENERAL_MODEL_NAME = "general_model";
-
 struct GeneralBlob {
   std::vector<paddle::PaddleTensor> tensor_vector;
   int64_t time_stamp[20];
