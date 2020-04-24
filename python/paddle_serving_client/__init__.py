@@ -276,18 +276,17 @@ class Client(object):
                     result_map[name] = np.array(result_map[name])
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch.get_lod(mi, name)
+                        result_map["{}.lod".format(name)] = np.array(
+                            result_batch.get_lod(mi, name))
                 elif self.fetch_names_to_type_[name] == float_type:
                     result_map[name] = result_batch.get_float_by_name(mi, name)
                     shape = result_batch.get_shape(mi, name)
                     result_map[name] = np.array(result_map[name])
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch.get_lod(mi, name)
+                        result_map["{}.lod".format(name)] = np.array(
+                            result_batch.get_lod(mi, name))
             multi_result_map.append(result_map)
-
         ret = None
         if len(model_engine_names) == 1:
             # If only one model result is returned, the format of ret is result_map
@@ -298,7 +297,6 @@ class Client(object):
                 engine_name: multi_result_map[mi]
                 for mi, engine_name in enumerate(model_engine_names)
             }
-
         # When using the A/B test, the tag of variant needs to be returned
         return ret if not need_variant_tag else [
             ret, self.result_handle_.variant_tag()
