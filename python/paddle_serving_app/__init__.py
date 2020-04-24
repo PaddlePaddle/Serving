@@ -12,3 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .reader.chinese_bert_reader import ChineseBertReader
+from .reader.image_reader import ImageReader
