@@ -11,7 +11,7 @@ Paddle Serving implements the [WebService](https://github.com/PaddlePaddle/Servi
 ```python
 class WebService(object):
   
-		def preprocess(self, feed={}, fetch=[]):
+    def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         return fetch_map
