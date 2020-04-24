@@ -19,7 +19,7 @@ GLOG_v=2 python -m paddle_serving_server_gpu.serve --model pddet_serving_model -
 ### 执行预测
 ```
 python test_client.py pddet_client_conf/serving_client_conf.prototxt infer_cfg.yml 000000570688.jpg
-```GLOG_v=2 python -m paddle_serving_server_gpu.serve --model pddet_serving_model --port 9494 --gpu_id 0
+```
 
 ## 3. 结果分析
 <p align="center">
