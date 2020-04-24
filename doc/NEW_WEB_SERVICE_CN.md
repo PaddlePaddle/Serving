@@ -11,7 +11,7 @@ Paddle Serving实现了[WebService](https://github.com/PaddlePaddle/Serving/blob
 ```python
 class WebService(object):
   
-		def preprocess(self, feed={}, fetch=[]):
+    def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         return fetch_map
