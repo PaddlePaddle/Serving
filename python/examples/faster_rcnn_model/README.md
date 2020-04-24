@@ -29,15 +29,21 @@ In the training process, `faster_rcnn_r50_1x.yml` defines the snapshot of the sa
 
 Output model
 ```
-python export_model.py
+python tools/export_model.py -c configs/faster_rcnn_r50_1x.yml \
+        --output_dir=./inference_model \
+        -o weights=output/faster_rcnn_r50_1x/model_final 
 ```
+
+The prediction model will be exported to the directory `inference_model/faster_rcnn_r50_1x`. The model name and parameter name are` __model__` and `__params__` respectively.
+
+Next, please refer to [How to Convert Paddle Inference Model To Paddle Serving Format](https://github.com/PaddlePaddle/Serving/blob/develop/doc/INFERNCE_TO_SERVING.md) to convert to Serving Model. Among them, `serving_server_dir` is assigned` pddet_serving_model`, and `serving_client_dir` is assigned` pddet_client_conf`.
+
 ## 2. Start the model and predict
 If users do not use the Paddle Detection project to train models, we are here to provide you with sample model downloads. If you trained the model with Paddle Detection, you can skip the ** Download Model ** section.
 
 ### Download model
 ```
 wget https://paddle-serving.bj.bcebos.com/pddet_demo/faster_rcnn_model.tar.gz
-wget https://paddle-serving.bj.bcebos.com/pddet_demo/paddle_serving_app-0.0.1-py2-none-any.whl
 wget https://paddle-serving.bj.bcebos.com/pddet_demo/infer_cfg.yml
 tar xf faster_rcnn_model.tar.gz
 mv faster_rcnn_model/pddet *.
@@ -50,7 +56,7 @@ GLOG_v = 2 python -m paddle_serving_server_gpu.serve --model pddet_serving_model
 
 ### Perform prediction
 ```
-python test_client.py --config_path = infer_cfg.yml --infer_img = 000000570688.jpg --dump_result --visualize
+python test_client.py pddet_client_conf/serving_client_conf.prototxt infer_cfg.yml 000000570688.jpg 
 ```
 
 ## 3. Result analysis
