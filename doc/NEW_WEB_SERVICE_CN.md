@@ -17,7 +17,7 @@ class WebService(object):
         return fetch_map
 ```
 
-###preprocess方法
+### preprocess方法
 
 preprocess方法有两个输入参数，`feed`和`fetch`。对于一个HTTP请求`request`：
 
@@ -26,7 +26,7 @@ preprocess方法有两个输入参数，`feed`和`fetch`。对于一个HTTP请�
 
 返回值分别是预测过程中用到的feed和fetch值。
 
-###postprocess方法
+### postprocess方法
 
 postprocess方法有三个输入参数，`feed`、`fetch`和`fetch_map`：
 
