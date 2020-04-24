@@ -151,10 +151,10 @@ class PadStride(object):
 
 
 class Detection():
-    def __init__(self, config_path, if_visualize, if_dump_result, output_dir):
+    def __init__(self, config_path, output_dir):
         self.config_path = config_path
-        self.if_visualize = if_visualize
-        self.if_dump_result = if_dump_result
+        self.if_visualize = True
+        self.if_dump_result = True
         self.output_dir = output_dir
 
     def DecodeImage(self, im_path):

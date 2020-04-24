@@ -48,7 +48,7 @@ REQUIRED_PACKAGES = [
 packages=['paddle_serving_app',
           'paddle_serving_app.reader',
 	  'paddle_serving_app.utils',
-      'paddle_serving_app.pddet']
+      'paddle_serving_app.reader.pddet']
 
 package_data={}
 package_dir={'paddle_serving_app':
@@ -57,8 +57,8 @@ package_dir={'paddle_serving_app':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader',
 	     'paddle_serving_app.utils':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/utils',
-          'paddle_serving_app.pddet':
-           '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/pddet',}
+          'paddle_serving_app.reader.pddet':
+           '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader/pddet',}
 
 setup(
     name='paddle-serving-app',
