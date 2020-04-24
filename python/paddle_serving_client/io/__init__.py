@@ -20,6 +20,7 @@ from paddle.fluid.framework import default_main_program
 from paddle.fluid.framework import Program
 from paddle.fluid import CPUPlace
 from paddle.fluid.io import save_inference_model
+import paddle.fluid as fluid
 from ..proto import general_model_config_pb2 as model_conf
 import os
 
@@ -100,3 +101,20 @@ def save_model(server_model_folder,
     with open("{}/serving_server_conf.stream.prototxt".format(
             server_model_folder), "wb") as fout:
         fout.write(config.SerializeToString())
+
+
+def inference_model_to_serving(infer_model, serving_client, serving_server):
+    place = fluid.CPUPlace()
+    exe = fluid.Executor(place)
+    inference_program, feed_target_names, fetch_targets = \
+            fluid.io.load_inference_model(dirname=infer_model, executor=exe)
+    feed_dict = {
+        x: inference_program.global_block().var(x)
+        for x in feed_target_names
+    }
+    fetch_dict = {x.name: x for x in fetch_targets}
+    save_model(serving_client, serving_server, feed_dict, fetch_dict,
+               inference_program)
+    feed_names = feed_dict.keys()
+    fetch_names = fetch_dict.keys()
+    return feed_names, fetch_names

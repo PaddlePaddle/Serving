@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
 import os
 from .proto import server_configure_pb2 as server_sdk
@@ -21,6 +22,7 @@ import socket
 import paddle_serving_server as paddle_serving_server
 from .version import serving_server_version
 from contextlib import closing
+import collections
 
 
 class OpMaker(object):
@@ -36,17 +38,35 @@ class OpMaker(object):
             "general_dist_kv_quant_infer": "GeneralDistKVQuantInferOp",
             "general_copy": "GeneralCopyOp"
         }
+        self.node_name_suffix_ = collections.defaultdict(int)
 
-    # currently, inputs and outputs are not used
-    # when we have OpGraphMaker, inputs and outputs are necessary
-    def create(self, name, inputs=[], outputs=[]):
-        if name not in self.op_dict:
-            raise Exception("Op name {} is not supported right now".format(
-                name))
+    def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
+        if node_type not in self.op_dict:
+            raise Exception("Op type {} is not supported right now".format(
+                node_type))
         node = server_sdk.DAGNode()
-        node.name = "{}_op".format(name)
-        node.type = self.op_dict[name]
-        return node
+        # node.name will be used as the infer engine name
+        if engine_name:
+            node.name = engine_name
+        else:
+            node.name = '{}_{}'.format(node_type,
+                                       self.node_name_suffix_[node_type])
+            self.node_name_suffix_[node_type] += 1
+
+        node.type = self.op_dict[node_type]
+        if inputs:
+            for dep_node_str in inputs:
+                dep_node = server_sdk.DAGNode()
+                google.protobuf.text_format.Parse(dep_node_str, dep_node)
+                dep = server_sdk.DAGNodeDependency()
+                dep.name = dep_node.name
+                dep.mode = "RO"
+                node.dependencies.extend([dep])
+        # Because the return value will be used as the key value of the
+        # dict, and the proto object is variable which cannot be hashed,
+        # so it is processed into a string. This has little effect on
+        # overall efficiency.
+        return google.protobuf.text_format.MessageToString(node)
 
 
 class OpSeqMaker(object):
@@ -55,15 +75,46 @@ class OpSeqMaker(object):
         self.workflow.name = "workflow1"
         self.workflow.workflow_type = "Sequence"
 
-    def add_op(self, node):
+    def add_op(self, node_str):
+        node = server_sdk.DAGNode()
+        google.protobuf.text_format.Parse(node_str, node)
+        if len(node.dependencies) > 1:
+            raise Exception(
+                'Set more than one predecessor for op in OpSeqMaker is not allowed.'
+            )
         if len(self.workflow.nodes) >= 1:
-            dep = server_sdk.DAGNodeDependency()
-            dep.name = self.workflow.nodes[-1].name
-            dep.mode = "RO"
-            node.dependencies.extend([dep])
+            if len(node.dependencies) == 0:
+                dep = server_sdk.DAGNodeDependency()
+                dep.name = self.workflow.nodes[-1].name
+                dep.mode = "RO"
+                node.dependencies.extend([dep])
+            elif len(node.dependencies) == 1:
+                if node.dependencies[0].name != self.workflow.nodes[-1].name:
+                    raise Exception(
+                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'.
+                        format(node.dependencies[0].name, self.workflow.nodes[
+                            -1].name))
         self.workflow.nodes.extend([node])
 
     def get_op_sequence(self):
+        workflow_conf = server_sdk.WorkflowConf()
+        workflow_conf.workflows.extend([self.workflow])
+        return workflow_conf
+
+
+class OpGraphMaker(object):
+    def __init__(self):
+        self.workflow = server_sdk.Workflow()
+        self.workflow.name = "workflow1"
+        # Currently, SDK only supports "Sequence"
+        self.workflow.workflow_type = "Sequence"
+
+    def add_op(self, node_str):
+        node = server_sdk.DAGNode()
+        google.protobuf.text_format.Parse(node_str, node)
+        self.workflow.nodes.extend([node])
+
+    def get_op_graph(self):
         workflow_conf = server_sdk.WorkflowConf()
         workflow_conf.workflows.extend([self.workflow])
         return workflow_conf
@@ -75,7 +126,6 @@ class Server(object):
         self.infer_service_conf = None
         self.model_toolkit_conf = None
         self.resource_conf = None
-        self.engine = None
         self.memory_optimization = False
         self.model_conf = None
         self.workflow_fn = "workflow.prototxt"
@@ -94,6 +144,7 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.mkl_flag = False
+        self.model_config_paths = None  # for multi-model in a workflow
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -118,6 +169,9 @@ class Server(object):
     def set_op_sequence(self, op_seq):
         self.workflow_conf = op_seq
 
+    def set_op_graph(self, op_graph):
+        self.workflow_conf = op_graph
+
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
@@ -126,32 +180,30 @@ class Server(object):
             self.use_local_bin = True
             self.bin_path = os.environ["SERVING_BIN"]
 
-    def _prepare_engine(self, model_config_path, device):
+    def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
-        if self.engine == None:
-            self.engine = server_sdk.EngineDesc()
+        for engine_name, model_config_path in model_config_paths.items():
+            engine = server_sdk.EngineDesc()
+            engine.name = engine_name
+            engine.reloadable_meta = model_config_path + "/fluid_time_file"
+            os.system("touch {}".format(engine.reloadable_meta))
+            engine.reloadable_type = "timestamp_ne"
+            engine.runtime_thread_num = 0
+            engine.batch_infer_size = 0
+            engine.enable_batch_align = 0
+            engine.model_data_path = model_config_path
+            engine.enable_memory_optimization = self.memory_optimization
+            engine.static_optimization = False
+            engine.force_update_static_cache = False
 
-        self.model_config_path = model_config_path
-        self.engine.name = "general_model"
-        self.engine.reloadable_meta = model_config_path + "/fluid_time_file"
-        os.system("touch {}".format(self.engine.reloadable_meta))
-        self.engine.reloadable_type = "timestamp_ne"
-        self.engine.runtime_thread_num = 0
-        self.engine.batch_infer_size = 0
-        self.engine.enable_batch_align = 0
-        self.engine.model_data_path = model_config_path
-        self.engine.enable_memory_optimization = self.memory_optimization
-        self.engine.static_optimization = False
-        self.engine.force_update_static_cache = False
+            if device == "cpu":
+                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+            elif device == "gpu":
+                engine.type = "FLUID_GPU_ANALYSIS_DIR"
 
-        if device == "cpu":
-            self.engine.type = "FLUID_CPU_ANALYSIS_DIR"
-        elif device == "gpu":
-            self.engine.type = "FLUID_GPU_ANALYSIS_DIR"
-
-        self.model_toolkit_conf.engines.extend([self.engine])
+            self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -184,10 +236,49 @@ class Server(object):
         with open(filepath, "w") as fout:
             fout.write(str(pb_obj))
 
-    def load_model_config(self, path):
-        self.model_config_path = path
+    def load_model_config(self, model_config_paths):
+        # At present, Serving needs to configure the model path in
+        # the resource.prototxt file to determine the input and output
+        # format of the workflow. To ensure that the input and output
+        # of multiple models are the same.
+        workflow_oi_config_path = None
+        if isinstance(model_config_paths, str):
+            # If there is only one model path, use the default infer_op.
+            # Because there are several infer_op type, we need to find 
+            # it from workflow_conf.
+            default_engine_names = [
+                'general_infer_0', 'general_dist_kv_infer_0',
+                'general_dist_kv_quant_infer_0'
+            ]
+            engine_name = None
+            for node in self.workflow_conf.workflows[0].nodes:
+                if node.name in default_engine_names:
+                    engine_name = node.name
+                    break
+            if engine_name is None:
+                raise Exception(
+                    "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
+                )
+            self.model_config_paths = {engine_name: model_config_paths}
+            workflow_oi_config_path = self.model_config_paths[engine_name]
+        elif isinstance(model_config_paths, dict):
+            self.model_config_paths = {}
+            for node_str, path in model_config_paths.items():
+                node = server_sdk.DAGNode()
+                google.protobuf.text_format.Parse(node_str, node)
+                self.model_config_paths[node.name] = path
+            print("You have specified multiple model paths, please ensure "
+                  "that the input and output of multiple models are the same.")
+            workflow_oi_config_path = self.model_config_paths.items()[0][1]
+        else:
+            raise Exception("The type of model_config_paths must be str or "
+                            "dict({op: model_path}), not {}.".format(
+                                type(model_config_paths)))
+
         self.model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(path), 'r')
+        f = open(
+            "{}/serving_server_conf.prototxt".format(workflow_oi_config_path),
+            'r')
         self.model_conf = google.protobuf.text_format.Merge(
             str(f.read()), self.model_conf)
         # check config here
@@ -258,7 +349,7 @@ class Server(object):
         if not self.port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
         self._prepare_resource(workdir)
-        self._prepare_engine(self.model_config_path, device)
+        self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
         self.port = port
         self.workdir = workdir

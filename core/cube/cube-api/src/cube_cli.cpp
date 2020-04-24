@@ -217,6 +217,7 @@ int run_m(int argc, char** argv) {
   LOG(INFO) << " total_request = " << std::to_string(request_num) << " speed = "
             << std::to_string(1000000 * thread_num / mean_time)  // mean_time us
             << " query per second";
+  return 0;
 }
 
 }  // namespace mcube
