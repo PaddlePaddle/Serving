@@ -14,6 +14,8 @@
 
 ## 如何定义节点
 
+### 简单的串联结构
+
 PaddleServing在框架中具有一些预定义的计算节点。 一种非常常用的计算图是简单的reader-infer-response模式，可以涵盖大多数单一模型推理方案。 示例图和相应的DAG定义代码如下。
 <center>
 <img src='simple_dag.png' width = "260" height = "370" align="middle"/>
@@ -21,6 +23,9 @@ PaddleServing在框架中具有一些预定义的计算节点。 一种非常常
 
 ``` python
 import paddle_serving_server as serving
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpSeqMaker
+
 op_maker = serving.OpMaker()
 read_op = op_maker.create('general_reader')
 general_infer_op = op_maker.create('general_infer')
@@ -32,11 +37,44 @@ op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
 
+对于简单的串联逻辑，我们将其简化为`Sequence`，使用`OpSeqMaker`进行构建。用户可以不指定每个节点的前继，默认按加入`OpSeqMaker`的顺序来确定前继。
+
 由于该代码在大多数情况下都会被使用，并且用户不必更改代码，因此PaddleServing会发布一个易于使用的启动命令来启动服务。 示例如下：
 
 ``` python
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
+
+### 包含多个输入的节点
+
+在[Paddle Serving中的集成预测](MODEL_ENSEMBLE_IN_PADDLE_SERVING_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
+
+<center>
+<img src='complex_dag.png' width = "480" height = "400" align="middle"/>
+</center>
+
+```python
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpGraphMaker
+from paddle_serving_server import Server
+
+op_maker = OpMaker()
+read_op = op_maker.create('general_reader')
+cnn_infer_op = op_maker.create(
+    'general_infer', engine_name='cnn', inputs=[read_op])
+bow_infer_op = op_maker.create(
+    'general_infer', engine_name='bow', inputs=[read_op])
+response_op = op_maker.create(
+    'general_response', inputs=[cnn_infer_op, bow_infer_op])
+
+op_graph_maker = OpGraphMaker()
+op_graph_maker.add_op(read_op)
+op_graph_maker.add_op(cnn_infer_op)
+op_graph_maker.add_op(bow_infer_op)
+op_graph_maker.add_op(response_op)
+```
+
+对于含有多输入节点的计算图，需要使用`OpGraphMaker`来构建，同时必须给出每个节点的前继。
 
 ## 更多示例
 
@@ -44,6 +82,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ``` python
 import paddle_serving_server as serving
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpSeqMaker
+
 op_maker = serving.OpMaker()
 read_op = op_maker.create('general_reader')
 dist_kv_op = op_maker.create('general_dist_kv')

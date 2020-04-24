@@ -21,6 +21,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <utility>  // move
 #include <vector>
 
 #include "core/sdk-cpp/builtin_format.pb.h"
@@ -39,12 +40,32 @@ namespace baidu {
 namespace paddle_serving {
 namespace general_model {
 
-class PredictorRes {
+class ModelRes {
  public:
-  PredictorRes() {}
-  ~PredictorRes() {}
-
- public:
+  ModelRes() {}
+  ModelRes(const ModelRes& res) {
+    _engine_name = res._engine_name;
+    _int64_value_map.insert(res._int64_value_map.begin(),
+                            res._int64_value_map.end());
+    _float_value_map.insert(res._float_value_map.begin(),
+                            res._float_value_map.end());
+    _shape_map.insert(res._shape_map.begin(), res._shape_map.end());
+    _lod_map.insert(res._lod_map.begin(), res._lod_map.end());
+  }
+  ModelRes(ModelRes&& res) {
+    _engine_name = std::move(res._engine_name);
+    _int64_value_map.insert(
+        std::make_move_iterator(std::begin(res._int64_value_map)),
+        std::make_move_iterator(std::end(res._int64_value_map)));
+    _float_value_map.insert(
+        std::make_move_iterator(std::begin(res._float_value_map)),
+        std::make_move_iterator(std::end(res._float_value_map)));
+    _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
+                      std::make_move_iterator(std::end(res._shape_map)));
+    _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
+                    std::make_move_iterator(std::end(res._lod_map)));
+  }
+  ~ModelRes() {}
   const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
     return _int64_value_map[name];
   }
@@ -57,19 +78,75 @@ class PredictorRes {
   const std::vector<int>& get_lod(const std::string& name) {
     return _lod_map[name];
   }
-  void set_variant_tag(const std::string& variant_tag) {
-    _variant_tag = variant_tag;
+  void set_engine_name(const std::string& engine_name) {
+    _engine_name = engine_name;
   }
-  const std::string& variant_tag() { return _variant_tag; }
+  const std::string& engine_name() { return _engine_name; }
+  ModelRes& operator=(ModelRes&& res) {
+    if (this != &res) {
+      _engine_name = std::move(res._engine_name);
+      _int64_value_map.insert(
+          std::make_move_iterator(std::begin(res._int64_value_map)),
+          std::make_move_iterator(std::end(res._int64_value_map)));
+      _float_value_map.insert(
+          std::make_move_iterator(std::begin(res._float_value_map)),
+          std::make_move_iterator(std::end(res._float_value_map)));
+      _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
+                        std::make_move_iterator(std::end(res._shape_map)));
+      _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
+                      std::make_move_iterator(std::end(res._lod_map)));
+    }
+    return *this;
+  }
 
  public:
+  std::string _engine_name;
   std::map<std::string, std::vector<int64_t>> _int64_value_map;
   std::map<std::string, std::vector<float>> _float_value_map;
   std::map<std::string, std::vector<int>> _shape_map;
   std::map<std::string, std::vector<int>> _lod_map;
+};
+
+class PredictorRes {
+ public:
+  PredictorRes() {}
+  ~PredictorRes() {}
+
+ public:
+  void clear() {
+    _models.clear();
+    _engine_names.clear();
+  }
+  const std::vector<int64_t>& get_int64_by_name(const int model_idx,
+                                                const std::string& name) {
+    return _models[model_idx].get_int64_by_name(name);
+  }
+  const std::vector<float>& get_float_by_name(const int model_idx,
+                                              const std::string& name) {
+    return _models[model_idx].get_float_by_name(name);
+  }
+  const std::vector<int>& get_shape(const int model_idx,
+                                    const std::string& name) {
+    return _models[model_idx].get_shape(name);
+  }
+  const std::vector<int>& get_lod(const int model_idx,
+                                  const std::string& name) {
+    return _models[model_idx].get_lod(name);
+  }
+  void add_model_res(ModelRes&& res) {
+    _engine_names.push_back(res.engine_name());
+    _models.emplace_back(std::move(res));
+  }
+  void set_variant_tag(const std::string& variant_tag) {
+    _variant_tag = variant_tag;
+  }
+  const std::string& variant_tag() { return _variant_tag; }
+  const std::vector<std::string>& get_engine_names() { return _engine_names; }
 
  private:
+  std::vector<ModelRes> _models;
   std::string _variant_tag;
+  std::vector<std::string> _engine_names;
 };
 
 class PredictorClient {
