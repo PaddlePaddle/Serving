@@ -19,6 +19,7 @@
 #include <vector>
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/endpoint_config.h"
+#include "core/sdk-cpp/include/macros.h"
 #include "core/sdk-cpp/include/predictor.h"
 #include "core/sdk-cpp/include/stub.h"
 
@@ -245,7 +246,7 @@ class StubImpl : public Stub {
                                        const brpc::ChannelOptions& options);
 
   StubTLS* get_tls() {
-    return static_cast<StubTLS*>(bthread_getspecific(_bthread_key));
+    return static_cast<StubTLS*>(THREAD_GETSPECIFIC(_bthread_key));
   }
 
  private:
@@ -262,7 +263,8 @@ class StubImpl : public Stub {
   uint32_t _package_size;
 
   // tls handlers
-  bthread_key_t _bthread_key;
+  // bthread_key_t _bthread_key;
+  THREAD_KEY_T _bthread_key;
 
   // bvar variables
   std::map<std::string, BvarWrapper*> _ltc_bvars;
