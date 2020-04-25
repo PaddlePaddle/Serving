@@ -164,12 +164,25 @@ Distributed Sparse Parameter Indexing is commonly seen in advertising and recomm
 <img src='cube_eng.png' width = "450" height = "230">
     <br>
 <p>
-
 Why do we need to support distributed sparse parameter indexing in Paddle Serving? 1) In some recommendation scenarios, the number of features can be up to hundreds of billions that a single node can not hold the parameters within random access memory. 2) Paddle Serving supports distributed sparse parameter indexing that can couple with paddle inference. Users do not need to do extra work to have a low latency inference engine with hundreds of billions of parameters.
-                          
-### 3.2 Model Management, online A/B test, Model Online Reloading
 
-Paddle Serving's C++ engine supports model management, online A/B test and model online reloading. Currently, python API is not released yet, please wait for the next release.
+### 3.2 Online A/B test
+
+After sufficient offline evaluation of the model, online A/B test is usually needed to decide whether to enable the service on a large scale. The following figure shows the basic structure of A/B test with Paddle Serving. After the client is configured with the corresponding configuration, the traffic will be automatically distributed to different servers to achieve A/B test. Please refer to [ABTEST in Paddle Serving](ABTEST_IN_PADDLE_SERVING.md) for specific examples.
+
+<p align="center">
+    <br>
+<img src='abtest.png' style="zoom:33%;">
+    <br>
+<p>
+
+### 3.3 Model Online Reloading     
+
+In order to ensure the availability of services, the model needs to be hot loaded without service interruption. Paddle Serving supports this feature and provides a tool for monitoring output models to update local models. Please refer to [Hot loading in Paddle Serving](HOT_LOADING_IN_SERVING.md) for specific examples.
+
+### 3.4 Model Management
+
+Paddle Serving's C++ engine supports model management. Currently, python API is not released yet, please wait for the next release.
 
 ## 4. User Types
 Paddle Serving provides RPC and HTTP protocol for users. For HTTP service, we recommend users with median or small traffic services to use, and the latency is not a strict requirement. For RPC protocol, we recommend high traffic services and low latency required services to use. For users who use distributed sparse parameter indexing built-in service, it is not necessary to care about the underlying details of communication. The following figure gives out several scenarios that user may want to use Paddle Serving. 
