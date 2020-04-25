@@ -17,7 +17,7 @@
 
 namespace baidu {
 namespace paddle_serving {
-namespace predictor {
+namespace sdk_cpp {
 
 #ifndef CATCH_ANY_AND_RET
 #define CATCH_ANY_AND_RET(errno)       \
@@ -75,6 +75,6 @@ namespace predictor {
 
 #endif
 
-}  // namespace predictor
+}  // namespace sdk_cpp
 }  // namespace paddle_serving
 }  // namespace baidu
