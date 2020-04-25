@@ -172,9 +172,10 @@ After sufficient offline evaluation of the model, online A/B test is usually nee
 
 <p align="center">
     <br>
-<img src='abtest.png' style="zoom:33%;">
+<img src='abtest.png' width = "345" height = "230">
     <br>
 <p>
+
 
 ### 3.3 Model Online Reloading     
 

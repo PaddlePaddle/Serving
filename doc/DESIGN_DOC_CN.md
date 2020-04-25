@@ -168,9 +168,10 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 
 <p align="center">
     <br>
-<img src='abtest.png' style="zoom:33%;">
+<img src='abtest.png' width = "345" height = "230">
     <br>
 <p>
+
 
 ### 3.3 模型热加载
 
