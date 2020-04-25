@@ -159,14 +159,29 @@ Paddle Serving的核心执行引擎是一个有向无环图，图中的每个节
 <img src='cube_eng.png' width = "450" height = "230">
     <br>
 <p>
-                    
+
 为什么要使用Paddle Serving提供的分布式稀疏参数索引服务？1）在一些推荐场景中，模型的输入特征规模通常可以达到上千亿，单台机器无法支撑T级别模型在内存的保存，因此需要进行分布式存储。2）Paddle Serving提供的分布式稀疏参数索引服务，具有并发请求多个节点的能力，从而以较低的延时完成预估服务。
                           
-### 3.2 模型管理、在线A/B流量测试、模型热加载
+### 3.2 在线A/B流量测试
 
-Paddle Serving的C++引擎支持模型管理、在线A/B流量测试、模型热加载等功能，当前在Python API还有没完全开放这部分功能的配置，敬请期待。
+在对模型进行充分的离线评估后，通常需要进行在线A/B测试，来决定是否大规模上线服务。下图为使用Paddle Serving做A/B测试的基本结构，Client端做好相应的配置后，自动将流量分发给不同的Server，从而完成A/B测试。具体例子请参考[如何使用Paddle Serving做ABTEST](ABTEST_IN_PADDLE_SERVING_CN.md)。
+
+<p align="center">
+    <br>
+<img src='abtest.png' style="zoom:33%;">
+    <br>
+<p>
+
+### 3.3 模型热加载
+
+为了保证服务的可用性，需要在服务不中断的情况下对模型进行热加载。Paddle Serving对该特性进行了支持，并提供了一个监控产出模型更新本地模型的工具，具体例子请参考[Paddle Serving中的模型热加载](HOT_LOADING_IN_SERVING_CN.md)。
+
+### 3.4 模型管理
+
+Paddle Serving的C++引擎支持模型管理功能，当前在Python API还有没完全开放这部分功能的配置，敬请期待。
 
 ## 4. 用户类型
+
 Paddle Serving面向的用户提供RPC和HTTP两种访问协议。对于HTTP协议，我们更倾向于流量中小型的服务使用，并且对延时没有严格要求的AI服务开发者。对于RPC协议，我们面向流量较大，对延时要求更高的用户，此外RPC的客户端可能也处在一个大系统的服务中，这种情况下非常适合使用Paddle Serving提供的RPC服务。对于使用分布式稀疏参数索引服务而言，Paddle Serving的用户不需要关心底层的细节，其调用本质也是通过RPC服务再调用RPC服务。下图给出了当前设计的Paddle Serving可能会使用Serving服务的几种场景。
 
 <p align="center">
