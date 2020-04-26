@@ -31,7 +31,7 @@ def predict(image_path, server):
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
     try:
-        print(r.json()["score"][0])
+        print(r.json()["result"]["score"])
     except ValueError:
         print(r.text)
     return r
