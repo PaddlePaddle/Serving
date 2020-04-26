@@ -17,7 +17,7 @@ import sys
 import cv2
 import base64
 import numpy as np
-from image_reader import ImageReader
+from paddle_serving_app import ImageReader
 
 
 class ImageService(WebService):

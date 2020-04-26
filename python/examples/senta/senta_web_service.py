@@ -29,7 +29,7 @@ class SentaService(WebService):
         os.chdir('./lac_serving')
         self.lac_port = self.port + 100
         r = os.popen(
-            "GLOG_v=2 python -m paddle_serving_server.serve --model ../../lac/jieba_server_model/ --port {} &".
+            "python -m paddle_serving_server.serve --model ../../lac/jieba_server_model/ --port {} &".
             format(self.lac_port))
         os.chdir('..')
 
