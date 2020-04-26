@@ -119,7 +119,7 @@ int PredictorClient::create_predictor_by_desc(const std::string &sdk_desc) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
   }
-  _api.thrd_initialize();
+  // _api.thrd_initialize();
   return 0;
 }
 
@@ -130,7 +130,7 @@ int PredictorClient::create_predictor() {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
   }
-  _api.thrd_initialize();
+  // _api.thrd_initialize();
   return 0;
 }
 
@@ -152,7 +152,7 @@ int PredictorClient::batch_predict(
 
   int fetch_name_num = fetch_name.size();
 
-  _api.thrd_clear();
+  _api.thrd_initialize();
   std::string variant_tag;
   _predictor = _api.fetch_predictor("general_model", &variant_tag);
   predict_res_batch.set_variant_tag(variant_tag);
@@ -247,8 +247,9 @@ int PredictorClient::batch_predict(
   } else {
     client_infer_end = timeline.TimeStampUS();
     postprocess_start = client_infer_end;
-
+    VLOG(2) << "get model output num";
     uint32_t model_num = res.outputs_size();
+    VLOG(2) << "model num: " << model_num;
     for (uint32_t m_idx = 0; m_idx < model_num; ++m_idx) {
       VLOG(2) << "process model output index: " << m_idx;
       auto output = res.outputs(m_idx);
@@ -326,6 +327,8 @@ int PredictorClient::batch_predict(
 
     fprintf(stderr, "%s\n", oss.str().c_str());
   }
+
+  _api.thrd_clear();
   return 0;
 }
 
