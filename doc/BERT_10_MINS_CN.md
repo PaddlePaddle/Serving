@@ -25,7 +25,7 @@ serving_io.save_model("bert_seq20_model", "bert_seq20_client", feed_dict, fetch_
 #### Step2：启动服务
 
 ``` shell
-python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
+python -m paddle_serving_server_gpu.serve --model bert_seq20_model --port 9292 --gpu_ids 0
 ```
 
 | 参数    | 含义                       |
