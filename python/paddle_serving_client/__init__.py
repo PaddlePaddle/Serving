@@ -26,6 +26,34 @@ int_type = 0
 float_type = 1
 
 
+class _NOPProfiler(object):
+    def record(self, name):
+        pass
+
+    def print_profile(self):
+        pass
+
+
+class _TimeProfiler(object):
+    def __init__(self):
+        self.pid = os.getpid()
+        self.print_head = 'PROFILE\tpid:{}\t'.format(self.pid)
+        self.time_record = [self.print_head]
+
+    def record(self, name):
+        self.time_record.append('{}:{} '.format(
+            name, int(round(time.time() * 1000000))))
+
+    def print_profile(self):
+        self.time_record.append('\n')
+        sys.stderr.write(''.join(self.time_record))
+        self.time_record = [self.print_head]
+
+
+_is_profile = int(os.environ.get('FLAGS_profile_client', 0))
+_Profiler = _TimeProfiler if _is_profile else _NOPProfiler
+
+
 class SDKConfig(object):
     def __init__(self):
         self.sdk_desc = sdk.SDKConf()
@@ -89,6 +117,7 @@ class Client(object):
         self.predictor_sdk_ = None
         self.producers = []
         self.consumer = None
+        self.profile_ = _Profiler()
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -184,6 +213,8 @@ class Client(object):
                 key))
 
     def predict(self, feed=None, fetch=None, need_variant_tag=False):
+        self.profile_.record('py_prepro_0')
+
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
 
@@ -256,10 +287,16 @@ class Client(object):
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
+        self.profile_.record('py_prepro_1')
+        self.profile_.record('py_client_infer_0')
+
         result_batch = self.result_handle_
         res = self.client_handle_.batch_predict(
             float_slot_batch, float_feed_names, float_shape, int_slot_batch,
             int_feed_names, int_shape, fetch_names, result_batch, self.pid)
+
+        self.profile_.record('py_client_infer_1')
+        self.profile_.record('py_postpro_0')
 
         if res == -1:
             return None
@@ -299,6 +336,9 @@ class Client(object):
                 engine_name: multi_result_map[mi]
                 for mi, engine_name in enumerate(model_engine_names)
             }
+
+        self.profile_.record('py_postpro_1')
+        self.profile_.print_profile()
 
         # When using the A/B test, the tag of variant needs to be returned
         return ret if not need_variant_tag else [
