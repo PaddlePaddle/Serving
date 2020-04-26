@@ -65,7 +65,7 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 ### 执行预测
 
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
 
 ### Benchmark
