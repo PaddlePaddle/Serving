@@ -69,7 +69,7 @@ set environmental variable to specify which gpus are used, the command above mea
 ### HTTP Inference 
 
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"words": "hello", "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
 
 ### Benchmark
