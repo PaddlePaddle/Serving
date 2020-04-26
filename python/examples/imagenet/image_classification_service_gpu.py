@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_server_gpu.web_service import WebService
 import sys
 import cv2
 import base64
 import numpy as np
 from image_reader import ImageReader
+from paddle_serving_server_gpu.web_service import WebService
 
 
 class ImageService(WebService):
@@ -32,14 +32,14 @@ class ImageService(WebService):
                 sample = base64.b64decode(image)
                 img = reader.process_image(sample)
                 res_feed = {}
-                res_feed["image"] = img.reshape(-1)
+                res_feed["image"] = img
                 feed_batch.append(res_feed)
             return feed_batch, fetch
         else:
             sample = base64.b64decode(feed["image"])
             img = reader.process_image(sample)
             res_feed = {}
-            res_feed["image"] = img.reshape(-1)
+            res_feed["image"] = img
             return res_feed, fetch
 
 
@@ -49,3 +49,4 @@ image_service.set_gpus("0,1")
 image_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="gpu")
 image_service.run_server()
+image_service.run_flask()

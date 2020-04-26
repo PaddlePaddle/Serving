@@ -26,7 +26,7 @@ start = time.time()
 for i in range(1000):
     with open("./data/n01440764_10026.JPEG", "rb") as f:
         img = f.read()
-    img = reader.process_image(img).reshape(-1)
+    img = reader.process_image(img)
     fetch_map = client.predict(feed={"image": img}, fetch=["score"])
 end = time.time()
 print(end - start)
