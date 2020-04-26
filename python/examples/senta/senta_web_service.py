@@ -14,8 +14,7 @@
 
 from paddle_serving_server_gpu.web_service import WebService
 from paddle_serving_client import Client
-from lac_reader import LACReader
-from senta_reader import SentaReader
+from paddle_serving_app import LACReader, SentaReader
 import numpy as np
 import os
 import io
@@ -28,9 +27,10 @@ class SentaService(WebService):
     def start_lac_service(self):
         print(" ---- start lac service ---- ")
         os.chdir('./lac_serving')
+        self.lac_port = self.port + 100
         r = os.popen(
-            "GLOG_v=2 python -m paddle_serving_server.serve --model ../../lac/jieba_server_model/ --port 9292 &"
-        )
+            "GLOG_v=2 python -m paddle_serving_server.serve --model ../../lac/jieba_server_model/ --port {} &".
+            format(self.lac_port))
         os.chdir('..')
 
     def init_lac_service(self):
@@ -49,7 +49,7 @@ class SentaService(WebService):
         self.lac_client = Client()
         self.lac_client.load_client_config(
             "../lac/jieba_client_conf/serving_client_conf.prototxt")
-        self.lac_client.connect(["127.0.0.1:9292"])
+        self.lac_client.connect(["127.0.0.1:{}".format(self.lac_port)])
 
     def init_lac_reader(self):
         self.lac_reader = LACReader("../lac/lac_dict")
@@ -81,13 +81,13 @@ class SentaService(WebService):
 
 senta_service = SentaService(name="senta")
 senta_service.load_model_config(sys.argv[1])
+senta_service.prepare_server(
+    workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 senta_service.init_lac_reader()
 senta_service.init_senta_reader()
 print("Init senta done")
 senta_service.init_lac_service()
 print("init lac service done")
-senta_service.prepare_server(
-    workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 senta_service.run_server()
 #senta_service.run_flask()
 
