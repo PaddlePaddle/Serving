@@ -14,14 +14,15 @@
 # pylint: disable=doc-string-missing
 
 from flask import Flask, request, abort
-from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
-import paddle_serving_server_gpu as serving
+from contextlib import closing
 from multiprocessing import Pool, Process, Queue
 from paddle_serving_client import Client
+from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
 from paddle_serving_server_gpu.serve import start_multi_card
-
+import socket
 import sys
 import numpy as np
+import paddle_serving_server_gpu as serving
 
 
 class WebService(object):
@@ -67,22 +68,39 @@ class WebService(object):
     def _launch_rpc_service(self, service_idx):
         self.rpc_service_list[service_idx].run_server()
 
+    def port_is_available(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('0.0.0.0', port))
+        if result != 0:
+            return True
+        else:
+            return False
+
     def prepare_server(self, workdir="", port=9393, device="gpu", gpuid=0):
         self.workdir = workdir
         self.port = port
         self.device = device
         self.gpuid = gpuid
+        self.port_list = []
+        default_port = 12000
+        for i in range(1000):
+            if self.port_is_available(default_port + i):
+                self.port_list.append(default_port + i)
+            if len(self.port_list) > len(self.gpus):
+                break
+
         if len(self.gpus) == 0:
             # init cpu service
             self.rpc_service_list.append(
                 self.default_rpc_service(
-                    self.workdir, self.port + 1, -1, thread_num=10))
+                    self.workdir, self.port_list[0], -1, thread_num=10))
         else:
             for i, gpuid in enumerate(self.gpus):
                 self.rpc_service_list.append(
                     self.default_rpc_service(
                         "{}_{}".format(self.workdir, i),
-                        self.port + 1 + i,
+                        self.port_list[i],
                         gpuid,
                         thread_num=10))
 
@@ -94,9 +112,9 @@ class WebService(object):
         endpoints = ""
         if gpu_num > 0:
             for i in range(gpu_num):
-                endpoints += "127.0.0.1:{},".format(self.port + i + 1)
+                endpoints += "127.0.0.1:{},".format(self.port_list[i])
         else:
-            endpoints = "127.0.0.1:{}".format(self.port + 1)
+            endpoints = "127.0.0.1:{}".format(self.port_list[0])
         self.client.connect([endpoints])
 
     def get_prediction(self, request):
@@ -115,6 +133,7 @@ class WebService(object):
             result = self.postprocess(
                 feed=feed, fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
+            result = {"result": fetch_map}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
@@ -131,6 +150,24 @@ class WebService(object):
             server_pros.append(p)
         for p in server_pros:
             p.start()
+
+    def run_flask(self):
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            self._launch_web_service()
+
+        service_name = "/" + self.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return self.get_prediction(request)
+
+        app_instance.run(host="0.0.0.0",
+                         port=self.port,
+                         threaded=False,
+                         processes=4)
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch

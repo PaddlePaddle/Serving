@@ -36,3 +36,4 @@ bert_service.set_gpus(gpu_ids)
 bert_service.prepare_server(
     workdir="workdir", port=int(sys.argv[2]), device="gpu")
 bert_service.run_server()
+bert_service.run_flask()
