@@ -24,13 +24,23 @@ from multiprocessing import Process, Queue
 
 
 class SentaService(WebService):
+    def __init__(
+            self,
+            lac_model_path,
+            lac_dict_path,
+            senta_dict_path, ):
+        self.lac_model_path = lac_model_path
+        self.lac_client_config_path = lac_model_path + "/serving_server_conf.prototxt"
+        self.lac_dict_path = lac_dict_path
+        self.senta_dict_path = senta_dict_path
+
     def start_lac_service(self):
         print(" ---- start lac service ---- ")
         os.chdir('./lac_serving')
         self.lac_port = self.port + 100
         r = os.popen(
-            "python -m paddle_serving_server.serve --model ../../lac/jieba_server_model/ --port {} &".
-            format(self.lac_port))
+            "python -m paddle_serving_server_gpu.serve --model {} --port {} &".
+            format(self.lac_model_path, self.lac_port))
         os.chdir('..')
 
     def init_lac_service(self):
@@ -47,15 +57,14 @@ class SentaService(WebService):
 
     def init_lac_client(self):
         self.lac_client = Client()
-        self.lac_client.load_client_config(
-            "../lac/jieba_client_conf/serving_client_conf.prototxt")
+        self.lac_client.load_client_config(self.lac_client_config_path)
         self.lac_client.connect(["127.0.0.1:{}".format(self.lac_port)])
 
     def init_lac_reader(self):
-        self.lac_reader = LACReader("../lac/lac_dict")
+        self.lac_reader = LACReader(self.lac_dict_path)
 
     def init_senta_reader(self):
-        self.senta_reader = SentaReader(vocab_path="./senta_data/word_dict.txt")
+        self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
 
     def preprocess(self, feed={}, fetch={}):
         print("---- preprocess ----")
@@ -79,7 +88,12 @@ class SentaService(WebService):
         return {"words": feed_data}, fetch
 
 
-senta_service = SentaService(name="senta")
+senta_service = SentaService(
+    name="senta",
+    lac_model_path="../../lac/jieba_server_model/",
+    lac_client_config_path="../lac/jieba_client_conf/serving_client_conf.prototxt",
+    lac_dict="../lac/lac_dict",
+    senta_dict="./senta_data/word_dict.txt")
 senta_service.load_model_config(sys.argv[1])
 senta_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
