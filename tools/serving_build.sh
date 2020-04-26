@@ -154,9 +154,9 @@ function python_test_fit_a_line() {
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --name uci --port 9393 --thread 4 --name uci > /dev/null &"
             sleep 5 # wait for the server to start
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
             setproxy # recover proxy state
             kill_server_process
             if [ ${http_code} -ne 200 ]; then
@@ -171,14 +171,14 @@ function python_test_fit_a_line() {
             sleep 5 # wait for the server to start
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
- 
+
             # test web
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 2 --gpu_ids 0 --name uci > /dev/null &"
             sleep 5 # wait for the server to start
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
             setproxy # recover proxy state
             kill_server_process
             if [ ${http_code} -ne 200 ]; then
@@ -211,11 +211,11 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mv models/ctr_serving_model_kv ./"
             check_cmd "mv models/data ./cube/"
             check_cmd "mv models/ut_data ./"
-            cp ../../../build-server-$TYPE/output/bin/cube* ./cube/ 
+            cp ../../../build-server-$TYPE/output/bin/cube* ./cube/
             mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             sh cube_prepare.sh &
-            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"    
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server.py ctr_serving_model_kv &
             sleep 5
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
@@ -297,7 +297,7 @@ function python_test_bert() {
             # kill_server_process
             # ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             # ps -ef | grep "serving" | grep -v grep | awk '{print $2}' | xargs kill
-            echo "bert RPC inference pass" 
+            echo "bert RPC inference pass"
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
@@ -350,7 +350,7 @@ function python_test_imdb() {
 
             check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
             sleep 5
-            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
@@ -385,7 +385,7 @@ function python_test_lac() {
 
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
-            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction"
+            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
@@ -411,8 +411,8 @@ function python_run_test() {
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     python_test_bert $TYPE # pwd: /Serving/python/examples
-    python_test_imdb $TYPE # pwd: /Serving/python/examples 
-    python_test_lac $TYPE    
+    python_test_imdb $TYPE # pwd: /Serving/python/examples
+    python_test_lac $TYPE
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
