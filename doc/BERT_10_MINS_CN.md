@@ -50,7 +50,6 @@ pip install paddle_serving_app
 客户端脚本 bert_client.py内容如下
 
 ``` python
-import os
 import sys
 from paddle_serving_client import Client
 from paddle_serving_app import ChineseBertReader
