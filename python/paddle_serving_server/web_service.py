@@ -18,6 +18,8 @@ from flask import Flask, request, abort
 from multiprocessing import Pool, Process
 from paddle_serving_server import OpMaker, OpSeqMaker, Server
 from paddle_serving_client import Client
+from contextlib import closing
+import socket
 
 
 class WebService(object):
@@ -41,19 +43,34 @@ class WebService(object):
         server.set_num_threads(16)
         server.load_model_config(self.model_config)
         server.prepare_server(
-            workdir=self.workdir, port=self.port + 1, device=self.device)
+            workdir=self.workdir, port=self.port_list[0], device=self.device)
         server.run_server()
+
+    def port_is_available(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('0.0.0.0', port))
+        if result != 0:
+            return True
+        else:
+            return False
 
     def prepare_server(self, workdir="", port=9393, device="cpu"):
         self.workdir = workdir
         self.port = port
         self.device = device
+        default_port = 12000
+        self.port_list = []
+        for i in range(1000):
+            if self.port_is_available(default_port + i):
+                self.port_list.append(default_port + i)
+                break
 
     def _launch_web_service(self):
-        self.client_service = Client()
-        self.client_service.load_client_config(
-            "{}/serving_server_conf.prototxt".format(self.model_config))
-        self.client_service.connect(["0.0.0.0:{}".format(self.port + 1)])
+        self.client = Client()
+        self.client.load_client_config("{}/serving_server_conf.prototxt".format(
+            self.model_config))
+        self.client.connect(["0.0.0.0:{}".format(self.port_list[0])])
 
     def get_prediction(self, request):
         if not request.json:
@@ -64,12 +81,12 @@ class WebService(object):
             feed, fetch = self.preprocess(request.json, request.json["fetch"])
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
-            fetch_map = self.client_service.predict(feed=feed, fetch=fetch)
-            for key in fetch_map:
-                fetch_map[key] = fetch_map[key][0].tolist()
-            result = self.postprocess(
+            fetch_map = self.client.predict(feed=feed, fetch=fetch)
+            fetch_map = self.postprocess(
                 feed=request.json, fetch=fetch, fetch_map=fetch_map)
-            result = {"result": result}
+            for key in fetch_map:
+                fetch_map[key] = fetch_map[key].tolist()
+            result = {"result": fetch_map}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
@@ -82,6 +99,24 @@ class WebService(object):
                                                   self.name))
         p_rpc = Process(target=self._launch_rpc_service)
         p_rpc.start()
+
+    def run_flask(self):
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            self._launch_web_service()
+
+        service_name = "/" + self.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return self.get_prediction(request)
+
+        app_instance.run(host="0.0.0.0",
+                         port=self.port,
+                         threaded=False,
+                         processes=4)
 
     def preprocess(self, feed={}, fetch=[]):
         return feed, fetch
