@@ -118,6 +118,7 @@ class Client(object):
         self.producers = []
         self.consumer = None
         self.profile_ = _Profiler()
+        self.numpy_input = True
 
     def rpath(self):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
@@ -269,9 +270,11 @@ class Client(object):
                         else:
                             int_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
+                        #int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
+                        int_slot.append(feed_i[key])
                     else:
                         int_slot.append(feed_i[key])
+                        self.numpy_input = False
                 elif self.feed_types_[key] == float_type:
                     if i == 0:
                         float_feed_names.append(key)
@@ -280,10 +283,11 @@ class Client(object):
                         else:
                             float_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        float_slot.append(
-                            np.reshape(feed_i[key], (-1)).tolist())
+                        #float_slot.append(np.reshape(feed_i[key], (-1)).tolist())
+                        float_slot.append(feed_i[key])
                     else:
                         float_slot.append(feed_i[key])
+                        self.numpy_input = False
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
 
@@ -291,9 +295,14 @@ class Client(object):
         self.profile_.record('py_client_infer_0')
 
         result_batch = self.result_handle_
-        res = self.client_handle_.batch_predict(
-            float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-            int_feed_names, int_shape, fetch_names, result_batch, self.pid)
+        if self.numpy_input:
+            res = self.client_handle_.numpy_predict(
+                float_slot_batch, float_feed_names, float_shape, int_slot_batch,
+                int_feed_names, int_shape, fetch_names, result_batch, self.pid)
+        else:
+            res = self.client_handle_.batch_predict(
+                float_slot_batch, float_feed_names, float_shape, int_slot_batch,
+                int_feed_names, int_shape, fetch_names, result_batch, self.pid)
 
         self.profile_.record('py_client_infer_1')
         self.profile_.record('py_postpro_0')
