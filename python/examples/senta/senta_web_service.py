@@ -97,8 +97,8 @@ class SentaService(WebService):
 senta_service = SentaService(name="senta")
 #senta_service.show_detail(True)
 senta_service.set_config(
-    lac_model_path="./infer_model",
-    lac_dict_path="../lac/lac_dict",
+    lac_model_path="./lac_model",
+    lac_dict_path="./lac_dict",
     senta_dict_path="./vocab.txt")
 senta_service.load_model_config(sys.argv[1])
 senta_service.prepare_server(
