@@ -61,6 +61,7 @@ static void CopyBlobInfo(const GeneralBlob* src, GeneralBlob* tgt) {
   memcpy(&(tgt->time_stamp[0]),
          &(src->time_stamp[0]),
          src->p_size * sizeof(int64_t));
+  tgt->p_size = src->p_size;
 }
 
 static void CopyLod(const paddle::PaddleTensor* src,
