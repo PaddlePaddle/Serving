@@ -351,6 +351,7 @@ class Server(object):
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
+        self.port = port
         self.workdir = workdir
 
         infer_service_fn = "{}/{}".format(workdir, self.infer_service_fn)
