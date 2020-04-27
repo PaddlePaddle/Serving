@@ -262,6 +262,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
 - [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
+- [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 
