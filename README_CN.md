@@ -35,7 +35,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">安装</h2>
 
-强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
 ```
 # 启动 CPU Docker
@@ -262,6 +262,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
 - [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
+- [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 

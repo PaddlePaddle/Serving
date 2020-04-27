@@ -12,23 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from image_reader import ImageReader
-from paddle_serving_client import Client
+import os
 import time
-
-client = Client()
-client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
-reader = ImageReader()
-
-start = time.time()
-for i in range(1000):
-    with open("./data/n01440764_10026.JPEG", "rb") as f:
-        img = f.read()
-    img = reader.process_image(img)
-    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-end = time.time()
-print(end - start)
-
-#print(fetch_map["score"])
+import argparse
+from .image_tool import Resize, Detection
