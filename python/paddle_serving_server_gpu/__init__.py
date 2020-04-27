@@ -171,7 +171,6 @@ class Server(object):
         self.max_body_size = 64 * 1024 * 1024
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.check_cuda()
         self.use_local_bin = False
         self.gpuid = 0
         self.model_config_paths = None  # for multi-model in a workflow
@@ -212,9 +211,9 @@ class Server(object):
 
     def check_cuda(self):
         cuda_flag = False
-        r = os.popen("whereis libcudart.so")
-        r = r.read().split(":")[1]
-        if "cudart" in r and os.system(
+        r = os.popen("ldd {} | grep cudart".format(self.bin_path))
+        r = r.read().split("=")
+        if len(r) >= 2 and "cudart" in r[1] and os.system(
                 "ls /dev/ | grep nvidia > /dev/null") == 0:
             cuda_flag = True
         if not cuda_flag:
@@ -420,6 +419,7 @@ class Server(object):
                 time.sleep(1)
         else:
             print("Use local bin : {}".format(self.bin_path))
+        self.check_cuda()
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
