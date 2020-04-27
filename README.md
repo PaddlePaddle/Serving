@@ -34,7 +34,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">Installation</h2>
 
-We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 ```
 # Run CPU Docker
 docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
