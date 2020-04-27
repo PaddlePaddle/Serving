@@ -27,11 +27,16 @@ class SentaReader():
         """
         vocab = {}
         with io.open(vocab_path, 'r', encoding='utf8') as f:
-            wid = 0
             for line in f:
                 if line.strip() not in vocab:
-                    vocab[line.strip()] = wid
-                    wid += 1
+                    data = line.strip().split("\t")
+                    if len(data) < 2:
+                        word = ""
+                        wid = data[0]
+                    else:
+                        word = data[0]
+                        wid = data[1]
+                    vocab[word] = int(wid)
         vocab["<unk>"] = len(vocab)
         return vocab
 
@@ -41,6 +46,7 @@ class SentaReader():
         wids = [
             self.word_dict[x] if x in self.word_dict else unk_id for x in cols
         ]
+        '''
         seq_len = len(wids)
         if seq_len < self.max_seq_len:
             for i in range(self.max_seq_len - seq_len):
@@ -48,5 +54,5 @@ class SentaReader():
         else:
             wids = wids[:self.max_seq_len]
             seq_len = self.max_seq_len
-
+        '''
         return wids

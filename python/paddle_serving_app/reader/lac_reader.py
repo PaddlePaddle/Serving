@@ -53,12 +53,14 @@ class LACReader(object):
         #folder = os.path.dirname(basepath)
         word_dict_path = os.path.join(dict_folder, "word.dic")
         label_dict_path = os.path.join(dict_folder, "tag.dic")
+        replace_dict_path = os.path.join(dict_folder, "q2b.dic")
         self.word2id_dict = load_kv_dict(
             word_dict_path, reverse=True, value_func=int)
         self.id2word_dict = load_kv_dict(word_dict_path)
         self.label2id_dict = load_kv_dict(
             label_dict_path, reverse=True, value_func=int)
         self.id2label_dict = load_kv_dict(label_dict_path)
+        self.word_replace_dict = load_kv_dict(replace_dict_path)
 
     @property
     def vocab_size(self):
@@ -79,6 +81,7 @@ class LACReader(object):
         except:
             pass
         for word in words:
+            word = self.word_replace_dict.get(word, word)
             if word not in self.word2id_dict:
                 word = "OOV"
             word_id = self.word2id_dict[word]
