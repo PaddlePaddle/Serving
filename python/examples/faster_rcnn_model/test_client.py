@@ -12,23 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from image_reader import ImageReader
 from paddle_serving_client import Client
+import sys
+import os
 import time
+from paddle_serving_app.reader.pddet import Detection
+import numpy as np
 
+py_version = sys.version_info[0]
+
+feed_var_names = ['image', 'im_shape', 'im_info']
+fetch_var_names = ['multiclass_nms']
+pddet = Detection(config_path=sys.argv[2], output_dir="./output")
+feed_dict = pddet.preprocess(feed_var_names, sys.argv[3])
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
-reader = ImageReader()
-
-start = time.time()
-for i in range(1000):
-    with open("./data/n01440764_10026.JPEG", "rb") as f:
-        img = f.read()
-    img = reader.process_image(img)
-    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-end = time.time()
-print(end - start)
-
-#print(fetch_map["score"])
+client.connect(['127.0.0.1:9494'])
+fetch_map = client.predict(feed=feed_dict, fetch=fetch_var_names)
+outs = fetch_map.values()
+pddet.postprocess(fetch_map, fetch_var_names)

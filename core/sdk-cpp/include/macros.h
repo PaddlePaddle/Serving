@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #pragma once
-#include "core/predictor/common/inner_common.h"
+#include "core/sdk-cpp/include/common.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace predictor {
+namespace sdk_cpp {
 
 #ifndef CATCH_ANY_AND_RET
 #define CATCH_ANY_AND_RET(errno)       \
@@ -27,9 +27,7 @@ namespace predictor {
   }
 #endif
 
-// #ifdef WITH_GPU
-// #define USE_PTHREAD
-// #endif
+#define USE_PTHREAD
 
 #ifdef USE_PTHREAD
 
@@ -77,6 +75,6 @@ namespace predictor {
 
 #endif
 
-}  // namespace predictor
+}  // namespace sdk_cpp
 }  // namespace paddle_serving
 }  // namespace baidu
