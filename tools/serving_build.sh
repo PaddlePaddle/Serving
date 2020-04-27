@@ -350,7 +350,7 @@ function python_test_imdb() {
 
             check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
             sleep 5
-            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
@@ -385,7 +385,7 @@ function python_test_lac() {
 
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
-            check_cmd "curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction"
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
