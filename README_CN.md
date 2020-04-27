@@ -35,7 +35,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">安装</h2>
 
-强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
 ```
 # 启动 CPU Docker
