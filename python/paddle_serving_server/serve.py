@@ -79,6 +79,7 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
     server.set_max_body_size(max_body_size)
+    server.set_port(port)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
