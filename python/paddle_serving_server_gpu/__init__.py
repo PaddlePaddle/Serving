@@ -211,8 +211,13 @@ class Server(object):
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        r = os.system("cat /usr/local/cuda/version.txt")
-        if r != 0:
+        cuda_flag = False
+        r = os.popen("whereis libcudart.so")
+        r = r.read().split(":")[1]
+        if "cudart" in r and os.system(
+                "ls /dev/ | grep nvidia > /dev/null") == 0:
+            cuda_flag = True
+        if not cuda_flag:
             raise SystemExit(
                 "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
@@ -284,7 +289,7 @@ class Server(object):
         workflow_oi_config_path = None
         if isinstance(model_config_paths, str):
             # If there is only one model path, use the default infer_op.
-            # Because there are several infer_op type, we need to find 
+            # Because there are several infer_op type, we need to find
             # it from workflow_conf.
             default_engine_names = [
                 'general_infer_0', 'general_dist_kv_infer_0',
