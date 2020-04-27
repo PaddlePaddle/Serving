@@ -55,7 +55,7 @@ pip install paddle-serving-server-gpu # GPU
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
- 
+
 Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
 <h2 align="center">Quick Start Example</h2>
@@ -256,6 +256,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 - [How to develop a new Serving operator?](doc/NEW_OPERATOR.md)
+- [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
 
