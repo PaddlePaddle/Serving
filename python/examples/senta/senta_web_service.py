@@ -24,7 +24,7 @@ from multiprocessing import Process, Queue
 
 
 class SentaService(WebService):
-    def __init__(
+    def set_config(
             self,
             lac_model_path,
             lac_dict_path,
@@ -33,14 +33,17 @@ class SentaService(WebService):
         self.lac_client_config_path = lac_model_path + "/serving_server_conf.prototxt"
         self.lac_dict_path = lac_dict_path
         self.senta_dict_path = senta_dict_path
+        self.show = False
+
+    def show_detail(self, show=False):
+        self.show = show
 
     def start_lac_service(self):
-        print(" ---- start lac service ---- ")
         os.chdir('./lac_serving')
         self.lac_port = self.port + 100
         r = os.popen(
-            "python -m paddle_serving_server_gpu.serve --model {} --port {} &".
-            format(self.lac_model_path, self.lac_port))
+            "python -m paddle_serving_server.serve --model {} --port {} &".
+            format("../" + self.lac_model_path, self.lac_port))
         os.chdir('..')
 
     def init_lac_service(self):
@@ -67,41 +70,42 @@ class SentaService(WebService):
         self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
 
     def preprocess(self, feed={}, fetch={}):
-        print("---- preprocess ----")
-        print(feed)
         if "words" not in feed:
             raise ("feed data error!")
         feed_data = self.lac_reader.process(feed["words"])
         fetch = ["crf_decode"]
-        print("---- lac reader ----")
-        print(feed_data)
+        if self.show:
+            print("---- lac reader ----")
+            print(feed_data)
         lac_result = self.lac_predict(feed_data)
-        print("---- lac out ----")
-        print(lac_result)
+        if self.show:
+            print("---- lac out ----")
+            print(lac_result)
         segs = self.lac_reader.parse_result(feed["words"],
                                             lac_result["crf_decode"])
-        print("---- lac parse ----")
+        if self.show:
+            print("---- lac parse ----")
+            print(segs)
         feed_data = self.senta_reader.process(segs)
-        print("---- senta reader ----")
-        print("feed_data", feed_data)
-        fetch = ["sentence_feature"]
+        if self.show:
+            print("---- senta reader ----")
+            print("feed_data", feed_data)
+        fetch = ["class_probs"]
         return {"words": feed_data}, fetch
 
 
-senta_service = SentaService(
-    name="senta",
-    lac_model_path="../../lac/jieba_server_model/",
-    lac_client_config_path="../lac/jieba_client_conf/serving_client_conf.prototxt",
-    lac_dict="../lac/lac_dict",
-    senta_dict="./senta_data/word_dict.txt")
+senta_service = SentaService(name="senta")
+#senta_service.show_detail(True)
+senta_service.set_config(
+    lac_model_path="./infer_model",
+    lac_dict_path="../lac/lac_dict",
+    senta_dict_path="./vocab.txt")
 senta_service.load_model_config(sys.argv[1])
 senta_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 senta_service.init_lac_reader()
 senta_service.init_senta_reader()
-print("Init senta done")
 senta_service.init_lac_service()
-print("init lac service done")
 senta_service.run_server()
 #senta_service.run_flask()
 
