@@ -171,7 +171,6 @@ class Server(object):
         self.max_body_size = 64 * 1024 * 1024
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
-        self.check_cuda()
         self.use_local_bin = False
         self.gpuid = 0
         self.model_config_paths = None  # for multi-model in a workflow
@@ -211,8 +210,13 @@ class Server(object):
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        r = os.system("cat /usr/local/cuda/version.txt")
-        if r != 0:
+        cuda_flag = False
+        r = os.popen("ldd {} | grep cudart".format(self.bin_path))
+        r = r.read().split("=")
+        if len(r) >= 2 and "cudart" in r[1] and os.system(
+                "ls /dev/ | grep nvidia > /dev/null") == 0:
+            cuda_flag = True
+        if not cuda_flag:
             raise SystemExit(
                 "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
@@ -284,7 +288,7 @@ class Server(object):
         workflow_oi_config_path = None
         if isinstance(model_config_paths, str):
             # If there is only one model path, use the default infer_op.
-            # Because there are several infer_op type, we need to find 
+            # Because there are several infer_op type, we need to find
             # it from workflow_conf.
             default_engine_names = [
                 'general_infer_0', 'general_dist_kv_infer_0',
@@ -415,6 +419,7 @@ class Server(object):
                 time.sleep(1)
         else:
             print("Use local bin : {}".format(self.bin_path))
+        self.check_cuda()
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \
