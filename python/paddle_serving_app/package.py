@@ -47,7 +47,7 @@ if __name__ == "__main__":
                 "Your model name does not exist in current model list, stay tuned"
             )
             sys.exit(0)
-        model_handle.download(args.get)
+        model_handle.download(args.get_model)
     else:
         print("Wrong argument")
         print("""
