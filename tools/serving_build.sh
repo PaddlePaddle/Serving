@@ -391,7 +391,7 @@ function python_test_lac() {
             sh get_data.sh
             check_cmd "python -m paddle_serving_server.serve --model jieba_server_model/ --port 9292 &"
             sleep 5
-            check_cmd "echo "我爱北京天安门" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/"
+            check_cmd "echo \"我爱北京天安门\" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/"
             echo "lac CPU RPC inference pass"
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
 
