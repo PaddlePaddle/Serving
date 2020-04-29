@@ -332,12 +332,19 @@ function python_test_imdb() {
             rm -rf work_dir1
             sleep 5
 
-            check_cmd "python text_classify_service.py imdb_cnn_model/workdir/9292 imdb.vocab &"
+            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
+            check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
             sleep 5
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction`
+            setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
             echo "imdb CPU HTTP inference pass"
 
             # test batch predict
@@ -346,6 +353,20 @@ function python_test_imdb() {
             check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request rpc --endpoint 127.0.0.1:9292"
             kill_server_process
             echo "imdb CPU rpc batch inference pass"
+
+            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
+            check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
+            sleep 5
+            check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
+            setproxy # recover proxy state
+            kill_server_process
+            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            echo "imdb CPU http batch inference pass"
             ;;
         GPU)
             echo "imdb ignore GPU test"
