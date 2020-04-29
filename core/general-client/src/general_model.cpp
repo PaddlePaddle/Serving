@@ -119,7 +119,7 @@ int PredictorClient::create_predictor_by_desc(const std::string &sdk_desc) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
   }
-  _api.thrd_initialize();
+  // _api.thrd_initialize();
   return 0;
 }
 
@@ -130,7 +130,7 @@ int PredictorClient::create_predictor() {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
   }
-  _api.thrd_initialize();
+  // _api.thrd_initialize();
   return 0;
 }
 
@@ -152,6 +152,7 @@ int PredictorClient::batch_predict(
 
   int fetch_name_num = fetch_name.size();
 
+  _api.thrd_initialize();
   std::string variant_tag;
   _predictor = _api.fetch_predictor("general_model", &variant_tag);
   predict_res_batch.set_variant_tag(variant_tag);
