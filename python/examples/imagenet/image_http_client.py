@@ -27,7 +27,7 @@ def predict(image_path, server):
         image = base64.b64encode(open(image_path).read())
     else:
         image = base64.b64encode(open(image_path, "rb").read()).decode("utf-8")
-    req = json.dumps({"image": image, "fetch": ["score"]})
+    req = json.dumps({"feed": [{"image": image}], "fetch": ["score"]})
     r = requests.post(
         server, data=req, headers={"Content-Type": "application/json"})
     try:
