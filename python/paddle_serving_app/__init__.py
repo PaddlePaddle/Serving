@@ -15,3 +15,4 @@ from .reader.chinese_bert_reader import ChineseBertReader
 from .reader.image_reader import ImageReader
 from .reader.lac_reader import LACReader
 from .reader.senta_reader import SentaReader
+from .models.model_list import ServingModels
