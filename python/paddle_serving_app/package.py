@@ -15,7 +15,7 @@
 Usage:
     Download a package for serving directly
     Example:
-        python -m paddle_serving_app.models --get senta_bilstm
+        python -m paddle_serving_app.models --get_model senta_bilstm
         python -m paddle_serving_app.models --list_model
 """
 
@@ -26,9 +26,9 @@ from .models import ServingModels
 def parse_args():  # pylint: disable=doc-string-missing
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--get", type=str, default="", help="Download a specific model")
+        "--get_model", type=str, default="", help="Download a specific model")
     parser.add_argument(
-        "--list_model", type=bool, default="", help="List Models")
+        "--list_model", type=bool, default=False, help="List Models")
     return parser.parse_args()
 
 
@@ -39,10 +39,10 @@ if __name__ == "__main__":
         model_names = model_handle.get_model_list()
         for key in model_names:
             print(key)
-    elif args.get != "":
+    elif args.get_model != "":
         model_handle = ServingModels()
         model_names = model_handle.get_model_list()
-        if args.get not in model_names:
+        if args.get_model not in model_names:
             print(
                 "Your model name does not exist in current model list, stay tuned"
             )
