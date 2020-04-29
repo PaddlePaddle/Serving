@@ -1,5 +1,5 @@
 # Chinese sentence sentiment classification
-
+([简体中文](./README_CN.md)|English)
 ## Get model files and sample data
 ```
 sh get_data.sh
