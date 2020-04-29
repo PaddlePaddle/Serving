@@ -31,8 +31,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-static const char* GENERAL_MODEL_NAME = "general_model";
-
 struct GeneralBlob {
   std::vector<paddle::PaddleTensor> tensor_vector;
   int64_t time_stamp[20];
@@ -63,6 +61,7 @@ static void CopyBlobInfo(const GeneralBlob* src, GeneralBlob* tgt) {
   memcpy(&(tgt->time_stamp[0]),
          &(src->time_stamp[0]),
          src->p_size * sizeof(int64_t));
+  tgt->p_size = src->p_size;
 }
 
 static void CopyLod(const paddle::PaddleTensor* src,

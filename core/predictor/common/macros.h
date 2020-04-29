@@ -27,6 +27,10 @@ namespace predictor {
   }
 #endif
 
+// #ifdef WITH_GPU
+// #define USE_PTHREAD
+// #endif
+
 #ifdef USE_PTHREAD
 
 #define THREAD_T pthread_t

@@ -70,7 +70,7 @@ int StubImpl<T, C, R, I, O>::initialize(const VariantInfo& var,
 
   _endpoint = ep;
 
-  if (bthread_key_create(&_bthread_key, NULL) != 0) {
+  if (THREAD_KEY_CREATE(&_bthread_key, NULL) != 0) {
     LOG(FATAL) << "Failed create key for stub tls";
     return -1;
   }
@@ -132,13 +132,13 @@ int StubImpl<T, C, R, I, O>::initialize(const VariantInfo& var,
 
 template <typename T, typename C, typename R, typename I, typename O>
 int StubImpl<T, C, R, I, O>::thrd_initialize() {
-  if (bthread_getspecific(_bthread_key) != NULL) {
+  if (THREAD_GETSPECIFIC(_bthread_key) != NULL) {
     LOG(WARNING) << "Already thread initialized for stub";
     return 0;
   }
 
   StubTLS* tls = new (std::nothrow) StubTLS();
-  if (!tls || bthread_setspecific(_bthread_key, tls) != 0) {
+  if (!tls || THREAD_SETSPECIFIC(_bthread_key, tls) != 0) {
     LOG(FATAL) << "Failed binding tls data to bthread_key";
     return -1;
   }

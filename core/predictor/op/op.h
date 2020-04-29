@@ -14,7 +14,9 @@
 
 #pragma once
 #include <bvar/bvar.h>  // bvar::LatencyRecorder
+#include <cstdlib>
 #include <string>
+#include <vector>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/channel.h"
 #include "core/predictor/framework/op_repository.h"
@@ -132,17 +134,27 @@ class Op {
 
   const std::string& full_name() const { return _full_name; }
 
-  const std::string& pre_name() const { return _pre_node_name; }
+  const std::vector<std::string>& pre_names() const { return _pre_node_names; }
 
   void set_full_name(const std::string full_name) { _full_name = full_name; }
 
-  void set_pre_node_name(const std::string pre_name) {
-    _pre_node_name = pre_name;
+  void add_pre_node_name(const std::string pre_name) {
+    _pre_node_names.push_back(pre_name);
   }
 
   const std::string& type() const;
 
   uint32_t id() const;
+
+  // Set the name of the Op as the key of the matching engine.
+  // Notes that this key is only used by infer_op (only the
+  // infer_op needs to find the corresponding engine).
+  // At present, there is only general_infer_op.
+  void set_engine_name(const std::string engine_name) {
+    _engine_name = engine_name;
+  }
+
+  const std::string& engine_name() const { return _engine_name; }
 
   // --------------- Default implements ----------------
 
@@ -189,13 +201,14 @@ class Op {
   Bus* _bus;
   Dag* _dag;
   uint32_t _id;
-  std::string _pre_node_name;  // only for sequential execution
+  std::vector<std::string> _pre_node_names;  // for DAG execution
   std::string _name;
   std::string _full_name;  // service_workflow_stageindex_opname
   std::string _type;
   bool _has_calc;
   bool _has_init;
   TimerFlow* _timer;
+  std::string _engine_name;  // only for infer_op
 };
 
 template <typename T>
@@ -215,7 +228,10 @@ class OpWithChannel : public Op {
       return _channel;
     }
 
-    _channel = butil::get_object<ChannelType>();
+    // TODO(barriery): There are some problems in using butil::get_object
+    // _channel = butil::get_object<ChannelType>();
+    _channel = new ChannelType();
+
     if (!_channel) {
       LOG(ERROR) << "Failed mutable channel of type:" << typeid(T).name();
       return NULL;
@@ -229,8 +245,14 @@ class OpWithChannel : public Op {
   int release_channel() {
     if (_channel) {
       _channel->deinit();
-      butil::return_object<ChannelType>(_channel);
+      delete _channel;
     }
+    // TODO(barriery): There are some problems in using butil::get_object
+    /*
+    if (_channel) {
+      _channel->deinit();
+      butil::return_object<ChannelType>(_channel);
+    } */
 
     _channel = NULL;
     return 0;

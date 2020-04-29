@@ -35,7 +35,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">安装</h2>
 
-强烈建议您在Docker内构建Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
 
 ```
 # 启动 CPU Docker
@@ -92,7 +92,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 </center>
 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
 
 <h3 align="center">RPC服务</h3>
@@ -138,7 +138,7 @@ python lac_web_service.py jieba_server_model/ lac_workdir 9292
 ```
 - **客户端请求示例**: 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
 ```
 - **返回结果示例**: 
 ``` shell
@@ -171,7 +171,7 @@ python image_classification_service_demo.py resnet50_serving_model
 <p>
 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
 ```
 - **返回结果示例**: 
 ``` shell
@@ -262,6 +262,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
 - [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
+- [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 

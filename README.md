@@ -1,6 +1,6 @@
 <p align="center">
     <br>
-<img src='https://paddle-serving.bj.bcebos.com/imdb-demo%2FLogoMakr-3Bd2NM-300dpi.png' width = "600" height = "130">
+<img src='doc/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
@@ -34,7 +34,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">Installation</h2>
 
-We highly recommend you to run Paddle Serving in Docker, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 ```
 # Run CPU Docker
 docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
@@ -55,7 +55,7 @@ pip install paddle-serving-server-gpu # GPU
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
- 
+
 Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
 <h2 align="center">Quick Start Example</h2>
@@ -88,7 +88,7 @@ Here, we use `curl` to send a HTTP POST request to the service we just started. 
 </center>
 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
 ```
 
 ### RPC service
@@ -133,7 +133,7 @@ python lac_web_service.py jieba_server_model/ lac_workdir 9292
 ```
 - **Request sample**: 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"words": "我爱北京天安门", "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
 ```
 - **Request result**: 
 ``` shell
@@ -166,7 +166,7 @@ python image_classification_service_demo.py resnet50_serving_model
 <p>
 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
 ```
 - **Request result**: 
 ``` shell
@@ -256,6 +256,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serv
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 - [How to develop a new Serving operator?](doc/NEW_OPERATOR.md)
+- [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
 
