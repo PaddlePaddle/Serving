@@ -50,18 +50,20 @@ def single_func(idx, resource):
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        #TODO: not support yet
-        raise ("no batch predict for http")
         if args.batch_size >= 1:
             feed_batch = []
             for bi in range(args.batch_size):
                 word_ids, label = imdb_dataset.get_words_and_label(dataset[bi])
-                feed_batch.append(word_ids)
+                feed_batch.append({"words": word_ids})
             r = requests.post(
                 "http://{}/imdb/prediction".format(args.endpoint),
-                data={"words": feed_batch,
+                data={"feed": feed_batch,
                       "fetch": ["prediction"]})
-            print(r)
+            if r.status_code != 200:
+                print('HTTP status code -ne 200')
+                exit(1)
+        else:
+            print("unsupport batch size {}".format(args.batch_size))
     end = time.time()
     return [[end - start]]
 
