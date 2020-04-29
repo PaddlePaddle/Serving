@@ -157,12 +157,20 @@ function python_test_fit_a_line() {
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
             http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            setproxy # recover proxy state
-            kill_server_process
             if [ ${http_code} -ne 200 ]; then
                 echo "HTTP status code -ne 200"
                 exit 1
             fi
+            # test web batch
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            setproxy # recover proxy state
+            kill_server_process
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
@@ -179,12 +187,20 @@ function python_test_fit_a_line() {
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
             http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            setproxy # recover proxy state
-            kill_server_process
             if [ ${http_code} -ne 200 ]; then
                 echo "HTTP status code -ne 200"
                 exit 1
             fi
+            # test web batch
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            setproxy # recover proxy state
+            kill_server_process
             ;;
         *)
             echo "error type"
@@ -326,6 +342,8 @@ function python_test_imdb() {
             check_cmd "python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 &"
             sleep 5
             check_cmd "head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab"
+            # test batch predict
+            check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request rpc --endpoint 127.0.0.1:9292"
             echo "imdb CPU RPC inference pass"
             kill_server_process
             rm -rf work_dir1
@@ -335,37 +353,18 @@ function python_test_imdb() {
             check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
             sleep 5
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction`
-            setproxy # recover proxy state
-            kill_server_process
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
-            ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/imdb/prediction`
             if [ ${http_code} -ne 200 ]; then
                 echo "HTTP status code -ne 200"
                 exit 1
             fi
-            echo "imdb CPU HTTP inference pass"
-
             # test batch predict
-            check_cmd "python -m paddle_serving_server.serve --model imdb_bow_model --thread 4 --port 9292 &"
-            sleep 5
-            check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request rpc --endpoint 127.0.0.1:9292"
-            kill_server_process
-            echo "imdb CPU rpc batch inference pass"
-
-            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
-            sleep 5
             check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
             setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
-            echo "imdb CPU http batch inference pass"
+            echo "imdb CPU HTTP inference pass"
             ;;
         GPU)
             echo "imdb ignore GPU test"
