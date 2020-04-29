@@ -13,5 +13,5 @@ python senta_web_service.py senta_bilstm_model/ workdir 9292
 
 ## 客户端预测
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"words": "天气不错 | 0", "fetch":["sentence_feature"]}' http://127.0.0.1:9292/senta/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "天气不错"}], "fetch":["class_probs"]}' http://127.0.0.1:9292/senta/prediction
 ```

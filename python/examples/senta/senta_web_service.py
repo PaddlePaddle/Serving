@@ -70,9 +70,7 @@ class SentaService(WebService):
         self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
 
     def preprocess(self, feed={}, fetch={}):
-        if "words" not in feed:
-            raise ("feed data error!")
-        feed_data = self.lac_reader.process(feed["words"])
+        feed_data = self.lac_reader.process(feed[0]["words"])
         fetch = ["crf_decode"]
         if self.show:
             print("---- lac reader ----")
@@ -81,7 +79,7 @@ class SentaService(WebService):
         if self.show:
             print("---- lac out ----")
             print(lac_result)
-        segs = self.lac_reader.parse_result(feed["words"],
+        segs = self.lac_reader.parse_result(feed[0]["words"],
                                             lac_result["crf_decode"])
         if self.show:
             print("---- lac parse ----")
@@ -107,31 +105,4 @@ senta_service.init_lac_reader()
 senta_service.init_senta_reader()
 senta_service.init_lac_service()
 senta_service.run_server()
-#senta_service.run_flask()
-
-from flask import Flask, request
-
-app_instance = Flask(__name__)
-
-
-@app_instance.before_first_request
-def init():
-    global uci_service
-    senta_service._launch_web_service()
-
-
-service_name = "/" + senta_service.name + "/prediction"
-
-
-@app_instance.route(service_name, methods=["POST"])
-def run():
-    print("---- run ----")
-    print(request.json)
-    return senta_service.get_prediction(request)
-
-
-if __name__ == "__main__":
-    app_instance.run(host="0.0.0.0",
-                     port=senta_service.port,
-                     threaded=False,
-                     processes=4)
+senta_service.run_flask()
