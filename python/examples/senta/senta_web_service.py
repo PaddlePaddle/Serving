@@ -69,9 +69,8 @@ class SentaService(WebService):
     def init_senta_reader(self):
         self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
 
-    def preprocess(self, feed={}, fetch={}):
+    def preprocess(self, feed=[], fetch=[]):
         feed_data = self.lac_reader.process(feed[0]["words"])
-        fetch = ["crf_decode"]
         if self.show:
             print("---- lac reader ----")
             print(feed_data)
@@ -88,7 +87,6 @@ class SentaService(WebService):
         if self.show:
             print("---- senta reader ----")
             print("feed_data", feed_data)
-        fetch = ["class_probs"]
         return {"words": feed_data}, fetch
 
 
