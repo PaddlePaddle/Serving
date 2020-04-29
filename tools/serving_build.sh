@@ -288,7 +288,6 @@ function python_test_bert() {
             pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
-            echo "bert RPC inference pass" 
             echo "bert RPC inference pass"
             ;;
         GPU)
