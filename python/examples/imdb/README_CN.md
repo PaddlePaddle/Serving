@@ -27,7 +27,7 @@ python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
 ### 执行预测
 
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
 
 ### Benchmark
