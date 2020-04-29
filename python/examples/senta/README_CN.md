@@ -1,5 +1,5 @@
 # 中文语句情感分类
-
+(简体中文|[English](./README.md))
 ## 获取模型文件和样例数据
 ```
 sh get_data.sh
