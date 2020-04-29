@@ -28,13 +28,13 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--get_model", type=str, default="", help="Download a specific model")
     parser.add_argument(
-        "--list_model", type=bool, default=False, help="List Models")
+        '--list_model', nargs='*', default=None, help="List Models")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    if args.list_model:
+    if args.list_model != None:
         model_handle = ServingModels()
         model_names = model_handle.get_model_list()
         for key in model_names:
