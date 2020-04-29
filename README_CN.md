@@ -171,7 +171,7 @@ python image_classification_service_demo.py resnet50_serving_model
 <p>
 
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg", "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
 ```
 - **返回结果示例**: 
 ``` shell
