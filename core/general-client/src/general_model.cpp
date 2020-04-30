@@ -244,6 +244,7 @@ int PredictorClient::batch_predict(
   res.Clear();
   if (_predictor->inference(&req, &res) != 0) {
     LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
+    _api.thrd_clear();
     return -1;
   } else {
     client_infer_end = timeline.TimeStampUS();

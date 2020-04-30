@@ -133,7 +133,10 @@ int StubImpl<T, C, R, I, O>::initialize(const VariantInfo& var,
 template <typename T, typename C, typename R, typename I, typename O>
 int StubImpl<T, C, R, I, O>::thrd_initialize() {
   if (THREAD_GETSPECIFIC(_bthread_key) != NULL) {
-    LOG(WARNING) << "Already thread initialized for stub";
+    // Because gPRC is uesd, this function may be called
+    // multiple times, so the warning will be commented out
+    // temporarily. See PR:#483 and PR:#500 for details.
+    // LOG(WARNING) << "Already thread initialized for stub";
     return 0;
   }
 
