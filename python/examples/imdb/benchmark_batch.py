@@ -53,15 +53,14 @@ def single_func(idx, resource):
         if args.batch_size >= 1:
             feed_batch = []
             for bi in range(args.batch_size):
-                word_ids, label = imdb_dataset.get_words_and_label(dataset[bi])
-                feed_batch.append({"words": word_ids})
+                feed_batch.append({"words": dataset[bi]})
             r = requests.post(
                 "http://{}/imdb/prediction".format(args.endpoint),
                 json={"feed": feed_batch,
                       "fetch": ["prediction"]})
             if r.status_code != 200:
                 print('HTTP status code -ne 200')
-                exit(1)
+                raise ("predict failed.")
         else:
             print("unsupport batch size {}".format(args.batch_size))
     end = time.time()
