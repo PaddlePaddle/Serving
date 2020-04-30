@@ -21,7 +21,7 @@ class WebService(object):
 
 preprocess方法有两个输入参数，`feed`和`fetch`。对于一个HTTP请求`request`：
 
-- `feed`的值为请求数据`request.json`
+- `feed`的值为请求数据中的feed部分`request.json["feed"]`
 - `fetch`的值为请求数据中的fetch部分`request.json["fetch"]`
 
 返回值分别是预测过程中用到的feed和fetch值。
@@ -30,7 +30,7 @@ preprocess方法有两个输入参数，`feed`和`fetch`。对于一个HTTP请�
 
 postprocess方法有三个输入参数，`feed`、`fetch`和`fetch_map`：
 
-- `feed`的值为请求数据`request.json`
+- `feed`的值为请求数据中的feed部分`request.json["feed"]`
 - `fetch`的值为请求数据中的fetch部分`request.json["fetch"]`
 - `fetch_map`的值为fetch到的模型输出值
 
@@ -40,25 +40,17 @@ postprocess方法有三个输入参数，`feed`、`fetch`和`fetch_map`：
 
 ```python
 class ImageService(WebService):
+
     def preprocess(self, feed={}, fetch=[]):
         reader = ImageReader()
-        if "image" not in feed:
-            raise ("feed data error!")
-        if isinstance(feed["image"], list):
-            feed_batch = []
-            for image in feed["image"]:
-                sample = base64.b64decode(image)
-                img = reader.process_image(sample)
-                res_feed = {}
-                res_feed["image"] = img.reshape(-1)
-                feed_batch.append(res_feed)
-            return feed_batch, fetch
-        else:
-            sample = base64.b64decode(feed["image"])
+        feed_batch = []
+        for ins in feed:
+            if "image" not in ins:
+                raise ("feed data error!")
+            sample = base64.b64decode(ins["image"])
             img = reader.process_image(sample)
-            res_feed = {}
-            res_feed["image"] = img.reshape(-1)
-            return res_feed, fetch
+            feed_batch.append({"image": img})
+        return feed_batch, fetch
 ```
 
 对于上述的`ImageService`，只重写了前处理方法，将base64格式的图片数据处理成模型预测需要的数据格式。
