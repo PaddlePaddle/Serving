@@ -57,7 +57,7 @@ class ServingModels(object):
                 "resnet_v2_151_imagenet",
                 "resnet_v2_18_imagenet",
                 "resnet_v2_34_imagenet",
-                " resnet_v2_50_imagenet",
+                "resnet_v2_50_imagenet",
                 "resnext101_32x16d_wsl",
                 "resnext101_32x32d_wsl",
                 "resnext101_32x48d_wsl",
