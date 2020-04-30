@@ -391,13 +391,26 @@ function python_test_lac() {
             sleep 5
             check_cmd "echo \"我爱北京天安门\" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/"
             echo "lac CPU RPC inference pass"
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
 
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/lac/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            # http batch
+            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}, {\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
+            # check http code
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}, {"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/lac/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
             kill_server_process
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
             echo "lac CPU HTTP inference pass"
             ;;
