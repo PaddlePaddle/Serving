@@ -40,21 +40,29 @@ def single_func(idx, resource):
             if args.batch_size >= 1:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    word_ids, label = imdb_dataset.get_words_and_label(line)
+                    word_ids, label = imdb_dataset.get_words_and_label(dataset[
+                        bi])
                     feed_batch.append({"words": word_ids})
                 result = client.predict(feed=feed_batch, fetch=["prediction"])
+                if result is None:
+                    raise ("predict failed.")
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        for fn in filelist:
-            fin = open(fn)
-            for line in fin:
-                word_ids, label = imdb_dataset.get_words_and_label(line)
-                r = requests.post(
-                    "http://{}/imdb/prediction".format(args.endpoint),
-                    data={"words": word_ids,
-                          "fetch": ["prediction"]})
+        if args.batch_size >= 1:
+            feed_batch = []
+            for bi in range(args.batch_size):
+                feed_batch.append({"words": dataset[bi]})
+            r = requests.post(
+                "http://{}/imdb/prediction".format(args.endpoint),
+                json={"feed": feed_batch,
+                      "fetch": ["prediction"]})
+            if r.status_code != 200:
+                print('HTTP status code -ne 200')
+                raise ("predict failed.")
+        else:
+            print("unsupport batch size {}".format(args.batch_size))
     end = time.time()
     return [[end - start]]
 
