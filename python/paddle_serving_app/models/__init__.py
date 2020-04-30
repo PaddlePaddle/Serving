@@ -11,8 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .reader.chinese_bert_reader import ChineseBertReader
-from .reader.image_reader import ImageReader
-from .reader.lac_reader import LACReader
-from .reader.senta_reader import SentaReader
-from .models import ServingModels
+
+from .model_list import ServingModels
