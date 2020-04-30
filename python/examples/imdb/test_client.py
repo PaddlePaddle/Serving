@@ -31,4 +31,4 @@ for line in sys.stdin:
     feed = {"words": word_ids}
     fetch = ["acc", "cost", "prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
-    print("{} {}".format(fetch_map["prediction"][0][1], label[0]))
+    print("{} {}".format(fetch_map["prediction"][0], label[0]))
