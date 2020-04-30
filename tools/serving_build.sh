@@ -405,7 +405,7 @@ function python_test_lac() {
             # http batch
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}, {\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
             # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}, {"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/lac/prediction`
+            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}, {"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/lac/prediction`
             if [ ${http_code} -ne 200 ]; then
                 echo "HTTP status code -ne 200"
                 exit 1
