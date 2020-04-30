@@ -362,7 +362,6 @@ function python_test_imdb() {
             check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
             setproxy # recover proxy state
             kill_server_process
-            ps -ef | grep "paddle_serving_server" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
             echo "imdb CPU HTTP inference pass"
             ;;
@@ -393,6 +392,7 @@ function python_test_lac() {
             echo "lac CPU RPC inference pass"
             kill_server_process
 
+            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
             sleep 5
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
@@ -410,6 +410,7 @@ function python_test_lac() {
                 echo "HTTP status code -ne 200"
                 exit 1
             fi
+            setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
             echo "lac CPU HTTP inference pass"
