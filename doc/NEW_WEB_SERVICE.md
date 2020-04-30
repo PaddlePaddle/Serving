@@ -21,7 +21,7 @@ class WebService(object):
 
 The preprocess method has two input parameters, `feed` and `fetch`. For an HTTP request `request`:
 
-- The value of `feed` is request data `request.json`
+- The value of `feed` is the feed part `request.json["feed"]` in the request data 
 - The value of `fetch` is the fetch part `request.json["fetch"]` in the request data
 
 The return values are the feed and fetch values used in the prediction.
@@ -30,7 +30,7 @@ The return values are the feed and fetch values used in the prediction.
 
 The postprocess method has three input parameters, `feed`, `fetch` and `fetch_map`:
 
-- The value of `feed` is request data `request.json`
+- The value of `feed` is the feed part `request.json["feed"]` in the request data 
 - The value of `fetch` is the fetch part `request.json["fetch"]` in the request data
 - The value of `fetch_map` is the model output value.
 
@@ -40,25 +40,17 @@ The return value will be processed as `{"reslut": fetch_map}` as the return of t
 
 ```python
 class ImageService(WebService):
+
     def preprocess(self, feed={}, fetch=[]):
         reader = ImageReader()
-        if "image" not in feed:
-            raise ("feed data error!")
-        if isinstance(feed["image"], list):
-            feed_batch = []
-            for image in feed["image"]:
-                sample = base64.b64decode(image)
-                img = reader.process_image(sample)
-                res_feed = {}
-                res_feed["image"] = img.reshape(-1)
-                feed_batch.append(res_feed)
-            return feed_batch, fetch
-        else:
-            sample = base64.b64decode(feed["image"])
+        feed_batch = []
+        for ins in feed:
+            if "image" not in ins:
+                raise ("feed data error!")
+            sample = base64.b64decode(ins["image"])
             img = reader.process_image(sample)
-            res_feed = {}
-            res_feed["image"] = img.reshape(-1)
-            return res_feed, fetch
+            feed_batch.append({"image": img})
+        return feed_batch, fetch
 ```
 
 For the above `ImageService`, only the `preprocess` method is rewritten to process the image data in Base64 format into the data format required by prediction.
