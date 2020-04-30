@@ -39,6 +39,8 @@ class SentaService(WebService):
         self.show = show
 
     def start_lac_service(self):
+        if not os.path.exists('./lac_serving'):
+            os.mkdir("./lac_serving")
         os.chdir('./lac_serving')
         self.lac_port = self.port + 100
         r = os.popen(
