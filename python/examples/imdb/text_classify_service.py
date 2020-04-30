@@ -26,10 +26,9 @@ class IMDBService(WebService):
         self.dataset.load_resource(args["dict_file_path"])
 
     def preprocess(self, feed={}, fetch=[]):
-        if "words" not in feed:
-            exit(-1)
-        res_feed = {}
-        res_feed["words"] = self.dataset.get_words_only(feed["words"])
+        res_feed = [{
+            "words": self.dataset.get_words_only(ins["words"])
+        } for ins in feed]
         return res_feed, fetch
 
 
