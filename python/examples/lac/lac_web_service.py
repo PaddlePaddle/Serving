@@ -22,22 +22,24 @@ class LACService(WebService):
         self.reader = LACReader("lac_dict")
 
     def preprocess(self, feed={}, fetch=[]):
-        batch_feed = []
+        feed_batch = []
         for ins in feed:
             if "words" not in ins:
                 raise ("feed data error!")
             feed_data = self.reader.process(ins["words"])
-            batch_feed.append({"words": feed_data})
+            feed_batch.append({"words": feed_data})
         fetch = ["crf_decode"]
-        return batch_feed, fetch
+        return feed_batch, fetch
 
     def postprocess(self, feed={}, fetch=[], fetch_map={}):
-        ret = []
+        batch_ret = []
         for idx, ins in enumerate(feed):
+            begin = fetch_map['crf_decode.lod'][idx]
+            end = fetch_map['crf_decode.lod'][idx + 1]
             segs = self.reader.parse_result(ins["words"],
-                                            fetch_map[idx]["crf_decode"])
-            ret.append({"word_seg": "|".join(segs)})
-        return ret
+                                            fetch_map["crf_decode"][begin:end])
+            batch_ret.append({"word_seg": "|".join(segs)})
+        return batch_ret
 
 
 lac_service = LACService(name="lac")
@@ -46,3 +48,4 @@ lac_service.load_reader()
 lac_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 lac_service.run_server()
+lac_service.run_flask()

@@ -108,15 +108,15 @@ class LACReader(object):
         partial_word = ""
         for ind, tag in enumerate(tags):
             if partial_word == "":
-                partial_word = words[ind]
+                partial_word = self.id2word_dict[str(words[ind])]
                 tags_out.append(tag.split('-')[0])
                 continue
             if tag.endswith("-B") or (tag == "O" and tag[ind - 1] != "O"):
                 sent_out.append(partial_word)
                 tags_out.append(tag.split('-')[0])
-                partial_word = words[ind]
+                partial_word = self.id2word_dict[str(words[ind])]
                 continue
-            partial_word += words[ind]
+            partial_word += self.id2word_dict[str(words[ind])]
 
         if len(sent_out) < len(tags_out):
             sent_out.append(partial_word)
