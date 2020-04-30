@@ -57,7 +57,7 @@ def single_func(idx, resource):
                 feed_batch.append({"words": word_ids})
             r = requests.post(
                 "http://{}/imdb/prediction".format(args.endpoint),
-                data={"feed": feed_batch,
+                json={"feed": feed_batch,
                       "fetch": ["prediction"]})
             if r.status_code != 200:
                 print('HTTP status code -ne 200')
