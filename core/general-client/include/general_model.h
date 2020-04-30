@@ -17,18 +17,17 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <pybind11/numpy.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
 #include <string>
 #include <utility>  // move
 #include <vector>
-
 #include "core/sdk-cpp/builtin_format.pb.h"
 #include "core/sdk-cpp/general_model_service.pb.h"
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
-
 using baidu::paddle_serving::sdk_cpp::Predictor;
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 
@@ -36,6 +35,7 @@ DECLARE_bool(profile_client);
 DECLARE_bool(profile_server);
 
 // given some input data, pack into pb, and send request
+namespace py = pybind11;
 namespace baidu {
 namespace paddle_serving {
 namespace general_model {
@@ -172,6 +172,17 @@ class PredictorClient {
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<int>>& float_shape,
       const std::vector<std::vector<std::vector<int64_t>>>& int_feed_batch,
+      const std::vector<std::string>& int_feed_name,
+      const std::vector<std::vector<int>>& int_shape,
+      const std::vector<std::string>& fetch_name,
+      PredictorRes& predict_res_batch,  // NOLINT
+      const int& pid);
+
+  int numpy_predict(
+      const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
+      const std::vector<std::string>& float_feed_name,
+      const std::vector<std::vector<int>>& float_shape,
+      const std::vector<std::vector<py::array_t<int64_t>>>& int_feed_batch,
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,
