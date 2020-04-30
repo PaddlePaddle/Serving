@@ -124,7 +124,7 @@ int GeneralResponseOp::inference() {
         } else {
           FetchInst *fetch_p = output->mutable_insts(0);
           for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
+            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[j]);
           }
         }
         var_idx++;
