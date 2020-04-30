@@ -24,7 +24,9 @@ class BertService(WebService):
         self.reader = BertReader(vocab_file="vocab.txt", max_seq_len=128)
 
     def preprocess(self, feed={}, fetch=[]):
-        feed_res = self.reader.process(feed["words"].encode("utf-8"))
+        feed_res = [{
+            "words": self.reader.process(ins["words"].encode("utf-8"))
+        } for ins in feed]
         return feed_res, fetch
 
 

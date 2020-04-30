@@ -87,7 +87,7 @@ class SentaService(WebService):
         if self.show:
             print("---- senta reader ----")
             print("feed_data", feed_data)
-        return {"words": feed_data}, fetch
+        return [{"words": feed_data}], fetch
 
 
 senta_service = SentaService(name="senta")
