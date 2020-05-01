@@ -103,12 +103,10 @@ PYBIND11_MODULE(serving_client, m) {
            })
       .def("numpy_predict",
            [](PredictorClient &self,
-              const std::vector<std::vector<py::array_t<float>>>
-                  &float_feed_batch,
+              const PredictorClient::batch_numpy_t<float> &float_feed_batch,
               const std::vector<std::string> &float_feed_name,
               const std::vector<std::vector<int>> &float_shape,
-              const std::vector<std::vector<py::array_t<int64_t>>>
-                  &int_feed_batch,
+              const PredictorClient::batch_numpy_t<int64_t> &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,

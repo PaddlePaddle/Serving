@@ -151,6 +151,10 @@ class PredictorRes {
 
 class PredictorClient {
  public:
+  template <typename T>
+  using batch_numpy_t = std::vector<
+      std::vector<py::array_t<T, py::array::c_style | py::array::forcecast>>>;
+
   PredictorClient() {}
   ~PredictorClient() {}
 
@@ -178,16 +182,15 @@ class PredictorClient {
       PredictorRes& predict_res_batch,  // NOLINT
       const int& pid);
 
-  int numpy_predict(
-      const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int>>& float_shape,
-      const std::vector<std::vector<py::array_t<int64_t>>>& int_feed_batch,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::vector<int>>& int_shape,
-      const std::vector<std::string>& fetch_name,
-      PredictorRes& predict_res_batch,  // NOLINT
-      const int& pid);
+  int numpy_predict(const batch_numpy_t<float>& float_feed_batch,
+                    const std::vector<std::string>& float_feed_name,
+                    const std::vector<std::vector<int>>& float_shape,
+                    const batch_numpy_t<int64_t>& int_feed_batch,
+                    const std::vector<std::string>& int_feed_name,
+                    const std::vector<std::vector<int>>& int_shape,
+                    const std::vector<std::string>& fetch_name,
+                    PredictorRes& predict_res_batch,  // NOLINT
+                    const int& pid);
 
  private:
   PredictorApi _api;
