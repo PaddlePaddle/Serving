@@ -20,76 +20,43 @@ from collections import OrderedDict
 class ServingModels(object):
     def __init__(self):
         self.model_dict = OrderedDict()
-        #senta
-        for key in [
-                "senta_bilstm", "senta_bow", "senta_cnn", "senta_gru",
-                "senta_lstm"
-        ]:
-            self.model_dict[
-                key] = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/" + key + ".tar.gz"
-        #image classification
-        for key in [
-                "alexnet_imagenet",
-                "darknet53-imagenet",
-                "densenet121_imagenet",
-                "densenet161_imagenet",
-                "densenet169_imagenet",
-                "densenet201_imagenet",
-                "densenet264_imagenet"
-                "dpn107_imagenet",
-                "dpn131_imagenet",
-                "dpn68_imagenet",
-                "dpn92_imagenet",
-                "dpn98_imagenet",
-                "efficientnetb0_imagenet",
-                "efficientnetb1_imagenet",
-                "efficientnetb2_imagenet",
-                "efficientnetb3_imagenet",
-                "efficientnetb4_imagenet",
-                "efficientnetb5_imagenet",
-                "efficientnetb6_imagenet",
-                "googlenet_imagenet",
-                "inception_v4_imagenet",
-                "inception_v2_imagenet",
-                "nasnet_imagenet",
-                "pnasnet_imagenet",
-                "resnet_v2_101_imagenet",
-                "resnet_v2_151_imagenet",
-                "resnet_v2_18_imagenet",
-                "resnet_v2_34_imagenet",
-                "resnet_v2_50_imagenet",
-                "resnext101_32x16d_wsl",
-                "resnext101_32x32d_wsl",
-                "resnext101_32x48d_wsl",
-                "resnext101_32x8d_wsl",
-                "resnext101_32x4d_imagenet",
-                "resnext101_64x4d_imagenet",
-                "resnext101_vd_32x4d_imagenet",
-                "resnext101_vd_64x4d_imagenet",
-                "resnext152_64x4d_imagenet",
-                "resnext152_vd_64x4d_imagenet",
-                "resnext50_64x4d_imagenet",
-                "resnext50_vd_32x4d_imagenet",
-                "resnext50_vd_64x4d_imagenet",
-                "se_resnext101_32x4d_imagenet",
-                "se_resnext50_32x4d_imagenet",
-                "shufflenet_v2_imagenet",
-                "vgg11_imagenet",
-                "vgg13_imagenet",
-                "vgg16_imagenet",
-                "vgg19_imagenet",
-                "xception65_imagenet",
-                "xception71_imagenet",
-        ]:
-            self.model_dict[
-                key] = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/" + key + ".tar.gz"
+        self.model_dict[
+            "SentimentAnalysis"] = ["senta_bilstm", "senta_bow", "senta_cnn"]
+        self.model_dict["SemanticRepresentation"] = ["ernie_base"]
+        self.model_dict["ChineseWordSegmentation"] = ["lac"]
+        self.model_dict["ObjectDetection"] = ["faster_rcnn", "yolov3"]
+        self.model_dict["ImageSegmentation"] = ["unet", "deeplabv3"]
+        self.model_dict["ImageClassification"] = [
+            "resnet_v2_50_imagenet", "efficientnetb6_imagenet"
+        ]
+
+        image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"
+        image_seg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/"
+        object_detection_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ObjectDetection/"
+        senta_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/"
+        semantic_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticRepresentation/"
+        wordseg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/ChineseWordSegmentation/"
+
+        self.url_dict = {}
+
+        def pack_url(model_dict, key, url):
+            for i, value in enumerate(model_dict[key]):
+                self.url_dict[model_dict[key][i]] = url + model_dict[key][
+                    i] + ".tar.gz"
+
+        pack_url(self.model_dict, "SentimentAnalysis", senta_url)
+        pack_url(self.model_dict, "SemanticRepresentation", semantic_url)
+        pack_url(self.model_dict, "ChineseWordSegmentation", wordseg_url)
+        pack_url(self.model_dict, "ObjectDetection", object_detection_url)
+        pack_url(self.model_dict, "ImageSegmentation", image_seg_url)
+        pack_url(self.model_dict, "ImageClassification", image_class_url)
 
     def get_model_list(self):
-        return (self.model_dict.keys())
+        return self.model_dict
 
     def download(self, model_name):
-        if model_name in self.model_dict:
-            url = self.model_dict[model_name]
+        if model_name in self.url_dict:
+            url = self.url_dict[model_name]
             r = os.system('wget ' + url + ' --no-check-certificate')
 
 
