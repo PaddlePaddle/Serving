@@ -20,6 +20,7 @@ Usage:
 """
 
 import argparse
+import sys
 from .models import ServingModels
 
 
@@ -36,13 +37,18 @@ if __name__ == "__main__":
     args = parse_args()
     if args.list_model != None:
         model_handle = ServingModels()
-        model_names = model_handle.get_model_list()
-        for key in model_names:
-            print(key)
+        model_dict = model_handle.get_model_list()
+        # Task level model list
+        # Text Classification, Semantic Representation
+        # Image Classification, Object Detection, Image Segmentation
+        for key in model_dict:
+            print("-----------------------------------------------")
+            print("{}: {}".format(key, " | ".join(model_dict[key])))
+
     elif args.get_model != "":
         model_handle = ServingModels()
-        model_names = model_handle.get_model_list()
-        if args.get_model not in model_names:
+        model_dict = model_handle.url_dict
+        if args.get_model not in model_dict:
             print(
                 "Your model name does not exist in current model list, stay tuned"
             )
