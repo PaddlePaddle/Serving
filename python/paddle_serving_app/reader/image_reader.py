@@ -17,7 +17,7 @@ import numpy as np
 import base64
 import functional as F
 
-_cv2_interpolation_to_str = {cv2.INTER_LINEAR: "cv2.INTER_LINEAR"}
+_cv2_interpolation_to_str = {cv2.INTER_LINEAR: "cv2.INTER_LINEAR", None: "None"}
 
 
 class Sequential(object):
@@ -51,6 +51,28 @@ class Sequential(object):
         return format_string_
 
 
+class RGB2BGR(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img):
+        return img[:, :, ::-1]
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+
+class BGR2RGB(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img):
+        return img[:, :, ::-1]
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+
 class File2Image(object):
     def __init__(self):
         pass
@@ -79,6 +101,40 @@ class URL2Image(object):
 
     def __repr__(self):
         return self.__class__.__name__ + "()"
+
+
+class Base64ToImage(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img_base64):
+        img = base64.b64decode(img_base64)
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+
+class Div(object):
+    """ divide by some float number """
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, img):
+        """
+        Args:
+            img (numpy array): (int8 numpy array)
+
+        Returns:
+            img (numpy array): (float32 numpy array)
+        """
+        img = img.astype('float32') / self.value
+
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "({})".format(self.value)
 
 
 class Normalize(object):
@@ -113,6 +169,27 @@ class Normalize(object):
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean,
                                                                       self.std)
+
+
+class Lambda(object):
+    """Apply a user-defined lambda as a transform.
+       Very shame to just copy from 
+       https://github.com/pytorch/vision/blob/master/torchvision/transforms/transforms.py#L301
+
+    Args:
+        lambd (function): Lambda/function to be used for transform.
+    """
+
+    def __init__(self, lambd):
+        assert callable(lambd), repr(type(lambd)
+                                     .__name__) + " object is not callable"
+        self.lambd = lambd
+
+    def __call__(self, img):
+        return self.lambd(img)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '()'
 
 
 class CenterCrop(object):
@@ -154,16 +231,30 @@ class Resize(object):
             ``PIL.Image.BILINEAR``
     """
 
-    def __init__(self, size, interpolation=cv2.INTER_LINEAR):
+    def __init__(self, size, interpolation=None):
         self.size = size
         self.interpolation = interpolation
 
     def __call__(self, img):
         return F.resize(img, self.size, self.interpolation)
 
-    def __repr__(self, img):
+    def __repr__(self):
         return self.__class__.__name__ + '(size={0}, interpolation={1})'.format(
             self.size, _cv2_interpolation_to_str[self.interpolation])
+
+
+class Transpose(object):
+    def __init__(self, transpose_target):
+        self.transpose_target = transpose_target
+
+    def __call__(self, img):
+        return F.transpose(img, self.transpose_target)
+        return img
+
+    def __repr__(self):
+        format_string = self.__class__.__name__ + \
+                        "({})".format(self.transpose_target)
+        return format_string
 
 
 class ImageReader():
