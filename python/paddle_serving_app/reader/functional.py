@@ -16,14 +16,17 @@ import cv2
 import numpy as np
 
 
+def transpose(img, transpose_target):
+    img = img.transpose(transpose_target)
+    return img
+
+
 def normalize(img, mean, std):
     # need to optimize here
-    img = img.astype('float32').transpose((2, 0, 1)) / 255
     img_mean = np.array(mean).reshape((3, 1, 1))
     img_std = np.array(std).reshape((3, 1, 1))
     img -= img_mean
     img /= img_std
-    img = img.transpose((1, 2, 0))
     return img
 
 
@@ -47,7 +50,7 @@ def resize(img, target_size, interpolation):
         resized_width = target_size[0]
         resized_height = target_size[1]
     else:
-        percent = float(target_size) / min(img.shape[1], img.shape[2])
+        percent = float(target_size) / min(img.shape[0], img.shape[1])
         resized_width = int(round(img.shape[1] * percent))
         resized_height = int(round(img.shape[0] * percent))
     if interpolation:
@@ -55,5 +58,4 @@ def resize(img, target_size, interpolation):
             img, (resized_width, resized_height), interpolation=interpolation)
     else:
         resized = cv2.resize(img, (resized_width, resized_height))
-    print(resized.shape)
     return resized
