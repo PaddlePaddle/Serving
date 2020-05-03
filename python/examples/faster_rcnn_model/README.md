@@ -4,8 +4,8 @@
 
 ### Get The Faster RCNN Model
 ```
-wget https://paddle-serving.bj.bcebos.com/pddet_demo/faster_rcnn_model.tar.gz
-wget https://paddle-serving.bj.bcebos.com/pddet_demo/infer_cfg.yml
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/faster_rcnn_model.tar.gz
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/infer_cfg.yml
 ```
 If you want to have more detection models, please refer to [Paddle Detection Model Zoo](https://github.com/PaddlePaddle/PaddleDetection/blob/release/0.2/docs/MODEL_ZOO_cn.md)
 
