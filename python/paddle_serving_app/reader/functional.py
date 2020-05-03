@@ -21,10 +21,14 @@ def transpose(img, transpose_target):
     return img
 
 
-def normalize(img, mean, std):
+def normalize(img, mean, std, channel_first):
     # need to optimize here
-    img_mean = np.array(mean).reshape((3, 1, 1))
-    img_std = np.array(std).reshape((3, 1, 1))
+    if channel_first:
+        img_mean = np.array(mean).reshape((3, 1, 1))
+        img_std = np.array(std).reshape((3, 1, 1))
+    else:
+        img_mean = np.array(mean).reshape((1, 1, 3))
+        img_std = np.array(std).reshape((1, 1, 3))
     img -= img_mean
     img /= img_std
     return img
@@ -45,12 +49,15 @@ def crop(img, target_size, center):
     return img
 
 
-def resize(img, target_size, interpolation):
+def resize(img, target_size, max_size=2147483647, interpolation=None):
     if isinstance(target_size, tuple):
-        resized_width = target_size[0]
-        resized_height = target_size[1]
+        resized_width = min(target_size[0], max_size)
+        resized_height = min(target_size[1], max_size)
     else:
+        im_max_size = max(img.shape[0], img.shape[1])
         percent = float(target_size) / min(img.shape[0], img.shape[1])
+        if np.round(percent * im_max_size) > max_size:
+            percent = float(max_size) / float(im_max_size)
         resized_width = int(round(img.shape[1] * percent))
         resized_height = int(round(img.shape[0] * percent))
     if interpolation:
