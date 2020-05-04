@@ -192,6 +192,7 @@ const std::string &PredictorClient::get_model_config() {
   Response res;
   VLOG(2) << "going to send request";
   req.set_request_type("GetConf");
+  FeedInst *inst = req.add_insts();
   _api.thrd_initialize();
   std::string variant_tag;
   _predictor = _api.fetch_predictor("general_model", &variant_tag);
@@ -204,6 +205,7 @@ const std::string &PredictorClient::get_model_config() {
   } else {
     VLOG(2) << "get model config succeed";
     const std::string &config_str = res.config_str();
+    _api.thrd_clear();
     return config_str;
   }
 }
