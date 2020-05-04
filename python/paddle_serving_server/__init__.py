@@ -107,7 +107,7 @@ class OpSeqMaker(object):
         node = server_sdk.DAGNode()
         node.name = "general_get_conf_0"
         node.type = "GeneralGetConfOp"
-        get_conf_workflow.nodes.extend(node)
+        get_conf_workflow.nodes.extend([node])
         workflow_conf.workflows.extend([get_conf_workflow])
         return workflow_conf
 
@@ -233,15 +233,13 @@ class Server(object):
             infer_service.request_field_key = "request_type"
 
             kv_workflow1 = server_sdk.ValueMappedWorkflow()
-            kv_workflow1.request_field_value = "GetConf"
-            kv_workflow1.workflows = "workflow1"
-
+            kv_workflow1.request_field_value = "Predict"
+            kv_workflow1.workflow = "workflow1"
             infer_service.value_mapped_workflows.extend([kv_workflow1])
 
             kv_workflow2 = server_sdk.ValueMappedWorkflow()
-            kv_workflow2.request_field_value = "Predict"
-            kv_workflow2.workflows = "workflow2"
-
+            kv_workflow2.request_field_value = "GetConf"
+            kv_workflow2.workflow = "workflow2"
             infer_service.value_mapped_workflows.extend([kv_workflow2])
 
             infer_service.name = "GeneralModelService"

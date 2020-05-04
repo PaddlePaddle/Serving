@@ -190,12 +190,19 @@ int PredictorClient::create_predictor() {
 const std::string &PredictorClient::get_model_config() {
   Request req;
   Response res;
+  VLOG(2) << "going to send request";
   req.set_request_type("GetConf");
+  _api.thrd_initialize();
+  std::string variant_tag;
+  _predictor = _api.fetch_predictor("general_model", &variant_tag);
+
+  VLOG(2) << "sending";
   if (_predictor->inference(&req, &res) != 0) {
     LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
     _api.thrd_clear();
     return "";
   } else {
+    VLOG(2) << "get model config succeed";
     const std::string &config_str = res.config_str();
     return config_str;
   }

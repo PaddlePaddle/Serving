@@ -154,6 +154,10 @@ class Client(object):
                 print(
                     "parameter endpoints({}) will not take effect, because you use the add_variant function.".
                     format(endpoints))
+        from .serving_client import PredictorClient
+        from .serving_client import PredictorRes
+        self.result_handle_ = PredictorRes()
+        self.client_handle_ = PredictorClient()
         sdk_desc = self.predictor_sdk_.gen_desc()
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
@@ -163,11 +167,10 @@ class Client(object):
         model_conf = google.protobuf.text_format.Merge(
             str(model_config_str), model_conf)
 
-        self.result_handle_ = PredictorRes()
-        self.client_handle_ = PredictorClient()
         self.client_handle_.init_from_string(model_config_str)
         if "FLAGS_max_body_size" not in os.environ:
             os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
+        read_env_flags = ["profile_client", "profile_server", "max_body_size"]
         self.client_handle_.init_gflags([sys.argv[
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]

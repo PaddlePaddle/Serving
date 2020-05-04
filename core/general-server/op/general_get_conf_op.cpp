@@ -27,16 +27,24 @@ using baidu::paddle_serving::predictor::general_model::Response;
 
 int GeneralGetConfOp::inference() {
   // reade request from client
+  VLOG(2) << "going to get request";
   const Request *req = dynamic_cast<const Request *>(get_request_message());
 
+  VLOG(2) << "request got";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
 
-  std::string conf_str = resource.get_general_model_conf_str();
+  VLOG(2) << "request type : " << req->request_type();
+
+  VLOG(2) << "fetching conf str";
+  const std::string &conf_str = resource.get_general_model_conf_str();
+  VLOG(2) << conf_str;
   Response *res = mutable_data<Response>();
-  res->set_config_str(conf_str);
+  res->set_config_str(conf_str.c_str());
+  VLOG(2) << "done.";
   return 0;
 }
+
 DEFINE_OP(GeneralGetConfOp);
 }  // namespace serving
 }  // namespace paddle_serving
