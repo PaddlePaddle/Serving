@@ -200,6 +200,45 @@ class Client(object):
         sdk_desc = self.predictor_sdk_.gen_desc()
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
+        # try to get model config when doing connectiong
+        model_config_str = self.client_handle_.get_model_config()
+        model_conf = m_config.GeneralModelConfig()
+        model_conf = google.protobuf.text_format.Merge(
+            str(model_config_str), model_conf)
+
+        self.result_handle_ = PredictorRes()
+        self.client_handle_ = PredictorClient()
+        self.client_handle_.init_from_string(model_config_str)
+        if "FLAGS_max_body_size" not in os.environ:
+            os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
+        self.client_handle_.init_gflags([sys.argv[
+            0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
+        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_names_to_idx_ = {}
+        self.fetch_names_to_type_ = {}
+        self.fetch_names_to_idx_ = {}
+        self.lod_tensor_set = set()
+        self.feed_tensor_len = {}
+
+        for i, var in enumerate(model_conf.feed_var):
+            self.feed_names_to_idx_[var.alias_name] = i
+            self.feed_types_[var.alias_name] = var.feed_type
+            self.feed_shapes_[var.alias_name] = var.shape
+
+            if var.is_lod_tensor:
+                self.lod_tensor_set.add(var.alias_name)
+            else:
+                counter = 1
+                for dim in self.feed_shapes_[var.alias_name]:
+                    counter *= dim
+                self.feed_tensor_len[var.alias_name] = counter
+        for i, var in enumerate(model_conf.fetch_var):
+            self.fetch_names_to_idx_[var.alias_name] = i
+            self.fetch_names_to_type_[var.alias_name] = var.fetch_type
+            if var.is_lod_tensor:
+                self.lod_tensor_set.add(var.alias_name)
+        return
 
     def get_feed_names(self):
         return self.feed_names_

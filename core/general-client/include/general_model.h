@@ -167,6 +167,8 @@ class PredictorClient {
 
   int destroy_predictor();
 
+  const std::string& get_model_config();
+
   int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,

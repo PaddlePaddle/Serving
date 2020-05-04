@@ -43,6 +43,10 @@ std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
   return _config;
 }
 
+std::string Resource::get_general_model_conf_str() {
+  return _general_model_conf_str;
+}
+
 void Resource::print_general_model_config(
     const std::shared_ptr<PaddleGeneralModelConfig>& config) {
   if (config == nullptr) {
@@ -208,6 +212,13 @@ int Resource::general_model_initialize(const std::string& path,
     LOG(ERROR) << "Failed initialize model config from: " << general_model_path
                << "/" << general_model_file;
     return -1;
+  }
+
+  // save the general model conf string here
+  bool print_flag = google::protobuf::TextFormat::PrintToString(
+      model_config, &_general_model_conf_str);
+  if (!print_flag) {
+    LOG(ERROR) << "parse model config message into string failed";
   }
 
   _config.reset(new PaddleGeneralModelConfig());

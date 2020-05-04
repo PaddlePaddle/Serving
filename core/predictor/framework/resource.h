@@ -96,6 +96,8 @@ class Resource {
 
   std::shared_ptr<PaddleGeneralModelConfig> get_general_model_config();
 
+  std::string get_general_model_conf_str();
+
   void print_general_model_config(
       const std::shared_ptr<PaddleGeneralModelConfig>& config);
 
@@ -108,6 +110,7 @@ class Resource {
  private:
   int thread_finalize() { return 0; }
   std::shared_ptr<PaddleGeneralModelConfig> _config;
+  std::string _general_model_conf_str;
   std::string cube_config_fullpath;
   int cube_quant_bits;  // 0 if no empty
 

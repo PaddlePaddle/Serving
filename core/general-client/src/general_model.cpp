@@ -135,6 +135,20 @@ int PredictorClient::create_predictor() {
   return 0;
 }
 
+const std::string &PredictorClient::get_model_config() {
+  Request req;
+  Response res;
+  req.set_request_type("GetConf");
+  if (_predictor->inference(&req, &res) != 0) {
+    LOG(ERROR) << "failed call predictor with req: " << req.ShortDebugString();
+    _api.thrd_clear();
+    return "";
+  } else {
+    const std::string &config_str = res.config_str();
+    return config_str;
+  }
+}
+
 int PredictorClient::batch_predict(
     const std::vector<std::vector<std::vector<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
