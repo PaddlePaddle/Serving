@@ -66,6 +66,10 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self, const std::string &conf) {
              return self.init(conf);
            })
+      .def("init_from_string",
+           [](PredictorClient &self, const std::string &conf_str) {
+             return self.init_from_string(conf_str);
+           })
       .def("set_predictor_conf",
            [](PredictorClient &self,
               const std::string &conf_path,

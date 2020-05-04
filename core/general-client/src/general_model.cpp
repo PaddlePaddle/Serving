@@ -18,6 +18,7 @@
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
 #include "core/util/include/timer.h"
+#include "google/protobuf/text_format.h"
 
 DEFINE_bool(profile_client, false, "");
 DEFINE_bool(profile_server, false, "");
@@ -60,6 +61,57 @@ int PredictorClient::init(const std::string &conf_file) {
     if (configure::read_proto_conf(conf_file.c_str(), &model_config) != 0) {
       LOG(ERROR) << "Failed to load general model config"
                  << ", file path: " << conf_file;
+      return -1;
+    }
+
+    _feed_name_to_idx.clear();
+    _fetch_name_to_idx.clear();
+    _shape.clear();
+    int feed_var_num = model_config.feed_var_size();
+    int fetch_var_num = model_config.fetch_var_size();
+    VLOG(2) << "feed var num: " << feed_var_num
+            << "fetch_var_num: " << fetch_var_num;
+    for (int i = 0; i < feed_var_num; ++i) {
+      _feed_name_to_idx[model_config.feed_var(i).alias_name()] = i;
+      VLOG(2) << "feed alias name: " << model_config.feed_var(i).alias_name()
+              << " index: " << i;
+      std::vector<int> tmp_feed_shape;
+      VLOG(2) << "feed"
+              << "[" << i << "] shape:";
+      for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
+        tmp_feed_shape.push_back(model_config.feed_var(i).shape(j));
+        VLOG(2) << "shape[" << j << "]: " << model_config.feed_var(i).shape(j);
+      }
+      _type.push_back(model_config.feed_var(i).feed_type());
+      VLOG(2) << "feed"
+              << "[" << i
+              << "] feed type: " << model_config.feed_var(i).feed_type();
+      _shape.push_back(tmp_feed_shape);
+    }
+
+    for (int i = 0; i < fetch_var_num; ++i) {
+      _fetch_name_to_idx[model_config.fetch_var(i).alias_name()] = i;
+      VLOG(2) << "fetch [" << i << "]"
+              << " alias name: " << model_config.fetch_var(i).alias_name();
+      _fetch_name_to_var_name[model_config.fetch_var(i).alias_name()] =
+          model_config.fetch_var(i).name();
+      _fetch_name_to_type[model_config.fetch_var(i).alias_name()] =
+          model_config.fetch_var(i).fetch_type();
+    }
+  } catch (std::exception &e) {
+    LOG(ERROR) << "Failed load general model config" << e.what();
+    return -1;
+  }
+  return 0;
+}
+
+int PredictorClient::init_from_string(const std::string &conf_string) {
+  try {
+    GeneralModelConfig model_config;
+    bool success = google::protobuf::TextFormat::ParseFromString(conf_string,
+                                                                 &model_config);
+    if (!success) {
+      LOG(ERROR) << "Failed to parse config string into GeneralModelConfig";
       return -1;
     }
 

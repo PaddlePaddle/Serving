@@ -99,6 +99,16 @@ class OpSeqMaker(object):
     def get_op_sequence(self):
         workflow_conf = server_sdk.WorkflowConf()
         workflow_conf.workflows.extend([self.workflow])
+
+        # prepare GetConf workflow
+        get_conf_workflow = server_sdk.Workflow()
+        get_conf_workflow.name = "workflow2"
+        get_conf_workflow.workflow_type = "Sequence"
+        node = server_sdk.DAGNode()
+        node.name = "general_get_conf_0"
+        node.type = "GeneralGetConfOp"
+        get_conf_workflow.nodes.extend(node)
+        workflow_conf.workflows.extend([get_conf_workflow])
         return workflow_conf
 
 
@@ -117,6 +127,15 @@ class OpGraphMaker(object):
     def get_op_graph(self):
         workflow_conf = server_sdk.WorkflowConf()
         workflow_conf.workflows.extend([self.workflow])
+        # prepare GetConf workflow
+        get_conf_workflow = server_sdk.Workflow()
+        get_conf_workflow.name = "workflow2"
+        get_conf_workflow.workflow_type = "Sequence"
+        node = server_sdk.DAGNode()
+        node.name = "general_get_conf_0"
+        node.type = "GeneralGetConfOp"
+        get_conf_workflow.nodes.extend(node)
+        workflow_conf.workflows.extend([get_conf_workflow])
         return workflow_conf
 
 
@@ -210,8 +229,22 @@ class Server(object):
             self.infer_service_conf = server_sdk.InferServiceConf()
             self.infer_service_conf.port = port
             infer_service = server_sdk.InferService()
+            infer_service.enable_map_request_to_workflow = True
+            infer_service.request_field_key = "request_type"
+
+            kv_workflow1 = server_sdk.ValueMappedWorkflow()
+            kv_workflow1.request_field_value = "GetConf"
+            kv_workflow1.workflows = "workflow1"
+
+            infer_service.value_mapped_workflows.extend([kv_workflow1])
+
+            kv_workflow2 = server_sdk.ValueMappedWorkflow()
+            kv_workflow2.request_field_value = "Predict"
+            kv_workflow2.workflows = "workflow2"
+
+            infer_service.value_mapped_workflows.extend([kv_workflow2])
+
             infer_service.name = "GeneralModelService"
-            infer_service.workflows.extend(["workflow1"])
             self.infer_service_conf.services.extend([infer_service])
 
     def _prepare_resource(self, workdir):

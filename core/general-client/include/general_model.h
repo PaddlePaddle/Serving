@@ -158,6 +158,8 @@ class PredictorClient {
 
   int init(const std::string& client_conf);
 
+  int init_from_string(const std::string& conf_string);
+
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
 
