@@ -59,6 +59,10 @@ class ServingModels(object):
             url = self.url_dict[model_name]
             r = os.system('wget ' + url + ' --no-check-certificate')
 
+    def get_tutorial(self, model_name):
+        if model_name in self.tutorial_url:
+            return "Tutorial of {} to be added".format(model_name)
+
 
 if __name__ == "__main__":
     models = ServingModels()
