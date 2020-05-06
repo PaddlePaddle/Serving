@@ -30,6 +30,8 @@ def parse_args():  # pylint: disable=doc-string-missing
         "--get_model", type=str, default="", help="Download a specific model")
     parser.add_argument(
         '--list_model', nargs='*', default=None, help="List Models")
+    parser.add_argument(
+        '--tutorial', type=str, default="", help="Get running command")
     return parser.parse_args()
 
 
@@ -54,6 +56,16 @@ if __name__ == "__main__":
             )
             sys.exit(0)
         model_handle.download(args.get_model)
+    elif args.tutorial != "":
+        model_handle = ServingModels()
+        model_dict = model_handle.url_dict
+        if args.get_model not in model_dict:
+            print(
+                "Your model name does not exist in current model list, stay tuned"
+            )
+            sys.exit(0)
+        tutorial_str = model_handle.get_tutorial()
+        print(tutorial_str)
     else:
         print("Wrong argument")
         print("""
