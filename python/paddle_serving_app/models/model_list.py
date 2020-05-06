@@ -27,7 +27,7 @@ class ServingModels(object):
         self.model_dict["ObjectDetection"] = ["faster_rcnn", "yolov3"]
         self.model_dict["ImageSegmentation"] = ["unet", "deeplabv3"]
         self.model_dict["ImageClassification"] = [
-            "resnet_v2_50_imagenet", "efficientnetb6_imagenet"
+            "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"
         ]
 
         image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"

@@ -18,7 +18,7 @@ import sys
 import cv2
 
 client = Client()
-client.load_client_config(sys.argv[1])
+client.load_client_config("unet_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9494"])
 
 preprocess = Sequential(
@@ -27,9 +27,7 @@ preprocess = Sequential(
 
 postprocess = SegPostprocess(2)
 
-for i in range(100):
-    filename = sys.argv[2]
-    im = preprocess(filename)
-    fetch_map = client.predict(feed={"image": im}, fetch=["output"])
-    fetch_map["filename"] = filename
-    postprocess(fetch_map)
+im = preprocess("N0060.jpg")
+fetch_map = client.predict(feed={"image": im}, fetch=["output"])
+fetch_map["filename"] = filename
+postprocess(fetch_map)
