@@ -21,7 +21,7 @@ import sys
 import time
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
-from paddle_serving_client.utils import benchmark_args
+from paddle_serving_client.utils import benchmark_args, show_latency
 from batching import pad_batch_data
 import tokenization
 import requests
@@ -35,11 +35,18 @@ def single_func(idx, resource):
     dataset = []
     for line in fin:
         dataset.append(line.strip())
+
     profile_flags = False
+    latency_flags = False
     if os.getenv("FLAGS_profile_client"):
         profile_flags = True
+    if os.getenv("FLAGS_serving_latency"):
+        latency_flags = True
+        latency_list = []
+
     if args.request == "rpc":
         reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
+
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
@@ -47,11 +54,13 @@ def single_func(idx, resource):
         start = time.time()
         for i in range(turns):
             if args.batch_size >= 1:
+                l_start = time.time()
                 feed_batch = []
                 b_start = time.time()
                 for bi in range(args.batch_size):
                     feed_batch.append(reader.process(dataset[bi]))
                 b_end = time.time()
+
                 if profile_flags:
                     sys.stderr.write(
                         "PROFILE\tpid:{}\tbert_pre_0:{} bert_pre_1:{}\n".format(
@@ -59,13 +68,17 @@ def single_func(idx, resource):
                             int(round(b_start * 1000000)),
                             int(round(b_end * 1000000))))
                 result = client.predict(feed=feed_batch, fetch=fetch)
+
+                l_end = time.time()
+                if latency_flags:
+                    latency_list.append(l_end * 1000 - l_start * 1000)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
         raise ("not implemented")
     end = time.time()
-    return [[end - start]]
+    return [[end - start], latency_list]
 
 
 if __name__ == '__main__':
@@ -78,13 +91,17 @@ if __name__ == '__main__':
     result = multi_thread_runner.run(
         single_func, args.thread, {"endpoint": endpoint_list,
                                    "turns": turns})
+    end = time.time()
+    total_cost = end - start
+
     avg_cost = 0
     for i in range(args.thread):
         avg_cost += result[0][i]
     avg_cost = avg_cost / args.thread
-    end = time.time()
-    total_cost = end - start
+
     print("total cost :{} s".format(total_cost))
     print("each thread cost :{} s. ".format(avg_cost))
     print("qps :{} samples/s".format(args.batch_size * args.thread * turns /
                                      total_cost))
+    if os.getenv("FLAGS_serving_latency"):
+        show_latency(result[1])
