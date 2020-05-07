@@ -128,7 +128,7 @@ class Client(object):
         ld_path = os.getenv('LD_LIBRARY_PATH')
         if ld_path == None:
             os.environ['LD_LIBRARY_PATH'] = lib_path
-        else:
+        elif ld_path not in lib_path:
             os.environ['LD_LIBRARY_PATH'] = ld_path + ':' + lib_path
 
     def load_client_config(self, path):
