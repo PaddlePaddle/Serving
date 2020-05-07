@@ -29,7 +29,9 @@ mv models/data ./cube/
 
 ### 启动稀疏参数索引服务
 ```
-cp ../../../build_server/output/bin/cube* ./cube/
+wget https://paddle-serving.bj.bcebos.com/others/cube_app.tar.gz
+tar xf cube_app.tar.gz
+mv cube_app/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
