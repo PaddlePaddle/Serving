@@ -17,6 +17,7 @@ import sys
 import subprocess
 import argparse
 from multiprocessing import Pool
+import numpy as np
 
 
 def benchmark_args():
@@ -33,6 +34,17 @@ def benchmark_args():
         "--request", type=str, default="rpc", help="mode of service")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     return parser.parse_args()
+
+
+def show_latency(latency_list):
+    latency_array = np.array(latency_list)
+    info = ""
+    info += "mean :{} ms\n".format(np.mean(latency_array))
+    info += "median :{} ms\n".format(np.median(latency_array))
+    info += "80 percent :{} ms\n".format(np.percentile(latency_array, 80))
+    info += "90 percent :{} ms\n".format(np.percentile(latency_array, 90))
+    info += "99 percent :{} ms\n".format(np.percentile(latency_array, 99))
+    sys.stderr.write(info)
 
 
 class MultiThreadRunner(object):
