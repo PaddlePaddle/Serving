@@ -23,3 +23,5 @@ cd ../python/examples/imagenet
 sh get_model.sh
 
 }
+
+bert_demo
