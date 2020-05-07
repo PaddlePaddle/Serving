@@ -84,6 +84,22 @@ class ServingModels(object):
             self.model_dict[
                 key] = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/" + key + ".tar.gz"
 
+        #SemanticModel
+        for key in [
+                "bert_cased_L-12_H-768_A-12", "bert_cased_L-24_H-1024_A-12",
+                "bert_chinese_L-12_H-768_A-12",
+                "bert_multi_cased_L-12_H-768_A-12",
+                "bert_multi_uncased_L-12_H-768_A-12",
+                "bert_uncased_L-12_H-768_A-12", "bert_uncased_L-24_H-1024_A-16",
+                "chinese-bert-wwm-ext", "chinese-bert-wwm",
+                "chinese-electra-base", "chinese-electra-small",
+                "chinese-electra-small", "chinese-roberta-wwm-ext", "ernie",
+                "ernie_tiny", "ernie_v2_eng_base", "ernie_v2_eng_large", "rbt3",
+                "rbtl3", "simnet_bow", "word2vec_skipgram"
+        ]:
+            self.model_dict[
+                key] = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/" + key + ".tar.gz"
+
     def get_model_list(self):
         return (self.model_dict.keys())
 
