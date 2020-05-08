@@ -18,23 +18,12 @@ service GeneralPythonService {
   rpc inference(Request) returns (Response) {}
 }
 
-message Tensor {
-  repeated bytes data = 1;
-  repeated int32 int_data = 2;
-  repeated int64 int64_data = 3;
-  repeated float float_data = 4;
-  optional int32 elem_type = 5;
-  repeated int32 shape = 6;
-  repeated int32 lod = 7;
-};
-
-message FeedInst { repeated Tensor tensor_array = 1; };
-
-message FetchInst { repeated Tensor tensor_array = 1; };
-
 message Request {
-  repeated FeedInst insts = 1;
+  repeated bytes feedinsts = 1;
   repeated string fetch_var_names = 2;
 }
 
-message Response { repeated FetchInst insts = 1; }
+message Response {
+  repeated bytes fetchinsts = 1;
+  repeated string fetch_var_names = 2;
+}

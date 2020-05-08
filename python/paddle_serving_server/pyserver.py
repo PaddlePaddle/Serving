@@ -19,6 +19,7 @@ import os
 import paddle_serving_server
 from paddle_serving_client import Client
 from concurrent import futures
+import numpy
 import grpc
 import general_python_service_pb2
 import general_python_service_pb2_grpc
@@ -106,7 +107,7 @@ class Op(object):
         return input_data
 
     def midprocess(self, data):
-        # data = preprocess(input), which is a dict
+        # data = preprocess(input), which must be a dict
         fetch_map = self._client.predict(feed=data, fetch=self._fetch_names)
         return fetch_map
 
@@ -136,14 +137,17 @@ class Op(object):
 
 class GeneralPythonService(
         general_python_service_pb2_grpc.GeneralPythonService):
-    def __init__(self, channel):
-        self._channel = channel
+    def __init__(self, in_channel, out_channel):
+        self._in_channel = in_channel
+        self._out_channel = out_channel
 
     def Request(self, request, context):
-        pass
-
-    def Response(self, request, context):
-        pass
+        data_dict = {}
+        for idx, name in enumerate(request.fetch_var_names):
+            data_dict[name] = request.feedinsts[idx]
+        self._in_channel.push(data_dict)
+        resp = self._out_channel.front()
+        return general_python_service_pb2_grpc.Response(resp)
 
 
 class PyServer(object):
@@ -153,6 +157,8 @@ class PyServer(object):
         self._op_threads = []
         self._port = None
         self._worker_num = None
+        self._in_channel = None
+        self._out_channel = None
 
     def add_channel(self, channel):
         self._channels.append(channel)
@@ -161,36 +167,38 @@ class PyServer(object):
         slef._ops.append(op)
 
     def gen_desc(self):
+        print('here will generate desc for paas')
         pass
 
     def prepare_server(self, port, worker_num):
         self._port = port
         self._worker_num = worker_num
-        self.gen_desc()
-
-    def run_server(self):
-        inputs = []
-        outputs = []
+        inputs = set()
+        outputs = set()
         for op in self._ops:
             inputs += op.get_inputs()
             outputs += op.get_outputs()
             if op.with_serving():
                 self.prepare_serving(op)
+        in_channel = inputs - outputs
+        out_channel = outputs - inputs
+        if len(in_channel) != 1 or len(out_channel) != 1:
+            raise Exception(
+                "in_channel(out_channel) more than 1 or no in_channel(out_channel)"
+            )
+        self._in_channel = in_channel.pop()
+        self._out_channel = out_channel.pop()
+        self.gen_desc()
+
+    def run_server(self):
+        for op in self._ops:
             th = multiprocessing.Process(target=op.start, args=(op, ))
             th.start()
             self._op_threads.append(th)
-
-        input_channel = []
-        for channel in inputs:
-            if channel not in outputs:
-                input_channel.append(channel)
-        if len(input_channel) != 1:
-            raise Exception("input_channel more than 1 or no input_channel")
-
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self._worker_num))
         general_python_service_pb2_grpc.add_GeneralPythonService_to_server(
-            GeneralPythonService(input_channel[0]), server)
+            GeneralPythonService(self._in_channel, self._out_channel), server)
         server.start()
         try:
             for th in self._op_threads:
