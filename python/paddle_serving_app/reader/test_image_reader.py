@@ -1,4 +1,4 @@
-#   Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,4 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, CenterCrop, Resize, Transpose, Div, RGB2BGR, BGR2RGB, RCNNPostprocess, SegPostprocess
+
+from image_reader import File2Image
+from image_reader import URL2Image
+from image_reader import Sequential
+from image_reader import Normalize
+from image_reader import CenterCrop
+from image_reader import Resize
+
+seq = Sequential([
+    File2Image(), CenterCrop(30),
+    Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Resize((5, 5))
+])
+
+url = "daisy.jpg"
+for x in range(100):
+    img = seq(url)
+    print(img.shape)
