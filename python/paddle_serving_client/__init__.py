@@ -125,7 +125,11 @@ class Client(object):
         lib_path = os.path.dirname(paddle_serving_client.__file__)
         client_path = os.path.join(lib_path, 'serving_client.so')
         lib_path = os.path.join(lib_path, 'lib')
-        os.system('patchelf --set-rpath {} {}'.format(lib_path, client_path))
+        ld_path = os.getenv('LD_LIBRARY_PATH')
+        if ld_path == None:
+            os.environ['LD_LIBRARY_PATH'] = lib_path
+        elif ld_path not in lib_path:
+            os.environ['LD_LIBRARY_PATH'] = ld_path + ':' + lib_path
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
