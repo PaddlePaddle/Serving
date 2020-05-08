@@ -5,20 +5,20 @@
 ### Get The Faster RCNN Model
 ```
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/faster_rcnn_model.tar.gz
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/infer_cfg.yml
 ```
 If you want to have more detection models, please refer to [Paddle Detection Model Zoo](https://github.com/PaddlePaddle/PaddleDetection/blob/release/0.2/docs/MODEL_ZOO_cn.md)
 
 ### Start the service
 ```
 tar xf faster_rcnn_model.tar.gz
-mv faster_rcnn_model/pddet *.
-GLOG_v=2 python -m paddle_serving_server_gpu.serve --model pddet_serving_model --port 9494 --gpu_id 0
+mv faster_rcnn_model/pddet* .
+mv faster_rcnn_model/label_list.txt . 
+python -m paddle_serving_server_gpu.serve --model pddet_serving_model --port 9292 --gpu_id 0
 ```
 
 ### Perform prediction
 ```
-python test_client.py pddet_client_conf/serving_client_conf.prototxt infer_cfg.yml 000000570688.jpg
+python test_client.py pddet_client_conf/serving_client_conf.prototxt 000000570688.jpg
 ```
 
 ## 3. Result analysis
@@ -35,4 +35,4 @@ This is the input picture
     <br>
 <p>
   
-This is the picture after adding bbox. You can see that the client has done post-processing for the picture. In addition, the output/bbox.json also has the number and coordinate information of each box.
+This is the picture after adding bounding box, picture is saved in folder `output`. You can see that the client has done post-processing for the picture. In addition, the `output/bbox.json` also has the number and coordinate information of each box.
