@@ -85,7 +85,7 @@ class SDKConfig(object):
         self.sdk_desc.predictors.extend([predictor_desc])
         self.sdk_desc.default_variant_conf.tag = "default"
         self.sdk_desc.default_variant_conf.connection_conf.connect_timeout_ms = 2000
-        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = 20000
+        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = 100000
         self.sdk_desc.default_variant_conf.connection_conf.connect_retry_count = 2
         self.sdk_desc.default_variant_conf.connection_conf.max_connection_per_host = 100
         self.sdk_desc.default_variant_conf.connection_conf.hedge_request_timeout_ms = -1
