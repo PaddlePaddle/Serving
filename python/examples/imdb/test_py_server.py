@@ -13,9 +13,9 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.pserving import Op
-from paddle_serving_server.pserving import Channel
-from paddle_serving_server.pserving import PyServer
+from paddle_serving_server.pyserver import Op
+from paddle_serving_server.pyserver import Channel
+from paddle_serving_server.pyserver import PyServer
 
 
 class CNNOp(Op):
