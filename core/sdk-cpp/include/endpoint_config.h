@@ -22,23 +22,23 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
-#define PARSE_CONF_ITEM(conf, item, name, fail)             \
-  do {                                                      \
-    if (conf.has_##name()) {                                \
-      item.set(conf.name());                                \
-    } else {                                                \
-      LOG(ERROR) << "Not found key in configue: " << #name; \
-    }                                                       \
+#define PARSE_CONF_ITEM(conf, item, name, fail)          \
+  do {                                                   \
+    if (conf.has_##name()) {                             \
+      item.set(conf.name());                             \
+    } else {                                             \
+      VLOG(2) << "Not found key in configue: " << #name; \
+    }                                                    \
   } while (0)
 
-#define ASSIGN_CONF_ITEM(dest, src, fail)                          \
-  do {                                                             \
-    if (!src.init) {                                               \
-      LOG(ERROR) << "Cannot assign an unintialized item: " << #src \
-                 << " to dest: " << #dest;                         \
-      return fail;                                                 \
-    }                                                              \
-    dest = src.value;                                              \
+#define ASSIGN_CONF_ITEM(dest, src, fail)                       \
+  do {                                                          \
+    if (!src.init) {                                            \
+      VLOG(2) << "Cannot assign an unintialized item: " << #src \
+              << " to dest: " << #dest;                         \
+      return fail;                                              \
+    }                                                           \
+    dest = src.value;                                           \
   } while (0)
 
 template <typename T>
