@@ -18,36 +18,50 @@ from paddle_serving_server.pyserver import Channel
 from paddle_serving_server.pyserver import PyServer
 
 
-class CNNOp(Op):
+# channel data: {name(str): data(bytes)}
+class ImdbOp(Op):
     def preprocess(self, input_data):
-        pass
+        x = input_data[0]['words']
+        feed = {"words": np.array(x)}
+        return feed
 
     def postprocess(self, output_data):
-        pass
+        data = {"resp": fetch_map["prediction"][0][0]}
+        return data
+
+
+class CombineOp(Op):
+    def preprocess(self, input_data):
+        cnt = 0
+        for data in input_data:
+            cnt += data['resp']
+        return {"resp": cnt}
 
 
 read_channel = Channel(consumer=2)
 cnn_out_channel = Channel()
 bow_out_channel = Channel()
 combine_out_channel = Channel()
-cnn_op = Op(inputs=[read_channel],
-            outputs=[cnn_out_channel],
-            server_model="./imdb_cnn_model",
-            server_port="9393",
-            device="cpu",
-            client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
-            server_name="127.0.0.1:9393",
-            fetch_names=["acc", "cost", "prediction"])
-bow_op = Op(inputs=[read_channel],
-            outputs=[bow_out_channel],
-            server_model="./imdb_bow_model",
-            server_port="9292",
-            device="cpu",
-            client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-            server_name="127.0.0.1:9292",
-            fetch_names=["acc", "cost", "prediction"])
-combine_op = Op(inputs=[cnn_out_channel, bow_out_channel],
-                outputs=[combine_out_channel])
+cnn_op = ImdbOp(
+    inputs=[read_channel],
+    outputs=[cnn_out_channel],
+    server_model="./imdb_cnn_model",
+    server_port="9393",
+    device="cpu",
+    client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
+    server_name="127.0.0.1:9393",
+    fetch_names=["prediction"])
+bow_op = ImdbOp(
+    inputs=[read_channel],
+    outputs=[bow_out_channel],
+    server_model="./imdb_bow_model",
+    server_port="9292",
+    device="cpu",
+    client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
+    server_name="127.0.0.1:9292",
+    fetch_names=["prediction"])
+combine_op = CombineOp(
+    inputs=[cnn_out_channel, bow_out_channel], outputs=[combine_out_channel])
 
 pyserver = PyServer()
 pyserver.add_channel(read_channel)
