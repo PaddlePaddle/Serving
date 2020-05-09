@@ -16,7 +16,7 @@ import os
 import urllib
 import numpy as np
 import base64
-import functional as F
+from . import functional as F
 from PIL import Image, ImageDraw
 import json
 
