@@ -22,14 +22,6 @@ import python_service_channel_pb2
 
 # channel data: {name(str): data(bytes)}
 class ImdbOp(Op):
-    def preprocess(self, input_data):
-        data = input_data[0]  # batchsize=1
-        feed = {}
-        for inst in data.insts:
-            feed[inst.name] = np.frombuffer(inst.data, dtype='int64')
-            # feed[inst.name] = np.frombuffer(inst.data)
-        return feed
-
     def postprocess(self, output_data):
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
@@ -58,14 +50,6 @@ class CombineOp(Op):
 
 
 class UciOp(Op):
-    def preprocess(self, input_data):
-        data = input_data[0]  # batchsize=1
-        feed = {}
-        for inst in data.insts:
-            feed[inst.name] = np.frombuffer(inst.data, dtype='float')
-            # feed[inst.name] = np.frombuffer(inst.data)
-        return feed
-
     def postprocess(self, output_data):
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
@@ -83,7 +67,9 @@ bow_out_channel = Channel()
 combine_out_channel = Channel()
 cnn_op = UciOp(
     inputs=[read_channel],
+    in_dtype='float',
     outputs=[cnn_out_channel],
+    out_dtype='float',
     server_model="./uci_housing_model",
     server_port="9393",
     device="cpu",
@@ -92,7 +78,9 @@ cnn_op = UciOp(
     fetch_names=["price"])
 bow_op = UciOp(
     inputs=[read_channel],
+    in_dtype='float',
     outputs=[bow_out_channel],
+    out_dtype='float',
     server_model="./uci_housing_model",
     server_port="9292",
     device="cpu",
@@ -120,7 +108,10 @@ bow_op = ImdbOp(
     fetch_names=["acc", "cost", "prediction"])
 '''
 combine_op = CombineOp(
-    inputs=[cnn_out_channel, bow_out_channel], outputs=[combine_out_channel])
+    inputs=[cnn_out_channel, bow_out_channel],
+    in_dtype='float',
+    outputs=[combine_out_channel],
+    out_dtype='float')
 
 pyserver = PyServer()
 pyserver.add_channel(read_channel)
