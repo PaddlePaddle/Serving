@@ -19,11 +19,11 @@ do
     echo "thread num :" $thread_num
     echo "batch size :" $batch_size
     echo "=================Done===================="
-    echo "model name :$1" >> profile_log
-    echo "batch size :$batch_size" >> profile_log
-    $PYTHONROOT/bin/python ../util/show_profile.py profile $thread_num >> profile_log
-    tail -n 8 profile >> profile_log
-    echo "" >> profile_log
+    echo "model name :$1" >> profile_log_$1
+    echo "batch size :$batch_size" >> profile_log_$1
+    $PYTHONROOT/bin/python ../util/show_profile.py profile $thread_num >> profile_log_$1
+    tail -n 8 profile >> profile_log_$1
+    echo "" >> profile_log_$1
 done
 done
 
