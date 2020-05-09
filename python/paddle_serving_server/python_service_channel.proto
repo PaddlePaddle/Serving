@@ -14,16 +14,11 @@
 
 syntax = "proto2";
 
-service GeneralPythonService {
-  rpc inference(Request) returns (Response) {}
-}
+message ChannelData { repeated Inst insts = 1; }
 
-message Request {
-  repeated bytes feed_insts = 1;
-  repeated string feed_var_names = 2;
-}
-
-message Response {
-  repeated bytes fetch_insts = 1;
-  repeated string fetch_var_names = 2;
+message Inst {
+  required bytes data = 1;
+  required string name = 2;
+  required int32 id = 3;
+  optional string type = 4 [ default = "channel" ];
 }

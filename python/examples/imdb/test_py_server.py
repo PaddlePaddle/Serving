@@ -13,9 +13,9 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.pyserver import Op
-from paddle_serving_server.pyserver import Channel
-from paddle_serving_server.pyserver import PyServer
+from pyserver import Op
+from pyserver import Channel
+from pyserver import PyServer
 
 
 # channel data: {name(str): data(bytes)}
@@ -65,11 +65,11 @@ combine_op = CombineOp(
 
 pyserver = PyServer()
 pyserver.add_channel(read_channel)
-pyserver.add_cnannel(cnn_out_channel)
-pyserver.add_cnannel(bow_out_channel)
-pyserver.add_cnannel(combine_out_channel)
+pyserver.add_channel(cnn_out_channel)
+pyserver.add_channel(bow_out_channel)
+pyserver.add_channel(combine_out_channel)
 pyserver.add_op(cnn_op)
 pyserver.add_op(bow_op)
 pyserver.add_op(combine_op)
-pyserver.prepare_server(port=8080, worker_num=4)
+pyserver.prepare_server(port=8080, worker_num=1)
 pyserver.run_server()
