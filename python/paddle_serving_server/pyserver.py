@@ -27,7 +27,7 @@ import python_service_channel_pb2
 
 
 class Channel(Queue.Queue):
-    def __init__(self, consumer=1, maxsize=0, timeout=None, batchsize=1):
+    def __init__(self, consumer=1, maxsize=-1, timeout=None, batchsize=1):
         Queue.Queue.__init__(self, maxsize=maxsize)
         # super(Channel, self).__init__(maxsize=maxsize)
         self._maxsize = maxsize
@@ -42,10 +42,11 @@ class Channel(Queue.Queue):
 
     def push(self, item):
         with self._pushlock:
-            if len(self._pushbatch) == batchsize:
-                self.put(self._pushbatch, timeout=self._timeout)
-                self._pushbatch = []
             self._pushbatch.append(item)
+            if len(self._pushbatch) == self._batchsize:
+                self.put(self._pushbatch, timeout=self._timeout)
+                # self.put(self._pushbatch)
+                self._pushbatch = []
 
     def front(self):
         if self._consumer == 1:
@@ -111,6 +112,8 @@ class Op(object):
 
     def midprocess(self, data):
         # data = preprocess(input), which must be a dict
+        print('data: {}'.format(data))
+        print('fetch: {}'.format(self._fetch_names))
         fetch_map = self._client.predict(feed=data, fetch=self._fetch_names)
         return fetch_map
 
@@ -126,7 +129,10 @@ class Op(object):
             input_data = []
             for channel in self._inputs:
                 input_data.append(channel.front())
-            data = self.preprocess(input_data)
+            if len(input_data) > 1:
+                data = self.preprocess(input_data)
+            else:
+                data = self.preprocess(input_data[0])
 
             if self.with_serving():
                 fetch_map = self.midprocess(data)
@@ -141,22 +147,36 @@ class Op(object):
 class GeneralPythonService(
         general_python_service_pb2_grpc.GeneralPythonService):
     def __init__(self, in_channel, out_channel):
+        super(GeneralPythonService, self).__init__()
         self._in_channel = in_channel
         self._out_channel = out_channel
+        print('succ init')
 
     def inference(self, request, context):
+        print('start inferce')
         data = python_service_channel_pb2.ChannelData()
+        print('gen data: {}'.format(data))
         for idx, name in enumerate(request.feed_var_names):
+            print('name: {}'.format(request.feed_var_names[idx]))
+            print('data: {}'.format(request.feed_insts[idx]))
             inst = python_service_channel_pb2.Inst()
-            inst.data = request.feed_insts(idx)
+            inst.data = request.feed_insts[idx]
             inst.name = name
             inst.id = 0  #TODO
             data.insts.append(inst)
+        print('push data')
         self._in_channel.push(data)
+        print('wait for infer')
         data = self._out_channel.front()
+        data = data[0]  #TODO batchsize = 1
+        print('get data')
         resp = general_python_service_pb2.Response()
+        print('gen resp')
+        print(data)
         for inst in data.insts:
-            resp.fetch_data.append(inst.data)
+            print('append data')
+            resp.fetch_insts.append(inst.data)
+            print('append name')
             resp.fetch_var_names.append(inst.name)
         return resp
 
@@ -206,18 +226,20 @@ class PyServer(object):
 
     def run_server(self):
         for op in self._ops:
-            th = multiprocessing.Process(
-                target=self.op_start_wrapper, args=(op, ))
+            # th = multiprocessing.Process(target=self.op_start_wrapper, args=(op, ))
+            th = threading.Thread(target=self.op_start_wrapper, args=(op, ))
             th.start()
             self._op_threads.append(th)
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self._worker_num))
         general_python_service_pb2_grpc.add_GeneralPythonServiceServicer_to_server(
             GeneralPythonService(self._in_channel, self._out_channel), server)
+        server.add_insecure_port('[::]:{}'.format(self._port))
         server.start()
         try:
             for th in self._op_threads:
                 th.join()
+            server.join()
         except KeyboardInterrupt:
             server.stop(0)
 

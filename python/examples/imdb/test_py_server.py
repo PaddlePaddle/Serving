@@ -16,32 +16,90 @@
 from pyserver import Op
 from pyserver import Channel
 from pyserver import PyServer
+import numpy as np
+import python_service_channel_pb2
 
 
 # channel data: {name(str): data(bytes)}
 class ImdbOp(Op):
     def preprocess(self, input_data):
-        x = input_data[0]['words']
-        feed = {"words": np.array(x)}
+        data = input_data[0]  # batchsize=1
+        feed = {}
+        for inst in data.insts:
+            feed[inst.name] = np.frombuffer(inst.data, dtype='int64')
+            # feed[inst.name] = np.frombuffer(inst.data)
         return feed
 
     def postprocess(self, output_data):
-        data = {"resp": fetch_map["prediction"][0][0]}
+        data = python_service_channel_pb2.ChannelData()
+        inst = python_service_channel_pb2.Inst()
+        pred = np.array(output_data["prediction"][0][0], dtype='float')
+        inst.data = np.ndarray.tobytes(pred)
+        inst.name = "prediction"
+        inst.id = 0  #TODO
+        data.insts.append(inst)
         return data
 
 
 class CombineOp(Op):
     def preprocess(self, input_data):
         cnt = 0
-        for data in input_data:
-            cnt += data['resp']
-        return {"resp": cnt}
+        for input in input_data:
+            data = input[0]  # batchsize=1
+            cnt += np.frombuffer(data.insts[0].data, dtype='float')
+        data = python_service_channel_pb2.ChannelData()
+        inst = python_service_channel_pb2.Inst()
+        inst.data = np.ndarray.tobytes(cnt)
+        inst.name = "resp"
+        inst.id = 0  #TODO
+        data.insts.append(inst)
+        print(data)
+        return data
+
+
+class UciOp(Op):
+    def preprocess(self, input_data):
+        data = input_data[0]  # batchsize=1
+        feed = {}
+        for inst in data.insts:
+            feed[inst.name] = np.frombuffer(inst.data, dtype='float')
+            # feed[inst.name] = np.frombuffer(inst.data)
+        return feed
+
+    def postprocess(self, output_data):
+        data = python_service_channel_pb2.ChannelData()
+        inst = python_service_channel_pb2.Inst()
+        pred = np.array(output_data["price"][0][0], dtype='float')
+        inst.data = np.ndarray.tobytes(pred)
+        inst.name = "prediction"
+        inst.id = 0  #TODO
+        data.insts.append(inst)
+        return data
 
 
 read_channel = Channel(consumer=2)
 cnn_out_channel = Channel()
 bow_out_channel = Channel()
 combine_out_channel = Channel()
+cnn_op = UciOp(
+    inputs=[read_channel],
+    outputs=[cnn_out_channel],
+    server_model="./uci_housing_model",
+    server_port="9393",
+    device="cpu",
+    client_config="uci_housing_client/serving_client_conf.prototxt",
+    server_name="127.0.0.1:9393",
+    fetch_names=["price"])
+bow_op = UciOp(
+    inputs=[read_channel],
+    outputs=[bow_out_channel],
+    server_model="./uci_housing_model",
+    server_port="9292",
+    device="cpu",
+    client_config="uci_housing_client/serving_client_conf.prototxt",
+    server_name="127.0.0.1:9393",
+    fetch_names=["price"])
+'''
 cnn_op = ImdbOp(
     inputs=[read_channel],
     outputs=[cnn_out_channel],
@@ -50,7 +108,7 @@ cnn_op = ImdbOp(
     device="cpu",
     client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
-    fetch_names=["prediction"])
+    fetch_names=["acc", "cost", "prediction"])
 bow_op = ImdbOp(
     inputs=[read_channel],
     outputs=[bow_out_channel],
@@ -59,7 +117,8 @@ bow_op = ImdbOp(
     device="cpu",
     client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
     server_name="127.0.0.1:9292",
-    fetch_names=["prediction"])
+    fetch_names=["acc", "cost", "prediction"])
+'''
 combine_op = CombineOp(
     inputs=[cnn_out_channel, bow_out_channel], outputs=[combine_out_channel])
 
