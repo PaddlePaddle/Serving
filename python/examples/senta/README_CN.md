@@ -4,6 +4,11 @@
 ```
 sh get_data.sh
 ```
+## 安装数据预处理模块
+```
+pip install paddle_serving_app
+```
+
 ## 启动HTTP服务
 ```
 python senta_web_service.py senta_bilstm_model/ workdir 9292

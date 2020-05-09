@@ -8,6 +8,13 @@
 ```
 sh get_model.sh
 ```
+
+### 安装数据预处理模块
+
+```
+pip install paddle_serving_app
+```
+
 ### 执行HTTP预测服务
 
 启动server端
