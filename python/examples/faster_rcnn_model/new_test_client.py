@@ -24,11 +24,11 @@ preprocess = Sequential([
 postprocess = RCNNPostprocess("label_list.txt", "output")
 
 client = Client()
-client.load_client_config(sys.argv[1])
+client.load_client_config("faster_rcnn_client_conf/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9393'])
 
 im = preprocess(sys.argv[2])
 fetch_map = client.predict(feed={"image": im, "im_info": np.array(list(im.shape[1:]) + [1.0]),
                                  "im_shape": np.array(list(im.shape[1:]) + [1.0])}, fetch=["multiclass_nms"])
-fetch_map["image"] = sys.argv[2]
+fetch_map["image"] = sys.argv[1]
 postprocess(fetch_map)
