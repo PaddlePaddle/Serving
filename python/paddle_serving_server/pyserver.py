@@ -19,7 +19,7 @@ import os
 import paddle_serving_server
 from paddle_serving_client import Client
 from concurrent import futures
-import numpy
+import numpy as np
 import grpc
 import general_python_service_pb2
 import general_python_service_pb2_grpc
@@ -63,7 +63,10 @@ class Channel(Queue.Queue):
 class Op(object):
     def __init__(self,
                  inputs,
+                 in_dtype,
                  outputs,
+                 out_dtype,
+                 batchsize=1,
                  server_model=None,
                  server_port=None,
                  device=None,
@@ -72,7 +75,10 @@ class Op(object):
                  fetch_names=None):
         self._run = False
         self.set_inputs(inputs)
+        self._in_dtype = in_dtype
         self.set_outputs(outputs)
+        self._out_dtype = out_dtype
+        self._batch_size = batchsize
         self._client = None
         if client_config is not None and \
                 server_name is not None and \
@@ -108,7 +114,19 @@ class Op(object):
         self._outputs = channels
 
     def preprocess(self, input_data):
-        return input_data
+        if len(input_data) != 1:
+            raise Exception(
+                'this Op has multiple previous channels. Please override this method'
+            )
+        feed_batch = []
+        for data in input_data:
+            if len(data.insts) != self._batch_size:
+                raise Exception('len(data_insts) != self._batch_size')
+            feed = {}
+            for inst in data.insts:
+                feed[inst.name] = np.frombuffer(inst.data, dtype=self._in_dtype)
+            feed_batch.append(feed)
+        return feed_batch
 
     def midprocess(self, data):
         # data = preprocess(input), which must be a dict
