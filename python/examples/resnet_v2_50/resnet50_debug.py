@@ -18,7 +18,7 @@ from paddle_serving_app import Debugger
 import sys
 
 debugger = Debugger()
-debugger.load_model(sys.argv[1], gpu=True)
+debugger.load_model_config(sys.argv[1], gpu=True)
 
 seq = Sequential([
     File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
