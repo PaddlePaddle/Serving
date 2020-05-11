@@ -22,7 +22,6 @@ preprocess = Sequential([
 ])
 
 postprocess = RCNNPostprocess("label_list.txt", "output")
-
 client = Client()
 client.load_client_config("faster_rcnn_client_conf/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9393'])
