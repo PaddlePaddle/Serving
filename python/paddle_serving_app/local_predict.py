@@ -42,7 +42,7 @@ class Debugger(object):
         self.fetch_names_to_idx_ = {}
         self.fetch_names_to_type_ = {}
 
-    def load_model(self, model_path, gpu=False, profile=True, cpu_num=1):
+    def load_model_config(self, model_path, gpu=False, profile=True, cpu_num=1):
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
         model_conf = m_config.GeneralModelConfig()
         f = open(client_config, 'r')
