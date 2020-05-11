@@ -12,22 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_client import Client
+from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
+from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
+from paddle_serving_app import Debugger
 import sys
-import os
-import time
-from paddle_serving_app.reader.pddet import Detection
-import numpy as np
 
-py_version = sys.version_info[0]
+debugger = Debugger()
+debugger.load_model_config(sys.argv[1], gpu=True)
 
-feed_var_names = ['image', 'im_shape', 'im_info']
-fetch_var_names = ['multiclass_nms']
-pddet = Detection(config_path=sys.argv[2], output_dir="./output")
-feed_dict = pddet.preprocess(feed_var_names, sys.argv[3])
-client = Client()
-client.load_client_config(sys.argv[1])
-client.connect(['127.0.0.1:9494'])
-fetch_map = client.predict(feed=feed_dict, fetch=fetch_var_names)
-outs = fetch_map.values()
-pddet.postprocess(fetch_map, fetch_var_names)
+seq = Sequential([
+    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
+])
+
+image_file = "daisy.jpg"
+img = seq(image_file)
+fetch_map = debugger.predict(feed={"image": img}, fetch=["feature_map"])
+print(fetch_map["feature_map"].reshape(-1))

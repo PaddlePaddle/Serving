@@ -112,7 +112,6 @@ class Client(object):
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.rpath()
         self.pid = os.getpid()
         self.predictor_sdk_ = None
         self.producers = []
@@ -120,16 +119,6 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
-
-    def rpath(self):
-        lib_path = os.path.dirname(paddle_serving_client.__file__)
-        client_path = os.path.join(lib_path, 'serving_client.so')
-        lib_path = os.path.join(lib_path, 'lib')
-        ld_path = os.getenv('LD_LIBRARY_PATH')
-        if ld_path == None:
-            os.environ['LD_LIBRARY_PATH'] = lib_path
-        elif ld_path not in lib_path:
-            os.environ['LD_LIBRARY_PATH'] = ld_path + ':' + lib_path
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient

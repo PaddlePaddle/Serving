@@ -8,6 +8,13 @@ The example uses the ResNet50_vd model to perform the imagenet 1000 classificati
 ```
 sh get_model.sh
 ```
+
+### Install preprocess module
+
+```
+pip install paddle_serving_app
+```
+
 ### HTTP Infer
 
 launch server side

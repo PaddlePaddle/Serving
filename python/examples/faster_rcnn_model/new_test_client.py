@@ -13,10 +13,7 @@
 # limitations under the License.
 
 from paddle_serving_client import Client
-import sys
-from paddle_serving_app.reader.pddet import Detection
-from paddle_serving_app.reader import File2Image, Sequential, Normalize, Resize, Transpose, Div, BGR2RGB, RCNNPostprocess
-import numpy as np
+from paddle_serving_app.reader import *
 
 preprocess = Sequential([
     File2Image(), BGR2RGB(), Div(255.0),
@@ -25,19 +22,19 @@ preprocess = Sequential([
 ])
 
 postprocess = RCNNPostprocess("label_list.txt", "output")
-
 client = Client()
-client.load_client_config(sys.argv[1])
+
+client.load_client_config(
+    "faster_rcnn_client_conf/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9393'])
 
-for i in range(100):
-    im = preprocess(sys.argv[2])
-    fetch_map = client.predict(
-        feed={
-            "image": im,
-            "im_info": np.array(list(im.shape[1:]) + [1.0]),
-            "im_shape": np.array(list(im.shape[1:]) + [1.0])
-        },
-        fetch=["multiclass_nms"])
-    fetch_map["image"] = sys.argv[2]
-    postprocess(fetch_map)
+im = preprocess(sys.argv[2])
+fetch_map = client.predict(
+    feed={
+        "image": im,
+        "im_info": np.array(list(im.shape[1:]) + [1.0]),
+        "im_shape": np.array(list(im.shape[1:]) + [1.0])
+    },
+    fetch=["multiclass_nms"])
+fetch_map["image"] = sys.argv[1]
+postprocess(fetch_map)
