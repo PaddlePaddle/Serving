@@ -4,6 +4,12 @@
 ```
 sh get_data.sh
 ```
+## Install preprocess module
+
+```
+pip install paddle_serving_app
+```
+
 ## Start http service
 ```
 python senta_web_service.py senta_bilstm_model/ workdir 9292

@@ -16,3 +16,4 @@ from .reader.image_reader import ImageReader, File2Image, URL2Image, Sequential,
 from .reader.lac_reader import LACReader
 from .reader.senta_reader import SentaReader
 from .models import ServingModels
+from .local_predict import Debugger
