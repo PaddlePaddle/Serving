@@ -9,7 +9,7 @@
 - Golang: 1.9.2 and later
 - Git：2.17.1 and later
 - CMake：3.2.2 and later
-- Python：2.7.2 and later
+- Python：2.7.2 and later / 3.6 and later
 
 It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you: 
 
@@ -53,6 +53,8 @@ make -j10
 ```
 
 execute `make install` to put targets under directory `./output`
+
+**Attention：**After the compilation is successful, the serving binary file will be generated in the ./core/general-server directory. Before starting the server, export SERVING_BIN = $ {path / to / serving / bin} is required to allow the server to use the compiled serving binary file.
 
 ## Compile Client
 
