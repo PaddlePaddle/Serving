@@ -9,7 +9,7 @@
 - Golang: 1.9.2及以上
 - Git：2.17.1及以上
 - CMake：3.2.2及以上
-- Python：2.7.2及以上
+- Python：2.7.2及以上 / 3.6及以上
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
 
@@ -53,6 +53,8 @@ make -j10
 ```
 
 执行`make install`可以把目标产出放在`./output`目录下。
+
+**注意：** 编译成功后，在./core/general-server目录下会产出serving二进制文件。启动server前需要export SERVING_BIN=${path/to/serving/bin} 来让server端使用编译出的serving二进制文件。
 
 ## 编译Client部分
 
