@@ -194,6 +194,12 @@ class FluidCpuAnalysisDirCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
+    if (params.enable_ir_optimization()) {
+      analysis_config.SwitchIrOptim(true);
+    } else {
+      analysis_config.SwitchIrOptim(false);
+    }
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
