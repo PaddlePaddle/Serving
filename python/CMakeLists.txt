@@ -43,7 +43,8 @@ if (APP)
 add_custom_command(
         OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
         COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_app/ ${PADDLE_SERVING_BINARY_DIR}/python/
-        COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel)
+        COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        DEPENDS ${SERVING_APP_CORE} general_model_config_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
 endif()
 
