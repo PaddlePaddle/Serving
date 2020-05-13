@@ -13,11 +13,9 @@
 # limitations under the License.
 
 from paddle_serving_server.web_service import WebService
-import sys
-import cv2
-import base64
-import numpy as np
 from paddle_serving_app import ImageReader
+import sys
+import base64
 
 
 class ImageService(WebService):
