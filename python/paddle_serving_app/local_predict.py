@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ class Debugger(object):
         if profile:
             config.enable_profile()
         config.set_cpu_math_library_num_threads(cpu_num)
+        config.switch_ir_optim(False)
 
         self.predictor = create_paddle_predictor(config)
 
