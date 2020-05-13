@@ -19,6 +19,8 @@ endif()
 if (CLIENT)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.client.in
     ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../tools/python_tag.py
+    ${CMAKE_CURRENT_BINARY_DIR}/python_tag.py)
 endif()
 
 if (APP)
@@ -53,6 +55,7 @@ add_custom_command(
 	OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
 	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_client/ ${PADDLE_SERVING_BINARY_DIR}/python/
 	COMMAND ${CMAKE_COMMAND} -E copy ${SERVING_CLIENT_CORE} ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/serving_client.so
+    COMMAND env ${py_env} ${PYTHON_EXECUTABLE} python_tag.py
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_CLIENT_CORE} sdk_configure_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
