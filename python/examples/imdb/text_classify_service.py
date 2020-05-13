@@ -14,7 +14,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_server.web_service import WebService
-from imdb_reader import IMDBDataset
+from paddle_serving_app import IMDBReader
 import sys
 
 
@@ -22,7 +22,7 @@ class IMDBService(WebService):
     def prepare_dict(self, args={}):
         if len(args) == 0:
             exit(-1)
-        self.dataset = IMDBDataset()
+        self.dataset = IMDBReader()
         self.dataset.load_resource(args["dict_file_path"])
 
     def preprocess(self, feed={}, fetch=[]):
