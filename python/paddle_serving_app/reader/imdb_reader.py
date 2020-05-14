@@ -22,7 +22,7 @@ import paddle.fluid.incubate.data_generator as dg
 py_version = sys.version_info[0]
 
 
-class IMDBReader(dg.MultiSlotDataGenerator):
+class IMDBDataset(dg.MultiSlotDataGenerator):
     def load_resource(self, dictfile):
         self._vocab = {}
         wid = 0
@@ -87,6 +87,6 @@ class IMDBReader(dg.MultiSlotDataGenerator):
 
 
 if __name__ == "__main__":
-    imdb = IMDBReader()
+    imdb = IMDBDataset()
     imdb.load_resource("imdb.vocab")
     imdb.run_from_stdin()

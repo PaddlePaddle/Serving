@@ -14,7 +14,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-from imdb_reader import IMDBDataset
+from paddle_serving_app import IMDBDataset
 
 client = Client()
 # If you have more than one model, make sure that the input
