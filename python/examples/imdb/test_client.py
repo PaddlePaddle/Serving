@@ -23,7 +23,7 @@ client.connect(["127.0.0.1:9292"])
 # you can define any english sentence or dataset here
 # This example reuses imdb reader in training, you
 # can define your own data preprocessing easily.
-imdb_dataset = IMDDataset()
+imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource(sys.argv[2])
 
 for line in sys.stdin:
