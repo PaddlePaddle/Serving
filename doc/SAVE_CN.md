@@ -41,10 +41,10 @@ serving_io.inference_model_to_serving(dirname, model_filename=None, params_filen
 ```
 dirname (str) – 需要转换的模型文件存储路径，Program结构文件和参数文件均保存在此目录。
 
-model_filename (str，可选) – 存储需要转换的模型Inference Program结构的文件名称。如果设置为None，则使用 `__model__` 作为默认的文件名。默认值为`None`。
+model_filename (str，可选) – 存储需要转换的模型Inference Program结构的文件名称。如果设置为None，则使用 `__model__` 作为默认的文件名。默认值为None。
 
 params_filename (str，可选) – 存储需要转换的模型所有参数的文件名称。当且仅当所有模型参数被保存在一个单独的二进制文件中，它才需要被指定。如果模型参数是存储在各自分离的文件中，设置它的值为None。默认值为None。
 
-serving_server (str, 可选) - 转换后的模型文件和配置文件的存储路径。默认值为`serving_server`。
+serving_server (str, 可选) - 转换后的模型文件和配置文件的存储路径。默认值为serving_server。
 
-serving_client (str, 可选) - 转换后的客户端配置文件存储路径。默认值为`serving_client`。
+serving_client (str, 可选) - 转换后的客户端配置文件存储路径。默认值为serving_client。
