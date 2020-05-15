@@ -58,7 +58,7 @@ make -j10
 
 execute `make install` to put targets under directory `./output`
 
-**Attention：**After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
+**Attention：** After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
 
 ## Compile Client
 
