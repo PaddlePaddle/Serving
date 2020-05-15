@@ -14,11 +14,13 @@
 
 syntax = "proto2";
 
-message ChannelData { repeated Inst insts = 1; }
+message ChannelData {
+  repeated Inst insts = 1;
+  required int32 id = 2;
+  optional string type = 3 [ default = "channel" ];
+}
 
 message Inst {
   required bytes data = 1;
   required string name = 2;
-  required int32 id = 3;
-  optional string type = 4 [ default = "channel" ];
 }

@@ -18,9 +18,15 @@ from pyserver import Channel
 from pyserver import PyServer
 import numpy as np
 import python_service_channel_pb2
+import logging
 
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d %H:%M',
+    level=logging.INFO)
 
 # channel data: {name(str): data(bytes)}
+"""
 class ImdbOp(Op):
     def postprocess(self, output_data):
         data = python_service_channel_pb2.ChannelData()
@@ -28,36 +34,44 @@ class ImdbOp(Op):
         pred = np.array(output_data["prediction"][0][0], dtype='float')
         inst.data = np.ndarray.tobytes(pred)
         inst.name = "prediction"
-        inst.id = 0  #TODO
+        inst.id = 0 #TODO
         data.insts.append(inst)
         return data
+"""
 
 
 class CombineOp(Op):
     def preprocess(self, input_data):
+        data_id = None
         cnt = 0
         for input in input_data:
             data = input[0]  # batchsize=1
             cnt += np.frombuffer(data.insts[0].data, dtype='float')
+            if data_id is None:
+                data_id = data.id
+            if data_id != data.id:
+                raise Exception("id not match: {} vs {}".format(data_id,
+                                                                data.id))
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
         inst.data = np.ndarray.tobytes(cnt)
         inst.name = "resp"
-        inst.id = 0  #TODO
         data.insts.append(inst)
+        data.id = data_id
         print(data)
         return data
 
 
 class UciOp(Op):
     def postprocess(self, output_data):
+        data_ids = self.get_data_ids()
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
         pred = np.array(output_data["price"][0][0], dtype='float')
         inst.data = np.ndarray.tobytes(pred)
         inst.name = "prediction"
-        inst.id = 0  #TODO
         data.insts.append(inst)
+        data.id = data_ids[0]
         return data
 
 
@@ -121,5 +135,5 @@ pyserver.add_channel(combine_out_channel)
 pyserver.add_op(cnn_op)
 pyserver.add_op(bow_op)
 pyserver.add_op(combine_op)
-pyserver.prepare_server(port=8080, worker_num=1)
+pyserver.prepare_server(port=8080, worker_num=2)
 pyserver.run_server()
