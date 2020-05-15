@@ -16,7 +16,11 @@ It is recommended to use Docker for compilation. We have prepared the Paddle Ser
 - CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
 - GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
 
-This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python 3, just adjust the Python options of cmake.
+This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python3, just adjust the Python options of cmake:
+
+- Set `DPYTHON_INCLUDE_DIR` to `$PYTHONROOT/include/python3.6m/`
+- Set  `DPYTHON_LIBRARIES` to `$PYTHONROOT/lib64/libpython3.6.so`
+- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3`
 
 ## Get Code
 
@@ -54,7 +58,7 @@ make -j10
 
 execute `make install` to put targets under directory `./output`
 
-**Attention：**After the compilation is successful, the serving binary file will be generated in the ./core/general-server directory. Before starting the server, export SERVING_BIN = $ {path / to / serving / bin} is required to allow the server to use the compiled serving binary file.
+**Attention：**After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
 
 ## Compile Client
 
