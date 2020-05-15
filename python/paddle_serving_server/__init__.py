@@ -289,8 +289,8 @@ class Server(object):
         # check config here
         # print config here
 
-    def use_mkl(self):
-        self.mkl_flag = True
+    def use_mkl(self, flag):
+        self.mkl_flag = flag
 
     def get_device_version(self):
         avx_flag = False
@@ -305,6 +305,10 @@ class Server(object):
             else:
                 device_version = "serving-cpu-avx-openblas-"
         else:
+            if mkl_flag:
+                print(
+                    "Your CPU does not support AVX, server will running with noavx-openblas mode."
+                )
             device_version = "serving-cpu-noavx-openblas-"
         return device_version
 
