@@ -40,7 +40,7 @@ serving_io.inference_model_to_serving(dirname, model_filename=None, params_filen
 ```
 dirname (str) - Path of saved model files. Program file and parameter files are saved in this directory.
 
-model_filename (str, optional) - The name of file to load the inference program. If it is None, the default filename __model__ will be used. Default: None.
+model_filename (str, optional) - The name of file to load the inference program. If it is None, the default filename `__model__` will be used. Default: None.
 
 paras_filename (str, optional) - The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. Default: None.
 
