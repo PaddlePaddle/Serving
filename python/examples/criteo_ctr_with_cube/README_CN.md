@@ -1,16 +1,6 @@
 ## 带稀疏参数索引服务的CTR预测服务
 (简体中文|[English](./README.md))
 
-### 编译源代码
-在本项目的根目录下，执行
-```
-mkdir build_server
-cd build_server
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
-make -j10
-make install -j10
-```
-
 ### 获取样例数据
 进入目录 `python/examples/criteo_ctr_with_cube`
 ```
@@ -29,7 +19,9 @@ mv models/data ./cube/
 
 ### 启动稀疏参数索引服务
 ```
-cp ../../../build_server/output/bin/cube* ./cube/
+wget https://paddle-serving.bj.bcebos.com/others/cube_app.tar.gz
+tar xf cube_app.tar.gz
+mv cube_app/cube* ./cube/
 sh cube_prepare.sh &
 ```
 

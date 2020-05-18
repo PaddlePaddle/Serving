@@ -350,12 +350,12 @@ In the above command, the first parameter is the saved server-side model and con
 After starting the HTTP prediction service, you can make prediction with a single command:
 
 ```
-curl -H "Content-Type: application/json" -X POST -d '{"words": "i am very sad | 0", "fetch": ["prediction"]}' http://127.0.0.1:9292/imdb/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
 When the inference process is normal, the prediction probability is returned, as shown below.
 
 ```
-{"prediction": [0.5592559576034546,0.44074398279190063]}
+{"result":{"prediction":[[0.4389057457447052,0.561094343662262]]}}
 ```
 
 **Note**: The effect of each model training may be slightly different, and the inferred probability value using the trained model may not be consistent with the example.

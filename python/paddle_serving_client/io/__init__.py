@@ -103,17 +103,21 @@ def save_model(server_model_folder,
         fout.write(config.SerializeToString())
 
 
-def inference_model_to_serving(infer_model, serving_client, serving_server):
+def inference_model_to_serving(dirname,
+                               model_filename=None,
+                               params_filename=None,
+                               serving_server="serving_server",
+                               serving_client="serving_client"):
     place = fluid.CPUPlace()
     exe = fluid.Executor(place)
     inference_program, feed_target_names, fetch_targets = \
-            fluid.io.load_inference_model(dirname=infer_model, executor=exe)
+            fluid.io.load_inference_model(dirname=dirname, executor=exe, model_filename=model_filename, params_filename=params_filename)
     feed_dict = {
         x: inference_program.global_block().var(x)
         for x in feed_target_names
     }
     fetch_dict = {x.name: x for x in fetch_targets}
-    save_model(serving_client, serving_server, feed_dict, fetch_dict,
+    save_model(serving_server, serving_client, feed_dict, fetch_dict,
                inference_program)
     feed_names = feed_dict.keys()
     fetch_names = fetch_dict.keys()
