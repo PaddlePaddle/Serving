@@ -319,7 +319,7 @@ class Client(object):
                 if self.fetch_names_to_type_[name] == int_type:
                     result_map[name] = result_batch.get_int64_by_name(mi, name)
                     shape = result_batch.get_shape(mi, name)
-                    result_map[name] = np.array(result_map[name], dtype='int64')
+                    # result_map[name] = np.array(result_map[name], dtype='int64')
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
                         result_map["{}.lod".format(name)] = np.array(
@@ -327,8 +327,8 @@ class Client(object):
                 elif self.fetch_names_to_type_[name] == float_type:
                     result_map[name] = result_batch.get_float_by_name(mi, name)
                     shape = result_batch.get_shape(mi, name)
-                    result_map[name] = np.array(
-                        result_map[name], dtype='float32')
+                    # result_map[name] = np.array(
+                    # result_map[name], dtype='float32')
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
                         result_map["{}.lod".format(name)] = np.array(
