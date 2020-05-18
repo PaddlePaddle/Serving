@@ -1,3 +1,5 @@
+(简体中文|[English](./README_CN.md))
+
 paddle_serivng_app是Paddle Serving框架的工具组件，包含了预训练模型下载、数据预处理方法等功能。方便用户快速体验和部署模型示例、分析预测服务性能、调试模型预测服务等。
 
 ## 安装
@@ -18,7 +20,7 @@ python -m paddle_serving_app.package --model_list
 python -m paddle_serving_app.package --get_model senta_bilstm
 ```
 
-paddle_serving_app中内置了11中预训练模型，涵盖了6中预测任务。获取到的模型文件可以直接用于部署，添加`--tutorial`参数可以获取对应的部署方式。
+paddle_serving_app中内置了11中预训练模型，涵盖了6种预测任务。获取到的模型文件可以直接用于部署，添加`--tutorial`参数可以获取对应的部署方式。
 
 | 预测服务类型 | 模型名称                                         |
 | ------------ | ------------------------------------------------ |
