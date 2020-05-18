@@ -19,10 +19,10 @@ pip install paddle_serving_app
 
 launch server side
 ```
-python image_classification_service.py ResNet50_vd_model cpu 9696 #cpu inference service
+python resnet50_web_service.py ResNet50_vd_model cpu 9696 #cpu inference service
 ```
 ```
-python image_classification_service.py ResNet50_vd_model gpu 9696 #gpu inference service
+python resnet50_web_service.py ResNet50_vd_model gpu 9696 #gpu inference service
 ```
 
 
