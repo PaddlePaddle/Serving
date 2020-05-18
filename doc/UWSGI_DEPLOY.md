@@ -1,5 +1,7 @@
 # Deploy HTTP service with uWSGI
 
+([简体中文](./UWSGI_DEPLOY_CN.md)|English)
+
 In fit_a_line example, after starting the HTTP prediction service, you will see the following information:
 
 ```shell

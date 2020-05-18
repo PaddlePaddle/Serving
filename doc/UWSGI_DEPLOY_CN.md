@@ -1,5 +1,7 @@
 # 使用uwsgi启动HTTP预测服务
 
+(简体中文|[English](./UWSGI_DEPLOY.md))
+
 在提供的fit_a_line示例中，启动HTTP预测服务后会看到有以下信息：
 
 ```shell
