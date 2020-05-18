@@ -71,6 +71,7 @@ class Debugger(object):
         if profile:
             config.enable_profile()
         config.set_cpu_math_library_num_threads(cpu_num)
+        config.switch_ir_optim(False)
 
         self.predictor = create_paddle_predictor(config)
 

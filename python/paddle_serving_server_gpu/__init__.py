@@ -48,6 +48,8 @@ def serve_args():
     parser.add_argument(
         "--mem_optim", type=bool, default=False, help="Memory optimize")
     parser.add_argument(
+        "--ir_optim", type=bool, default=False, help="Graph optimize")
+    parser.add_argument(
         "--max_body_size",
         type=int,
         default=512 * 1024 * 1024,
@@ -156,6 +158,7 @@ class Server(object):
         self.model_toolkit_conf = None
         self.resource_conf = None
         self.memory_optimization = False
+        self.ir_optimization = False
         self.model_conf = None
         self.workflow_fn = "workflow.prototxt"
         self.resource_fn = "resource.prototxt"
@@ -204,6 +207,9 @@ class Server(object):
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
+    def set_ir_optimize(self, flag=False):
+        self.ir_optimization = flag
+
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
@@ -240,6 +246,7 @@ class Server(object):
             engine.enable_batch_align = 0
             engine.model_data_path = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
+            engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
 

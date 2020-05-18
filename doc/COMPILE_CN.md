@@ -9,14 +9,18 @@
 - Golang: 1.9.2及以上
 - Git：2.17.1及以上
 - CMake：3.2.2及以上
-- Python：2.7.2及以上
+- Python：2.7.2及以上 / 3.6及以上
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
 
 - CPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
 - GPU: `hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
 
-本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可。
+本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可：
+
+- 将`DPYTHON_INCLUDE_DIR`设置为`$PYTHONROOT/include/python3.6m/`
+- 将`DPYTHON_LIBRARIES`设置为`$PYTHONROOT/lib64/libpython3.6.so`
+- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3`
 
 ## 获取代码
 
@@ -53,6 +57,8 @@ make -j10
 ```
 
 执行`make install`可以把目标产出放在`./output`目录下。
+
+**注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
 ## 编译Client部分
 

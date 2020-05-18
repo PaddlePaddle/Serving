@@ -35,6 +35,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     thread_num = args.thread
     model = args.model
     mem_optim = args.mem_optim
+    ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     workdir = "{}_{}".format(args.workdir, gpuid)
 
@@ -57,6 +58,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
+    server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
 
     server.load_model_config(model)
