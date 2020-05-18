@@ -32,7 +32,7 @@ PYBIND11_MODULE(serving_client, m) {
       .def(py::init())
       .def("get_int64_by_name",
            [](PredictorRes &self, int model_idx, std::string &name) {
-             // https://github.com/pybind/pybind11/issues/1042
+             // see more: https://github.com/pybind/pybind11/issues/1042
              std::vector<int64_t> *ptr = new std::vector<int64_t>(
                  std::move(self.get_int64_by_name_with_rv(model_idx, name)));
              auto capsule = py::capsule(ptr, [](void *p) {
@@ -48,10 +48,7 @@ PYBIND11_MODULE(serving_client, m) {
                delete reinterpret_cast<std::vector<float> *>(p);
              });
              return py::array(ptr->size(), ptr->data(), capsule);
-             // return self.get_float_by_name(model_idx, name);
            })
-      //,
-      // py::return_value_policy::reference)
       .def("get_shape",
            [](PredictorRes &self, int model_idx, std::string &name) {
              return self.get_shape(model_idx, name);
