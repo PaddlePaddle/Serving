@@ -116,10 +116,10 @@ class WebService(object):
         self.app_instance = app_instance
 
     def run_flask(self):
-        app_instance.run(host="0.0.0.0",
-                         port=self.port,
-                         threaded=False,
-                         processes=1)
+        self.app_instance.run(host="0.0.0.0",
+                              port=self.port,
+                              threaded=False,
+                              processes=1)
 
     def get_app_instance(self):
         return self.app_instance
