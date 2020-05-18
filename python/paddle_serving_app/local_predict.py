@@ -115,6 +115,13 @@ class Debugger(object):
 
         inputs = []
         for name in self.feed_names_:
+            if isinstance(feed[name], list):
+                feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
+                    name])
+                if self.feed_types_[name] == 0:
+                    feed[name] = feed[name].astype("int64")
+                else:
+                    feed[name] = feed[name].astype("float32")
             inputs.append(PaddleTensor(feed[name][np.newaxis, :]))
 
         outputs = self.predictor.run(inputs)
