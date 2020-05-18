@@ -353,12 +353,12 @@ python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
 启动完HTTP预测服务，即可通过一行命令进行预测：
 
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"words": "i am very sad | 0", "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
 ```
 预测流程正常时，会返回预测概率，示例如下。
 
 ```
-{"prediction":[0.5592559576034546,0.44074398279190063]}
+{"result":{"prediction":[[0.4389057457447052,0.561094343662262]]}}
 ```
 
 **注意**：每次模型训练的效果可能略有不同，使用训练出的模型预测概率数值可能与示例不一致。

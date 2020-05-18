@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_client import Client
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+py_version = sys.version_info[0]
+if py_version == 2:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 import os
 import io
 

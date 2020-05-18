@@ -35,6 +35,7 @@ class InferEngineCreationParams {
   InferEngineCreationParams() {
     _path = "";
     _enable_memory_optimization = false;
+    _enable_ir_optimization = false;
     _static_optimization = false;
     _force_update_static_cache = false;
   }
@@ -45,9 +46,15 @@ class InferEngineCreationParams {
     _enable_memory_optimization = enable_memory_optimization;
   }
 
+  void set_enable_ir_optimization(bool enable_ir_optimization) {
+    _enable_ir_optimization = enable_ir_optimization;
+  }
+
   bool enable_memory_optimization() const {
     return _enable_memory_optimization;
   }
+
+  bool enable_ir_optimization() const { return _enable_ir_optimization; }
 
   void set_static_optimization(bool static_optimization = false) {
     _static_optimization = static_optimization;
@@ -68,6 +75,7 @@ class InferEngineCreationParams {
               << "model_path = " << _path << ", "
               << "enable_memory_optimization = " << _enable_memory_optimization
               << ", "
+              << "enable_ir_optimization = " << _enable_ir_optimization << ", "
               << "static_optimization = " << _static_optimization << ", "
               << "force_update_static_cache = " << _force_update_static_cache;
   }
@@ -75,6 +83,7 @@ class InferEngineCreationParams {
  private:
   std::string _path;
   bool _enable_memory_optimization;
+  bool _enable_ir_optimization;
   bool _static_optimization;
   bool _force_update_static_cache;
 };
@@ -148,6 +157,11 @@ class ReloadableInferEngine : public InferEngine {
     bool force_update_static_cache = false;
     if (conf.has_force_update_static_cache()) {
       force_update_static_cache = conf.force_update_static_cache();
+    }
+
+    if (conf.has_enable_ir_optimization()) {
+      _infer_engine_params.set_enable_ir_optimization(
+          conf.enable_ir_optimization());
     }
 
     _infer_engine_params.set_path(_model_data_path);
