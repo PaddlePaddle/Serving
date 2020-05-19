@@ -14,23 +14,35 @@
 
 import sys
 from paddle_serving_client import Client
-from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize
+from paddle_serving_app.reader import Sequential, URL2Image, Resize
+from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 import time
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+client.connect(["127.0.0.1:9696"])
+
+label_dict = {}
+label_idx = 0
+with open("imagenet.label") as fin:
+    for line in fin:
+        label_dict[label_idx] = line.strip()
+        label_idx += 1
 
 seq = Sequential([
-    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
-    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
 ])
-print(seq)
 
 start = time.time()
-image_file = "daisy.jpg"
-for i in range(1000):
+image_file = "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"
+for i in range(10):
     img = seq(image_file)
     fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+    prob = max(fetch_map["score"][0])
+    label = label_dict[fetch_map["score"][0].tolist().index(prob)].strip(
+    ).replace(",", "")
+    print("prediction: {}, probability: {}".format(label, prob))
+
 end = time.time()
 print(end - start)
