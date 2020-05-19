@@ -466,23 +466,10 @@ class Resize(object):
 
 
 class PadStride(object):
-    """ padding image for model with FPN
-    Args:
-        stride (bool): model with FPN need image shape % stride == 0
-    """
-
     def __init__(self, stride):
         self.coarsest_stride = stride
 
     def __call__(self, img):
-        """
-        Args:
-            im (np.ndarray): image (np.ndarray)
-            im_info (dict): info of image
-        Returns:
-            im (np.ndarray):  processed image (np.ndarray)
-            im_info (dict): info of processed image
-        """
         coarsest_stride = self.coarsest_stride
         if coarsest_stride == 0:
             return img
