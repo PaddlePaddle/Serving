@@ -465,6 +465,37 @@ class Resize(object):
             _cv2_interpolation_to_str[self.interpolation])
 
 
+class PadStride(object):
+    """ padding image for model with FPN
+    Args:
+        stride (bool): model with FPN need image shape % stride == 0
+    """
+
+    def __init__(self, stride):
+        self.coarsest_stride = stride
+
+    def __call__(self, img):
+        """
+        Args:
+            im (np.ndarray): image (np.ndarray)
+            im_info (dict): info of image
+        Returns:
+            im (np.ndarray):  processed image (np.ndarray)
+            im_info (dict): info of processed image
+        """
+        coarsest_stride = self.coarsest_stride
+        if coarsest_stride == 0:
+            return img
+        im_c, im_h, im_w = img.shape
+        pad_h = int(np.ceil(float(im_h) / coarsest_stride) * coarsest_stride)
+        pad_w = int(np.ceil(float(im_w) / coarsest_stride) * coarsest_stride)
+        padding_im = np.zeros((im_c, pad_h, pad_w), dtype=np.float32)
+        padding_im[:, :im_h, :im_w] = img
+        im_info = {}
+        im_info['resize_shape'] = padding_im.shape[1:]
+        return padding_im
+
+
 class Transpose(object):
     def __init__(self, transpose_target):
         self.transpose_target = transpose_target
