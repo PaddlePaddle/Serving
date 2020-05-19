@@ -15,34 +15,35 @@ sh get_model.sh
 pip install paddle_serving_app
 ```
 
-### HTTP Infer
+### HTTP Service
 
 launch server side
 ```
-python image_classification_service.py ResNet50_vd_model workdir 9393 #cpu inference service
+python resnet50_web_service.py ResNet50_vd_model cpu 9696 #cpu inference service
 ```
 ```
-python image_classification_service_gpu.py ResNet50_vd_model workdir 9393 #gpu inference service
+python resnet50_web_service.py ResNet50_vd_model gpu 9696 #gpu inference service
 ```
 
 
 client send inference request
 ```
-python image_http_client.py
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9696/image/prediction
 ```
-### RPC Infer
+
+### RPC Service
 
 launch server side
 ```
-python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9393 #cpu inference service
+python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 #cpu inference service
 ```
 
 ```
-python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0 #gpu inference service
+python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu inference service
 ```
 
 client send inference request
 ```
 python image_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
-*the port of server side in this example is 9393, the sample data used by client side is in the folder ./data. These parameter can be modified in practice*
+*the port of server side in this example is 9696

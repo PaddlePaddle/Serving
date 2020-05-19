@@ -69,8 +69,14 @@ class ModelRes {
   const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
     return _int64_value_map[name];
   }
+  std::vector<int64_t>&& get_int64_by_name_with_rv(const std::string& name) {
+    return std::move(_int64_value_map[name]);
+  }
   const std::vector<float>& get_float_by_name(const std::string& name) {
     return _float_value_map[name];
+  }
+  std::vector<float>&& get_float_by_name_with_rv(const std::string& name) {
+    return std::move(_float_value_map[name]);
   }
   const std::vector<int>& get_shape(const std::string& name) {
     return _shape_map[name];
@@ -121,9 +127,17 @@ class PredictorRes {
                                                 const std::string& name) {
     return _models[model_idx].get_int64_by_name(name);
   }
+  std::vector<int64_t>&& get_int64_by_name_with_rv(const int model_idx,
+                                                   const std::string& name) {
+    return std::move(_models[model_idx].get_int64_by_name_with_rv(name));
+  }
   const std::vector<float>& get_float_by_name(const int model_idx,
                                               const std::string& name) {
     return _models[model_idx].get_float_by_name(name);
+  }
+  std::vector<float>&& get_float_by_name_with_rv(const int model_idx,
+                                                 const std::string& name) {
+    return std::move(_models[model_idx].get_float_by_name_with_rv(name));
   }
   const std::vector<int>& get_shape(const int model_idx,
                                     const std::string& name) {
