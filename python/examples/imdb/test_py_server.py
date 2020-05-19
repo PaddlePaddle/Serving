@@ -26,21 +26,10 @@ logging.basicConfig(
     level=logging.INFO)
 
 # channel data: {name(str): data(bytes)}
-"""
-class ImdbOp(Op):
-    def postprocess(self, output_data):
-        data = python_service_channel_pb2.ChannelData()
-        inst = python_service_channel_pb2.Inst()
-        pred = np.array(output_data["prediction"][0][0], dtype='float')
-        inst.data = np.ndarray.tobytes(pred)
-        inst.name = "prediction"
-        inst.id = 0 #TODO
-        data.insts.append(inst)
-        return data
-"""
 
 
 class CombineOp(Op):
+    #TODO: different id of data
     def preprocess(self, input_data):
         data_id = None
         cnt = 0
@@ -58,7 +47,6 @@ class CombineOp(Op):
         inst.name = "resp"
         data.insts.append(inst)
         data.id = data_id
-        print(data)
         return data
 
 
@@ -75,11 +63,13 @@ class UciOp(Op):
         return data
 
 
-read_channel = Channel(consumer=2)
+read_channel = Channel()
 cnn_out_channel = Channel()
 bow_out_channel = Channel()
 combine_out_channel = Channel()
+
 cnn_op = UciOp(
+    name="cnn_op",
     inputs=[read_channel],
     in_dtype='float',
     outputs=[cnn_out_channel],
@@ -90,7 +80,9 @@ cnn_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"])
+
 bow_op = UciOp(
+    name="bow_op",
     inputs=[read_channel],
     in_dtype='float',
     outputs=[bow_out_channel],
@@ -101,27 +93,9 @@ bow_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"])
-'''
-cnn_op = ImdbOp(
-    inputs=[read_channel],
-    outputs=[cnn_out_channel],
-    server_model="./imdb_cnn_model",
-    server_port="9393",
-    device="cpu",
-    client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
-    server_name="127.0.0.1:9393",
-    fetch_names=["acc", "cost", "prediction"])
-bow_op = ImdbOp(
-    inputs=[read_channel],
-    outputs=[bow_out_channel],
-    server_model="./imdb_bow_model",
-    server_port="9292",
-    device="cpu",
-    client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-    server_name="127.0.0.1:9292",
-    fetch_names=["acc", "cost", "prediction"])
-'''
+
 combine_op = CombineOp(
+    name="combine_op",
     inputs=[cnn_out_channel, bow_out_channel],
     in_dtype='float',
     outputs=[combine_out_channel],
