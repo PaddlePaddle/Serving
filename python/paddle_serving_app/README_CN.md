@@ -33,9 +33,11 @@ paddle_serving_app中内置了11中预训练模型，涵盖了6种预测任务�
 
 ## 数据预处理API
 
-paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的数据预处理方法
+paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的数据预处理方法。
 
-- class ChineseBertReader 中文语义理解模型预处理
+- class ChineseBertReader 
+    
+    中文语义理解模型预处理
 
   - `__init__(vocab_file, max_seq_len=20)`
 
@@ -58,7 +60,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
     - words（str）：原始文本
     - crf_decode（np.array）：模型预测结果中的CRF编码
 
-  [参考示例](../examples/bert/bert_client.py)
+  [参考示例](../examples/lac/lac_web_service.py)
 
 - class SentaReader
 
@@ -112,7 +114,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
 
 ## Timeline 工具
 
-通过Timeline工具可以将预测服务的准备数据、client等待、server端op等各阶段起止时间可视化，方便分析预测服务中的时间占用比重，在此基础上有针对性的优化预测服务。
+通过Timeline工具可以将预测服务的准备数据、client等待、server端op等各阶段起止时间可视化，方便分析预测服务中的时间占用比重，在此基础上有针对性地优化预测服务。
 
 ### 使用方式
 
@@ -133,13 +135,14 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
 
 4. 使用chrome浏览器，打开`chrome://tracing/`网址，通过load按钮加载上一步产生的trace文件，即可将预测服务的各阶段时间信息可视化。
 
-   效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
+   效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline。
+其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送到接收结果的阶段，图中的process代表的是client的进程号，每个进程的第二行展示的是server各个op的timeline。
 
    ![timeline](../../doc/timeline-example.png)
 
 ## Debug工具
 
-Paddle Serving框架的server预测op使用了Paddle 的预测框架，在部署预测服务之前可能需要对预测服务的输入输出进行检验或者查看资源占用等。因此在paddle_serving_app中内置了本地预测工具，使用方式与通过client向预测服发送请求一致。
+Paddle Serving框架的server预测op使用了Paddle 的预测框架，在部署预测服务之前可能需要对预测服务的输入输出进行检验或者查看资源占用等。因此在paddle_serving_app中内置了本地预测工具，使用方式与通过client向服务端发送请求一致。
 
 以[fit_a_line预测服务](../examples/fit_a_line)为例，使用以下代码即可执行本地预测。
 
