@@ -1,4 +1,4 @@
-(简体中文|[English](./README_CN.md))
+(简体中文|[English](./README.md))
 
 paddle_serivng_app是Paddle Serving框架的工具组件，包含了预训练模型下载、数据预处理方法等功能。方便用户快速体验和部署模型示例、分析预测服务性能、调试模型预测服务等。
 
