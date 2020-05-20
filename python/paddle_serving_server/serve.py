@@ -43,6 +43,7 @@ def parse_args():  # pylint: disable=doc-string-missing
         "--mem_optim", type=bool, default=False, help="Memory optimize")
     parser.add_argument(
         "--ir_optim", type=bool, default=False, help="Graph optimize")
+    parser.add_argument("--use_mkl", type=bool, default=False, help="Use MKL")
     parser.add_argument(
         "--max_body_size",
         type=int,
@@ -61,6 +62,7 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     mem_optim = args.mem_optim
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
+    use_mkl = args.use_mkl
 
     if model == "":
         print("You must specify your serving model")
@@ -82,6 +84,7 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
+    server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
 

@@ -258,9 +258,10 @@ int PredictorClient::batch_predict(
       ModelRes model;
       model.set_engine_name(output.engine_name());
 
+      int idx = 0;
+
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         int shape_size = output.insts(0).tensor_array(idx).shape_size();
         VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
                 << shape_size;
@@ -279,9 +280,9 @@ int PredictorClient::batch_predict(
         idx += 1;
       }
 
+      idx = 0;
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
           model._int64_value_map[name].resize(
@@ -345,7 +346,7 @@ int PredictorClient::numpy_predict(
     PredictorRes &predict_res_batch,
     const int &pid) {
   int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
-
+  VLOG(2) << "batch size: " << batch_size;
   predict_res_batch.clear();
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
@@ -462,7 +463,7 @@ int PredictorClient::numpy_predict(
             for (ssize_t j = 0; j < int_array.shape(1); j++) {
               for (ssize_t k = 0; k < int_array.shape(2); k++) {
                 for (ssize_t l = 0; k < int_array.shape(3); l++) {
-                  tensor->add_float_data(int_array(i, j, k, l));
+                  tensor->add_int64_data(int_array(i, j, k, l));
                 }
               }
             }
@@ -474,7 +475,7 @@ int PredictorClient::numpy_predict(
           for (ssize_t i = 0; i < int_array.shape(0); i++) {
             for (ssize_t j = 0; j < int_array.shape(1); j++) {
               for (ssize_t k = 0; k < int_array.shape(2); k++) {
-                tensor->add_float_data(int_array(i, j, k));
+                tensor->add_int64_data(int_array(i, j, k));
               }
             }
           }
@@ -484,7 +485,7 @@ int PredictorClient::numpy_predict(
           auto int_array = int_feed[vec_idx].unchecked<2>();
           for (ssize_t i = 0; i < int_array.shape(0); i++) {
             for (ssize_t j = 0; j < int_array.shape(1); j++) {
-              tensor->add_float_data(int_array(i, j));
+              tensor->add_int64_data(int_array(i, j));
             }
           }
           break;
@@ -492,7 +493,7 @@ int PredictorClient::numpy_predict(
         case 1: {
           auto int_array = int_feed[vec_idx].unchecked<1>();
           for (ssize_t i = 0; i < int_array.shape(0); i++) {
-            tensor->add_float_data(int_array(i));
+            tensor->add_int64_data(int_array(i));
           }
           break;
         }
@@ -536,9 +537,9 @@ int PredictorClient::numpy_predict(
       ModelRes model;
       model.set_engine_name(output.engine_name());
 
+      int idx = 0;
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         int shape_size = output.insts(0).tensor_array(idx).shape_size();
         VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
                 << shape_size;
@@ -557,9 +558,10 @@ int PredictorClient::numpy_predict(
         idx += 1;
       }
 
+      idx = 0;
+
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
           model._int64_value_map[name].resize(
