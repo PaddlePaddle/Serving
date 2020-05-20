@@ -1,4 +1,4 @@
-([简体中文](./README.md)|English)
+([简体中文](./README_CN.md)|English)
 
 paddle_serivng_app is a tool component of the Paddle Serving framework, and includes functions such as pre-training model download and data pre-processing methods.
 It is convenient for users to quickly test and deploy model examples, analyze the performance of prediction services, and debug model prediction services.
