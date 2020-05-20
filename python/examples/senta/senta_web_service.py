@@ -51,13 +51,11 @@ class SentaService(WebService):
     def init_lac_service(self):
         ps = Process(target=self.start_lac_service())
         ps.start()
-        #self.init_lac_client()
+        self.init_lac_client()
 
     def lac_predict(self, feed_data):
-        self.init_lac_client()
         lac_result = self.lac_client.predict(
             feed={"words": feed_data}, fetch=["crf_decode"])
-        self.lac_client.release()
         return lac_result
 
     def init_lac_client(self):
