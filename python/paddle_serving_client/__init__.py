@@ -254,23 +254,16 @@ class Client(object):
             for key in feed_i:
                 if key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
-                if not isinstance(feed_i[key], np.ndarray):
-                    self.shape_check(feed_i, key)
+                #if not isinstance(feed_i[key], np.ndarray):
+                self.shape_check(feed_i, key)
                 if self.feed_types_[key] == int_type:
                     if i == 0:
                         int_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
-                            if key in self.lod_tensor_set:
-                                raise ValueError(
-                                    "LodTensor var can not be ndarray type.")
                             int_shape.append(list(feed_i[key].shape))
                         else:
                             int_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        if key in self.lod_tensor_set:
-                            raise ValueError(
-                                "LodTensor var can not be ndarray type.")
-                        #int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
                         int_slot.append(feed_i[key])
                         self.has_numpy_input = True
                     else:
@@ -280,17 +273,10 @@ class Client(object):
                     if i == 0:
                         float_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
-                            if key in self.lod_tensor_set:
-                                raise ValueError(
-                                    "LodTensor var can not be ndarray type.")
                             float_shape.append(list(feed_i[key].shape))
                         else:
                             float_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        if key in self.lod_tensor_set:
-                            raise ValueError(
-                                "LodTensor var can not be ndarray type.")
-                        #float_slot.append(np.reshape(feed_i[key], (-1)).tolist())
                         float_slot.append(feed_i[key])
                         self.has_numpy_input = True
                     else:
