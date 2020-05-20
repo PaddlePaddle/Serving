@@ -142,7 +142,7 @@ This tool is convenient to analyze the proportion of time occupancy in the predi
 Load the trace file generated in the previous step through the load button, you can
 Visualize the time information of each stage of the forecast service.
 
-As shown in next figure, the figure shows the timeline of GPU prediction service using [bert example] (https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert).
+As shown in next figure, the figure shows the timeline of GPU prediction service using [bert example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert).
 The server side starts service with 4 GPU cards, the client side starts 4 processes to request, and the batch size is 1.
 In the figure, bert_pre represents the data pre-processing stage of the client, and client_infer represents the stage where the client completes the sending of the prediction request to the receiving result.
 The process in the figure represents the process number of the client, and the second line of each process shows the timeline of each op of the server.
@@ -155,7 +155,7 @@ The inference op of Paddle Serving is implemented based on Paddle inference lib.
 Before deploying the prediction service, you may need to check the input and output of the prediction service or check the resource consumption.
 Therefore, a local prediction tool is built into the paddle_serving_app, which is used in the same way as sending a request to the server through the client.
 
-Taking [fit_a_line prediction service] (../examples/fit_a_line) as an example, the following code can be used to run local prediction.
+Taking [fit_a_line prediction service](../examples/fit_a_line) as an example, the following code can be used to run local prediction.
 
 ```python
 from paddle_serving_app import Debugger
