@@ -14,7 +14,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_server.web_service import WebService
-from imdb_reader import IMDBDataset
+from paddle_serving_app import IMDBDataset
 import sys
 
 

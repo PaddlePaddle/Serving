@@ -83,9 +83,6 @@ func JsonReq(method, requrl string, timeout int, kv *map[string]string,
 }
 
 func GetHdfsMeta(src string) (master, ugi, path string, err error) {
-	//src = "hdfs://root:rootpasst@st1-inf-platform0.st01.baidu.com:54310/user/mis_user/news_dnn_ctr_cube_1/1501836820/news_dnn_ctr_cube_1_part54.tar"
-	//src = "hdfs://st1-inf-platform0.st01.baidu.com:54310/user/mis_user/news_dnn_ctr_cube_1/1501836820/news_dnn_ctr_cube_1_part54.tar"
-
 	ugiBegin := strings.Index(src, "//")
 	ugiPos := strings.LastIndex(src, "@")
 	if ugiPos != -1 && ugiBegin != -1 {

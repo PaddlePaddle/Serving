@@ -258,9 +258,10 @@ int PredictorClient::batch_predict(
       ModelRes model;
       model.set_engine_name(output.engine_name());
 
+      int idx = 0;
+
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         int shape_size = output.insts(0).tensor_array(idx).shape_size();
         VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
                 << shape_size;
@@ -279,9 +280,9 @@ int PredictorClient::batch_predict(
         idx += 1;
       }
 
+      idx = 0;
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
           model._int64_value_map[name].resize(
@@ -536,9 +537,9 @@ int PredictorClient::numpy_predict(
       ModelRes model;
       model.set_engine_name(output.engine_name());
 
+      int idx = 0;
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         int shape_size = output.insts(0).tensor_array(idx).shape_size();
         VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
                 << shape_size;
@@ -557,9 +558,10 @@ int PredictorClient::numpy_predict(
         idx += 1;
       }
 
+      idx = 0;
+
       for (auto &name : fetch_name) {
         // int idx = _fetch_name_to_idx[name];
-        int idx = 0;
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
           model._int64_value_map[name].resize(

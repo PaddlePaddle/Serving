@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .reader.chinese_bert_reader import ChineseBertReader
-from .reader.image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, CenterCrop, Resize
+from .reader.image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, CenterCrop, Resize, PadStride
 from .reader.lac_reader import LACReader
 from .reader.senta_reader import SentaReader
+from .reader.imdb_reader import IMDBDataset
 from .models import ServingModels
 from .local_predict import Debugger

@@ -24,6 +24,7 @@ from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
 import requests
 import json
+import base64
 from image_reader import ImageReader
 
 args = benchmark_args()
@@ -36,6 +37,10 @@ def single_func(idx, resource):
     img_list = []
     for i in range(1000):
         img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
+    profile_flags = False
+    if "FLAGS_profile_client" in os.environ and os.environ[
+            "FLAGS_profile_client"]:
+        profile_flags = True
     if args.request == "rpc":
         reader = ImageReader()
         fetch = ["score"]
@@ -46,23 +51,43 @@ def single_func(idx, resource):
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
+                i_start = time.time()
                 for bi in range(args.batch_size):
                     img = reader.process_image(img_list[i])
-                    img = img.reshape(-1)
                     feed_batch.append({"image": img})
+                i_end = time.time()
+                if profile_flags:
+                    print("PROFILE\tpid:{}\timage_pre_0:{} image_pre_1:{}".
+                          format(os.getpid(),
+                                 int(round(i_start * 1000000)),
+                                 int(round(i_end * 1000000))))
+
                 result = client.predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        raise ("no batch predict for http")
+        py_version = 2
+        server = "http://" + resource["endpoint"][idx % len(resource[
+            "endpoint"])] + "/image/prediction"
+        start = time.time()
+        for i in range(1000):
+            if py_version == 2:
+                image = base64.b64encode(
+                    open("./image_data/n01440764/" + file_list[i]).read())
+            else:
+                image = base64.b64encode(open(image_path, "rb").read()).decode(
+                    "utf-8")
+            req = json.dumps({"feed": [{"image": image}], "fetch": ["score"]})
+            r = requests.post(
+                server, data=req, headers={"Content-Type": "application/json"})
     end = time.time()
     return [[end - start]]
 
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9393"]
+    endpoint_list = ["127.0.0.1:9292"]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})

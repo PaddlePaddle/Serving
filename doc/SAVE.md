@@ -10,8 +10,9 @@ serving_io.save_model("imdb_model", "imdb_client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
-`imdb_model` is the server side model with serving configurations. `imdb_client_conf` is the client rpc configurations. Serving has a 
-dictionary for `Feed` and `Fetch` variables for client to assign. In the example, `{"words": data}` is the feed dict that specify the input of saved inference model. `{"prediction": prediction}` is the fetch dic that specify the output of saved inference model. An alias name can be defined for feed and fetch variables. An example of how to use alias name
+`imdb_model` is the server side model with serving configurations. `imdb_client_conf` is the client rpc configurations. 
+
+Serving has a dictionary for `Feed` and `Fetch` variables for client to assign. In the example, `{"words": data}` is the feed dict that specify the input of saved inference model. `{"prediction": prediction}` is the fetch dic that specify the output of saved inference model. An alias name can be defined for feed and fetch variables. An example of how to use alias name
  is as follows:
  ``` python
  from paddle_serving_client import Client
@@ -35,10 +36,14 @@ for line in sys.stdin:
 If you have saved model files using Paddle's `save_inference_model` API, you can use Paddle Serving's` inference_model_to_serving` API to convert it into a model file that can be used for Paddle Serving.
 ```
 import paddle_serving_client.io as serving_io
-serving_io.inference_model_to_serving(dirname, model_filename=None, params_filename=None, serving_server="serving_server", serving_client="serving_client")
+serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client", model_filename=None, params_filename=None )
 ```
 dirname (str) - Path of saved model files. Program file and parameter files are saved in this directory.
-model_filename (str, optional) - The name of file to load the inference program. If it is None, the default filename __model__ will be used. Default: None.
-paras_filename (str, optional) - The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. Default: None.
+
 serving_server (str, optional) - The path of model files and configuration files for server. Default: "serving_server".
+
 serving_client (str, optional) - The path of configuration files for client. Default: "serving_client".
+
+model_filename (str, optional) - The name of file to load the inference program. If it is None, the default filename `__model__` will be used. Default: None.
+
+paras_filename (str, optional) - The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. Default: None.
