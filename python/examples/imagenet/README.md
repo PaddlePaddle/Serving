@@ -44,6 +44,6 @@ python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9696 
 
 client send inference request
 ```
-python image_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
+python resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
 *the port of server side in this example is 9696
