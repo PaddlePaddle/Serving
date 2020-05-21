@@ -104,10 +104,10 @@ def save_model(server_model_folder,
 
 
 def inference_model_to_serving(dirname,
-                               model_filename=None,
-                               params_filename=None,
                                serving_server="serving_server",
-                               serving_client="serving_client"):
+                               serving_client="serving_client",
+                               model_filename=None,
+                               params_filename=None):
     place = fluid.CPUPlace()
     exe = fluid.Executor(place)
     inference_program, feed_target_names, fetch_targets = \
