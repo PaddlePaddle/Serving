@@ -101,7 +101,6 @@ class WebService(object):
         p_rpc = Process(target=self._launch_rpc_service)
         p_rpc.start()
 
-    def run_flask(self):
         app_instance = Flask(__name__)
 
         @app_instance.before_first_request
@@ -114,10 +113,16 @@ class WebService(object):
         def run():
             return self.get_prediction(request)
 
-        app_instance.run(host="0.0.0.0",
-                         port=self.port,
-                         threaded=False,
-                         processes=4)
+        self.app_instance = app_instance
+
+    def run_flask(self):
+        self.app_instance.run(host="0.0.0.0",
+                              port=self.port,
+                              threaded=False,
+                              processes=1)
+
+    def get_app_instance(self):
+        return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch

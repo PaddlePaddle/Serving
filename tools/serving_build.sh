@@ -343,7 +343,7 @@ function python_test_imdb() {
             sleep 5
             check_cmd "head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab"
             # test batch predict
-            check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request rpc --endpoint 127.0.0.1:9292"
+            check_cmd "python benchmark.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request rpc --endpoint 127.0.0.1:9292"
             echo "imdb CPU RPC inference pass"
             kill_server_process
             rm -rf work_dir1
@@ -359,7 +359,7 @@ function python_test_imdb() {
                 exit 1
             fi
             # test batch predict
-            check_cmd "python benchmark_batch.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
+            check_cmd "python benchmark.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
             setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill

@@ -15,34 +15,35 @@ sh get_model.sh
 pip install paddle_serving_app
 ```
 
-### 执行HTTP预测服务
+### HTTP服务
 
 启动server端
 ```
-python image_classification_service.py ResNet50_vd_model workdir 9393 #cpu预测服务
+python image_classification_service.py ResNet50_vd_model cpu 9696 #cpu预测服务
 ```
 ```
-python image_classification_service_gpu.py ResNet50_vd_model workdir 9393 #gpu预测服务
+python image_classification_service.py ResNet50_vd_model gpu 9696 #gpu预测服务
 ```
 
 
-client端进行预测
+发送HTTP POST请求
 ```
-python image_http_client.py
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9696/image/prediction
 ```
-### 执行RPC预测服务
+
+### RPC服务
 
 启动server端
 ```
-python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9393 #cpu预测服务
+python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 #cpu预测服务
 ```
 
 ```
-python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0 #gpu预测服务
+python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu预测服务
 ```
 
 client端进行预测
 ```
 python image_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
-*server端示例中服务端口为9393端口，client端示例中数据来自./data文件夹，server端地址为本地9393端口，可根据实际情况更改脚本。*
+*server端示例中服务端口为9696端口
