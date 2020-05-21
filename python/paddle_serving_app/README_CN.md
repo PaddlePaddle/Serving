@@ -1,6 +1,6 @@
 (简体中文|[English](./README_CN.md))
 
-paddle_serivng_app是Paddle Serving框架的工具组件，包含了预训练模型下载、数据预处理方法等功能。方便用户快速体验和部署模型示例、分析预测服务性能、调试模型预测服务等。
+paddle_serving_app是Paddle Serving框架的工具组件，包含了预训练模型下载、数据预处理方法等功能。方便用户快速体验和部署模型示例、分析预测服务性能、调试模型预测服务等。
 
 ## 安装
 
@@ -130,7 +130,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
 3. 将日志文件中的信息导出成为trace文件
 
    ```shell
-   python -m paddle_serving_app.utils.log_to_trace --profile_file profile --trace_file trace
+   python -m paddle_serving_app.trace --profile_file profile --trace_file trace
    ```
 
 4. 使用chrome浏览器，打开`chrome://tracing/`网址，通过load按钮加载上一步产生的trace文件，即可将预测服务的各阶段时间信息可视化。
