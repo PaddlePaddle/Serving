@@ -168,7 +168,7 @@ int GeneralReaderOp::inference() {
         int cur_len = out->at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
 
-        int sample_len;
+        int sample_len = 0;
         if (tensor.shape_size() == 1) {
           sample_len = data_len;
         } else {
