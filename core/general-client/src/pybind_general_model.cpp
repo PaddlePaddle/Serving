@@ -65,6 +65,8 @@ PYBIND11_MODULE(serving_client, m) {
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
+      .def("get_model_config",
+           [](PredictorClient &self) { return self.get_model_config(); })
       .def("init_gflags",
            [](PredictorClient &self, std::vector<std::string> argv) {
              self.init_gflags(argv);
@@ -72,6 +74,10 @@ PYBIND11_MODULE(serving_client, m) {
       .def("init",
            [](PredictorClient &self, const std::string &conf) {
              return self.init(conf);
+           })
+      .def("init_from_string",
+           [](PredictorClient &self, const std::string &conf_str) {
+             return self.init_from_string(conf_str);
            })
       .def("set_predictor_conf",
            [](PredictorClient &self,

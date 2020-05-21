@@ -136,7 +136,7 @@ const std::string& InferService::name() const { return _infer_service_format; }
 int InferService::inference(const google::protobuf::Message* request,
                             google::protobuf::Message* response,
                             butil::IOBufBuilder* debug_os) {
-  TRACEPRINTF("start to inference");
+  VLOG(2) << "start to inference";
   // when funtion call begins, framework will reset
   // thread local variables&resources automatically.
   if (Resource::instance().thread_clear() != 0) {
@@ -144,7 +144,7 @@ int InferService::inference(const google::protobuf::Message* request,
     return ERR_INTERNAL_FAILURE;
   }
 
-  TRACEPRINTF("finish to thread clear");
+  VLOG(2) << "finish to thread clear";
 
   if (_enable_map_request_to_workflow) {
     LOG(INFO) << "enable map request == True";
@@ -155,14 +155,15 @@ int InferService::inference(const google::protobuf::Message* request,
     }
     size_t fsize = workflows->size();
     for (size_t fi = 0; fi < fsize; ++fi) {
+      VLOG(2) << "workflow index: " << fi;
       Workflow* workflow = (*workflows)[fi];
       if (workflow == NULL) {
         LOG(ERROR) << "Failed to get valid workflow at: " << fi;
         return ERR_INTERNAL_FAILURE;
       }
-      TRACEPRINTF("start to execute workflow[%s]", workflow->name().c_str());
+      VLOG(2) << "start to execute workflow[" << workflow->name() << "]";
       int errcode = _execute_workflow(workflow, request, response, debug_os);
-      TRACEPRINTF("finish to execute workflow[%s]", workflow->name().c_str());
+      VLOG(2) << "finish to execute workflow[" << workflow->name() << "]";
       if (errcode < 0) {
         LOG(ERROR) << "Failed execute workflow[" << workflow->name()
                    << "] in:" << name();
@@ -171,12 +172,12 @@ int InferService::inference(const google::protobuf::Message* request,
     }
   } else {
     LOG(INFO) << "enable map request == False";
-    TRACEPRINTF("start to execute one workflow");
+    VLOG(2) << "start to execute one workflow";
     size_t fsize = _flows.size();
     for (size_t fi = 0; fi < fsize; ++fi) {
-      TRACEPRINTF("start to execute one workflow-%lu", fi);
+      VLOG(2) << "start to execute one workflow-" << fi;
       int errcode = execute_one_workflow(fi, request, response, debug_os);
-      TRACEPRINTF("finish to execute one workflow-%lu", fi);
+      VLOG(2) << "finish to execute one workflow-" << fi;
       if (errcode < 0) {
         LOG(ERROR) << "Failed execute 0-th workflow in:" << name();
         return errcode;
@@ -215,6 +216,7 @@ int InferService::_execute_workflow(Workflow* workflow,
   req_channel.init(0, START_OP_NAME);
   req_channel = request;
 
+  VLOG(2) << "dag full name: " << full_name();
   DagView* dv = workflow->fetch_dag_view(full_name());
   dv->set_request_channel(req_channel);
 
@@ -225,14 +227,14 @@ int InferService::_execute_workflow(Workflow* workflow,
     return errcode;
   }
 
-  TRACEPRINTF("finish to dv execute");
+  VLOG(2) << "finish to dv execute";
   // create ender channel and copy
   const Channel* res_channel = dv->get_response_channel();
   if (!_merger || !_merger->merge(res_channel->message(), response)) {
     LOG(ERROR) << "Failed merge channel res to response";
     return ERR_INTERNAL_FAILURE;
   }
-  TRACEPRINTF("finish to copy from");
+  VLOG(2) << "finish to copy from";
 
   workflow_time.stop();
   LOG(INFO) << "workflow total time: " << workflow_time.u_elapsed();
@@ -241,7 +243,7 @@ int InferService::_execute_workflow(Workflow* workflow,
 
   // return tls data to object pool
   workflow->return_dag_view(dv);
-  TRACEPRINTF("finish to return dag view");
+  VLOG(2) << "finish to return dag view";
   return ERR_OK;
 }
 

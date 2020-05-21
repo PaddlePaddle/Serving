@@ -37,11 +37,13 @@ message Request {
   repeated FeedInst insts = 1;
   repeated string fetch_var_names = 2;
   optional bool profile_server = 3 [ default = false ];
+  optional string request_type = 4;
 };
 
 message Response {
   repeated ModelOutput outputs = 1;
   repeated int64 profile_time = 2;
+  optional string config_str = 3;
 };
 
 message ModelOutput {

@@ -172,6 +172,8 @@ class PredictorClient {
 
   int init(const std::string& client_conf);
 
+  int init_from_string(const std::string& conf_string);
+
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
 
@@ -180,6 +182,8 @@ class PredictorClient {
   int create_predictor();
 
   int destroy_predictor();
+
+  const std::string& get_model_config();
 
   int batch_predict(
       const std::vector<std::vector<std::vector<float>>>& float_feed_batch,

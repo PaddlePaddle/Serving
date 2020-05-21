@@ -121,20 +121,46 @@ class Client(object):
         self.has_numpy_input = False
 
     def load_client_config(self, path):
+        # reserve this interface, but do nothing
+        pass
+
+    def add_variant(self, tag, cluster, variant_weight):
+        if self.predictor_sdk_ is None:
+            self.predictor_sdk_ = SDKConfig()
+        self.predictor_sdk_.add_server_variant(tag, cluster,
+                                               str(variant_weight))
+
+    def connect(self, endpoints=None):
+        # check whether current endpoint is available
+        # init from client config
+        # create predictor here
+        if endpoints is None:
+            if self.predictor_sdk_ is None:
+                raise SystemExit(
+                    "You must set the endpoints parameter or use add_variant function to create a variant."
+                )
+        else:
+            if self.predictor_sdk_ is None:
+                self.add_variant('default_tag_{}'.format(id(self)), endpoints,
+                                 100)
+            else:
+                print(
+                    "parameter endpoints({}) will not take effect, because you use the add_variant function.".
+                    format(endpoints))
         from .serving_client import PredictorClient
         from .serving_client import PredictorRes
-        model_conf = m_config.GeneralModelConfig()
-        f = open(path, 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
-
-        # load configuraion here
-        # get feed vars, fetch vars
-        # get feed shapes, feed types
-        # map feed names to index
         self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
-        self.client_handle_.init(path)
+        sdk_desc = self.predictor_sdk_.gen_desc()
+        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
+        ))
+        # try to get model config when doing connectiong
+        model_config_str = self.client_handle_.get_model_config()
+        model_conf = m_config.GeneralModelConfig()
+        model_conf = google.protobuf.text_format.Merge(
+            str(model_config_str), model_conf)
+
+        self.client_handle_.init_from_string(model_config_str)
         if "FLAGS_max_body_size" not in os.environ:
             os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
         read_env_flags = ["profile_client", "profile_server", "max_body_size"]
@@ -166,33 +192,6 @@ class Client(object):
             if var.is_lod_tensor:
                 self.lod_tensor_set.add(var.alias_name)
         return
-
-    def add_variant(self, tag, cluster, variant_weight):
-        if self.predictor_sdk_ is None:
-            self.predictor_sdk_ = SDKConfig()
-        self.predictor_sdk_.add_server_variant(tag, cluster,
-                                               str(variant_weight))
-
-    def connect(self, endpoints=None):
-        # check whether current endpoint is available
-        # init from client config
-        # create predictor here
-        if endpoints is None:
-            if self.predictor_sdk_ is None:
-                raise SystemExit(
-                    "You must set the endpoints parameter or use add_variant function to create a variant."
-                )
-        else:
-            if self.predictor_sdk_ is None:
-                self.add_variant('default_tag_{}'.format(id(self)), endpoints,
-                                 100)
-            else:
-                print(
-                    "parameter endpoints({}) will not take effect, because you use the add_variant function.".
-                    format(endpoints))
-        sdk_desc = self.predictor_sdk_.gen_desc()
-        self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
-        ))
 
     def get_feed_names(self):
         return self.feed_names_
