@@ -1,6 +1,6 @@
 ([简体中文](./README.md)|English)
 
-paddle_serivng_app is a tool component of the Paddle Serving framework, and includes functions such as pre-training model download and data pre-processing methods.
+paddle_serving_app is a tool component of the Paddle Serving framework, and includes functions such as pre-training model download and data pre-processing methods.
 It is convenient for users to quickly test and deploy model examples, analyze the performance of prediction services, and debug model prediction services.
 
 ## Install
@@ -135,7 +135,7 @@ This tool is convenient to analyze the proportion of time occupancy in the predi
 
 3. Export the information in the log file into a trace file.
    ```shell
-   python -m paddle_serving_app.utils.log_to_trace --profile_file profile --trace_file trace
+   python -m paddle_serving_app.trace --profile_file profile --trace_file trace
    ```
 
 4. Open the `chrome: // tracing /` URL using Chrome browser. 
