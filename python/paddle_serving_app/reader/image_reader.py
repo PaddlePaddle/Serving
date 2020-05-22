@@ -13,14 +13,19 @@
 # limitations under the License.
 import cv2
 import os
-import urllib
 import numpy as np
 import base64
+import sys
 from . import functional as F
 from PIL import Image, ImageDraw
 import json
 
 _cv2_interpolation_to_str = {cv2.INTER_LINEAR: "cv2.INTER_LINEAR", None: "None"}
+py_version = sys.version_info[0]
+if py_version == 2:
+    import urllib
+else:
+    import urllib.request as urllib
 
 
 def generate_colormap(num_classes):
@@ -393,7 +398,7 @@ class Normalize(object):
 
 class Lambda(object):
     """Apply a user-defined lambda as a transform.
-       Very shame to just copy from 
+       Very shame to just copy from
        https://github.com/pytorch/vision/blob/master/torchvision/transforms/transforms.py#L301
 
     Args:
