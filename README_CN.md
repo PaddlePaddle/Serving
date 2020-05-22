@@ -267,6 +267,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
+- [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
+- [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](python/examples/util/)
