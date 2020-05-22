@@ -72,7 +72,7 @@ if __name__ == "__main__":
               Usage:
               Download a package for serving directly
               Example:
-                   python -m paddle_serving_app.models --get senta_bilstm
+                   python -m paddle_serving_app.models --get_model senta_bilstm
                    python -m paddle_serving_app.models --list_model
               """)
         pass
