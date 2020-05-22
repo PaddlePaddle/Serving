@@ -13,11 +13,11 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from pyserver import Op
-from pyserver import Channel
-from pyserver import PyServer
+from paddle_serving_server.pyserver import Op
+from paddle_serving_server.pyserver import Channel
+from paddle_serving_server.pyserver import PyServer
+from paddle_serving_server import python_service_channel_pb2
 import numpy as np
-import python_service_channel_pb2
 import logging
 
 logging.basicConfig(
