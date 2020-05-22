@@ -43,8 +43,9 @@ data = np.ndarray.tobytes(x)
 req.feed_var_names.append("x")
 req.feed_insts.append(data)
 
-resp = stub.inference(req)
-for idx, name in enumerate(resp.fetch_var_names):
-    print('{}: {}'.format(
-        name, np.frombuffer(
-            resp.fetch_insts[idx], dtype='float')))
+for i in range(100):
+    resp = stub.inference(req)
+    for idx, name in enumerate(resp.fetch_var_names):
+        print('{}: {}'.format(
+            name, np.frombuffer(
+                resp.fetch_insts[idx], dtype='float')))
