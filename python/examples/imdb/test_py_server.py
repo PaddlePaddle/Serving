@@ -37,7 +37,7 @@ class CombineOp(Op):
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
         inst.data = np.ndarray.tobytes(cnt)
-        inst.name = "resp"
+        inst.name = "combine_op_output"
         data.insts.append(inst)
         return data
 
