@@ -29,83 +29,80 @@ logging.basicConfig(
 
 
 class CombineOp(Op):
-    #TODO: different id of data
     def preprocess(self, input_data):
-        data_id = None
         cnt = 0
-        for input in input_data:
-            data = input[0]  # batchsize=1
+        for op_name, data in input_data.items():
+            logging.debug("CombineOp preprocess: {}".format(op_name))
             cnt += np.frombuffer(data.insts[0].data, dtype='float')
-            if data_id is None:
-                data_id = data.id
-            if data_id != data.id:
-                raise Exception("id not match: {} vs {}".format(data_id,
-                                                                data.id))
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
         inst.data = np.ndarray.tobytes(cnt)
         inst.name = "resp"
         data.insts.append(inst)
-        data.id = data_id
         return data
+
+    def postprocess(self, output_data):
+        return output_data
 
 
 class UciOp(Op):
     def postprocess(self, output_data):
-        data_ids = self.get_data_ids()
         data = python_service_channel_pb2.ChannelData()
         inst = python_service_channel_pb2.Inst()
         pred = np.array(output_data["price"][0][0], dtype='float')
         inst.data = np.ndarray.tobytes(pred)
         inst.name = "prediction"
         data.insts.append(inst)
-        data.id = data_ids[0]
         return data
 
 
-read_channel = Channel()
-cnn_out_channel = Channel()
-bow_out_channel = Channel()
-combine_out_channel = Channel()
+read_channel = Channel(name="read_channel")
+combine_channel = Channel(name="combine_channel")
+out_channel = Channel(name="out_channel")
 
 cnn_op = UciOp(
     name="cnn_op",
-    inputs=[read_channel],
+    input=read_channel,
     in_dtype='float',
-    outputs=[cnn_out_channel],
+    outputs=[combine_channel],
     out_dtype='float',
     server_model="./uci_housing_model",
     server_port="9393",
     device="cpu",
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
-    fetch_names=["price"])
+    fetch_names=["price"],
+    concurrency=2)
 
 bow_op = UciOp(
     name="bow_op",
-    inputs=[read_channel],
+    input=read_channel,
     in_dtype='float',
-    outputs=[bow_out_channel],
+    outputs=[combine_channel],
     out_dtype='float',
     server_model="./uci_housing_model",
     server_port="9292",
     device="cpu",
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
-    fetch_names=["price"])
+    fetch_names=["price"],
+    concurrency=2)
 
 combine_op = CombineOp(
     name="combine_op",
-    inputs=[cnn_out_channel, bow_out_channel],
+    input=combine_channel,
     in_dtype='float',
-    outputs=[combine_out_channel],
-    out_dtype='float')
+    outputs=[out_channel],
+    out_dtype='float',
+    concurrency=2)
 
+logging.info(read_channel.debug())
+logging.info(combine_channel.debug())
+logging.info(out_channel.debug())
 pyserver = PyServer()
 pyserver.add_channel(read_channel)
-pyserver.add_channel(cnn_out_channel)
-pyserver.add_channel(bow_out_channel)
-pyserver.add_channel(combine_out_channel)
+pyserver.add_channel(combine_channel)
+pyserver.add_channel(out_channel)
 pyserver.add_op(cnn_op)
 pyserver.add_op(bow_op)
 pyserver.add_op(combine_op)
