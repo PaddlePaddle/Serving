@@ -13,14 +13,19 @@
 # limitations under the License.
 import cv2
 import os
-import urllib
 import numpy as np
 import base64
+import sys
 from . import functional as F
 from PIL import Image, ImageDraw
 import json
 
 _cv2_interpolation_to_str = {cv2.INTER_LINEAR: "cv2.INTER_LINEAR", None: "None"}
+py_version = sys.version_info[0]
+if py_version == 2:
+    import urllib
+else:
+    import urllib.request as urllib
 
 
 def generate_colormap(num_classes):
@@ -393,7 +398,7 @@ class Normalize(object):
 
 class Lambda(object):
     """Apply a user-defined lambda as a transform.
-       Very shame to just copy from 
+       Very shame to just copy from
        https://github.com/pytorch/vision/blob/master/torchvision/transforms/transforms.py#L301
 
     Args:
@@ -463,6 +468,24 @@ class Resize(object):
         return self.__class__.__name__ + '(size={0}, max_size={1}, interpolation={2})'.format(
             self.size, self.max_size,
             _cv2_interpolation_to_str[self.interpolation])
+
+
+class PadStride(object):
+    def __init__(self, stride):
+        self.coarsest_stride = stride
+
+    def __call__(self, img):
+        coarsest_stride = self.coarsest_stride
+        if coarsest_stride == 0:
+            return img
+        im_c, im_h, im_w = img.shape
+        pad_h = int(np.ceil(float(im_h) / coarsest_stride) * coarsest_stride)
+        pad_w = int(np.ceil(float(im_w) / coarsest_stride) * coarsest_stride)
+        padding_im = np.zeros((im_c, pad_h, pad_w), dtype=np.float32)
+        padding_im[:, :im_h, :im_w] = img
+        im_info = {}
+        im_info['resize_shape'] = padding_im.shape[1:]
+        return padding_im
 
 
 class Transpose(object):
