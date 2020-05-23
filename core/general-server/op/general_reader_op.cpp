@@ -131,7 +131,7 @@ int GeneralReaderOp::inference() {
       lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
     }
 
-    if (req->insts(0).tensor_array(i).shape(0) == -1) {
+    if (model_config->_is_lod_feed[i]) {
       lod_tensor.lod.resize(1);
       lod_tensor.lod[0].push_back(0);
       VLOG(2) << "var[" << i << "] is lod_tensor";
@@ -153,6 +153,7 @@ int GeneralReaderOp::inference() {
   // specify the memory needed for output tensor_vector
   for (int i = 0; i < var_num; ++i) {
     if (out->at(i).lod.size() == 1) {
+      int tensor_size = 0;
       for (int j = 0; j < batch_size; ++j) {
         const Tensor &tensor = req->insts(j).tensor_array(i);
         int data_len = 0;
@@ -162,15 +163,28 @@ int GeneralReaderOp::inference() {
           data_len = tensor.float_data_size();
         }
         VLOG(2) << "tensor size for var[" << i << "]: " << data_len;
+        tensor_size += data_len;
 
         int cur_len = out->at(i).lod[0].back();
         VLOG(2) << "current len: " << cur_len;
 
-        out->at(i).lod[0].push_back(cur_len + data_len);
-        VLOG(2) << "new len: " << cur_len + data_len;
+        int sample_len = 0;
+        if (tensor.shape_size() == 1) {
+          sample_len = data_len;
+        } else {
+          sample_len = tensor.shape(0);
+        }
+        out->at(i).lod[0].push_back(cur_len + sample_len);
+        VLOG(2) << "new len: " << cur_len + sample_len;
       }
-      out->at(i).data.Resize(out->at(i).lod[0].back() * elem_size[i]);
-      out->at(i).shape = {out->at(i).lod[0].back(), 1};
+      out->at(i).data.Resize(tensor_size * elem_size[i]);
+      out->at(i).shape = {out->at(i).lod[0].back()};
+      for (int j = 1; j < req->insts(0).tensor_array(i).shape_size(); ++j) {
+        out->at(i).shape.push_back(req->insts(0).tensor_array(i).shape(j));
+      }
+      if (out->at(i).shape.size() == 1) {
+        out->at(i).shape.push_back(1);
+      }
       VLOG(2) << "var[" << i
               << "] is lod_tensor and len=" << out->at(i).lod[0].back();
     } else {
