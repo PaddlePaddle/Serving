@@ -39,8 +39,8 @@ def single_func(idx, resource):
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
 
         start = time.time()
-        for i in range(1000):
-            img = reader.process_image(img_list[i]).reshape(-1)
+        for i in range(100):
+            img = reader.process_image(img_list[i])
             fetch_map = client.predict(feed={"image": img}, fetch=["score"])
         end = time.time()
         return [[end - start]]
@@ -49,7 +49,7 @@ def single_func(idx, resource):
 
 if __name__ == "__main__":
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9393"]
+    endpoint_list = ["127.0.0.1:9292"]
     #card_num = 4
     #for i in range(args.thread):
     #    endpoint_list.append("127.0.0.1:{}".format(9295 + i % card_num))

@@ -264,8 +264,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
-- [How to optimize performance?(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [Deploy multi-services on one GPU(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
+- [How to optimize performance?(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
+- [Deploy multi-services on one GPU(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 

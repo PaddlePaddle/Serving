@@ -274,7 +274,8 @@ class Server(object):
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = self.model_config_paths.items()[0][1]
+            workflow_oi_config_path = list(self.model_config_paths.items())[0][
+                1]
         else:
             raise Exception("The type of model_config_paths must be str or "
                             "dict({op: model_path}), not {}.".format(
