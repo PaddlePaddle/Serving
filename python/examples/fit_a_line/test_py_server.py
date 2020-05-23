@@ -72,7 +72,7 @@ cnn_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"],
-    concurrency=2)
+    concurrency=1)
 
 bow_op = UciOp(
     name="bow_op",
@@ -86,7 +86,7 @@ bow_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"],
-    concurrency=2)
+    concurrency=1)
 
 combine_op = CombineOp(
     name="combine_op",
@@ -94,7 +94,7 @@ combine_op = CombineOp(
     in_dtype='float',
     outputs=[out_channel],
     out_dtype='float',
-    concurrency=2)
+    concurrency=1)
 
 logging.info(read_channel.debug())
 logging.info(combine_channel.debug())

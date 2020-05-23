@@ -14,6 +14,8 @@
 from paddle_serving_client.pyclient import PyClient
 import numpy as np
 
+from line_profiler import LineProfiler
+
 client = PyClient()
 client.connect('localhost:8080')
 
@@ -24,7 +26,14 @@ x = np.array(
     ],
     dtype='float')
 
+lp = LineProfiler()
+lp_wrapper = lp(client.predict)
+
 for i in range(5):
-    fetch_map = client.predict(
+    fetch_map = lp_wrapper(
         feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
+    # fetch_map = client.predict(
+    # feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
     print(fetch_map)
+
+lp.print_stats()
