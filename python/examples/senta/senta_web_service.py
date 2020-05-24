@@ -15,12 +15,9 @@
 from paddle_serving_server_gpu.web_service import WebService
 from paddle_serving_client import Client
 from paddle_serving_app import LACReader, SentaReader
-import numpy as np
 import os
-import io
 import sys
-import subprocess
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 
 class SentaService(WebService):
@@ -64,10 +61,10 @@ class SentaService(WebService):
         self.lac_client.connect(["127.0.0.1:{}".format(self.lac_port)])
 
     def init_lac_reader(self):
-        self.lac_reader = LACReader(self.lac_dict_path)
+        self.lac_reader = LACReader()
 
     def init_senta_reader(self):
-        self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
+        self.senta_reader = SentaReader()
 
     def preprocess(self, feed=[], fetch=[]):
         feed_data = self.lac_reader.process(feed[0]["words"])
@@ -91,7 +88,7 @@ class SentaService(WebService):
 
 
 senta_service = SentaService(name="senta")
-#senta_service.show_detail(True)
+senta_service.show_detail(False)
 senta_service.set_config(
     lac_model_path="./lac_model",
     lac_dict_path="./lac_dict",
@@ -102,5 +99,5 @@ senta_service.prepare_server(
 senta_service.init_lac_reader()
 senta_service.init_senta_reader()
 senta_service.init_lac_service()
-senta_service.run_server()
-senta_service.run_flask()
+senta_service.run_rpc_service()
+senta_service.run_web_service()
