@@ -118,7 +118,7 @@ if __name__ == "__main__":
             web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
-        web_service.run_server()
+        web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
 
