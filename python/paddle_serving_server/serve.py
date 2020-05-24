@@ -103,7 +103,7 @@ if __name__ == "__main__":
         service.load_model_config(args.model)
         service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
-        service.run_server()
+        service.run_rpc_service()
 
         app_instance = Flask(__name__)
 
