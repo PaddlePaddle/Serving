@@ -25,7 +25,7 @@ from paddlehub.common.logger import logger
 import socket
 from paddle_serving_client import Client
 from paddle_serving_client.utils import benchmark_args
-from paddle_serving_app import ChineseBertReader
+from paddle_serving_app.reader import ChineseBertReader
 
 args = benchmark_args()
 
