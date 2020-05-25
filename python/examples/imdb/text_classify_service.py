@@ -37,5 +37,5 @@ imdb_service.load_model_config(sys.argv[1])
 imdb_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
 imdb_service.prepare_dict({"dict_file_path": sys.argv[4]})
-imdb_service.run_server()
-imdb_service.run_flask()
+imdb_service.run_rpc_service()
+imdb_service.run_web_service()
