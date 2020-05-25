@@ -30,10 +30,6 @@ class SentaService(WebService):
         self.lac_client_config_path = lac_model_path + "/serving_server_conf.prototxt"
         self.lac_dict_path = lac_dict_path
         self.senta_dict_path = senta_dict_path
-        self.show = False
-
-    def show_detail(self, show=False):
-        self.show = show
 
     def start_lac_service(self):
         if not os.path.exists('./lac_serving'):
@@ -67,28 +63,23 @@ class SentaService(WebService):
         self.senta_reader = SentaReader()
 
     def preprocess(self, feed=[], fetch=[]):
-        feed_data = self.lac_reader.process(feed[0]["words"])
-        if self.show:
-            print("---- lac reader ----")
-            print(feed_data)
-        lac_result = self.lac_predict(feed_data)
-        if self.show:
-            print("---- lac out ----")
-            print(lac_result)
-        segs = self.lac_reader.parse_result(feed[0]["words"],
-                                            lac_result["crf_decode"])
-        if self.show:
-            print("---- lac parse ----")
-            print(segs)
-        feed_data = self.senta_reader.process(segs)
-        if self.show:
-            print("---- senta reader ----")
-            print("feed_data", feed_data)
-        return [{"words": feed_data}], fetch
+        feed_data = [{
+            "words": self.lac_reader.process(x["words"])
+        } for x in feed]
+        lac_result = self.lac_client.predict(
+            feed=feed_data, fetch=["crf_decode"])
+        feed_batch = []
+        result_lod = lac_result["crf_decode.lod"]
+        for i in range(len(feed)):
+            segs = self.lac_reader.parse_result(
+                feed[i]["words"],
+                lac_result["crf_decode"][result_lod[i]:result_lod[i + 1]])
+            feed_data = self.senta_reader.process(segs)
+            feed_batch.append({"words": feed_data})
+        return feed_batch, fetch
 
 
 senta_service = SentaService(name="senta")
-senta_service.show_detail(False)
 senta_service.set_config(
     lac_model_path="./lac_model",
     lac_dict_path="./lac_dict",
