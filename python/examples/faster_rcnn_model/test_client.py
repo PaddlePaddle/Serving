@@ -14,6 +14,8 @@
 
 from paddle_serving_client import Client
 from paddle_serving_app.reader import *
+import sys
+import numpy as np
 
 preprocess = Sequential([
     File2Image(), BGR2RGB(), Div(255.0),
@@ -24,11 +26,10 @@ preprocess = Sequential([
 postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
 
-client.load_client_config(
-    "faster_rcnn_client_conf/serving_client_conf.prototxt")
-client.connect(['127.0.0.1:9393'])
+client.load_client_config(sys.argv[1])
+client.connect(['127.0.0.1:9494'])
 
-im = preprocess(sys.argv[2])
+im = preprocess(sys.argv[3])
 fetch_map = client.predict(
     feed={
         "image": im,
@@ -36,5 +37,5 @@ fetch_map = client.predict(
         "im_shape": np.array(list(im.shape[1:]) + [1.0])
     },
     fetch=["multiclass_nms"])
-fetch_map["image"] = sys.argv[1]
+fetch_map["image"] = sys.argv[3]
 postprocess(fetch_map)
