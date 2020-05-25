@@ -14,7 +14,7 @@
 
 from paddle_serving_server_gpu.web_service import WebService
 from paddle_serving_client import Client
-from paddle_serving_app import LACReader, SentaReader
+from paddle_serving_app.reader import LACReader, SentaReader
 import os
 import sys
 from multiprocessing import Process
