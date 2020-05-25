@@ -47,5 +47,5 @@ lac_service.load_model_config(sys.argv[1])
 lac_service.load_reader()
 lac_service.prepare_server(
     workdir=sys.argv[2], port=int(sys.argv[3]), device="cpu")
-lac_service.run_server()
-lac_service.run_flask()
+lac_service.run_rpc_service()
+lac_service.run_web_service()

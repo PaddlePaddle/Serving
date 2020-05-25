@@ -15,7 +15,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-from lac_reader import LACReader
+from paddle_serving_app.reader import LACReader
 import sys
 import os
 import io
