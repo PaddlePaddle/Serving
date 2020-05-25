@@ -26,7 +26,7 @@ class ServingModels(object):
         self.model_dict["ChineseWordSegmentation"] = ["lac"]
         self.model_dict["ObjectDetection"] = ["faster_rcnn", "yolov3"]
         self.model_dict["ImageSegmentation"] = [
-            "unet", "deeplabv3", "deeplabv3+cityspaces"
+            "unet", "deeplabv3", "deeplabv3+cityscapes"
         ]
         self.model_dict["ImageClassification"] = [
             "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"

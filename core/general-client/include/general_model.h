@@ -78,11 +78,17 @@ class ModelRes {
   std::vector<float>&& get_float_by_name_with_rv(const std::string& name) {
     return std::move(_float_value_map[name]);
   }
-  const std::vector<int>& get_shape(const std::string& name) {
+  const std::vector<int>& get_shape_by_name(const std::string& name) {
     return _shape_map[name];
   }
-  const std::vector<int>& get_lod(const std::string& name) {
+  std::vector<int>&& get_shape_by_name_with_rv(const std::string& name) {
+    return std::move(_shape_map[name]);
+  }
+  const std::vector<int>& get_lod_by_name(const std::string& name) {
     return _lod_map[name];
+  }
+  std::vector<int>&& get_lod_by_name_with_rv(const std::string& name) {
+    return std::move(_lod_map[name]);
   }
   void set_engine_name(const std::string& engine_name) {
     _engine_name = engine_name;
@@ -139,13 +145,21 @@ class PredictorRes {
                                                  const std::string& name) {
     return std::move(_models[model_idx].get_float_by_name_with_rv(name));
   }
-  const std::vector<int>& get_shape(const int model_idx,
-                                    const std::string& name) {
-    return _models[model_idx].get_shape(name);
+  const std::vector<int>& get_shape_by_name(const int model_idx,
+                                            const std::string& name) {
+    return _models[model_idx].get_shape_by_name(name);
   }
-  const std::vector<int>& get_lod(const int model_idx,
-                                  const std::string& name) {
-    return _models[model_idx].get_lod(name);
+  const std::vector<int>&& get_shape_by_name_with_rv(const int model_idx,
+                                                     const std::string& name) {
+    return std::move(_models[model_idx].get_shape_by_name_with_rv(name));
+  }
+  const std::vector<int>& get_lod_by_name(const int model_idx,
+                                          const std::string& name) {
+    return _models[model_idx].get_lod_by_name(name);
+  }
+  const std::vector<int>&& get_lod_by_name_with_rv(const int model_idx,
+                                                   const std::string& name) {
+    return std::move(_models[model_idx].get_lod_by_name_with_rv(name));
   }
   void add_model_res(ModelRes&& res) {
     _engine_names.push_back(res.engine_name());

@@ -51,14 +51,22 @@ PYBIND11_MODULE(serving_client, m) {
            })
       .def("get_shape",
            [](PredictorRes &self, int model_idx, std::string &name) {
-             return self.get_shape(model_idx, name);
-           },
-           py::return_value_policy::reference)
+             std::vector<int> *ptr = new std::vector<int>(
+                 std::move(self.get_shape_by_name_with_rv(model_idx, name)));
+             auto capsule = py::capsule(ptr, [](void *p) {
+               delete reinterpret_cast<std::vector<int> *>(p);
+             });
+             return py::array(ptr->size(), ptr->data(), capsule);
+           })
       .def("get_lod",
            [](PredictorRes &self, int model_idx, std::string &name) {
-             return self.get_lod(model_idx, name);
-           },
-           py::return_value_policy::reference)
+             std::vector<int> *ptr = new std::vector<int>(
+                 std::move(self.get_lod_by_name_with_rv(model_idx, name)));
+             auto capsule = py::capsule(ptr, [](void *p) {
+               delete reinterpret_cast<std::vector<int> *>(p);
+             });
+             return py::array(ptr->size(), ptr->data(), capsule);
+           })
       .def("variant_tag", [](PredictorRes &self) { return self.variant_tag(); })
       .def("get_engine_names",
            [](PredictorRes &self) { return self.get_engine_names(); });
@@ -109,7 +117,8 @@ PYBIND11_MODULE(serving_client, m) {
                                        fetch_name,
                                        predict_res_batch,
                                        pid);
-           })
+           },
+           py::call_guard<py::gil_scoped_release>())
       .def("numpy_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<py::array_t<float>>>
