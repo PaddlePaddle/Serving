@@ -19,15 +19,21 @@ from __future__ import unicode_literals, absolute_import
 import os
 import sys
 import time
-from paddle_serving_client import Client
-from paddle_serving_client.utils import MultiThreadRunner
-from paddle_serving_client.utils import benchmark_args
 import requests
 import json
 import base64
-from image_reader import ImageReader
+from paddle_serving_client import Client
+from paddle_serving_client.utils import MultiThreadRunner
+from paddle_serving_client.utils import benchmark_args
+from paddle_serving_app.reader import Sequential, URL2Image, Resize
+from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 
 args = benchmark_args()
+
+seq_preprocess = Sequential([
+    URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
+])
 
 
 def single_func(idx, resource):
@@ -53,7 +59,7 @@ def single_func(idx, resource):
                 feed_batch = []
                 i_start = time.time()
                 for bi in range(args.batch_size):
-                    img = reader.process_image(img_list[i])
+                    img = seq_preprocess(img_list[i])
                     feed_batch.append({"image": img})
                 i_end = time.time()
                 if profile_flags:
