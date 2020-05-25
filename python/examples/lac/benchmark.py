@@ -16,7 +16,7 @@
 import sys
 import time
 import requests
-from paddle_serving_app.reader import LACReader
+from lac_reader import LACReader
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
