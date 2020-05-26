@@ -71,28 +71,3 @@ set environmental variable to specify which gpus are used, the command above mea
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
-
-### Benchmark
-
-Model：bert_chinese_L-12_H-768_A-12
-
-GPU：GPU V100 * 1
-
-CUDA/cudnn Version：CUDA 9.2，cudnn 7.1.4
-
-
-In the test, 10 thousand samples in the sample data are copied into 100 thousand samples. Each client thread sends a sample of the number of threads. The batch size is 1, the max_seq_len is 20(not 128 as described above), and the time unit is seconds.
-
-When the number of client threads is 4, the prediction speed can reach 432 samples per second.
-Because a single GPU can only perform serial calculations internally, increasing the number of client threads can only reduce the idle time of the GPU. Therefore, after the number of threads reaches 4, the increase in the number of threads does not improve the prediction speed.
-
-| client  thread num | prepro | client infer | op0   | op1    | op2  | postpro | total  |
-| ------------------ | ------ | ------------ | ----- | ------ | ---- | ------- | ------ |
-| 1                  | 3.05   | 290.54       | 0.37  | 239.15 | 6.43 | 0.71    | 365.63 |
-| 4                  | 0.85   | 213.66       | 0.091 | 200.39 | 1.62 | 0.2     | 231.45 |
-| 8                  | 0.42   | 223.12       | 0.043 | 110.99 | 0.8  | 0.098   | 232.05 |
-| 12                 | 0.32   | 225.26       | 0.029 | 73.87  | 0.53 | 0.078   | 231.45 |
-| 16                 | 0.23   | 227.26       | 0.022 | 55.61  | 0.4  | 0.056   | 231.9  |
-
-the following is the client thread num - latency bar chart:
-![bert benchmark](../../../doc/bert-benchmark-batch-size-1.png)
