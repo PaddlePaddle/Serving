@@ -38,7 +38,7 @@ with open('test_data/part-0') as fin:
 首先启动BOW Server，该服务启用`8000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it bow-server bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 8000 >std.log 2>err.log &
@@ -48,7 +48,7 @@ exit
 同理启动LSTM Server，该服务启用`9000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it lstm-server bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 9000 >std.log 2>err.log &
