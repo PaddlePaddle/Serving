@@ -331,6 +331,46 @@ function python_test_bert() {
     cd ..
 }
 
+function python_test_bert_multi_fetch() {
+    # pwd: /Serving/python/examples
+    local TYPT=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd bert # pwd: /Serving/python/examples/bert
+    case $TYPE in
+        CPU)
+            #download model (max_seq_len=32)
+            wget https://paddle-serving.bj.bcebos.com/bert_example/bert_multi_fetch.tar.gz
+            tar -xzvf bert_multi_fetch.tar.gz
+            check_cmd "python -m paddle_serving_server.serve --model bert_multi_fetch_model --port 9292 &"
+            sleep 5
+            check_cmd "head -n 8 data-c.txt | python bert_multi_fetch_client.py"
+            kill_server_process
+            echo "bert mutli fetch RPC inference pass"
+            ;;
+        GPU)
+            #download model (max_seq_len=32)
+            wget https://paddle-serving.bj.bcebos.com/bert_example/bert_multi_fetch.tar.gz
+            tar -xzvf bert_multi_fetch.tar.gz
+            check_cmd "python -m paddle_serving_server_gpu.serve --model bert_multi_fetch_model --port 9292 --gpu_ids 0 &"
+            sleep 5
+            check_cmd "head -n 8 data-c.txt | python bert_multi_fetch_client.py"
+            kill_server_process
+            echo "bert mutli fetch RPC inference pass"
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test multi fetch $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
+function python_test_multi_process(){
+
+}
+
 function python_test_imdb() {
     # pwd: /Serving/python/examples
     local TYPE=$1
