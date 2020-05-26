@@ -261,6 +261,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
+- [Deploy Web Service with uWSGI](doc/UWSGI_DEPLOY.md)
+- [Hot loading for model file](doc/HOT_LOADING_IN_SERVING.md)
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
