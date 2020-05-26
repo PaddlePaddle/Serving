@@ -17,7 +17,7 @@ You can get images in two ways:
 1. Pull image directly
 
    ```bash
-   docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+   docker pull hub.baidubce.com/paddlepaddle/serving:latest
    ```
 
 2. Building image based on dockerfile
@@ -25,13 +25,13 @@ You can get images in two ways:
    Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
 
    ```bash
-   docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:latest .
    ```
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 
@@ -109,7 +109,7 @@ You can also get images in two ways:
 1. Pull image directly
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
    ```
 
 2. Building image based on dockerfile
@@ -117,13 +117,13 @@ You can also get images in two ways:
    Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:latest-gpu .
    ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 

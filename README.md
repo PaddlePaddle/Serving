@@ -37,14 +37,14 @@ We consider deploying deep learning inference service online to be a user-facing
 We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 ```
 # Run CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 
