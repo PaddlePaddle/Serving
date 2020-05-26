@@ -14,10 +14,11 @@
 
 import sys
 import io
+import os
 
 
 class SentaReader():
-    def __init__(self, vocab_path, max_seq_len=20):
+    def __init__(self, vocab_path="", max_seq_len=20):
         self.max_seq_len = max_seq_len
         self.word_dict = self.load_vocab(vocab_path)
 
@@ -25,6 +26,13 @@ class SentaReader():
         """
         load the given vocabulary
         """
+        if vocab_path == "":
+            vocab_path = "senta_vocab.txt"
+            if not os.path.exists(vocab_path):
+                r = os.system(
+                    " wget https://paddle-serving.bj.bcebos.com/reader/senta/senta_vocab.txt --no-check-certificate"
+                )
+
         vocab = {}
         with io.open(vocab_path, 'r', encoding='utf8') as f:
             for line in f:

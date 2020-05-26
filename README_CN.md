@@ -39,14 +39,14 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 ```
 # 启动 CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 ```shell
@@ -267,6 +267,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
+- [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
+- [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](python/examples/util/)

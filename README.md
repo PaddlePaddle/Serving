@@ -37,14 +37,14 @@ We consider deploying deep learning inference service online to be a user-facing
 We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 ```
 # Run CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -261,6 +261,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
+- [Deploy Web Service with uWSGI](doc/UWSGI_DEPLOY.md)
+- [Hot loading for model file](doc/HOT_LOADING_IN_SERVING.md)
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
