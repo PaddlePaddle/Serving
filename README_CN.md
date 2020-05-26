@@ -39,14 +39,14 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 ```
 # 启动 CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 ```shell
