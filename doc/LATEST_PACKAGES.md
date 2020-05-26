@@ -1,4 +1,4 @@
-# Lastest Wheel Package Link
+# Latest Wheel Packages
 
 ## CPU server
 ### Python 3
