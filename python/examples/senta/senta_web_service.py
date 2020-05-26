@@ -14,13 +14,10 @@
 
 from paddle_serving_server_gpu.web_service import WebService
 from paddle_serving_client import Client
-from paddle_serving_app import LACReader, SentaReader
-import numpy as np
+from paddle_serving_app.reader import LACReader, SentaReader
 import os
-import io
 import sys
-import subprocess
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 
 class SentaService(WebService):
@@ -33,10 +30,6 @@ class SentaService(WebService):
         self.lac_client_config_path = lac_model_path + "/serving_server_conf.prototxt"
         self.lac_dict_path = lac_dict_path
         self.senta_dict_path = senta_dict_path
-        self.show = False
-
-    def show_detail(self, show=False):
-        self.show = show
 
     def start_lac_service(self):
         if not os.path.exists('./lac_serving'):
@@ -64,34 +57,29 @@ class SentaService(WebService):
         self.lac_client.connect(["127.0.0.1:{}".format(self.lac_port)])
 
     def init_lac_reader(self):
-        self.lac_reader = LACReader(self.lac_dict_path)
+        self.lac_reader = LACReader()
 
     def init_senta_reader(self):
-        self.senta_reader = SentaReader(vocab_path=self.senta_dict_path)
+        self.senta_reader = SentaReader()
 
     def preprocess(self, feed=[], fetch=[]):
-        feed_data = self.lac_reader.process(feed[0]["words"])
-        if self.show:
-            print("---- lac reader ----")
-            print(feed_data)
-        lac_result = self.lac_predict(feed_data)
-        if self.show:
-            print("---- lac out ----")
-            print(lac_result)
-        segs = self.lac_reader.parse_result(feed[0]["words"],
-                                            lac_result["crf_decode"])
-        if self.show:
-            print("---- lac parse ----")
-            print(segs)
-        feed_data = self.senta_reader.process(segs)
-        if self.show:
-            print("---- senta reader ----")
-            print("feed_data", feed_data)
-        return [{"words": feed_data}], fetch
+        feed_data = [{
+            "words": self.lac_reader.process(x["words"])
+        } for x in feed]
+        lac_result = self.lac_client.predict(
+            feed=feed_data, fetch=["crf_decode"])
+        feed_batch = []
+        result_lod = lac_result["crf_decode.lod"]
+        for i in range(len(feed)):
+            segs = self.lac_reader.parse_result(
+                feed[i]["words"],
+                lac_result["crf_decode"][result_lod[i]:result_lod[i + 1]])
+            feed_data = self.senta_reader.process(segs)
+            feed_batch.append({"words": feed_data})
+        return feed_batch, fetch
 
 
 senta_service = SentaService(name="senta")
-#senta_service.show_detail(True)
 senta_service.set_config(
     lac_model_path="./lac_model",
     lac_dict_path="./lac_dict",
@@ -102,5 +90,5 @@ senta_service.prepare_server(
 senta_service.init_lac_reader()
 senta_service.init_senta_reader()
 senta_service.init_lac_service()
-senta_service.run_server()
-senta_service.run_flask()
+senta_service.run_rpc_service()
+senta_service.run_web_service()

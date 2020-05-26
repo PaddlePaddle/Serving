@@ -133,12 +133,11 @@ class WebService(object):
             result = self.postprocess(
                 feed=feed, fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
-            result = {"result": fetch_map}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
 
-    def run_server(self):
+    def run_rpc_service(self):
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
@@ -165,7 +164,7 @@ class WebService(object):
 
         self.app_instance = app_instance
 
-    def run_flask(self):
+    def run_web_service(self):
         self.app_instance.run(host="0.0.0.0",
                               port=self.port,
                               threaded=False,

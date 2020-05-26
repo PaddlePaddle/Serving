@@ -33,7 +33,11 @@ def save_model(server_model_folder,
     executor = Executor(place=CPUPlace())
 
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
-    target_vars = list(fetch_var_dict.values())
+    target_vars = []
+    target_var_names = []
+    for key in sorted(fetch_var_dict.keys()):
+        target_vars.append(fetch_var_dict[key])
+        target_var_names.append(key)
 
     save_inference_model(
         server_model_folder,
@@ -64,7 +68,7 @@ def save_model(server_model_folder,
             feed_var.shape.extend(tmp_shape)
         config.feed_var.extend([feed_var])
 
-    for key in fetch_var_dict:
+    for key in target_var_names:
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name

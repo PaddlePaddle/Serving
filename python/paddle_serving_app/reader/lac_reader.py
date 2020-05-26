@@ -48,10 +48,16 @@ def load_kv_dict(dict_path,
 class LACReader(object):
     """data reader"""
 
-    def __init__(self, dict_folder):
+    def __init__(self, dict_folder=""):
         # read dict
         #basepath = os.path.abspath(__file__)
         #folder = os.path.dirname(basepath)
+        if dict_folder == "":
+            dict_folder = "lac_dict"
+            if not os.path.exists(dict_folder):
+                r = os.system(
+                    "wget https://paddle-serving.bj.bcebos.com/reader/lac/lac_dict.tar.gz  --no-check-certificate && tar -xzvf lac_dict.tar.gz"
+                )
         word_dict_path = os.path.join(dict_folder, "word.dic")
         label_dict_path = os.path.join(dict_folder, "tag.dic")
         replace_dict_path = os.path.join(dict_folder, "q2b.dic")
