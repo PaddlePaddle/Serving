@@ -26,7 +26,7 @@ serving_io.save_model("serving_model", "client_conf",
                       {"words": data}, {"prediction": prediction},
                       fluid.default_main_program())
 ```
-代码示例中，`{"words": data}`和`{"prediction": prediction}`分别指定了模型的输入和输出，`"words"`和`"prediction"`是输出和输出变量的别名，设计别名的目的是为了使开发者能够记忆自己训练模型的输入输出对应的字段。`data`和`prediction`则是Paddle训练过程中的`[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)`，通常代表张量([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor))或变长张量([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor))。调用保存命令后，会按照用户指定的`"serving_model"`和`"client_conf"`生成两个目录，内容如下：
+代码示例中，`{"words": data}`和`{"prediction": prediction}`分别指定了模型的输入和输出，`"words"`和`"prediction"`是输入和输出变量的别名，设计别名的目的是为了使开发者能够记忆自己训练模型的输入输出对应的字段。`data`和`prediction`则是Paddle训练过程中的`[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)`，通常代表张量([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor))或变长张量([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor))。调用保存命令后，会按照用户指定的`"serving_model"`和`"client_conf"`生成两个目录，内容如下：
 ``` shell
 .
 ├── client_conf
