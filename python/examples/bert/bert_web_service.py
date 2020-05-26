@@ -14,14 +14,14 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 from paddle_serving_server_gpu.web_service import WebService
-from bert_reader import BertReader
+from paddle_serving_app.reader import ChineseBertReader
 import sys
 import os
 
 
 class BertService(WebService):
     def load(self):
-        self.reader = BertReader(vocab_file="vocab.txt", max_seq_len=128)
+        self.reader = ChineseBertReader(vocab_file="vocab.txt", max_seq_len=128)
 
     def preprocess(self, feed=[], fetch=[]):
         feed_res = [
@@ -37,5 +37,5 @@ gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
 bert_service.set_gpus(gpu_ids)
 bert_service.prepare_server(
     workdir="workdir", port=int(sys.argv[2]), device="gpu")
-bert_service.run_server()
-bert_service.run_flask()
+bert_service.run_rpc_service()
+bert_service.run_web_service()

@@ -14,7 +14,7 @@
 
 from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
 from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
-from paddle_serving_app import Debugger
+from paddle_serving_app.local_predict import Debugger
 import sys
 
 debugger = Debugger()

@@ -26,7 +26,7 @@ from batching import pad_batch_data
 import tokenization
 import requests
 import json
-from bert_reader import BertReader
+from paddle_serving_app.reader import ChineseBertReader
 
 args = benchmark_args()
 
@@ -37,7 +37,7 @@ def single_func(idx, resource):
     for line in fin:
         dataset.append(line.strip())
     if args.request == "rpc":
-        reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
+        reader = ChineseBertReader(vocab_file="vocab.txt", max_seq_len=20)
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
