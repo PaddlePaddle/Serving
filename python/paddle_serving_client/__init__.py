@@ -207,8 +207,9 @@ class Client(object):
                 key))
         if type(feed[key]).__module__ == np.__name__ and np.size(feed[
                 key]) != self.feed_tensor_len[key]:
-            raise SystemExit("The shape of feed tensor {} not match.".format(
-                key))
+            #raise SystemExit("The shape of feed tensor {} not match.".format(
+            #    key))
+            pass
 
     def predict(self, feed=None, fetch=None, need_variant_tag=False):
         self.profile_.record('py_prepro_0')
