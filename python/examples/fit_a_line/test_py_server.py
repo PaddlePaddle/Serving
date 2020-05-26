@@ -61,7 +61,7 @@ combine_channel = Channel(name="combine_channel")
 out_channel = Channel(name="out_channel")
 
 cnn_op = UciOp(
-    name="cnn_op",
+    name="cnn",
     input=read_channel,
     in_dtype='float',
     outputs=[combine_channel],
@@ -75,7 +75,7 @@ cnn_op = UciOp(
     concurrency=1)
 
 bow_op = UciOp(
-    name="bow_op",
+    name="bow",
     input=read_channel,
     in_dtype='float',
     outputs=[combine_channel],
@@ -89,7 +89,7 @@ bow_op = UciOp(
     concurrency=1)
 
 combine_op = CombineOp(
-    name="combine_op",
+    name="combine",
     input=combine_channel,
     in_dtype='float',
     outputs=[out_channel],
@@ -99,7 +99,7 @@ combine_op = CombineOp(
 logging.info(read_channel.debug())
 logging.info(combine_channel.debug())
 logging.info(out_channel.debug())
-pyserver = PyServer()
+pyserver = PyServer(profile=False)
 pyserver.add_channel(read_channel)
 pyserver.add_channel(combine_channel)
 pyserver.add_channel(out_channel)
