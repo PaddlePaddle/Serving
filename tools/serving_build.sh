@@ -343,7 +343,7 @@ function python_test_bert_multi_fetch() {
             tar -xzvf bert_multi_fetch.tar.gz
             check_cmd "python -m paddle_serving_server.serve --model bert_multi_fetch_model --port 9292 &"
             sleep 5
-            check_cmd "head -n 8 data-c.txt | python bert_multi_fetch_client.py"
+            check_cmd "head -n 8 data-c.txt | python test_multi_fetch_client.py"
             kill_server_process
             echo "bert mutli fetch RPC inference pass"
             ;;
@@ -353,7 +353,7 @@ function python_test_bert_multi_fetch() {
             tar -xzvf bert_multi_fetch.tar.gz
             check_cmd "python -m paddle_serving_server_gpu.serve --model bert_multi_fetch_model --port 9292 --gpu_ids 0 &"
             sleep 5
-            check_cmd "head -n 8 data-c.txt | python bert_multi_fetch_client.py"
+            check_cmd "head -n 8 data-c.txt | python test_multi_fetch_client.py"
             kill_server_process
             echo "bert mutli fetch RPC inference pass"
             ;;
@@ -368,7 +368,35 @@ function python_test_bert_multi_fetch() {
 }
 
 function python_test_multi_process(){
-
+    # pwd: /Serving/python/examples
+    local TYPT=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd bert # pwd: /Serving/python/examples/fit_a_line
+    case $TYPE in
+        CPU)
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9292 &"
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9293 &"
+            sleep 5
+            check_cmd "python test_multi_process_client.py"
+            kill_server_process
+            echo "bert mutli rpc RPC inference pass"
+            ;;
+        GPU)
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --gpu_ids 0 &"
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9293 --gpu_ids 0 &"
+            sleep 5
+            check_cmd "python test_multi_process_client.py"
+            kill_server_process
+            echo "bert mutli process RPC inference pass"
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test multi process $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
 }
 
 function python_test_imdb() {
