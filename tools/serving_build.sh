@@ -371,7 +371,7 @@ function python_test_multi_process(){
     # pwd: /Serving/python/examples
     local TYPT=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
-    cd bert # pwd: /Serving/python/examples/fit_a_line
+    cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     case $TYPE in
         CPU)
             check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9292 &"
