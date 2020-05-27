@@ -1,10 +1,12 @@
+([简体中文](./README_CN.md)|English)
+
 <p align="center">
     <br>
 <img src='doc/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
-<center>([简体中文](./README_CN.md)|English)</center>
+
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
