@@ -40,3 +40,8 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.0-cp27-none-m
 ```
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_app-0.1.0-py3-none-any.whl
 ```
+
+### Python 2
+```
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_app-0.1.0-py2-none-any.whl
+```
