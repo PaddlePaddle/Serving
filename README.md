@@ -6,6 +6,7 @@
 
 <p align="center">
     <br>
+    ([简体中文](./README_CN.md)|English)
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
     </a>
