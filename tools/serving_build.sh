@@ -331,7 +331,7 @@ function python_test_bert() {
     cd ..
 }
 
-function python_test_bert_multi_fetch() {
+function python_test_multi_fetch() {
     # pwd: /Serving/python/examples
     local TYPT=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
@@ -504,7 +504,9 @@ function python_run_test() {
     python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     python_test_bert $TYPE # pwd: /Serving/python/examples
     python_test_imdb $TYPE # pwd: /Serving/python/examples
-    python_test_lac $TYPE
+    python_test_lac $TYPE # pwd: /Serving/python/examples
+    python_test_multi_process $TYPE # pwd: /Serving/python/examples
+    python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
