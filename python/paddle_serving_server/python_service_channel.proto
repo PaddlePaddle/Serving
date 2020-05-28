@@ -17,7 +17,8 @@ syntax = "proto2";
 message ChannelData {
   repeated Inst insts = 1;
   required int32 id = 2;
-  optional string type = 3 [ default = "channel" ];
+  optional string type = 3
+      [ default = "CD" ]; // CD(channel data), CF(channel futures)
 }
 
 message Inst {
