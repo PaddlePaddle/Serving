@@ -17,8 +17,7 @@ from paddle_serving_app.reader import ChineseBertReader
 import sys
 
 client = Client()
-client.load_client_config(
-    "./bert_multi_fetch_client/serving_client_conf.prototxt")
+client.load_client_config("./bert_seq32_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9292"])
 
 reader = ChineseBertReader({"max_seq_len": 32})
