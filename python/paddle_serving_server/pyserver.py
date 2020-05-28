@@ -267,7 +267,8 @@ class Op(object):
                  server_name=None,
                  fetch_names=None,
                  concurrency=1,
-                 timeout=-1):
+                 timeout=-1,
+                 retry=2):
         self._run = False
         # TODO: globally unique check
         self._name = name  # to identify the type of OP, it must be globally unique
@@ -285,6 +286,7 @@ class Op(object):
         self._server_port = server_port
         self._device = device
         self._timeout = timeout
+        self._retry = retry
 
     def set_client(self, client_config, server_name, fetch_names):
         self._client = Client()
@@ -387,24 +389,33 @@ class Op(object):
 
                 error_info = None
                 if self.with_serving():
-                    _profiler.record("{}{}-midp_0".format(self._name,
-                                                          concurrency_idx))
-                    if self._time > 0:
-                        try:
-                            data = func_timeout.func_timeout(
-                                self._time, self.midprocess, args=(data, ))
-                        except func_timeout.FunctionTimedOut:
-                            logging.error("error: timeout")
-                            error_info = "{}({}): timeout".format(
-                                self._name, concurrency_idx)
-                        except Exception as e:
-                            logging.error("error: {}".format(e))
-                            error_info = "{}({}): {}".format(self._name,
-                                                             concurrency_idx, e)
-                    else:
-                        data = self.midprocess(data)
-                    _profiler.record("{}{}-midp_1".format(self._name,
-                                                          concurrency_idx))
+                    for i in range(self._retry):
+                        _profiler.record("{}{}-midp_0".format(self._name,
+                                                              concurrency_idx))
+                        if self._time > 0:
+                            try:
+                                middata = func_timeout.func_timeout(
+                                    self._time, self.midprocess, args=(data, ))
+                            except func_timeout.FunctionTimedOut:
+                                logging.error("error: timeout")
+                                error_info = "{}({}): timeout".format(
+                                    self._name, concurrency_idx)
+                            except Exception as e:
+                                logging.error("error: {}".format(e))
+                                error_info = "{}({}): {}".format(
+                                    self._name, concurrency_idx, e)
+                        else:
+                            middata = self.midprocess(data)
+                        _profiler.record("{}{}-midp_1".format(self._name,
+                                                              concurrency_idx))
+                        if error_info is None:
+                            data = middata
+                            break
+                        if i + 1 < self._retry:
+                            error_info = None
+                            logging.warn(
+                                self._log("warn: timeout, retry({})".format(i +
+                                                                            1)))
 
                 _profiler.record("{}{}-postp_0".format(self._name,
                                                        concurrency_idx))
