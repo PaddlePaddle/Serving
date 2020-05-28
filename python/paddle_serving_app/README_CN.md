@@ -147,7 +147,7 @@ Paddle Serving框架的server预测op使用了Paddle 的预测框架，在部署
 以[fit_a_line预测服务](../examples/fit_a_line)为例，使用以下代码即可执行本地预测。
 
 ```python
-from paddle_serving_app import Debugger
+from paddle_serving_app.local_predict import Debugger
 import numpy as np
 
 debugger = Debugger()
