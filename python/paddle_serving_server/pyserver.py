@@ -347,12 +347,12 @@ class Op(object):
     def stop(self):
         self._run = False
 
-    def start(self):
+    def start(self, concurrency_idx):
         self._run = True
         while self._run:
-            _profiler.record("{}-get_0".format(self._name))
+            _profiler.record("{}{}-get_0".format(self._name, concurrency_idx))
             input_data = self._input.front(self._name)
-            _profiler.record("{}-get_1".format(self._name))
+            _profiler.record("{}{}-get_1".format(self._name, concurrency_idx))
             data_id = None
             logging.debug(self._log("input_data: {}".format(input_data)))
             if isinstance(input_data, dict):
@@ -361,18 +361,20 @@ class Op(object):
             else:
                 data_id = input_data.id
 
-            _profiler.record("{}-prep_0".format(self._name))
+            _profiler.record("{}{}-prep_0".format(self._name, concurrency_idx))
             data = self.preprocess(input_data)
-            _profiler.record("{}-prep_1".format(self._name))
+            _profiler.record("{}{}-prep_1".format(self._name, concurrency_idx))
 
             if self.with_serving():
-                _profiler.record("{}-midp_0".format(self._name))
+                _profiler.record("{}{}-midp_0".format(self._name,
+                                                      concurrency_idx))
                 data = self.midprocess(data)
-                _profiler.record("{}-midp_1".format(self._name))
+                _profiler.record("{}{}-midp_1".format(self._name,
+                                                      concurrency_idx))
 
-            _profiler.record("{}-postp_0".format(self._name))
+            _profiler.record("{}{}-postp_0".format(self._name, concurrency_idx))
             output_data = self.postprocess(data)
-            _profiler.record("{}-postp_1".format(self._name))
+            _profiler.record("{}{}-postp_1".format(self._name, concurrency_idx))
 
             if not isinstance(output_data,
                               python_service_channel_pb2.ChannelData):
@@ -382,10 +384,10 @@ class Op(object):
                         format(type(output_data))))
             output_data.id = data_id
 
-            _profiler.record("{}-push_0".format(self._name))
+            _profiler.record("{}{}-push_0".format(self._name, concurrency_idx))
             for channel in self._outputs:
                 channel.push(output_data, self._name)
-            _profiler.record("{}-push_1".format(self._name))
+            _profiler.record("{}{}-push_1".format(self._name, concurrency_idx))
 
     def _log(self, info_str):
         return "[{}] {}".format(self._name, info_str)
@@ -549,8 +551,8 @@ class PyServer(object):
         self._out_channel = out_channel.pop()
         self.gen_desc()
 
-    def _op_start_wrapper(self, op):
-        return op.start()
+    def _op_start_wrapper(self, op, concurrency_idx):
+        return op.start(concurrency_idx)
 
     def _run_ops(self):
         for op in self._ops:
@@ -560,7 +562,7 @@ class PyServer(object):
             for c in range(op_concurrency):
                 # th = multiprocessing.Process(
                 th = threading.Thread(
-                    target=self._op_start_wrapper, args=(op, ))
+                    target=self._op_start_wrapper, args=(op, c))
                 th.start()
                 self._op_threads.append(th)
 
