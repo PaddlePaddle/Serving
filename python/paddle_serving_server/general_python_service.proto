@@ -26,4 +26,6 @@ message Request {
 message Response {
   repeated bytes fetch_insts = 1;
   repeated string fetch_var_names = 2;
+  required int32 is_error = 3;
+  optional string error_info = 4;
 }

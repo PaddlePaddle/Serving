@@ -19,6 +19,8 @@ message ChannelData {
   required int32 id = 2;
   optional string type = 3
       [ default = "CD" ]; // CD(channel data), CF(channel futures)
+  required int32 is_error = 4;
+  optional string error_info = 5;
 }
 
 message Inst {
