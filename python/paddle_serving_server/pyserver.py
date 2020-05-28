@@ -42,12 +42,16 @@ class _TimeProfiler(object):
         self._enable = enable
 
     def record(self, name_with_tag):
+        if self._enable is False:
+            return
         name_with_tag = name_with_tag.split("_")
         tag = name_with_tag[-1]
         name = '_'.join(name_with_tag[:-1])
         self._time_record.put((name, tag, int(round(time.time() * 1000000))))
 
     def print_profile(self):
+        if self._enable is False:
+            return
         sys.stderr.write(self._print_head)
         tmp = {}
         while not self._time_record.empty():
@@ -392,10 +396,12 @@ class Op(object):
                     for i in range(self._retry):
                         _profiler.record("{}{}-midp_0".format(self._name,
                                                               concurrency_idx))
-                        if self._time > 0:
+                        if self._timeout > 0:
                             try:
                                 middata = func_timeout.func_timeout(
-                                    self._time, self.midprocess, args=(data, ))
+                                    self._timeout,
+                                    self.midprocess,
+                                    args=(data, ))
                             except func_timeout.FunctionTimedOut:
                                 logging.error("error: timeout")
                                 error_info = "{}({}): timeout".format(
@@ -520,6 +526,7 @@ class GeneralPythonService(
         data = python_service_channel_pb2.ChannelData()
         data_id = self._get_next_id()
         data.id = data_id
+        data.is_error = 0
         for idx, name in enumerate(request.feed_var_names):
             logging.debug(
                 self._log('name: {}'.format(request.feed_var_names[idx])))

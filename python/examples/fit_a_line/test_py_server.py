@@ -72,7 +72,9 @@ cnn_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"],
-    concurrency=1)
+    concurrency=1,
+    timeout=0.01,
+    retry=2)
 
 bow_op = UciOp(
     name="bow",
@@ -86,7 +88,9 @@ bow_op = UciOp(
     client_config="uci_housing_client/serving_client_conf.prototxt",
     server_name="127.0.0.1:9393",
     fetch_names=["price"],
-    concurrency=1)
+    concurrency=1,
+    timeout=-1,
+    retry=1)
 
 combine_op = CombineOp(
     name="combine",
@@ -94,12 +98,14 @@ combine_op = CombineOp(
     in_dtype='float',
     outputs=[out_channel],
     out_dtype='float',
-    concurrency=1)
+    concurrency=1,
+    timeout=-1,
+    retry=1)
 
 logging.info(read_channel.debug())
 logging.info(combine_channel.debug())
 logging.info(out_channel.debug())
-pyserver = PyServer(profile=False)
+pyserver = PyServer(profile=False, retry=1)
 pyserver.add_channel(read_channel)
 pyserver.add_channel(combine_channel)
 pyserver.add_channel(out_channel)
