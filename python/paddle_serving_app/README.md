@@ -158,7 +158,7 @@ Therefore, a local prediction tool is built into the paddle_serving_app, which i
 Taking [fit_a_line prediction service](../examples/fit_a_line) as an example, the following code can be used to run local prediction.
 
 ```python
-from paddle_serving_app import Debugger
+from paddle_serving_app.local_predict import Debugger
 import numpy as np
 
 debugger = Debugger()

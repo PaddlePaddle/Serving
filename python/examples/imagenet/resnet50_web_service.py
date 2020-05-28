@@ -68,5 +68,5 @@ if device == "gpu":
     image_service.set_gpus("0,1")
 image_service.prepare_server(
     workdir="workdir", port=int(sys.argv[3]), device=device)
-image_service.run_server()
-image_service.run_flask()
+image_service.run_rpc_service()
+image_service.run_web_service()

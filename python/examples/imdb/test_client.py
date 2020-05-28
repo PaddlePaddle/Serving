@@ -13,7 +13,7 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 from paddle_serving_client import Client
-from paddle_serving_app import IMDBDataset
+from paddle_serving_app.reader import IMDBDataset
 import sys
 
 client = Client()
