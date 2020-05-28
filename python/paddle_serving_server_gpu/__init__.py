@@ -25,6 +25,7 @@ from .version import serving_server_version
 from contextlib import closing
 import argparse
 import collections
+import multiprocessing
 
 
 def serve_args():
@@ -177,6 +178,7 @@ class Server(object):
         self.use_local_bin = False
         self.gpuid = 0
         self.model_config_paths = None  # for multi-model in a workflow
+        self.lock = multiprocessing.Lock()
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -337,6 +339,7 @@ class Server(object):
         # print config here
 
     def download_bin(self):
+        self.lock.acquire()
         os.chdir(self.module_path)
         need_download = False
         device_version = "serving-gpu-"
@@ -379,6 +382,7 @@ class Server(object):
                     os.remove(tar_name)
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
+        self.lock.release()
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
         if workdir == None:
