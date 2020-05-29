@@ -20,14 +20,14 @@ python -m paddle_serving_app.package --model_list
 python -m paddle_serving_app.package --get_model senta_bilstm
 ```
 
-paddle_serving_app中内置了11中预训练模型，涵盖了6种预测任务。获取到的模型文件可以直接用于部署，添加`--tutorial`参数可以获取对应的部署方式。
+paddle_serving_app中内置了10种预训练模型，涵盖了6种预测任务。获取到的模型文件可以直接用于部署，添加`--tutorial`参数可以获取对应的部署方式。
 
 | 预测服务类型 | 模型名称                                         |
 | ------------ | ------------------------------------------------ |
 | 中文情感分析 | 'senta_bilstm', 'senta_bow', 'senta_cnn'         |
-| 语义理解     | 'ernie_base'                                     |
+| 语义理解     | 'ernie'                                          |
 | 中文分词     | 'lac'                                            |
-| 图像检测     | 'faster_rcnn', 'yolov3'                          |
+| 图像检测     | 'faster_rcnn'                                    |
 | 图像分割     | 'unet', 'deeplabv3'                              |
 | 图像分类     | 'resnet_v2_50_imagenet', 'mobilenet_v2_imagenet' |
 
@@ -71,7 +71,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
 
   [参考示例](../examples/senta/senta_web_service.py)
 
-- 图像的预处理方法相比于上述的方法更加灵活多变，可以通过以下的多个类进行组合，[参考示例](../examples/imagenet/image_rpc_client.py)
+- 图像的预处理方法相比于上述的方法更加灵活多变，可以通过以下的多个类进行组合，[参考示例](../examples/imagenet/resnet50_rpc_client.py)
 
 - class Sequentia
 
