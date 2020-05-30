@@ -1,8 +1,11 @@
+([简体中文](./README_CN.md)|English)
+
 <p align="center">
     <br>
 <img src='doc/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
+
 
 <p align="center">
     <br>
