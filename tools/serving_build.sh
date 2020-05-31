@@ -375,16 +375,16 @@ function python_test_multi_process(){
     sh get_data.sh
     case $TYPE in
         CPU)
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9292 &"
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9293 &"
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9292 --workdir test9292 &"
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9293 --workdir test9293 &"
             sleep 5
             check_cmd "python test_multi_process_client.py"
             kill_server_process
             echo "bert mutli rpc RPC inference pass"
             ;;
         GPU)
-            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --gpu_ids 0 &"
-            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9293 --gpu_ids 0 &"
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9292 --workdir test9292 --gpu_ids 0 &"
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9293 --workdir test9293 --gpu_ids 0 &"
             sleep 5
             check_cmd "python test_multi_process_client.py"
             kill_server_process
