@@ -26,14 +26,6 @@ We consider deploying deep learning inference service online to be a user-facing
     <img src="doc/demo.gif" width="700">
 </p>
 
-<h2 align="center">Some Key Features</h2>
-
-- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
-- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers supported.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
-- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Installation</h2>
 
@@ -62,6 +54,70 @@ You may need to use a domestic mirror source (in China, you can use the Tsinghua
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
 Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
+
+
+<h2 align="center"> Pre-built services with Paddle Serving</h2>
+
+<h3 align="center">Chinese Word Segmentation</h4>
+
+- **Description**: 
+``` shell
+Chinese word segmentation HTTP service that can be deployed with one line command.
+```
+
+- **Demo**: 
+``` shell
+> python -m paddle_serving_app.package -get lac
+> tar -xzf lac.tar.gz
+> python lac_web_service.py 9292 &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
+{"result":[{"word_seg":"我|爱|北京|天安门"}]}
+```
+
+<h3 align="center">Image Classification</h4>
+
+- **Description**: 
+``` shell
+Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
+Note: This demo needs paddle-serving-server-gpu. 
+```
+
+- **Download Servable Package**: 
+``` shell
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
+```
+- **Host web service**: 
+``` shell
+tar -xzf imagenet_demo.tar.gz
+python image_classification_service_demo.py resnet50_serving_model
+```
+- **Request sample**: 
+
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
+    <br>
+<p>
+
+``` shell
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+```
+- **Request result**: 
+``` shell
+{"label":"daisy","prob":0.9341403245925903}
+```
+
+
+
+<h2 align="center">Some Key Features</h2>
+
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
+- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
+- **Extensible framework design** which can support model serving beyond Paddle.
+
 
 <h2 align="center">Quick Start Example</h2>
 
@@ -119,66 +175,6 @@ print(fetch_map)
 
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
-
-<h2 align="center"> Pre-built services with Paddle Serving</h2>
-
-<h3 align="center">Chinese Word Segmentation</h4>
-
-- **Description**: 
-``` shell
-Chinese word segmentation HTTP service that can be deployed with one line command.
-```
-
-- **Download Servable Package**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
-```
-- **Host web service**: 
-``` shell
-tar -xzf lac_model_jieba_web.tar.gz
-python lac_web_service.py jieba_server_model/ lac_workdir 9292
-```
-- **Request sample**: 
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
-```
-- **Request result**: 
-``` shell
-{"word_seg":"我|爱|北京|天安门"}
-```
-
-<h3 align="center">Image Classification</h4>
-
-- **Description**: 
-``` shell
-Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
-Note: This demo needs paddle-serving-server-gpu. 
-```
-
-- **Download Servable Package**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
-```
-- **Host web service**: 
-``` shell
-tar -xzf imagenet_demo.tar.gz
-python image_classification_service_demo.py resnet50_serving_model
-```
-- **Request sample**: 
-
-<p align="center">
-    <br>
-<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
-    <br>
-<p>
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
-```
-- **Request result**: 
-``` shell
-{"label":"daisy","prob":0.9341403245925903}
-```
 
 <h3 align="center">More Demos</h3>
 
