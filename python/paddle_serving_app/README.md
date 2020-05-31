@@ -12,7 +12,7 @@ pip install paddle_serving_app
 ## Get model list
 
 ```shell
-python -m paddle_serving_app.package --model_list
+python -m paddle_serving_app.package --list_model
 ```
 
 ## Download pre-training model

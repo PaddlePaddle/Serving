@@ -1,8 +1,11 @@
+([简体中文](./README_CN.md)|English)
+
 <p align="center">
     <br>
 <img src='doc/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
+
 
 <p align="center">
     <br>
@@ -55,6 +58,8 @@ pip install paddle-serving-server-gpu # GPU
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
+
+If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
 Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
