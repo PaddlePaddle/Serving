@@ -90,6 +90,8 @@ Client package support Centos 7 and Ubuntu 18, or you can use HTTP service witho
 
 <h2 align="center">Quick Start Example</h2>
 
+This quick start example is only for users who already have a model to deploy and we prepare a ready-to-deploy model here. If you want to know how to use paddle serving from offline training to online serving, please reference to [Train_To_Service](https://github.com/PaddlePaddle/Serving/blob/develop/doc/TRAIN_TO_SERVICE.md)
+
 ### Boston House Price Prediction model
 ``` shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
