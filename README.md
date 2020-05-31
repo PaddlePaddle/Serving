@@ -67,7 +67,7 @@ Chinese word segmentation HTTP service that can be deployed with one line comman
 
 - **Demo**: 
 ``` shell
-> python -m paddle_serving_app.package -get lac
+> python -m paddle_serving_app.package -get_model lac
 > tar -xzf lac.tar.gz
 > python lac_web_service.py 9292 &
 > curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
@@ -82,31 +82,21 @@ Image classification trained with Imagenet dataset. A label and corresponding pr
 Note: This demo needs paddle-serving-server-gpu. 
 ```
 
-- **Download Servable Package**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
-```
-- **Host web service**: 
-``` shell
-tar -xzf imagenet_demo.tar.gz
-python image_classification_service_demo.py resnet50_serving_model
-```
-- **Request sample**: 
+- **Demo**: 
 
 <p align="center">
     <br>
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-
+    
 ``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+> python -m paddle_serving_app.package -get_model resnet_v2_50_imagenet
+> tar -xzf resnet_v2_50_imagenet.tar.gz
+> python resnet50_imagenet_classify.py resnet50_serving_model &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+{"result":{"label":["daisy"],"prob":[0.9341403245925903]}}
 ```
-- **Request result**: 
-``` shell
-{"label":"daisy","prob":0.9341403245925903}
-```
-
 
 
 <h2 align="center">Some Key Features</h2>
