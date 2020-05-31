@@ -60,11 +60,6 @@ Client package support Centos 7 and Ubuntu 18, or you can use HTTP service witho
 
 <h3 align="center">Chinese Word Segmentation</h4>
 
-- **Description**: 
-``` shell
-Chinese word segmentation HTTP service that can be deployed with one line command.
-```
-
 - **Demo**: 
 ``` shell
 > python -m paddle_serving_app.package -get_model lac
@@ -75,12 +70,6 @@ Chinese word segmentation HTTP service that can be deployed with one line comman
 ```
 
 <h3 align="center">Image Classification</h4>
-
-- **Description**: 
-``` shell
-Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
-Note: This demo needs paddle-serving-server-gpu. 
-```
 
 - **Demo**: 
 
