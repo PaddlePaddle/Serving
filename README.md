@@ -99,16 +99,6 @@ Note: This demo needs paddle-serving-server-gpu.
 ```
 
 
-<h2 align="center">Some Key Features</h2>
-
-- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
-- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers supported.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
-- **Extensible framework design** which can support model serving beyond Paddle.
-
-
 <h2 align="center">Quick Start Example</h2>
 
 ### Boston House Price Prediction model
@@ -166,78 +156,14 @@ print(fetch_map)
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
 
-<h3 align="center">More Demos</h3>
+<h2 align="center">Some Key Features of Paddle Serving</h2>
 
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Bert-Base-Baike                                              |
-| URL                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
-| Description        | Get semantic representation from a Chinese Sentence          |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Resnet50-Imagenet                                            |
-| URL                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| Description        | Get image semantic representation from an image              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Resnet101-Imagenet                                           |
-| URL                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| Description        | Get image semantic representation from an image              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | CNN-IMDB                                                     |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | LSTM-IMDB                                                    |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | BOW-IMDB                                                     |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Jieba-LAC                                                    |
-| URL                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
-| Description        | Get word segmentation from a Chinese Sentence                |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | DNN-CTR                                                      |
-| URL                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                            |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
-| Description        | Get click probability from a feature vector of item          |
-
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
+- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
+- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Document</h2>
 
