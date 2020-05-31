@@ -91,6 +91,8 @@ pip install paddle-serving-server-gpu # GPU
 
 <h2 align="center">快速开始示例</h2>
 
+这个快速开始示例主要是为了给那些已经有一个要部署的模型的用户准备的，而且我们也提供了一个可以用来部署的模型。如果您想知道如何从离线训练到在线服务走完全流程，请参考[从训练到部署](https://github.com/PaddlePaddle/Serving/blob/develop/doc/TRAIN_TO_SERVICE_CN.md)
+
 <h3 align="center">波士顿房价预测</h3>
 
 ``` shell
