@@ -36,6 +36,8 @@ cd Serving && git submodule update --init --recursive
 export PYTHONROOT=/usr/
 ```
 
+In the default centos7 image we provide, the Python path is `/usr/bin/python`. If you want to use our centos6 image, you need to set it to `export PYTHONROOT=/usr/local/python2.7/`.
+
 ## Compile Server
 
 ### Integrated CPU version paddle inference library

@@ -384,7 +384,7 @@ class Server(object):
                 finally:
                     os.remove(tar_name)
         #release lock
-        version_file.cloes()
+        version_file.close()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 

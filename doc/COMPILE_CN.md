@@ -36,6 +36,8 @@ cd Serving && git submodule update --init --recursive
 export PYTHONROOT=/usr/
 ```
 
+我们提供默认Centos7的Python路径为`/usr/bin/python`，如果您要使用我们的Centos6镜像，需要将其设置为`export PYTHONROOT=/usr/local/python2.7/`。
+
 ## 编译Server部分
 
 ### 集成CPU版本Paddle Inference Library
