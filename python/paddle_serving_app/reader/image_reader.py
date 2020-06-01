@@ -296,7 +296,10 @@ class File2Image(object):
         pass
 
     def __call__(self, img_path):
-        fin = open(img_path)
+        if py_version == 2:
+            fin = open(img_path)
+        else:
+            fin = open(img_path, "rb")
         sample = fin.read()
         data = np.fromstring(sample, np.uint8)
         img = cv2.imdecode(data, cv2.IMREAD_COLOR)
