@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -x
 function unsetproxy() {
     HTTP_PROXY_TEMP=$http_proxy
     HTTPS_PROXY_TEMP=$https_proxy
@@ -455,15 +455,16 @@ function python_test_lac() {
     cd lac # pwd: /Serving/python/examples/lac
     case $TYPE in
         CPU)
-            sh get_data.sh
-            check_cmd "python -m paddle_serving_server.serve --model jieba_server_model/ --port 9292 &"
+            python -m paddle_serving_app.package --get_model lac
+            tar -xzvf lac.tar.gz
+            check_cmd "python -m paddle_serving_server.serve --model lac_model/ --port 9292 &"
             sleep 5
-            check_cmd "echo \"我爱北京天安门\" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/"
+            check_cmd "echo \"我爱北京天安门\" | python lac_client.py lac_client/serving_client_conf.prototxt "
             echo "lac CPU RPC inference pass"
             kill_server_process
 
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python lac_web_service.py jieba_server_model/ lac_workdir 9292 &"
+            check_cmd "python lac_web_service.py lac_model/ lac_workdir 9292 &"
             sleep 5
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
             # check http code
