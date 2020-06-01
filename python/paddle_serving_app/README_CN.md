@@ -11,7 +11,7 @@ pip install paddle_serving_app
 ## 获取模型列表
 
 ```shell
-python -m paddle_serving_app.package --model_list
+python -m paddle_serving_app.package --list_model
 ```
 
 ## 下载预训练模型
