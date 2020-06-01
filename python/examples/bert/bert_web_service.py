@@ -21,7 +21,10 @@ import os
 
 class BertService(WebService):
     def load(self):
-        self.reader = ChineseBertReader(vocab_file="vocab.txt", max_seq_len=128)
+        self.reader = ChineseBertReader({
+            "vocab_file": "vocab.txt",
+            "max_seq_len": 128
+        })
 
     def preprocess(self, feed=[], fetch=[]):
         feed_res = [
