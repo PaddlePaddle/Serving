@@ -15,7 +15,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-from lac_reader import LACReader
+from paddle_serving_app.reader import LACReader
 import sys
 import os
 import io
@@ -24,7 +24,7 @@ client = Client()
 client.load_client_config(sys.argv[1])
 client.connect(["127.0.0.1:9292"])
 
-reader = LACReader(sys.argv[2])
+reader = LACReader()
 for line in sys.stdin:
     if len(line) <= 0:
         continue
@@ -32,4 +32,8 @@ for line in sys.stdin:
     if len(feed_data) <= 0:
         continue
     fetch_map = client.predict(feed={"words": feed_data}, fetch=["crf_decode"])
-    print(fetch_map)
+    begin = fetch_map['crf_decode.lod'][0]
+    end = fetch_map['crf_decode.lod'][1]
+    segs = reader.parse_result(line, fetch_map["crf_decode"][begin:end])
+
+    print({"word_seg": "|".join(segs)})
