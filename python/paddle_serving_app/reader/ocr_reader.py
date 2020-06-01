@@ -19,6 +19,7 @@ import math
 import re
 import sys
 import argparse
+from paddle_serving_app.reader import Sequential, Resize, Transpose, Div, Normalize
 
 
 class CharacterOps(object):
@@ -153,13 +154,15 @@ class OCRReader(object):
             resized_w = imgW
         else:
             resized_w = int(math.ceil(imgH * ratio))
-        resized_image = cv2.resize(img, (resized_w, imgH))
-        resized_image = resized_image.astype('float32')
-        resized_image = resized_image.transpose((2, 0, 1)) / 255
-        resized_image -= 0.5
-        resized_image /= 0.5
+
+        seq = Sequential([
+            Resize(imgH, resized_w), Transpose((2, 0, 1)), Div(255),
+            Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5], True)
+        ])
+        resized_image = seq(img)
         padding_im = np.zeros((imgC, imgH, imgW), dtype=np.float32)
         padding_im[:, :, 0:resized_w] = resized_image
+
         return padding_im
 
     def preprocess(self, img_list):
