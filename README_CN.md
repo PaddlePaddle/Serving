@@ -27,14 +27,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
     <img src="doc/demo.gif" width="700">
 </p>
 
-<h2 align="center">核心功能</h2>
 
-- 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
-- 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
-- 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
-- 支持客户端和服务端之间 **高并发和高效通信**.
-- 支持 **多种编程语言** 开发客户端，例如Golang，C++和Python.
-- **可伸缩框架设计** 可支持不限于Paddle的模型服务.
 
 <h2 align="center">安装</h2>
 
@@ -64,7 +57,38 @@ pip install paddle-serving-server-gpu # GPU
 
 客户端安装包支持Centos 7和Ubuntu 18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
 
-<h2 align="center">快速启动示例</h2>
+<h2 align="center"> Paddle Serving预装的服务 </h2>
+
+<h3 align="center">中文分词</h4>
+
+``` shell
+> python -m paddle_serving_app.package -get_model lac
+> tar -xzf lac.tar.gz
+> python lac_web_service.py 9292 &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
+{"result":[{"word_seg":"我|爱|北京|天安门"}]}
+```
+
+<h3 align="center">图像分类</h4>
+
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
+    <br>
+<p>
+    
+``` shell
+> python -m paddle_serving_app.package -get_model resnet_v2_50_imagenet
+> tar -xzf resnet_v2_50_imagenet.tar.gz
+> python resnet50_imagenet_classify.py resnet50_serving_model &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+{"result":{"label":["daisy"],"prob":[0.9341403245925903]}}
+```
+
+
+<h2 align="center">快速开始示例</h2>
+
+这个快速开始示例主要是为了给那些已经有一个要部署的模型的用户准备的，而且我们也提供了一个可以用来部署的模型。如果您想知道如何从离线训练到在线服务走完全流程，请参考[从训练到部署](https://github.com/PaddlePaddle/Serving/blob/develop/doc/TRAIN_TO_SERVICE_CN.md)
 
 <h3 align="center">波士顿房价预测</h3>
 
@@ -125,139 +149,14 @@ print(fetch_map)
 ```
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
-<h2 align="center">Paddle Serving预装的服务</h2>
+<h2 align="center">Paddle Serving的核心功能</h2>
 
-<h3 align="center">中文分词模型</h4>
-
-- **介绍**: 
-``` shell
-本示例为中文分词HTTP服务一键部署
-```
-
-- **下载服务包**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
-```
-- **启动web服务**: 
-``` shell
-tar -xzf lac_model_jieba_web.tar.gz
-python lac_web_service.py jieba_server_model/ lac_workdir 9292
-```
-- **客户端请求示例**: 
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
-```
-- **返回结果示例**: 
-``` shell
-{"word_seg":"我|爱|北京|天安门"}
-```
-
-<h3 align="center">图像分类模型</h4>
-
-- **介绍**: 
-``` shell
-图像分类模型由Imagenet数据集训练而成，该服务会返回一个标签及其概率
-注意：本示例需要安装paddle-serving-server-gpu
-```
-
-- **下载服务包**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
-```
-- **启动web服务**: 
-``` shell
-tar -xzf imagenet_demo.tar.gz
-python image_classification_service_demo.py resnet50_serving_model
-```
-- **客户端请求示例**: 
-
-<p align="center">
-    <br>
-<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
-    <br>
-<p>
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
-```
-- **返回结果示例**: 
-``` shell
-{"label":"daisy","prob":0.9341403245925903}
-```
-
-<h3 align="center">更多示例</h3>
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名              | Bert-Base-Baike                                              |
-| 下载链接                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
-| 客户端/服务端代码     | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
-| 介绍                | 获得一个中文语句的语义表示          |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名         | Resnet50-Imagenet                                            |
-| 下载链接                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| 介绍        | 获得一张图片的图像语义表示              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名       | Resnet101-Imagenet                                           |
-| 下载链接                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| 介绍      | 获得一张图片的图像语义表示              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名        | CNN-IMDB                                                     |
-| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| 介绍       | 从一个中文语句获得类别及其概率           |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名         | LSTM-IMDB                                                    |
-| 下载链接               | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| 介绍        | 从一个英文语句获得类别及其概率            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名         | BOW-IMDB                                                     |
-| 下载链接                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| 介绍       | 从一个英文语句获得类别及其概率            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名         | Jieba-LAC                                                    |
-| 下载链接                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
-| 介绍       | 获取中文语句的分词                |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| 模型名         | DNN-CTR                                                      |
-| 下载链接                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                    |
-| 客户端/服务端代码 | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
-| 介绍        | 从项目的特征向量中获得点击概率        |
-
-
+- 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
+- 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
+- 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
+- 支持客户端和服务端之间 **高并发和高效通信**.
+- 支持 **多种编程语言** 开发客户端，例如Golang，C++和Python.
+- **可伸缩框架设计** 可支持不限于Paddle的模型服务.
 
 <h2 align="center">文档</h2>
 
