@@ -61,7 +61,6 @@ pip install paddle-serving-server-gpu # GPU
 
 <h3 align="center">中文分词</h4>
 
-- **运行方法**: 
 ``` shell
 > python -m paddle_serving_app.package -get_model lac
 > tar -xzf lac.tar.gz
@@ -71,8 +70,6 @@ pip install paddle-serving-server-gpu # GPU
 ```
 
 <h3 align="center">图像分类</h4>
-
-- **运行方法**: 
 
 <p align="center">
     <br>
