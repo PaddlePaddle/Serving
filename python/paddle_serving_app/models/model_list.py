@@ -31,10 +31,12 @@ class ServingModels(object):
         self.model_dict["ImageClassification"] = [
             "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"
         ]
+        self.model_dict["OCR"] = ["ocr_rec"]
 
         image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"
         image_seg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/"
         object_detection_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ObjectDetection/"
+        ocr_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/"
         senta_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/"
         semantic_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticRepresentation/"
         wordseg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/"
@@ -52,6 +54,7 @@ class ServingModels(object):
         pack_url(self.model_dict, "ObjectDetection", object_detection_url)
         pack_url(self.model_dict, "ImageSegmentation", image_seg_url)
         pack_url(self.model_dict, "ImageClassification", image_class_url)
+        pack_url(self.model_dict, "OCR", ocr_url)
 
     def get_model_list(self):
         return self.model_dict

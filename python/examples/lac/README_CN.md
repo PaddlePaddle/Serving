@@ -2,28 +2,27 @@
 
 (简体中文|[English](./README.md))
 
-### 获取模型和字典文件
+### 获取模型
 ```
-sh get_data.sh
+python -m paddle_serving_app.package --get_model lac
+tar -xzvf lac.tar.gz
 ```
-
-下载包里包含了lac模型和lac模型预测需要的字典文件
 
 #### 开启RPC预测服务
 
 ```
-python -m paddle_serving_server.serve --model jieba_server_model/ --port 9292
+python -m paddle_serving_server.serve --model lac_model/ --port 9292
 ```
 ### 执行RPC预测
 ```
-echo "我爱北京天安门" | python lac_client.py jieba_client_conf/serving_client_conf.prototxt lac_dict/
+echo "我爱北京天安门" | python lac_client.py lac_client/serving_client_conf.prototxt
 ```
 
 我们就能得到分词结果
 
 ### 开启HTTP预测服务
 ```
-python lac_web_service.py jieba_server_model/ lac_workdir 9292
+python lac_web_service.py lac_model/ lac_workdir 9292
 ```
 ### 执行HTTP预测
 
