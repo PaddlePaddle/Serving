@@ -25,6 +25,7 @@ from .version import serving_server_version
 from contextlib import closing
 import argparse
 import collections
+import fcntl
 
 
 def serve_args():
@@ -347,6 +348,11 @@ class Server(object):
 
         download_flag = "{}/{}.is_download".format(self.module_path,
                                                    folder_name)
+
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        fcntl.flock(version_file, fcntl.LOCK_EX)
+
         if os.path.exists(download_flag):
             os.chdir(self.cur_path)
             self.bin_path = self.server_path + "/serving"
@@ -377,6 +383,8 @@ class Server(object):
                         format(self.module_path))
                 finally:
                     os.remove(tar_name)
+        #release lock
+        version_file.cloes()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 

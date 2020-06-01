@@ -23,6 +23,7 @@ import paddle_serving_server as paddle_serving_server
 from .version import serving_server_version
 from contextlib import closing
 import collections
+import fcntl
 
 
 class OpMaker(object):
@@ -322,6 +323,10 @@ class Server(object):
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
         self.server_path = os.path.join(self.module_path, floder_name)
 
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        fcntl.flock(version_file, fcntl.LOCK_EX)
+
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
@@ -345,6 +350,8 @@ class Server(object):
                         foemat(self.module_path))
                 finally:
                     os.remove(tar_name)
+        #release lock
+        version_file.close()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 
