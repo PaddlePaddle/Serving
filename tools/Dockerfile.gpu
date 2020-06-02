@@ -1,5 +1,6 @@
-FROM nvidia/cuda:9.0-cudnn7-runtime-centos7
+FROM nvidia/cuda:9.0-cudnn7-devel-centos7 as builder
 
+FROM nvidia/cuda:9.0-cudnn7-runtime-centos7
 RUN yum -y install wget && \
     yum -y install epel-release && yum -y install patchelf && \
     yum -y install gcc make python-devel && \
@@ -13,4 +14,7 @@ RUN yum -y install wget && \
     ln -s /usr/local/cuda-9.0/lib64/libcublas.so.9.0 /usr/local/cuda-9.0/lib64/libcublas.so && \
     echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> /root/.bashrc && \
     ln -s /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so.7 /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so && \
-    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH' >> /root/.bashrc
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
+    mkdir -p /usr/local/cuda/extras
+
+COPY --from=builder /usr/local/cuda/extras/CUPTI /usr/local/cuda/extras/CUPTI
