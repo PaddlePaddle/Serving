@@ -88,7 +88,7 @@ with open('processed.data') as f:
 
 In the code, the function `client.add_variant(tag, clusters, variant_weight)` is to add a variant with label `tag` and flow weight `variant_weight`. In this example, a BOW variant with label of `bow` and flow weight of `10`, and an LSTM variant with label of `lstm` and a flow weight of `90` are added. The flow on the client side will be distributed to two variants according to the ratio of `10:90`.
 
-When making prediction on the client side, if the parameter `need_variant_tag=True` is specified, the response will contains the variant tag corresponding to the distribution flow.
+When making prediction on the client side, if the parameter `need_variant_tag=True` is specified, the response will contain the variant tag corresponding to the distribution flow.
 
 ### Expected Results
 
