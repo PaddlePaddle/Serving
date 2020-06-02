@@ -20,7 +20,7 @@ This document will take Python2 as an example to show how to compile Paddle Serv
 
 - Set `DPYTHON_INCLUDE_DIR` to `$PYTHONROOT/include/python3.6m/`
 - Set  `DPYTHON_LIBRARIES` to `$PYTHONROOT/lib64/libpython3.6.so`
-- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3`
+- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3.6`
 
 ## Get Code
 
@@ -35,6 +35,8 @@ cd Serving && git submodule update --init --recursive
 # for example, the path of python is /usr/bin/python, you can set /usr as PYTHONROOT
 export PYTHONROOT=/usr/
 ```
+
+In the default centos7 image we provide, the Python path is `/usr/bin/python`. If you want to use our centos6 image, you need to set it to `export PYTHONROOT=/usr/local/python2.7/`.
 
 ## Compile Server
 

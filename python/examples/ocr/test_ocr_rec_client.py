@@ -1,4 +1,3 @@
-# encoding=utf-8
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,28 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-from paddle_serving_app.reader import LACReader
-import sys
-import os
-import io
+from paddle_serving_app.reader import OCRReader
+import cv2
 
 client = Client()
-client.load_client_config(sys.argv[1])
+client.load_client_config("ocr_rec_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9292"])
 
-reader = LACReader()
-for line in sys.stdin:
-    if len(line) <= 0:
-        continue
-    feed_data = reader.process(line)
-    if len(feed_data) <= 0:
-        continue
-    fetch_map = client.predict(feed={"words": feed_data}, fetch=["crf_decode"])
-    begin = fetch_map['crf_decode.lod'][0]
-    end = fetch_map['crf_decode.lod'][1]
-    segs = reader.parse_result(line, fetch_map["crf_decode"][begin:end])
-
-    print({"word_seg": "|".join(segs)})
+image_file_list = ["./test_rec.jpg"]
+img = cv2.imread(image_file_list[0])
+ocr_reader = OCRReader()
+feed = {"image": ocr_reader.preprocess([img])}
+fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
+fetch_map = client.predict(feed=feed, fetch=fetch)
+rec_res = ocr_reader.postprocess(fetch_map)
+print(image_file_list[0])
+print(rec_res[0][0])
