@@ -20,7 +20,7 @@ This document will take Python2 as an example to show how to compile Paddle Serv
 
 - Set `DPYTHON_INCLUDE_DIR` to `$PYTHONROOT/include/python3.6m/`
 - Set  `DPYTHON_LIBRARIES` to `$PYTHONROOT/lib64/libpython3.6.so`
-- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3`
+- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3.6`
 
 ## Get Code
 
