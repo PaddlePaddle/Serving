@@ -34,7 +34,7 @@ for line in sys.stdin:
 
 ## Export from saved model files
 If you have saved model files using Paddle's `save_inference_model` API, you can use Paddle Serving's` inference_model_to_serving` API to convert it into a model file that can be used for Paddle Serving.
-```
+```python
 import paddle_serving_client.io as serving_io
 serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client", model_filename=None, params_filename=None )
 ```
