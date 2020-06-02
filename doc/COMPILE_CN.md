@@ -20,7 +20,7 @@
 
 - 将`DPYTHON_INCLUDE_DIR`设置为`$PYTHONROOT/include/python3.6m/`
 - 将`DPYTHON_LIBRARIES`设置为`$PYTHONROOT/lib64/libpython3.6.so`
-- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3`
+- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3.6`
 
 ## 获取代码
 
