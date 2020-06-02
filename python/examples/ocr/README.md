@@ -2,8 +2,7 @@
 
 ## Get Model
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
-tar -xzvf ocr_rec.tar.gz
+sh get_data.sh
 ```
 
 ## RPC Service
@@ -11,7 +10,9 @@ tar -xzvf ocr_rec.tar.gz
 ### Start Service
 
 ```
-python -m paddle_serving_server.serve --model ocr_rec_model --port 9292
+python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9292 --gpu_id 0
+python -m paddle_serving_server_gpu.serve --model ocr_rec_model --port 9293 --gpu_id 1
+
 ```
 
 ### Client Prediction
@@ -19,3 +20,11 @@ python -m paddle_serving_server.serve --model ocr_rec_model --port 9292
 ```
 python test_ocr_rec_client.py
 ```
+
+This is the one of picture
+
+<p align = "center">
+    <br>
+<img src = 'res_1.jpg'>
+    <br>
+<p>
