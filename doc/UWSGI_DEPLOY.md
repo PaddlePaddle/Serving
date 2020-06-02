@@ -29,7 +29,7 @@ from paddle_serving_server.web_service import WebService
 uci_service = WebService(name = "uci")
 uci_service.load_model_config("./uci_housing_model")
 uci_service.prepare_server(workdir="./workdir", port=int(9500), device="cpu")
-uci_service.run_server()
+uci_service.run_rpc_service()
 #Get flask application
 app_instance = uci_service.get_app_instance()
 ```
