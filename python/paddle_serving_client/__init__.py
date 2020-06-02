@@ -372,3 +372,53 @@ class Client(object):
     def release(self):
         self.client_handle_.destroy_predictor()
         self.client_handle_ = None
+
+
+class GClient(object):
+    def __init__(self):
+        self.bclient_ = Client()
+        self.channel_ = None
+
+    def load_client_config(self, path):
+        pass
+
+    def connect(self, endpoint):
+        self.channel_ = grpc.insecure_channel(endpoint)
+        self.stub_ = gserver_general_model_service_pb2_grpc.GServerGeneralModelServiceStub(
+            self.channel_)
+
+    def _parse_model_config(self, model_config_path):
+        model_conf = m_config.GeneralModelConfig()
+        f = open(model_config_path, 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
+        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
+        self.feed_types_ = {}
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.fetch_type_ = {}
+        self.type_map_ = {0: "int64", 1: "float"}
+        for i, var in enumerate(model_conf.feed_var):
+            self.feed_types_[var.alias_name] = var.feed_type
+            self.feed_shapes_[var.alias_name] = var.shape
+        for i, var in enumerate(model_conf.fetch_var):
+            self.fetch_type_[var.alias_name] = var.fetch_type
+
+    def _pack_feed_data(self, feed, fetch):
+        req = gserver_general_model_service_pb2.Request()
+        req.fetch_var_names.extend(fetch)
+        feed_batch = None
+        if isinstance(feed, dict):
+            feed_batch = [feed]
+        elif isinstance(feed, list):
+            feed_batch = feed
+        else:
+            raise Exception("{} not support".format(type(feed)))
+        #TODO
+
+    def _unpack_resp(self, resp):
+        pass
+
+    def predict(self, feed, fetch):
+        req = self._pack_feed_data(feed, fetch)
+        resp = self.stub_.inference(req)
+        return self._unpack_resp(resp)
