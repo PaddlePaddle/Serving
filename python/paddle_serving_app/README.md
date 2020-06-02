@@ -21,15 +21,15 @@ python -m paddle_serving_app.package --list_model
 python -m paddle_serving_app.package --get_model senta_bilstm
 ```
 
-11 pre-trained models are built into paddle_serving_app, covering 6 kinds of prediction tasks.
+10 pre-trained models are built into paddle_serving_app, covering 6 kinds of prediction tasks.
 The model files can be directly used for deployment, and the `--tutorial` argument can be added to obtain the deployment method.
 
 | Prediction task | Model name                                         |
 | ------------ | ------------------------------------------------ |
 | SentimentAnalysis | 'senta_bilstm', 'senta_bow', 'senta_cnn'         |
-| SemanticRepresentation | 'ernie_base'                                     |
+| SemanticRepresentation | 'ernie'                                     |
 | ChineseWordSegmentation     | 'lac'                                            |
-| ObjectDetection     | 'faster_rcnn', 'yolov3'                          |
+| ObjectDetection     | 'faster_rcnn'                         |
 | ImageSegmentation     | 'unet', 'deeplabv3'                              |
 | ImageClassification     | 'resnet_v2_50_imagenet', 'mobilenet_v2_imagenet' |
 
@@ -76,7 +76,7 @@ Preprocessing for Chinese word segmentation task.
 
   [example](../examples/senta/senta_web_service.py)
 
-- The image preprocessing method is more flexible than the above method, and can be combined by the following multiple classes，[example](../examples/imagenet/image_rpc_client.py)
+- The image preprocessing method is more flexible than the above method, and can be combined by the following multiple classes，[example](../examples/imagenet/resnet50_rpc_client.py)
 
 - class Sequentia
 
