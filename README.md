@@ -151,7 +151,6 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 - **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
 - **Highly concurrent and efficient communication** between clients and servers supported.
 - **Multiple programming languages** supported on client side, such as Golang, C++ and python.
-- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Document</h2>
 
