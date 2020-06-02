@@ -189,7 +189,7 @@ class Client(object):
         # create predictor here
         if endpoints is None:
             if self.predictor_sdk_ is None:
-                raise SystemExit(
+                raise ValueError(
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
@@ -215,7 +215,7 @@ class Client(object):
             return
         if isinstance(feed[key],
                       list) and len(feed[key]) != self.feed_tensor_len[key]:
-            raise SystemExit("The shape of feed tensor {} not match.".format(
+            raise ValueError("The shape of feed tensor {} not match.".format(
                 key))
         if type(feed[key]).__module__ == np.__name__ and np.size(feed[
                 key]) != self.feed_tensor_len[key]:
@@ -316,7 +316,7 @@ class Client(object):
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
                 self.pid)
         else:
-            raise SystemExit(
+            raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
             )
 
