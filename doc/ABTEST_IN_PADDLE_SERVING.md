@@ -21,7 +21,7 @@ The following Python code will process the data `test_data/part-0` and write to 
 
 [//file]:#process.py
 ``` python
-from imdb_reader import IMDBDataset
+from paddle_serving_app.reader import IMDBDataset
 imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource('imdb.vocab')
 
@@ -78,7 +78,7 @@ with open('processed.data') as f:
         feed = {"words": word_ids}
         fetch = ["acc", "cost", "prediction"]
         [fetch_map, tag] = client.predict(feed=feed, fetch=fetch, need_variant_tag=True)
-        if (float(fetch_map["prediction"][1]) - 0.5) * (float(label[0]) - 0.5) > 0:
+        if (float(fetch_map["prediction"][0][1]) - 0.5) * (float(label[0]) - 0.5) > 0:
             cnt[tag]['acc'] += 1
         cnt[tag]['total'] += 1
 
@@ -88,7 +88,7 @@ with open('processed.data') as f:
 
 In the code, the function `client.add_variant(tag, clusters, variant_weight)` is to add a variant with label `tag` and flow weight `variant_weight`. In this example, a BOW variant with label of `bow` and flow weight of `10`, and an LSTM variant with label of `lstm` and a flow weight of `90` are added. The flow on the client side will be distributed to two variants according to the ratio of `10:90`.
 
-When making prediction on the client side, if the parameter `need_variant_tag=True` is specified, the response will contains the variant tag corresponding to the distribution flow.
+When making prediction on the client side, if the parameter `need_variant_tag=True` is specified, the response will contain the variant tag corresponding to the distribution flow.
 
 ### Expected Results
 

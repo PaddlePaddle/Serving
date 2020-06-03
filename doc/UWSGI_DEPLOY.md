@@ -18,7 +18,7 @@ http://10.127.3.150:9393/uci/prediction
 Here you will be prompted that the HTTP service started is in development mode and cannot be used for production deployment. 
 The prediction service started by Flask is not stable enough to withstand the concurrency of a large number of requests. In the actual deployment process, WSGI (Web Server Gateway Interface) is used.
 
-Next, we will show how to use the [uWSGI] (https://github.com/unbit/uwsgi) module to deploy HTTP prediction services for production environments.
+Next, we will show how to use the [uWSGI](https://github.com/unbit/uwsgi) module to deploy HTTP prediction services for production environments.
 
 
 ```python
