@@ -35,7 +35,7 @@ for line in sys.stdin:
 
 ## 从已保存的模型文件中导出
 如果已使用Paddle 的`save_inference_model`接口保存出预测要使用的模型，则可以通过Paddle Serving的`inference_model_to_serving`接口转换成可用于Paddle Serving的模型文件。
-```
+```python
 import paddle_serving_client.io as serving_io
 serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client",  model_filename=None, params_filename=None)
 ```
