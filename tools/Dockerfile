@@ -9,4 +9,6 @@ RUN yum -y install wget && \
     yum -y install python3 python3-devel && \
     yum clean all && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && rm get-pip.py
+    python get-pip.py && rm get-pip.py && \
+    localedef -c -i en_US -f UTF-8 en_US.UTF-8 && \
+    echo "export LANG=en_US.utf8" >> /root/.bashrc
