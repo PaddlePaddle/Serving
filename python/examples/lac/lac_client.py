@@ -36,4 +36,4 @@ for line in sys.stdin:
     end = fetch_map['crf_decode.lod'][1]
     segs = reader.parse_result(line, fetch_map["crf_decode"][begin:end])
 
-    print({"word_seg": "|".join(segs)})
+    print("word_seg: " + "|".join(segs))
