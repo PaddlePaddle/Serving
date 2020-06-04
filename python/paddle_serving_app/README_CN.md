@@ -28,7 +28,7 @@ paddle_serving_app中内置了11种预训练模型，涵盖了6种预测任务�
 | 语义理解     | 'ernie'                                          |
 | 中文分词     | 'lac'                                            |
 | 图像检测     | 'faster_rcnn'                                    |
-| 图像分割     | 'unet', 'deeplabv3'                              |
+| 图像分割     | 'unet', 'deeplabv3', 'deeplabv3+cityscapes'                              |
 | 图像分类     | 'resnet_v2_50_imagenet', 'mobilenet_v2_imagenet' |
 
 ## 数据预处理API
