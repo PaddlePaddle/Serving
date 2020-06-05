@@ -22,11 +22,8 @@ import time
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args, show_latency
-from batching import pad_batch_data
-import tokenization
-import requests
-import json
-from bert_reader import BertReader
+from paddle_serving_app.reader import ChineseBertReader
+
 args = benchmark_args()
 
 
@@ -45,8 +42,7 @@ def single_func(idx, resource):
         latency_list = []
 
     if args.request == "rpc":
-        reader = BertReader(vocab_file="vocab.txt", max_seq_len=20)
-
+        reader = ChineseBertReader({"max_seq_len": 128})
         fetch = ["pooled_output"]
         client = Client()
         client.load_client_config(args.model)
@@ -78,7 +74,10 @@ def single_func(idx, resource):
     elif args.request == "http":
         raise ("not implemented")
     end = time.time()
-    return [[end - start], latency_list]
+    if latency_flags:
+        return [[end - start], latency_list]
+    else:
+        return [[end - start]]
 
 
 if __name__ == '__main__':
@@ -86,7 +85,7 @@ if __name__ == '__main__':
     endpoint_list = [
         "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
     ]
-    turns = 1000
+    turns = 10
     start = time.time()
     result = multi_thread_runner.run(
         single_func, args.thread, {"endpoint": endpoint_list,

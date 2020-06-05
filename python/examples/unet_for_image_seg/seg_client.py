@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-from image_reader import ImageReader
 from paddle_serving_client import Client
-import time
+from paddle_serving_app.reader import Sequential, File2Image, Resize, Transpose, BGR2RGB, SegPostprocess
+import sys
+import cv2
 
 client = Client()
-client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
-reader = ImageReader()
+client.load_client_config("unet_client/serving_client_conf.prototxt")
+client.connect(["127.0.0.1:9494"])
 
-start = time.time()
-for i in range(1000):
-    with open("./data/n01440764_10026.JPEG", "rb") as f:
-        img = f.read()
-    img = reader.process_image(img)
-    fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-end = time.time()
-print(end - start)
+preprocess = Sequential(
+    [File2Image(), Resize(
+        (512, 512), interpolation=cv2.INTER_LINEAR)])
 
-#print(fetch_map["score"])
+postprocess = SegPostprocess(2)
+
+filename = "N0060.jpg"
+im = preprocess(filename)
+fetch_map = client.predict(feed={"image": im}, fetch=["output"])
+fetch_map["filename"] = filename
+postprocess(fetch_map)

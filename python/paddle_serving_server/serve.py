@@ -42,6 +42,9 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--mem_optim", type=bool, default=False, help="Memory optimize")
     parser.add_argument(
+        "--ir_optim", type=bool, default=False, help="Graph optimize")
+    parser.add_argument("--use_mkl", type=bool, default=False, help="Use MKL")
+    parser.add_argument(
         "--max_body_size",
         type=int,
         default=512 * 1024 * 1024,
@@ -57,7 +60,9 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     workdir = args.workdir
     device = args.device
     mem_optim = args.mem_optim
+    ir_optim = args.ir_optim
     max_body_size = args.max_body_size
+    use_mkl = args.use_mkl
 
     if model == "":
         print("You must specify your serving model")
@@ -78,6 +83,8 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
+    server.set_ir_optimize(ir_optim)
+    server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
 
@@ -96,7 +103,7 @@ if __name__ == "__main__":
         service.load_model_config(args.model)
         service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
-        service.run_server()
+        service.run_rpc_service()
 
         app_instance = Flask(__name__)
 

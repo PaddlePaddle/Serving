@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_client import Client
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+py_version = sys.version_info[0]
+if py_version == 2:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 import os
 import io
 
@@ -47,10 +48,16 @@ def load_kv_dict(dict_path,
 class LACReader(object):
     """data reader"""
 
-    def __init__(self, dict_folder):
+    def __init__(self, dict_folder=""):
         # read dict
         #basepath = os.path.abspath(__file__)
         #folder = os.path.dirname(basepath)
+        if dict_folder == "":
+            dict_folder = "lac_dict"
+            if not os.path.exists(dict_folder):
+                r = os.system(
+                    "wget https://paddle-serving.bj.bcebos.com/reader/lac/lac_dict.tar.gz  --no-check-certificate && tar -xzvf lac_dict.tar.gz"
+                )
         word_dict_path = os.path.join(dict_folder, "word.dic")
         label_dict_path = os.path.join(dict_folder, "tag.dic")
         replace_dict_path = os.path.join(dict_folder, "q2b.dic")
@@ -104,6 +111,10 @@ class LACReader(object):
         return word_ids
 
     def parse_result(self, words, crf_decode):
+        try:
+            words = unicode(words, "utf-8")
+        except:
+            pass
         tags = [self.id2label_dict[str(x[0])] for x in crf_decode]
 
         sent_out = []

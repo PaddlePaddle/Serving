@@ -25,6 +25,7 @@ from .version import serving_server_version
 from contextlib import closing
 import argparse
 import collections
+import fcntl
 
 
 def serve_args():
@@ -47,6 +48,8 @@ def serve_args():
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
         "--mem_optim", type=bool, default=False, help="Memory optimize")
+    parser.add_argument(
+        "--ir_optim", type=bool, default=False, help="Graph optimize")
     parser.add_argument(
         "--max_body_size",
         type=int,
@@ -156,6 +159,7 @@ class Server(object):
         self.model_toolkit_conf = None
         self.resource_conf = None
         self.memory_optimization = False
+        self.ir_optimization = False
         self.model_conf = None
         self.workflow_fn = "workflow.prototxt"
         self.resource_fn = "resource.prototxt"
@@ -204,6 +208,9 @@ class Server(object):
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
+    def set_ir_optimize(self, flag=False):
+        self.ir_optimization = flag
+
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
@@ -240,6 +247,7 @@ class Server(object):
             engine.enable_batch_align = 0
             engine.model_data_path = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
+            engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
 
@@ -313,7 +321,8 @@ class Server(object):
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = self.model_config_paths.items()[0][1]
+            workflow_oi_config_path = list(self.model_config_paths.items())[0][
+                1]
         else:
             raise Exception("The type of model_config_paths must be str or "
                             "dict({op: model_path}), not {}.".format(
@@ -339,6 +348,11 @@ class Server(object):
 
         download_flag = "{}/{}.is_download".format(self.module_path,
                                                    folder_name)
+
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        fcntl.flock(version_file, fcntl.LOCK_EX)
+
         if os.path.exists(download_flag):
             os.chdir(self.cur_path)
             self.bin_path = self.server_path + "/serving"
@@ -369,6 +383,8 @@ class Server(object):
                         format(self.module_path))
                 finally:
                     os.remove(tar_name)
+        #release lock
+        version_file.close()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 

@@ -1,8 +1,11 @@
+([简体中文](./README_CN.md)|English)
+
 <p align="center">
     <br>
 <img src='doc/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
+
 
 <p align="center">
     <br>
@@ -23,28 +26,20 @@ We consider deploying deep learning inference service online to be a user-facing
     <img src="doc/demo.gif" width="700">
 </p>
 
-<h2 align="center">Some Key Features</h2>
-
-- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
-- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers supported.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
-- **Extensible framework design** which can support model serving beyond Paddle.
 
 <h2 align="center">Installation</h2>
 
 We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
 ```
 # Run CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -56,9 +51,43 @@ pip install paddle-serving-server-gpu # GPU
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
 
+If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
+
 Client package support Centos 7 and Ubuntu 18, or you can use HTTP service without install client.
 
+
+<h2 align="center"> Pre-built services with Paddle Serving</h2>
+
+<h3 align="center">Chinese Word Segmentation</h4>
+
+``` shell
+> python -m paddle_serving_app.package -get_model lac
+> tar -xzf lac.tar.gz
+> python lac_web_service.py 9292 &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
+{"result":[{"word_seg":"我|爱|北京|天安门"}]}
+```
+
+<h3 align="center">Image Classification</h4>
+
+<p align="center">
+    <br>
+<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
+    <br>
+<p>
+    
+``` shell
+> python -m paddle_serving_app.package -get_model resnet_v2_50_imagenet
+> tar -xzf resnet_v2_50_imagenet.tar.gz
+> python resnet50_imagenet_classify.py resnet50_serving_model &
+> curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
+{"result":{"label":["daisy"],"prob":[0.9341403245925903]}}
+```
+
+
 <h2 align="center">Quick Start Example</h2>
+
+This quick start example is only for users who already have a model to deploy and we prepare a ready-to-deploy model here. If you want to know how to use paddle serving from offline training to online serving, please reference to [Train_To_Service](https://github.com/PaddlePaddle/Serving/blob/develop/doc/TRAIN_TO_SERVICE.md)
 
 ### Boston House Price Prediction model
 ``` shell
@@ -82,7 +111,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | bool | `False` | Enable memory optimization |
+| `mem_optim` | bool | `False` | Enable memory / graphic memory optimization |
+| `ir_optim` | bool | `False` | Enable analysis and optimization of calculation graph |
+| `use_mkl` (Only for cpu version) | bool | `False` | Run inference with MKL |
 
 Here, we use `curl` to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
@@ -113,138 +144,13 @@ print(fetch_map)
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
 
-<h2 align="center"> Pre-built services with Paddle Serving</h2>
+<h2 align="center">Some Key Features of Paddle Serving</h2>
 
-<h3 align="center">Chinese Word Segmentation</h4>
-
-- **Description**: 
-``` shell
-Chinese word segmentation HTTP service that can be deployed with one line command.
-```
-
-- **Download Servable Package**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/lac/lac_model_jieba_web.tar.gz
-```
-- **Host web service**: 
-``` shell
-tar -xzf lac_model_jieba_web.tar.gz
-python lac_web_service.py jieba_server_model/ lac_workdir 9292
-```
-- **Request sample**: 
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
-```
-- **Request result**: 
-``` shell
-{"word_seg":"我|爱|北京|天安门"}
-```
-
-<h3 align="center">Image Classification</h4>
-
-- **Description**: 
-``` shell
-Image classification trained with Imagenet dataset. A label and corresponding probability will be returned.
-Note: This demo needs paddle-serving-server-gpu. 
-```
-
-- **Download Servable Package**: 
-``` shell
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/imagenet-example/imagenet_demo.tar.gz
-```
-- **Host web service**: 
-``` shell
-tar -xzf imagenet_demo.tar.gz
-python image_classification_service_demo.py resnet50_serving_model
-```
-- **Request sample**: 
-
-<p align="center">
-    <br>
-<img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
-    <br>
-<p>
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
-```
-- **Request result**: 
-``` shell
-{"label":"daisy","prob":0.9341403245925903}
-```
-
-<h3 align="center">More Demos</h3>
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Bert-Base-Baike                                              |
-| URL                | [https://paddle-serving.bj.bcebos.com/bert_example/bert_seq128.tar.gz](https://paddle-serving.bj.bcebos.com/bert_example%2Fbert_seq128.tar.gz) |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert |
-| Description        | Get semantic representation from a Chinese Sentence          |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Resnet50-Imagenet                                            |
-| URL                | [https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet50_vd.tar.gz](https://paddle-serving.bj.bcebos.com/imagenet-example%2FResNet50_vd.tar.gz) |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| Description        | Get image semantic representation from an image              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Resnet101-Imagenet                                           |
-| URL                | https://paddle-serving.bj.bcebos.com/imagenet-example/ResNet101_vd.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imagenet |
-| Description        | Get image semantic representation from an image              |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | CNN-IMDB                                                     |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | LSTM-IMDB                                                    |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | BOW-IMDB                                                     |
-| URL                | https://paddle-serving.bj.bcebos.com/imdb-demo/imdb_model.tar.gz |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/imdb |
-| Description        | Get category probability from an English Sentence            |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | Jieba-LAC                                                    |
-| URL                | https://paddle-serving.bj.bcebos.com/lac/lac_model.tar.gz    |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/lac |
-| Description        | Get word segmentation from a Chinese Sentence                |
-
-
-
-| Key                | Value                                                        |
-| :----------------- | :----------------------------------------------------------- |
-| Model Name         | DNN-CTR                                                      |
-| URL                | https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz                            |
-| Client/Server Code | https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/criteo_ctr |
-| Description        | Get click probability from a feature vector of item          |
-
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
+- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
 
 <h2 align="center">Document</h2>
 
@@ -259,11 +165,13 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"url": "https://pa
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Golang client](doc/IMDB_GO_CLIENT.md)
 - [Compile from source code](doc/COMPILE.md)
+- [Deploy Web Service with uWSGI](doc/UWSGI_DEPLOY.md)
+- [Hot loading for model file](doc/HOT_LOADING_IN_SERVING.md)
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
-- [How to optimize performance?(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [Deploy multi-services on one GPU(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
+- [How to optimize performance?(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
+- [Deploy multi-services on one GPU(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 

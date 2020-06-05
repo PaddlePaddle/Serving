@@ -67,27 +67,3 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
-
-### Benchmark
-
-模型：bert_chinese_L-12_H-768_A-12
-
-设备：GPU V100 * 1
-
-环境：CUDA 9.2，cudnn 7.1.4
-
-测试中将样例数据中的1W个样本复制为10W个样本，每个client线程发送线程数分之一个样本，batch size为1，max_seq_len为20（而不是上面的128），时间单位为秒.
-
-在client线程数为4时，预测速度可以达到432样本每秒。
-由于单张GPU内部只能串行计算，client线程增多只能减少GPU的空闲时间，因此在线程数达到4之后，线程数增多对预测速度没有提升。
-
-| client  thread num | prepro | client infer | op0   | op1    | op2  | postpro | total  |
-| ------------------ | ------ | ------------ | ----- | ------ | ---- | ------- | ------ |
-| 1                  | 3.05   | 290.54       | 0.37  | 239.15 | 6.43 | 0.71    | 365.63 |
-| 4                  | 0.85   | 213.66       | 0.091 | 200.39 | 1.62 | 0.2     | 231.45 |
-| 8                  | 0.42   | 223.12       | 0.043 | 110.99 | 0.8  | 0.098   | 232.05 |
-| 12                 | 0.32   | 225.26       | 0.029 | 73.87  | 0.53 | 0.078   | 231.45 |
-| 16                 | 0.23   | 227.26       | 0.022 | 55.61  | 0.4  | 0.056   | 231.9  |
-
-总耗时变化规律如下：  
-![bert benchmark](../../../doc/bert-benchmark-batch-size-1.png)

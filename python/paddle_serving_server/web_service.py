@@ -86,13 +86,13 @@ class WebService(object):
             for key in fetch_map:
                 fetch_map[key] = fetch_map[key].tolist()
             fetch_map = self.postprocess(
-                feed=feed, fetch=fetch, fetch_map=fetch_map)
+                feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": fetch_map}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
 
-    def run_server(self):
+    def run_rpc_service(self):
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
@@ -101,7 +101,6 @@ class WebService(object):
         p_rpc = Process(target=self._launch_rpc_service)
         p_rpc.start()
 
-    def run_flask(self):
         app_instance = Flask(__name__)
 
         @app_instance.before_first_request
@@ -114,10 +113,16 @@ class WebService(object):
         def run():
             return self.get_prediction(request)
 
-        app_instance.run(host="0.0.0.0",
-                         port=self.port,
-                         threaded=False,
-                         processes=4)
+        self.app_instance = app_instance
+
+    def run_web_service(self):
+        self.app_instance.run(host="0.0.0.0",
+                              port=self.port,
+                              threaded=False,
+                              processes=1)
+
+    def get_app_instance(self):
+        return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch

@@ -21,7 +21,7 @@ RUN yum -y install wget && \
     wget https://www.python.org/ftp/python/2.7.5/Python-2.7.5.tgz && \
     tar -zxf Python-2.7.5.tgz && \
     cd Python-2.7.5 && \
-    ./configure --prefix=/usr/local/python2.7 --enable-shared && \
+    ./configure --prefix=/usr/local/python2.7 --enable-shared --enable-unicode=ucs4 && \
     make all && make install && \
     make clean && \
     echo 'export PATH=/usr/local/python2.7/bin:$PATH' >> /root/.bashrc && \
@@ -43,5 +43,6 @@ RUN yum -y install wget && \
     source /root/.bashrc && \
     cd .. && rm -rf Python-3.6.8* && \
     pip3 install google protobuf setuptools wheel flask numpy==1.16.4 && \
-    yum -y install epel-release && yum -y install patchelf && \
-    yum clean all
+    yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
+    yum clean all && \
+    echo "export LANG=en_US.utf8" >> /root/.bashrc
