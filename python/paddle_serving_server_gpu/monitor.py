@@ -20,7 +20,7 @@ Usage:
 import os
 import time
 import argparse
-import commands
+import subprocess
 import datetime
 import shutil
 import tarfile
@@ -209,7 +209,7 @@ class HadoopMonitor(Monitor):
         remote_filepath = os.path.join(path, filename)
         cmd = '{} -ls {} 2>/dev/null'.format(self._cmd_prefix, remote_filepath)
         _LOGGER.debug('check cmd: {}'.format(cmd))
-        [status, output] = commands.getstatusoutput(cmd)
+        [status, output] = subprocess.getstatusoutput(cmd)
         _LOGGER.debug('resp: {}'.format(output))
         if status == 0:
             [_, _, _, _, _, mdate, mtime, _] = output.split('\n')[-1].split()

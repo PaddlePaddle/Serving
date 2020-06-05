@@ -38,7 +38,7 @@ class ServingModels(object):
         object_detection_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ObjectDetection/"
         ocr_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/"
         senta_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/"
-        semantic_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticRepresentation/"
+        semantic_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/"
         wordseg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/"
 
         self.url_dict = {}
