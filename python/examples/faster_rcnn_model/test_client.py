@@ -13,21 +13,29 @@
 # limitations under the License.
 
 from paddle_serving_client import Client
+from paddle_serving_app.reader import *
 import sys
-import os
-import time
-from paddle_serving_app.reader.pddet import Detection
 import numpy as np
 
-py_version = sys.version_info[0]
+preprocess = Sequential([
+    File2Image(), BGR2RGB(), Div(255.0),
+    Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], False),
+    Resize(640, 640), Transpose((2, 0, 1))
+])
 
-feed_var_names = ['image', 'im_shape', 'im_info']
-fetch_var_names = ['multiclass_nms']
-pddet = Detection(config_path=sys.argv[2], output_dir="./output")
-feed_dict = pddet.preprocess(feed_var_names, sys.argv[3])
+postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
+
 client.load_client_config(sys.argv[1])
 client.connect(['127.0.0.1:9494'])
-fetch_map = client.predict(feed=feed_dict, fetch=fetch_var_names)
-outs = fetch_map.values()
-pddet.postprocess(fetch_map, fetch_var_names)
+
+im = preprocess(sys.argv[3])
+fetch_map = client.predict(
+    feed={
+        "image": im,
+        "im_info": np.array(list(im.shape[1:]) + [1.0]),
+        "im_shape": np.array(list(im.shape[1:]) + [1.0])
+    },
+    fetch=["multiclass_nms"])
+fetch_map["image"] = sys.argv[3]
+postprocess(fetch_map)

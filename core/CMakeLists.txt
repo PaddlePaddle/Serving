@@ -23,6 +23,11 @@ add_subdirectory(pdcodegen)
 add_subdirectory(sdk-cpp)
 endif()
 
+if (APP)
+add_subdirectory(configure)
+endif()
+
+
 if(CLIENT)
 add_subdirectory(general-client)
 endif()

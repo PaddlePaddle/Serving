@@ -21,6 +21,7 @@ import google.protobuf.text_format
 import numpy as np
 import time
 import sys
+from .serving_client import PredictorRes
 
 int_type = 0
 float_type = 1
@@ -60,13 +61,18 @@ class SDKConfig(object):
         self.tag_list = []
         self.cluster_list = []
         self.variant_weight_list = []
+        self.rpc_timeout_ms = 20000
+        self.load_balance_strategy = "la"
 
     def add_server_variant(self, tag, cluster, variant_weight):
         self.tag_list.append(tag)
         self.cluster_list.append(cluster)
         self.variant_weight_list.append(variant_weight)
 
-    def gen_desc(self):
+    def set_load_banlance_strategy(self, strategy):
+        self.load_balance_strategy = strategy
+
+    def gen_desc(self, rpc_timeout_ms):
         predictor_desc = sdk.Predictor()
         predictor_desc.name = "general_model"
         predictor_desc.service_name = \
@@ -85,7 +91,7 @@ class SDKConfig(object):
         self.sdk_desc.predictors.extend([predictor_desc])
         self.sdk_desc.default_variant_conf.tag = "default"
         self.sdk_desc.default_variant_conf.connection_conf.connect_timeout_ms = 2000
-        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = 20000
+        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = rpc_timeout_ms
         self.sdk_desc.default_variant_conf.connection_conf.connect_retry_count = 2
         self.sdk_desc.default_variant_conf.connection_conf.max_connection_per_host = 100
         self.sdk_desc.default_variant_conf.connection_conf.hedge_request_timeout_ms = -1
@@ -108,11 +114,9 @@ class Client(object):
         self.feed_names_ = []
         self.fetch_names_ = []
         self.client_handle_ = None
-        self.result_handle_ = None
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.rpath()
         self.pid = os.getpid()
         self.predictor_sdk_ = None
         self.producers = []
@@ -120,16 +124,10 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
-
-    def rpath(self):
-        lib_path = os.path.dirname(paddle_serving_client.__file__)
-        client_path = os.path.join(lib_path, 'serving_client.so')
-        lib_path = os.path.join(lib_path, 'lib')
-        os.system('patchelf --set-rpath {} {}'.format(lib_path, client_path))
+        self.rpc_timeout_ms = 20000
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
-        from .serving_client import PredictorRes
         model_conf = m_config.GeneralModelConfig()
         f = open(path, 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -139,7 +137,6 @@ class Client(object):
         # get feed vars, fetch vars
         # get feed shapes, feed types
         # map feed names to index
-        self.result_handle_ = PredictorRes()
         self.client_handle_ = PredictorClient()
         self.client_handle_.init(path)
         if "FLAGS_max_body_size" not in os.environ:
@@ -180,13 +177,19 @@ class Client(object):
         self.predictor_sdk_.add_server_variant(tag, cluster,
                                                str(variant_weight))
 
+    def set_rpc_timeout_ms(self, rpc_timeout):
+        if not isinstance(rpc_timeout, int):
+            raise ValueError("rpc_timeout must be int type.")
+        else:
+            self.rpc_timeout_ms = rpc_timeout
+
     def connect(self, endpoints=None):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
         if endpoints is None:
             if self.predictor_sdk_ is None:
-                raise SystemExit(
+                raise ValueError(
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
@@ -197,7 +200,7 @@ class Client(object):
                 print(
                     "parameter endpoints({}) will not take effect, because you use the add_variant function.".
                     format(endpoints))
-        sdk_desc = self.predictor_sdk_.gen_desc()
+        sdk_desc = self.predictor_sdk_.gen_desc(self.rpc_timeout_ms)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
 
@@ -210,9 +213,15 @@ class Client(object):
     def shape_check(self, feed, key):
         if key in self.lod_tensor_set:
             return
-        if len(feed[key]) != self.feed_tensor_len[key]:
-            raise SystemExit("The shape of feed tensor {} not match.".format(
+        if isinstance(feed[key],
+                      list) and len(feed[key]) != self.feed_tensor_len[key]:
+            raise ValueError("The shape of feed tensor {} not match.".format(
                 key))
+        if type(feed[key]).__module__ == np.__name__ and np.size(feed[
+                key]) != self.feed_tensor_len[key]:
+            #raise SystemExit("The shape of feed tensor {} not match.".format(
+            #    key))
+            pass
 
     def predict(self, feed=None, fetch=None, need_variant_tag=False):
         self.profile_.record('py_prepro_0')
@@ -261,8 +270,8 @@ class Client(object):
             for key in feed_i:
                 if key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
-                if not isinstance(feed_i[key], np.ndarray):
-                    self.shape_check(feed_i, key)
+                #if not isinstance(feed_i[key], np.ndarray):
+                self.shape_check(feed_i, key)
                 if self.feed_types_[key] == int_type:
                     if i == 0:
                         int_feed_names.append(key)
@@ -271,7 +280,6 @@ class Client(object):
                         else:
                             int_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        #int_slot.append(np.reshape(feed_i[key], (-1)).tolist())
                         int_slot.append(feed_i[key])
                         self.has_numpy_input = True
                     else:
@@ -285,7 +293,6 @@ class Client(object):
                         else:
                             float_shape.append(self.feed_shapes_[key])
                     if isinstance(feed_i[key], np.ndarray):
-                        #float_slot.append(np.reshape(feed_i[key], (-1)).tolist())
                         float_slot.append(feed_i[key])
                         self.has_numpy_input = True
                     else:
@@ -297,17 +304,19 @@ class Client(object):
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
 
-        result_batch = self.result_handle_
+        result_batch_handle = PredictorRes()
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, fetch_names, result_batch, self.pid)
+                int_feed_names, int_shape, fetch_names, result_batch_handle,
+                self.pid)
         elif self.has_numpy_input == False:
             res = self.client_handle_.batch_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, fetch_names, result_batch, self.pid)
+                int_feed_names, int_shape, fetch_names, result_batch_handle,
+                self.pid)
         else:
-            raise SystemExit(
+            raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
             )
 
@@ -318,28 +327,28 @@ class Client(object):
             return None
 
         multi_result_map = []
-        model_engine_names = result_batch.get_engine_names()
+        model_engine_names = result_batch_handle.get_engine_names()
         for mi, engine_name in enumerate(model_engine_names):
             result_map = {}
             # result map needs to be a numpy array
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int_type:
-                    result_map[name] = result_batch.get_int64_by_name(mi, name)
-                    shape = result_batch.get_shape(mi, name)
-                    result_map[name] = np.array(result_map[name], dtype='int64')
+                    # result_map[name] will be py::array(numpy array)
+                    result_map[name] = result_batch_handle.get_int64_by_name(
+                        mi, name)
+                    shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(name)] = np.array(
-                            result_batch.get_lod(mi, name))
+                        result_map["{}.lod".format(
+                            name)] = result_batch_handle.get_lod(mi, name)
                 elif self.fetch_names_to_type_[name] == float_type:
-                    result_map[name] = result_batch.get_float_by_name(mi, name)
-                    shape = result_batch.get_shape(mi, name)
-                    result_map[name] = np.array(
-                        result_map[name], dtype='float32')
+                    result_map[name] = result_batch_handle.get_float_by_name(
+                        mi, name)
+                    shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(name)] = np.array(
-                            result_batch.get_lod(mi, name))
+                        result_map["{}.lod".format(
+                            name)] = result_batch_handle.get_lod(mi, name)
             multi_result_map.append(result_map)
         ret = None
         if len(model_engine_names) == 1:
@@ -357,7 +366,7 @@ class Client(object):
 
         # When using the A/B test, the tag of variant needs to be returned
         return ret if not need_variant_tag else [
-            ret, self.result_handle_.variant_tag()
+            ret, result_batch_handle.variant_tag()
         ]
 
     def release(self):

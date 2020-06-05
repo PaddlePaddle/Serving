@@ -19,14 +19,21 @@ from __future__ import unicode_literals, absolute_import
 import os
 import sys
 import time
+import requests
+import json
+import base64
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
-import requests
-import json
-from image_reader import ImageReader
+from paddle_serving_app.reader import Sequential, URL2Image, Resize
+from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 
 args = benchmark_args()
+
+seq_preprocess = Sequential([
+    URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
+])
 
 
 def single_func(idx, resource):
@@ -36,6 +43,10 @@ def single_func(idx, resource):
     img_list = []
     for i in range(1000):
         img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
+    profile_flags = False
+    if "FLAGS_profile_client" in os.environ and os.environ[
+            "FLAGS_profile_client"]:
+        profile_flags = True
     if args.request == "rpc":
         reader = ImageReader()
         fetch = ["score"]
@@ -46,16 +57,36 @@ def single_func(idx, resource):
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
+                i_start = time.time()
                 for bi in range(args.batch_size):
-                    img = reader.process_image(img_list[i])
-                    img = img.reshape(-1)
+                    img = seq_preprocess(img_list[i])
                     feed_batch.append({"image": img})
+                i_end = time.time()
+                if profile_flags:
+                    print("PROFILE\tpid:{}\timage_pre_0:{} image_pre_1:{}".
+                          format(os.getpid(),
+                                 int(round(i_start * 1000000)),
+                                 int(round(i_end * 1000000))))
+
                 result = client.predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        raise ("no batch predict for http")
+        py_version = 2
+        server = "http://" + resource["endpoint"][idx % len(resource[
+            "endpoint"])] + "/image/prediction"
+        start = time.time()
+        for i in range(1000):
+            if py_version == 2:
+                image = base64.b64encode(
+                    open("./image_data/n01440764/" + file_list[i]).read())
+            else:
+                image = base64.b64encode(open(image_path, "rb").read()).decode(
+                    "utf-8")
+            req = json.dumps({"feed": [{"image": image}], "fetch": ["score"]})
+            r = requests.post(
+                server, data=req, headers={"Content-Type": "application/json"})
     end = time.time()
     return [[end - start]]
 

@@ -23,6 +23,7 @@ import paddle_serving_server as paddle_serving_server
 from .version import serving_server_version
 from contextlib import closing
 import collections
+import fcntl
 
 
 class OpMaker(object):
@@ -127,6 +128,7 @@ class Server(object):
         self.model_toolkit_conf = None
         self.resource_conf = None
         self.memory_optimization = False
+        self.ir_optimization = False
         self.model_conf = None
         self.workflow_fn = "workflow.prototxt"
         self.resource_fn = "resource.prototxt"
@@ -175,6 +177,9 @@ class Server(object):
     def set_memory_optimize(self, flag=False):
         self.memory_optimization = flag
 
+    def set_ir_optimize(self, flag=False):
+        self.ir_optimization = flag
+
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
@@ -195,6 +200,7 @@ class Server(object):
             engine.enable_batch_align = 0
             engine.model_data_path = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
+            engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
 
@@ -244,7 +250,7 @@ class Server(object):
         workflow_oi_config_path = None
         if isinstance(model_config_paths, str):
             # If there is only one model path, use the default infer_op.
-            # Because there are several infer_op type, we need to find 
+            # Because there are several infer_op type, we need to find
             # it from workflow_conf.
             default_engine_names = [
                 'general_infer_0', 'general_dist_kv_infer_0',
@@ -269,7 +275,8 @@ class Server(object):
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = self.model_config_paths.items()[0][1]
+            workflow_oi_config_path = list(self.model_config_paths.items())[0][
+                1]
         else:
             raise Exception("The type of model_config_paths must be str or "
                             "dict({op: model_path}), not {}.".format(
@@ -284,8 +291,8 @@ class Server(object):
         # check config here
         # print config here
 
-    def use_mkl(self):
-        self.mkl_flag = True
+    def use_mkl(self, flag):
+        self.mkl_flag = flag
 
     def get_device_version(self):
         avx_flag = False
@@ -300,6 +307,10 @@ class Server(object):
             else:
                 device_version = "serving-cpu-avx-openblas-"
         else:
+            if mkl_flag:
+                print(
+                    "Your CPU does not support AVX, server will running with noavx-openblas mode."
+                )
             device_version = "serving-cpu-noavx-openblas-"
         return device_version
 
@@ -311,6 +322,10 @@ class Server(object):
         tar_name = floder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
         self.server_path = os.path.join(self.module_path, floder_name)
+
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        fcntl.flock(version_file, fcntl.LOCK_EX)
 
         if not os.path.exists(self.server_path):
             print('Frist time run, downloading PaddleServing components ...')
@@ -335,6 +350,8 @@ class Server(object):
                         foemat(self.module_path))
                 finally:
                     os.remove(tar_name)
+        #release lock
+        version_file.close()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 

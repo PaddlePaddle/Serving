@@ -20,7 +20,7 @@ sh get_data.sh
 下面Python代码将处理`test_data/part-0`的数据，写入`processed.data`文件中。
 
 ```python
-from imdb_reader import IMDBDataset
+from paddle_serving_app.reader import IMDBDataset
 imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource('imdb.vocab')
 
@@ -38,7 +38,7 @@ with open('test_data/part-0') as fin:
 首先启动BOW Server，该服务启用`8000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it bow-server bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 8000 >std.log 2>err.log &
@@ -48,7 +48,7 @@ exit
 同理启动LSTM Server，该服务启用`9000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it lstm-server bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 9000 >std.log 2>err.log &
@@ -76,7 +76,7 @@ with open('processed.data') as f:
         feed = {"words": word_ids}
         fetch = ["acc", "cost", "prediction"]
         [fetch_map, tag] = client.predict(feed=feed, fetch=fetch, need_variant_tag=True)
-        if (float(fetch_map["prediction"][1]) - 0.5) * (float(label[0]) - 0.5) > 0:
+        if (float(fetch_map["prediction"][0][1]) - 0.5) * (float(label[0]) - 0.5) > 0:
             cnt[tag]['acc'] += 1
         cnt[tag]['total'] += 1
 

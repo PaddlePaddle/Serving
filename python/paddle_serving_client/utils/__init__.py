@@ -38,7 +38,7 @@ def benchmark_args():
 
 def show_latency(latency_list):
     latency_array = np.array(latency_list)
-    info = ""
+    info = "latency:\n"
     info += "mean :{} ms\n".format(np.mean(latency_array))
     info += "median :{} ms\n".format(np.median(latency_array))
     info += "80 percent :{} ms\n".format(np.percentile(latency_array, 80))

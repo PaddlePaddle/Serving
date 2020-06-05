@@ -17,7 +17,7 @@ You can get images in two ways:
 1. Pull image directly
 
    ```bash
-   docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0
+   docker pull hub.baidubce.com/paddlepaddle/serving:latest
    ```
 
 2. Building image based on dockerfile
@@ -25,13 +25,13 @@ You can get images in two ways:
    Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
 
    ```bash
-   docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0 .
+   docker build -t hub.baidubce.com/paddlepaddle/serving:latest .
    ```
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
 docker exec -it test bash
 ```
 
@@ -53,12 +53,6 @@ pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### Test example
 
-Before running the GPU version of the Server side code, you need to set the `CUDA_VISIBLE_DEVICES` environment variable to specify which GPUs the prediction service uses. The following example specifies two GPUs with indexes 0 and 1:
-
-```bash
-export CUDA_VISIBLE_DEVICES=0,1
-```
-
 Get the trained Boston house price prediction model by the following command:
 
 ```bash
@@ -71,13 +65,13 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci >std.log 2>err.log &
   ```
 
   Running on the Client side (inside or outside the container):
 
   ```bash
-  curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+  curl -H "Content-Type:application/json" -X POST -d '{"feed":{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
   ```
 
 - Test RPC service
@@ -85,7 +79,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Server side (inside the container):
 
   ```bash
-  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 &>std.log 2>err.log &
+  python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 >std.log 2>err.log &
   ```
 
   Running following Python code on the Client side (inside or outside the container, The `paddle-serving-client` package needs to be installed):
@@ -115,7 +109,7 @@ You can also get images in two ways:
 1. Pull image directly
 
    ```bash
-   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
    ```
 
 2. Building image based on dockerfile
@@ -123,13 +117,13 @@ You can also get images in two ways:
    Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
 
    ```bash
-   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu .
+   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:latest-gpu .
    ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.2.0-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
 nvidia-docker exec -it test bash
 ```
 
@@ -176,7 +170,7 @@ tar -xzf uci_housing.tar.gz
   Running on the Client side (inside or outside the container):
 
   ```bash
-  curl -H "Content-Type:application/json" -X POST -d '{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+  curl -H "Content-Type:application/json" -X POST -d '{"feed":{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
   ```
 
 - Test RPC service
