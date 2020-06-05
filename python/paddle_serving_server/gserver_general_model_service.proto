@@ -18,6 +18,7 @@ message Inst {
   repeated bytes data = 1;
   repeated string names = 2;
   repeated bytes lod = 3;
+  repeated bytes shape = 4;
 }
 
 message Request {

@@ -23,6 +23,10 @@ import time
 import sys
 from .serving_client import PredictorRes
 
+import grpc
+import gserver_general_model_service_pb2
+import gserver_general_model_service_pb2_grpc
+
 int_type = 0
 float_type = 1
 
@@ -376,14 +380,15 @@ class Client(object):
 
 class GClient(object):
     def __init__(self):
-        self.bclient_ = Client()
         self.channel_ = None
 
     def load_client_config(self, path):
-        pass
+        if not isinstance(path, str):
+            raise Exception("GClient only supports multi-model temporarily")
+        self._parse_model_config(path)
 
     def connect(self, endpoint):
-        self.channel_ = grpc.insecure_channel(endpoint)
+        self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
         self.stub_ = gserver_general_model_service_pb2_grpc.GServerGeneralModelServiceStub(
             self.channel_)
 
@@ -394,14 +399,24 @@ class GClient(object):
             str(f.read()), model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
+        self.feed_shapes_ = {}
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_type_ = {}
-        self.type_map_ = {0: "int64", 1: "float"}
+        self.fetch_types_ = {}
+        self.type_map_ = {0: "int64", 1: "float32"}
+        self.lod_tensor_set_ = set()
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
             self.feed_shapes_[var.alias_name] = var.shape
+            if self.feed_types_[var.alias_name] == 'float':
+                self.feed_types_[var.alias_name] = 'float32'
+            if var.is_lod_tensor:
+                self.lod_tensor_set_.add(var.alias_name)
         for i, var in enumerate(model_conf.fetch_var):
-            self.fetch_type_[var.alias_name] = var.fetch_type
+            self.fetch_types_[var.alias_name] = var.fetch_type
+            if self.fetch_types_[var.alias_name] == 'float':
+                self.fetch_types_[var.alias_name] = 'float32'
+            if var.is_lod_tensor:
+                self.lod_tensor_set_.add(var.alias_name)
 
     def _pack_feed_data(self, feed, fetch):
         req = gserver_general_model_service_pb2.Request()
@@ -413,10 +428,29 @@ class GClient(object):
             feed_batch = feed
         else:
             raise Exception("{} not support".format(type(feed)))
-        #TODO
+        for feed_data in feed_batch:
+            inst = gserver_general_model_service_pb2.Inst()
+            for name, var in feed_data.items():
+                inst.names.append(name)
+                itype = self.type_map_[self.feed_types_[name]]
+                data = np.array(var, dtype=itype)
+                inst.data.append(data.tobytes())
+            req.feed_insts.append(inst)
+        return req
 
     def _unpack_resp(self, resp):
-        pass
+        result_map = {}
+        inst = resp.fetch_insts[0]
+        for i, name in enumerate(inst.names):
+            if name not in self.fetch_names_:
+                continue
+            itype = self.type_map_[self.fetch_types_[name]]
+            result_map[name] = np.frombuffer(inst.data[i], dtype=itype)
+            result_map[name].shape = np.frombuffer(inst.shape[i], dtype="int32")
+            if name in self.lod_tensor_set_:
+                result_map["{}.lod".format(name)] = np.frombuffer(
+                    inst.lod[i], dtype="int32")
+        return result_map
 
     def predict(self, feed, fetch):
         req = self._pack_feed_data(feed, fetch)
