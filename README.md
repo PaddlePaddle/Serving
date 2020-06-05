@@ -53,7 +53,7 @@ You may need to use a domestic mirror source (in China, you can use the Tsinghua
 
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
-Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use HTTP service without install client.
+Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use HTTP service without install client.
 
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
