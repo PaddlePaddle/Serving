@@ -93,7 +93,7 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9696"]
+    endpoint_list = ["127.0.0.1:9393"]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
