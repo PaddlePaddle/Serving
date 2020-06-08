@@ -58,7 +58,7 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'protobuf >= 3.1.0', 'numpy >= 1.12'
+    'six >= 1.10.0', 'protobuf >= 3.1.0', 'numpy >= 1.12', 'grpcio >= 1.28.1'
 ]
 
 if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
