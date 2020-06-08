@@ -446,14 +446,12 @@ class MultiLangClient(object):
                 v_type = self.feed_types_[name]
                 if v_type == 0:  # int64
                     if isinstance(var, np.ndarray):
-                        tensor.int64_data.extend(
-                            self._flatten_list(var.tolist()))
+                        tensor.int64_data.extend(var.reshape(-1).tolist())
                     else:
                         tensor.int64_data.extend(self._flatten_list(var))
                 elif v_type == 1:  # float32
                     if isinstance(var, np.ndarray):
-                        tensor.float_data.extend(
-                            self._flatten_list(var.tolist()))
+                        tensor.float_data.extend(var.reshape(-1).tolist())
                     else:
                         tensor.float_data.extend(self._flatten_list(var))
                 else:

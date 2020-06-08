@@ -513,11 +513,9 @@ class MultiLangServerService(
             tensor = multi_lang_general_model_service_pb2.Tensor()
             v_type = self.fetch_types_[name]
             if v_type == 0:  # int64
-                tensor.int64_data.extend(
-                    self._flatten_list(result[name].tolist()))
+                tensor.int64_data.extend(result[name].reshape(-1).tolist())
             elif v_type == 1:  # float32
-                tensor.float_data.extend(
-                    self._flatten_list(result[name].tolist()))
+                tensor.float_data.extend(result[name].reshape(-1).tolist())
             else:
                 raise Exception("error type.")
             tensor.shape.extend(list(result[name].shape))
