@@ -458,7 +458,6 @@ class MultiLangServerService(
         self.feed_shapes_ = {}
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.fetch_types_ = {}
-        self.type_map_ = {0: "int64", 1: "float32"}
         self.lod_tensor_set_ = set()
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
@@ -481,43 +480,50 @@ class MultiLangServerService(
     def _unpack_request(self, request):
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
+        is_python = request.is_python
         feed_batch = []
         for feed_inst in request.insts:
             feed_dict = {}
             for idx, name in enumerate(feed_names):
+                var = feed_inst.tensor_array[idx]
                 v_type = self.feed_types_[name]
                 data = None
-                if v_type == 0:  # int64
-                    data = np.array(
-                        list(feed_inst.tensor_array[idx].int64_data),
-                        dtype="int64")
-                elif v_type == 1:  # float32
-                    data = np.array(
-                        list(feed_inst.tensor_array[idx].float_data),
-                        dtype="float")
+                if is_python:
+                    if v_type == 0:
+                        data = np.frombuffer(var.data, dtype="int64")
+                    elif v_type == 1:
+                        data = np.frombuffer(var.data, dtype="float32")
+                    else:
+                        raise Exception("error type.")
                 else:
-                    raise Exception("error type.")
-                shape = list(feed_inst.tensor_array[idx].shape)
-                data.shape = shape
+                    if v_type == 0:  # int64
+                        data = np.array(list(var.int64_data), dtype="int64")
+                    elif v_type == 1:  # float32
+                        data = np.array(list(var.float_data), dtype="float32")
+                    else:
+                        raise Exception("error type.")
+                data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
             feed_batch.append(feed_dict)
-        return feed_batch, fetch_names
+        return feed_batch, fetch_names, is_python
 
-    def _pack_resp_package(self, result, fetch_names, tag):
+    def _pack_resp_package(self, result, fetch_names, is_python, tag):
         resp = multi_lang_general_model_service_pb2.Response()
         # Only one model is supported temporarily
         model_output = multi_lang_general_model_service_pb2.ModelOutput()
         inst = multi_lang_general_model_service_pb2.FetchInst()
         for idx, name in enumerate(fetch_names):
-            # model_output.fetch_var_names.append(name)
             tensor = multi_lang_general_model_service_pb2.Tensor()
             v_type = self.fetch_types_[name]
-            if v_type == 0:  # int64
-                tensor.int64_data.extend(result[name].reshape(-1).tolist())
-            elif v_type == 1:  # float32
-                tensor.float_data.extend(result[name].reshape(-1).tolist())
+            if is_python:
+                tensor.data = result[name].tobytes()
             else:
-                raise Exception("error type.")
+                if v_type == 0:  # int64
+                    tensor.int64_data.extend(result[name].reshape(-1).tolist())
+                elif v_type == 1:  # float32
+                    tensor.float_data.extend(result[name].reshape(-1).tolist())
+                else:
+                    raise Exception("error type.")
             tensor.shape.extend(list(result[name].shape))
             if name in self.lod_tensor_set_:
                 tensor.lod.extend(result["{}.lod".format(name)].tolist())
@@ -528,10 +534,10 @@ class MultiLangServerService(
         return resp
 
     def inference(self, request, context):
-        feed_dict, fetch_names = self._unpack_request(request)
+        feed_dict, fetch_names, is_python = self._unpack_request(request)
         data, tag = self.bclient_.predict(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        return self._pack_resp_package(data, fetch_names, tag)
+        return self._pack_resp_package(data, fetch_names, is_python, tag)
 
 
 class MultiLangServer(object):

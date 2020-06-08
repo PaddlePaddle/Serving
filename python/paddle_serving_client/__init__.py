@@ -410,7 +410,6 @@ class MultiLangClient(object):
         self.feed_shapes_ = {}
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.fetch_types_ = {}
-        self.type_map_ = {0: "int64", 1: "float32"}
         self.lod_tensor_set_ = set()
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
@@ -426,10 +425,11 @@ class MultiLangClient(object):
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
 
-    def _pack_feed_data(self, feed, fetch):
+    def _pack_feed_data(self, feed, fetch, is_python):
         req = multi_lang_general_model_service_pb2.Request()
         req.fetch_var_names.extend(fetch)
         req.feed_var_names.extend(feed.keys())
+        req.is_python = is_python
         feed_batch = None
         if isinstance(feed, dict):
             feed_batch = [feed]
@@ -444,18 +444,33 @@ class MultiLangClient(object):
                 tensor = multi_lang_general_model_service_pb2.Tensor()
                 var = feed_data[name]
                 v_type = self.feed_types_[name]
-                if v_type == 0:  # int64
-                    if isinstance(var, np.ndarray):
-                        tensor.int64_data.extend(var.reshape(-1).tolist())
+                if is_python:
+                    data = None
+                    if isinstance(var, list):
+                        if v_type == 0:  # int64
+                            data = np.array(var, dtype="int64")
+                        elif v_type == 1:  # float32
+                            data = np.array(var, dtype="float32")
+                        else:
+                            raise Exception("error type.")
                     else:
-                        tensor.int64_data.extend(self._flatten_list(var))
-                elif v_type == 1:  # float32
-                    if isinstance(var, np.ndarray):
-                        tensor.float_data.extend(var.reshape(-1).tolist())
-                    else:
-                        tensor.float_data.extend(self._flatten_list(var))
+                        data = var
+                        if var.dtype == "float64":
+                            data = data.astype("float32")
+                    tensor.data = data.tobytes()
                 else:
-                    raise Exception("error type.")
+                    if v_type == 0:  # int64
+                        if isinstance(var, np.ndarray):
+                            tensor.int64_data.extend(var.reshape(-1).tolist())
+                        else:
+                            tensor.int64_data.extend(self._flatten_list(var))
+                    elif v_type == 1:  # float32
+                        if isinstance(var, np.ndarray):
+                            tensor.float_data.extend(var.reshape(-1).tolist())
+                        else:
+                            tensor.float_data.extend(self._flatten_list(var))
+                    else:
+                        raise Exception("error type.")
                 if isinstance(var, np.ndarray):
                     tensor.shape.extend(list(var.shape))
                 else:
@@ -464,39 +479,60 @@ class MultiLangClient(object):
             req.insts.append(inst)
         return req
 
-    def _unpack_resp(self, resp, fetch, need_variant_tag):
+    def _unpack_resp(self, resp, fetch, is_python, need_variant_tag):
         result_map = {}
         inst = resp.outputs[0].insts[0]
         tag = resp.tag
         for i, name in enumerate(fetch):
             var = inst.tensor_array[i]
             v_type = self.fetch_types_[name]
-            if v_type == 0:  # int64
-                result_map[name] = np.array(list(var.int64_data))
-            elif v_type == 1:  # flot32
-                result_map[name] = np.array(list(var.float_data))
+            if is_python:
+                if v_type == 0:  # int64
+                    result_map[name] = np.frombuffer(var.data, dtype="int64")
+                elif v_type == 1:  # float32
+                    result_map[name] = np.frombuffer(var.data, dtype="float32")
+                else:
+                    raise Exception("error type.")
             else:
-                raise Exception("error type.")
+                if v_type == 0:  # int64
+                    result_map[name] = np.array(list(var.int64_data))
+                elif v_type == 1:  # float32
+                    result_map[name] = np.array(list(var.float_data))
+                else:
+                    raise Exception("error type.")
             result_map[name].shape = list(var.shape)
             if name in self.lod_tensor_set_:
                 result_map["{}.lod".format(name)] = np.array(list(var.lod))
         return result_map if not need_variant_tag else [result_map, tag]
 
-    def _done_callback_func(self, fetch, need_variant_tag):
+    def _done_callback_func(self, fetch, is_python, need_variant_tag):
         def unpack_resp(resp):
-            return self._unpack_resp(resp, fetch, need_variant_tag)
+            return self._unpack_resp(resp, fetch, is_python, need_variant_tag)
 
         return unpack_resp
 
-    def predict(self, feed, fetch, need_variant_tag=False, asyn=False):
-        req = self._pack_feed_data(feed, fetch)
+    def predict(self,
+                feed,
+                fetch,
+                need_variant_tag=False,
+                asyn=False,
+                is_python=True):
+        req = self._pack_feed_data(feed, fetch, is_python=is_python)
         if not asyn:
             resp = self.stub_.inference(req)
-            return self._unpack_resp(resp, fetch, need_variant_tag)
+            return self._unpack_resp(
+                resp,
+                fetch,
+                is_python=is_python,
+                need_variant_tag=need_variant_tag)
         else:
             call_future = self.stub_.inference.future(req)
             return MultiLangPredictFuture(
-                call_future, self._done_callback_func(fetch, need_variant_tag))
+                call_future,
+                self._done_callback_func(
+                    fetch,
+                    is_python=is_python,
+                    need_variant_tag=need_variant_tag))
 
 
 class MultiLangPredictFuture(object):
