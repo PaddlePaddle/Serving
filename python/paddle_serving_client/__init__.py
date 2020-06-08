@@ -392,6 +392,14 @@ class GClient(object):
         self.stub_ = gserver_general_model_service_pb2_grpc.GServerGeneralModelServiceStub(
             self.channel_)
 
+    def _flatten_list(self, nested_list):
+        for item in nested_list:
+            if isinstance(item, (list, tuple)):
+                for sub_item in self._flatten_list(item):
+                    yield sub_item
+            else:
+                yield item
+
     def _parse_model_config(self, model_config_path):
         model_conf = m_config.GeneralModelConfig()
         f = open(model_config_path, 'r')
@@ -407,24 +415,21 @@ class GClient(object):
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
             self.feed_shapes_[var.alias_name] = var.shape
-            if self.feed_types_[var.alias_name] == 'float':
-                self.feed_types_[var.alias_name] = 'float32'
             if var.is_lod_tensor:
-                self.lod_tensor_set.add(var.alias_name)
+                self.lod_tensor_set_.add(var.alias_name)
             else:
                 counter = 1
                 for dim in self.feed_shapes_[var.alias_name]:
                     counter *= dim
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_types_[var.alias_name] = var.fetch_type
-            if self.fetch_types_[var.alias_name] == 'float':
-                self.fetch_types_[var.alias_name] = 'float32'
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
 
     def _pack_feed_data(self, feed, fetch):
         req = gserver_general_model_service_pb2.Request()
         req.fetch_var_names.extend(fetch)
+        req.feed_var_names.extend(feed.keys())
         feed_batch = None
         if isinstance(feed, dict):
             feed_batch = [feed]
@@ -432,39 +437,55 @@ class GClient(object):
             feed_batch = feed
         else:
             raise Exception("{} not support".format(type(feed)))
+        init_feed_names = False
         for feed_data in feed_batch:
-            inst = gserver_general_model_service_pb2.Inst()
-            for name, var in feed_data.items():
-                inst.names.append(name)
-                itype = self.type_map_[self.feed_types_[name]]
-                data = np.array(var, dtype=itype)
-                inst.data.append(data.tobytes())
-                if isinstance(var, np.ndarray):
-                    inst.shape.append(
-                        np.array(
-                            list(var.shape), dtype="int32").tobytes())
+            inst = gserver_general_model_service_pb2.FeedInst()
+            for name in req.feed_var_names:
+                tensor = gserver_general_model_service_pb2.Tensor()
+                var = feed_data[name]
+                v_type = self.feed_types_[name]
+                if v_type == 0:  # int64
+                    if isinstance(var, np.ndarray):
+                        tensor.int64_data.extend(
+                            self._flatten_list(var.tolist()))
+                    else:
+                        tensor.int64_data.extend(self._flatten_list(var))
+                elif v_type == 1:  # float32
+                    if isinstance(var, np.ndarray):
+                        tensor.float_data.extend(
+                            self._flatten_list(var.tolist()))
+                    else:
+                        tensor.float_data.extend(self._flatten_list(var))
                 else:
-                    inst.shape.append(
-                        np.array(
-                            self.feed_shapes_[name], dtype="int32").tobytes())
-            req.feed_insts.append(inst)
+                    raise Exception("error type.")
+                if isinstance(var, np.ndarray):
+                    tensor.shape.extend(list(var.shape))
+                else:
+                    tensor.shape.extend(self.feed_shapes_[name])
+                inst.tensor_array.append(tensor)
+            req.insts.append(inst)
         return req
 
-    def _unpack_resp(self, resp):
+    def _unpack_resp(self, resp, fetch):
         result_map = {}
-        inst = resp.fetch_insts[0]
-        for i, name in enumerate(inst.names):
-            if name not in self.fetch_names_:
-                continue
-            itype = self.type_map_[self.fetch_types_[name]]
-            result_map[name] = np.frombuffer(inst.data[i], dtype=itype)
-            result_map[name].shape = np.frombuffer(inst.shape[i], dtype="int32")
+        inst = resp.outputs[0].insts[0]
+        tag = resp.tag
+        for i, name in enumerate(fetch):
+            var = inst.tensor_array[i]
+            v_type = self.fetch_types_[name]
+            if v_type == 0:  # int64
+                result_map[name] = np.array(list(var.int64_data))
+            elif v_type == 1:  # flot32
+                result_map[name] = np.array(list(var.float_data))
+            else:
+                raise Exception("error type.")
+            result_map[name].shape = list(var.shape)
             if name in self.lod_tensor_set_:
-                result_map["{}.lod".format(name)] = np.frombuffer(
-                    inst.lod[i], dtype="int32")
-        return result_map
+                result_map["{}.lod".format(name)] = np.array(list(var.lod))
+        return result_map, tag
 
-    def predict(self, feed, fetch):
+    def predict(self, feed, fetch, need_variant_tag=False):
         req = self._pack_feed_data(feed, fetch)
         resp = self.stub_.inference(req)
-        return self._unpack_resp(resp)
+        result_map, tag = self._unpack_resp(resp, fetch)
+        return result_map if not need_variant_tag else [result_map, tag]
