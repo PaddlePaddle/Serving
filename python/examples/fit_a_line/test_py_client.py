@@ -29,11 +29,11 @@ x = np.array(
 lp = LineProfiler()
 lp_wrapper = lp(client.predict)
 
-for i in range(3):
+for i in range(1):
     fetch_map = lp_wrapper(
         feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
     # fetch_map = client.predict(
     # feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
     print(fetch_map)
 
-lp.print_stats()
+#lp.print_stats()
