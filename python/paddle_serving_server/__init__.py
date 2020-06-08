@@ -481,8 +481,10 @@ class GServerService(
             feed_dict = {}
             for idx, name in enumerate(feed_inst.names):
                 data = feed_inst.data[idx]
+                shape = feed_inst.shape[idx]
                 itype = self.type_map_[self.feed_types_[name]]
                 feed_dict[name] = np.frombuffer(data, dtype=itype)
+                feed_dict[name].shape = np.frombuffer(shape, dtype="int32")
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names
 
