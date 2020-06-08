@@ -27,11 +27,10 @@ import fcntl
 
 import numpy as np
 import grpc
-import gserver_general_model_service_pb2
-import gserver_general_model_service_pb2_grpc
+import multi_lang_general_model_service_pb2
+import multi_lang_general_model_service_pb2_grpc
 from multiprocessing import Pool, Process
 from concurrent import futures
-import itertools
 
 
 class OpMaker(object):
@@ -438,8 +437,8 @@ class Server(object):
         os.system(command)
 
 
-class GServerService(
-        gserver_general_model_service_pb2_grpc.GServerGeneralModelService):
+class MultiLangServerService(
+        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
         self._parse_model_config(model_config_path)
@@ -505,13 +504,13 @@ class GServerService(
         return feed_batch, fetch_names
 
     def _pack_resp_package(self, result, fetch_names, tag):
-        resp = gserver_general_model_service_pb2.Response()
+        resp = multi_lang_general_model_service_pb2.Response()
         # Only one model is supported temporarily
-        model_output = gserver_general_model_service_pb2.ModelOutput()
-        inst = gserver_general_model_service_pb2.FetchInst()
+        model_output = multi_lang_general_model_service_pb2.ModelOutput()
+        inst = multi_lang_general_model_service_pb2.FetchInst()
         for idx, name in enumerate(fetch_names):
             # model_output.fetch_var_names.append(name)
-            tensor = gserver_general_model_service_pb2.Tensor()
+            tensor = multi_lang_general_model_service_pb2.Tensor()
             v_type = self.fetch_types_[name]
             if v_type == 0:  # int64
                 tensor.int64_data.extend(
@@ -537,7 +536,7 @@ class GServerService(
         return self._pack_resp_package(data, fetch_names, tag)
 
 
-class GServer(object):
+class MultiLangServer(object):
     def __init__(self, worker_num=2):
         self.bserver_ = Server()
         self.worker_num_ = worker_num
@@ -547,7 +546,8 @@ class GServer(object):
 
     def load_model_config(self, model_config_path):
         if not isinstance(model_config_path, str):
-            raise Exception("GServer only supports multi-model temporarily")
+            raise Exception(
+                "MultiLangServer only supports multi-model temporarily")
         self.bserver_.load_model_config(model_config_path)
         self.model_config_path_ = model_config_path
 
@@ -578,9 +578,10 @@ class GServer(object):
         p_bserver.start()
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self.worker_num_))
-        gserver_general_model_service_pb2_grpc.add_GServerGeneralModelServiceServicer_to_server(
-            GServerService(self.model_config_path_,
-                           ["0.0.0.0:{}".format(self.port_list_[0])]), server)
+        multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
+            MultiLangServerService(self.model_config_path_,
+                                   ["0.0.0.0:{}".format(self.port_list_[0])]),
+            server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()

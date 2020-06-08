@@ -44,6 +44,6 @@ message ModelOutput {
   optional string engine_name = 2;
 }
 
-service GServerGeneralModelService {
+service MultiLangGeneralModelService {
   rpc inference(Request) returns (Response) {}
 };

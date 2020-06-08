@@ -24,8 +24,8 @@ import sys
 from .serving_client import PredictorRes
 
 import grpc
-import gserver_general_model_service_pb2
-import gserver_general_model_service_pb2_grpc
+import multi_lang_general_model_service_pb2
+import multi_lang_general_model_service_pb2_grpc
 
 int_type = 0
 float_type = 1
@@ -378,7 +378,7 @@ class Client(object):
         self.client_handle_ = None
 
 
-class GClient(object):
+class MultiLangClient(object):
     def __init__(self):
         self.channel_ = None
 
@@ -389,7 +389,7 @@ class GClient(object):
 
     def connect(self, endpoint):
         self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
-        self.stub_ = gserver_general_model_service_pb2_grpc.GServerGeneralModelServiceStub(
+        self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
 
     def _flatten_list(self, nested_list):
@@ -427,7 +427,7 @@ class GClient(object):
                 self.lod_tensor_set_.add(var.alias_name)
 
     def _pack_feed_data(self, feed, fetch):
-        req = gserver_general_model_service_pb2.Request()
+        req = multi_lang_general_model_service_pb2.Request()
         req.fetch_var_names.extend(fetch)
         req.feed_var_names.extend(feed.keys())
         feed_batch = None
@@ -439,9 +439,9 @@ class GClient(object):
             raise Exception("{} not support".format(type(feed)))
         init_feed_names = False
         for feed_data in feed_batch:
-            inst = gserver_general_model_service_pb2.FeedInst()
+            inst = multi_lang_general_model_service_pb2.FeedInst()
             for name in req.feed_var_names:
-                tensor = gserver_general_model_service_pb2.Tensor()
+                tensor = multi_lang_general_model_service_pb2.Tensor()
                 var = feed_data[name]
                 v_type = self.feed_types_[name]
                 if v_type == 0:  # int64
@@ -466,7 +466,7 @@ class GClient(object):
             req.insts.append(inst)
         return req
 
-    def _unpack_resp(self, resp, fetch):
+    def _unpack_resp(self, resp, fetch, need_variant_tag):
         result_map = {}
         inst = resp.outputs[0].insts[0]
         tag = resp.tag
@@ -482,10 +482,30 @@ class GClient(object):
             result_map[name].shape = list(var.shape)
             if name in self.lod_tensor_set_:
                 result_map["{}.lod".format(name)] = np.array(list(var.lod))
-        return result_map, tag
-
-    def predict(self, feed, fetch, need_variant_tag=False):
-        req = self._pack_feed_data(feed, fetch)
-        resp = self.stub_.inference(req)
-        result_map, tag = self._unpack_resp(resp, fetch)
         return result_map if not need_variant_tag else [result_map, tag]
+
+    def _done_callback_func(self, fetch, need_variant_tag):
+        def unpack_resp(resp):
+            return self._unpack_resp(resp, fetch, need_variant_tag)
+
+        return unpack_resp
+
+    def predict(self, feed, fetch, need_variant_tag=False, asyn=False):
+        req = self._pack_feed_data(feed, fetch)
+        if not asyn:
+            resp = self.stub_.inference(req)
+            return self._unpack_resp(resp, fetch, need_variant_tag)
+        else:
+            call_future = self.stub_.inference.future(req)
+            return MultiLangPredictFuture(
+                call_future, self._done_callback_func(fetch, need_variant_tag))
+
+
+class MultiLangPredictFuture(object):
+    def __init__(self, call_future, callback_func):
+        self.call_future_ = call_future
+        self.callback_func_ = callback_func
+
+    def result(self):
+        resp = self.call_future_.result()
+        return self.callback_func_(resp)
