@@ -27,8 +27,8 @@ import fcntl
 
 import numpy as np
 import grpc
-import multi_lang_general_model_service_pb2
-import multi_lang_general_model_service_pb2_grpc
+from .proto import multi_lang_general_model_service_pb2
+from .proto import multi_lang_general_model_service_pb2_grpc
 from multiprocessing import Pool, Process
 from concurrent import futures
 

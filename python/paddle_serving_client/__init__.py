@@ -24,8 +24,8 @@ import sys
 from .serving_client import PredictorRes
 
 import grpc
-import multi_lang_general_model_service_pb2
-import multi_lang_general_model_service_pb2_grpc
+from .proto import multi_lang_general_model_service_pb2
+from .proto import multi_lang_general_model_service_pb2_grpc
 
 int_type = 0
 float_type = 1
