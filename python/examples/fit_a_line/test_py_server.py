@@ -34,18 +34,8 @@ class CombineOp(Op):
         for op_name, channeldata in input_data.items():
             logging.debug("CombineOp preprocess: {}".format(op_name))
             data = channeldata.parse()
-            cnt += data["prediction"]
+            cnt += data["price"]
         data = {"combine_op_output": cnt}
-        return data
-
-    def postprocess(self, output_data):
-        return output_data
-
-
-class UciOp(Op):
-    def postprocess(self, output_data):
-        pred = np.array(output_data["price"][0][0], dtype='float32')
-        data = {"prediction": pred}
         return data
 
 
@@ -53,33 +43,31 @@ read_channel = Channel(name="read_channel")
 combine_channel = Channel(name="combine_channel")
 out_channel = Channel(name="out_channel")
 
-uci1_op = UciOp(
-    name="uci1",
-    input=read_channel,
-    outputs=[combine_channel],
-    server_model="./uci_housing_model",
-    server_port="9393",
-    device="cpu",
-    client_config="uci_housing_client/serving_client_conf.prototxt",
-    server_name="127.0.0.1:9393",
-    fetch_names=["price"],
-    concurrency=1,
-    timeout=0.1,
-    retry=2)
+uci1_op = Op(name="uci1",
+             input=read_channel,
+             outputs=[combine_channel],
+             server_model="./uci_housing_model",
+             server_port="9393",
+             device="cpu",
+             client_config="uci_housing_client/serving_client_conf.prototxt",
+             server_name="127.0.0.1:9393",
+             fetch_names=["price"],
+             concurrency=1,
+             timeout=0.1,
+             retry=2)
 
-uci2_op = UciOp(
-    name="uci2",
-    input=read_channel,
-    outputs=[combine_channel],
-    server_model="./uci_housing_model",
-    server_port="9292",
-    device="cpu",
-    client_config="uci_housing_client/serving_client_conf.prototxt",
-    server_name="127.0.0.1:9393",
-    fetch_names=["price"],
-    concurrency=1,
-    timeout=-1,
-    retry=1)
+uci2_op = Op(name="uci2",
+             input=read_channel,
+             outputs=[combine_channel],
+             server_model="./uci_housing_model",
+             server_port="9292",
+             device="cpu",
+             client_config="uci_housing_client/serving_client_conf.prototxt",
+             server_name="127.0.0.1:9393",
+             fetch_names=["price"],
+             concurrency=1,
+             timeout=-1,
+             retry=1)
 
 combine_op = CombineOp(
     name="combine",
