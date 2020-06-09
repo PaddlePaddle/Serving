@@ -52,7 +52,7 @@ pip install paddle_serving_app
 ``` python
 import sys
 from paddle_serving_client import Client
-from paddle_serving_app import ChineseBertReader
+from paddle_serving_app.reader import ChineseBertReader
 
 reader = ChineseBertReader()
 fetch = ["pooled_output"]
