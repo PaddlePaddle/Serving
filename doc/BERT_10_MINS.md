@@ -59,7 +59,7 @@ the script of client side bert_client.py is as follow:
 import os
 import sys
 from paddle_serving_client import Client
-from paddle_serving_app import ChineseBertReader
+from paddle_serving_app.reader import ChineseBertReader
 
 reader = ChineseBertReader()
 fetch = ["pooled_output"]

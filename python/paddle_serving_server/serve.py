@@ -40,10 +40,14 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
-        "--mem_optim", type=bool, default=False, help="Memory optimize")
+        "--mem_optim",
+        default=False,
+        action="store_true",
+        help="Memory optimize")
     parser.add_argument(
-        "--ir_optim", type=bool, default=False, help="Graph optimize")
-    parser.add_argument("--use_mkl", type=bool, default=False, help="Use MKL")
+        "--ir_optim", default=False, action="store_true", help="Graph optimize")
+    parser.add_argument(
+        "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
         "--max_body_size",
         type=int,
