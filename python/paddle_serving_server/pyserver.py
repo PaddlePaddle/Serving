@@ -396,11 +396,7 @@ class Op(object):
         return call_future
 
     def postprocess(self, output_data):
-        raise Exception(
-            self._log(
-                'Please override this method to convert data to the format in channel.' \
-                ' The return value format should be in {name(str): var(narray)}'
-            ))
+        return output_data
 
     def errorprocess(self, error_info, data_id):
         data = channel_pb2.ChannelData()
