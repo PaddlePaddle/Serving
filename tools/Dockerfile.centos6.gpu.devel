@@ -44,4 +44,5 @@ RUN yum -y install wget && \
     cd .. && rm -rf Python-3.6.8* && \
     pip3 install google protobuf setuptools wheel flask numpy==1.16.4 && \
     yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
-    yum clean all
+    yum clean all && \
+    echo "export LANG=en_US.utf8" >> /root/.bashrc

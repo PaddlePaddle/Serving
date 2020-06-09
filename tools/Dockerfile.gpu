@@ -15,6 +15,7 @@ RUN yum -y install wget && \
     echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> /root/.bashrc && \
     ln -s /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so.7 /usr/local/cuda-9.0/targets/x86_64-linux/lib/libcudnn.so && \
     echo 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
+    echo "export LANG=en_US.utf8" >> /root/.bashrc && \
     mkdir -p /usr/local/cuda/extras
 
 COPY --from=builder /usr/local/cuda/extras/CUPTI /usr/local/cuda/extras/CUPTI
