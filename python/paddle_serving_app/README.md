@@ -21,7 +21,7 @@ python -m paddle_serving_app.package --list_model
 python -m paddle_serving_app.package --get_model senta_bilstm
 ```
 
-10 pre-trained models are built into paddle_serving_app, covering 6 kinds of prediction tasks.
+1 pre-trained models are built into paddle_serving_app, covering 6 kinds of prediction tasks.
 The model files can be directly used for deployment, and the `--tutorial` argument can be added to obtain the deployment method.
 
 | Prediction task | Model name                                         |
@@ -30,7 +30,7 @@ The model files can be directly used for deployment, and the `--tutorial` argume
 | SemanticRepresentation | 'ernie'                                     |
 | ChineseWordSegmentation     | 'lac'                                            |
 | ObjectDetection     | 'faster_rcnn'                         |
-| ImageSegmentation     | 'unet', 'deeplabv3'                              |
+| ImageSegmentation     | 'unet', 'deeplabv3','deeplabv3+cityscapes'      |
 | ImageClassification     | 'resnet_v2_50_imagenet', 'mobilenet_v2_imagenet' |
 
 ## Data preprocess API
@@ -38,7 +38,8 @@ The model files can be directly used for deployment, and the `--tutorial` argume
 paddle_serving_app provides a variety of data preprocessing methods for prediction tasks in the field of CV and NLP.
 
 - class ChineseBertReader 
-    
+  
+
 Preprocessing for Chinese semantic representation task.
 
   - `__init__(vocab_file, max_seq_len=20)`
@@ -54,7 +55,8 @@ Preprocessing for Chinese semantic representation task.
   [example](../examples/bert/bert_client.py)
 
 - class LACReader 
-    
+  
+
 Preprocessing for Chinese word segmentation task.
 
   - `__init__(dict_floder)`
@@ -65,7 +67,7 @@ Preprocessing for Chinese word segmentation task.
     - words（st ）：Original text input.
     - crf_decode（np.array）：CRF code predicted by model.
 
-  [example](../examples/bert/lac_web_service.py)
+  [example](../examples/lac/lac_web_service.py)
 
 - class SentaReader
 
