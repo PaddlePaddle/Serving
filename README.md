@@ -61,9 +61,9 @@ Client package support Centos 7 and Ubuntu 18, or you can use HTTP service witho
 <h3 align="center">Chinese Word Segmentation</h4>
 
 ``` shell
-> python -m paddle_serving_app.package -get_model lac
+> python -m paddle_serving_app.package --get_model lac
 > tar -xzf lac.tar.gz
-> python lac_web_service.py 9292 &
+> python lac_web_service.py 9393 &
 > curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
 {"result":[{"word_seg":"我|爱|北京|天安门"}]}
 ```
@@ -77,7 +77,7 @@ Client package support Centos 7 and Ubuntu 18, or you can use HTTP service witho
 <p>
     
 ``` shell
-> python -m paddle_serving_app.package -get_model resnet_v2_50_imagenet
+> python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
 > python resnet50_imagenet_classify.py resnet50_serving_model &
 > curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
