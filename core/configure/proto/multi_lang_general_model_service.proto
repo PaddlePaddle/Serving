@@ -32,7 +32,7 @@ message Request {
   repeated FeedInst insts = 1;
   repeated string feed_var_names = 2;
   repeated string fetch_var_names = 3;
-  required bool is_python = 4 [ default = true ];
+  required bool is_python = 4 [ default = false ];
 };
 
 message Response {
