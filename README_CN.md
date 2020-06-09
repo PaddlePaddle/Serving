@@ -181,7 +181,7 @@ print(fetch_map)
 - [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
-- [常见问答](doc/deprecated/FAQ.md)
+- [常见问答](doc/FAQ.md)
 
 ### 设计文档
 - [Paddle Serving设计文档](doc/DESIGN_DOC_CN.md)
