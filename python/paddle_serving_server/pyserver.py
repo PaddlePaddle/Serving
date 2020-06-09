@@ -18,17 +18,19 @@ import Queue
 import os
 import sys
 import paddle_serving_server
-from paddle_serving_client import Client
+from paddle_serving_client import MultiLangClient as Client
 from concurrent import futures
 import numpy as np
 import grpc
-import general_python_service_pb2
-import general_python_service_pb2_grpc
-import python_service_channel_pb2
+from .proto import general_model_config_pb2 as m_config
+from .proto import general_python_service_pb2 as pyservice_pb2
+from .proto import pyserving_channel_pb2 as channel_pb2
+from .proto import general_python_service_pb2_grpc
 import logging
 import random
 import time
 import func_timeout
+import enum
 
 
 class _TimeProfiler(object):
@@ -71,6 +73,51 @@ class _TimeProfiler(object):
 _profiler = _TimeProfiler()
 
 
+class ChannelDataEcode(enum.Enum):
+    OK = 0
+    TIMEOUT = 1
+
+
+class ChannelDataType(enum.Enum):
+    CHANNEL_PBDATA = 0
+    CHANNEL_FUTURE = 1
+
+
+class ChannelData(object):
+    def __init__(self,
+                 future=None,
+                 pbdata=None,
+                 data_id=None,
+                 callback_func=None):
+        self.future = future
+        if pbdata is None:
+            if data_id is None:
+                raise ValueError("data_id cannot be None")
+            pbdata = channel_pb2.ChannelData()
+            pbdata.type = ChannelDataType.CHANNEL_FUTURE.value
+            pbdata.ecode = ChannelDataEcode.OK.value
+            pbdata.id = data_id
+        self.pbdata = pbdata
+        self.callback_func = callback_func
+
+    def parse(self):
+        # return narray
+        feed = {}
+        if self.pbdata.type == ChannelDataType.CHANNEL_PBDATA.value:
+            for inst in self.pbdata.insts:
+                feed[inst.name] = np.frombuffer(inst.data, dtype=inst.type)
+                feed[inst.name].shape = np.frombuffer(inst.shape, dtype="int32")
+        elif self.pbdata.type == ChannelDataType.CHANNEL_FUTURE.value:
+            feed = self.future.result()
+            if self.callback_func is not None:
+                feed = self.callback_func(feed)
+        else:
+            raise TypeError(
+                self._log("Error type({}) in pbdata.type.".format(
+                    self.pbdata.type)))
+        return feed
+
+
 class Channel(Queue.Queue):
     """ 
     The channel used for communication between Ops.
@@ -94,6 +141,7 @@ class Channel(Queue.Queue):
         self._maxsize = maxsize
         self._timeout = timeout
         self._name = name
+        self._stop = False
 
         self._cv = threading.Condition()
 
@@ -101,7 +149,6 @@ class Channel(Queue.Queue):
         self._producer_res_count = {}  # {data_id: count}
         self._push_res = {}  # {data_id: {op_name: data}}
 
-        self._front_wait_interval = 0.1  # second
         self._consumers = {}  # {op_name: idx}
         self._idx_consumer_num = {}  # {idx: num}
         self._consumer_base_idx = 0
@@ -138,9 +185,10 @@ class Channel(Queue.Queue):
             self._idx_consumer_num[0] = 0
         self._idx_consumer_num[0] += 1
 
-    def push(self, data, op_name=None):
+    def push(self, channeldata, op_name=None):
         logging.debug(
-            self._log("{} try to push data: {}".format(op_name, data)))
+            self._log("{} try to push data: {}".format(op_name,
+                                                       channeldata.pbdata)))
         if len(self._producers) == 0:
             raise Exception(
                 self._log(
@@ -148,9 +196,9 @@ class Channel(Queue.Queue):
                 ))
         elif len(self._producers) == 1:
             with self._cv:
-                while True:
+                while self._stop is False:
                     try:
-                        self.put(data, timeout=0)
+                        self.put(channeldata, timeout=0)
                         break
                     except Queue.Empty:
                         self._cv.wait()
@@ -163,17 +211,17 @@ class Channel(Queue.Queue):
                     "There are multiple producers, so op_name cannot be None."))
 
         producer_num = len(self._producers)
-        data_id = data.id
+        data_id = channeldata.pbdata.id
         put_data = None
         with self._cv:
-            logging.debug(self._log("{} get lock ~".format(op_name)))
+            logging.debug(self._log("{} get lock".format(op_name)))
             if data_id not in self._push_res:
                 self._push_res[data_id] = {
                     name: None
                     for name in self._producers
                 }
                 self._producer_res_count[data_id] = 0
-            self._push_res[data_id][op_name] = data
+            self._push_res[data_id][op_name] = channeldata
             if self._producer_res_count[data_id] + 1 == producer_num:
                 put_data = self._push_res[data_id]
                 self._push_res.pop(data_id)
@@ -183,10 +231,10 @@ class Channel(Queue.Queue):
 
             if put_data is None:
                 logging.debug(
-                    self._log("{} push data succ, not not push to queue.".
+                    self._log("{} push data succ, but not push to queue.".
                               format(op_name)))
             else:
-                while True:
+                while self._stop is False:
                     try:
                         self.put(put_data, timeout=0)
                         break
@@ -208,7 +256,7 @@ class Channel(Queue.Queue):
         elif len(self._consumers) == 1:
             resp = None
             with self._cv:
-                while resp is None:
+                while self._stop is False and resp is None:
                     try:
                         resp = self.get(timeout=0)
                         break
@@ -223,11 +271,11 @@ class Channel(Queue.Queue):
 
         with self._cv:
             # data_idx = consumer_idx - base_idx
-            while self._consumers[op_name] - self._consumer_base_idx >= len(
-                    self._front_res):
+            while self._stop is False and self._consumers[
+                    op_name] - self._consumer_base_idx >= len(self._front_res):
                 try:
-                    data = self.get(timeout=0)
-                    self._front_res.append(data)
+                    channeldata = self.get(timeout=0)
+                    self._front_res.append(channeldata)
                     break
                 except Queue.Empty:
                     self._cv.wait()
@@ -256,14 +304,17 @@ class Channel(Queue.Queue):
         logging.debug(self._log("multi | {} get data succ!".format(op_name)))
         return resp  # reference, read only
 
+    def stop(self):
+        #TODO
+        self.close()
+        self._stop = True
+
 
 class Op(object):
     def __init__(self,
                  name,
                  input,
-                 in_dtype,
                  outputs,
-                 out_dtype,
                  server_model=None,
                  server_port=None,
                  device=None,
@@ -278,9 +329,7 @@ class Op(object):
         self._name = name  # to identify the type of OP, it must be globally unique
         self._concurrency = concurrency  # amount of concurrency
         self.set_input(input)
-        self._in_dtype = in_dtype
         self.set_outputs(outputs)
-        self._out_dtype = out_dtype
         self._client = None
         if client_config is not None and \
                 server_name is not None and \
@@ -324,15 +373,13 @@ class Op(object):
             channel.add_producer(self._name)
         self._outputs = channels
 
-    def preprocess(self, data):
-        if isinstance(data, dict):
+    def preprocess(self, channeldata):
+        if isinstance(channeldata, dict):
             raise Exception(
                 self._log(
                     'this Op has multiple previous inputs. Please override this method'
                 ))
-        feed = {}
-        for inst in data.insts:
-            feed[inst.name] = np.frombuffer(inst.data, dtype=self._in_dtype)
+        feed = channeldata.parse()
         return feed
 
     def midprocess(self, data):
@@ -343,24 +390,46 @@ class Op(object):
                     format(type(data))))
         logging.debug(self._log('data: {}'.format(data)))
         logging.debug(self._log('fetch: {}'.format(self._fetch_names)))
-        fetch_map = self._client.predict(feed=data, fetch=self._fetch_names)
-        logging.debug(self._log("finish predict"))
-        return fetch_map
+        call_future = self._client.predict(
+            feed=data, fetch=self._fetch_names, asyn=True)
+        logging.debug(self._log("get call_future"))
+        return call_future
 
     def postprocess(self, output_data):
         raise Exception(
             self._log(
-                'Please override this method to convert data to the format in channel.'
+                'Please override this method to convert data to the format in channel.' \
+                ' The return value format should be in {name(str): var(narray)}'
             ))
 
-    def errorprocess(self, error_info):
-        data = python_service_channel_pb2.ChannelData()
-        data.is_error = 1
+    def errorprocess(self, error_info, data_id):
+        data = channel_pb2.ChannelData()
+        data.ecode = 1
+        data.id = data_id
         data.error_info = error_info
         return data
 
     def stop(self):
+        self._input.stop()
+        for channel in self._outputs:
+            channel.stop()
         self._run = False
+
+    def _parse_channeldata(self, channeldata):
+        data_id, error_data = None, None
+        if isinstance(channeldata, dict):
+            parsed_data = {}
+            key = channeldata.keys()[0]
+            data_id = channeldata[key].pbdata.id
+            for _, data in channeldata.items():
+                if data.pbdata.ecode != 0:
+                    error_data = data
+                    break
+        else:
+            data_id = channeldata.pbdata.id
+            if channeldata.pbdata.ecode != 0:
+                error_data = channeldata.pbdata
+        return data_id, error_data
 
     def start(self, concurrency_idx):
         self._run = True
@@ -368,22 +437,11 @@ class Op(object):
             _profiler.record("{}{}-get_0".format(self._name, concurrency_idx))
             input_data = self._input.front(self._name)
             _profiler.record("{}{}-get_1".format(self._name, concurrency_idx))
-            data_id = None
-            output_data = None
-            error_data = None
             logging.debug(self._log("input_data: {}".format(input_data)))
-            if isinstance(input_data, dict):
-                key = input_data.keys()[0]
-                data_id = input_data[key].id
-                for _, data in input_data.items():
-                    if data.is_error != 0:
-                        error_data = data
-                        break
-            else:
-                data_id = input_data.id
-                if input_data.is_error != 0:
-                    error_data = input_data
 
+            data_id, error_data = self._parse_channeldata(input_data)
+
+            output_data = None
             if error_data is None:
                 _profiler.record("{}{}-prep_0".format(self._name,
                                                       concurrency_idx))
@@ -391,6 +449,7 @@ class Op(object):
                 _profiler.record("{}{}-prep_1".format(self._name,
                                                       concurrency_idx))
 
+                call_future = None
                 error_info = None
                 if self.with_serving():
                     for i in range(self._retry):
@@ -398,7 +457,7 @@ class Op(object):
                                                               concurrency_idx))
                         if self._timeout > 0:
                             try:
-                                middata = func_timeout.func_timeout(
+                                call_future = func_timeout.func_timeout(
                                     self._timeout,
                                     self.midprocess,
                                     args=(data, ))
@@ -411,38 +470,48 @@ class Op(object):
                                 error_info = "{}({}): {}".format(
                                     self._name, concurrency_idx, e)
                         else:
-                            middata = self.midprocess(data)
+                            call_future = self.midprocess(data)
                         _profiler.record("{}{}-midp_1".format(self._name,
                                                               concurrency_idx))
-                        if error_info is None:
-                            data = middata
-                            break
                         if i + 1 < self._retry:
                             error_info = None
                             logging.warn(
                                 self._log("warn: timeout, retry({})".format(i +
                                                                             1)))
-
                 _profiler.record("{}{}-postp_0".format(self._name,
                                                        concurrency_idx))
                 if error_info is not None:
-                    output_data = self.errorprocess(error_info)
+                    error_data = self.errorprocess(error_info, data_id)
+                    output_data = ChannelData(pbdata=error_data)
                 else:
-                    output_data = self.postprocess(data)
-
-                    if not isinstance(output_data,
-                                      python_service_channel_pb2.ChannelData):
-                        raise TypeError(
-                            self._log(
-                                'output_data must be ChannelData type, but get {}'.
-                                format(type(output_data))))
-                    output_data.is_error = 0
+                    if self.with_serving():  # use call_future
+                        output_data = ChannelData(
+                            future=call_future,
+                            data_id=data_id,
+                            callback_func=self.postprocess)
+                    else:
+                        post_data = self.postprocess(data)
+                        if not isinstance(post_data, dict):
+                            raise TypeError(
+                                self._log(
+                                    'output_data must be dict type, but get {}'.
+                                    format(type(output_data))))
+                        pbdata = channel_pb2.ChannelData()
+                        for name, value in post_data.items():
+                            inst = channel_pb2.Inst()
+                            inst.data = value.tobytes()
+                            inst.name = name
+                            inst.shape = np.array(
+                                value.shape, dtype="int32").tobytes()
+                            inst.type = str(value.dtype)
+                            pbdata.insts.append(inst)
+                        pbdata.ecode = 0
+                        pbdata.id = data_id
+                        output_data = ChannelData(pbdata=pbdata)
                 _profiler.record("{}{}-postp_1".format(self._name,
                                                        concurrency_idx))
-
-                output_data.id = data_id
             else:
-                output_data = error_data
+                output_data = ChannelData(pbdata=error_data)
 
             _profiler.record("{}{}-push_0".format(self._name, concurrency_idx))
             for channel in self._outputs:
@@ -498,13 +567,14 @@ class GeneralPythonService(
 
     def _recive_out_channel_func(self):
         while True:
-            data = self._out_channel.front(self._name)
-            if not isinstance(data, python_service_channel_pb2.ChannelData):
+            channeldata = self._out_channel.front(self._name)
+            if not isinstance(channeldata, ChannelData):
                 raise TypeError(
                     self._log('data must be ChannelData type, but get {}'.
-                              format(type(data))))
+                              format(type(channeldata))))
             with self._cv:
-                self._globel_resp_dict[data.id] = data
+                data_id = channeldata.pbdata.id
+                self._globel_resp_dict[data_id] = channeldata
                 self._cv.notify_all()
 
     def _get_next_id(self):
@@ -523,34 +593,58 @@ class GeneralPythonService(
 
     def _pack_data_for_infer(self, request):
         logging.debug(self._log('start inferce'))
-        data = python_service_channel_pb2.ChannelData()
+        pbdata = channel_pb2.ChannelData()
         data_id = self._get_next_id()
-        data.id = data_id
-        data.is_error = 0
+        pbdata.id = data_id
         for idx, name in enumerate(request.feed_var_names):
             logging.debug(
                 self._log('name: {}'.format(request.feed_var_names[idx])))
             logging.debug(self._log('data: {}'.format(request.feed_insts[idx])))
-            inst = python_service_channel_pb2.Inst()
+            inst = channel_pb2.Inst()
             inst.data = request.feed_insts[idx]
+            inst.shape = request.shape[idx]
             inst.name = name
-            data.insts.append(inst)
-        return data, data_id
+            inst.type = request.type[idx]
+            pbdata.insts.append(inst)
+        pbdata.ecode = 0  #TODO: parse request error
+        return ChannelData(pbdata=pbdata), data_id
 
-    def _pack_data_for_resp(self, data):
-        logging.debug(self._log('get data'))
-        resp = general_python_service_pb2.Response()
+    def _pack_data_for_resp(self, channeldata):
+        logging.debug(self._log('get channeldata'))
         logging.debug(self._log('gen resp'))
-        logging.debug(data)
-        resp.is_error = data.is_error
-        if resp.is_error == 0:
-            for inst in data.insts:
-                logging.debug(self._log('append data'))
-                resp.fetch_insts.append(inst.data)
-                logging.debug(self._log('append name'))
-                resp.fetch_var_names.append(inst.name)
+        resp = pyservice_pb2.Response()
+        resp.ecode = channeldata.pbdata.ecode
+        if resp.ecode == 0:
+            if channeldata.pbdata.type == ChannelDataType.CHANNEL_PBDATA.value:
+                for inst in channeldata.pbdata.insts:
+                    logging.debug(self._log('append data'))
+                    resp.fetch_insts.append(inst.data)
+                    logging.debug(self._log('append name'))
+                    resp.fetch_var_names.append(inst.name)
+                    logging.debug(self._log('append shape'))
+                    resp.shape.append(inst.shape)
+                    logging.debug(self._log('append type'))
+                    resp.type.append(inst.type)
+            elif channeldata.pbdata.type == ChannelDataType.CHANNEL_FUTURE.value:
+                feed = channeldata.futures.result()
+                if channeldata.callback_func is not None:
+                    feed = channeldata.callback_func(feed)
+                for name, var in feed:
+                    logging.debug(self._log('append data'))
+                    resp.fetch_insts.append(var.tobytes())
+                    logging.debug(self._log('append name'))
+                    resp.fetch_var_names.append(name)
+                    logging.debug(self._log('append shape'))
+                    resp.shape.append(
+                        np.array(
+                            var.shape, dtype="int32").tobytes())
+                    resp.type.append(str(var.dtype))
+            else:
+                raise TypeError(
+                    self._log("Error type({}) in pbdata.type.".format(
+                        self.pbdata.type)))
         else:
-            resp.error_info = data.error_info
+            resp.error_info = channeldata.pbdata.error_info
         return resp
 
     def inference(self, request, context):
@@ -558,6 +652,7 @@ class GeneralPythonService(
         data, data_id = self._pack_data_for_infer(request)
         _profiler.record("{}-prepack_1".format(self._name))
 
+        resp_channeldata = None
         for i in range(self._retry):
             logging.debug(self._log('push data'))
             _profiler.record("{}-push_0".format(self._name))
@@ -565,17 +660,17 @@ class GeneralPythonService(
             _profiler.record("{}-push_1".format(self._name))
 
             logging.debug(self._log('wait for infer'))
-            resp_data = None
             _profiler.record("{}-fetch_0".format(self._name))
-            resp_data = self._get_data_in_globel_resp_dict(data_id)
+            resp_channeldata = self._get_data_in_globel_resp_dict(data_id)
             _profiler.record("{}-fetch_1".format(self._name))
 
-            if resp_data.is_error == 0:
+            if resp_channeldata.pbdata.ecode == 0:
                 break
-            logging.warn("retry({}): {}".format(i + 1, resp_data.error_info))
+            logging.warn("retry({}): {}".format(
+                i + 1, resp_channeldata.pbdata.error_info))
 
         _profiler.record("{}-postpack_0".format(self._name))
-        resp = self._pack_data_for_resp(resp_data)
+        resp = self._pack_data_for_resp(resp_channeldata)
         _profiler.record("{}-postpack_1".format(self._name))
         _profiler.print_profile()
         return resp
@@ -600,7 +695,7 @@ class PyServer(object):
         self._ops.append(op)
 
     def gen_desc(self):
-        logging.info('here will generate desc for paas')
+        logging.info('here will generate desc for PAAS')
         pass
 
     def prepare_server(self, port, worker_num):
@@ -638,6 +733,10 @@ class PyServer(object):
                 th.start()
                 self._op_threads.append(th)
 
+    def _stop_ops(self):
+        for op in self._ops:
+            op.stop()
+
     def run_server(self):
         self._run_ops()
         server = grpc.server(
@@ -647,12 +746,10 @@ class PyServer(object):
                                  self._retry), server)
         server.add_insecure_port('[::]:{}'.format(self._port))
         server.start()
-        try:
-            for th in self._op_threads:
-                th.join()
-            server.join()
-        except KeyboardInterrupt:
-            server.stop(0)
+        server.wait_for_termination()
+        self._stop_ops()  # TODO
+        for th in self._op_threads:
+            th.join()
 
     def prepare_serving(self, op):
         model_path = op._server_model
@@ -660,11 +757,11 @@ class PyServer(object):
         device = op._device
 
         if device == "cpu":
-            cmd = "python -m paddle_serving_server.serve --model {} --thread 4 --port {} &>/dev/null &".format(
-                model_path, port)
+            cmd = "(Use MultiLangServer) python -m paddle_serving_server.serve" \
+                  " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
         else:
-            cmd = "python -m paddle_serving_server_gpu.serve --model {} --thread 4 --port {} &>/dev/null &".format(
-                model_path, port)
+            cmd = "(Use MultiLangServer) python -m paddle_serving_server_gpu.serve" \
+                  " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
         # run a server (not in PyServing)
         logging.info("run a server (not in PyServing): {}".format(cmd))
         return
