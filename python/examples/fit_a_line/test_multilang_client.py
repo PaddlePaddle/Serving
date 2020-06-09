@@ -1,5 +1,3 @@
-# coding:utf-8
-# pylint: disable=doc-string-missing
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 
+from paddle_serving_client import MultiLangClient
 import sys
-from paddle_serving_client import Client
-from paddle_serving_client.utils import benchmark_args
-from paddle_serving_app.reader import ChineseBertReader
 
-args = benchmark_args()
+client = MultiLangClient()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9393"])
 
-reader = ChineseBertReader({"max_seq_len": 128})
-fetch = ["pooled_output"]
-endpoint_list = ["127.0.0.1:9292"]
-client = Client()
-client.load_client_config(args.model)
-client.connect(endpoint_list)
+import paddle
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=1)
 
-for line in sys.stdin:
-    feed_dict = reader.process(line)
-    result = client.predict(feed=feed_dict, fetch=fetch)
+for data in test_reader():
+    future = client.predict(feed={"x": data[0][0]}, fetch=["price"], asyn=True)
+    fetch_map = future.result()
+    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
