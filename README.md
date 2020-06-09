@@ -176,7 +176,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
-- [FAQ(Chinese)](doc/deprecated/FAQ.md)
+- [FAQ(Chinese)](doc/FAQ.md)
 
 
 ### Design
