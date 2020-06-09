@@ -73,7 +73,7 @@ def single_func(idx, resource):
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        py_version = 2
+        py_version = sys.version_info[0]
         server = "http://" + resource["endpoint"][idx % len(resource[
             "endpoint"])] + "/image/prediction"
         start = time.time()
