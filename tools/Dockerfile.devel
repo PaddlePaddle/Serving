@@ -21,4 +21,6 @@ RUN yum -y install wget >/dev/null \
     && yum install -y python3 python3-devel \
     && pip3 install google protobuf setuptools wheel flask \
     && yum -y install epel-release && yum -y install patchelf libXext libSM libXrender\
-    && yum clean all
+    && yum clean all \
+    && localedef -c -i en_US -f UTF-8 en_US.UTF-8 \
+    && echo "export LANG=en_US.utf8" >> /root/.bashrc

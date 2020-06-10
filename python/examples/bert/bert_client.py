@@ -14,15 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import sys
-import numpy as np
-import paddlehub as hub
-import ujson
-import random
-import time
-from paddlehub.common.logger import logger
-import socket
 from paddle_serving_client import Client
 from paddle_serving_client.utils import benchmark_args
 from paddle_serving_app.reader import ChineseBertReader

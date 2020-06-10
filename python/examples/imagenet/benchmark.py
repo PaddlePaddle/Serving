@@ -73,7 +73,7 @@ def single_func(idx, resource):
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
-        py_version = 2
+        py_version = sys.version_info[0]
         server = "http://" + resource["endpoint"][idx % len(resource[
             "endpoint"])] + "/image/prediction"
         start = time.time()
@@ -93,7 +93,7 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9696"]
+    endpoint_list = ["127.0.0.1:9393"]
     #endpoint_list = endpoint_list + endpoint_list + endpoint_list
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})

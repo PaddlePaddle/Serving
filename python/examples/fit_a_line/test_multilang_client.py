@@ -12,11 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-#! /bin/bash
 
-mkdir -p cube_model
-mkdir -p cube/data
-./seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature 8  
-./cube/cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=${PWD}/cube/data -shard_num=1  -only_build=false
-mv ./cube/data/0_0/test_dict_part0/* ./cube/data/
-cd cube && ./cube 
+from paddle_serving_client import MultiLangClient
+import sys
+
+client = MultiLangClient()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9393"])
+
+import paddle
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=1)
+
+for data in test_reader():
+    future = client.predict(feed={"x": data[0][0]}, fetch=["price"], asyn=True)
+    fetch_map = future.result()
+    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
