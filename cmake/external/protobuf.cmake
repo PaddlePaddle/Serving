@@ -130,13 +130,7 @@ function(grpc_protobuf_generate_python SRCS)
                 set(FIL_WE "${FIL_DIR}/${FIL_WE}")
             endif()
         endif()
-        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}_pb2.py")
-        add_custom_command(
-                OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}_pb2.py"
-                COMMAND  ${PROTOBUF_PROTOC_EXECUTABLE} --python_out ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
-                DEPENDS ${ABS_FIL} ${PROTOBUF_PROTOC_EXECUTABLE}
-                COMMENT "Running Python protocol buffer compiler on ${FIL}"
-                VERBATIM )
+        
         list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}_pb2_grpc.py")
         add_custom_command(
                 OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}_pb2_grpc.py"
