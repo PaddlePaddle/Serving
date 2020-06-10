@@ -28,6 +28,9 @@ import fcntl
 import numpy as np
 import grpc
 from .proto import multi_lang_general_model_service_pb2
+import sys
+sys.path.append(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
 from multiprocessing import Pool, Process
 from concurrent import futures
