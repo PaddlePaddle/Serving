@@ -47,9 +47,12 @@ def serve_args():
     parser.add_argument(
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
-        "--mem_optim", type=bool, default=False, help="Memory optimize")
+        "--mem_optim",
+        default=False,
+        action="store_true",
+        help="Memory optimize")
     parser.add_argument(
-        "--ir_optim", type=bool, default=False, help="Graph optimize")
+        "--ir_optim", default=False, action="store_true", help="Graph optimize")
     parser.add_argument(
         "--max_body_size",
         type=int,

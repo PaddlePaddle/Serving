@@ -61,9 +61,9 @@ Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use H
 <h3 align="center">Chinese Word Segmentation</h4>
 
 ``` shell
-> python -m paddle_serving_app.package -get_model lac
+> python -m paddle_serving_app.package --get_model lac
 > tar -xzf lac.tar.gz
-> python lac_web_service.py 9292 &
+> python lac_web_service.py lac_model/ lac_workdir 9393 &
 > curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9393/lac/prediction
 {"result":[{"word_seg":"我|爱|北京|天安门"}]}
 ```
@@ -77,7 +77,7 @@ Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use H
 <p>
     
 ``` shell
-> python -m paddle_serving_app.package -get_model resnet_v2_50_imagenet
+> python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
 > python resnet50_imagenet_classify.py resnet50_serving_model &
 > curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:9292/image/prediction
@@ -111,9 +111,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | bool | `False` | Enable memory / graphic memory optimization |
-| `ir_optim` | bool | `False` | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version) | bool | `False` | Run inference with MKL |
+| `mem_optim` | - | - | Enable memory / graphic memory optimization |
+| `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
+| `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 
 Here, we use `curl` to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
@@ -170,13 +170,13 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)
-- [How to optimize performance?(Chinese)](doc/PERFORMANCE_OPTIM_CN.md)
+- [How to optimize performance?](doc/PERFORMANCE_OPTIM.md)
 - [Deploy multi-services on one GPU(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
 ### FAQ
-- [FAQ(Chinese)](doc/deprecated/FAQ.md)
+- [FAQ(Chinese)](doc/FAQ.md)
 
 
 ### Design
