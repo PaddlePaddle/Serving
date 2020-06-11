@@ -272,8 +272,7 @@ class SegPostprocess(object):
         result_png = score_png
 
         result_png = cv2.resize(
-            result_png,
-            ori_shape[:2],
+            result_png, (ori_shape[1], ori_shape[0]),
             fx=0,
             fy=0,
             interpolation=cv2.INTER_CUBIC)
