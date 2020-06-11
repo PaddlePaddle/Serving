@@ -27,6 +27,8 @@ logging.basicConfig(
 
 
 class CombineOp(Op):
+    pass
+    '''
     def preprocess(self, input_data):
         combined_prediction = 0
         for op_name, channeldata in input_data.items():
@@ -35,6 +37,7 @@ class CombineOp(Op):
             combined_prediction += data["prediction"]
         data = {"combined_prediction": combined_prediction / 2}
         return data
+    '''
 
 
 read_op = Op(name="read", inputs=None)
@@ -47,7 +50,7 @@ bow_op = Op(name="bow",
             server_name="127.0.0.1:9393",
             fetch_names=["prediction"],
             concurrency=1,
-            timeout=0.01,
+            timeout=0.1,
             retry=2)
 cnn_op = Op(name="cnn",
             inputs=[read_op],

@@ -49,6 +49,8 @@ class PyClient(object):
                 "fetch_with_type must be list type with format: [name].")
         req = self._pack_data_for_infer(feed)
         resp = self._stub.inference(req)
+        if resp.ecode != 0:
+            raise Exception(resp.error_info)
         fetch_map = {}
         for idx, name in enumerate(resp.fetch_var_names):
             if name not in fetch:
