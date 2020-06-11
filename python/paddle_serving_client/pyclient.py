@@ -30,9 +30,10 @@ class PyClient(object):
     def _pack_data_for_infer(self, feed_data):
         req = general_python_service_pb2.Request()
         for name, data in feed_data.items():
-            if not isinstance(data, np.ndarray):
-                raise TypeError(
-                    "only numpy array type is supported temporarily.")
+            if isinstance(data, list):
+                data = np.array(data)
+            elif not isinstance(data, np.ndarray):
+                raise TypeError("only list and numpy array type is supported.")
             req.feed_var_names.append(name)
             req.feed_insts.append(data.tobytes())
             req.shape.append(np.array(data.shape, dtype="int32").tobytes())

@@ -462,10 +462,10 @@ class Op(object):
                 call_future = None
                 error_info = None
                 if self.with_serving():
-                    for i in range(self._retry):
-                        _profiler.record("{}{}-midp_0".format(self.name,
-                                                              concurrency_idx))
-                        if self._timeout > 0:
+                    _profiler.record("{}{}-midp_0".format(self.name,
+                                                          concurrency_idx))
+                    if self._timeout > 0:
+                        for i in range(self._retry):
                             try:
                                 call_future = func_timeout.func_timeout(
                                     self._timeout,
@@ -475,19 +475,25 @@ class Op(object):
                                 logging.error("error: timeout")
                                 error_info = "{}({}): timeout".format(
                                     self.name, concurrency_idx)
+                                if i + 1 < self._retry:
+                                    error_info = None
+                                    logging.warn(
+                                        self._log("warn: timeout, retry({})".
+                                                  format(i + 1)))
                             except Exception as e:
                                 logging.error("error: {}".format(e))
                                 error_info = "{}({}): {}".format(
                                     self.name, concurrency_idx, e)
-                        else:
-                            call_future = self.midprocess(data)
-                        _profiler.record("{}{}-midp_1".format(self.name,
-                                                              concurrency_idx))
-                        if i + 1 < self._retry:
-                            error_info = None
-                            logging.warn(
-                                self._log("warn: timeout, retry({})".format(i +
-                                                                            1)))
+                                logging.warn(self._log(e))
+                                # TODO
+                                break
+                            else:
+                                break
+                    else:
+                        call_future = self.midprocess(data)
+
+                    _profiler.record("{}{}-midp_1".format(self.name,
+                                                          concurrency_idx))
                 _profiler.record("{}{}-postp_0".format(self.name,
                                                        concurrency_idx))
                 if error_info is not None:
@@ -843,7 +849,6 @@ class PyServer(object):
         return op.start(concurrency_idx)
 
     def _run_ops(self):
-        #TODO
         for op in self._ops:
             op_concurrency = op.get_concurrency()
             logging.debug("run op: {}, op_concurrency: {}".format(
