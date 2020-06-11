@@ -37,7 +37,7 @@ class CombineOp(Op):
         return data
 
 
-read_op = Op(name="read", input=None)
+read_op = Op(name="read", inputs=None)
 uci1_op = Op(name="uci1",
              inputs=[read_op],
              server_model="./uci_housing_model",
