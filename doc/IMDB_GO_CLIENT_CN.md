@@ -99,7 +99,7 @@ func main() {
 ### 基于IMDB测试集的预测
 
 ```python
-go run imdb_client.go serving_client_conf / serving_client_conf.stream.prototxt test.data> result
+go run imdb_client.go serving_client_conf/serving_client_conf.stream.prototxt test.data> result
 ```
 
 ### 计算精度
