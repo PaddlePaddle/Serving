@@ -24,6 +24,8 @@ import sys
 
 import grpc
 from .proto import multi_lang_general_model_service_pb2
+sys.path.append(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
 
 int_type = 0
