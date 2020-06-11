@@ -25,8 +25,6 @@ logging.basicConfig(
     #level=logging.DEBUG)
     level=logging.INFO)
 
-# channel data: {name(str): data(narray)}
-
 
 class CombineOp(Op):
     def preprocess(self, input_data):
@@ -39,13 +37,9 @@ class CombineOp(Op):
         return data
 
 
-read_channel = Channel(name="read_channel")
-combine_channel = Channel(name="combine_channel")
-out_channel = Channel(name="out_channel")
-
+read_op = Op(name="read", input=None)
 uci1_op = Op(name="uci1",
-             input=read_channel,
-             outputs=[combine_channel],
+             inputs=[read_op],
              server_model="./uci_housing_model",
              server_port="9393",
              device="cpu",
@@ -55,10 +49,8 @@ uci1_op = Op(name="uci1",
              concurrency=1,
              timeout=0.1,
              retry=2)
-
 uci2_op = Op(name="uci2",
-             input=read_channel,
-             outputs=[combine_channel],
+             inputs=[read_op],
              server_model="./uci_housing_model",
              server_port="9292",
              device="cpu",
@@ -68,24 +60,14 @@ uci2_op = Op(name="uci2",
              concurrency=1,
              timeout=-1,
              retry=1)
-
 combine_op = CombineOp(
     name="combine",
-    input=combine_channel,
-    outputs=[out_channel],
+    inputs=[uci1_op, uci2_op],
     concurrency=1,
     timeout=-1,
     retry=1)
 
-logging.info(read_channel.debug())
-logging.info(combine_channel.debug())
-logging.info(out_channel.debug())
 pyserver = PyServer(profile=False, retry=1)
-pyserver.add_channel(read_channel)
-pyserver.add_channel(combine_channel)
-pyserver.add_channel(out_channel)
-pyserver.add_op(uci1_op)
-pyserver.add_op(uci2_op)
-pyserver.add_op(combine_op)
+pyserver.add_ops([read_op, uci1_op, uci2_op, combine_op])
 pyserver.prepare_server(port=8080, worker_num=2)
 pyserver.run_server()
