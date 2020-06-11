@@ -28,46 +28,42 @@ logging.basicConfig(
 
 class CombineOp(Op):
     def preprocess(self, input_data):
-        cnt = 0
+        combined_prediction = 0
         for op_name, channeldata in input_data.items():
-            logging.debug("CombineOp preprocess: {}".format(op_name))
             data = channeldata.parse()
-            cnt += data["price"]
-        data = {"combine_op_output": cnt}
+            logging.info("{}: {}".format(op_name, data["prediction"]))
+            combined_prediction += data["prediction"]
+        data = {"combined_prediction": combined_prediction / 2}
         return data
 
 
 read_op = Op(name="read", inputs=None)
-uci1_op = Op(name="uci1",
-             inputs=[read_op],
-             server_model="./uci_housing_model",
-             server_port="9393",
-             device="cpu",
-             client_config="uci_housing_client/serving_client_conf.prototxt",
-             server_name="127.0.0.1:9393",
-             fetch_names=["price"],
-             concurrency=1,
-             timeout=0.1,
-             retry=2)
-uci2_op = Op(name="uci2",
-             inputs=[read_op],
-             server_model="./uci_housing_model",
-             server_port="9292",
-             device="cpu",
-             client_config="uci_housing_client/serving_client_conf.prototxt",
-             server_name="127.0.0.1:9292",
-             fetch_names=["price"],
-             concurrency=1,
-             timeout=-1,
-             retry=1)
+bow_op = Op(name="bow",
+            inputs=[read_op],
+            server_model="imdb_bow_model",
+            server_port="9393",
+            device="cpu",
+            client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
+            server_name="127.0.0.1:9393",
+            fetch_names=["prediction"],
+            concurrency=1,
+            timeout=0.01,
+            retry=2)
+cnn_op = Op(name="cnn",
+            inputs=[read_op],
+            server_model="imdb_cnn_model",
+            server_port="9292",
+            device="cpu",
+            client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
+            server_name="127.0.0.1:9292",
+            fetch_names=["prediction"],
+            concurrency=1,
+            timeout=-1,
+            retry=1)
 combine_op = CombineOp(
-    name="combine",
-    inputs=[uci1_op, uci2_op],
-    concurrency=1,
-    timeout=-1,
-    retry=1)
+    name="combine", inputs=[bow_op, cnn_op], concurrency=1, timeout=-1, retry=1)
 
 pyserver = PyServer(profile=False, retry=1)
-pyserver.add_ops([read_op, uci1_op, uci2_op, combine_op])
+pyserver.add_ops([read_op, bow_op, cnn_op, combine_op])
 pyserver.prepare_server(port=8080, worker_num=2)
 pyserver.run_server()
