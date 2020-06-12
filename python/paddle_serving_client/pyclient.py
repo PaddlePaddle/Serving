@@ -50,8 +50,8 @@ class PyClient(object):
         req = self._pack_data_for_infer(feed)
         resp = self._stub.inference(req)
         if resp.ecode != 0:
-            raise Exception(resp.error_info)
-        fetch_map = {}
+            return {"ecode": resp.ecode, "error_info": resp.error_info}
+        fetch_map = {"ecode": resp.ecode}
         for idx, name in enumerate(resp.fetch_var_names):
             if name not in fetch:
                 continue
