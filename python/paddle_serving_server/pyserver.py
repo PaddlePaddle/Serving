@@ -87,6 +87,7 @@ class ChannelDataType(enum.Enum):
     CHANNEL_PBDATA = 0
     CHANNEL_FUTURE = 1
     CHANNEL_NPDATA = 2
+    ERROR = 3
 
 
 class ChannelData(object):
@@ -116,6 +117,7 @@ class ChannelData(object):
             pbdata.ecode = ecode
             pbdata.id = data_id
             pbdata.error_info = error_info
+            datatype = ChannelDataType.ERROR.value
         else:
             if datatype == ChannelDataType.CHANNEL_FUTURE.value:
                 if pbdata is None:
@@ -136,7 +138,7 @@ class ChannelData(object):
                         pbdata.error_info = error_info
                         logging.error(pbdata.error_info)
                     else:
-                        for name, value in postped_data.items():
+                        for name, value in npdata.items():
                             inst = channel_pb2.Inst()
                             inst.data = value.tobytes()
                             inst.name = name
