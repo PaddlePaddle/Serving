@@ -157,6 +157,27 @@ int GeneralResponseOp::inference() {
         }
         VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
         var_idx++;
+      } else if (in->at(idx).dtype == paddle::PaddleDType::INT32) {
+        VLOG(2) << "Prepare float var [" << model_config->_fetch_name[idx]
+                << "].";
+        int32_t *data_ptr = static_cast<int32_t *>(in->at(idx).data.data());
+        if (model_config->_is_lod_fetch[idx]) {
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_lod(
+                in->at(idx).lod[0][j]);
+          }
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
+          }
+        } else {
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
+          }
+        }
+        VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
+        var_idx++;
       }
     }
   }
