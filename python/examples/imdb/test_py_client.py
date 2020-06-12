@@ -28,8 +28,7 @@ imdb_dataset.load_resource('imdb.vocab')
 
 for i in range(1):
     word_ids, label = imdb_dataset.get_words_and_label(words)
-    fetch_map = lp_wrapper(
-        feed={"words": word_ids}, fetch=["combined_prediction"])
+    fetch_map = lp_wrapper(feed={"words": word_ids}, fetch=["prediction"])
     print(fetch_map)
 
 #lp.print_stats()
