@@ -775,10 +775,10 @@ class GeneralPythonService(
                     resp.shape.append(inst.shape)
                     resp.type.append(inst.type)
             elif channeldata.pbdata.type == ChannelDataType.CHANNEL_FUTURE.value:
-                feed = channeldata.futures.result()
+                feed = channeldata.future.result()
                 if channeldata.callback_func is not None:
                     feed = channeldata.callback_func(feed)
-                for name, var in feed:
+                for name, var in feed.items():
                     resp.fetch_insts.append(var.tobytes())
                     resp.fetch_var_names.append(name)
                     resp.shape.append(
