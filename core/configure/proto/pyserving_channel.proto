@@ -18,7 +18,6 @@ package baidu.paddle_serving.pyserving;
 message ChannelData {
   repeated Inst insts = 1;
   required int32 id = 2;
-  required int32 type = 3 [ default = 0 ];
   required int32 ecode = 4;
   optional string error_info = 5;
 }
