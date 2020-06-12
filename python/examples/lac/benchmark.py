@@ -16,7 +16,7 @@
 import sys
 import time
 import requests
-from lac_reader import LACReader
+from paddle_serving_app.reader import LACReader
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
@@ -25,7 +25,7 @@ args = benchmark_args()
 
 
 def single_func(idx, resource):
-    reader = LACReader("lac_dict")
+    reader = LACReader()
     start = time.time()
     if args.request == "rpc":
         client = Client()

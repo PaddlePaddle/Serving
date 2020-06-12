@@ -13,8 +13,8 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 import grpc
-import general_python_service_pb2
-import general_python_service_pb2_grpc
+from .proto import general_python_service_pb2
+from .proto import general_python_service_pb2_grpc
 import numpy as np
 
 
@@ -30,27 +30,33 @@ class PyClient(object):
     def _pack_data_for_infer(self, feed_data):
         req = general_python_service_pb2.Request()
         for name, data in feed_data.items():
-            if not isinstance(data, np.ndarray):
-                raise TypeError(
-                    "only numpy array type is supported temporarily.")
-            data2bytes = np.ndarray.tobytes(data)
+            if isinstance(data, list):
+                data = np.array(data)
+            elif not isinstance(data, np.ndarray):
+                raise TypeError("only list and numpy array type is supported.")
             req.feed_var_names.append(name)
-            req.feed_insts.append(data2bytes)
+            req.feed_insts.append(data.tobytes())
+            req.shape.append(np.array(data.shape, dtype="int32").tobytes())
+            req.type.append(str(data.dtype))
         return req
 
-    def predict(self, feed, fetch_with_type):
+    def predict(self, feed, fetch):
         if not isinstance(feed, dict):
             raise TypeError(
                 "feed must be dict type with format: {name: value}.")
-        if not isinstance(fetch_with_type, dict):
+        if not isinstance(fetch, list):
             raise TypeError(
-                "fetch_with_type must be dict type with format: {name : type}.")
+                "fetch_with_type must be list type with format: [name].")
         req = self._pack_data_for_infer(feed)
         resp = self._stub.inference(req)
-        fetch_map = {}
+        if resp.ecode != 0:
+            return {"ecode": resp.ecode, "error_info": resp.error_info}
+        fetch_map = {"ecode": resp.ecode}
         for idx, name in enumerate(resp.fetch_var_names):
-            if name not in fetch_with_type:
+            if name not in fetch:
                 continue
             fetch_map[name] = np.frombuffer(
-                resp.fetch_insts[idx], dtype=fetch_with_type[name])
+                resp.fetch_insts[idx], dtype=resp.type[idx])
+            fetch_map[name].shape = np.frombuffer(
+                resp.shape[idx], dtype="int32")
         return fetch_map

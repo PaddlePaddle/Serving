@@ -21,7 +21,12 @@ import google.protobuf.text_format
 import numpy as np
 import time
 import sys
-from .serving_client import PredictorRes
+
+import grpc
+from .proto import multi_lang_general_model_service_pb2
+sys.path.append(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
+from .proto import multi_lang_general_model_service_pb2_grpc
 
 int_type = 0
 float_type = 1
@@ -61,13 +66,18 @@ class SDKConfig(object):
         self.tag_list = []
         self.cluster_list = []
         self.variant_weight_list = []
+        self.rpc_timeout_ms = 20000
+        self.load_balance_strategy = "la"
 
     def add_server_variant(self, tag, cluster, variant_weight):
         self.tag_list.append(tag)
         self.cluster_list.append(cluster)
         self.variant_weight_list.append(variant_weight)
 
-    def gen_desc(self):
+    def set_load_banlance_strategy(self, strategy):
+        self.load_balance_strategy = strategy
+
+    def gen_desc(self, rpc_timeout_ms):
         predictor_desc = sdk.Predictor()
         predictor_desc.name = "general_model"
         predictor_desc.service_name = \
@@ -86,7 +96,7 @@ class SDKConfig(object):
         self.sdk_desc.predictors.extend([predictor_desc])
         self.sdk_desc.default_variant_conf.tag = "default"
         self.sdk_desc.default_variant_conf.connection_conf.connect_timeout_ms = 2000
-        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = 20000
+        self.sdk_desc.default_variant_conf.connection_conf.rpc_timeout_ms = rpc_timeout_ms
         self.sdk_desc.default_variant_conf.connection_conf.connect_retry_count = 2
         self.sdk_desc.default_variant_conf.connection_conf.max_connection_per_host = 100
         self.sdk_desc.default_variant_conf.connection_conf.hedge_request_timeout_ms = -1
@@ -119,6 +129,9 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
+        self.rpc_timeout_ms = 20000
+        from .serving_client import PredictorRes
+        self.predictorres_constructor = PredictorRes
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
@@ -171,13 +184,19 @@ class Client(object):
         self.predictor_sdk_.add_server_variant(tag, cluster,
                                                str(variant_weight))
 
+    def set_rpc_timeout_ms(self, rpc_timeout):
+        if not isinstance(rpc_timeout, int):
+            raise ValueError("rpc_timeout must be int type.")
+        else:
+            self.rpc_timeout_ms = rpc_timeout
+
     def connect(self, endpoints=None):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
         if endpoints is None:
             if self.predictor_sdk_ is None:
-                raise SystemExit(
+                raise ValueError(
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
@@ -188,7 +207,7 @@ class Client(object):
                 print(
                     "parameter endpoints({}) will not take effect, because you use the add_variant function.".
                     format(endpoints))
-        sdk_desc = self.predictor_sdk_.gen_desc()
+        sdk_desc = self.predictor_sdk_.gen_desc(self.rpc_timeout_ms)
         self.client_handle_.create_predictor_by_desc(sdk_desc.SerializeToString(
         ))
 
@@ -203,7 +222,7 @@ class Client(object):
             return
         if isinstance(feed[key],
                       list) and len(feed[key]) != self.feed_tensor_len[key]:
-            raise SystemExit("The shape of feed tensor {} not match.".format(
+            raise ValueError("The shape of feed tensor {} not match.".format(
                 key))
         if type(feed[key]).__module__ == np.__name__ and np.size(feed[
                 key]) != self.feed_tensor_len[key]:
@@ -292,7 +311,7 @@ class Client(object):
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
 
-        result_batch_handle = PredictorRes()
+        result_batch_handle = self.predictorres_constructor()
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
@@ -304,7 +323,7 @@ class Client(object):
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
                 self.pid)
         else:
-            raise SystemExit(
+            raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
             )
 
@@ -360,3 +379,172 @@ class Client(object):
     def release(self):
         self.client_handle_.destroy_predictor()
         self.client_handle_ = None
+
+
+class MultiLangClient(object):
+    def __init__(self):
+        self.channel_ = None
+
+    def load_client_config(self, path):
+        if not isinstance(path, str):
+            raise Exception("GClient only supports multi-model temporarily")
+        self._parse_model_config(path)
+
+    def connect(self, endpoint):
+        self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
+        self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
+            self.channel_)
+
+    def _flatten_list(self, nested_list):
+        for item in nested_list:
+            if isinstance(item, (list, tuple)):
+                for sub_item in self._flatten_list(item):
+                    yield sub_item
+            else:
+                yield item
+
+    def _parse_model_config(self, model_config_path):
+        model_conf = m_config.GeneralModelConfig()
+        f = open(model_config_path, 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
+        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
+        self.feed_types_ = {}
+        self.feed_shapes_ = {}
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.fetch_types_ = {}
+        self.lod_tensor_set_ = set()
+        for i, var in enumerate(model_conf.feed_var):
+            self.feed_types_[var.alias_name] = var.feed_type
+            self.feed_shapes_[var.alias_name] = var.shape
+            if var.is_lod_tensor:
+                self.lod_tensor_set_.add(var.alias_name)
+            else:
+                counter = 1
+                for dim in self.feed_shapes_[var.alias_name]:
+                    counter *= dim
+        for i, var in enumerate(model_conf.fetch_var):
+            self.fetch_types_[var.alias_name] = var.fetch_type
+            if var.is_lod_tensor:
+                self.lod_tensor_set_.add(var.alias_name)
+
+    def _pack_feed_data(self, feed, fetch, is_python):
+        req = multi_lang_general_model_service_pb2.Request()
+        req.fetch_var_names.extend(fetch)
+        req.feed_var_names.extend(feed.keys())
+        req.is_python = is_python
+        feed_batch = None
+        if isinstance(feed, dict):
+            feed_batch = [feed]
+        elif isinstance(feed, list):
+            feed_batch = feed
+        else:
+            raise Exception("{} not support".format(type(feed)))
+        init_feed_names = False
+        for feed_data in feed_batch:
+            inst = multi_lang_general_model_service_pb2.FeedInst()
+            for name in req.feed_var_names:
+                tensor = multi_lang_general_model_service_pb2.Tensor()
+                var = feed_data[name]
+                v_type = self.feed_types_[name]
+                if is_python:
+                    data = None
+                    if isinstance(var, list):
+                        if v_type == 0:  # int64
+                            data = np.array(var, dtype="int64")
+                        elif v_type == 1:  # float32
+                            data = np.array(var, dtype="float32")
+                        else:
+                            raise Exception("error type.")
+                    else:
+                        data = var
+                        if var.dtype == "float64":
+                            data = data.astype("float32")
+                    tensor.data = data.tobytes()
+                else:
+                    if v_type == 0:  # int64
+                        if isinstance(var, np.ndarray):
+                            tensor.int64_data.extend(var.reshape(-1).tolist())
+                        else:
+                            tensor.int64_data.extend(self._flatten_list(var))
+                    elif v_type == 1:  # float32
+                        if isinstance(var, np.ndarray):
+                            tensor.float_data.extend(var.reshape(-1).tolist())
+                        else:
+                            tensor.float_data.extend(self._flatten_list(var))
+                    else:
+                        raise Exception("error type.")
+                if isinstance(var, np.ndarray):
+                    tensor.shape.extend(list(var.shape))
+                else:
+                    tensor.shape.extend(self.feed_shapes_[name])
+                inst.tensor_array.append(tensor)
+            req.insts.append(inst)
+        return req
+
+    def _unpack_resp(self, resp, fetch, is_python, need_variant_tag):
+        result_map = {}
+        inst = resp.outputs[0].insts[0]
+        tag = resp.tag
+        for i, name in enumerate(fetch):
+            var = inst.tensor_array[i]
+            v_type = self.fetch_types_[name]
+            if is_python:
+                if v_type == 0:  # int64
+                    result_map[name] = np.frombuffer(var.data, dtype="int64")
+                elif v_type == 1:  # float32
+                    result_map[name] = np.frombuffer(var.data, dtype="float32")
+                else:
+                    raise Exception("error type.")
+            else:
+                if v_type == 0:  # int64
+                    result_map[name] = np.array(
+                        list(var.int64_data), dtype="int64")
+                elif v_type == 1:  # float32
+                    result_map[name] = np.array(
+                        list(var.float_data), dtype="float32")
+                else:
+                    raise Exception("error type.")
+            result_map[name].shape = list(var.shape)
+            if name in self.lod_tensor_set_:
+                result_map["{}.lod".format(name)] = np.array(list(var.lod))
+        return result_map if not need_variant_tag else [result_map, tag]
+
+    def _done_callback_func(self, fetch, is_python, need_variant_tag):
+        def unpack_resp(resp):
+            return self._unpack_resp(resp, fetch, is_python, need_variant_tag)
+
+        return unpack_resp
+
+    def predict(self,
+                feed,
+                fetch,
+                need_variant_tag=False,
+                asyn=False,
+                is_python=True):
+        req = self._pack_feed_data(feed, fetch, is_python=is_python)
+        if not asyn:
+            resp = self.stub_.inference(req)
+            return self._unpack_resp(
+                resp,
+                fetch,
+                is_python=is_python,
+                need_variant_tag=need_variant_tag)
+        else:
+            call_future = self.stub_.inference.future(req)
+            return MultiLangPredictFuture(
+                call_future,
+                self._done_callback_func(
+                    fetch,
+                    is_python=is_python,
+                    need_variant_tag=need_variant_tag))
+
+
+class MultiLangPredictFuture(object):
+    def __init__(self, call_future, callback_func):
+        self.call_future_ = call_future
+        self.callback_func_ = callback_func
+
+    def result(self):
+        resp = self.call_future_.result()
+        return self.callback_func_(resp)

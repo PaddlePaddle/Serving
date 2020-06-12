@@ -131,7 +131,7 @@ class WebService(object):
             for key in fetch_map:
                 fetch_map[key] = fetch_map[key].tolist()
             result = self.postprocess(
-                feed=feed, fetch=fetch, fetch_map=fetch_map)
+                feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
         except ValueError:
             result = {"result": "Request Value Error"}

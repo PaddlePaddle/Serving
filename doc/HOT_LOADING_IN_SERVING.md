@@ -46,7 +46,7 @@ In this example, the production model is uploaded to HDFS in `product_path` fold
 
 ### Product model
 
-Run the following Python code products model in `product_path` folder. Every 60 seconds, the package file of Boston house price prediction model `uci_housing.tar.gz` will be generated and uploaded to the path of HDFS `/`. After uploading, the timestamp file `donefile` will be updated and uploaded to the path of HDFS `/`.
+Run the following Python code products model in `product_path` folder(You need to modify Hadoop related parameters before running). Every 60 seconds, the package file of Boston house price prediction model `uci_housing.tar.gz` will be generated and uploaded to the path of HDFS `/`. After uploading, the timestamp file `donefile` will be updated and uploaded to the path of HDFS `/`.
 
 ```python
 import os
@@ -82,9 +82,14 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hadoop_bin = '/hadoop-3.1.2/bin/hadoop'
-    os.system('{} fs -put -f {} {}'.format(
-      hadoop_bin, local_file_path, remote_path))
+    afs = 'afs://***.***.***.***:***' # User needs to change
+    uci = '***,***' # User needs to change
+    hadoop_bin = '/path/to/haddop/bin' # User needs to change
+    prefix = '{} fs -Dfs.default.name={} -Dhadoop.job.ugi={}'.format(hadoop_bin, afs, uci)
+    os.system('{} -rmr {}/{}'.format(
+      prefix, remote_path, local_file_path))
+    os.system('{} -put {} {}'.format(
+      prefix, local_file_path, remote_path))
 
 name = "uci_housing"
 for pass_id in range(30):

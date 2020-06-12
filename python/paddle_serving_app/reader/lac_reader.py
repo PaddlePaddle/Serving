@@ -111,6 +111,10 @@ class LACReader(object):
         return word_ids
 
     def parse_result(self, words, crf_decode):
+        try:
+            words = unicode(words, "utf-8")
+        except:
+            pass
         tags = [self.id2label_dict[str(x[0])] for x in crf_decode]
 
         sent_out = []
