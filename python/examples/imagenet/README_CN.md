@@ -19,10 +19,10 @@ pip install paddle_serving_app
 
 启动server端
 ```
-python image_classification_service.py ResNet50_vd_model cpu 9696 #cpu预测服务
+python resnet50_web_service.py ResNet50_vd_model cpu 9696 #cpu预测服务
 ```
 ```
-python image_classification_service.py ResNet50_vd_model gpu 9696 #gpu预测服务
+python resnet50_web_service.py ResNet50_vd_model gpu 9696 #gpu预测服务
 ```
 
 

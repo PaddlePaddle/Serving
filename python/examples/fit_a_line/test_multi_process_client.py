@@ -22,15 +22,19 @@ def single_func(idx, resource):
     client.load_client_config(
         "./uci_housing_client/serving_client_conf.prototxt")
     client.connect(["127.0.0.1:9293", "127.0.0.1:9292"])
-    test_reader = paddle.batch(
-        paddle.reader.shuffle(
-            paddle.dataset.uci_housing.test(), buf_size=500),
-        batch_size=1)
-    for data in test_reader():
-        fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+    x = [
+        0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584,
+        0.6283, 0.4919, 0.1856, 0.0795, -0.0332
+    ]
+    for i in range(1000):
+        fetch_map = client.predict(feed={"x": x}, fetch=["price"])
+        if fetch_map is None:
+            return [[None]]
     return [[0]]
 
 
 multi_thread_runner = MultiThreadRunner()
 thread_num = 4
 result = multi_thread_runner.run(single_func, thread_num, {})
+if None in result[0]:
+    exit(1)

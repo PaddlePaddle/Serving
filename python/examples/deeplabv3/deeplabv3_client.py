@@ -18,7 +18,7 @@ import sys
 import cv2
 
 client = Client()
-client.load_client_config("seg_client/serving_client_conf.prototxt")
+client.load_client_config("deeplabv3_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9494"])
 
 preprocess = Sequential(

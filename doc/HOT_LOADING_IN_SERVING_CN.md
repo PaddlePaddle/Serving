@@ -46,7 +46,7 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 
 ### 生产模型
 
-在`product_path`下运行下面的Python代码生产模型，每隔 60 秒会产出 Boston 房价预测模型的打包文件`uci_housing.tar.gz`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
+在`product_path`下运行下面的Python代码生产模型（运行前需要修改hadoop相关的参数），每隔 60 秒会产出 Boston 房价预测模型的打包文件`uci_housing.tar.gz`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
 
 ```python
 import os
@@ -82,9 +82,14 @@ exe = fluid.Executor(place)
 exe.run(fluid.default_startup_program())
 
 def push_to_hdfs(local_file_path, remote_path):
-    hadoop_bin = '/hadoop-3.1.2/bin/hadoop'
-    os.system('{} fs -put -f {} {}'.format(
-      hadoop_bin, local_file_path, remote_path))
+    afs = 'afs://***.***.***.***:***' # User needs to change
+    uci = '***,***' # User needs to change
+    hadoop_bin = '/path/to/haddop/bin' # User needs to change
+    prefix = '{} fs -Dfs.default.name={} -Dhadoop.job.ugi={}'.format(hadoop_bin, afs, uci)
+    os.system('{} -rmr {}/{}'.format(
+      prefix, remote_path, local_file_path))
+    os.system('{} -put {} {}'.format(
+      prefix, local_file_path, remote_path))
 
 name = "uci_housing"
 for pass_id in range(30):

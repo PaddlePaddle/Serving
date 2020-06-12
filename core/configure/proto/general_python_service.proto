@@ -13,6 +13,7 @@
 // limitations under the License.
 
 syntax = "proto2";
+package baidu.paddle_serving.pyserving;
 
 service GeneralPythonService {
   rpc inference(Request) returns (Response) {}
@@ -21,11 +22,15 @@ service GeneralPythonService {
 message Request {
   repeated bytes feed_insts = 1;
   repeated string feed_var_names = 2;
+  repeated bytes shape = 3;
+  repeated string type = 4;
 }
 
 message Response {
   repeated bytes fetch_insts = 1;
   repeated string fetch_var_names = 2;
-  required int32 is_error = 3;
+  required int32 ecode = 3;
   optional string error_info = 4;
+  repeated bytes shape = 5;
+  repeated string type = 6;
 }

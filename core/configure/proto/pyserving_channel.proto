@@ -13,17 +13,19 @@
 // limitations under the License.
 
 syntax = "proto2";
+package baidu.paddle_serving.pyserving;
 
 message ChannelData {
   repeated Inst insts = 1;
   required int32 id = 2;
-  optional string type = 3
-      [ default = "CD" ]; // CD(channel data), CF(channel futures)
-  required int32 is_error = 4;
+  required int32 type = 3 [ default = 0 ];
+  required int32 ecode = 4;
   optional string error_info = 5;
 }
 
 message Inst {
   required bytes data = 1;
   required string name = 2;
+  required bytes shape = 3;
+  required string type = 4;
 }

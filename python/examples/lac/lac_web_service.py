@@ -14,12 +14,12 @@
 
 from paddle_serving_server.web_service import WebService
 import sys
-from lac_reader import LACReader
+from paddle_serving_app.reader import LACReader
 
 
 class LACService(WebService):
     def load_reader(self):
-        self.reader = LACReader("lac_dict")
+        self.reader = LACReader()
 
     def preprocess(self, feed={}, fetch=[]):
         feed_batch = []

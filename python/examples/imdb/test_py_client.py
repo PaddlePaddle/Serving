@@ -13,27 +13,23 @@
 # limitations under the License.
 from paddle_serving_client.pyclient import PyClient
 import numpy as np
-
+from paddle_serving_app.reader import IMDBDataset
 from line_profiler import LineProfiler
 
 client = PyClient()
 client.connect('localhost:8080')
 
-x = np.array(
-    [
-        0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584,
-        0.6283, 0.4919, 0.1856, 0.0795, -0.0332
-    ],
-    dtype='float')
-
 lp = LineProfiler()
 lp_wrapper = lp(client.predict)
 
+words = 'i am very sad | 0'
+imdb_dataset = IMDBDataset()
+imdb_dataset.load_resource('imdb.vocab')
+
 for i in range(1):
+    word_ids, label = imdb_dataset.get_words_and_label(words)
     fetch_map = lp_wrapper(
-        feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
-    # fetch_map = client.predict(
-    # feed={"x": x}, fetch_with_type={"combine_op_output": "float"})
+        feed={"words": word_ids}, fetch=["combined_prediction"])
     print(fetch_map)
 
 #lp.print_stats()

@@ -14,7 +14,7 @@
 
 from paddle_serving_client import Client
 from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
-from apddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
+from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
 
 client = Client()
 client.load_client_config(
@@ -28,5 +28,5 @@ seq = Sequential([
 
 image_file = "daisy.jpg"
 img = seq(image_file)
-fetch_map = client.predict(feed={"image": img}, fetch=["feature_map"])
-print(fetch_map["feature_map"].reshape(-1))
+fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+print(fetch_map["score"].reshape(-1))

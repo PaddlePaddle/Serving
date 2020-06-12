@@ -20,7 +20,7 @@
 
 - 将`DPYTHON_INCLUDE_DIR`设置为`$PYTHONROOT/include/python3.6m/`
 - 将`DPYTHON_LIBRARIES`设置为`$PYTHONROOT/lib64/libpython3.6.so`
-- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3`
+- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3.6`
 
 ## 获取代码
 
@@ -35,6 +35,8 @@ cd Serving && git submodule update --init --recursive
 # 例如python的路径为/usr/bin/python，可以设置PYTHONROOT
 export PYTHONROOT=/usr/
 ```
+
+我们提供默认Centos7的Python路径为`/usr/bin/python`，如果您要使用我们的Centos6镜像，需要将其设置为`export PYTHONROOT=/usr/local/python2.7/`。
 
 ## 编译Server部分
 
