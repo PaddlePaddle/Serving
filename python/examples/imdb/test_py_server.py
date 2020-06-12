@@ -33,7 +33,7 @@ class CombineOp(Op):
             data = channeldata.parse()
             logging.info("{}: {}".format(op_name, data["prediction"]))
             combined_prediction += data["prediction"]
-        data = {"combined_prediction": combined_prediction / 2}
+        data = {"prediction": combined_prediction / 2}
         return data
 
 
