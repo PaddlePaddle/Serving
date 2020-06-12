@@ -27,8 +27,6 @@ logging.basicConfig(
 
 
 class CombineOp(Op):
-    pass
-    '''
     def preprocess(self, input_data):
         combined_prediction = 0
         for op_name, channeldata in input_data.items():
@@ -37,7 +35,6 @@ class CombineOp(Op):
             combined_prediction += data["prediction"]
         data = {"combined_prediction": combined_prediction / 2}
         return data
-    '''
 
 
 read_op = Op(name="read", inputs=None)
