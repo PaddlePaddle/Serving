@@ -49,6 +49,8 @@ class ModelRes {
                             res._int64_value_map.end());
     _float_value_map.insert(res._float_value_map.begin(),
                             res._float_value_map.end());
+    _int32_value_map.insert(res._int32_value_map.begin(),
+                            res._int32_value_map.end());
     _shape_map.insert(res._shape_map.begin(), res._shape_map.end());
     _lod_map.insert(res._lod_map.begin(), res._lod_map.end());
   }
@@ -60,6 +62,9 @@ class ModelRes {
     _float_value_map.insert(
         std::make_move_iterator(std::begin(res._float_value_map)),
         std::make_move_iterator(std::end(res._float_value_map)));
+    _int32_value_map.insert(
+        std::make_move_iterator(std::begin(res._int32_value_map)),
+        std::make_move_iterator(std::end(res._int32_value_map)));
     _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
                       std::make_move_iterator(std::end(res._shape_map)));
     _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
@@ -77,6 +82,12 @@ class ModelRes {
   }
   std::vector<float>&& get_float_by_name_with_rv(const std::string& name) {
     return std::move(_float_value_map[name]);
+  }
+  const std::vector<int32_t>& get_int32_by_name(const std::string& name) {
+    return _int32_value_map[name];
+  }
+  std::vector<int32_t>&& get_int32_by_name_with_rv(const std::string& name) {
+    return std::move(_int32_value_map[name]);
   }
   const std::vector<int>& get_shape_by_name(const std::string& name) {
     return _shape_map[name];
@@ -103,6 +114,9 @@ class ModelRes {
       _float_value_map.insert(
           std::make_move_iterator(std::begin(res._float_value_map)),
           std::make_move_iterator(std::end(res._float_value_map)));
+      _int32_value_map.insert(
+          std::make_move_iterator(std::begin(res._int32_value_map)),
+          std::make_move_iterator(std::end(res._int32_value_map)));
       _shape_map.insert(std::make_move_iterator(std::begin(res._shape_map)),
                         std::make_move_iterator(std::end(res._shape_map)));
       _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
@@ -115,6 +129,7 @@ class ModelRes {
   std::string _engine_name;
   std::map<std::string, std::vector<int64_t>> _int64_value_map;
   std::map<std::string, std::vector<float>> _float_value_map;
+  std::map<std::string, std::vector<int32_t>> _int32_value_map;
   std::map<std::string, std::vector<int>> _shape_map;
   std::map<std::string, std::vector<int>> _lod_map;
 };
@@ -144,6 +159,14 @@ class PredictorRes {
   std::vector<float>&& get_float_by_name_with_rv(const int model_idx,
                                                  const std::string& name) {
     return std::move(_models[model_idx].get_float_by_name_with_rv(name));
+  }
+  const std::vector<int32_t>& get_int32_by_name(const int model_idx,
+                                                const std::string& name) {
+    return _models[model_idx].get_int32_by_name(name);
+  }
+  std::vector<int32_t>&& get_int32_by_name_with_rv(const int model_idx,
+                                                   const std::string& name) {
+    return std::move(_models[model_idx].get_int32_by_name_with_rv(name));
   }
   const std::vector<int>& get_shape_by_name(const int model_idx,
                                             const std::string& name) {

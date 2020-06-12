@@ -28,8 +28,11 @@ sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
 
-int_type = 0
-float_type = 1
+int64_type = 0
+float32_type = 1
+int32_type = 2
+int_type = set([int64_type, int32_type])
+float_type = set([float32_type])
 
 
 class _NOPProfiler(object):
@@ -279,7 +282,7 @@ class Client(object):
                     raise ValueError("Wrong feed name: {}.".format(key))
                 #if not isinstance(feed_i[key], np.ndarray):
                 self.shape_check(feed_i, key)
-                if self.feed_types_[key] == int_type:
+                if self.feed_types_[key] in int_type:
                     if i == 0:
                         int_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
@@ -292,7 +295,7 @@ class Client(object):
                     else:
                         int_slot.append(feed_i[key])
                         self.all_numpy_input = False
-                elif self.feed_types_[key] == float_type:
+                elif self.feed_types_[key] in float_type:
                     if i == 0:
                         float_feed_names.append(key)
                         if isinstance(feed_i[key], np.ndarray):
@@ -339,7 +342,7 @@ class Client(object):
             result_map = {}
             # result map needs to be a numpy array
             for i, name in enumerate(fetch_names):
-                if self.fetch_names_to_type_[name] == int_type:
+                if self.fetch_names_to_type_[name] == int64_type:
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int64_by_name(
                         mi, name)
@@ -348,8 +351,18 @@ class Client(object):
                     if name in self.lod_tensor_set:
                         result_map["{}.lod".format(
                             name)] = result_batch_handle.get_lod(mi, name)
-                elif self.fetch_names_to_type_[name] == float_type:
+                elif self.fetch_names_to_type_[name] == float32_type:
                     result_map[name] = result_batch_handle.get_float_by_name(
+                        mi, name)
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        result_map["{}.lod".format(
+                            name)] = result_batch_handle.get_lod(mi, name)
+
+                elif self.fetch_names_to_type_[name] == int32_type:
+                    # result_map[name] will be py::array(numpy array)
+                    result_map[name] = result_batch_handle.get_int32_by_name(
                         mi, name)
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
@@ -454,6 +467,8 @@ class MultiLangClient(object):
                             data = np.array(var, dtype="int64")
                         elif v_type == 1:  # float32
                             data = np.array(var, dtype="float32")
+                        elif v_type == 2:  #int32
+                            data = np.array(var, dtype="int32")
                         else:
                             raise Exception("error type.")
                     else:
@@ -472,6 +487,11 @@ class MultiLangClient(object):
                             tensor.float_data.extend(var.reshape(-1).tolist())
                         else:
                             tensor.float_data.extend(self._flatten_list(var))
+                    elif v_type == 2:  #int32
+                        if isinstance(car, np.array):
+                            tensor.int_data.extend(var.reshape(-1).tolist())
+                        else:
+                            tensor.int_data.extend(self._flatten_list(var))
                     else:
                         raise Exception("error type.")
                 if isinstance(var, np.ndarray):
@@ -503,6 +523,9 @@ class MultiLangClient(object):
                 elif v_type == 1:  # float32
                     result_map[name] = np.array(
                         list(var.float_data), dtype="float32")
+                elif v_type == 2:  # int32
+                    result_map[name] = np.array(
+                        list(var.int_data), dtype="int32")
                 else:
                     raise Exception("error type.")
             result_map[name].shape = list(var.shape)
