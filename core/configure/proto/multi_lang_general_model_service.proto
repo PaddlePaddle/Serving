@@ -51,7 +51,7 @@ message EmptyRequest{
 message ServingConfig{
     int32 max_batch_size = 1;
     string proto_txt = 2;
-}
+};
 
 service MultiLangGeneralModelService {
   rpc inference(Request) returns (Response) {}
