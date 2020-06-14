@@ -441,7 +441,7 @@ class Server(object):
 
 
 class MultiLangServerService(
-        pb2_grpc.MultiLangGeneralModelService):
+        grpc_pb2.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
 

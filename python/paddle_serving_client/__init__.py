@@ -26,7 +26,8 @@ import grpc
 from .proto import multi_lang_general_model_service_pb2
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import grpc_pb2 as grpc_pb2
+from .proto import multi_lang_general_model_service_pb2 as pb2
+from .proto import multi_lang_general_model_service_pb2_grpc as grpc_pb2
 
 int_type = 0
 float_type = 1
@@ -395,7 +396,7 @@ class MultiLangClient(object):
         self._parse_model_config(proto_txt)
 
     def _load_client_config(self, stub):
-        req= grpc_pb2.ServingConfig()
+        req= pb2.ServingConfig()
         self._config  = self.stub_.get_client_proto_text(req)
         self._parse_model_config(config.proto_txt)
 
