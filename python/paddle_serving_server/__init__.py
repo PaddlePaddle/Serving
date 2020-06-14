@@ -605,7 +605,7 @@ class MultiLangServer(object):
         p_bserver.start()
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self.worker_num_))
-        pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
+        grpc_pb2.add_MultiLangGeneralModelServiceServicer_to_server(
             MultiLangServerService(self.model_config_path_,
                                    ["0.0.0.0:{}".format(self.port_list_[0])]),
             server)

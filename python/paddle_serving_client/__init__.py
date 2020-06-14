@@ -396,7 +396,7 @@ class MultiLangClient(object):
         self._parse_model_config(proto_txt)
 
     def _load_client_config(self, stub):
-        req= pb2.ServingConfig()
+        req= pb2.EmptyRequest()
         self._config  = self.stub_.get_client_proto_text(req)
         self._parse_model_config(config.proto_txt)
 
