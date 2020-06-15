@@ -231,6 +231,7 @@ class Server(object):
             self.infer_service_conf.services.extend([infer_service])
 
     def _prepare_resource(self, workdir):
+        self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
                       "w") as fout:
@@ -328,10 +329,10 @@ class Server(object):
         os.chdir(self.module_path)
         need_download = False
         device_version = self.get_device_version()
-        floder_name = device_version + serving_server_version
-        tar_name = floder_name + ".tar.gz"
+        folder_name = device_version + serving_server_version
+        tar_name = folder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
-        self.server_path = os.path.join(self.module_path, floder_name)
+        self.server_path = os.path.join(self.module_path, folder_name)
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
@@ -357,7 +358,7 @@ class Server(object):
                         os.remove(exe_path)
                     raise SystemExit(
                         'Decompressing failed, please check your permission of {} or disk space left.'.
-                        foemat(self.module_path))
+                        format(self.module_path))
                 finally:
                     os.remove(tar_name)
         #release lock
@@ -375,10 +376,10 @@ class Server(object):
 
         if not self.port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
+        self.set_port(port)
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
-        self.port = port
         self.workdir = workdir
 
         infer_service_fn = "{}/{}".format(workdir, self.infer_service_fn)
