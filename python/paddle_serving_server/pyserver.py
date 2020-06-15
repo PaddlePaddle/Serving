@@ -15,9 +15,14 @@
 import threading
 import multiprocessing
 import multiprocessing.queues
-import Queue
-import os
 import sys
+if sys.version_info.major == 2:
+    import Queue
+elif sys.version_info.major == 3:
+    import queue as Queue
+else:
+    raise Exception("Error Python version")
+import os
 import paddle_serving_server
 from paddle_serving_client import MultiLangClient as Client
 from paddle_serving_client import MultiLangPredictFuture
@@ -1081,7 +1086,14 @@ class PyServer(object):
                     else:
                         # create virtual op
                         virtual_op = None
-                        virtual_op = VirtualOp(name=virtual_op_name_gen.next())
+                        if sys.version_info.major == 2:
+                            virtual_op = VirtualOp(
+                                name=virtual_op_name_gen.next())
+                        elif sys.version_info.major == 3:
+                            virtual_op = VirtualOp(
+                                name=virtual_op_name_gen.__next__())
+                        else:
+                            raise Exception("Error Python version")
                         virtual_ops.append(virtual_op)
                         outdegs[virtual_op.name] = [succ_op]
                         actual_next_view.append(virtual_op)
@@ -1093,7 +1105,14 @@ class PyServer(object):
             for o_idx, op in enumerate(actual_next_view):
                 if op.name in processed_op:
                     continue
-                channel = Channel(self._manager, name=channel_name_gen.next())
+                if sys.version_info.major == 2:
+                    channel = Channel(
+                        self._manager, name=channel_name_gen.next())
+                elif sys.version_info.major == 3:
+                    channel = Channel(
+                        self._manager, name=channel_name_gen.__next__())
+                else:
+                    raise Exception("Error Python version")
                 channels.append(channel)
                 logging.debug("{} => {}".format(channel.name, op.name))
                 op.add_input_channel(channel)
@@ -1124,7 +1143,14 @@ class PyServer(object):
                                                         other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
-        output_channel = Channel(self._manager, name=channel_name_gen.next())
+        if sys.version_info.major == 2:
+            output_channel = Channel(
+                self._manager, name=channel_name_gen.next())
+        elif sys.version_info.major == 3:
+            output_channel = Channel(
+                self._manager, name=channel_name_gen.__next__())
+        else:
+            raise Exception("Error Python version")
         channels.append(output_channel)
         last_op = dag_views[-1][0]
         last_op.add_output_channel(output_channel)
