@@ -375,7 +375,7 @@ class Server(object):
         os.system("touch {}/fluid_time_file".format(workdir))
 
         if not self.port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
+            raise SystemExit("Port {} is already used".format(port))
         self.set_port(port)
         self._prepare_resource(workdir)
         self._prepare_engine(self.model_config_paths, device)
