@@ -1,6 +1,6 @@
 FROM centos:7.3.1611
 RUN yum -y install wget  \
-    && yum -y install gcc gcc-c++ make glibc-static which >/dev/null \
+    && yum -y install gcc gcc-c++ make glibc-static which  \
     && yum -y install git openssl-devel curl-devel bzip2-devel python-devel
 
 RUN wget https://cmake.org/files/v3.2/cmake-3.2.0-Linux-x86_64.tar.gz >/dev/null \
