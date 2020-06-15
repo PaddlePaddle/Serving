@@ -64,6 +64,16 @@ def serve_args():
     parser.add_argument(
         "--ir_optim", default=False, action="store_true", help="Graph optimize")
     parser.add_argument(
+        "--async",
+        default=False,
+        action="store_true",
+        help="Use async communication or not.")
+    parser.add_argument(
+        "--hidden_port",
+        type=int,
+        default=None,
+        help="Used for async communication.")
+    parser.add_argument(
         "--max_body_size",
         type=int,
         default=512 * 1024 * 1024,
@@ -615,6 +625,33 @@ class MultiLangServer(object):
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
 
+    def set_max_concurrency(self, concurrency):
+        self.bserver_.set_max_concurrency(concurrency)
+
+    def set_num_threads(self, threads):
+        self.bserver_.set_num_threads(threads)
+
+    def set_max_body_size(self, body_size):
+        self.bserver_.set_max_body_size(body_size)
+
+    def set_port(self, port):
+        self.bserver_.set_port(port)
+
+    def set_reload_interval(self, interval):
+        self.bserver_.set_reload_interval(interval)
+
+    def set_op_graph(self, op_graph):
+        self.bserver_.set_op_graph(op_graph)
+
+    def set_memory_optimize(self, flag=False):
+        self.bserver_.set_memory_optimize(flag)
+
+    def set_ir_optimize(self, flag=False):
+        self.bserver_.set_ir_optimize(flag)
+
+    def set_gpuid(self, gpuid=0):
+        self.bserver_.set_gpuid(gpuid)
+
     def load_model_config(self, model_config_path):
         if not isinstance(model_config_path, str):
             raise Exception(
@@ -622,16 +659,25 @@ class MultiLangServer(object):
         self.bserver_.load_model_config(model_config_path)
         self.model_config_path_ = model_config_path
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
-        default_port = 12000
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       hidden_port=None):
         self.port_list_ = []
-        for i in range(1000):
-            if default_port + i != port and self._port_is_available(default_port
-                                                                    + i):
-                self.port_list_.append(default_port + i)
-                break
+        if hidden_port is None:
+            default_port = 12000
+            for i in range(1000):
+                if default_port + i != port and self._port_is_available(
+                        default_port + i):
+                    self.port_list_.append(default_port + i)
+                    break
+        else:
+            self.port_list_.append(int(hidden_port))
+
         self.bserver_.prepare_server(
             workdir=workdir, port=self.port_list_[0], device=device)
+
         self.gport_ = port
 
     def _launch_brpc_service(self, bserver):
