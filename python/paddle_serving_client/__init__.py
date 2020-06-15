@@ -395,9 +395,9 @@ class MultiLangClient(object):
         
         self._parse_model_config(proto_txt)
 
-    def _load_client_config(self, stub):
+    def _load_client_config(self):
         req= pb2.EmptyRequest()
-        self._config  = self.stub_.get_client_proto_text(req)
+        self._config  = self.stub_.get_config(req)
         self._parse_model_config(config.proto_txt)
 
     def connect(self, endpoint, use_remote_config=True):
@@ -406,7 +406,7 @@ class MultiLangClient(object):
             self.channel_)
 
         if use_remote_config:
-            self._load_client_config(stub)
+            self._load_client_config()
 
     def _flatten_list(self, nested_list):
         for item in nested_list:

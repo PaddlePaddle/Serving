@@ -488,18 +488,23 @@ class MultiLangServerService(
         multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
-        self._parse_model_config(model_config_path)
+
+        path = "{}/serving_server_conf.prototxt".format(model_config_path)
+        with open(path, 'r') as f:
+            proto_txt = str(f.read())
+
+        self._parse_model_config(proto_txt)
         self.bclient_ = Client()
-        self.bclient_.load_client_config(
-            "{}/serving_server_conf.prototxt".format(model_config_path))
+        self.bclient_.load_client_config(path)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_path):
+        self._max_batch_size = -1 #  <=0:unknown
+        self._proto_txt = proto_txt
+
+
+    def _parse_model_config(self, proto_txt):
         model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(model_config_path),
-                 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(proto_txt, model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -585,6 +590,23 @@ class MultiLangServerService(
         data, tag = self.bclient_.predict(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
         return self._pack_resp_package(data, fetch_names, is_python, tag)
+
+    def get_config(self, request, context):
+        print("get request from client:", request)
+        key = "PADDLE_SERVING_MAX_BATCH_SIZE"
+        max_batch_size = os.getenv(key)
+        if max_batch_size:
+            try:
+                max_batch_size=int(max_batch_size)
+                self._max_batch_size = max_batch_size
+            except Exception as e:
+                print("invalid value:{} of {}".format(max_batch_size, key))
+
+        response = pb2.ServingConfig()
+        response.proto_txt = self.proto_txt
+        response.max_batch_size = self._max_batch_size
+
+        return response
 
 
 class MultiLangServer(object):

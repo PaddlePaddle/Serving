@@ -459,7 +459,7 @@ class MultiLangServerService(
 
     def _parse_model_config(self, proto_txt):
         model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(proto_txt), model_conf)
+        model_conf = google.protobuf.text_format.Merge(proto_txt, model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -547,22 +547,7 @@ class MultiLangServerService(
         return self._pack_resp_package(data, fetch_names, is_python, tag)
 
     
-    def get_config(self, request, context):
-        key = "PADDLE_SERVING_MAX_BATCH_SIZE"
-        max_batch_size = os.getenv(key)
-        if max_batch_size:
-            try:
-                max_batch_size=int(max_batch_size)
-                self._max_batch_size = max_batch_size
-            except Exception as e:
-                print("invalid value:{} of {}".format(max_batch_size, key))
-
-        response = pb2.ServingConfig()
-        response.proto_txt = self.proto_txt
-        response.max_batch_size = self._max_batch_size
-
-        return response
-
+    
 class MultiLangServer(object):
     def __init__(self, worker_num=2):
         self.bserver_ = Server()
