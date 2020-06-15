@@ -431,7 +431,6 @@ class MultiLangClient(object):
     def _pack_feed_data(self, feed, fetch, is_python):
         req = multi_lang_general_model_service_pb2.Request()
         req.fetch_var_names.extend(fetch)
-        req.feed_var_names.extend(feed.keys())
         req.is_python = is_python
         feed_batch = None
         if isinstance(feed, dict):
@@ -440,6 +439,7 @@ class MultiLangClient(object):
             feed_batch = feed
         else:
             raise Exception("{} not support".format(type(feed)))
+        req.feed_var_names.extend(feed_batch[0].keys())
         init_feed_names = False
         for feed_data in feed_batch:
             inst = multi_lang_general_model_service_pb2.FeedInst()
@@ -516,6 +516,9 @@ class MultiLangClient(object):
 
         return unpack_resp
 
+    def get_feed_names(self):
+        return self.feed_names_
+
     def predict(self,
                 feed,
                 fetch,
@@ -548,3 +551,10 @@ class MultiLangPredictFuture(object):
     def result(self):
         resp = self.call_future_.result()
         return self.callback_func_(resp)
+
+    def add_done_callback(self, fn):
+        def __fn__(call_future):
+            assert call_future == self.call_future_
+            fn(self)
+
+        self.call_future_.add_done_callback(__fn__)
