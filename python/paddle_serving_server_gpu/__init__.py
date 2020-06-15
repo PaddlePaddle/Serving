@@ -29,11 +29,11 @@ import fcntl
 
 import numpy as np
 import grpc
-from .proto import multi_lang_general_model_service_pb2
+from .proto import multi_lang_general_model_service_pb2 as pb2
 import sys
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import multi_lang_general_model_service_pb2_grpc
+from .proto import multi_lang_general_model_service_pb2_grpc as grpc_pb2
 from multiprocessing import Pool, Process
 from concurrent import futures
 
@@ -485,7 +485,7 @@ class Server(object):
 
 
 class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
+        grpc_pb2.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
 
@@ -560,12 +560,12 @@ class MultiLangServerService(
         return feed_batch, fetch_names, is_python
 
     def _pack_resp_package(self, result, fetch_names, is_python, tag):
-        resp = multi_lang_general_model_service_pb2.Response()
+        resp = pb2.Response()
         # Only one model is supported temporarily
-        model_output = multi_lang_general_model_service_pb2.ModelOutput()
-        inst = multi_lang_general_model_service_pb2.FetchInst()
+        model_output = pb2.ModelOutput()
+        inst = pb2.FetchInst()
         for idx, name in enumerate(fetch_names):
-            tensor = multi_lang_general_model_service_pb2.Tensor()
+            tensor = pb2.Tensor()
             v_type = self.fetch_types_[name]
             if is_python:
                 tensor.data = result[name].tobytes()
@@ -603,7 +603,7 @@ class MultiLangServerService(
                 print("invalid value:{} of {}".format(max_batch_size, key))
 
         response = pb2.ServingConfig()
-        response.proto_txt = self.proto_txt
+        response.proto_txt = self._proto_txt
         response.max_batch_size = self._max_batch_size
 
         return response
@@ -651,7 +651,7 @@ class MultiLangServer(object):
         p_bserver.start()
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self.worker_num_))
-        multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
+        grpc_pb2.add_MultiLangGeneralModelServiceServicer_to_server(
             MultiLangServerService(self.model_config_path_,
                                    ["0.0.0.0:{}".format(self.port_list_[0])]),
             server)

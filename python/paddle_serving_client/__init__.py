@@ -398,7 +398,8 @@ class MultiLangClient(object):
     def _load_client_config(self):
         req= pb2.EmptyRequest()
         self._config  = self.stub_.get_config(req)
-        self._parse_model_config(config.proto_txt)
+        self._parse_model_config(self._config.proto_txt)
+        #print("config:", self._config)
 
     def connect(self, endpoint, use_remote_config=True):
         self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
