@@ -26,7 +26,11 @@ test_reader = paddle.batch(
         paddle.dataset.uci_housing.test(), buf_size=500),
     batch_size=1)
 
+ret = []
 for data in test_reader():
     future = client.predict(feed={"x": data[0][0]}, fetch=["price"], asyn=True)
+    ret.append(future)
+
+for future in ret:
     fetch_map = future.result()
     print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
