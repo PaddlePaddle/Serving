@@ -54,17 +54,26 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     op_seq_maker.add_op(general_infer_op)
     op_seq_maker.add_op(general_response_op)
 
-    server = serving.Server()
-    server.set_op_sequence(op_seq_maker.get_op_sequence())
-    server.set_num_threads(thread_num)
-    server.set_memory_optimize(mem_optim)
-    server.set_ir_optimize(ir_optim)
-    server.set_max_body_size(max_body_size)
+    use_multilang = args.use_multilang
+    if use_multilang:
+        server = serving.MultiLangServer()
+        server.set_op_sequence(op_seq_maker.get_op_sequence())
+        server.load_model_config(model)
+        server.prepare_server(workdir=workdir, port=port, device=device)
+        if gpuid >= 0:
+            raise ValueError("gpuid can not >= 0 in MultiLangServer")
+    else:
+        server = serving.Server()
+        server.set_op_sequence(op_seq_maker.get_op_sequence())
+        server.set_num_threads(thread_num)
+        server.set_memory_optimize(mem_optim)
+        server.set_ir_optimize(ir_optim)
+        server.set_max_body_size(max_body_size)
 
-    server.load_model_config(model)
-    server.prepare_server(workdir=workdir, port=port, device=device)
-    if gpuid >= 0:
-        server.set_gpuid(gpuid)
+        server.load_model_config(model)
+        server.prepare_server(workdir=workdir, port=port, device=device)
+        if gpuid >= 0:
+            server.set_gpuid(gpuid)
     server.run_server()
 
 

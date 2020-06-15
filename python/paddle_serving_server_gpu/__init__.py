@@ -68,6 +68,10 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        action='store_true',
+        help="Use Multi-language-service")
     return parser.parse_args()
 
 
