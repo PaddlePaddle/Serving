@@ -440,8 +440,7 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        grpc_pb2.MultiLangGeneralModelService):
+class MultiLangServerService(grpc_pb2.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
 
@@ -454,7 +453,7 @@ class MultiLangServerService(
         self.bclient_.load_client_config(path)
         self.bclient_.connect(endpoints)
 
-        self._max_batch_size = -1 #  <=0:infinite
+        self._max_batch_size = -1  #  <=0:infinite
         self._proto_txt = proto_txt
 
     def _parse_model_config(self, proto_txt):
@@ -546,8 +545,7 @@ class MultiLangServerService(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
         return self._pack_resp_package(data, fetch_names, is_python, tag)
 
-    
-    
+
 class MultiLangServer(object):
     def __init__(self, worker_num=2):
         self.bserver_ = Server()

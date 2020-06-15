@@ -392,19 +392,18 @@ class MultiLangClient(object):
             raise Exception("GClient only supports multi-model temporarily")
         with open(path, 'r') as f:
             proto_txt = str(f.read())
-        
+
         self._parse_model_config(proto_txt)
 
     def _load_client_config(self):
-        req= pb2.EmptyRequest()
-        self._config  = self.stub_.get_config(req)
+        req = pb2.EmptyRequest()
+        self._config = self.stub_.get_config(req)
         self._parse_model_config(self._config.proto_txt)
         #print("config:", self._config)
 
     def connect(self, endpoint, use_remote_config=True):
         self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
-        self.stub_ = grpc_pb2.MultiLangGeneralModelServiceStub(
-            self.channel_)
+        self.stub_ = grpc_pb2.MultiLangGeneralModelServiceStub(self.channel_)
 
         if use_remote_config:
             self._load_client_config()
@@ -550,6 +549,7 @@ class MultiLangClient(object):
                     fetch,
                     is_python=is_python,
                     need_variant_tag=need_variant_tag))
+
 
 class MultiLangPredictFuture(object):
     def __init__(self, call_future, callback_func):

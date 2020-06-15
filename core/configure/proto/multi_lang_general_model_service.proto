@@ -45,12 +45,11 @@ message ModelOutput {
   optional string engine_name = 2;
 };
 
-message EmptyRequest{
-};
+message EmptyRequest {};
 
-message ServingConfig{
-    required int32 max_batch_size = 1;
-    required string proto_txt = 2;
+message ServingConfig {
+  required int32 max_batch_size = 1;
+  required string proto_txt = 2;
 };
 
 service MultiLangGeneralModelService {

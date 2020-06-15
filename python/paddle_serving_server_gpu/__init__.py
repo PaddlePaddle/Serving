@@ -484,8 +484,7 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        grpc_pb2.MultiLangGeneralModelService):
+class MultiLangServerService(grpc_pb2.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
 
@@ -498,9 +497,8 @@ class MultiLangServerService(
         self.bclient_.load_client_config(path)
         self.bclient_.connect(endpoints)
 
-        self._max_batch_size = -1 #  <=0:unknown
+        self._max_batch_size = -1  #  <=0:unknown
         self._proto_txt = proto_txt
-
 
     def _parse_model_config(self, proto_txt):
         model_conf = m_config.GeneralModelConfig()
@@ -597,7 +595,7 @@ class MultiLangServerService(
         max_batch_size = os.getenv(key)
         if max_batch_size:
             try:
-                max_batch_size=int(max_batch_size)
+                max_batch_size = int(max_batch_size)
                 self._max_batch_size = max_batch_size
             except Exception as e:
                 print("invalid value:{} of {}".format(max_batch_size, key))
