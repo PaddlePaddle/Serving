@@ -203,6 +203,8 @@ int GeneralReaderOp::inference() {
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).int64_data(0);
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
@@ -217,6 +219,8 @@ int GeneralReaderOp::inference() {
       }
     } else if (elem_type[i] == 1) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).float_data(0);
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
@@ -231,6 +235,8 @@ int GeneralReaderOp::inference() {
       }
     } else if (elem_type[i] == 2) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).int_data(0);
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int_data_size();
