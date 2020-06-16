@@ -68,6 +68,11 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
     return parser.parse_args()
 
 
@@ -592,8 +597,39 @@ class MultiLangServer(object):
         self.bserver_ = Server()
         self.worker_num_ = worker_num
 
+    def set_max_concurrency(self, concurrency):
+        self.bserver_.set_max_concurrency(concurrency)
+
+    def set_num_threads(self, threads):
+        self.bserver_.set_num_threads(threads)
+
+    def set_max_body_size(self, body_size):
+        # TODO: grpc body
+        self.bserver_.set_max_body_size(body_size)
+
+    def set_port(self, port):
+        self.gport_ = port
+
+    def set_reload_interval(self, interval):
+        self.bserver_.set_reload_interval(interval)
+
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
+
+    def set_op_graph(self, op_graph):
+        self.bserver_.set_op_graph(op_graph)
+
+    def set_memory_optimize(self, flag=False):
+        self.bserver_.set_memory_optimize(flag)
+
+    def set_ir_optimize(self, flag=False):
+        self.bserver_.set_ir_optimize(flag)
+
+    def set_gpuid(self, gpuid=0):
+        self.bserver_.set_gpuid(gpuid)
+
+    def use_mkl(self, flag):
+        self.bserver_.use_mkl(flag)
 
     def load_model_config(self, model_config_path):
         if not isinstance(model_config_path, str):
@@ -603,6 +639,8 @@ class MultiLangServer(object):
         self.model_config_path_ = model_config_path
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
+        if not self._port_is_available(port):
+            raise SystemExit("Prot {} is already used".format(port))
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):
@@ -612,7 +650,7 @@ class MultiLangServer(object):
                 break
         self.bserver_.prepare_server(
             workdir=workdir, port=self.port_list_[0], device=device)
-        self.gport_ = port
+        self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
         bserver.run_server()
