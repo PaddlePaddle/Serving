@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "cipher_utils.h"  // NOLINT
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
 #include "core/predictor/framework/infer.h"
@@ -531,6 +532,69 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
   }
 };
 
+class FluidCpuAnalysisEncryCore : public FluidFamilyCore {
+ public:
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
+    if (access(data_path.c_str(), F_OK) == -1) {
+      LOG(ERROR) << "create paddle predictor failed, path note exits: "
+                 << data_path;
+      return -1;
+    }
+    std::ifstream model_file(data_path + "encry_model",
+                             std::ios::in | std::ios::binary);
+    std::string model_string;
+    if (model_file.is_open()) {
+      std::istreambuf_iterator<char> begin(model_file), end;
+      model_string = std::string(begin, end);
+      model_file.close();
+    }
+    std::ifstream params_file(data_path + "encry_params",
+                              std::ios::in | std::ios::binary);
+    std::string params_string;
+    if (params_file.is_open()) {
+      std::istreambuf_iterator<char> begin(params_file), end;
+      params_string = std::string(begin, end);
+      params_file.close();
+    }
+    std::ifstream key_file(data_path + "key", std::ios::in | std::ios::binary);
+    std::string key_string;
+    if (key_file.is_open()) {
+      std::istreambuf_iterator<char> begin(key_file), end;
+      key_string = std::string(begin, end);
+      key_file.close();
+    }
+
+    auto cipher = paddle::CipherFactory::CreateCipher();
+    std::string real_model_string = cipher->Decrypt(model_string, key_string);
+    std::string real_params_string = cipher->Decrypt(params_string, key_string);
+
+    const char* real_model_buffer = real_model_string.c_str();
+    const char* real_params_buffer = real_params_string.c_str();
+
+    paddle::AnalysisConfig analysis_config;
+    analysis_config.SetModelBuffer(real_model_buffer,
+                                   real_model_string.size(),
+                                   real_params_buffer,
+                                   real_model_string.size());
+    analysis_config.DisableGpu();
+    analysis_config.SetCpuMathLibraryNumThreads(1);
+
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim();
+    }
+    analysis_config.SwitchSpecifyInputNames(true);
+    AutoLock lock(GlobalPaddleCreateMutex::instance());
+    _core =
+        paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
+    if (NULL == _core.get()) {
+      LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
+      return -1;
+    }
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    return 0;
+  }
+};
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu

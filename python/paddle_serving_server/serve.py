@@ -97,11 +97,44 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.run_server()
 
 
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import urllib
+import json
+import subprocess
+
+
+class MainService(BaseHTTPRequestHandler):
+    def _set_headers(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+
+    def do_GET(self):
+        response = {'status': 'SUCCESS', 'data': 'hello from server'}
+
+        self._set_headers()
+        self.wfile.write(json.dumps(response))
+
+    def do_POST(self):
+        path = self.path
+        print(path)
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        print(post_data)
+        p = subprocess.popen(start_standard_model)
+        response = {"endpoint_list": ["9292"]}
+        self._set_headers()
+        self.wfile.write(json.dumps(response))
+
+
 if __name__ == "__main__":
 
     args = parse_args()
     if args.name == "None":
-        start_standard_model()
+        #start_standard_model()
+        server = HTTPServer(('', int(args.port)), MainService)
+        server.serve_forever()
+
     else:
         service = WebService(name=args.name)
         service.load_model_config(args.model)
