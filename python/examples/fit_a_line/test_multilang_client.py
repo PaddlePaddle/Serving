@@ -14,7 +14,10 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import MultiLangClient
+import functools
 import sys
+import time
+import threading
 
 client = MultiLangClient()
 client.load_client_config(sys.argv[1])
@@ -26,7 +29,22 @@ test_reader = paddle.batch(
         paddle.dataset.uci_housing.test(), buf_size=500),
     batch_size=1)
 
+complete_task_count = [0]
+lock = threading.Lock()
+
+
+def call_back(call_future, data):
+    fetch_map = call_future.result()
+    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    with lock:
+        complete_task_count[0] += 1
+
+
+task_count = 0
 for data in test_reader():
     future = client.predict(feed={"x": data[0][0]}, fetch=["price"], asyn=True)
-    fetch_map = future.result()
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    task_count += 1
+    future.add_done_callback(functools.partial(call_back, data=data))
+
+while complete_task_count[0] != task_count:
+    time.sleep(0.1)
