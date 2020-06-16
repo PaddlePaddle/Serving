@@ -190,6 +190,22 @@ class Client(object):
         else:
             self.rpc_timeout_ms = rpc_timeout
 
+    def get_serving_port(self, endpoints):
+        import requests
+        import json
+        req = json.dumps({})
+        r = requests.post("http://" + endpoints[0], req)
+        result = r.json()
+        print(result)
+        if "endpoint_list" not in result:
+            raise ValueError("server not ready")
+        else:
+            endpoints = [
+                endpoints[0].split(":")[0] + ":" +
+                str(result["endpoint_list"][0])
+            ]
+            return endpoints
+
     def connect(self, endpoints=None):
         # check whether current endpoint is available
         # init from client config
@@ -200,6 +216,7 @@ class Client(object):
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
+            endpoints = self.get_serving_port(endpoints)
             if self.predictor_sdk_ is None:
                 self.add_variant('default_tag_{}'.format(id(self)), endpoints,
                                  100)

@@ -18,8 +18,11 @@ Usage:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
 import argparse
-from .web_service import WebService
+from web_service import WebService
 from flask import Flask, request
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import json
+import subprocess
 
 
 def parse_args():  # pylint: disable=doc-string-missing
@@ -97,44 +100,9 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.run_server()
 
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import urllib
-import json
-import subprocess
-
-
-class MainService(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-
-    def do_GET(self):
-        response = {'status': 'SUCCESS', 'data': 'hello from server'}
-
-        self._set_headers()
-        self.wfile.write(json.dumps(response))
-
-    def do_POST(self):
-        path = self.path
-        print(path)
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        print(post_data)
-        p = subprocess.popen(start_standard_model)
-        response = {"endpoint_list": ["9292"]}
-        self._set_headers()
-        self.wfile.write(json.dumps(response))
-
-
-if __name__ == "__main__":
-
-    args = parse_args()
+def start_serving():
     if args.name == "None":
-        #start_standard_model()
-        server = HTTPServer(('', int(args.port)), MainService)
-        server.serve_forever()
-
+        start_standard_model()
     else:
         service = WebService(name=args.name)
         service.load_model_config(args.model)
@@ -158,3 +126,28 @@ if __name__ == "__main__":
                          port=service.port,
                          threaded=False,
                          processes=4)
+
+
+class MainService(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        #p = subprocess.Popen(start_serving())
+        from multiprocessing import Pool
+        pool = Pool(3)
+        pool.apply_async(start_serving)
+        if 1:
+            response = {"endpoint_list": [args.port]}
+        else:
+            response = {"message": "start serving failed"}
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(response))
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    server = HTTPServer(('localhost', 8080), MainService)
+    print('Starting server, use <Ctrl-C> to stop')
+    server.serve_forever()

@@ -593,34 +593,3 @@ class MultiLangServer(object):
         server.start()
         p_bserver.join()
         server.wait_for_termination()
-
-
-from BaseHTTPServer import BaseHTTPRequestHandler
-import urllib
-import json
-from .serve import start_standard_model
-import subprocess
-
-
-class MainService(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-
-    def do_GET(self):
-        response = {'status': 'SUCCESS', 'data': 'hello from server'}
-
-        self._set_headers()
-        self.wfile.write(json.dumps(response))
-
-    def do_POST(self):
-        path = self.path
-        print(path)
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        print(post_data)
-        p = subprocess.popen(start_standard_model)
-        response = {"endpoint_list": ["9292"]}
-        self._set_headers()
-        self.wfile.write(json.dumps(response))
