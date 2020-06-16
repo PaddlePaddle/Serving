@@ -37,6 +37,7 @@ import time
 import func_timeout
 import enum
 import collections
+import copy
 
 
 class _TimeProfiler(object):
@@ -630,7 +631,8 @@ class ThreadChannel(Queue.Queue):
             self._cv.notify_all()
 
         logging.debug(self._log("multi | {} get data succ!".format(op_name)))
-        return resp  # reference, read only
+        # return resp  # reference, read only
+        return copy.deepcopy(resp)
 
     def stop(self):
         #TODO
@@ -987,7 +989,8 @@ class VirtualOp(Op):
             channel.add_producer(op.name)
         self._outputs.append(channel)
 
-    def _run_with_brpc(self, concurrency_idx, input_channel, output_channels):
+    def _run(self, concurrency_idx, input_channel, output_channels, client_type,
+             use_future):
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         log = self._get_log_func(op_info_prefix)
         self._is_run = True
