@@ -129,14 +129,26 @@ def start_serving():
 
 
 class MainService(BaseHTTPRequestHandler):
+    def setup(self):
+        BaseHTTPRequestHandler.setup(self)
+        self.p_flag = False
+
+    def start(self):
+        print(self.p_flag)
+        if not self.p_flag:
+            from multiprocessing import Pool
+            pool = Pool(3)
+            pool.apply_async(start_serving)
+            self.p_status = 1
+            self.p_flag = True
+        else:
+            pass
+        return True
+
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
-        #p = subprocess.Popen(start_serving())
-        from multiprocessing import Pool
-        pool = Pool(3)
-        pool.apply_async(start_serving)
-        if 1:
+        if self.start():
             response = {"endpoint_list": [args.port]}
         else:
             response = {"message": "start serving failed"}
