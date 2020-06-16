@@ -23,9 +23,7 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 import os
-import paddle_serving_server
-from paddle_serving_client import MultiLangClient as Client
-from paddle_serving_client import MultiLangPredictFuture
+from paddle_serving_client import MultiLangClient, Client
 from concurrent import futures
 import numpy as np
 import grpc
@@ -49,9 +47,6 @@ class _TimeProfiler(object):
         self._enable = False
 
     def enable(self, enable):
-        if enable:
-            raise Exception(
-                "profile cannot be used in multiprocess version temporarily")
         self._enable = enable
 
     def record(self, name_with_tag):
@@ -159,20 +154,15 @@ class ChannelData(object):
         self.pbdata = pbdata
         self.npdata = npdata
         self.datatype = datatype
-        self.callback_func = callback_func
         self.id = data_id
         self.ecode = ecode
         self.error_info = error_info
+        self.callback_func = callback_func
 
     def _check_npdata(self, npdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
-        for name, value in npdata.items():
-            if not isinstance(name, (str, unicode)):
-                ecode = ChannelDataEcode.TYPE_ERROR.value
-                error_info = log("the key of postped_data must " \
-                        "be str, but get {}".format(type(name)))
-                break
+        for _, value in npdata.items():
             if not isinstance(value, np.ndarray):
                 ecode = ChannelDataEcode.TYPE_ERROR.value
                 error_info = log("the value of postped_data must " \
@@ -203,9 +193,9 @@ class ChannelData(object):
             ChannelDataType(self.datatype).name, self.ecode, self.id)
 
 
-class Channel(multiprocessing.queues.Queue):
+class ProcessChannel(multiprocessing.queues.Queue):
     """ 
-    The channel used for communication between Ops.
+    (Process version) The channel used for communication between Ops.
 
     1. Support multiple different Op feed data (multiple producer)
         Different types of data will be packaged through the data ID
@@ -224,9 +214,9 @@ class Channel(multiprocessing.queues.Queue):
     def __init__(self, manager, name=None, maxsize=0, timeout=None):
         # https://stackoverflow.com/questions/39496554/cannot-subclass-multiprocessing-queue-in-python-3-5/
         if sys.version_info.major == 2:
-            super(Channel, self).__init__(maxsize=maxsize)
+            super(ProcessChannel, self).__init__(maxsize=maxsize)
         elif sys.version_info.major == 3:
-            super(Channel, self).__init__(
+            super(ProcessChannel, self).__init__(
                 maxsize=maxsize, ctx=multiprocessing.get_context())
         else:
             raise Exception("Error Python version")
@@ -239,18 +229,12 @@ class Channel(multiprocessing.queues.Queue):
 
         self._producers = []
         self._producer_res_count = manager.dict()  # {data_id: count}
-        # self._producer_res_count = {}  # {data_id: count}
         self._push_res = manager.dict()  # {data_id: {op_name: data}}
-        # self._push_res = {}  # {data_id: {op_name: data}}
 
         self._consumers = manager.dict()  # {op_name: idx}
-        # self._consumers = {}  # {op_name: idx}
         self._idx_consumer_num = manager.dict()  # {idx: num}
-        # self._idx_consumer_num = {}  # {idx: num}
         self._consumer_base_idx = manager.Value('i', 0)
-        # self._consumer_base_idx = 0
         self._front_res = manager.list()
-        # self._front_res = []
 
     def get_producers(self):
         return self._producers
@@ -460,6 +444,201 @@ class Channel(multiprocessing.queues.Queue):
         self._cv.notify_all()
 
 
+class ThreadChannel(Queue.Queue):
+    """ 
+    (Thread version)The channel used for communication between Ops.
+
+    1. Support multiple different Op feed data (multiple producer)
+        Different types of data will be packaged through the data ID
+    2. Support multiple different Op fetch data (multiple consumer)
+        Only when all types of Ops get the data of the same ID,
+        the data will be poped; The Op of the same type will not
+        get the data of the same ID.
+    3. (TODO) Timeout and BatchSize are not fully supported.
+
+    Note:
+    1. The ID of the data in the channel must be different.
+    2. The function add_producer() and add_consumer() are not thread safe,
+       and can only be called during initialization.
+    """
+
+    def __init__(self, name=None, maxsize=-1, timeout=None):
+        Queue.Queue.__init__(self, maxsize=maxsize)
+        self._maxsize = maxsize
+        self._timeout = timeout
+        self.name = name
+        self._stop = False
+
+        self._cv = threading.Condition()
+
+        self._producers = []
+        self._producer_res_count = {}  # {data_id: count}
+        self._push_res = {}  # {data_id: {op_name: data}}
+
+        self._consumers = {}  # {op_name: idx}
+        self._idx_consumer_num = {}  # {idx: num}
+        self._consumer_base_idx = 0
+        self._front_res = []
+
+    def get_producers(self):
+        return self._producers
+
+    def get_consumers(self):
+        return self._consumers.keys()
+
+    def _log(self, info_str):
+        return "[{}] {}".format(self.name, info_str)
+
+    def debug(self):
+        return self._log("p: {}, c: {}".format(self.get_producers(),
+                                               self.get_consumers()))
+
+    def add_producer(self, op_name):
+        """ not thread safe, and can only be called during initialization. """
+        if op_name in self._producers:
+            raise ValueError(
+                self._log("producer({}) is already in channel".format(op_name)))
+        self._producers.append(op_name)
+
+    def add_consumer(self, op_name):
+        """ not thread safe, and can only be called during initialization. """
+        if op_name in self._consumers:
+            raise ValueError(
+                self._log("consumer({}) is already in channel".format(op_name)))
+        self._consumers[op_name] = 0
+
+        if self._idx_consumer_num.get(0) is None:
+            self._idx_consumer_num[0] = 0
+        self._idx_consumer_num[0] += 1
+
+    def push(self, channeldata, op_name=None):
+        logging.debug(
+            self._log("{} try to push data: {}".format(op_name,
+                                                       channeldata.__str__())))
+        if len(self._producers) == 0:
+            raise Exception(
+                self._log(
+                    "expected number of producers to be greater than 0, but the it is 0."
+                ))
+        elif len(self._producers) == 1:
+            with self._cv:
+                while self._stop is False:
+                    try:
+                        self.put(channeldata, timeout=0)
+                        break
+                    except Queue.Full:
+                        self._cv.wait()
+                self._cv.notify_all()
+            logging.debug(self._log("{} push data succ!".format(op_name)))
+            return True
+        elif op_name is None:
+            raise Exception(
+                self._log(
+                    "There are multiple producers, so op_name cannot be None."))
+
+        producer_num = len(self._producers)
+        data_id = channeldata.id
+        put_data = None
+        with self._cv:
+            logging.debug(self._log("{} get lock".format(op_name)))
+            if data_id not in self._push_res:
+                self._push_res[data_id] = {
+                    name: None
+                    for name in self._producers
+                }
+                self._producer_res_count[data_id] = 0
+            self._push_res[data_id][op_name] = channeldata
+            if self._producer_res_count[data_id] + 1 == producer_num:
+                put_data = self._push_res[data_id]
+                self._push_res.pop(data_id)
+                self._producer_res_count.pop(data_id)
+            else:
+                self._producer_res_count[data_id] += 1
+
+            if put_data is None:
+                logging.debug(
+                    self._log("{} push data succ, but not push to queue.".
+                              format(op_name)))
+            else:
+                while self._stop is False:
+                    try:
+                        self.put(put_data, timeout=0)
+                        break
+                    except Queue.Empty:
+                        self._cv.wait()
+
+                logging.debug(
+                    self._log("multi | {} push data succ!".format(op_name)))
+            self._cv.notify_all()
+        return True
+
+    def front(self, op_name=None):
+        logging.debug(self._log("{} try to get data".format(op_name)))
+        if len(self._consumers) == 0:
+            raise Exception(
+                self._log(
+                    "expected number of consumers to be greater than 0, but the it is 0."
+                ))
+        elif len(self._consumers) == 1:
+            resp = None
+            with self._cv:
+                while self._stop is False and resp is None:
+                    try:
+                        resp = self.get(timeout=0)
+                        break
+                    except Queue.Empty:
+                        self._cv.wait()
+            logging.debug(
+                self._log("{} get data succ: {}".format(op_name, resp.__str__(
+                ))))
+            return resp
+        elif op_name is None:
+            raise Exception(
+                self._log(
+                    "There are multiple consumers, so op_name cannot be None."))
+
+        with self._cv:
+            # data_idx = consumer_idx - base_idx
+            while self._stop is False and self._consumers[
+                    op_name] - self._consumer_base_idx >= len(self._front_res):
+                try:
+                    channeldata = self.get(timeout=0)
+                    self._front_res.append(channeldata)
+                    break
+                except Queue.Empty:
+                    self._cv.wait()
+
+            consumer_idx = self._consumers[op_name]
+            base_idx = self._consumer_base_idx
+            data_idx = consumer_idx - base_idx
+            resp = self._front_res[data_idx]
+            logging.debug(self._log("{} get data: {}".format(op_name, resp)))
+
+            self._idx_consumer_num[consumer_idx] -= 1
+            if consumer_idx == base_idx and self._idx_consumer_num[
+                    consumer_idx] == 0:
+                self._idx_consumer_num.pop(consumer_idx)
+                self._front_res.pop(0)
+                self._consumer_base_idx += 1
+
+            self._consumers[op_name] += 1
+            new_consumer_idx = self._consumers[op_name]
+            if self._idx_consumer_num.get(new_consumer_idx) is None:
+                self._idx_consumer_num[new_consumer_idx] = 0
+            self._idx_consumer_num[new_consumer_idx] += 1
+
+            self._cv.notify_all()
+
+        logging.debug(self._log("multi | {} get data succ!".format(op_name)))
+        return resp  # reference, read only
+
+    def stop(self):
+        #TODO
+        self.close()
+        self._stop = True
+        self._cv.notify_all()
+
+
 class Op(object):
     def __init__(self,
                  name,
@@ -477,11 +656,6 @@ class Op(object):
         self.name = name  # to identify the type of OP, it must be globally unique
         self._concurrency = concurrency  # amount of concurrency
         self.set_input_ops(inputs)
-        self._timeout = timeout
-        self._retry = max(1, retry)
-        self._input = None
-        self._outputs = []
-
         self.with_serving = False
         self._client_config = client_config
         self._server_name = server_name
@@ -491,20 +665,26 @@ class Op(object):
         self._device = device
         if self._client_config is not None and \
                 self._server_name is not None and \
-                self._fetch_names is not None and \
-                self._server_model is not None and \
-                self._server_port is not None and \
-                self._device is not None:
+                self._fetch_names is not None:
             self.with_serving = True
+        self._timeout = timeout
+        self._retry = max(1, retry)
+        self._input = None
+        self._outputs = []
 
-    def init_client(self, client_config, server_name, fetch_names):
+    def init_client(self, client_type, client_config, server_name, fetch_names):
         if self.with_serving == False:
             logging.debug("{} no client".format(self.name))
             return
         logging.debug("{} client_config: {}".format(self.name, client_config))
         logging.debug("{} server_name: {}".format(self.name, server_name))
         logging.debug("{} fetch_names: {}".format(self.name, fetch_names))
-        self._client = Client()
+        if client_type == 'brpc':
+            self._client = Client()
+        elif client_type == 'grpc':
+            self._client = MultiLangClient()
+        else:
+            raise ValueError("unknow client type: {}".format(client_type))
         self._client.load_client_config(client_config)
         self._client.connect([server_name])
         self._fetch_names = fetch_names
@@ -527,7 +707,7 @@ class Op(object):
             self._input_ops.append(op)
 
     def add_input_channel(self, channel):
-        if not isinstance(channel, Channel):
+        if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('input channel must be Channel type, not {}'.format(
                     type(channel))))
@@ -538,7 +718,7 @@ class Op(object):
         return self._outputs
 
     def add_output_channel(self, channel):
-        if not isinstance(channel, Channel):
+        if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('output channel must be Channel type, not {}'.format(
                     type(channel))))
@@ -553,7 +733,7 @@ class Op(object):
         feed = channeldata.parse()
         return feed
 
-    def midprocess(self, data):
+    def midprocess(self, data, use_future=True):
         if not isinstance(data, dict):
             raise Exception(
                 self._log(
@@ -561,10 +741,14 @@ class Op(object):
                     format(type(data))))
         logging.debug(self._log('data: {}'.format(data)))
         logging.debug(self._log('fetch: {}'.format(self._fetch_names)))
-        call_future = self._client.predict(
-            feed=data, fetch=self._fetch_names, asyn=True)
-        logging.debug(self._log("get call_future"))
-        return call_future
+        if isinstance(self._client, MultiLangClient):
+            call_result = self._client.predict(
+                feed=data, fetch=self._fetch_names, asyn=use_future)
+        else:
+            call_result = self._client.predict(
+                feed=data, fetch=self._fetch_names)
+        logging.debug(self._log("get call_result"))
+        return call_result
 
     def postprocess(self, output_data):
         return output_data
@@ -597,19 +781,32 @@ class Op(object):
         for channel in channels:
             channel.push(data, name)
 
-    def start(self):
+    def start_with_process(self, client_type, use_future):
         proces = []
         for concurrency_idx in range(self._concurrency):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self.get_input_channel(),
-                      self.get_output_channels()))
+                      self.get_output_channels(), client_type, use_future))
             p.start()
             proces.append(p)
         return proces
 
-    def _run(self, concurrency_idx, input_channel, output_channels):
-        self.init_client(self._client_config, self._server_name,
+    def start_with_thread(self, client_type, use_future):
+        threads = []
+        for concurrency_idx in range(self._concurrency):
+            t = threading.Thread(
+                target=self._run,
+                args=(concurrency_idx, self.get_input_channel(),
+                      self.get_output_channels(), client_type, use_future))
+            t.start()
+            threads.append(t)
+        return threads
+
+    def _run(self, concurrency_idx, input_channel, output_channels, client_type,
+             use_future):
+        # create client based on client_type
+        self.init_client(client_type, self._client_config, self._server_name,
                          self._fetch_names)
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         log = self._get_log_func(op_info_prefix)
@@ -667,13 +864,13 @@ class Op(object):
                 continue
 
             # midprocess
-            call_future = None
+            midped_data = None
             if self.with_serving:
                 ecode = ChannelDataEcode.OK.value
                 _profiler.record("{}-midp_0".format(op_info_prefix))
                 if self._timeout <= 0:
                     try:
-                        call_future = self.midprocess(preped_data)
+                        midped_data = self.midprocess(preped_data, use_future)
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
                         error_info = log(e)
@@ -681,10 +878,10 @@ class Op(object):
                 else:
                     for i in range(self._retry):
                         try:
-                            call_future = func_timeout.func_timeout(
+                            midped_data = func_timeout.func_timeout(
                                 self._timeout,
                                 self.midprocess,
-                                args=(preped_data, ))
+                                args=(preped_data, use_future))
                         except func_timeout.FunctionTimedOut as e:
                             if i + 1 >= self._retry:
                                 ecode = ChannelDataEcode.TIMEOUT.value
@@ -708,29 +905,22 @@ class Op(object):
                         output_channels)
                     continue
                 _profiler.record("{}-midp_1".format(op_info_prefix))
+            else:
+                midped_data = preped_data
 
             # postprocess
             output_data = None
             _profiler.record("{}-postp_0".format(op_info_prefix))
-            if self.with_serving:
+            if self.with_serving and client_type == 'grpc' and use_future:
                 # use call_future
                 output_data = ChannelData(
                     datatype=ChannelDataType.CHANNEL_FUTURE.value,
-                    future=call_future,
+                    future=midped_data,
                     data_id=data_id,
                     callback_func=self.postprocess)
-                #TODO: for future are not picklable
-                npdata = self.postprocess(call_future.result())
-                self._push_to_output_channels(
-                    ChannelData(
-                        ChannelDataType.CHANNEL_NPDATA.value,
-                        npdata=npdata,
-                        data_id=data_id),
-                    output_channels)
-                continue
             else:
                 try:
-                    postped_data = self.postprocess(preped_data)
+                    postped_data = self.postprocess(midped_data)
                 except Exception as e:
                     ecode = ChannelDataEcode.UNKNOW.value
                     error_info = log(e)
@@ -789,7 +979,7 @@ class VirtualOp(Op):
         self._virtual_pred_ops.append(op)
 
     def add_output_channel(self, channel):
-        if not isinstance(channel, Channel):
+        if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('output channel must be Channel type, not {}'.format(
                     type(channel))))
@@ -797,7 +987,7 @@ class VirtualOp(Op):
             channel.add_producer(op.name)
         self._outputs.append(channel)
 
-    def _run(self, input_channel, output_channels):
+    def _run_with_brpc(self, concurrency_idx, input_channel, output_channels):
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         log = self._get_log_func(op_info_prefix)
         self._is_run = True
@@ -844,7 +1034,7 @@ class GeneralPythonService(
         return "[{}] {}".format(self.name, info_str)
 
     def set_in_channel(self, in_channel):
-        if not isinstance(in_channel, Channel):
+        if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('in_channel must be Channel type, but get {}'.format(
                     type(in_channel))))
@@ -852,7 +1042,7 @@ class GeneralPythonService(
         self._in_channel = in_channel
 
     def set_out_channel(self, out_channel):
-        if not isinstance(out_channel, Channel):
+        if not isinstance(out_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('out_channel must be Channel type, but get {}'.format(
                     type(out_channel))))
@@ -970,7 +1160,12 @@ class GeneralPythonService(
 
 
 class PyServer(object):
-    def __init__(self, retry=2, profile=False):
+    def __init__(self,
+                 use_multithread=True,
+                 client_type='brpc',
+                 use_future=False,
+                 retry=2,
+                 profile=False):
         self._channels = []
         self._user_ops = []
         self._actual_ops = []
@@ -979,7 +1174,18 @@ class PyServer(object):
         self._in_channel = None
         self._out_channel = None
         self._retry = retry
-        self._manager = multiprocessing.Manager()
+        self._use_multithread = use_multithread
+        self._client_type = client_type
+        self._use_future = use_future
+        if not self._use_multithread:
+            self._manager = multiprocessing.Manager()
+            if profile:
+                raise Exception(
+                    "profile cannot be used in multiprocess version temporarily")
+            if self._use_future:
+                raise Exception("cannot use future in multiprocess")
+        if self._client_type == 'brpc' and self._use_future:
+            logging.warn("brpc impl cannot use future")
         _profiler.enable(profile)
 
     def add_channel(self, channel):
@@ -1055,6 +1261,36 @@ class PyServer(object):
 
             return number_generator()
 
+        def gen_channel(name_gen):
+            channel = None
+            if self._use_multithread:
+                if sys.version_info.major == 2:
+                    channel = ThreadChannel(name=name_gen.next())
+                elif sys.version_info.major == 3:
+                    channel = ThreadChannel(name=name_gen.__next__())
+                else:
+                    raise Exception("Error Python version")
+            else:
+                if sys.version_info.major == 2:
+                    channel = ProcessChannel(
+                        self._manager, name=name_gen.next())
+                elif sys.version_info.major == 3:
+                    channel = ProcessChannel(
+                        self._manager, name=name_gen.__next__())
+                else:
+                    raise Exception("Error Python version")
+            return channel
+
+        def gen_virtual_op(name_gen):
+            virtual_op = None
+            if sys.version_info.major == 2:
+                virtual_op = VirtualOp(name=name_gen.next())
+            elif sys.version_info.major == 3:
+                virtual_op = VirtualOp(name=op_name_gen.__next__())
+            else:
+                raise Exception("Error Python version")
+            return virtual_op
+
         virtual_op_name_gen = name_generator("vir")
         channel_name_gen = name_generator("chl")
         virtual_ops = []
@@ -1080,15 +1316,7 @@ class PyServer(object):
                         pred_op_of_next_view_op[succ_op.name].append(op)
                     else:
                         # create virtual op
-                        virtual_op = None
-                        if sys.version_info.major == 2:
-                            virtual_op = VirtualOp(
-                                name=virtual_op_name_gen.next())
-                        elif sys.version_info.major == 3:
-                            virtual_op = VirtualOp(
-                                name=virtual_op_name_gen.__next__())
-                        else:
-                            raise Exception("Error Python version")
+                        virtual_op = gen_virtual_op(virtual_op_name_gen)
                         virtual_ops.append(virtual_op)
                         outdegs[virtual_op.name] = [succ_op]
                         actual_next_view.append(virtual_op)
@@ -1100,14 +1328,7 @@ class PyServer(object):
             for o_idx, op in enumerate(actual_next_view):
                 if op.name in processed_op:
                     continue
-                if sys.version_info.major == 2:
-                    channel = Channel(
-                        self._manager, name=channel_name_gen.next())
-                elif sys.version_info.major == 3:
-                    channel = Channel(
-                        self._manager, name=channel_name_gen.__next__())
-                else:
-                    raise Exception("Error Python version")
+                channel = gen_channel(channel_name_gen)
                 channels.append(channel)
                 logging.debug("{} => {}".format(channel.name, op.name))
                 op.add_input_channel(channel)
@@ -1138,14 +1359,7 @@ class PyServer(object):
                                                         other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
-        if sys.version_info.major == 2:
-            output_channel = Channel(
-                self._manager, name=channel_name_gen.next())
-        elif sys.version_info.major == 3:
-            output_channel = Channel(
-                self._manager, name=channel_name_gen.__next__())
-        else:
-            raise Exception("Error Python version")
+        output_channel = gen_channel(channel_name_gen)
         channels.append(output_channel)
         last_op = dag_views[-1][0]
         last_op.add_output_channel(output_channel)
@@ -1174,17 +1388,22 @@ class PyServer(object):
         self.gen_desc()
 
     def _run_ops(self):
-        proces = []
+        threads_or_proces = []
         for op in self._actual_ops:
-            proces.extend(op.start())
-        return proces
+            if self._use_multithread:
+                threads_or_proces.extend(
+                    op.start_with_thread(self._client_type, self._use_future))
+            else:
+                threads_or_proces.extend(
+                    op.start_with_process(self._client_type, self._use_future))
+        return threads_or_proces
 
     def _stop_ops(self):
         for op in self._actual_ops:
             op.stop()
 
     def run_server(self):
-        op_proces = self._run_ops()
+        op_threads_or_proces = self._run_ops()
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self._worker_num))
         general_python_service_pb2_grpc.add_GeneralPythonServiceServicer_to_server(
@@ -1194,19 +1413,29 @@ class PyServer(object):
         server.start()
         server.wait_for_termination()
         self._stop_ops()  # TODO
-        for p in op_proces:
-            p.join()
+        for x in op_threads_or_proces:
+            x.join()
 
     def prepare_serving(self, op):
         model_path = op._server_model
         port = op._server_port
         device = op._device
 
-        if device == "cpu":
-            cmd = "(Use MultiLangServer) python -m paddle_serving_server.serve" \
-                  " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
+        if self._client_type == "grpc":
+            if device == "cpu":
+                cmd = "(Use grpc impl) python -m paddle_serving_server.serve" \
+                      " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
+            else:
+                cmd = "(Use grpc impl) python -m paddle_serving_server_gpu.serve" \
+                      " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
+        elif self._client_type == "brpc":
+            if device == "cpu":
+                cmd = "(Use brpc impl) python -m paddle_serving_server.serve" \
+                      " --model {} --thread 4 --port {} &>/dev/null &".format(model_path, port)
+            else:
+                cmd = "(Use brpc impl) python -m paddle_serving_server_gpu.serve" \
+                      " --model {} --thread 4 --port {} &>/dev/null &".format(model_path, port)
         else:
-            cmd = "(Use MultiLangServer) python -m paddle_serving_server_gpu.serve" \
-                  " --model {} --thread 4 --port {} --use_multilang &>/dev/null &".format(model_path, port)
+            raise Exception("unknow client type: {}".format(self._client_type))
         # run a server (not in PyServing)
         logging.info("run a server (not in PyServing): {}".format(cmd))

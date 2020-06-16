@@ -14,7 +14,6 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_server.pyserver import Op
-from paddle_serving_server.pyserver import Channel
 from paddle_serving_server.pyserver import PyServer
 import numpy as np
 import logging
@@ -41,10 +40,10 @@ read_op = Op(name="read", inputs=None)
 bow_op = Op(name="bow",
             inputs=[read_op],
             server_model="imdb_bow_model",
-            server_port="9393",
+            server_port="9292",
             device="cpu",
             client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-            server_name="127.0.0.1:9393",
+            server_name="127.0.0.1:9292",
             fetch_names=["prediction"],
             concurrency=1,
             timeout=0.1,
@@ -63,7 +62,12 @@ cnn_op = Op(name="cnn",
 combine_op = CombineOp(
     name="combine", inputs=[bow_op, cnn_op], concurrency=1, timeout=-1, retry=1)
 
-pyserver = PyServer(profile=False, retry=1)
+pyserver = PyServer(
+    use_multithread=True,
+    client_type='grpc',
+    use_future=False,
+    profile=False,
+    retry=1)
 pyserver.add_ops([read_op, bow_op, cnn_op, combine_op])
 pyserver.prepare_server(port=8080, worker_num=2)
 pyserver.run_server()
