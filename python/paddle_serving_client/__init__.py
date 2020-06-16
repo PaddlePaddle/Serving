@@ -391,7 +391,13 @@ class MultiLangClient(object):
         self._parse_model_config(path)
 
     def connect(self, endpoint):
-        self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
+        # https://github.com/tensorflow/serving/issues/1382
+        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_receive_message_length', 512 * 1024 * 1024)]
+
+        self.channel_ = grpc.insecure_channel(
+            endpoint[0], options=options)  #TODO
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
 
