@@ -98,7 +98,10 @@ SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
+ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
+
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash)
+        xxhash cryptopp)

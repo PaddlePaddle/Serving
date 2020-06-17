@@ -222,7 +222,7 @@ class Server(object):
                 if self.encryption_model:
                     engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
                 else:
-                    engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
+                    engine.type = "FLUID_CPU_ANALYSIS_DIR"
             elif device == "gpu":
                 if self.encryption_model:
                     engine.type = "FLUID_GPU_ANALYSIS_ENCRYPT"

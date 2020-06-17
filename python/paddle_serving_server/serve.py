@@ -56,7 +56,7 @@ def parse_args():  # pylint: disable=doc-string-missing
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
-    parse.add_argument(
+    parser.add_argument(
         "--use_encryption_model",
         default=False,
         action="store_true",
@@ -136,18 +136,14 @@ def start_serving():
 
 
 class MainService(BaseHTTPRequestHandler):
-    def setup(self):
-        BaseHTTPRequestHandler.setup(self)
-        self.p_flag = False
-
     def start(self):
-        print(self.p_flag)
-        if not self.p_flag:
-            from multiprocessing import Pool
-            pool = Pool(3)
-            pool.apply_async(start_serving)
-            self.p_status = 1
-            self.p_flag = True
+        global p_flag
+        print(p_flag)
+        if not p_flag:
+            from multiprocessing import Process
+            p = Process(target=start_serving)
+            p.start()
+            p_flag = True
         else:
             pass
         return True
@@ -166,6 +162,7 @@ class MainService(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    p_flag = False
     args = parse_args()
     server = HTTPServer(('localhost', 8080), MainService)
     print('Starting server, use <Ctrl-C> to stop')
