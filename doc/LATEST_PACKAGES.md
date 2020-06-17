@@ -24,15 +24,15 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.1-py2-non
 ## Client
 ### Python 3.7
 ```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp37-none-manylinux1_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp37-none-any.whl
 ```
 ### Python 3.6
 ```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp36-none-manylinux1_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp36-none-any.whl
 ```
 ### Python 2.7
 ```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp27-none-manylinux1_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.3.1-cp27-none-any.whl
 ```
 
 ## App
