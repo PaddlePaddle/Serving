@@ -156,6 +156,7 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.mkl_flag = False
+        self.encryption_model = False
         self.model_config_paths = None  # for multi-model in a workflow
 
     def set_max_concurrency(self, concurrency):
@@ -190,6 +191,9 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
+
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
@@ -215,9 +219,15 @@ class Server(object):
             engine.force_update_static_cache = False
 
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                if self.encryption_model:
+                    engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
+                else:
+                    engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                if self.encryption_model:
+                    engine.type = "FLUID_GPU_ANALYSIS_ENCRYPT"
+                else:
+                    engine.type = "FLUID_GPU_ANALYSIS_DIR"
 
             self.model_toolkit_conf.engines.extend([engine])
 

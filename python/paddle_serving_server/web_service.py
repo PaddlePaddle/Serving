@@ -93,7 +93,6 @@ class WebService(object):
         return result
 
     def run_rpc_service(self):
-        import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
         print("http://{}:{}/{}/prediction".format(localIP, self.port,

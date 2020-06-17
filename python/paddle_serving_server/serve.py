@@ -56,6 +56,11 @@ def parse_args():  # pylint: disable=doc-string-missing
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parse.add_argument(
+        "--use_encryption_model",
+        default=False,
+        action="store_true",
+        help="Use encryption model")
     return parser.parse_args()
 
 
@@ -70,6 +75,7 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_mkl = args.use_mkl
+    use_encryption_model = args.use_encryption_model
 
     if model == "":
         print("You must specify your serving model")
@@ -94,6 +100,7 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
+    server.use_encryption_model(use_encryption_model)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)

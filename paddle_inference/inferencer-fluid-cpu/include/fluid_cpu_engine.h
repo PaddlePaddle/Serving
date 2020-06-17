@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "cipher.h"        // NOLINT
 #include "cipher_utils.h"  // NOLINT
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
@@ -531,8 +532,8 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
     return 0;
   }
 };
-
-class FluidCpuAnalysisEncryCore : public FluidFamilyCore {
+#if 1
+class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
  public:
   int create(const predictor::InferEngineCreationParams& params) {
     std::string data_path = params.get_path();
@@ -564,11 +565,14 @@ class FluidCpuAnalysisEncryCore : public FluidFamilyCore {
       key_string = std::string(begin, end);
       key_file.close();
     }
-
-    auto cipher = paddle::CipherFactory::CreateCipher();
+#if 1
+    auto cipher = paddle::framework::CipherFactory::CreateCipher("");
     std::string real_model_string = cipher->Decrypt(model_string, key_string);
     std::string real_params_string = cipher->Decrypt(params_string, key_string);
-
+#else
+    std::string real_model_string;
+    std::string real_params_string;
+#endif
     const char* real_model_buffer = real_model_string.c_str();
     const char* real_params_buffer = real_params_string.c_str();
 
@@ -595,6 +599,7 @@ class FluidCpuAnalysisEncryCore : public FluidFamilyCore {
     return 0;
   }
 };
+#endif
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu
