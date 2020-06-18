@@ -655,7 +655,7 @@ class MultiLangServer(object):
     def set_gpuid(self, gpuid=0):
         self.bserver_.set_gpuid(gpuid)
 
-    def load_model_config(self, model_config_path):
+    def load_model_config(self, model_config_paths):
         self.bserver_.load_model_config(model_config_paths)
         if isinstance(model_config_paths, dict):
             # print("You have specified multiple model paths, please ensure "
