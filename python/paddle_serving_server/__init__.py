@@ -440,12 +440,13 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
-    def __init__(self, model_config_path, endpoints):
+class MultiLangServerService(multi_lang_general_model_service_pb2_grpc.
+                             MultiLangGeneralModelServiceServier):
+    def __init__(self, model_config_path, endpoints, rpc_timeout_ms):
         from paddle_serving_client import Client
         self._parse_model_config(model_config_path)
         self.bclient_ = Client()
+        self.bclient_.set_rpc_timeout_ms(rpc_timeout_ms)
         self.bclient_.load_client_config(
             "{}/serving_server_conf.prototxt".format(model_config_path))
         self.bclient_.connect(endpoints)
@@ -544,18 +545,26 @@ class MultiLangServerService(
 
 
 class MultiLangServer(object):
-    def __init__(self, worker_num=2):
+    def __init__(self):
         self.bserver_ = Server()
-        self.worker_num_ = worker_num
+        self.worker_num_ = 4
+        self.body_size_ = 512 * 1024 * 1024
+        self.concurrency_ = 100
+        self.rpc_timeout_ms_ = 20000
+
+    def set_rpc_timeout_ms(self, rpc_timeout_ms):
+        self.rpc_timeout_ms_ = rpc_timeout_ms
 
     def set_max_concurrency(self, concurrency):
+        self.concurrency_ = concurrency
         self.bserver_.set_max_concurrency(concurrency)
 
     def set_num_threads(self, threads):
+        self.worker_num_ = threads
         self.bserver_.set_num_threads(threads)
 
     def set_max_body_size(self, body_size):
-        # TODO: grpc body
+        self.body_size_ = body_size
         self.bserver_.set_max_body_size(body_size)
 
     def set_port(self, port):
@@ -619,12 +628,16 @@ class MultiLangServer(object):
         p_bserver = Process(
             target=self._launch_brpc_service, args=(self.bserver_, ))
         p_bserver.start()
+        options = [('grpc.max_send_message_length', self.body_size_),
+                   ('grpc.max_receive_message_length', self.body_size_)]
         server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self.worker_num_))
+            futures.ThreadPoolExecutor(max_workers=self.worker_num_),
+            options=options,
+            maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
             MultiLangServerService(self.model_config_path_,
-                                   ["0.0.0.0:{}".format(self.port_list_[0])]),
-            server)
+                                   ["0.0.0.0:{}".format(self.port_list_[0])],
+                                   self.rpc_timeout_ms_), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()

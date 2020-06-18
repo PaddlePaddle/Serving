@@ -384,6 +384,7 @@ class Client(object):
 class MultiLangClient(object):
     def __init__(self):
         self.channel_ = None
+        self.rpc_timeout_ms_ = 2000
 
     def load_client_config(self, path):
         if not isinstance(path, str):
@@ -395,13 +396,18 @@ class MultiLangClient(object):
         pass
 
     def set_rpc_timeout_ms(self, rpc_timeout):
-        # TODO
-        pass
+        self.rpc_timeout_ms_ = rpc_timeout
 
     def connect(self, endpoints):
-        g_endpoint = [(endpoint.spilt(':')[0], endpoint.split(':')[1])
-                      for endpoint in endpoints]
-        self.channel_ = grpc.insecure_channel(g_endpoint)
+        # https://github.com/tensorflow/serving/issues/1382
+        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 512 * 1024 * 1024)]
+
+        # TODO
+        if len(endpoints) > 1:
+            print("Warn: grpc can only set a endpoint")
+        g_endpoint = endpoints[0]
+        self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
 
@@ -534,17 +540,20 @@ class MultiLangClient(object):
                 fetch,
                 need_variant_tag=False,
                 asyn=False,
-                is_python=True):
+                is_python=True,
+                timeout=None):
+        if timeout is None:
+            timeout = self.rpc_timeout_ms_
         req = self._pack_feed_data(feed, fetch, is_python=is_python)
         if not asyn:
-            resp = self.stub_.inference(req)
+            resp = self.stub_.inference(req, timeout=timeout)
             return self._unpack_resp(
                 resp,
                 fetch,
                 is_python=is_python,
                 need_variant_tag=need_variant_tag)
         else:
-            call_future = self.stub_.inference.future(req)
+            call_future = self.stub_.inference.future(req, timeout=timeout)
             return MultiLangPredictFuture(
                 call_future,
                 self._done_callback_func(
