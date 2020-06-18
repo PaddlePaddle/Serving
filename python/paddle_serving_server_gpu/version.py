@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Paddle Serving Client version string """
-serving_client_version = "0.3.0"
-serving_server_version = "0.3.0"
-module_proto_version = "0.3.0"
+serving_client_version = "0.3.1"
+serving_server_version = "0.3.1"
+module_proto_version = "0.3.1"
