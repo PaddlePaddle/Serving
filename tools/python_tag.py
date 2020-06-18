@@ -15,6 +15,6 @@
 from wheel.pep425tags import get_abbr_impl, get_impl_ver, get_abi_tag
 import re
 with open("setup.cfg", "w") as f:
-    line = "[bdist_wheel]\npython-tag={0}{1}\nplat-name=manylinux1_x86_64".format(
-        get_abbr_impl(), get_impl_ver())
+    line = "[bdist_wheel]\npython-tag={0}{1}".format(get_abbr_impl(),
+                                                     get_impl_ver())
     f.write(line)
