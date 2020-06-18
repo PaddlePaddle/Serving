@@ -171,6 +171,12 @@ function python_test_fit_a_line() {
             fi
             setproxy # recover proxy state
             kill_server_process
+
+            # test grpc impl
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 --use_multilang> /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_multilang_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
+            kill_server_process
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
@@ -200,6 +206,12 @@ function python_test_fit_a_line() {
                 exit 1
             fi
             setproxy # recover proxy state
+            kill_server_process
+
+            # test grpc impl
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 --use_multilang> /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_multilang_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
             ;;
         *)
