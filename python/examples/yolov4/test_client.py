@@ -23,11 +23,11 @@ preprocess = Sequential([
             (2, 0, 1))
 ])
 
-postprocess = RCNNPostprocess("label_list.txt", "output")
+postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
 client = Client()
 
 client.load_client_config("yolov4_client/serving_client_conf.prototxt")
-client.connect(['127.0.0.1:9300'])
+client.connect(['127.0.0.1:9393'])
 
 im = preprocess(sys.argv[1])
 print(im.shape)
