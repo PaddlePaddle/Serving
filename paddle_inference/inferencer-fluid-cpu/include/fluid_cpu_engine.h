@@ -531,7 +531,6 @@ class FluidCpuAnalysisDirWithSigmoidCore : public FluidCpuWithSigmoidCore {
     return 0;
   }
 };
-#if 1
 class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
  public:
   void ReadBinaryFile(const std::string& filename, std::string* contents) {
@@ -586,7 +585,6 @@ class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
     return 0;
   }
 };
-#endif
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu
