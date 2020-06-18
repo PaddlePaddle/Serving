@@ -384,7 +384,7 @@ class Client(object):
 class MultiLangClient(object):
     def __init__(self):
         self.channel_ = None
-        self.rpc_timeout_ms_ = 2000
+        self.rpc_timeout_s_ = 2
 
     def load_client_config(self, path):
         if not isinstance(path, str):
@@ -393,17 +393,20 @@ class MultiLangClient(object):
 
     def add_variant(self, tag, cluster, variant_weight):
         # TODO
-        pass
+        raise Exception("cannot support ABtest yet")
 
     def set_rpc_timeout_ms(self, rpc_timeout):
-        self.rpc_timeout_ms_ = rpc_timeout
+        if rpc_timeout > 2000:
+            print("WARN: you must also need to modify Server timeout, " \
+                  "because the default timeout on Server side is 2000ms.")
+        self.rpc_timeout_s_ = rpc_timeout / 1000.0
 
     def connect(self, endpoints):
         # https://github.com/tensorflow/serving/issues/1382
         options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
                    ('grpc.max_send_message_length', 512 * 1024 * 1024),
                    ('grpc.lb_policy_name', 'round_robin')]
-
+        # TODO: weight round robin
         g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
@@ -497,32 +500,42 @@ class MultiLangClient(object):
         return req
 
     def _unpack_resp(self, resp, fetch, is_python, need_variant_tag):
-        result_map = {}
-        inst = resp.outputs[0].insts[0]
         tag = resp.tag
-        for i, name in enumerate(fetch):
-            var = inst.tensor_array[i]
-            v_type = self.fetch_types_[name]
-            if is_python:
-                if v_type == 0:  # int64
-                    result_map[name] = np.frombuffer(var.data, dtype="int64")
-                elif v_type == 1:  # float32
-                    result_map[name] = np.frombuffer(var.data, dtype="float32")
+        multi_result_map = {}
+        for model_result in resp.outputs:
+            inst = model_result.insts[0]
+            result_map = {}
+            for i, name in enumerate(fetch):
+                var = inst.tensor_array[i]
+                v_type = self.fetch_types_[name]
+                if is_python:
+                    if v_type == 0:  # int64
+                        result_map[name] = np.frombuffer(
+                            var.data, dtype="int64")
+                    elif v_type == 1:  # float32
+                        result_map[name] = np.frombuffer(
+                            var.data, dtype="float32")
+                    else:
+                        raise Exception("error type.")
                 else:
-                    raise Exception("error type.")
-            else:
-                if v_type == 0:  # int64
-                    result_map[name] = np.array(
-                        list(var.int64_data), dtype="int64")
-                elif v_type == 1:  # float32
-                    result_map[name] = np.array(
-                        list(var.float_data), dtype="float32")
-                else:
-                    raise Exception("error type.")
-            result_map[name].shape = list(var.shape)
-            if name in self.lod_tensor_set_:
-                result_map["{}.lod".format(name)] = np.array(list(var.lod))
-        return result_map if not need_variant_tag else [result_map, tag]
+                    if v_type == 0:  # int64
+                        result_map[name] = np.array(
+                            list(var.int64_data), dtype="int64")
+                    elif v_type == 1:  # float32
+                        result_map[name] = np.array(
+                            list(var.float_data), dtype="float32")
+                    else:
+                        raise Exception("error type.")
+                result_map[name].shape = list(var.shape)
+                if name in self.lod_tensor_set_:
+                    result_map["{}.lod".format(name)] = np.array(list(var.lod))
+            multi_result_map[model_result.engine_name] = result_map
+        ret = None
+        if len(resp.outputs) == 1:
+            ret = multi_result_map.values()[0]
+        else:
+            ret = multi_result_map
+        return ret if not need_variant_tag else [ret, tag]
 
     def _done_callback_func(self, fetch, is_python, need_variant_tag):
         def unpack_resp(resp):
@@ -539,9 +552,11 @@ class MultiLangClient(object):
                 need_variant_tag=False,
                 asyn=False,
                 is_python=True,
-                timeout=None):
-        if timeout is None:
-            timeout = self.rpc_timeout_ms_
+                timeout_ms=None):
+        if timeout_ms is None:
+            timeout = self.rpc_timeout_s_
+        else:
+            timeout = timeout_ms / 1000.0
         req = self._pack_feed_data(feed, fetch, is_python=is_python)
         if not asyn:
             resp = self.stub_.inference(req, timeout=timeout)
