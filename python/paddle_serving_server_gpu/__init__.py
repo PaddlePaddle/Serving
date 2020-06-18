@@ -566,12 +566,13 @@ class MultiLangServerService(
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python
 
-    def _pack_resp_package(self, results, fetch_names, is_python, tag):
+    def _pack_resp_package(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.Response()
-        resp.tag = tag
-        if results is None:
+        if ret is None:
             resp.brpc_predict_error = True
-            return
+            return resp
+        results, tag = ret
+        resp.tag = tag
         resp.brpc_predict_error = False
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
@@ -604,9 +605,9 @@ class MultiLangServerService(
 
     def inference(self, request, context):
         feed_dict, fetch_names, is_python = self._unpack_request(request)
-        data, tag = self.bclient_.predict(
+        ret = self.bclient_.predict(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        return self._pack_resp_package(data, fetch_names, is_python, tag)
+        return self._pack_resp_package(ret, fetch_names, is_python)
 
 
 class MultiLangServer(object):
