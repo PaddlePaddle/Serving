@@ -18,11 +18,13 @@ Usage:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
 import argparse
-from web_service import WebService
+import sys
+import json
+import base64
+from multiprocessing import Process
+from web_service import WebService, port_is_available
 from flask import Flask, request
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import json
-import subprocess
 
 
 def parse_args():  # pylint: disable=doc-string-missing
@@ -64,11 +66,11 @@ def parse_args():  # pylint: disable=doc-string-missing
     return parser.parse_args()
 
 
-def start_standard_model():  # pylint: disable=doc-string-missing
+def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     args = parse_args()
     thread_num = args.thread
     model = args.model
-    port = args.port
+    port = serving_port
     workdir = args.workdir
     device = args.device
     mem_optim = args.mem_optim
@@ -107,9 +109,70 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.run_server()
 
 
-def start_serving():
+class MainService(BaseHTTPRequestHandler):
+    def get_available_port(self):
+        default_port = 12000
+        for i in range(1000):
+            if port_is_available(default_port + i):
+                return default_port + i
+
+    def start_serving(self):
+        start_standard_model(serving_port)
+
+    def get_key(self, post_data):
+        if "key" not in post_data:
+            return False
+        else:
+            key = base64.b64decode(post_data["key"])
+            with open(args.model + "/key", "w") as f:
+                f.write(key)
+            return True
+
+    def start(self, post_data):
+        post_data = json.loads(post_data)
+        global p_flag
+        if not p_flag:
+            if args.use_encryption_model:
+                print("waiting key for model")
+                if not self.get_key(post_data):
+                    print("not found key in request")
+                    return False
+            global serving_port
+            serving_port = self.get_available_port()
+            p = Process(target=self.start_serving)
+            p.start()
+            p_flag = True
+        else:
+            if not p.is_alive():
+                return False
+        return True
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        if self.start(post_data):
+            response = {"endpoint_list": [serving_port]}
+        else:
+            response = {"message": "start serving failed"}
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(response))
+
+
+if __name__ == "__main__":
+    args = parse_args()
     if args.name == "None":
-        start_standard_model()
+        if args.use_encryption_model:
+            p_flag = False
+            serving_port = 0
+            server = HTTPServer(('localhost', int(args.port)), MainService)
+            print(
+                'Starting encryption server, waiting for key from client, use <Ctrl-C> to stop'
+            )
+            server.serve_forever()
+        else:
+            start_standard_model(args.port)
     else:
         service = WebService(name=args.name)
         service.load_model_config(args.model)
@@ -133,37 +196,3 @@ def start_serving():
                          port=service.port,
                          threaded=False,
                          processes=4)
-
-
-class MainService(BaseHTTPRequestHandler):
-    def start(self):
-        global p_flag
-        print(p_flag)
-        if not p_flag:
-            from multiprocessing import Process
-            p = Process(target=start_serving)
-            p.start()
-            p_flag = True
-        else:
-            pass
-        return True
-
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        if self.start():
-            response = {"endpoint_list": [args.port]}
-        else:
-            response = {"message": "start serving failed"}
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(response))
-
-
-if __name__ == "__main__":
-    p_flag = False
-    args = parse_args()
-    server = HTTPServer(('localhost', 8080), MainService)
-    print('Starting server, use <Ctrl-C> to stop')
-    server.serve_forever()
