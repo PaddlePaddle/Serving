@@ -577,8 +577,13 @@ class MultiLangServer(object):
         self.bserver_.set_num_threads(threads)
 
     def set_max_body_size(self, body_size):
-        self.body_size_ = body_size
         self.bserver_.set_max_body_size(body_size)
+        if body_size >= self.body_size_:
+            self.body_size_ = body_size
+        else:
+            print(
+                "max_body_size is less than default value, will use default value in service."
+            )
 
     def set_port(self, port):
         self.gport_ = port
@@ -610,8 +615,8 @@ class MultiLangServer(object):
     def load_model_config(self, model_config_paths):
         self.bserver_.load_model_config(model_config_paths)
         if isinstance(model_config_paths, dict):
-            print("You have specified multiple model paths, please ensure "
-                  "that the input and output of multiple models are the same.")
+            # print("You have specified multiple model paths, please ensure "
+            #       "that the input and output of multiple models are the same.")
             self.model_config_path_ = list(model_config_paths.items())[0][1]
             self.is_multi_model_ = True
         else:
