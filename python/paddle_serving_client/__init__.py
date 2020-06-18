@@ -401,12 +401,10 @@ class MultiLangClient(object):
     def connect(self, endpoints):
         # https://github.com/tensorflow/serving/issues/1382
         options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
-                   ('grpc.max_send_message_length', 512 * 1024 * 1024)]
+                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
+                   ('grpc.lb_policy_name', 'round_robin')]
 
-        # TODO
-        if len(endpoints) > 1:
-            print("Warn: grpc can only set a endpoint")
-        g_endpoint = endpoints[0]
+        g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
