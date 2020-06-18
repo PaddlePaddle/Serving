@@ -399,11 +399,17 @@ class MultiLangClient(object):
         req = pb2.EmptyRequest()
         self._config = self.stub_.get_config(req)
         self._parse_model_config(self._config.proto_txt)
-        #print("config:", self._config)
 
     def connect(self, endpoint, use_remote_config=True):
-        self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
-        self.stub_ = grpc_pb2.MultiLangGeneralModelServiceStub(self.channel_)
+        # https://github.com/tensorflow/serving/issues/1382
+        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_receive_message_length', 512 * 1024 * 1024)]
+
+        self.channel_ = grpc.insecure_channel(
+            endpoint[0], options=options)  #TODO
+        self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
+            self.channel_)
 
         if use_remote_config:
             self._load_client_config()
@@ -442,7 +448,6 @@ class MultiLangClient(object):
     def _pack_feed_data(self, feed, fetch, is_python):
         req = multi_lang_general_model_service_pb2.Request()
         req.fetch_var_names.extend(fetch)
-        req.feed_var_names.extend(feed.keys())
         req.is_python = is_python
         feed_batch = None
         if isinstance(feed, dict):
@@ -451,6 +456,7 @@ class MultiLangClient(object):
             feed_batch = feed
         else:
             raise Exception("{} not support".format(type(feed)))
+        req.feed_var_names.extend(feed_batch[0].keys())
         init_feed_names = False
         for feed_data in feed_batch:
             inst = multi_lang_general_model_service_pb2.FeedInst()
@@ -527,6 +533,9 @@ class MultiLangClient(object):
 
         return unpack_resp
 
+    def get_feed_names(self):
+        return self.feed_names_
+
     def predict(self,
                 feed,
                 fetch,
@@ -559,3 +568,10 @@ class MultiLangPredictFuture(object):
     def result(self):
         resp = self.call_future_.result()
         return self.callback_func_(resp)
+
+    def add_done_callback(self, fn):
+        def __fn__(call_future):
+            assert call_future == self.call_future_
+            fn(self)
+
+        self.call_future_.add_done_callback(__fn__)
