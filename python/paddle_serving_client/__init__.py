@@ -390,8 +390,18 @@ class MultiLangClient(object):
             raise Exception("GClient only supports multi-model temporarily")
         self._parse_model_config(path)
 
-    def connect(self, endpoint):
-        self.channel_ = grpc.insecure_channel(endpoint[0])  #TODO
+    def add_variant(self, tag, cluster, variant_weight):
+        # TODO
+        pass
+
+    def set_rpc_timeout_ms(self, rpc_timeout):
+        # TODO
+        pass
+
+    def connect(self, endpoints):
+        g_endpoint = [(endpoint.spilt(':')[0], endpoint.split(':')[1])
+                      for endpoint in endpoints]
+        self.channel_ = grpc.insecure_channel(g_endpoint)
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
 
