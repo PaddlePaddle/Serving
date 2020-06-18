@@ -13,10 +13,10 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_client import Client
+from paddle_serving_client import MultiLangClient
 from imdb_reader import IMDBDataset
 
-client = Client()
+client = MultiLangClient()
 # If you have more than one model, make sure that the input
 # and output of more than one model are the same.
 client.load_client_config('imdb_bow_client_conf/serving_client_conf.prototxt')
