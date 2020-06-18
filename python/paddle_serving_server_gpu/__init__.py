@@ -567,9 +567,14 @@ class MultiLangServerService(
         return feed_batch, fetch_names, is_python
 
     def _pack_resp_package(self, results, fetch_names, is_python, tag):
+        resp = multi_lang_general_model_service_pb2.Response()
+        resp.tag = tag
+        if results is None:
+            resp.brpc_predict_error = True
+            return
+        resp.brpc_predict_error = False
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
-        resp = multi_lang_general_model_service_pb2.Response()
         for model_name, model_result in results.items():
             model_output = multi_lang_general_model_service_pb2.ModelOutput()
             inst = multi_lang_general_model_service_pb2.FetchInst()
@@ -595,7 +600,6 @@ class MultiLangServerService(
             model_output.insts.append(inst)
             model_output.engine_name = model_name
             resp.outputs.append(model_output)
-        resp.tag = tag
         return resp
 
     def inference(self, request, context):

@@ -501,6 +501,8 @@ class MultiLangClient(object):
 
     def _unpack_resp(self, resp, fetch, is_python, need_variant_tag):
         tag = resp.tag
+        if resp.brpc_predict_error:
+            return None if not need_variant_tag else [None, tag]
         multi_result_map = {}
         for model_result in resp.outputs:
             inst = model_result.insts[0]
