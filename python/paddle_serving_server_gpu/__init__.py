@@ -571,7 +571,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return feed_batch, fetch_names, is_python
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
-        resp = multi_lang_general_model_service_pb2.Response()
+        resp = multi_lang_general_model_service_pb2.InferenceResponse()
         if ret is None:
             resp.err_code = 1
             return resp
