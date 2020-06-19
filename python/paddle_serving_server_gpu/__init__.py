@@ -724,12 +724,9 @@ class MultiLangServer(object):
             options=options,
             maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerService(
-                self.model_config_path_,
-                self.is_multi_model_,
-                ["0.0.0.0:{}".format(self.port_list_[0])],
-                timeout_ms=self.bclient_timeout_ms_),
-            server)
+            MultiLangServerServiceServicer(
+                self.model_config_path_, self.is_multi_model_,
+                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()
