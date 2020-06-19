@@ -522,7 +522,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             kill_server_process
 
-            check_cmd "python test_server.py > /dev/null &"
+            check_cmd "python test_server.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
@@ -580,7 +580,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             kill_server_process
 
-            check_cmd "python test_server_gpu.py > /dev/null &"
+            check_cmd "python test_server_gpu.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
