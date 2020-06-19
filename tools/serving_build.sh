@@ -531,7 +531,36 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             kill_server_process
 
-            cd .. # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+
+            # test load server config and client config in Server side
+            cd criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
+
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
+            sleep 5
+            check_cmd "python test_client.py ./ut_data >score"
+            tail -n 2 score | awk 'NR==1'
+            AUC=$(tail -n 2  score | awk 'NR==1')
+            VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
+            RES=$( echo "$AUC>$VAR2" | bc )
+            if [[ $RES -eq 0 ]]; then
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
+                exit 1
+            fi
+            echo "grpc impl test success"
+            kill_server_process
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
@@ -560,14 +589,42 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             kill_server_process
 
-            cd .. # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+
+            # test load server config and client config in Server side
+            cd criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
+
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server_gpu.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
+            sleep 5
+            check_cmd "python test_client.py ./ut_data >score"
+            tail -n 2 score | awk 'NR==1'
+            AUC=$(tail -n 2  score | awk 'NR==1')
+            VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
+            RES=$( echo "$AUC>$VAR2" | bc )
+            if [[ $RES -eq 0 ]]; then
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
+                exit 1
+            fi
+            echo "grpc impl test success"
+            kill_server_process
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
             ;;
         *)
             echo "error type"
             exit 1
             ;;
     esac
-    echo "test fit_a_line $TYPE part finished as expected."
+    echo "test grpc impl $TYPE part finished as expected."
     rm -rf image kvdb log uci_housing* work*
     unset SERVING_BIN
     cd .. # pwd: /Serving/python/examples
