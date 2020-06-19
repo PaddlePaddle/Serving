@@ -484,12 +484,15 @@ class MultiLangClient(object):
                             raise Exception("error tensor value type.")
                     elif isinstance(var, np.ndarray):
                         data = var
-                        if v_type == 0 and data.dtype != 'int64':
-                            data = data.astype("int64")
-                        elif v_type == 1 and data.dtype != 'float32':
-                            data = data.astype("float32")
-                        elif v_type == 2 and data.dtype != 'int32':
-                            data = data.astype("int32")
+                        if v_type == 0:
+                            if data.dtype != 'int64':
+                                data = data.astype("int64")
+                        elif v_type == 1:
+                            if data.dtype != 'float32':
+                                data = data.astype("float32")
+                        elif v_type == 2:
+                            if data.dtype != 'int32':
+                                data = data.astype("int32")
                         else:
                             raise Exception("error tensor value type.")
                     else:
