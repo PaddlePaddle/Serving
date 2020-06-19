@@ -20,9 +20,9 @@ gRPC 接口实现形式类似 Web Service：
 
 3. gRPC Client 需要通过 RPC 方式设置 timeout 时间（调用形式与 bRPC Client保持一致）
 
-   因为 bRPC Client 在 `connect` 后无法更改 timeout 时间，所以当 gRPC Server 收到变更 timeout 的调用请求时会重新创建 bRPC Client 示例以变更 bRPC Client timeout时间，同时 gRPC Client 会设置 gRPC 的 timeout 时间。
+   因为 bRPC Client 在 `connect` 后无法更改 timeout 时间，所以当 gRPC Server 收到变更 timeout 的调用请求时会重新创建 bRPC Client 实例以变更 bRPC Client timeout时间，同时 gRPC Client 会设置 gRPC 的 deadline 时间。
 
-   同时，设置 timeout 接口和 Inference 接口不能同时调用（非线程安全），出于性能考虑暂时不加锁。
+   **注意，设置 timeout 接口和 Inference 接口不能同时调用（非线程安全），出于性能考虑暂时不加锁。**
 
 4. gRPC Client 端 `predict` 函数添加 `asyn` 和 `is_python` 参数：
 
@@ -34,7 +34,7 @@ gRPC 接口实现形式类似 Web Service：
 
    `is_python` 为 proto 格式选项。当 `is_python=True` 时，基于 numpy bytes 格式进行数据传输，目前只适用于 Python；当 `is_python=False` 时，以普通数据格式传输，更加通用。使用 numpy bytes 格式传输耗时比普通数据格式小很多（详见 [#654](https://github.com/PaddlePaddle/Serving/pull/654)）。
 
-5. 当 gRPC Server 端的 bRPC Client 预测失败（返回 `None`）时，gRPC Client 端同样返回None。其他错误会抛出 gRPC 自带的异常。
+5. 异常处理：当 gRPC Server 端的 bRPC Client 预测失败（返回 `None`）时，gRPC Client 端同样返回None。其他错误会抛出 gRPC 自带的异常（参考 timeout 样例）。
 
 6. 由于 gRPC 只支持 pick_first 和 round_robin 负载均衡策略，ABTEST 特性还未打齐。
 
