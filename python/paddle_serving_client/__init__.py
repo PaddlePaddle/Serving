@@ -384,22 +384,24 @@ class Client(object):
 class MultiLangClient(object):
     def __init__(self):
         self.channel_ = None
+        self.stub_ = None
         self.rpc_timeout_s_ = 2
-
-    def load_client_config(self, path):
-        if not isinstance(path, str):
-            raise Exception("GClient only supports multi-model temporarily")
-        self._parse_model_config(path)
 
     def add_variant(self, tag, cluster, variant_weight):
         # TODO
         raise Exception("cannot support ABtest yet")
 
     def set_rpc_timeout_ms(self, rpc_timeout):
-        if rpc_timeout > 2000:
-            print("WARN: you must also need to modify Server timeout, " \
-                  "because the default timeout on Server side is 2000ms.")
+        if self.stub_ is None:
+            raise Exception("set timeout must be set after connect.")
+        if not isinstance(rpc_timeout, int):
+            # for bclient
+            raise ValueError("rpc_timeout must be int type.")
         self.rpc_timeout_s_ = rpc_timeout / 1000.0
+        timeout_req = multi_lang_general_model_service_pb2.SetTimeoutRequest()
+        timeout_req.timeout_ms = rpc_timeout
+        resp = self.stub_.SetTimeout(timeout_req)
+        return resp.err_code == 0
 
     def connect(self, endpoints):
         # https://github.com/tensorflow/serving/issues/1382
@@ -411,6 +413,12 @@ class MultiLangClient(object):
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
+        # get client model config
+        get_client_config_req = multi_lang_general_model_service_pb2.GetClientConfigRequest(
+        )
+        resp = self.stub_.GetClientConfig(get_client_config_req)
+        model_config_str = resp.client_config_str
+        self._parse_model_config(model_config_str)
 
     def _flatten_list(self, nested_list):
         for item in nested_list:
@@ -420,11 +428,10 @@ class MultiLangClient(object):
             else:
                 yield item
 
-    def _parse_model_config(self, model_config_path):
+    def _parse_model_config(self, model_config_str):
         model_conf = m_config.GeneralModelConfig()
-        f = open(model_config_path, 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(model_config_str,
+                                                       model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -445,8 +452,8 @@ class MultiLangClient(object):
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
 
-    def _pack_feed_data(self, feed, fetch, is_python):
-        req = multi_lang_general_model_service_pb2.Request()
+    def _pack_inference_request(self, feed, fetch, is_python):
+        req = multi_lang_general_model_service_pb2.InferenceRequest()
         req.fetch_var_names.extend(fetch)
         req.is_python = is_python
         feed_batch = None
@@ -499,8 +506,9 @@ class MultiLangClient(object):
             req.insts.append(inst)
         return req
 
-    def _unpack_resp(self, resp, fetch, is_python, need_variant_tag):
-        if resp.brpc_predict_error:
+    def _unpack_inference_response(self, resp, fetch, is_python,
+                                   need_variant_tag):
+        if resp.err_code != 0:
             return None
         tag = resp.tag
         multi_result_map = {}
@@ -541,7 +549,8 @@ class MultiLangClient(object):
 
     def _done_callback_func(self, fetch, is_python, need_variant_tag):
         def unpack_resp(resp):
-            return self._unpack_resp(resp, fetch, is_python, need_variant_tag)
+            return self._unpack_inference_response(resp, fetch, is_python,
+                                                   need_variant_tag)
 
         return unpack_resp
 
@@ -553,22 +562,18 @@ class MultiLangClient(object):
                 fetch,
                 need_variant_tag=False,
                 asyn=False,
-                is_python=True,
-                timeout_ms=None):
-        if timeout_ms is None:
-            timeout = self.rpc_timeout_s_
-        else:
-            timeout = timeout_ms / 1000.0
-        req = self._pack_feed_data(feed, fetch, is_python=is_python)
+                is_python=True):
+        req = self._pack_inference_request(feed, fetch, is_python=is_python)
         if not asyn:
-            resp = self.stub_.inference(req, timeout=timeout)
-            return self._unpack_resp(
+            resp = self.stub_.Inference(req, timeout=self.rpc_timeout_s_)
+            return self._unpack_inference_response(
                 resp,
                 fetch,
                 is_python=is_python,
                 need_variant_tag=need_variant_tag)
         else:
-            call_future = self.stub_.inference.future(req, timeout=timeout)
+            call_future = self.stub_.Inference.future(
+                req, timeout=self.rpc_timeout_s_)
             return MultiLangPredictFuture(
                 call_future,
                 self._done_callback_func(

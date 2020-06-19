@@ -440,29 +440,29 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
-    def __init__(self,
-                 model_config_path,
-                 is_multi_model,
-                 endpoints,
-                 timeout_ms=None):
+class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
+                                     MultiLangGeneralModelServiceServicer):
+    def __init__(self, model_config_path, is_multi_model, endpoints):
         self.is_multi_model_ = is_multi_model
+        self.model_config_path_ = model_config_path
+        self.endpoints_ = endpoints
+        with open(self.model_config_path_) as f:
+            self.model_config_str_ = str(f.read())
+        self._parse_model_config(self.model_config_str_)
+        self._init_bclient(self.model_config_path_, self.endpoints_)
+
+    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
         from paddle_serving_client import Client
-        self._parse_model_config(model_config_path)
         self.bclient_ = Client()
         if timeout_ms is not None:
             self.bclient_.set_rpc_timeout_ms(timeout_ms)
-        self.bclient_.load_client_config(
-            "{}/serving_server_conf.prototxt".format(model_config_path))
+        self.bclient_.load_client_config(model_config_path)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_path):
+    def _parse_model_config(self, model_config_str):
         model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(model_config_path),
-                 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(model_config_str,
+                                                       model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -487,7 +487,7 @@ class MultiLangServerService(
             else:
                 yield item
 
-    def _unpack_request(self, request):
+    def _unpack_inference_request(self, request):
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
@@ -517,14 +517,14 @@ class MultiLangServerService(
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python
 
-    def _pack_resp_package(self, ret, fetch_names, is_python):
-        resp = multi_lang_general_model_service_pb2.Response()
+    def _pack_inference_response(self, ret, fetch_names, is_python):
+        resp = multi_lang_general_model_service_pb2.InferenceResponse()
         if ret is None:
-            resp.brpc_predict_error = True
+            resp.err_code = 1
             return resp
         results, tag = ret
         resp.tag = tag
-        resp.brpc_predict_error = False
+        resp.err_code = 0
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
         for model_name, model_result in results.items():
@@ -554,11 +554,26 @@ class MultiLangServerService(
             resp.outputs.append(model_output)
         return resp
 
-    def inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_request(request)
+    def SetTimeout(self, request, context):
+        # This porcess and Inference process cannot be operate at the same time.
+        # For performance reasons, do not add thread lock temporarily.
+        timeout_ms = request.timeout_ms
+        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
+        resp = multi_lang_general_model_service_pb2.SimpleResponse()
+        resp.err_code = 0
+        return resp
+
+    def Inference(self, request, context):
+        feed_dict, fetch_names, is_python = self._unpack_inference_request(
+            request)
         ret = self.bclient_.predict(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        return self._pack_resp_package(ret, fetch_names, is_python)
+        return self._pack_inference_response(ret, fetch_names, is_python)
+
+    def GetClientConfig(self, request, context):
+        resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
+        resp.client_config_str = self.model_config_str_
+        return resp
 
 
 class MultiLangServer(object):
@@ -567,11 +582,7 @@ class MultiLangServer(object):
         self.worker_num_ = 4
         self.body_size_ = 64 * 1024 * 1024
         self.concurrency_ = 100000
-        self.bclient_timeout_ms_ = 2000
         self.is_multi_model_ = False  # for model ensemble
-
-    def set_bclient_timeout_ms(self, timeout):
-        self.bclient_timeout_ms_ = timeout
 
     def set_max_concurrency(self, concurrency):
         self.concurrency_ = concurrency
@@ -617,15 +628,17 @@ class MultiLangServer(object):
     def use_mkl(self, flag):
         self.bserver_.use_mkl(flag)
 
-    def load_model_config(self, model_config_paths):
-        self.bserver_.load_model_config(model_config_paths)
-        if isinstance(model_config_paths, dict):
-            # print("You have specified multiple model paths, please ensure "
-            #       "that the input and output of multiple models are the same.")
-            self.model_config_path_ = list(model_config_paths.items())[0][1]
-            self.is_multi_model_ = True
-        else:
-            self.model_config_path_ = model_config_paths
+    def load_model_config(self, server_config_paths, client_config_path=None):
+        self.bserver_.load_model_config(server_config_paths)
+        if client_config_path is None:
+            if isinstance(server_config_paths, dict):
+                self.is_multi_model_ = True
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    list(server_config_paths.items())[0][1])
+            else:
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    server_config_paths)
+        self.bclient_config_path_ = client_config_path
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
         if not self._port_is_available(port):
@@ -661,12 +674,9 @@ class MultiLangServer(object):
             options=options,
             maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerService(
-                self.model_config_path_,
-                self.is_multi_model_,
-                ["0.0.0.0:{}".format(self.port_list_[0])],
-                timeout_ms=self.bclient_timeout_ms_),
-            server)
+            MultiLangServerServiceServicer(
+                self.bclient_config_path_, self.is_multi_model_,
+                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()
