@@ -499,10 +499,12 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 v_type = self.feed_types_[name]
                 data = None
                 if is_python:
-                    if v_type == 0:
+                    if v_type == 0:  # int64
                         data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:
+                    elif v_type == 1:  # float32
                         data = np.frombuffer(var.data, dtype="float32")
+                    elif v_type == 2:  # int32
+                        data = np.frombuffer(var.data, dtype="int32")
                     else:
                         raise Exception("error type.")
                 else:
@@ -510,6 +512,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         data = np.array(list(var.int64_data), dtype="int64")
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
+                    elif v_type == 2:  # int32
+                        data = np.array(list(var.int32_data), dtype="int32")
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
@@ -541,6 +545,9 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                                                  .tolist())
                     elif v_type == 1:  # float32
                         tensor.float_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    elif v_type == 2:  # int32
+                        tensor.int32_data.extend(model_result[name].reshape(-1)
                                                  .tolist())
                     else:
                         raise Exception("error type.")
@@ -618,9 +625,6 @@ class MultiLangServer(object):
 
     def set_ir_optimize(self, flag=False):
         self.bserver_.set_ir_optimize(flag)
-
-    def set_gpuid(self, gpuid=0):
-        self.bserver_.set_gpuid(gpuid)
 
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
