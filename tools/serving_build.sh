@@ -504,6 +504,7 @@ function python_test_grpc_impl() {
     cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
     local TYPE=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    unsetproxy
     case $TYPE in
         CPU)
             # test general case
@@ -625,7 +626,7 @@ function python_test_grpc_impl() {
             ;;
     esac
     echo "test grpc impl $TYPE part finished as expected."
-    rm -rf image kvdb log uci_housing* work*
+    setproxy
     unset SERVING_BIN
     cd .. # pwd: /Serving/python/examples
 }
