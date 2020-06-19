@@ -12,7 +12,7 @@ gRPC 接口实现形式类似 Web Service：
    def load_model_config(self, server_config_paths, client_config_path=None)
    ```
 
-   在一些例子中 bRPC Server 端与 bRPC Client 端的配置文件可能是不同的（如 cube local 例子中，Client 端的数据先交给 cube，经过 cube 处理后再交给预测库），所以 gRPC Server 端需要获取 gRPC Client 端的配置；同时为了取消 gRPC Client 端手动加载配置文件的过程，所以设计 gRPC Server 端同时加载两个配置文件。`client_config_path` 默认为 `server_config_path/serving_server_conf.prototxt`。
+   在一些例子中 bRPC Server 端与 bRPC Client 端的配置文件可能是不同的（如 cube local 例子中，Client 端的数据先交给 cube，经过 cube 处理后再交给预测库），所以 gRPC Server 端需要获取 gRPC Client 端的配置；同时为了取消 gRPC Client 端手动加载配置文件的过程，所以设计 gRPC Server 端同时加载两个配置文件。`client_config_path` 默认为 `<server_config_path>/serving_server_conf.prototxt`。
 
 2. gRPC Client 端取消 `load_client_config` 步骤：
 

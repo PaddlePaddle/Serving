@@ -171,12 +171,6 @@ function python_test_fit_a_line() {
             fi
             setproxy # recover proxy state
             kill_server_process
-
-            # test grpc impl
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 --use_multilang> /dev/null &"
-            sleep 5 # wait for the server to start
-            check_cmd "python test_multilang_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
-            kill_server_process
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
@@ -206,12 +200,6 @@ function python_test_fit_a_line() {
                 exit 1
             fi
             setproxy # recover proxy state
-            kill_server_process
-
-            # test grpc impl
-            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 --use_multilang> /dev/null &"
-            sleep 5 # wait for the server to start
-            check_cmd "python test_multilang_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
             ;;
         *)
@@ -511,6 +499,80 @@ function python_test_lac() {
     cd ..
 }
 
+function python_test_grpc_impl() {
+    # pwd: /Serving/python/examples
+    cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    case $TYPE in
+        CPU)
+            # test general case
+            cd fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            sh get_data.sh
+
+            # one line command start
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 --use_multilang > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            kill_server_process
+
+            check_cmd "python test_server.py > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            kill_server_process
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            ;;
+        GPU)
+            export CUDA_VISIBLE_DEVICES=0
+            # test general case
+            cd fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            sh get_data.sh
+
+            # one line command start
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 --use_multilang > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            kill_server_process
+
+            check_cmd "python test_server_gpu.py > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            kill_server_process
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test fit_a_line $TYPE part finished as expected."
+    rm -rf image kvdb log uci_housing* work*
+    unset SERVING_BIN
+    cd .. # pwd: /Serving/python/examples
+}
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
@@ -522,6 +584,7 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
