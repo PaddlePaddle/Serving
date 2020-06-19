@@ -478,26 +478,47 @@ class MultiLangClient(object):
                             data = np.array(var, dtype="int64")
                         elif v_type == 1:  # float32
                             data = np.array(var, dtype="float32")
+                        elif v_type == 2:  # int32
+                            data = np.array(var, dtype="int32")
                         else:
-                            raise Exception("error type.")
-                    else:
+                            raise Exception("error tensor value type.")
+                    elif isinstance(var, np.ndarray):
                         data = var
-                        if var.dtype == "float64":
+                        if v_type == 0 and data.dtype != 'int64':
+                            data = data.astype("int64")
+                        elif v_type == 1 and data.dtype != 'float32':
                             data = data.astype("float32")
+                        elif v_type == 2 and data.dtype != 'int32':
+                            data = data.astype("int32")
+                        else:
+                            raise Exception("error tensor value type.")
+                    else:
+                        raise Exception("var must be list or ndarray.")
                     tensor.data = data.tobytes()
                 else:
-                    if v_type == 0:  # int64
-                        if isinstance(var, np.ndarray):
-                            tensor.int64_data.extend(var.reshape(-1).tolist())
+                    if isinstance(var, np.ndarray):
+                        if v_type == 0:  # int64
+                            tensor.int64_data.extend(
+                                var.reshape(-1).astype("int64").tolist())
+                        elif v_type == 1:
+                            tensor.float_data.extend(
+                                var.reshape(-1).astype('float32').tolist())
+                        elif v_type == 2:
+                            tensor.int32_data.extend(
+                                var.reshape(-1).astype('int32').tolist())
                         else:
+                            raise Exception("error tensor value type.")
+                    elif isinstance(var, list):
+                        if v_type == 0:
                             tensor.int64_data.extend(self._flatten_list(var))
-                    elif v_type == 1:  # float32
-                        if isinstance(var, np.ndarray):
-                            tensor.float_data.extend(var.reshape(-1).tolist())
-                        else:
+                        elif v_type == 1:
                             tensor.float_data.extend(self._flatten_list(var))
+                        elif v_type == 2:
+                            tensor.int32_data.extend(self._flatten_list(var))
+                        else:
+                            raise Exception("error tensor value type.")
                     else:
-                        raise Exception("error type.")
+                        raise Exception("var must be list or ndarray.")
                 if isinstance(var, np.ndarray):
                     tensor.shape.extend(list(var.shape))
                 else:
