@@ -22,6 +22,7 @@ from paddle_serving_client.metric import auc
 
 client = Client()
 client.connect(["127.0.0.1:9292"])
+client.set_rpc_timeout_ms(10000)
 
 batch = 1
 buf_size = 100
