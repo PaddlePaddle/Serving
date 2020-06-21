@@ -262,7 +262,7 @@ function python_run_criteo_ctr_with_cube() {
             python test_server_gpu.py ctr_serving_model_kv &
             sleep 5
             # for warm up
-            python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data > /dev/null
+            python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data > /dev/null || true
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
             tail -n 2 score | awk 'NR==1'
             AUC=$(tail -n 2  score | awk 'NR==1')
@@ -520,8 +520,8 @@ function python_test_grpc_impl() {
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
             check_cmd "python test_list_input_client.py > /dev/null"
-            check_cmd "python test_timeout_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
 
             check_cmd "python test_server.py uci_housing_model > /dev/null &"
@@ -530,8 +530,8 @@ function python_test_grpc_impl() {
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
             check_cmd "python test_list_input_client.py > /dev/null"
-            check_cmd "python test_timeout_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
@@ -550,8 +550,8 @@ function python_test_grpc_impl() {
             check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
             sleep 5
-            # warm up
-            python test_client.py ./ut_data &> /dev/null
+            # for warm up
+            python test_client.py ./ut_data &> /dev/null || true
             check_cmd "python test_client.py ./ut_data >score"
             tail -n 2 score | awk 'NR==1'
             AUC=$(tail -n 2  score | awk 'NR==1')
