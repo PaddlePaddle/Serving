@@ -221,13 +221,17 @@ int compress_parameter_parallel(const char *file1,
         }
         end = dict_size;
       }
-      printf("THREAD[%d], index [%ld, %ld), start Quant table...\n", i, start, end);
+      printf("THREAD[%d], index [%ld, %ld), start Quant table...\n",
+             i,
+             start,
+             end);
       struct timeval quant_start;
       gettimeofday(&(quant_start), NULL);
       for (int64_t k = start; k < end; ++k) {
         float xmin = 0, xmax = 0, loss = 0;
         char *tensor_temp = new char[per_line_size];
-        greedy_search(emb_table + k * emb_size, xmin, xmax, loss, emb_size, bits);
+        greedy_search(
+            emb_table + k * emb_size, xmin, xmax, loss, emb_size, bits);
         // 得出 loss 最小的时候的 scale
         float scale = (xmax - xmin) * (pow2bits - 1);
         char *min_ptr = tensor_temp;
@@ -248,7 +252,8 @@ int compress_parameter_parallel(const char *file1,
       }
       struct timeval quant_end;
       gettimeofday(&(quant_end), NULL);
-      printf("THREAD[%d], Quantization finished, cost: %lu us!!!\n", i,
+      printf("THREAD[%d], Quantization finished, cost: %lu us!!!\n",
+             i,
              time_diff(quant_start, quant_end));
     }));
   }
