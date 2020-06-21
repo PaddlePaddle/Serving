@@ -25,5 +25,11 @@ test_reader = paddle.batch(
     batch_size=1)
 
 for data in test_reader():
-    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    try:
+        fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+    except grpc.RpcError as e:
+        status_code = e.code()
+        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
+            print('timeout')
+    else:
+        print("{} {}".format(fetch_map["price"][0], data[0][1][0]))

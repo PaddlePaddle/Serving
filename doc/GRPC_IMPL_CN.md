@@ -1,4 +1,4 @@
-# gRPC临时接口
+# gRPC接口
 
 gRPC 接口实现形式类似 Web Service：
 
