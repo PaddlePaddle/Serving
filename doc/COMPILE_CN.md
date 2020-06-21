@@ -43,7 +43,7 @@ export PYTHONROOT=/usr/
 ### 集成CPU版本Paddle Inference Library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-cpu && cd server-build-cpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
 make -j10
 ```
@@ -53,7 +53,7 @@ make -j10
 ### 集成GPU版本Paddle Inference Library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
 make -j10
 ```
@@ -65,7 +65,7 @@ make -j10
 ## 编译Client部分
 
 ``` shell
-mkdir build && cd build
+mkdir client-build && cd client-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
 make -j10
 ```
@@ -75,7 +75,7 @@ make -j10
 ## 编译App部分
 
 ```bash
-mkdir build && cd build
+mkdir app-build && cd app-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
 make
 ```
