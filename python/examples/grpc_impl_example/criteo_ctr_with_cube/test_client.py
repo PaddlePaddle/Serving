@@ -38,9 +38,15 @@ for ei in range(10000):
     feed_dict['dense_input'] = data[0][0]
     for i in range(1, 27):
         feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
-    fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-    prob_list.append(fetch_map['prob'][0][1])
-    label_list.append(data[0][-1][0])
+    try:
+        fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
+    except grpc.RpcError as e:
+        status_code = e.code()
+        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
+            print('timeout')
+    else:
+        prob_list.append(fetch_map['prob'][0][1])
+        label_list.append(data[0][-1][0])
 
 print(auc(label_list, prob_list))
 end = time.time()
