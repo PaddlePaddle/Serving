@@ -234,6 +234,8 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server.py ctr_serving_model_kv &
             sleep 5
+            # for warm up
+            python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data > /dev/null
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
             tail -n 2 score | awk 'NR==1'
             AUC=$(tail -n 2  score | awk 'NR==1')
