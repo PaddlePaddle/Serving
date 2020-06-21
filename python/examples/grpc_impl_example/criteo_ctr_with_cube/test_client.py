@@ -19,6 +19,7 @@ import os
 import criteo as criteo
 import time
 from paddle_serving_client.metric import auc
+import grpc
 
 client = Client()
 client.connect(["127.0.0.1:9292"])
