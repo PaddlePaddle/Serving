@@ -40,9 +40,16 @@ def call_back(call_future, data):
 
 task_count = 0
 for data in test_reader():
-    future = client.predict(feed={"x": data[0][0]}, fetch=["price"], asyn=True)
-    task_count += 1
-    future.add_done_callback(functools.partial(call_back, data=data))
+    try:
+        future = client.predict(
+            feed={"x": data[0][0]}, fetch=["price"], asyn=True)
+    except grpc.RpcError as e:
+        status_code = e.code()
+        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
+            print('timeout')
+    else:
+        task_count += 1
+        future.add_done_callback(functools.partial(call_back, data=data))
 
 while complete_task_count[0] != task_count:
     time.sleep(0.1)

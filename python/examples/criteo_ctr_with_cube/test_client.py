@@ -42,7 +42,8 @@ for ei in range(10000):
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
     prob_list.append(fetch_map['prob'][0][1])
     label_list.append(data[0][-1][0])
-
+    break
+print(prob_list)
 print(auc(label_list, prob_list))
 end = time.time()
 print(end - start)
