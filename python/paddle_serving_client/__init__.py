@@ -569,6 +569,7 @@ class MultiLangClient(object):
             ret = multi_result_map.values()[0]
         else:
             ret = multi_result_map
+        ret["status_code"] = 0
         return ret if not need_variant_tag else [ret, tag]
 
     def _done_callback_func(self, fetch, is_python, need_variant_tag):
@@ -589,12 +590,15 @@ class MultiLangClient(object):
                 is_python=True):
         req = self._pack_inference_request(feed, fetch, is_python=is_python)
         if not asyn:
-            resp = self.stub_.Inference(req, timeout=self.rpc_timeout_s_)
-            return self._unpack_inference_response(
-                resp,
-                fetch,
-                is_python=is_python,
-                need_variant_tag=need_variant_tag)
+            try:
+                resp = self.stub_.Inference(req, timeout=self.rpc_timeout_s_)
+                return self._unpack_inference_response(
+                    resp,
+                    fetch,
+                    is_python=is_python,
+                    need_variant_tag=need_variant_tag)
+            except grpc.RpcError as e:
+                return {"status_code": e.code()}
         else:
             call_future = self.stub_.Inference.future(
                 req, timeout=self.rpc_timeout_s_)
@@ -612,7 +616,10 @@ class MultiLangPredictFuture(object):
         self.callback_func_ = callback_func
 
     def result(self):
-        resp = self.call_future_.result()
+        try:
+            resp = self.call_future_.result()
+        except grpc.RpcError as e:
+            return {"status_code": e.code()}
         return self.callback_func_(resp)
 
     def add_done_callback(self, fn):

@@ -19,7 +19,6 @@ from imdb_reader import IMDBDataset
 client = MultiLangClient()
 # If you have more than one model, make sure that the input
 # and output of more than one model are the same.
-client.load_client_config('imdb_bow_client_conf/serving_client_conf.prototxt')
 client.connect(["127.0.0.1:9393"])
 
 # you can define any english sentence or dataset here
