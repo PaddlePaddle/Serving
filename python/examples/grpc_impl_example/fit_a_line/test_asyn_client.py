@@ -14,7 +14,6 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import MultiLangClient as Client
-import paddle
 import functools
 import time
 import threading
@@ -23,34 +22,30 @@ import grpc
 client = Client()
 client.connect(["127.0.0.1:9393"])
 
-test_reader = paddle.batch(
-    paddle.reader.shuffle(
-        paddle.dataset.uci_housing.test(), buf_size=500),
-    batch_size=1)
-
 complete_task_count = [0]
 lock = threading.Lock()
 
 
-def call_back(call_future, data):
-    fetch_map = call_future.result()
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
-    with lock:
-        complete_task_count[0] += 1
-
-
-task_count = 0
-for data in test_reader():
+def call_back(call_future):
     try:
-        future = client.predict(
-            feed={"x": data[0][0]}, fetch=["price"], asyn=True)
+        fetch_map = call_future.result()
+        print(fetch_map)
     except grpc.RpcError as e:
-        status_code = e.code()
-        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
-            print('timeout')
-    else:
-        task_count += 1
-        future.add_done_callback(functools.partial(call_back, data=data))
+        print(e.code())
+    finally:
+        with lock:
+            complete_task_count[0] += 1
+
+
+x = [
+    0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
+    0.4919, 0.1856, 0.0795, -0.0332
+]
+task_count = 0
+for i in range(3):
+    future = client.predict(feed={"x": x}, fetch=["price"], asyn=True)
+    task_count += 1
+    future.add_done_callback(functools.partial(call_back))
 
 while complete_task_count[0] != task_count:
     time.sleep(0.1)

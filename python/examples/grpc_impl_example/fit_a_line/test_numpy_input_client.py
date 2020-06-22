@@ -14,24 +14,18 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import MultiLangClient as Client
-import grpc
-import paddle
+import numpy as np
 
 client = Client()
 client.connect(["127.0.0.1:9393"])
 
-test_reader = paddle.batch(
-    paddle.reader.shuffle(
-        paddle.dataset.uci_housing.test(), buf_size=500),
-    batch_size=1)
-
-for data in test_reader():
-    try:
-        fetch_map = client.predict(
-            feed={"x": data[0][0].tolist()}, fetch=["price"])
-    except grpc.RpcError as e:
-        status_code = e.code()
-        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
-            print('timeout')
+x = [
+    0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
+    0.4919, 0.1856, 0.0795, -0.0332
+]
+for i in range(3):
+    fetch_map = client.predict(feed={"x": np.array(x)}, fetch=["price"])
+    if fetch_map["status_code"] == 0:
+        print(fetch_map)
     else:
-        print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+        print(fetch_map["status_code"])

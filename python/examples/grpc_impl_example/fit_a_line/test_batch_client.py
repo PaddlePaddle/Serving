@@ -12,27 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-
 from paddle_serving_client import MultiLangClient as Client
-import paddle
-import grpc
 
 client = Client()
 client.connect(["127.0.0.1:9393"])
 
 batch_size = 2
-test_reader = paddle.batch(
-    paddle.reader.shuffle(
-        paddle.dataset.uci_housing.test(), buf_size=500),
-    batch_size=batch_size)
+x = [
+    0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
+    0.4919, 0.1856, 0.0795, -0.0332
+]
 
-for data in test_reader():
-    batch_feed = [{"x": x[0]} for x in data]
-    try:
-        fetch_map = client.predict(feed=batch_feed, fetch=["price"])
-    except grpc.RpcError as e:
-        status_code = e.code()
-        if grpc.StatusCode.DEADLINE_EXCEEDED == status_code:
-            print('timeout')
-    else:
+for i in range(3):
+    batch_feed = [{"x": x} for j in range(batch_size)]
+    fetch_map = client.predict(feed=batch_feed, fetch=["price"])
+    if fetch_map["status_code"] == 0:
         print(fetch_map)
+    else:
+        print(fetch_map["status_code"])
