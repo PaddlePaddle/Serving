@@ -134,6 +134,7 @@ function build_server() {
 
 function kill_server_process() {
     ps -ef | grep "serving" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+    sleep 1
 }
 
 function python_test_fit_a_line() {
