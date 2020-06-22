@@ -68,6 +68,11 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_encryption_model",
+        default=False,
+        action="store_true",
+        help="Use encryption model")
     return parser.parse_args()
 
 
@@ -244,7 +249,7 @@ class Server(object):
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
 
-    def _prepare_engine(self, model_config_paths, device):
+    def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
@@ -265,9 +270,15 @@ class Server(object):
             engine.force_update_static_cache = False
 
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                if use_encryption_model:
+                    engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
+                else:
+                    engine.type = "FLUID_CPU_ANALYSIS_DIR"
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                if use_encryption_model:
+                    engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
+                else:
+                    engine.type = "FLUID_GPU_ANALYSIS_DIR"
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -401,7 +412,11 @@ class Server(object):
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       use_encryption_model=False):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
@@ -414,7 +429,8 @@ class Server(object):
 
         self.set_port(port)
         self._prepare_resource(workdir)
-        self._prepare_engine(self.model_config_paths, device)
+        self._prepare_engine(self.model_config_paths, device,
+                             use_encryption_model)
         self._prepare_infer_service(port)
         self.workdir = workdir
 
