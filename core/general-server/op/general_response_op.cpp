@@ -91,7 +91,6 @@ int GeneralResponseOp::inference() {
 
     for (auto &idx : fetch_index) {
       Tensor *tensor = fetch_inst->add_tensor_array();
-      tensor->set_elem_type(1);
       if (model_config->_is_lod_fetch[idx]) {
         VLOG(2) << "out[" << idx << "] " << model_config->_fetch_name[idx]
                 << " is lod_tensor";
@@ -116,7 +115,7 @@ int GeneralResponseOp::inference() {
         cap *= in->at(idx).shape[j];
       }
       if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
-        VLOG(2) << "Prepare float var [" << model_config->_fetch_name[idx]
+        VLOG(2) << "Prepare int64 var [" << model_config->_fetch_name[idx]
                 << "].";
         int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
         if (model_config->_is_lod_fetch[idx]) {
