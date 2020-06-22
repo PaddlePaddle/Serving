@@ -247,6 +247,7 @@ function python_run_criteo_ctr_with_cube() {
             echo "criteo_ctr_with_cube inference auc test success"
             kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             ;;
         GPU)
             check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -276,6 +277,7 @@ function python_run_criteo_ctr_with_cube() {
             echo "criteo_ctr_with_cube inference auc test success"
             kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             ;;
         *)
             echo "error type"
@@ -487,6 +489,7 @@ function python_test_lac() {
             setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             echo "lac CPU HTTP inference pass"
             ;;
         GPU)
