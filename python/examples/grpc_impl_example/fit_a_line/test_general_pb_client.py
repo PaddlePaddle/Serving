@@ -14,6 +14,7 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import MultiLangClient as Client
+import grpc
 import paddle
 
 client = Client()

@@ -18,6 +18,7 @@ import paddle
 import functools
 import time
 import threading
+import grpc
 
 client = Client()
 client.connect(["127.0.0.1:9393"])

@@ -15,6 +15,7 @@
 
 from paddle_serving_client import MultiLangClient as Client
 import paddle
+import grpc
 
 client = Client()
 client.connect(["127.0.0.1:9393"])
