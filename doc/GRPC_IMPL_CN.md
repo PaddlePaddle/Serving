@@ -34,7 +34,7 @@ gRPC 接口实现形式类似 Web Service：
 
    `is_python` 为 proto 格式选项。当 `is_python=True` 时，基于 numpy bytes 格式进行数据传输，目前只适用于 Python；当 `is_python=False` 时，以普通数据格式传输，更加通用。使用 numpy bytes 格式传输耗时比普通数据格式小很多（详见 [#654](https://github.com/PaddlePaddle/Serving/pull/654)）。
 
-5. 异常处理：当 gRPC Server 端的 bRPC Client 预测失败（返回 `None`）时，gRPC Client 端同样返回None。其他错误会抛出 gRPC 自带的异常（参考 timeout 样例）。
+5. 异常处理：当 gRPC Server 端的 bRPC Client 预测失败（返回 `None`）时，gRPC Client 端同样返回None。其他 gRPC 异常会在 Client 内部捕获，并在返回的 fetch_map 中添加一个 "status_code" 字段来区分是否预测正常（参考 timeout 样例）。
 
 6. 由于 gRPC 只支持 pick_first 和 round_robin 负载均衡策略，ABTEST 特性还未打齐。
 

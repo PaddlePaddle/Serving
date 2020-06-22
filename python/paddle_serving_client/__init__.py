@@ -566,7 +566,7 @@ class MultiLangClient(object):
             multi_result_map[model_result.engine_name] = result_map
         ret = None
         if len(resp.outputs) == 1:
-            ret = multi_result_map.values()[0]
+            ret = list(multi_result_map.values())[0]
         else:
             ret = multi_result_map
         ret["status_code"] = 0
