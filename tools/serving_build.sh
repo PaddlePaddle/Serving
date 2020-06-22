@@ -519,7 +519,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
@@ -529,7 +529,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_list_input_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
@@ -577,9 +577,9 @@ function python_test_grpc_impl() {
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_list_input_client.py > /dev/null"
-            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
 
             check_cmd "python test_server_gpu.py uci_housing_model > /dev/null &"
@@ -587,9 +587,9 @@ function python_test_grpc_impl() {
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_list_input_client.py > /dev/null"
-            check_cmd "python test_timeout_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
