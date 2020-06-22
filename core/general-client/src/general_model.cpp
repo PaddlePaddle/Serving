@@ -285,22 +285,16 @@ int PredictorClient::batch_predict(
         // int idx = _fetch_name_to_idx[name];
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
-          model._int64_value_map[name].resize(
-              output.insts(0).tensor_array(idx).int64_data_size());
           int size = output.insts(0).tensor_array(idx).int64_data_size();
-          for (int i = 0; i < size; ++i) {
-            model._int64_value_map[name][i] =
-                output.insts(0).tensor_array(idx).int64_data(i);
-          }
+          model._int64_value_map[name] = std::vector<int64_t>(
+              output.insts(0).tensor_array(idx).int64_data().begin(),
+              output.insts(0).tensor_array(idx).int64_data().begin() + size);
         } else {
           VLOG(2) << "fetch var " << name << "type float";
-          model._float_value_map[name].resize(
-              output.insts(0).tensor_array(idx).float_data_size());
           int size = output.insts(0).tensor_array(idx).float_data_size();
-          for (int i = 0; i < size; ++i) {
-            model._float_value_map[name][i] =
-                output.insts(0).tensor_array(idx).float_data(i);
-          }
+          model._float_value_map[name] = std::vector<float>(
+              output.insts(0).tensor_array(idx).float_data().begin(),
+              output.insts(0).tensor_array(idx).float_data().begin() + size);
         }
         idx += 1;
       }
@@ -564,22 +558,16 @@ int PredictorClient::numpy_predict(
         // int idx = _fetch_name_to_idx[name];
         if (_fetch_name_to_type[name] == 0) {
           VLOG(2) << "ferch var " << name << "type int";
-          model._int64_value_map[name].resize(
-              output.insts(0).tensor_array(idx).int64_data_size());
           int size = output.insts(0).tensor_array(idx).int64_data_size();
-          for (int i = 0; i < size; ++i) {
-            model._int64_value_map[name][i] =
-                output.insts(0).tensor_array(idx).int64_data(i);
-          }
+          model._int64_value_map[name] = std::vector<int64_t>(
+              output.insts(0).tensor_array(idx).int64_data().begin(),
+              output.insts(0).tensor_array(idx).int64_data().begin() + size);
         } else {
           VLOG(2) << "fetch var " << name << "type float";
-          model._float_value_map[name].resize(
-              output.insts(0).tensor_array(idx).float_data_size());
           int size = output.insts(0).tensor_array(idx).float_data_size();
-          for (int i = 0; i < size; ++i) {
-            model._float_value_map[name][i] =
-                output.insts(0).tensor_array(idx).float_data(i);
-          }
+          model._float_value_map[name] = std::vector<float>(
+              output.insts(0).tensor_array(idx).float_data().begin(),
+              output.insts(0).tensor_array(idx).float_data().begin() + size);
         }
         idx += 1;
       }

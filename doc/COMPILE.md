@@ -43,7 +43,7 @@ In the default centos7 image we provide, the Python path is `/usr/bin/python`. I
 ### Integrated CPU version paddle inference library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-cpu && cd server-build-cpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
 make -j10
 ```
@@ -53,7 +53,7 @@ you can execute `make install` to put targets under directory `./output`, you ne
 ### Integrated GPU version paddle inference library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
 make -j10
 ```
@@ -65,7 +65,7 @@ execute `make install` to put targets under directory `./output`
 ## Compile Client
 
 ``` shell
-mkdir build && cd build
+mkdir client-build && cd client-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
 make -j10
 ```
@@ -75,7 +75,7 @@ execute `make install` to put targets under directory `./output`
 ## Compile the App
 
 ```bash
-mkdir build && cd build
+mkdir app-build && cd app-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DAPP=ON ..
 make
 ```
