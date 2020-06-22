@@ -577,7 +577,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
             check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "test_numpy_input_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
