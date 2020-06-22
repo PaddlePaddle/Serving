@@ -122,7 +122,7 @@ class WebService(object):
                               processes=1)
 
     def get_app_instance(self):
-        return app_instance
+        return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch
