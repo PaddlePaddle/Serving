@@ -26,7 +26,7 @@ x = [
 for i in range(3):
     batch_feed = [{"x": x} for j in range(batch_size)]
     fetch_map = client.predict(feed=batch_feed, fetch=["price"])
-    if fetch_map["status_code"] == 0:
+    if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     else:
-        print(fetch_map["status_code"])
+        print(fetch_map["serving_status_code"])

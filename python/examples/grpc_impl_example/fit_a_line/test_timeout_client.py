@@ -26,9 +26,9 @@ x = [
 ]
 for i in range(3):
     fetch_map = client.predict(feed={"x": x}, fetch=["price"])
-    if fetch_map["status_code"] == 0:
+    if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
-    elif fetch_map["status_code"] == grpc.StatusCode.DEADLINE_EXCEEDED:
+    elif fetch_map["serving_status_code"] == grpc.StatusCode.DEADLINE_EXCEEDED:
         print('timeout')
     else:
-        print(fetch_map["status_code"])
+        print(fetch_map["serving_status_code"])

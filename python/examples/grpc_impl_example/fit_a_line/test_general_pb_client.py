@@ -24,7 +24,7 @@ x = [
 ]
 for i in range(3):
     fetch_map = client.predict(feed={"x": x}, fetch=["price"], is_python=False)
-    if fetch_map["status_code"] == 0:
+    if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     else:
-        print(fetch_map["status_code"])
+        print(fetch_map["serving_status_code"])
