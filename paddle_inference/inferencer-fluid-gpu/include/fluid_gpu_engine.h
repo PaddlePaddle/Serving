@@ -557,8 +557,8 @@ class FluidGpuAnalysisEncryptCore : public FluidFamilyCore {
     }
 
     std::string model_buffer, params_buffer, key_buffer;
-    ReadBinaryFile(data_path + "encry_model", &model_buffer);
-    ReadBinaryFile(data_path + "encry_params", &params_buffer);
+    ReadBinaryFile(data_path + "encrypt_model", &model_buffer);
+    ReadBinaryFile(data_path + "encrypt_params", &params_buffer);
     ReadBinaryFile(data_path + "key", &key_buffer);
 
     VLOG(2) << "prepare for encryption model";
