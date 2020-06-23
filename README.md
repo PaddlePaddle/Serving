@@ -186,20 +186,8 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 
 ### User Group in China
 
-<p align="center">
-    <br>
-<img src='doc/wechat.png' width = "100" height = "100">
-    <br>
-<p>
-    
-<p align="center">
-    <br>
-<img src='doc/wechat.png' width = "100" height = "100">
-    <br>
-<p>
-    
-    
-<p align="center"><img width="200" height="200" margin="500" src="./doc/qq.jpeg"/>&#8194;&#8194;&#8194;&#8194;&#8194<img width="200" height="200"  src="doc/wechat.jpeg"/></p>
+  
+<p align="center"><img width="200" height="300" margin="500" src="./doc/qq.jpeg"/>&#8194;&#8194;&#8194;&#8194;&#8194<img width="200" height="300"  src="doc/wechat.jpeg"/></p>
 <p align="center">PaddleServing交流QQ群&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;PaddleServing微信群</p>    
 
 ### Slack
