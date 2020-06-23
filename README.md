@@ -199,7 +199,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 <p>
     
     
-<p align="center"><img width="200" height="200" margin="500" src="./doc/qq.png"/>&#8194;&#8194;&#8194;&#8194;&#8194<img width="200" height="200"  src="doc/wechat.png"/></p>
+<p align="center"><img width="200" height="200" margin="500" src="./doc/qq.jpeg"/>&#8194;&#8194;&#8194;&#8194;&#8194<img width="200" height="200"  src="doc/wechat.jpeg"/></p>
 <p align="center">PaddleServing交流QQ群&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;PaddleServing微信群</p>    
 
 ### Slack
