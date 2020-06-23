@@ -61,7 +61,7 @@ public class Client {
         return resp.getErrCode() == 0;
     }
 
-    public Boolean connect(String[] endpoints) {
+    public Boolean connect(List<String> endpoints) {
         String target = "ipv4:" + String.join(",", endpoints);
         // TODO: max_receive_message_length and max_send_message_length
         try {
@@ -233,14 +233,61 @@ public class Client {
             }
         }
 
+        // TODO: tag
         return multi_result_map;
     }
 
+    /*
     public Map<String, ? extends Map<String, List<? extends Number>>> predict(
-            List<Map<String, List<? extends Number>>> feed,
+            Map<String, List<? extends Number>> feed,
+            Iterable<String> fetch) {
+        return predict(feed, fetch, false);
+    }
+
+    public PredictFuture async_predict(
+            Map<String, List<? extends Number>> feed,
+            Iterable<String> fetch) {
+        return async_predict(feed, fetch, false);
+    }
+
+    public Map<String, ? extends Map<String, List<? extends Number>>> predict(
+            Map<String, List<? extends Number>> feed,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
-        InferenceRequest req = _packInferenceRequest(feed, fetch);
+        List<? extends Map<String, List<? extends Number>>> feed_batch
+            = new ArrayList<? extends Map<String, List<? extends Number>>>();
+        feed_batch.add(feed);
+        return predict(feed_batch, fetch, need_variant_tag);
+    }
+
+    public PredictFuture async_predict(
+            Map<String, List<? extends Number>> feed,
+            Iterable<String> fetch,
+            Boolean need_variant_tag) {
+        List<? extends Map<String, List<? extends Number>>> feed_batch
+            = new ArrayList<? extends Map<String, List<? extends Number>>>();
+        feed_batch.add(feed);
+        return async_predict(feed_batch, fetch, need_variant_tag);
+    }
+    */
+
+    public Map<String, ? extends Map<String, List<? extends Number>>> predict(
+            List<? extends Map<String, List<? extends Number>>> feed_batch,
+            Iterable<String> fetch) {
+        return predict(feed_batch, fetch, false);
+    }
+
+    public PredictFuture async_predict(
+            List<? extends Map<String, List<? extends Number>>> feed_batch,
+            Iterable<String> fetch) {
+        return async_predict(feed_batch, fetch, false);
+    }
+
+    public Map<String, ? extends Map<String, List<? extends Number>>> predict(
+            List<? extends Map<String, List<? extends Number>>> feed_batch,
+            Iterable<String> fetch,
+            Boolean need_variant_tag) {
+        InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
         try {
             InferenceResponse resp = blockingStub_.inference(req);
             return _unpackInferenceResponse(
@@ -252,15 +299,11 @@ public class Client {
     }
 
     public PredictFuture async_predict(
-            List<Map<String, List<? extends Number>>> feed,
+            List<Map<String, List<? extends Number>>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
-        InferenceRequest req = _packInferenceRequest(feed, fetch);
+        InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
         ListenableFuture<InferenceResponse> future = futureStub_.inference(req);
-        // Function<InferenceResponse,
-                 // Map<String, ? extends Map<String, List<? extends Number>>>>
-            // call_back_func = partial(
-                    // Client::_unpackInferenceResponse, fetch, need_variant_tag);
         return new PredictFuture(
                 future, 
                 (InferenceResponse resp) -> {
@@ -270,6 +313,23 @@ public class Client {
     }
 
     public static void main( String[] args ) {
+        Client client = new Client();
+        List<String> endpoints = new ArrayList<String>()
+            .add("182.61.111.54:9393");
+        Client.connect(endpoints);
+        List<HashMap<String, List<Float>>> feed_batch
+            = new ArrayList<HashMap<String, List<Float>>>()
+            .add(new HashMap<String, ArrayList<Float>>()
+                    .put("x", new ArrayList<Float>()
+                        .add(0.0137f).add(-0.1136f).add(0.2553f)
+                        .add(-0.0692f).add(0.0582f).add(-0.0727f)
+                        .add(-0.1583f).add(-0.0584f).add(0.6283f)
+                        .add(0.4919f).add(0.1856f).add(0.0795f)
+                        .add(-0.0332f)));
+        List<String> fetch = new ArrayList<String>()
+            .add("price");
+        Map<String, ? extends Map<String, List<?>>> fetch_map
+            = client.predict(feed_batch, fetch);
         System.out.println( "Hello World!" );
     }
 }
