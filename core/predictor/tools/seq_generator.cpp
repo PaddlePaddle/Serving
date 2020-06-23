@@ -233,7 +233,7 @@ int compress_parameter_parallel(const char *file1,
         greedy_search(
             emb_table + k * emb_size, xmin, xmax, loss, emb_size, bits);
         // 得出 loss 最小的时候的 scale
-        float scale = (xmax - xmin) * (pow2bits - 1);
+        float scale = (xmax - xmin) / (pow2bits - 1);
         char *min_ptr = tensor_temp;
         char *max_ptr = tensor_temp + sizeof(float);
         memcpy(min_ptr, &xmin, sizeof(float));
