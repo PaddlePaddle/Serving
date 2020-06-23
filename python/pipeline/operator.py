@@ -12,3 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
+
+
+class Op(object):
+    def __init__(self,
+                 name="",
+                 input_ops=[],
+                 server_endpoints=[],
+                 concurrency=1,
+                 timeout=-1,
+                 retry=1):
+        pass
+
+    def _get_input_channel(self):
+        pass
+
+    def _get_output_channel(self):
+        pass
+
+    def preprocess(self, input_dict):
+        pass
+
+    def process(self, feed_dict):
+        pass
+
+    def postprocess(self, fetch_dict):
+        pass
+
+    def stop(self):
+        pass
+
+    def start_with_process(self):
+        pass
+
+    def start_with_thread(self):
+        pass
