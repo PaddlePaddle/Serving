@@ -13,8 +13,8 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.pyserver import Op
-from paddle_serving_server.pyserver import PyServer
+from paddle_serving_server.pipeline import Op
+from paddle_serving_server.pipeline import PipelineServer
 import numpy as np
 import logging
 
@@ -62,7 +62,7 @@ cnn_op = Op(name="cnn",
 combine_op = CombineOp(
     name="combine", inputs=[bow_op, cnn_op], concurrency=1, timeout=-1, retry=1)
 
-pyserver = PyServer(
+pyserver = PipelineServer(
     use_multithread=True,
     client_type='grpc',
     use_future=False,

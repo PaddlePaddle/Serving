@@ -18,7 +18,7 @@ from .proto import general_python_service_pb2_grpc
 import numpy as np
 
 
-class PyClient(object):
+class PipelineClient(object):
     def __init__(self):
         self._channel = None
 
