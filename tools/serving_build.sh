@@ -595,6 +595,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
+            ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
 
@@ -625,6 +626,7 @@ function python_test_grpc_impl() {
             fi
             echo "grpc impl test success"
             kill_server_process
+            ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
             ;;
