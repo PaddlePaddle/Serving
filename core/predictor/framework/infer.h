@@ -603,13 +603,13 @@ class VersionedInferEngine : public InferEngine {
       LOG(ERROR) << "Failed generate engine with type:" << engine_type;
       return -1;
     }
-    VLOG(2) << "FLGS_logtostderr " << FLAGS_logtostderr;
+    VLOG(2) << "FLAGS_logtostderr " << FLAGS_logtostderr;
     int tmp = FLAGS_logtostderr;
     if (engine->proc_initialize(conf, version) != 0) {
       LOG(ERROR) << "Failed initialize engine, type:" << engine_type;
       return -1;
     }
-    VLOG(2) << "FLGS_logtostderr " << FLAGS_logtostderr;
+    VLOG(2) << "FLAGS_logtostderr " << FLAGS_logtostderr;
     FLAGS_logtostderr = tmp;
     auto r = _versions.insert(std::make_pair(engine->version(), engine));
     if (!r.second) {
