@@ -48,16 +48,18 @@ def save_model(server_model_folder,
 
     config = model_conf.GeneralModelConfig()
 
+    #int64 = 0; float32 = 1; int32 = 2;
     for key in feed_var_dict:
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
         feed_var.name = feed_var_dict[key].name
         feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
-           feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
+        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
             feed_var.feed_type = 0
         if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
             feed_var.feed_type = 1
+        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32:
+            feed_var.feed_type = 2
         if feed_var.is_lod_tensor:
             feed_var.shape.extend([-1])
         else:
@@ -73,13 +75,12 @@ def save_model(server_model_folder,
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
         fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32 or \
-           fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
             fetch_var.fetch_type = 0
-
         if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
             fetch_var.fetch_type = 1
-
+        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32:
+            fetch_var.fetch_type = 2
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
