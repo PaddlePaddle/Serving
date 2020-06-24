@@ -26,7 +26,8 @@ import grpc
 from .proto import multi_lang_general_model_service_pb2
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import multi_lang_general_model_service_pb2_grpc
+from .proto import multi_lang_general_model_service_pb2 as pb2
+from .proto import multi_lang_general_model_service_pb2_grpc as grpc_pb2
 
 int64_type = 0
 float32_type = 1
@@ -397,13 +398,22 @@ class Client(object):
 class MultiLangClient(object):
     def __init__(self):
         self.channel_ = None
+        self._config = None
 
     def load_client_config(self, path):
         if not isinstance(path, str):
             raise Exception("GClient only supports multi-model temporarily")
-        self._parse_model_config(path)
+        with open(path, 'r') as f:
+            proto_txt = str(f.read())
 
-    def connect(self, endpoint):
+        self._parse_model_config(proto_txt)
+
+    def _load_client_config(self):
+        req = pb2.EmptyRequest()
+        self._config = self.stub_.get_config(req)
+        self._parse_model_config(self._config.proto_txt)
+
+    def connect(self, endpoint, use_remote_config=True):
         # https://github.com/tensorflow/serving/issues/1382
         options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
                    ('grpc.max_send_message_length', 512 * 1024 * 1024),
@@ -414,6 +424,9 @@ class MultiLangClient(object):
         self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
             self.channel_)
 
+        if use_remote_config:
+            self._load_client_config()
+
     def _flatten_list(self, nested_list):
         for item in nested_list:
             if isinstance(item, (list, tuple)):
@@ -422,11 +435,9 @@ class MultiLangClient(object):
             else:
                 yield item
 
-    def _parse_model_config(self, model_config_path):
+    def _parse_model_config(self, proto_txt):
         model_conf = m_config.GeneralModelConfig()
-        f = open(model_config_path, 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(proto_txt, model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}

@@ -1,0 +1,2 @@
+unset https_proxy http_proxy
+python test_multilang_client.py uci_housing_client/serving_client_conf.prototxt

@@ -20,8 +20,8 @@ import time
 import threading
 
 client = MultiLangClient()
-client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+#client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:19293"])
 
 import paddle
 test_reader = paddle.batch(

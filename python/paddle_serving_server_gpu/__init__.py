@@ -29,11 +29,11 @@ import fcntl
 
 import numpy as np
 import grpc
-from .proto import multi_lang_general_model_service_pb2
+from .proto import multi_lang_general_model_service_pb2 as pb2
 import sys
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import multi_lang_general_model_service_pb2_grpc
+from .proto import multi_lang_general_model_service_pb2_grpc as grpc_pb2
 from multiprocessing import Pool, Process
 from concurrent import futures
 
@@ -63,6 +63,16 @@ def serve_args():
         help="Memory optimize")
     parser.add_argument(
         "--ir_optim", default=False, action="store_true", help="Graph optimize")
+    parser.add_argument(
+        "--async",
+        default=False,
+        action="store_true",
+        help="Use async communication or not.")
+    parser.add_argument(
+        "--hidden_port",
+        type=int,
+        default=None,
+        help="Used for async communication.")
     parser.add_argument(
         "--max_body_size",
         type=int,
@@ -484,22 +494,25 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
+class MultiLangServerService(grpc_pb2.MultiLangGeneralModelService):
     def __init__(self, model_config_path, endpoints):
         from paddle_serving_client import Client
-        self._parse_model_config(model_config_path)
+
+        path = "{}/serving_server_conf.prototxt".format(model_config_path)
+        with open(path, 'r') as f:
+            proto_txt = str(f.read())
+
+        self._parse_model_config(proto_txt)
         self.bclient_ = Client()
-        self.bclient_.load_client_config(
-            "{}/serving_server_conf.prototxt".format(model_config_path))
+        self.bclient_.load_client_config(path)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_path):
+        self._max_batch_size = -1  #  <=0:unknown
+        self._proto_txt = proto_txt
+
+    def _parse_model_config(self, proto_txt):
         model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(model_config_path),
-                 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(proto_txt, model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -555,12 +568,12 @@ class MultiLangServerService(
         return feed_batch, fetch_names, is_python
 
     def _pack_resp_package(self, result, fetch_names, is_python, tag):
-        resp = multi_lang_general_model_service_pb2.Response()
+        resp = pb2.Response()
         # Only one model is supported temporarily
-        model_output = multi_lang_general_model_service_pb2.ModelOutput()
-        inst = multi_lang_general_model_service_pb2.FetchInst()
+        model_output = pb2.ModelOutput()
+        inst = pb2.FetchInst()
         for idx, name in enumerate(fetch_names):
-            tensor = multi_lang_general_model_service_pb2.Tensor()
+            tensor = pb2.Tensor()
             v_type = self.fetch_types_[name]
             if is_python:
                 tensor.data = result[name].tobytes()
@@ -586,6 +599,23 @@ class MultiLangServerService(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
         return self._pack_resp_package(data, fetch_names, is_python, tag)
 
+    def get_config(self, request, context):
+        print("get request from client:", request)
+        key = "PADDLE_SERVING_MAX_BATCH_SIZE"
+        max_batch_size = os.getenv(key)
+        if max_batch_size:
+            try:
+                max_batch_size = int(max_batch_size)
+                self._max_batch_size = max_batch_size
+            except Exception as e:
+                print("invalid value:{} of {}".format(max_batch_size, key))
+
+        response = pb2.ServingConfig()
+        response.proto_txt = self._proto_txt
+        response.max_batch_size = self._max_batch_size
+
+        return response
+
 
 class MultiLangServer(object):
     def __init__(self, worker_num=2):
@@ -595,6 +625,33 @@ class MultiLangServer(object):
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
 
+    def set_max_concurrency(self, concurrency):
+        self.bserver_.set_max_concurrency(concurrency)
+
+    def set_num_threads(self, threads):
+        self.bserver_.set_num_threads(threads)
+
+    def set_max_body_size(self, body_size):
+        self.bserver_.set_max_body_size(body_size)
+
+    def set_port(self, port):
+        self.bserver_.set_port(port)
+
+    def set_reload_interval(self, interval):
+        self.bserver_.set_reload_interval(interval)
+
+    def set_op_graph(self, op_graph):
+        self.bserver_.set_op_graph(op_graph)
+
+    def set_memory_optimize(self, flag=False):
+        self.bserver_.set_memory_optimize(flag)
+
+    def set_ir_optimize(self, flag=False):
+        self.bserver_.set_ir_optimize(flag)
+
+    def set_gpuid(self, gpuid=0):
+        self.bserver_.set_gpuid(gpuid)
+
     def load_model_config(self, model_config_path):
         if not isinstance(model_config_path, str):
             raise Exception(
@@ -602,16 +659,25 @@ class MultiLangServer(object):
         self.bserver_.load_model_config(model_config_path)
         self.model_config_path_ = model_config_path
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
-        default_port = 12000
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       hidden_port=None):
         self.port_list_ = []
-        for i in range(1000):
-            if default_port + i != port and self._port_is_available(default_port
-                                                                    + i):
-                self.port_list_.append(default_port + i)
-                break
+        if hidden_port is None:
+            default_port = 12000
+            for i in range(1000):
+                if default_port + i != port and self._port_is_available(
+                        default_port + i):
+                    self.port_list_.append(default_port + i)
+                    break
+        else:
+            self.port_list_.append(int(hidden_port))
+
         self.bserver_.prepare_server(
             workdir=workdir, port=self.port_list_[0], device=device)
+
         self.gport_ = port
 
     def _launch_brpc_service(self, bserver):
@@ -629,7 +695,7 @@ class MultiLangServer(object):
         p_bserver.start()
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self.worker_num_))
-        multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
+        grpc_pb2.add_MultiLangGeneralModelServiceServicer_to_server(
             MultiLangServerService(self.model_config_path_,
                                    ["0.0.0.0:{}".format(self.port_list_[0])]),
             server)

@@ -43,8 +43,16 @@ message Response {
 message ModelOutput {
   repeated FetchInst insts = 1;
   optional string engine_name = 2;
-}
+};
+
+message EmptyRequest {};
+
+message ServingConfig {
+  required int32 max_batch_size = 1;
+  required string proto_txt = 2;
+};
 
 service MultiLangGeneralModelService {
   rpc inference(Request) returns (Response) {}
+  rpc get_config(EmptyRequest) returns (ServingConfig) {}
 };
