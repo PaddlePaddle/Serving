@@ -91,7 +91,6 @@ int GeneralResponseOp::inference() {
 
     for (auto &idx : fetch_index) {
       Tensor *tensor = fetch_inst->add_tensor_array();
-      tensor->set_elem_type(1);
       if (model_config->_is_lod_fetch[idx]) {
         VLOG(2) << "out[" << idx << "] " << model_config->_fetch_name[idx]
                 << " is lod_tensor";
@@ -116,7 +115,7 @@ int GeneralResponseOp::inference() {
         cap *= in->at(idx).shape[j];
       }
       if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
-        VLOG(2) << "Prepare float var [" << model_config->_fetch_name[idx]
+        VLOG(2) << "Prepare int64 var [" << model_config->_fetch_name[idx]
                 << "].";
         int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
         if (model_config->_is_lod_fetch[idx]) {
@@ -153,6 +152,27 @@ int GeneralResponseOp::inference() {
           FetchInst *fetch_p = output->mutable_insts(0);
           for (int j = 0; j < cap; ++j) {
             fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
+          }
+        }
+        VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
+        var_idx++;
+      } else if (in->at(idx).dtype == paddle::PaddleDType::INT32) {
+        VLOG(2) << "Prepare int32 var [" << model_config->_fetch_name[idx]
+                << "].";
+        int32_t *data_ptr = static_cast<int32_t *>(in->at(idx).data.data());
+        if (model_config->_is_lod_fetch[idx]) {
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_lod(
+                in->at(idx).lod[0][j]);
+          }
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
+          }
+        } else {
+          FetchInst *fetch_p = output->mutable_insts(0);
+          for (int j = 0; j < cap; ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
           }
         }
         VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";

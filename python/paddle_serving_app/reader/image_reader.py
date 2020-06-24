@@ -280,10 +280,11 @@ class SegPostprocess(object):
 
 
 class RCNNPostprocess(object):
-    def __init__(self, label_file, output_dir):
+    def __init__(self, label_file, output_dir, resize_shape=None):
         self.output_dir = output_dir
         self.label_file = label_file
         self.label_list = []
+        self.resize_shape = resize_shape
         with open(label_file) as fin:
             for line in fin:
                 self.label_list.append(line.strip())
@@ -377,6 +378,13 @@ class RCNNPostprocess(object):
             xmin, ymin, w, h = bbox
             xmax = xmin + w
             ymax = ymin + h
+
+            img_w, img_h = image.size
+            if self.resize_shape is not None:
+                xmin = xmin * img_w / self.resize_shape[0]
+                xmax = xmax * img_w / self.resize_shape[0]
+                ymin = ymin * img_h / self.resize_shape[1]
+                ymax = ymax * img_h / self.resize_shape[1]
 
             color = tuple(color_list[catid])
 
