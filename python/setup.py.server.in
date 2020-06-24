@@ -42,7 +42,8 @@ REQUIRED_PACKAGES = [
 ]
 
 packages=['paddle_serving_server',
-          'paddle_serving_server.proto']
+          'paddle_serving_server.proto',
+          'paddle_serving_server.pipeline']
 
 package_dir={'paddle_serving_server':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
