@@ -641,6 +641,42 @@ function python_test_grpc_impl() {
     cd .. # pwd: /Serving/python/examples
 }
 
+
+function python_test_yolov4(){
+    #pwd:/ Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd yolov4
+    case $TYPE in
+        CPU)
+            python -m paddle_serving_app.package --get_model yolov4
+            tar -xzvf yolov4.tar.gz
+            check_cmd "python -m paddle_serving_server.serve --model yolov4_model/ --port 9393 &"
+            sleep 5
+            check_cmd "python test_client.py 000000570688.jpg"
+            echo "yolov4 CPU RPC inference pass"
+            kill_server_process
+            ;;
+        GPU)
+            python -m paddle_serving_app.package --get_model yolov4
+            tar -xzvf yolov4.tar.gz
+            check_cmd "python -m paddle_serving_server_gpu.serve --model yolov4_model/ --port 9393 --gpu_ids 0 &"
+            sleep 5
+            check_cmd "python test_client.py 000000570688.jpg"
+            echo "yolov4 GPU RPC inference pass"
+            kill_server_process
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test yolov4 $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
@@ -652,6 +688,7 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
