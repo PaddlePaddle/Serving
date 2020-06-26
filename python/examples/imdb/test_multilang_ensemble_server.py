@@ -13,24 +13,28 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-import os
-import sys
 from paddle_serving_server import OpMaker
-from paddle_serving_server import OpSeqMaker
+from paddle_serving_server import OpGraphMaker
 from paddle_serving_server import MultiLangServer
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
-response_op = op_maker.create('general_response')
+cnn_infer_op = op_maker.create(
+    'general_infer', engine_name='cnn', inputs=[read_op])
+bow_infer_op = op_maker.create(
+    'general_infer', engine_name='bow', inputs=[read_op])
+response_op = op_maker.create(
+    'general_response', inputs=[cnn_infer_op, bow_infer_op])
 
-op_seq_maker = OpSeqMaker()
-op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(general_infer_op)
-op_seq_maker.add_op(response_op)
+op_graph_maker = OpGraphMaker()
+op_graph_maker.add_op(read_op)
+op_graph_maker.add_op(cnn_infer_op)
+op_graph_maker.add_op(bow_infer_op)
+op_graph_maker.add_op(response_op)
 
 server = MultiLangServer()
-server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.load_model_config(sys.argv[1])
+server.set_op_graph(op_graph_maker.get_op_graph())
+model_config = {cnn_infer_op: 'imdb_cnn_model', bow_infer_op: 'imdb_bow_model'}
+server.load_model_config(model_config)
 server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
 server.run_server()
