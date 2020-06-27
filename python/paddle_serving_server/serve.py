@@ -55,7 +55,8 @@ def parse_args():  # pylint: disable=doc-string-missing
         help="Limit sizes of messages")
     parser.add_argument(
         "--use_multilang",
-        action='store_true',
+        default=False,
+        action="store_true",
         help="Use Multi-language-service")
     return parser.parse_args()
 
@@ -91,16 +92,15 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server = None
     if use_multilang:
         server = serving.MultiLangServer()
-        server.set_op_sequence(op_seq_maker.get_op_sequence())
     else:
         server = serving.Server()
-        server.set_op_sequence(op_seq_maker.get_op_sequence())
-        server.set_num_threads(thread_num)
-        server.set_memory_optimize(mem_optim)
-        server.set_ir_optimize(ir_optim)
-        server.use_mkl(use_mkl)
-        server.set_max_body_size(max_body_size)
-        server.set_port(port)
+    server.set_op_sequence(op_seq_maker.get_op_sequence())
+    server.set_num_threads(thread_num)
+    server.set_memory_optimize(mem_optim)
+    server.set_ir_optimize(ir_optim)
+    server.use_mkl(use_mkl)
+    server.set_max_body_size(max_body_size)
+    server.set_port(port)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
