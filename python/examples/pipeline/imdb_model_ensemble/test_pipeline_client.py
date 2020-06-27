@@ -13,7 +13,6 @@
 # limitations under the License.
 from paddle_serving_client.pipeline import PipelineClient
 import numpy as np
-from paddle_serving_app.reader import IMDBDataset
 from line_profiler import LineProfiler
 
 client = PipelineClient()
@@ -23,12 +22,9 @@ lp = LineProfiler()
 lp_wrapper = lp(client.predict)
 
 words = 'i am very sad | 0'
-imdb_dataset = IMDBDataset()
-imdb_dataset.load_resource('imdb.vocab')
 
-for i in range(1):
-    word_ids, label = imdb_dataset.get_words_and_label(words)
-    fetch_map = lp_wrapper(feed={"words": word_ids}, fetch=["prediction"])
+for i in range(10):
+    fetch_map = lp_wrapper(feed_dict={"words": words}, fetch=["prediction"])
     print(fetch_map)
 
 #lp.print_stats()

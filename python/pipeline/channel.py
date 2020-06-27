@@ -22,15 +22,10 @@ elif sys.version_info.major == 3:
     import queue as Queue
 else:
     raise Exception("Error Python version")
-<<<<<<< HEAD
-=======
-from concurrent import futures
 import numpy as np
-from ..proto import pyserving_channel_pb2 as channel_pb2
 import logging
 import enum
 import copy
->>>>>>> d84910a1180061b57c51824e35e3ca5c857eb3b5
 
 
 class ChannelDataEcode(enum.Enum):
@@ -43,48 +38,25 @@ class ChannelDataEcode(enum.Enum):
 
 
 class ChannelDataType(enum.Enum):
-<<<<<<< HEAD
     DICT = 0
     CHANNEL_NPDATA = 1
     ERROR = 2
 
 
 class ChannelData(object):
-    pass
-
-
-class ThreadChannel(Queue.Queue):
-    pass
-
-
-class ProcessChannel(multiprocessing.queues.Queue):
-    pass
-=======
-    CHANNEL_PBDATA = 0
-    CHANNEL_FUTURE = 1
-    CHANNEL_NPDATA = 2
-    ERROR = 3
-
-
-class ChannelData(object):
     def __init__(self,
                  datatype=None,
-                 future=None,
-                 pbdata=None,
                  npdata=None,
+                 dictdata=None,
                  data_id=None,
-                 callback_func=None,
                  ecode=None,
                  error_info=None):
         '''
         There are several ways to use it:
         
-        1. ChannelData(ChannelDataType.CHANNEL_FUTURE.value, future, pbdata[, callback_func])
-        2. ChannelData(ChannelDataType.CHANNEL_FUTURE.value, future, data_id[, callback_func])
-        3. ChannelData(ChannelDataType.CHANNEL_PBDATA.value, pbdata)
-        4. ChannelData(ChannelDataType.CHANNEL_PBDATA.value, npdata, data_id)
-        5. ChannelData(ChannelDataType.CHANNEL_NPDATA.value, npdata, data_id)
-        6. ChannelData(ecode, error_info, data_id)
+        1. ChannelData(ChannelDataType.CHANNEL_NPDATA.value, npdata, data_id)
+        2. ChannelData(ChannelDataType.DICT.value, dictdata, data_id)
+        3. ChannelData(ecode, error_info, data_id)
 
         Protobufs are not pickle-able:
         https://stackoverflow.com/questions/55344376/how-to-import-protobuf-module
@@ -94,67 +66,55 @@ class ChannelData(object):
                 raise ValueError("data_id and error_info cannot be None")
             datatype = ChannelDataType.ERROR.value
         else:
-            if datatype == ChannelDataType.CHANNEL_FUTURE.value:
-                if data_id is None:
-                    raise ValueError("data_id cannot be None")
-                ecode = ChannelDataEcode.OK.value
-            elif datatype == ChannelDataType.CHANNEL_PBDATA.value:
-                if pbdata is None:
-                    if data_id is None:
-                        raise ValueError("data_id cannot be None")
-                    pbdata = channel_pb2.ChannelData()
-                    ecode, error_info = self._check_npdata(npdata)
-                    if ecode != ChannelDataEcode.OK.value:
-                        logging.error(error_info)
-                    else:
-                        for name, value in npdata.items():
-                            inst = channel_pb2.Inst()
-                            inst.data = value.tobytes()
-                            inst.name = name
-                            inst.shape = np.array(
-                                value.shape, dtype="int32").tobytes()
-                            inst.type = str(value.dtype)
-                            pbdata.insts.append(inst)
-            elif datatype == ChannelDataType.CHANNEL_NPDATA.value:
-                ecode, error_info = self._check_npdata(npdata)
+            if datatype == ChannelDataType.CHANNEL_NPDATA.value:
+                ecode, error_info = ChannelData.check_npdata(npdata)
                 if ecode != ChannelDataEcode.OK.value:
+                    datatype = ChannelDataType.ERROR.value
+                    logging.error(error_info)
+            elif datatype == ChannelDataType.DICT.value:
+                ecode, error_info = ChannelData.check_dictdata(dictdata)
+                if ecode != ChannelDataEcode.OK.value:
+                    datatype = ChannelDataType.ERROR.value
                     logging.error(error_info)
             else:
                 raise ValueError("datatype not match")
-        self.future = future
-        self.pbdata = pbdata
-        self.npdata = npdata
         self.datatype = datatype
+        self.npdata = npdata
+        self.dictdata = dictdata
         self.id = data_id
         self.ecode = ecode
         self.error_info = error_info
-        self.callback_func = callback_func
 
-    def _check_npdata(self, npdata):
+    @staticmethod
+    def check_dictdata(dictdata):
+        ecode = ChannelDataEcode.OK.value
+        error_info = None
+        if not isinstance(dictdata, dict):
+            ecode = ChannelDataEcode.TYPE_ERROR.value
+            error_info = "the value of postped_data must " \
+                        "be dict, but get {}".format(type(dictdata))
+        return ecode, error_info
+
+    @staticmethod
+    def check_npdata(npdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
         for _, value in npdata.items():
             if not isinstance(value, np.ndarray):
                 ecode = ChannelDataEcode.TYPE_ERROR.value
-                error_info = log("the value of postped_data must " \
-                        "be np.ndarray, but get {}".format(type(value)))
+                error_info = "the value of postped_data must " \
+                        "be np.ndarray, but get {}".format(type(value))
                 break
         return ecode, error_info
 
     def parse(self):
-        # return narray
         feed = None
-        if self.datatype == ChannelDataType.CHANNEL_PBDATA.value:
-            feed = {}
-            for inst in self.pbdata.insts:
-                feed[inst.name] = np.frombuffer(inst.data, dtype=inst.type)
-                feed[inst.name].shape = np.frombuffer(inst.shape, dtype="int32")
-        elif self.datatype == ChannelDataType.CHANNEL_FUTURE.value:
-            feed = self.future.result()
-            if self.callback_func is not None:
-                feed = self.callback_func(feed)
-        elif self.datatype == ChannelDataType.CHANNEL_NPDATA.value:
+        if self.datatype == ChannelDataType.CHANNEL_NPDATA.value:
+            # return narray
             feed = self.npdata
+        elif self.datatype == ChannelDataType.DICT.value:
+            # return dict
+            feed = self.dictdata
         else:
             raise TypeError("Error type({}) in datatype.".format(self.datatype))
         return feed
@@ -609,4 +569,3 @@ class ThreadChannel(Queue.Queue):
         self.close()
         self._stop = True
         self._cv.notify_all()
->>>>>>> d84910a1180061b57c51824e35e3ca5c857eb3b5

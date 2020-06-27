@@ -13,8 +13,6 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-<<<<<<< HEAD
-=======
 import os
 import sys
 if sys.version_info.major == 2:
@@ -25,7 +23,6 @@ else:
     raise Exception("Error Python version")
 import time
 
->>>>>>> d84910a1180061b57c51824e35e3ca5c857eb3b5
 
 class TimeProfiler(object):
     def __init__(self):
@@ -48,30 +45,18 @@ class TimeProfiler(object):
     def print_profile(self):
         if self._enable is False:
             return
-<<<<<<< HEAD
         print_str = self._print_head
-=======
-        sys.stderr.write(self._print_head)
->>>>>>> d84910a1180061b57c51824e35e3ca5c857eb3b5
         tmp = {}
         while not self._time_record.empty():
             name, tag, timestamp = self._time_record.get()
             if name in tmp:
                 ptag, ptimestamp = tmp.pop(name)
-<<<<<<< HEAD
                 print_str += "{}_{}:{} ".format(name, ptag, ptimestamp)
                 print_str += "{}_{}:{} ".format(name, tag, timestamp)
             else:
                 tmp[name] = (tag, timestamp)
         print_str += "\n"
         sys.stderr.write(print_str)
-=======
-                sys.stderr.write("{}_{}:{} ".format(name, ptag, ptimestamp))
-                sys.stderr.write("{}_{}:{} ".format(name, tag, timestamp))
-            else:
-                tmp[name] = (tag, timestamp)
-        sys.stderr.write('\n')
->>>>>>> d84910a1180061b57c51824e35e3ca5c857eb3b5
         for name, item in tmp.items():
             tag, timestamp = item
             self._time_record.put((name, tag, timestamp))
