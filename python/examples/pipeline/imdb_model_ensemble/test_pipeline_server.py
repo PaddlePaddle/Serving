@@ -13,16 +13,29 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.pipeline import Op
+from paddle_serving_server.pipeline import Op, ReadOp
 from paddle_serving_server.pipeline import PipelineServer
 import numpy as np
 import logging
+from paddle_serving_app.reader import IMDBDataset
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d %H:%M',
-    #level=logging.DEBUG)
+    # level=logging.DEBUG)
     level=logging.INFO)
+
+
+class ImdbOp(Op):
+    def preprocess(self, input_data):
+        data = input_data.parse()
+        imdb_dataset = IMDBDataset()
+        imdb_dataset.load_resource('imdb.vocab')
+        word_ids, _ = imdb_dataset.get_words_and_label(data['words'])
+        return {"words": word_ids}
+
+    # def postprocess(self, fetch_data):
+    # return {key: str(value) for key, value in fetch_data.items()}
 
 
 class CombineOp(Op):
@@ -32,42 +45,39 @@ class CombineOp(Op):
             data = channeldata.parse()
             logging.info("{}: {}".format(op_name, data["prediction"]))
             combined_prediction += data["prediction"]
-        data = {"prediction": combined_prediction / 2}
+        data = {"prediction": str(combined_prediction / 2)}
         return data
 
 
-read_op = Op(name="read", inputs=None)
-bow_op = Op(name="bow",
-            inputs=[read_op],
-            server_model="imdb_bow_model",
-            server_port="9393",
-            device="cpu",
-            client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-            server_name="127.0.0.1:9393",
-            fetch_names=["prediction"],
-            concurrency=1,
-            timeout=0.1,
-            retry=2)
-cnn_op = Op(name="cnn",
-            inputs=[read_op],
-            server_model="imdb_cnn_model",
-            server_port="9292",
-            device="cpu",
-            client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
-            server_name="127.0.0.1:9292",
-            fetch_names=["prediction"],
-            concurrency=1,
-            timeout=-1,
-            retry=1)
-combine_op = CombineOp(
-    name="combine", inputs=[bow_op, cnn_op], concurrency=1, timeout=-1, retry=1)
-
-pyserver = PipelineServer(
-    use_multithread=True,
-    client_type='grpc',
-    use_future=False,
-    profile=False,
+read_op = ReadOp()
+bow_op = ImdbOp(
+    name="bow",
+    input_ops=[read_op],
+    server_endpoints=["127.0.0.1:9393"],
+    fetch_list=["prediction"],
+    client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
+    concurrency=1,
+    timeout=-1,
     retry=1)
-pyserver.add_ops([read_op, bow_op, cnn_op, combine_op])
-pyserver.prepare_server(port=8080, worker_num=2)
-pyserver.run_server()
+cnn_op = ImdbOp(
+    name="cnn",
+    input_ops=[read_op],
+    server_endpoints=["127.0.0.1:9292"],
+    fetch_list=["prediction"],
+    client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
+    concurrency=1,
+    timeout=-1,
+    retry=1)
+combine_op = CombineOp(
+    name="combine",
+    input_ops=[bow_op, cnn_op],
+    concurrency=1,
+    timeout=-1,
+    retry=1)
+
+server = PipelineServer()
+server.add_ops([read_op, bow_op, cnn_op, combine_op])
+# server.set_response_op(bow_op)
+server.set_response_op(combine_op)
+server.prepare_server('config.yml')
+server.run_server()
