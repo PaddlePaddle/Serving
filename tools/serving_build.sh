@@ -134,6 +134,7 @@ function build_server() {
 
 function kill_server_process() {
     ps -ef | grep "serving" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+    sleep 1
 }
 
 function python_test_fit_a_line() {
@@ -246,6 +247,7 @@ function python_run_criteo_ctr_with_cube() {
             echo "criteo_ctr_with_cube inference auc test success"
             kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             ;;
         GPU)
             check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -261,6 +263,8 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server_gpu.py ctr_serving_model_kv &
             sleep 5
+            # for warm up
+            python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data > /dev/null || true
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
             tail -n 2 score | awk 'NR==1'
             AUC=$(tail -n 2  score | awk 'NR==1')
@@ -273,6 +277,7 @@ function python_run_criteo_ctr_with_cube() {
             echo "criteo_ctr_with_cube inference auc test success"
             kill_server_process
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             ;;
         *)
             echo "error type"
@@ -484,6 +489,7 @@ function python_test_lac() {
             setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            sleep 1
             echo "lac CPU HTTP inference pass"
             ;;
         GPU)
@@ -499,6 +505,178 @@ function python_test_lac() {
     cd ..
 }
 
+function python_test_grpc_impl() {
+    # pwd: /Serving/python/examples
+    cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    unsetproxy
+    case $TYPE in
+        CPU)
+            # test general case
+            cd fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            sh get_data.sh
+
+            # one line command start
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 --use_multilang > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            kill_server_process
+
+            check_cmd "python test_server.py uci_housing_model > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            kill_server_process
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+
+            # test load server config and client config in Server side
+            cd criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
+
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
+            sleep 5
+            check_cmd "python test_client.py ./ut_data >score"
+            tail -n 2 score | awk 'NR==1'
+            AUC=$(tail -n 2  score | awk 'NR==1')
+            VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
+            RES=$( echo "$AUC>$VAR2" | bc )
+            if [[ $RES -eq 0 ]]; then
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
+                exit 1
+            fi
+            echo "grpc impl test success"
+            kill_server_process
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+            ;;
+        GPU)
+            export CUDA_VISIBLE_DEVICES=0
+            # test general case
+            cd fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            sh get_data.sh
+
+            # one line command start
+            check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 4 --gpu_ids 0 --use_multilang > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            kill_server_process
+
+            check_cmd "python test_server_gpu.py uci_housing_model > /dev/null &"
+            sleep 5 # wait for the server to start
+            check_cmd "python test_sync_client.py > /dev/null"
+            check_cmd "python test_asyn_client.py > /dev/null"
+            check_cmd "python test_general_pb_client.py > /dev/null"
+            check_cmd "python test_numpy_input_client.py > /dev/null"
+            check_cmd "python test_batch_client.py > /dev/null"
+            check_cmd "python test_timeout_client.py > /dev/null"
+            kill_server_process
+            ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+
+            # test load server config and client config in Server side
+            cd criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
+
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server_gpu.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
+            sleep 5
+            # for warm up
+            python test_client.py ./ut_data &> /dev/null || true
+            check_cmd "python test_client.py ./ut_data >score"
+            tail -n 2 score | awk 'NR==1'
+            AUC=$(tail -n 2  score | awk 'NR==1')
+            VAR2="0.67" #TODO: temporarily relax the threshold to 0.67
+            RES=$( echo "$AUC>$VAR2" | bc )
+            if [[ $RES -eq 0 ]]; then
+                echo "error with criteo_ctr_with_cube inference auc test, auc should > 0.67"
+                exit 1
+            fi
+            echo "grpc impl test success"
+            kill_server_process
+            ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            cd .. # pwd: /Serving/python/examples/grpc_impl_example
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test grpc impl $TYPE part finished as expected."
+    setproxy
+    unset SERVING_BIN
+    cd .. # pwd: /Serving/python/examples
+}
+
+
+function python_test_yolov4(){
+    #pwd:/ Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd yolov4
+    case $TYPE in
+        CPU)
+            python -m paddle_serving_app.package --get_model yolov4
+            tar -xzvf yolov4.tar.gz
+            check_cmd "python -m paddle_serving_server.serve --model yolov4_model/ --port 9393 &"
+            sleep 5
+            check_cmd "python test_client.py 000000570688.jpg"
+            echo "yolov4 CPU RPC inference pass"
+            kill_server_process
+            ;;
+        GPU)
+            python -m paddle_serving_app.package --get_model yolov4
+            tar -xzvf yolov4.tar.gz
+            check_cmd "python -m paddle_serving_server_gpu.serve --model yolov4_model/ --port 9393 --gpu_ids 0 &"
+            sleep 5
+            check_cmd "python test_client.py 000000570688.jpg"
+            echo "yolov4 GPU RPC inference pass"
+            kill_server_process
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test yolov4 $TYPE finished as expected."
+    unset SERVING_BIN
+    cd ..
+}
+
+
 function python_run_test() {
     # Using the compiled binary
     local TYPE=$1 # pwd: /Serving
@@ -510,6 +688,8 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_yolov4 $TYPE # pwd: /Serving/python/examples
+    python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
@@ -768,3 +948,4 @@ function main() {
 }
 
 main $@
+exit 0
