@@ -65,6 +65,7 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         self._cv = threading.Condition()
         self._globel_resp_dict = {}
         self._id_counter = 0
+        self._reset_max_id = 1000000000000000000
         self._retry = retry
         self._is_run = True
         self._pack_func = pack_func
@@ -112,6 +113,8 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
 
     def _get_next_id(self):
         with self._id_lock:
+            if self._id_counter >= self._reset_max_id:
+                self._id_counter -= self._reset_max_id
             self._id_counter += 1
             return self._id_counter - 1
 
