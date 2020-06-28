@@ -130,9 +130,9 @@ if __name__ == '__main__':
         avg_cost += result[0][i]
     avg_cost = avg_cost / args.thread
 
-    print("total cost :{} s".format(total_cost))
-    print("each thread cost :{} s. ".format(avg_cost))
-    print("qps :{} samples/s".format(args.batch_size * args.thread * turns /
+    print("total cost: {}".format(total_cost))
+    print("each thread cost: {}".format(avg_cost))
+    print("qps: {}samples/s".format(args.batch_size * args.thread * turns /
                                      total_cost))
     if os.getenv("FLAGS_serving_latency"):
         show_latency(result[1])
