@@ -19,6 +19,7 @@ from paddle_serving_client import MultiLangClient, Client
 from concurrent import futures
 import logging
 import func_timeout
+from numpy import *
 
 from .proto import pipeline_service_pb2
 from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
@@ -391,7 +392,12 @@ class RequestOp(Op):
     def unpack_request_package(self, request):
         dictdata = {}
         for idx, key in enumerate(request.key):
-            dictdata[key] = request.value[idx]
+            data = request.value[idx]
+            try:
+                data = eval(data)
+            except Exception as e:
+                pass
+            dictdata[key] = data
         return dictdata
 
 

@@ -35,10 +35,16 @@ class PipelineClient(object):
     def _pack_request_package(self, feed_dict):
         req = pipeline_service_pb2.Request()
         for key, value in feed_dict.items():
-            if not isinstance(value, str):
-                raise TypeError("only str type is supported.")
             req.key.append(key)
-            req.value.append(value)
+            if isinstance(value, np.ndarray):
+                req.value.append(value.__repr__())
+            elif isinstance(value, str):
+                req.value.append(value)
+            elif isinstance(value, list):
+                req.value.append(np.array(value).__repr__())
+            else:
+                raise TypeError("only str and np.ndarray type is supported: {}".
+                                format(type(value)))
         return req
 
     def _unpack_response_package(self, resp, fetch):
@@ -50,7 +56,7 @@ class PipelineClient(object):
                 continue
             data = resp.value[idx]
             try:
-                data = eval(resp.value[idx])
+                data = eval(data)
             except Exception as e:
                 pass
             fetch_map[key] = data
