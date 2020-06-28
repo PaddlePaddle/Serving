@@ -172,7 +172,6 @@ class ProcessChannel(multiprocessing.queues.Queue):
 
         self._cv = multiprocessing.Condition()
 
-        self._manager = manager
         self._producers = []
         self._pushed_producer_count = manager.dict()  # {data_id: count}
         self._input_buf = manager.dict()  # {data_id: {op_name: data}}
