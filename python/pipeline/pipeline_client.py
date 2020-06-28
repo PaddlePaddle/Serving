@@ -14,9 +14,12 @@
 # pylint: disable=doc-string-missing
 import grpc
 import numpy as np
-from numpy import array
+from numpy import *
+import logging
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class PipelineClient(object):

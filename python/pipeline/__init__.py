@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from operator import Op, ReadOp
+from operator import Op, RequestOp, ResponseOp
 from pipeline_server import PipelineServer
 from pipeline_client import PipelineClient

@@ -40,22 +40,24 @@ import yaml
 
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
-from .operator import Op, ReadOp, VirtualOp
+from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import ThreadChannel, ProcessChannel, ChannelData, ChannelDataEcode, ChannelDataType
 from .profiler import TimeProfiler
 from .util import NameGenerator
 
+_LOGGER = logging.getLogger(__name__)
 _profiler = TimeProfiler()
 
 
 class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, in_channel, out_channel, retry=2):
+    def __init__(self, in_channel, out_channel, unpack_func, pack_func,
+                 retry=2):
         super(PipelineService, self).__init__()
         self.name = "#G"
         self.set_in_channel(in_channel)
         self.set_out_channel(out_channel)
-        logging.debug(self._log(in_channel.debug()))
-        logging.debug(self._log(out_channel.debug()))
+        _LOGGER.debug(self._log(in_channel.debug()))
+        _LOGGER.debug(self._log(out_channel.debug()))
         #TODO: 
         #  multi-lock for different clients
         #  diffenert lock for server and client
@@ -64,6 +66,8 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         self._globel_resp_dict = {}
         self._id_counter = 0
         self._retry = retry
+        self._pack_func = pack_func
+        self._unpack_func = unpack_func
         self._recive_func = threading.Thread(
             target=PipelineService._recive_out_channel_func, args=(self, ))
         self._recive_func.start()
@@ -89,7 +93,10 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
 
     def _recive_out_channel_func(self):
         while True:
-            channeldata = self._out_channel.front(self.name)
+            channeldata_dict = self._out_channel.front(self.name)
+            if len(channeldata_dict) != 1:
+                raise Exception("out_channel cannot have multiple input ops")
+            (_, channeldata), = channeldata_dict.items()
             if not isinstance(channeldata, ChannelData):
                 raise TypeError(
                     self._log('data must be ChannelData type, but get {}'.
@@ -114,18 +121,15 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         return resp
 
     def _pack_data_for_infer(self, request):
-        logging.debug(self._log('start inferce'))
+        _LOGGER.debug(self._log('start inferce'))
         data_id = self._get_next_id()
-        dictdata = {}
+        dictdata = None
         try:
-            for idx, key in enumerate(request.key):
-                logging.debug(self._log('key: {}'.format(key)))
-                logging.debug(self._log('value: {}'.format(request.value[idx])))
-                dictdata[key] = request.value[idx]
+            dictdata = self._unpack_func(request)
         except Exception as e:
             return ChannelData(
                 ecode=ChannelDataEcode.RPC_PACKAGE_ERROR.value,
-                error_info="rpc package error",
+                error_info="rpc package error: {}".format(e),
                 data_id=data_id), data_id
         else:
             return ChannelData(
@@ -134,35 +138,8 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
                 data_id=data_id), data_id
 
     def _pack_data_for_resp(self, channeldata):
-        logging.debug(self._log('get channeldata'))
-        resp = pipeline_service_pb2.Response()
-        resp.ecode = channeldata.ecode
-        if resp.ecode == ChannelDataEcode.OK.value:
-            if channeldata.datatype == ChannelDataType.CHANNEL_NPDATA.value:
-                feed = channeldata.parse()
-                # ndarray to string
-                for name, var in feed.items():
-                    resp.value.append(var.__repr__())
-                    resp.key.append(name)
-            elif channeldata.datatype == ChannelDataType.DICT.value:
-                feed = channeldata.parse()
-                for name, var in feed.items():
-                    if not isinstance(var, str):
-                        resp.ecode = ChannelDataEcode.TYPE_ERROR.value
-                        resp.error_info = self._log(
-                            "fetch var type must be str({}).".format(
-                                type(var)))
-                        break
-                    resp.value.append(var)
-                    resp.key.append(name)
-            else:
-                resp.ecode = ChannelDataEcode.TYPE_ERROR.value
-                resp.error_info = self._log(
-                    "Error type({}) in datatype.".format(channeldata.datatype))
-                logging.error(resp.error_info)
-        else:
-            resp.error_info = channeldata.error_info
-        return resp
+        _LOGGER.debug(self._log('get channeldata'))
+        return self._pack_func(channeldata)
 
     def inference(self, request, context):
         _profiler.record("{}-prepack_0".format(self.name))
@@ -171,12 +148,12 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
 
         resp_channeldata = None
         for i in range(self._retry):
-            logging.debug(self._log('push data'))
+            _LOGGER.debug(self._log('push data'))
             _profiler.record("{}-push_0".format(self.name))
             self._in_channel.push(data, self.name)
             _profiler.record("{}-push_1".format(self.name))
 
-            logging.debug(self._log('wait for infer'))
+            _LOGGER.debug(self._log('wait for infer'))
             _profiler.record("{}-fetch_0".format(self.name))
             resp_channeldata = self._get_data_in_globel_resp_dict(data_id)
             _profiler.record("{}-fetch_1".format(self.name))
@@ -184,7 +161,7 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
                 break
             if i + 1 < self._retry:
-                logging.warn("retry({}): {}".format(
+                _LOGGER.warn("retry({}): {}".format(
                     i + 1, resp_channeldata.error_info))
 
         _profiler.record("{}-postpack_0".format(self.name))
@@ -197,32 +174,27 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
 class PipelineServer(object):
     def __init__(self):
         self._channels = []
-        self._user_ops = []
         self._actual_ops = []
         self._port = None
         self._worker_num = None
         self._in_channel = None
         self._out_channel = None
         self._response_op = None
+        self._pack_func = None
+        self._unpack_func = None
 
     def add_channel(self, channel):
         self._channels.append(channel)
 
-    def add_op(self, op):
-        self._user_ops.append(op)
-
-    def add_ops(self, ops):
-        self._user_ops.extend(ops)
-
     def gen_desc(self):
-        logging.info('here will generate desc for PAAS')
+        _LOGGER.info('here will generate desc for PAAS')
         pass
 
     def set_response_op(self, response_op):
         if not isinstance(response_op, Op):
             raise Exception("response_op must be Op type.")
-        if len(response_op.get_input_ops()) == 0:
-            raise Exception("response_op cannot be ReadOp.")
+        if len(response_op.get_input_ops()) != 1:
+            raise Exception("response_op can only have one previous op.")
         self._response_op = response_op
 
     def _topo_sort(self, response_op):
@@ -230,19 +202,21 @@ class PipelineServer(object):
             raise Exception("response_op has not been set.")
 
         def get_use_ops(root):
+            # root: response_op
             unique_names = set()
             use_ops = set()
             succ_ops_of_use_op = {}  # {op_name: succ_ops}
             que = Queue.Queue()
             que.put(root)
-            use_ops.add(root)
-            unique_names.add(root.name)
+            #use_ops.add(root)
+            #unique_names.add(root.name)
             while que.qsize() != 0:
                 op = que.get()
                 for pred_op in op.get_input_ops():
                     if pred_op.name not in succ_ops_of_use_op:
                         succ_ops_of_use_op[pred_op.name] = []
-                    succ_ops_of_use_op[pred_op.name].append(op)
+                    if op != root:
+                        succ_ops_of_use_op[pred_op.name].append(op)
                     if pred_op not in use_ops:
                         que.put(pred_op)
                         use_ops.add(pred_op)
@@ -268,7 +242,8 @@ class PipelineServer(object):
                 zero_indegree_num += 1
         if zero_indegree_num != 1:
             raise Exception("DAG contains multiple input Ops")
-        ques[que_idx].put(response_op)
+        last_op = response_op.get_input_ops()[0]
+        ques[que_idx].put(last_op)
 
         # topo sort to get dag_views
         dag_views = []
@@ -344,7 +319,7 @@ class PipelineServer(object):
                     continue
                 channel = gen_channel(channel_name_gen)
                 channels.append(channel)
-                logging.debug("{} => {}".format(channel.name, op.name))
+                _LOGGER.debug("{} => {}".format(channel.name, op.name))
                 op.add_input_channel(channel)
                 pred_ops = pred_op_of_next_view_op[op.name]
                 if v_idx == 0:
@@ -352,7 +327,7 @@ class PipelineServer(object):
                 else:
                     # if pred_op is virtual op, it will use ancestors as producers to channel
                     for pred_op in pred_ops:
-                        logging.debug("{} => {}".format(pred_op.name,
+                        _LOGGER.debug("{} => {}".format(pred_op.name,
                                                         channel.name))
                         pred_op.add_output_channel(channel)
                 processed_op.add(op.name)
@@ -369,24 +344,26 @@ class PipelineServer(object):
                             same_flag = False
                             break
                     if same_flag:
-                        logging.debug("{} => {}".format(channel.name,
+                        _LOGGER.debug("{} => {}".format(channel.name,
                                                         other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
         output_channel = gen_channel(channel_name_gen)
         channels.append(output_channel)
-        response_op.add_output_channel(output_channel)
+        last_op.add_output_channel(output_channel)
 
+        pack_func, unpack_func = None, None
+        pack_func = self._response_op.pack_response_package
         self._actual_ops = virtual_ops
         for op in use_ops:
             if len(op.get_input_ops()) == 0:
-                # pass read op
+                unpack_func = op.unpack_request_package
                 continue
             self._actual_ops.append(op)
         self._channels = channels
         for c in channels:
-            logging.debug(c.debug())
-        return input_channel, output_channel
+            _LOGGER.debug(c.debug())
+        return input_channel, output_channel, pack_func, unpack_func
 
     def _port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -414,7 +391,8 @@ class PipelineServer(object):
                     "profile cannot be used in multiprocess version temporarily")
         _profiler.enable(profile)
 
-        input_channel, output_channel = self._topo_sort(self._response_op)
+        input_channel, output_channel, self._pack_func, self._unpack_func = self._topo_sort(
+            self._response_op)
         self._in_channel = input_channel
         self._out_channel = output_channel
         for op in self._actual_ops:
@@ -443,7 +421,8 @@ class PipelineServer(object):
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self._worker_num))
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineService(self._in_channel, self._out_channel, self._retry),
+            PipelineService(self._in_channel, self._out_channel,
+                            self._unpack_func, self._pack_func, self._retry),
             server)
         server.add_insecure_port('[::]:{}'.format(self._port))
         server.start()
@@ -454,4 +433,4 @@ class PipelineServer(object):
 
     def prepare_serving(self, op):
         # run a server (not in PyServing)
-        logging.info("run a server (not in PyServing)")
+        _LOGGER.info("run a server (not in PyServing)")
