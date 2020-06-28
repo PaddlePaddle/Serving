@@ -66,6 +66,7 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         self._globel_resp_dict = {}
         self._id_counter = 0
         self._retry = retry
+        self._is_run = True
         self._pack_func = pack_func
         self._unpack_func = unpack_func
         self._recive_func = threading.Thread(
@@ -91,8 +92,11 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         out_channel.add_consumer(self.name)
         self._out_channel = out_channel
 
+    def stop(self):
+        self._is_run = False
+
     def _recive_out_channel_func(self):
-        while True:
+        while self._is_run:
             channeldata_dict = self._out_channel.front(self.name)
             if len(channeldata_dict) != 1:
                 raise Exception("out_channel cannot have multiple input ops")
@@ -416,22 +420,26 @@ class PipelineServer(object):
                     op.start_with_process(self._client_type))
         return threads_or_proces
 
-    def _stop_ops(self):
+    def _stop_all(self, service):
+        service.stop()
         for op in self._actual_ops:
             op.stop()
+        for chl in self._channels:
+            chl.stop()
 
     def run_server(self):
         op_threads_or_proces = self._run_ops()
+        service = PipelineService(self._in_channel, self._out_channel,
+                                  self._unpack_func, self._pack_func,
+                                  self._retry)
         server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=self._worker_num))
-        pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineService(self._in_channel, self._out_channel,
-                            self._unpack_func, self._pack_func, self._retry),
-            server)
+        pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(service,
+                                                                        server)
         server.add_insecure_port('[::]:{}'.format(self._port))
         server.start()
         server.wait_for_termination()
-        self._stop_ops()  # TODO
+        self._stop_all()  # TODO
         for x in op_threads_or_proces:
             x.join()
 
