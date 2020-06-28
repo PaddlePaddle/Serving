@@ -221,6 +221,8 @@ class PipelineServer(object):
     def set_response_op(self, response_op):
         if not isinstance(response_op, Op):
             raise Exception("response_op must be Op type.")
+        if len(response_op.get_input_ops()) == 0:
+            raise Exception("response_op cannot be ReadOp.")
         self._response_op = response_op
 
     def _topo_sort(self, response_op):
