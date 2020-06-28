@@ -34,7 +34,8 @@ class ChannelDataEcode(enum.Enum):
     NOT_IMPLEMENTED = 2
     TYPE_ERROR = 3
     RPC_PACKAGE_ERROR = 4
-    UNKNOW = 5
+    CLIENT_ERROR = 5
+    UNKNOW = 6
 
 
 class ChannelDataType(enum.Enum):

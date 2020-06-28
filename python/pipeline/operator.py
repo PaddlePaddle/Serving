@@ -204,6 +204,9 @@ class Op(object):
             threads.append(t)
         return threads
 
+    def load_user_resources(self):
+        pass
+
     def _run(self, concurrency_idx, input_channel, output_channels,
              client_type):
         def get_log_func(op_info_prefix):
@@ -219,6 +222,9 @@ class Op(object):
         # create client based on client_type
         self.init_client(client_type, self._client_config,
                          self._server_endpoints, self._fetch_names)
+
+        # load user resources
+        self.load_user_resources()
 
         self._is_run = True
         while self._is_run:
@@ -319,6 +325,16 @@ class Op(object):
                     continue
                 self._profiler_record("{}-midp#{}_1".format(op_info_prefix,
                                                             tid))
+                # op client return None
+                if midped_data is None:
+                    self._push_to_output_channels(
+                        ChannelData(
+                            ecode=ChannelDataEcode.CLIENT_ERROR.value,
+                            error_info=log(
+                                "predict failed. pls check the server side."),
+                            data_id=data_id),
+                        output_channels)
+                    continue
             else:
                 midped_data = preped_data
 
