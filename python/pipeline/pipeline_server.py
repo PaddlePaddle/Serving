@@ -228,6 +228,10 @@ class PipelineServer(object):
             return use_ops, succ_ops_of_use_op
 
         use_ops, out_degree_ops = get_use_ops(response_op)
+        if len(use_ops) <= 1:
+            raise Exception(
+                "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."
+            )
 
         name2op = {op.name: op for op in use_ops}
         out_degree_num = {
