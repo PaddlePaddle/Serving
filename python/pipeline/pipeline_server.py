@@ -140,18 +140,26 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         if resp.ecode == ChannelDataEcode.OK.value:
             if channeldata.datatype == ChannelDataType.CHANNEL_NPDATA.value:
                 feed = channeldata.parse()
+                # ndarray to string
                 for name, var in feed.items():
-                    resp.value.append(var.tostring())  #TODO: no shape and type
+                    resp.value.append(var.__repr__())
                     resp.key.append(name)
             elif channeldata.datatype == ChannelDataType.DICT.value:
                 feed = channeldata.parse()
                 for name, var in feed.items():
-                    resp.value.append(str(var))
+                    if not isinstance(var, str):
+                        resp.ecode = ChannelDataEcode.TYPE_ERROR.value
+                        resp.error_info = self._log(
+                            "fetch var type must be str({}).".format(
+                                type(var)))
+                        break
+                    resp.value.append(var)
                     resp.key.append(name)
             else:
-                raise TypeError(
-                    self._log("Error type({}) in datatype.".format(
-                        channeldata.datatype)))
+                resp.ecode = ChannelDataEcode.TYPE_ERROR.value
+                resp.error_info = self._log(
+                    "Error type({}) in datatype.".format(channeldata.datatype))
+                logging.error(resp.error_info)
         else:
             resp.error_info = channeldata.error_info
         return resp

@@ -14,6 +14,7 @@
 # pylint: disable=doc-string-missing
 import grpc
 import numpy as np
+from numpy import array
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
@@ -51,5 +52,10 @@ class PipelineClient(object):
         for idx, key in enumerate(resp.key):
             if key not in fetch:
                 continue
-            fetch_map[key] = resp.value[idx]
+            data = resp.value[idx]
+            try:
+                data = eval(resp.value[idx])
+            except Exception as e:
+                pass
+            fetch_map[key] = data
         return fetch_map

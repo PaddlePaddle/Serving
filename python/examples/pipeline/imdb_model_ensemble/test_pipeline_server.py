@@ -22,20 +22,18 @@ from paddle_serving_app.reader import IMDBDataset
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
     datefmt='%Y-%m-%d %H:%M',
-    # level=logging.DEBUG)
     level=logging.INFO)
 
 
 class ImdbOp(Op):
+    def load_user_resources(self):
+        self.imdb_dataset = IMDBDataset()
+        self.imdb_dataset.load_resource('imdb.vocab')
+
     def preprocess(self, input_data):
         data = input_data.parse()
-        imdb_dataset = IMDBDataset()
-        imdb_dataset.load_resource('imdb.vocab')
-        word_ids, _ = imdb_dataset.get_words_and_label(data['words'])
+        word_ids, _ = self.imdb_dataset.get_words_and_label(data['words'])
         return {"words": word_ids}
-
-    # def postprocess(self, fetch_data):
-    # return {key: str(value) for key, value in fetch_data.items()}
 
 
 class CombineOp(Op):
@@ -45,7 +43,7 @@ class CombineOp(Op):
             data = channeldata.parse()
             logging.info("{}: {}".format(op_name, data["prediction"]))
             combined_prediction += data["prediction"]
-        data = {"prediction": str(combined_prediction / 2)}
+        data = {"prediction": combined_prediction / 2}
         return data
 
 
@@ -77,7 +75,7 @@ combine_op = CombineOp(
 
 server = PipelineServer()
 server.add_ops([read_op, bow_op, cnn_op, combine_op])
-# server.set_response_op(bow_op)
+#server.set_response_op(bow_op)
 server.set_response_op(combine_op)
 server.prepare_server('config.yml')
 server.run_server()
