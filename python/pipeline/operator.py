@@ -146,9 +146,6 @@ class Op(object):
         return fetch_dict
 
     def stop(self):
-        self._input.stop()
-        for channel in self._outputs:
-            channel.stop()
         self._is_run = False
 
     def _parse_channeldata(self, channeldata_dict):
