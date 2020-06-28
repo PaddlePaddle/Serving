@@ -126,9 +126,12 @@ int GeneralReaderOp::inference() {
     if (elem_type[i] == 0) {  // int64
       elem_size[i] = sizeof(int64_t);
       lod_tensor.dtype = paddle::PaddleDType::INT64;
-    } else {
+    } else if (elem_type[i] == 1) {
       elem_size[i] = sizeof(float);
       lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
+    } else if (elem_type[i] == 2) {
+      elem_size[i] = sizeof(int32_t);
+      lod_tensor.dtype = paddle::PaddleDType::INT32;
     }
 
     if (model_config->_is_lod_feed[i]) {
@@ -159,8 +162,10 @@ int GeneralReaderOp::inference() {
         int data_len = 0;
         if (tensor.int64_data_size() > 0) {
           data_len = tensor.int64_data_size();
-        } else {
+        } else if (tensor.float_data_size() > 0) {
           data_len = tensor.float_data_size();
+        } else if (tensor.int_data_size() > 0) {
+          data_len = tensor.int_data_size();
         }
         VLOG(2) << "tensor size for var[" << i << "]: " << data_len;
         tensor_size += data_len;
@@ -198,6 +203,8 @@ int GeneralReaderOp::inference() {
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == 0) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).int64_data(0);
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
@@ -210,13 +217,31 @@ int GeneralReaderOp::inference() {
           offset += capacity[i];
         }
       }
-    } else {
+    } else if (elem_type[i] == 1) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).float_data(0);
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).float_data(k);
+        }
+        if (out->at(i).lod.size() == 1) {
+          offset = out->at(i).lod[0][j + 1];
+        } else {
+          offset += capacity[i];
+        }
+      }
+    } else if (elem_type[i] == 2) {
+      int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
+      VLOG(2) << "first element data in var[" << i << "] is "
+              << req->insts(0).tensor_array(i).int_data(0);
+      int offset = 0;
+      for (int j = 0; j < batch_size; ++j) {
+        int elem_num = req->insts(j).tensor_array(i).int_data_size();
+        for (int k = 0; k < elem_num; ++k) {
+          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int_data(k);
         }
         if (out->at(i).lod.size() == 1) {
           offset = out->at(i).lod[0][j + 1];

@@ -85,9 +85,9 @@ class WebService(object):
             fetch_map = self.client.predict(feed=feed, fetch=fetch)
             for key in fetch_map:
                 fetch_map[key] = fetch_map[key].tolist()
-            fetch_map = self.postprocess(
+            result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
-            result = {"result": fetch_map}
+            result = {"result": result}
         except ValueError:
             result = {"result": "Request Value Error"}
         return result
