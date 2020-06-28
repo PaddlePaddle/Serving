@@ -136,14 +136,9 @@ class Op(object):
                 "{} Please override preprocess func.".format(err_info))
         _LOGGER.debug(self._log('feed_dict: {}'.format(feed_dict)))
         _LOGGER.debug(self._log('fetch: {}'.format(self._fetch_names)))
-        if isinstance(self._client, MultiLangClient):
-            call_result = self._client.predict(
-                feed=feed_dict, fetch=self._fetch_names)
-            _LOGGER.debug(self._log("get call_result"))
-        else:
-            call_result = self._client.predict(
-                feed=feed_dict, fetch=self._fetch_names)
-            _LOGGER.debug(self._log("get fetch_dict"))
+        call_result = self._client.predict(
+            feed=feed_dict, fetch=self._fetch_names)
+        _LOGGER.debug(self._log("get call_result"))
         return call_result
 
     def postprocess(self, fetch_dict):
