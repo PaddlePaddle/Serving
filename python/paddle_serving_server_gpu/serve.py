@@ -37,6 +37,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     mem_optim = args.mem_optim
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
+    use_multilang = args.use_multilang
     workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
@@ -54,7 +55,10 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     op_seq_maker.add_op(general_infer_op)
     op_seq_maker.add_op(general_response_op)
 
-    server = serving.Server()
+    if use_multilang:
+        server = serving.MultiLangServer()
+    else:
+        server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)

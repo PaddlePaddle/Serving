@@ -143,7 +143,6 @@ function(grpc_protobuf_generate_python SRCS)
     set(${SRCS} ${${SRCS}} PARENT_SCOPE)
 endfunction()
 
-
 # Print and set the protobuf library information,
 # finish this cmake process and exit from this file.
 macro(PROMPT_PROTOBUF_LIB)

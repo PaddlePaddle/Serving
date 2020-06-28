@@ -68,6 +68,11 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
     return parser.parse_args()
 
 
@@ -410,7 +415,7 @@ class Server(object):
         os.system("touch {}/fluid_time_file".format(workdir))
 
         if not self.port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
+            raise SystemExit("Port {} is already used".format(port))
 
         self.set_port(port)
         self._prepare_resource(workdir)
@@ -484,22 +489,29 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
-    def __init__(self, model_config_path, endpoints):
+class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
+                                     MultiLangGeneralModelServiceServicer):
+    def __init__(self, model_config_path, is_multi_model, endpoints):
+        self.is_multi_model_ = is_multi_model
+        self.model_config_path_ = model_config_path
+        self.endpoints_ = endpoints
+        with open(self.model_config_path_) as f:
+            self.model_config_str_ = str(f.read())
+        self._parse_model_config(self.model_config_str_)
+        self._init_bclient(self.model_config_path_, self.endpoints_)
+
+    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
         from paddle_serving_client import Client
-        self._parse_model_config(model_config_path)
         self.bclient_ = Client()
-        self.bclient_.load_client_config(
-            "{}/serving_server_conf.prototxt".format(model_config_path))
+        if timeout_ms is not None:
+            self.bclient_.set_rpc_timeout_ms(timeout_ms)
+        self.bclient_.load_client_config(model_config_path)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_path):
+    def _parse_model_config(self, model_config_str):
         model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(model_config_path),
-                 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(model_config_str,
+                                                       model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -524,7 +536,7 @@ class MultiLangServerService(
             else:
                 yield item
 
-    def _unpack_request(self, request):
+    def _unpack_inference_request(self, request):
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
@@ -540,6 +552,8 @@ class MultiLangServerService(
                         data = np.frombuffer(var.data, dtype="int64")
                     elif v_type == 1:
                         data = np.frombuffer(var.data, dtype="float32")
+                    elif v_type == 2:
+                        data = np.frombuffer(var.data, dtype="int32")
                     else:
                         raise Exception("error type.")
                 else:
@@ -547,6 +561,8 @@ class MultiLangServerService(
                         data = np.array(list(var.int64_data), dtype="int64")
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
+                    elif v_type == 2:
+                        data = np.array(list(var.int32_data), dtype="int32")
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
@@ -554,55 +570,129 @@ class MultiLangServerService(
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python
 
-    def _pack_resp_package(self, result, fetch_names, is_python, tag):
-        resp = multi_lang_general_model_service_pb2.Response()
-        # Only one model is supported temporarily
-        model_output = multi_lang_general_model_service_pb2.ModelOutput()
-        inst = multi_lang_general_model_service_pb2.FetchInst()
-        for idx, name in enumerate(fetch_names):
-            tensor = multi_lang_general_model_service_pb2.Tensor()
-            v_type = self.fetch_types_[name]
-            if is_python:
-                tensor.data = result[name].tobytes()
-            else:
-                if v_type == 0:  # int64
-                    tensor.int64_data.extend(result[name].reshape(-1).tolist())
-                elif v_type == 1:  # float32
-                    tensor.float_data.extend(result[name].reshape(-1).tolist())
-                else:
-                    raise Exception("error type.")
-            tensor.shape.extend(list(result[name].shape))
-            if name in self.lod_tensor_set_:
-                tensor.lod.extend(result["{}.lod".format(name)].tolist())
-            inst.tensor_array.append(tensor)
-        model_output.insts.append(inst)
-        resp.outputs.append(model_output)
+    def _pack_inference_response(self, ret, fetch_names, is_python):
+        resp = multi_lang_general_model_service_pb2.InferenceResponse()
+        if ret is None:
+            resp.err_code = 1
+            return resp
+        results, tag = ret
         resp.tag = tag
+        resp.err_code = 0
+        if not self.is_multi_model_:
+            results = {'general_infer_0': results}
+        for model_name, model_result in results.items():
+            model_output = multi_lang_general_model_service_pb2.ModelOutput()
+            inst = multi_lang_general_model_service_pb2.FetchInst()
+            for idx, name in enumerate(fetch_names):
+                tensor = multi_lang_general_model_service_pb2.Tensor()
+                v_type = self.fetch_types_[name]
+                if is_python:
+                    tensor.data = model_result[name].tobytes()
+                else:
+                    if v_type == 0:  # int64
+                        tensor.int64_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    elif v_type == 1:  # float32
+                        tensor.float_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    elif v_type == 2:  # int32
+                        tensor.int32_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    else:
+                        raise Exception("error type.")
+                tensor.shape.extend(list(model_result[name].shape))
+                if name in self.lod_tensor_set_:
+                    tensor.lod.extend(model_result["{}.lod".format(name)]
+                                      .tolist())
+                inst.tensor_array.append(tensor)
+            model_output.insts.append(inst)
+            model_output.engine_name = model_name
+            resp.outputs.append(model_output)
         return resp
 
-    def inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_request(request)
-        data, tag = self.bclient_.predict(
+    def SetTimeout(self, request, context):
+        # This porcess and Inference process cannot be operate at the same time.
+        # For performance reasons, do not add thread lock temporarily.
+        timeout_ms = request.timeout_ms
+        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
+        resp = multi_lang_general_model_service_pb2.SimpleResponse()
+        resp.err_code = 0
+        return resp
+
+    def Inference(self, request, context):
+        feed_dict, fetch_names, is_python = self._unpack_inference_request(
+            request)
+        ret = self.bclient_.predict(
             feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        return self._pack_resp_package(data, fetch_names, is_python, tag)
+        return self._pack_inference_response(ret, fetch_names, is_python)
+
+    def GetClientConfig(self, request, context):
+        resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
+        resp.client_config_str = self.model_config_str_
+        return resp
 
 
 class MultiLangServer(object):
-    def __init__(self, worker_num=2):
+    def __init__(self):
         self.bserver_ = Server()
-        self.worker_num_ = worker_num
+        self.worker_num_ = 4
+        self.body_size_ = 64 * 1024 * 1024
+        self.concurrency_ = 100000
+        self.is_multi_model_ = False  # for model ensemble
+
+    def set_max_concurrency(self, concurrency):
+        self.concurrency_ = concurrency
+        self.bserver_.set_max_concurrency(concurrency)
+
+    def set_num_threads(self, threads):
+        self.worker_num_ = threads
+        self.bserver_.set_num_threads(threads)
+
+    def set_max_body_size(self, body_size):
+        self.bserver_.set_max_body_size(body_size)
+        if body_size >= self.body_size_:
+            self.body_size_ = body_size
+        else:
+            print(
+                "max_body_size is less than default value, will use default value in service."
+            )
+
+    def set_port(self, port):
+        self.gport_ = port
+
+    def set_reload_interval(self, interval):
+        self.bserver_.set_reload_interval(interval)
 
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
 
-    def load_model_config(self, model_config_path):
-        if not isinstance(model_config_path, str):
-            raise Exception(
-                "MultiLangServer only supports multi-model temporarily")
-        self.bserver_.load_model_config(model_config_path)
-        self.model_config_path_ = model_config_path
+    def set_op_graph(self, op_graph):
+        self.bserver_.set_op_graph(op_graph)
+
+    def set_memory_optimize(self, flag=False):
+        self.bserver_.set_memory_optimize(flag)
+
+    def set_ir_optimize(self, flag=False):
+        self.bserver_.set_ir_optimize(flag)
+
+    def set_gpuid(self, gpuid=0):
+        self.bserver_.set_gpuid(gpuid)
+
+    def load_model_config(self, server_config_paths, client_config_path=None):
+        self.bserver_.load_model_config(server_config_paths)
+        if client_config_path is None:
+            if isinstance(server_config_paths, dict):
+                self.is_multi_model_ = True
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    list(server_config_paths.items())[0][1])
+            else:
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    server_config_paths)
+        self.bclient_config_path_ = client_config_path
 
     def prepare_server(self, workdir=None, port=9292, device="cpu"):
+        if not self._port_is_available(port):
+            raise SystemExit("Prot {} is already used".format(port))
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):
@@ -612,7 +702,7 @@ class MultiLangServer(object):
                 break
         self.bserver_.prepare_server(
             workdir=workdir, port=self.port_list_[0], device=device)
-        self.gport_ = port
+        self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
         bserver.run_server()
@@ -627,12 +717,16 @@ class MultiLangServer(object):
         p_bserver = Process(
             target=self._launch_brpc_service, args=(self.bserver_, ))
         p_bserver.start()
+        options = [('grpc.max_send_message_length', self.body_size_),
+                   ('grpc.max_receive_message_length', self.body_size_)]
         server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self.worker_num_))
+            futures.ThreadPoolExecutor(max_workers=self.worker_num_),
+            options=options,
+            maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerService(self.model_config_path_,
-                                   ["0.0.0.0:{}".format(self.port_list_[0])]),
-            server)
+            MultiLangServerServiceServicer(
+                self.bclient_config_path_, self.is_multi_model_,
+                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()

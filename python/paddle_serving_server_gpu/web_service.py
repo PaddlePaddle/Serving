@@ -50,12 +50,12 @@ class WebService(object):
         general_infer_op = op_maker.create('general_infer')
         general_response_op = op_maker.create('general_response')
 
-        op_seq_maker = serving.OpSeqMaker()
+        op_seq_maker = OpSeqMaker()
         op_seq_maker.add_op(read_op)
         op_seq_maker.add_op(general_infer_op)
         op_seq_maker.add_op(general_response_op)
 
-        server = serving.Server()
+        server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
 
@@ -171,7 +171,7 @@ class WebService(object):
                               processes=1)
 
     def get_app_instance(self):
-        return app_instance
+        return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch
