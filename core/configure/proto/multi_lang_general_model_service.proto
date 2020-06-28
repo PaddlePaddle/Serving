@@ -28,16 +28,17 @@ message FeedInst { repeated Tensor tensor_array = 1; };
 
 message FetchInst { repeated Tensor tensor_array = 1; };
 
-message Request {
+message InferenceRequest {
   repeated FeedInst insts = 1;
   repeated string feed_var_names = 2;
   repeated string fetch_var_names = 3;
   required bool is_python = 4 [ default = false ];
 };
 
-message Response {
+message InferenceResponse {
   repeated ModelOutput outputs = 1;
   optional string tag = 2;
+  required int32 err_code = 3;
 };
 
 message ModelOutput {
@@ -45,6 +46,17 @@ message ModelOutput {
   optional string engine_name = 2;
 }
 
+message SetTimeoutRequest { required int32 timeout_ms = 1; }
+
+message SimpleResponse { required int32 err_code = 1; }
+
+message GetClientConfigRequest {}
+
+message GetClientConfigResponse { required string client_config_str = 1; }
+
 service MultiLangGeneralModelService {
-  rpc inference(Request) returns (Response) {}
+  rpc Inference(InferenceRequest) returns (InferenceResponse) {}
+  rpc SetTimeout(SetTimeoutRequest) returns (SimpleResponse) {}
+  rpc GetClientConfig(GetClientConfigRequest)
+      returns (GetClientConfigResponse) {}
 };
