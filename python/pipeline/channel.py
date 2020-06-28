@@ -27,6 +27,8 @@ import logging
 import enum
 import copy
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class ChannelDataEcode(enum.Enum):
     OK = 0
@@ -71,12 +73,12 @@ class ChannelData(object):
                 ecode, error_info = ChannelData.check_npdata(npdata)
                 if ecode != ChannelDataEcode.OK.value:
                     datatype = ChannelDataType.ERROR.value
-                    logging.error(error_info)
+                    _LOGGER.error(error_info)
             elif datatype == ChannelDataType.DICT.value:
                 ecode, error_info = ChannelData.check_dictdata(dictdata)
                 if ecode != ChannelDataEcode.OK.value:
                     datatype = ChannelDataType.ERROR.value
-                    logging.error(error_info)
+                    _LOGGER.error(error_info)
             else:
                 raise ValueError("datatype not match")
         self.datatype = datatype
@@ -92,8 +94,8 @@ class ChannelData(object):
         error_info = None
         if not isinstance(dictdata, dict):
             ecode = ChannelDataEcode.TYPE_ERROR.value
-            error_info = "the value of postped_data must " \
-                        "be dict, but get {}".format(type(dictdata))
+            error_info = "the value of data must " \
+                        "be dict, but get {}.".format(type(dictdata))
         return ecode, error_info
 
     @staticmethod
@@ -103,8 +105,8 @@ class ChannelData(object):
         for _, value in npdata.items():
             if not isinstance(value, np.ndarray):
                 ecode = ChannelDataEcode.TYPE_ERROR.value
-                error_info = "the value of postped_data must " \
-                        "be np.ndarray, but get {}".format(type(value))
+                error_info = "the value of data must " \
+                        "be np.ndarray, but get {}.".format(type(value))
                 break
         return ecode, error_info
 
@@ -200,7 +202,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
         self._idx_consumer_num[0] += 1
 
     def push(self, channeldata, op_name=None):
-        logging.debug(
+        _LOGGER.debug(
             self._log("{} try to push data: {}".format(op_name,
                                                        channeldata.__str__())))
         if len(self._producers) == 0:
@@ -212,16 +214,16 @@ class ProcessChannel(multiprocessing.queues.Queue):
             with self._cv:
                 while self._stop is False:
                     try:
-                        self.put(channeldata, timeout=0)
+                        self.put({op_name: channeldata}, timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
-                logging.debug(
+                _LOGGER.debug(
                     self._log("{} channel size: {}".format(op_name,
                                                            self.qsize())))
                 self._cv.notify_all()
-                logging.debug(self._log("{} notify all".format(op_name)))
-            logging.debug(self._log("{} push data succ!".format(op_name)))
+                _LOGGER.debug(self._log("{} notify all".format(op_name)))
+            _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
             return True
         elif op_name is None:
             raise Exception(
@@ -232,7 +234,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
         data_id = channeldata.id
         put_data = None
         with self._cv:
-            logging.debug(self._log("{} get lock".format(op_name)))
+            _LOGGER.debug(self._log("{} get lock".format(op_name)))
             if data_id not in self._push_res:
                 self._push_res[data_id] = {
                     name: None
@@ -253,13 +255,13 @@ class ProcessChannel(multiprocessing.queues.Queue):
                 self._producer_res_count[data_id] += 1
 
             if put_data is None:
-                logging.debug(
+                _LOGGER.debug(
                     self._log("{} push data succ, but not push to queue.".
                               format(op_name)))
             else:
                 while self._stop is False:
                     try:
-                        logging.debug(
+                        _LOGGER.debug(
                             self._log("{} push data succ: {}".format(
                                 op_name, put_data.__str__())))
                         self.put(put_data, timeout=0)
@@ -267,13 +269,13 @@ class ProcessChannel(multiprocessing.queues.Queue):
                     except Queue.Empty:
                         self._cv.wait()
 
-                logging.debug(
+                _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
             self._cv.notify_all()
         return True
 
     def front(self, op_name=None):
-        logging.debug(self._log("{} try to get data...".format(op_name)))
+        _LOGGER.debug(self._log("{} try to get data...".format(op_name)))
         if len(self._consumers) == 0:
             raise Exception(
                 self._log(
@@ -284,7 +286,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
             with self._cv:
                 while self._stop is False and resp is None:
                     try:
-                        logging.debug(
+                        _LOGGER.debug(
                             self._log("{} try to get(with channel empty: {})".
                                       format(op_name, self.empty())))
                         # For queue multiprocess: after putting an object on 
@@ -296,12 +298,12 @@ class ProcessChannel(multiprocessing.queues.Queue):
                         resp = self.get(timeout=1e-3)
                         break
                     except Queue.Empty:
-                        logging.debug(
+                        _LOGGER.debug(
                             self._log(
                                 "{} wait for empty queue(with channel empty: {})".
                                 format(op_name, self.empty())))
                         self._cv.wait()
-            logging.debug(
+            _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
             return resp
@@ -315,13 +317,13 @@ class ProcessChannel(multiprocessing.queues.Queue):
             while self._stop is False and self._consumers[
                     op_name] - self._consumer_base_idx.value >= len(
                         self._front_res):
-                logging.debug(
+                _LOGGER.debug(
                     self._log(
                         "({}) B self._consumers: {}, self._consumer_base_idx: {}, len(self._front_res): {}".
                         format(op_name, self._consumers, self.
                                _consumer_base_idx.value, len(self._front_res))))
                 try:
-                    logging.debug(
+                    _LOGGER.debug(
                         self._log("{} try to get(with channel size: {})".format(
                             op_name, self.qsize())))
                     # For queue multiprocess: after putting an object on 
@@ -334,7 +336,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
                     self._front_res.append(channeldata)
                     break
                 except Queue.Empty:
-                    logging.debug(
+                    _LOGGER.debug(
                         self._log(
                             "{} wait for empty queue(with channel size: {})".
                             format(op_name, self.qsize())))
@@ -344,7 +346,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
             base_idx = self._consumer_base_idx.value
             data_idx = consumer_idx - base_idx
             resp = self._front_res[data_idx]
-            logging.debug(self._log("{} get data: {}".format(op_name, resp)))
+            _LOGGER.debug(self._log("{} get data: {}".format(op_name, resp)))
 
             self._idx_consumer_num[consumer_idx] -= 1
             if consumer_idx == base_idx and self._idx_consumer_num[
@@ -358,15 +360,15 @@ class ProcessChannel(multiprocessing.queues.Queue):
             if self._idx_consumer_num.get(new_consumer_idx) is None:
                 self._idx_consumer_num[new_consumer_idx] = 0
             self._idx_consumer_num[new_consumer_idx] += 1
-            logging.debug(
+            _LOGGER.debug(
                 self._log(
                     "({}) A self._consumers: {}, self._consumer_base_idx: {}, len(self._front_res): {}".
                     format(op_name, self._consumers, self._consumer_base_idx.
                            value, len(self._front_res))))
-            logging.debug(self._log("{} notify all".format(op_name)))
+            _LOGGER.debug(self._log("{} notify all".format(op_name)))
             self._cv.notify_all()
 
-        logging.debug(self._log("multi | {} get data succ!".format(op_name)))
+        _LOGGER.debug(self._log("multi | {} get data succ!".format(op_name)))
         return resp  # reference, read only
 
     def stop(self):
@@ -444,7 +446,7 @@ class ThreadChannel(Queue.Queue):
         self._idx_consumer_num[0] += 1
 
     def push(self, channeldata, op_name=None):
-        logging.debug(
+        _LOGGER.debug(
             self._log("{} try to push data: {}".format(op_name,
                                                        channeldata.__str__())))
         if len(self._producers) == 0:
@@ -456,12 +458,12 @@ class ThreadChannel(Queue.Queue):
             with self._cv:
                 while self._stop is False:
                     try:
-                        self.put(channeldata, timeout=0)
+                        self.put({op_name: channeldata}, timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
                 self._cv.notify_all()
-            logging.debug(self._log("{} push data succ!".format(op_name)))
+            _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
             return True
         elif op_name is None:
             raise Exception(
@@ -472,7 +474,7 @@ class ThreadChannel(Queue.Queue):
         data_id = channeldata.id
         put_data = None
         with self._cv:
-            logging.debug(self._log("{} get lock".format(op_name)))
+            _LOGGER.debug(self._log("{} get lock".format(op_name)))
             if data_id not in self._push_res:
                 self._push_res[data_id] = {
                     name: None
@@ -488,7 +490,7 @@ class ThreadChannel(Queue.Queue):
                 self._producer_res_count[data_id] += 1
 
             if put_data is None:
-                logging.debug(
+                _LOGGER.debug(
                     self._log("{} push data succ, but not push to queue.".
                               format(op_name)))
             else:
@@ -499,13 +501,13 @@ class ThreadChannel(Queue.Queue):
                     except Queue.Empty:
                         self._cv.wait()
 
-                logging.debug(
+                _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
             self._cv.notify_all()
         return True
 
     def front(self, op_name=None):
-        logging.debug(self._log("{} try to get data".format(op_name)))
+        _LOGGER.debug(self._log("{} try to get data".format(op_name)))
         if len(self._consumers) == 0:
             raise Exception(
                 self._log(
@@ -520,7 +522,7 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Empty:
                         self._cv.wait()
-            logging.debug(
+            _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
             return resp
@@ -544,7 +546,7 @@ class ThreadChannel(Queue.Queue):
             base_idx = self._consumer_base_idx
             data_idx = consumer_idx - base_idx
             resp = self._front_res[data_idx]
-            logging.debug(self._log("{} get data: {}".format(op_name, resp)))
+            _LOGGER.debug(self._log("{} get data: {}".format(op_name, resp)))
 
             self._idx_consumer_num[consumer_idx] -= 1
             if consumer_idx == base_idx and self._idx_consumer_num[
@@ -561,7 +563,7 @@ class ThreadChannel(Queue.Queue):
 
             self._cv.notify_all()
 
-        logging.debug(self._log("multi | {} get data succ!".format(op_name)))
+        _LOGGER.debug(self._log("multi | {} get data succ!".format(op_name)))
         # return resp  # reference, read only
         return copy.deepcopy(resp)
 

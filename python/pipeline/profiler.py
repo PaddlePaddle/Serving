@@ -15,6 +15,7 @@
 
 import os
 import sys
+import logging
 if sys.version_info.major == 2:
     import Queue
 elif sys.version_info.major == 3:
@@ -22,6 +23,8 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 import time
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class TimeProfiler(object):

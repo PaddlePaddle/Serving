@@ -23,7 +23,7 @@ lp_wrapper = lp(client.predict)
 
 words = 'i am very sad | 0'
 
-for i in range(10):
+for i in range(1):
     fetch_map = lp_wrapper(feed_dict={"words": words}, fetch=["prediction"])
     print(fetch_map)
 

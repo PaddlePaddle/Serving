@@ -20,9 +20,11 @@ from concurrent import futures
 import logging
 import func_timeout
 
+from .proto import pipeline_service_pb2
 from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
 from .util import NameGenerator
 
+_LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
 
 
@@ -67,17 +69,17 @@ class Op(object):
     def init_client(self, client_type, client_config, server_endpoints,
                     fetch_names):
         if self.with_serving == False:
-            logging.debug("{} no client".format(self.name))
+            _LOGGER.debug("{} no client".format(self.name))
             return
-        logging.debug("{} client_config: {}".format(self.name, client_config))
-        logging.debug("{} fetch_names: {}".format(self.name, fetch_names))
+        _LOGGER.debug("{} client_config: {}".format(self.name, client_config))
+        _LOGGER.debug("{} fetch_names: {}".format(self.name, fetch_names))
         if client_type == 'brpc':
             self._client = Client()
+            self._client.load_client_config(client_config)
         elif client_type == 'grpc':
             self._client = MultiLangClient()
         else:
             raise ValueError("unknow client type: {}".format(client_type))
-        self._client.load_client_config(client_config)
         self._client.connect(server_endpoints)
         self._fetch_names = fetch_names
 
@@ -117,38 +119,31 @@ class Op(object):
         channel.add_producer(self.name)
         self._outputs.append(channel)
 
-    def preprocess(self, channeldata):
+    def preprocess(self, input_dicts):
         # multiple previous Op
-        if isinstance(channeldata, dict):
+        if len(input_dicts) != 1:
             raise NotImplementedError(
-                'this Op has multiple previous inputs. Please override this method'
+                'this Op has multiple previous inputs. Please override this func.'
             )
 
-        if channeldata.datatype is not ChannelDataType.CHANNEL_NPDATA.value:
-            raise NotImplementedError(
-                'datatype in channeldata is not CHANNEL_NPDATA({}). '
-                'Please override this method'.format(channeldata.datatype))
-
-        # get numpy dict
-        feed_data = channeldata.parse()
-        return feed_data
+        (_, input_dict), = input_dicts.items()
+        return input_dict
 
     def process(self, feed_dict):
-        if not isinstance(feed_dict, dict):
-            raise Exception(
-                self._log(
-                    'feed_dict must be dict type(the output of preprocess()), but get {}'.
-                    format(type(feed_dict))))
-        logging.debug(self._log('feed_dict: {}'.format(feed_dict)))
-        logging.debug(self._log('fetch: {}'.format(self._fetch_names)))
+        err, err_info = ChannelData.check_npdata(feed_dict)
+        if err != 0:
+            raise NotImplementedError(
+                "{} Please override preprocess func.".format(err_info))
+        _LOGGER.debug(self._log('feed_dict: {}'.format(feed_dict)))
+        _LOGGER.debug(self._log('fetch: {}'.format(self._fetch_names)))
         if isinstance(self._client, MultiLangClient):
             call_result = self._client.predict(
                 feed=feed_dict, fetch=self._fetch_names)
-            logging.debug(self._log("get call_result"))
+            _LOGGER.debug(self._log("get call_result"))
         else:
             call_result = self._client.predict(
                 feed=feed_dict, fetch=self._fetch_names)
-            logging.debug(self._log("get fetch_dict"))
+            _LOGGER.debug(self._log("get fetch_dict"))
         return call_result
 
     def postprocess(self, fetch_dict):
@@ -160,21 +155,19 @@ class Op(object):
             channel.stop()
         self._is_run = False
 
-    def _parse_channeldata(self, channeldata):
+    def _parse_channeldata(self, channeldata_dict):
         data_id, error_channeldata = None, None
-        if isinstance(channeldata, dict):
-            parsed_data = {}
-            key = list(channeldata.keys())[0]
-            data_id = channeldata[key].id
-            for _, data in channeldata.items():
-                if data.ecode != ChannelDataEcode.OK.value:
-                    error_channeldata = data
-                    break
-        else:
-            data_id = channeldata.id
-            if channeldata.ecode != ChannelDataEcode.OK.value:
-                error_channeldata = channeldata
-        return data_id, error_channeldata
+        parsed_data = {}
+
+        key = list(channeldata_dict.keys())[0]
+        data_id = channeldata_dict[key].id
+
+        for name, data in channeldata_dict.items():
+            if data.ecode != ChannelDataEcode.OK.value:
+                error_channeldata = data
+                break
+            parsed_data[name] = data.parse()
+        return data_id, error_channeldata, parsed_data
 
     def _push_to_output_channels(self, data, channels, name=None):
         if name is None:
@@ -229,11 +222,12 @@ class Op(object):
         self._is_run = True
         while self._is_run:
             self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
-            channeldata = input_channel.front(self.name)
+            channeldata_dict = input_channel.front(self.name)
             self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
-            logging.debug(log("input_data: {}".format(channeldata)))
+            _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
-            data_id, error_channeldata = self._parse_channeldata(channeldata)
+            data_id, error_channeldata, parsed_data = self._parse_channeldata(
+                channeldata_dict)
 
             # error data in predecessor Op
             if error_channeldata is not None:
@@ -245,13 +239,13 @@ class Op(object):
             try:
                 self._profiler_record("{}-prep#{}_0".format(op_info_prefix,
                                                             tid))
-                preped_data = self.preprocess(channeldata)
+                preped_data = self.preprocess(parsed_data)
                 self._profiler_record("{}-prep#{}_1".format(op_info_prefix,
                                                             tid))
             except NotImplementedError as e:
                 # preprocess function not implemented
                 error_info = log(e)
-                logging.error(error_info)
+                _LOGGER.error(error_info)
                 self._push_to_output_channels(
                     ChannelData(
                         ecode=ChannelDataEcode.NOT_IMPLEMENTED.value,
@@ -262,7 +256,7 @@ class Op(object):
             except TypeError as e:
                 # Error type in channeldata.datatype
                 error_info = log(e)
-                logging.error(error_info)
+                _LOGGER.error(error_info)
                 self._push_to_output_channels(
                     ChannelData(
                         ecode=ChannelDataEcode.TYPE_ERROR.value,
@@ -272,7 +266,7 @@ class Op(object):
                 continue
             except Exception as e:
                 error_info = log(e)
-                logging.error(error_info)
+                _LOGGER.error(error_info)
                 self._push_to_output_channels(
                     ChannelData(
                         ecode=ChannelDataEcode.UNKNOW.value,
@@ -293,7 +287,7 @@ class Op(object):
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
                         error_info = log(e)
-                        logging.error(error_info)
+                        _LOGGER.error(error_info)
                 else:
                     for i in range(self._retry):
                         try:
@@ -305,14 +299,14 @@ class Op(object):
                             if i + 1 >= self._retry:
                                 ecode = ChannelDataEcode.TIMEOUT.value
                                 error_info = log(e)
-                                logging.error(error_info)
+                                _LOGGER.error(error_info)
                             else:
-                                logging.warn(
+                                _LOGGER.warn(
                                     log("timeout, retry({})".format(i + 1)))
                         except Exception as e:
                             ecode = ChannelDataEcode.UNKNOW.value
                             error_info = log(e)
-                            logging.error(error_info)
+                            _LOGGER.error(error_info)
                             break
                         else:
                             break
@@ -346,7 +340,7 @@ class Op(object):
             except Exception as e:
                 ecode = ChannelDataEcode.UNKNOW.value
                 error_info = log(e)
-                logging.error(error_info)
+                _LOGGER.error(error_info)
                 self._push_to_output_channels(
                     ChannelData(
                         ecode=ecode, error_info=error_info, data_id=data_id),
@@ -356,7 +350,7 @@ class Op(object):
                 ecode = ChannelDataEcode.TYPE_ERROR.value
                 error_info = log("output of postprocess funticon must be " \
                         "dict type, but get {}".format(type(postped_data)))
-                logging.error(error_info)
+                _LOGGER.error(error_info)
                 self._push_to_output_channels(
                     ChannelData(
                         ecode=ecode, error_info=error_info, data_id=data_id),
@@ -385,11 +379,62 @@ class Op(object):
         return "{} {}".format(self.name, info)
 
 
-class ReadOp(Op):
+class RequestOp(Op):
+    """ RequestOp do not run preprocess, process, postprocess. """
+
     def __init__(self, concurrency=1):
         # PipelineService.name = "#G"
-        super(ReadOp, self).__init__(
+        super(RequestOp, self).__init__(
             name="#G", input_ops=[], concurrency=concurrency)
+        # load user resources
+        self.load_user_resources()
+
+    def unpack_request_package(self, request):
+        dictdata = {}
+        for idx, key in enumerate(request.key):
+            dictdata[key] = request.value[idx]
+        return dictdata
+
+
+class ResponseOp(Op):
+    """ ResponseOp do not run preprocess, process, postprocess. """
+
+    def __init__(self, input_ops, concurrency=1):
+        super(ResponseOp, self).__init__(
+            name="#R", input_ops=input_ops, concurrency=concurrency)
+        # load user resources
+        self.load_user_resources()
+
+    def pack_response_package(self, channeldata):
+        resp = pipeline_service_pb2.Response()
+        resp.ecode = channeldata.ecode
+        if resp.ecode == ChannelDataEcode.OK.value:
+            if channeldata.datatype == ChannelDataType.CHANNEL_NPDATA.value:
+                feed = channeldata.parse()
+                # ndarray to string:
+                # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
+                for name, var in feed.items():
+                    resp.value.append(var.__repr__())
+                    resp.key.append(name)
+            elif channeldata.datatype == ChannelDataType.DICT.value:
+                feed = channeldata.parse()
+                for name, var in feed.items():
+                    if not isinstance(var, str):
+                        resp.ecode = ChannelDataEcode.TYPE_ERROR.value
+                        resp.error_info = self._log(
+                            "fetch var type must be str({}).".format(
+                                type(var)))
+                        break
+                    resp.value.append(var)
+                    resp.key.append(name)
+            else:
+                resp.ecode = ChannelDataEcode.TYPE_ERROR.value
+                resp.error_info = self._log(
+                    "Error type({}) in datatype.".format(channeldata.datatype))
+                _LOGGER.error(resp.error_info)
+        else:
+            resp.error_info = channeldata.error_info
+        return resp
 
 
 class VirtualOp(Op):
@@ -427,17 +472,11 @@ class VirtualOp(Op):
         self._is_run = True
         while self._is_run:
             self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
-            channeldata = input_channel.front(self.name)
+            channeldata_dict = input_channel.front(self.name)
             self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
 
             self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
-            if isinstance(channeldata, dict):
-                for name, data in channeldata.items():
-                    self._push_to_output_channels(
-                        data, channels=output_channels, name=name)
-            else:
+            for name, data in channeldata_dict.items():
                 self._push_to_output_channels(
-                    channeldata,
-                    channels=output_channels,
-                    name=self._virtual_pred_ops[0].name)
+                    data, channels=output_channels, name=name)
             self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
