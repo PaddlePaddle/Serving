@@ -555,7 +555,7 @@ class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
 
     VLOG(2) << "prepare for encryption model";
 
-    auto cipher = paddle::framework::MakeCipher("");
+    auto cipher = paddle::MakeCipher("");
     std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
     std::string real_params_buffer = cipher->Decrypt(params_buffer, key_buffer);
 
