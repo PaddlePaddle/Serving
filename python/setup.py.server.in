@@ -42,12 +42,18 @@ REQUIRED_PACKAGES = [
 ]
 
 packages=['paddle_serving_server',
-          'paddle_serving_server.proto']
+          'paddle_serving_server.proto',
+          'paddle_serving_server.pipeline',
+          'paddle_serving_server.pipeline.proto']
 
 package_dir={'paddle_serving_server':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
              'paddle_serving_server.proto':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto'}
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto',
+             'paddle_serving_server.pipeline':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/pipeline',
+             'paddle_serving_server.pipeline.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/pipeline/proto'}
 
 setup(
     name='paddle-serving-server',

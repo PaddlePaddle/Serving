@@ -16,10 +16,16 @@ def prase(pid_str, time_str, counter):
         if len(name_list) == 2:
             name = name_list[0]
         else:
-            name = name_list[0] + "_" + name_list[1]
+            name = "_".join(name_list[:-1])
+        name_list = name.split("#")
+        if len(name_list) > 1:
+            tid = name_list[-1]
+            name = "#".join(name_list[:-1])
+        else:
+            tid = 0
         event_dict = {}
         event_dict["name"] = name
-        event_dict["tid"] = 0
+        event_dict["tid"] = tid
         event_dict["pid"] = pid
         event_dict["ts"] = ts
         event_dict["ph"] = ph
