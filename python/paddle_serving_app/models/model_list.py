@@ -24,7 +24,7 @@ class ServingModels(object):
             "SentimentAnalysis"] = ["senta_bilstm", "senta_bow", "senta_cnn"]
         self.model_dict["SemanticRepresentation"] = ["ernie"]
         self.model_dict["ChineseWordSegmentation"] = ["lac"]
-        self.model_dict["ObjectDetection"] = ["faster_rcnn"]
+        self.model_dict["ObjectDetection"] = ["faster_rcnn", "yolov4"]
         self.model_dict["ImageSegmentation"] = [
             "unet", "deeplabv3", "deeplabv3+cityscapes"
         ]
