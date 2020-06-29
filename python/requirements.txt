@@ -1,3 +1,4 @@
 numpy>=1.12, <=1.16.4 ; python_version<"3.5"
 grpcio-tools>=1.28.1
 grpcio>=1.28.1
+func-timeout>=4.3.5

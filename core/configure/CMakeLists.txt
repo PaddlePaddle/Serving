@@ -86,6 +86,7 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMENT "Copy generated general_model_config proto file into directory paddle_serving_server/proto."
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 add_custom_command(TARGET multi_lang_general_model_service_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
                 COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
