@@ -1,0 +1,6 @@
+use_multithread: true
+client_type: brpc
+retry: 1
+profile: false
+prot: 8080
+worker_num: 2
