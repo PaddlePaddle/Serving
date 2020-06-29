@@ -18,8 +18,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "cipher.h"        // NOLINT
-#include "cipher_utils.h"  // NOLINT
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
 #include "core/predictor/framework/infer.h"
@@ -30,7 +28,6 @@ namespace paddle_serving {
 namespace fluid_cpu {
 
 using configure::SigmoidConf;
-
 class AutoLock {
  public:
   explicit AutoLock(pthread_mutex_t& mutex) : _mut(mutex) {
@@ -558,7 +555,7 @@ class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
 
     VLOG(2) << "prepare for encryption model";
 
-    auto cipher = paddle::framework::CipherFactory::CreateCipher("");
+    auto cipher = paddle::framework::MakeCipher("");
     std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
     std::string real_params_buffer = cipher->Decrypt(params_buffer, key_buffer);
 
