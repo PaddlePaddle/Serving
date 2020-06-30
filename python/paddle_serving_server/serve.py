@@ -21,6 +21,7 @@ import argparse
 import sys
 import json
 import base64
+import time
 from multiprocessing import Process
 from web_service import WebService, port_is_available
 from flask import Flask, request
@@ -128,6 +129,15 @@ class MainService(BaseHTTPRequestHandler):
                 f.write(key)
             return True
 
+    def check_key(self, post_data):
+        if "key" not in post_data:
+            return False
+        else:
+            key = base64.b64decode(post_data["key"])
+            with open(args.model + "/key", "r") as f:
+                cur_key = f.read()
+            return (key == cur_key)
+
     def start(self, post_data):
         post_data = json.loads(post_data)
         global p_flag
@@ -138,12 +148,20 @@ class MainService(BaseHTTPRequestHandler):
                     print("not found key in request")
                     return False
             global serving_port
+            global p
             serving_port = self.get_available_port()
             p = Process(target=self.start_serving)
             p.start()
-            p_flag = True
+            time.sleep(3)
+            if p.is_alive():
+                p_flag = True
+            else:
+                return False
         else:
-            if not p.is_alive():
+            if p.is_alive():
+                if not self.check_key(post_data):
+                    return False
+            else:
                 return False
         return True
 
@@ -165,6 +183,7 @@ if __name__ == "__main__":
     if args.name == "None":
         if args.use_encryption_model:
             p_flag = False
+            p = None
             serving_port = 0
             server = HTTPServer(('localhost', int(args.port)), MainService)
             print(
