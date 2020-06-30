@@ -31,7 +31,7 @@ class ServingModels(object):
         self.model_dict["ImageClassification"] = [
             "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"
         ]
-        self.model_dict["TextDetection"] = ["ocr_detection"]
+        self.model_dict["TextDetection"] = ["ocr_det"]
         self.model_dict["OCR"] = ["ocr_rec"]
 
         image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"
