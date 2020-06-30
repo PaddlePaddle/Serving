@@ -25,36 +25,36 @@ import base64
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
-from paddle_serving_app.reader import Sequential, URL2Image, Resize
+from paddle_serving_app.reader import Sequential, File2Image, Resize
 from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 
 args = benchmark_args()
 
 seq_preprocess = Sequential([
-    URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
     Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
 ])
 
 
 def single_func(idx, resource):
     file_list = []
+    turns = 10
     for file_name in os.listdir("./image_data/n01440764"):
         file_list.append(file_name)
     img_list = []
     for i in range(1000):
-        img_list.append(open("./image_data/n01440764/" + file_list[i]).read())
+        img_list.append("./image_data/n01440764/" + file_list[i])
     profile_flags = False
     if "FLAGS_profile_client" in os.environ and os.environ[
             "FLAGS_profile_client"]:
         profile_flags = True
     if args.request == "rpc":
-        reader = ImageReader()
         fetch = ["score"]
         client = Client()
         client.load_client_config(args.model)
         client.connect([resource["endpoint"][idx % len(resource["endpoint"])]])
         start = time.time()
-        for i in range(1000):
+        for i in range(turns):
             if args.batch_size >= 1:
                 feed_batch = []
                 i_start = time.time()
@@ -77,7 +77,7 @@ def single_func(idx, resource):
         server = "http://" + resource["endpoint"][idx % len(resource[
             "endpoint"])] + "/image/prediction"
         start = time.time()
-        for i in range(1000):
+        for i in range(turns):
             if py_version == 2:
                 image = base64.b64encode(
                     open("./image_data/n01440764/" + file_list[i]).read())
@@ -93,8 +93,9 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9393"]
-    #endpoint_list = endpoint_list + endpoint_list + endpoint_list
+    endpoint_list = [
+        "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
+    ]
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
     #result = single_func(0, {"endpoint": endpoint_list})
