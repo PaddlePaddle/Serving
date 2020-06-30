@@ -191,7 +191,7 @@ class OCRReader(object):
         for rno in range(len(rec_idx_lod) - 1):
             beg = rec_idx_lod[rno]
             end = rec_idx_lod[rno + 1]
-            rec_idx_tmp = [rec_idx_batch[i][0] for i in range(beg, end, 1)]
+            rec_idx_tmp = rec_idx_batch[beg:end, 0]
             preds_text = self.char_ops.decode(rec_idx_tmp)
             if with_score:
                 beg = predict_lod[rno]
