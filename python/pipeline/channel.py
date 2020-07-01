@@ -92,7 +92,16 @@ class ChannelData(object):
     def check_dictdata(dictdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
-        if not isinstance(dictdata, dict):
+        if isinstance(dictdata, list):
+            # batch data
+            for sample in dictdata:
+                if not isinstance(sample, dict):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be dict, but get {}.".format(type(sample))
+                    break
+        elif not isinstance(dictdata, dict):
+            # batch size = 1
             ecode = ChannelDataEcode.TYPE_ERROR.value
             error_info = "the value of data must " \
                         "be dict, but get {}.".format(type(dictdata))
