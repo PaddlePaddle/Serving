@@ -46,7 +46,7 @@ def single_func(idx, resource):
         start = time.time()
         itr = 1000
         for ei in range(itr):
-            if args.batch_size > 1:
+            if args.batch_size > 0:
                 feed_batch = []
                 for bi in range(args.batch_size):
                     data = reader().next()
