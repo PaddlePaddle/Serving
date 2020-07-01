@@ -25,7 +25,7 @@ from .proto import pipeline_service_pb2
 from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
 from .util import NameGenerator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 _op_name_gen = NameGenerator("Op")
 
 
@@ -142,7 +142,7 @@ class Op(object):
         _LOGGER.debug(self._log("get call_result"))
         return call_result
 
-    def postprocess(self, fetch_dict):
+    def postprocess(self, input_dict, fetch_dict):
         return fetch_dict
 
     def stop(self):
@@ -267,10 +267,10 @@ class Op(object):
             midped_data = preped_data
         return midped_data, error_channeldata
 
-    def _run_postprocess(self, midped_data, data_id, log_func):
+    def _run_postprocess(self, input_dict, midped_data, data_id, log_func):
         output_data, error_channeldata = None, None
         try:
-            postped_data = self.postprocess(midped_data)
+            postped_data = self.postprocess(input_dict, midped_data)
         except Exception as e:
             error_info = log_func(e)
             _LOGGER.error(error_info)
@@ -359,8 +359,8 @@ class Op(object):
 
             # postprocess
             self._profiler_record("{}-postp#{}_0".format(op_info_prefix, tid))
-            output_data, error_channeldata = self._run_postprocess(midped_data,
-                                                                   data_id, log)
+            output_data, error_channeldata = self._run_postprocess(
+                    parsed_data, midped_data, data_id, log)
             self._profiler_record("{}-postp#{}_1".format(op_info_prefix, tid))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
