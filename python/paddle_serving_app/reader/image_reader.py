@@ -466,7 +466,6 @@ class BlazeFacePostprocess(RCNNPostprocess):
 
 class Sequential(object):
     """
-
     Args:
         sequence (sequence of ``Transform`` objects): list of transforms to chain.
 
