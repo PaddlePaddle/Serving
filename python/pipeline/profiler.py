@@ -24,7 +24,7 @@ else:
     raise Exception("Error Python version")
 import time
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class TimeProfiler(object):

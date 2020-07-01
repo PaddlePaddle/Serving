@@ -27,7 +27,7 @@ import logging
 import enum
 import copy
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class ChannelDataEcode(enum.Enum):
@@ -97,17 +97,37 @@ class ChannelData(object):
             error_info = "the value of data must " \
                         "be dict, but get {}.".format(type(dictdata))
         return ecode, error_info
-
+    
     @staticmethod
     def check_npdata(npdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
-        for _, value in npdata.items():
-            if not isinstance(value, np.ndarray):
-                ecode = ChannelDataEcode.TYPE_ERROR.value
-                error_info = "the value of data must " \
-                        "be np.ndarray, but get {}.".format(type(value))
-                break
+        if isinstance(npdata, list):
+            # batch data
+            for sample in npdata:
+                if not isinstance(sample, dict):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be dict, but get {}.".format(type(sample))
+                    break
+                for _, value in sample.items():
+                    if not isinstance(value, np.ndarray):
+                        ecode = ChannelDataEcode.TYPE_ERROR.value
+                        error_info = "the value of data must " \
+                                "be np.ndarray, but get {}.".format(type(value))
+                        return ecode, error_info
+        elif isinstance(npdata, dict):
+            # batch_size = 1
+            for _, value in npdata.items():
+                if not isinstance(value, np.ndarray):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be np.ndarray, but get {}.".format(type(value))
+                    break
+        else:
+            ecode = ChannelDataEcode.TYPE_ERROR.value
+            error_info = "the value of data must " \
+                    "be dict, but get {}.".format(type(npdata))
         return ecode, error_info
 
     def parse(self):

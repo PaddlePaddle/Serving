@@ -45,7 +45,7 @@ from .channel import ThreadChannel, ProcessChannel, ChannelData, ChannelDataEcod
 from .profiler import TimeProfiler
 from .util import NameGenerator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 _profiler = TimeProfiler()
 
 
@@ -384,7 +384,7 @@ class PipelineServer(object):
 
     def prepare_server(self, yml_file):
         with open(yml_file) as f:
-            yml_config = yaml.load(f.read())
+            yml_config = yaml.load(f.read(), Loader=yaml.FullLoader)
         self._port = yml_config.get('port', 8080)
         if not self._port_is_available(self._port):
             raise SystemExit("Prot {} is already used".format(self._port))
