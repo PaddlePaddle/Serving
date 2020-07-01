@@ -97,7 +97,7 @@ class ChannelData(object):
             error_info = "the value of data must " \
                         "be dict, but get {}.".format(type(dictdata))
         return ecode, error_info
-    
+
     @staticmethod
     def check_npdata(npdata):
         ecode = ChannelDataEcode.OK.value

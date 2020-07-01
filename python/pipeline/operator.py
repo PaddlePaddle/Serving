@@ -360,7 +360,7 @@ class Op(object):
             # postprocess
             self._profiler_record("{}-postp#{}_0".format(op_info_prefix, tid))
             output_data, error_channeldata = self._run_postprocess(
-                    parsed_data, midped_data, data_id, log)
+                parsed_data, midped_data, data_id, log)
             self._profiler_record("{}-postp#{}_1".format(op_info_prefix, tid))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
