@@ -450,13 +450,22 @@ class VirtualOp(Op):
     def add_virtual_pred_op(self, op):
         self._virtual_pred_ops.append(op)
 
+    def _actual_pred_op_names(self, op):
+        if not isinstance(op, VirtualOp):
+            return [op.name]
+        names = []
+        for x in op._virtual_pred_ops:
+            names.extend(self._actual_pred_op_names(x))
+        return names
+
     def add_output_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 self._log('output channel must be Channel type, not {}'.format(
                     type(channel))))
         for op in self._virtual_pred_ops:
-            channel.add_producer(op.name)
+            for op_name in self._actual_pred_op_names(op):
+                channel.add_producer(op_name)
         self._outputs.append(channel)
 
     def _run(self, concurrency_idx, input_channel, output_channels,
