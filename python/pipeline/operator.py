@@ -19,6 +19,7 @@ from paddle_serving_client import MultiLangClient, Client
 from concurrent import futures
 import logging
 import func_timeout
+import os
 from numpy import *
 
 from .proto import pipeline_service_pb2
@@ -328,7 +329,11 @@ class Op(object):
             client_predict_handler = client.predict
 
         # load user resources
-        self.load_user_resources()
+        try:
+            self.load_user_resources()
+        except Exception as e:
+            _LOGGER.error(log(e))
+            os._exit(-1)
 
         self._is_run = True
         while self._is_run:
@@ -392,7 +397,11 @@ class RequestOp(Op):
         super(RequestOp, self).__init__(
             name="#G", input_ops=[], concurrency=concurrency)
         # load user resources
-        self.load_user_resources()
+        try:
+            self.load_user_resources()
+        except Exception as e:
+            _LOGGER.error(log(e))
+            os._exit(-1)
 
     def unpack_request_package(self, request):
         dictdata = {}
@@ -413,7 +422,11 @@ class ResponseOp(Op):
         super(ResponseOp, self).__init__(
             name="#R", input_ops=input_ops, concurrency=concurrency)
         # load user resources
-        self.load_user_resources()
+        try:
+            self.load_user_resources()
+        except Exception as e:
+            _LOGGER.error(log(e))
+            os._exit(-1)
 
     def pack_response_package(self, channeldata):
         resp = pipeline_service_pb2.Response()
