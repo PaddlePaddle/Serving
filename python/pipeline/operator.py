@@ -321,15 +321,16 @@ class Op(object):
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
 
-        # create client based on client_type
-        client = self.init_client(client_type, self._client_config,
-                                  self._server_endpoints, self._fetch_names)
+        client = None
         client_predict_handler = None
-        if self.with_serving:
-            client_predict_handler = client.predict
-
-        # load user resources
         try:
+            # create client based on client_type
+            client = self.init_client(client_type, self._client_config,
+                                      self._server_endpoints, self._fetch_names)
+            if client is not None:
+                client_predict_handler = client.predict
+
+            # load user resources
             self.load_user_resources()
         except Exception as e:
             _LOGGER.error(log(e))
