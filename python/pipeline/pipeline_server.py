@@ -235,6 +235,10 @@ class PipelineServer(object):
             return use_ops, succ_ops_of_use_op
 
         use_ops, out_degree_ops = get_use_ops(response_op)
+        _LOGGER.info("================= use op ==================")
+        for op in use_ops:
+            _LOGGER.debug(op.name)
+        _LOGGER.info("===========================================")
         if len(use_ops) <= 1:
             raise Exception(
                 "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."
@@ -384,7 +388,7 @@ class PipelineServer(object):
 
     def prepare_server(self, yml_file):
         with open(yml_file) as f:
-            yml_config = yaml.load(f.read(), Loader=yaml.FullLoader)
+            yml_config = yaml.load(f.read())
         self._port = yml_config.get('port', 8080)
         if not self._port_is_available(self._port):
             raise SystemExit("Prot {} is already used".format(self._port))
