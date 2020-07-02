@@ -184,7 +184,7 @@ class Op(object):
         try:
             self.init_op()
         except Exception as e:
-            _LOGGER.error(log(e))
+            _LOGGER.error(e)
             os._exit(-1)
 
         threads = []
@@ -413,7 +413,7 @@ class RequestOp(Op):
         try:
             self.init_op()
         except Exception as e:
-            _LOGGER.error(log(e))
+            _LOGGER.error(e)
             os._exit(-1)
 
     def unpack_request_package(self, request):
@@ -438,7 +438,7 @@ class ResponseOp(Op):
         try:
             self.init_op()
         except Exception as e:
-            _LOGGER.error(log(e))
+            _LOGGER.error(e)
             os._exit(-1)
 
     def pack_response_package(self, channeldata):
