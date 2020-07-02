@@ -237,7 +237,7 @@ class PipelineServer(object):
         use_ops, out_degree_ops = get_use_ops(response_op)
         _LOGGER.info("================= use op ==================")
         for op in use_ops:
-            _LOGGER.debug(op.name)
+            _LOGGER.info(op.name)
         _LOGGER.info("===========================================")
         if len(use_ops) <= 1:
             raise Exception(
