@@ -13,19 +13,26 @@
 # limitations under the License.
 
 from paddle_serving_client import Client
-from paddle_serving_app.reader import OCRReader
-import cv2
+from paddle_serving_app.reader import *
+import sys
+import numpy as np
 
+preprocess = Sequential([
+    File2Image(),
+    Normalize([104, 117, 123], [127.502231, 127.502231, 127.502231], False)
+])
+
+postprocess = BlazeFacePostprocess("label_list.txt", "output")
 client = Client()
-client.load_client_config("ocr_rec_client/serving_client_conf.prototxt")
-client.connect(["127.0.0.1:9292"])
 
-image_file_list = ["./test_rec.jpg"]
-img = cv2.imread(image_file_list[0])
-ocr_reader = OCRReader()
-feed = {"image": ocr_reader.preprocess([img])}
-fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-fetch_map = client.predict(feed=feed, fetch=fetch)
-rec_res = ocr_reader.postprocess(fetch_map)
-print(image_file_list[0])
-print(rec_res[0][0])
+client.load_client_config(sys.argv[1])
+client.connect(['127.0.0.1:9494'])
+
+im_0 = preprocess(sys.argv[2])
+tmp = Transpose((2, 0, 1))
+im = tmp(im_0)
+fetch_map = client.predict(
+    feed={"image": im}, fetch=["detection_output_0.tmp_0"])
+fetch_map["image"] = sys.argv[2]
+fetch_map["im_shape"] = im_0.shape
+postprocess(fetch_map)
