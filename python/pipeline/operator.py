@@ -352,9 +352,9 @@ class Op(object):
 
         self._is_run = True
         while self._is_run:
-            self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
             channeldata_dict = input_channel.front(self.name)
-            self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
             data_id, error_channeldata, parsed_data = self._parse_channeldata(
@@ -396,9 +396,9 @@ class Op(object):
                 continue
 
             # push data to channel (if run succ)
-            self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
             self._push_to_output_channels(output_data, output_channels)
-            self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
 
     def _log(self, info):
         return "{} {}".format(self.name, info)
@@ -518,12 +518,12 @@ class VirtualOp(Op):
 
         self._is_run = True
         while self._is_run:
-            self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
             channeldata_dict = input_channel.front(self.name)
-            self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
 
-            self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
             for name, data in channeldata_dict.items():
                 self._push_to_output_channels(
                     data, channels=output_channels, name=name)
-            self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
