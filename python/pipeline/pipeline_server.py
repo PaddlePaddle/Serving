@@ -156,14 +156,14 @@ class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
         resp_channeldata = None
         for i in range(self._retry):
             _LOGGER.debug(self._log('push data'))
-            _profiler.record("{}-push_0".format(self.name))
+            #_profiler.record("{}-push_0".format(self.name))
             self._in_channel.push(data, self.name)
-            _profiler.record("{}-push_1".format(self.name))
+            #_profiler.record("{}-push_1".format(self.name))
 
             _LOGGER.debug(self._log('wait for infer'))
-            _profiler.record("{}-fetch_0".format(self.name))
+            #_profiler.record("{}-fetch_0".format(self.name))
             resp_channeldata = self._get_data_in_globel_resp_dict(data_id)
-            _profiler.record("{}-fetch_1".format(self.name))
+            #_profiler.record("{}-fetch_1".format(self.name))
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
                 break
