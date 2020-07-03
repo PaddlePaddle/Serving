@@ -57,4 +57,3 @@ python resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prot
 ```
 kubectl apply -f imagenet_k8s_rpc.yaml
 ```
-
