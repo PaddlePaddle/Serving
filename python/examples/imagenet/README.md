@@ -47,3 +47,13 @@ client send inference request
 python resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
 *the port of server side in this example is 9696
+
+### Launch Paddle Serving on Kubernetes
+
+Paddle Serving support deployment on Kubernetes (K8S) clusters. From `imagenet_k8s_rpc.yaml` we define Serving as K8S Deployment and Service. User can deploy Serving on containers and expose internal or external service.
+
+We strongly recommend [Baidu Cloud CCE Cluster](https://cloud.baidu.com/search.html?q=CCE)
+
+```
+kubectl apply -f imagenet_k8s_rpc.yaml
+```
