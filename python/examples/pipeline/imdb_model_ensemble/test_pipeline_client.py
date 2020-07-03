@@ -16,7 +16,7 @@ import numpy as np
 from line_profiler import LineProfiler
 
 client = PipelineClient()
-client.connect('localhost:8080')
+client.connect(['127.0.0.1:8080'])
 
 lp = LineProfiler()
 lp_wrapper = lp(client.predict)

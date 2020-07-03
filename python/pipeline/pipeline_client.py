@@ -27,8 +27,12 @@ class PipelineClient(object):
     def __init__(self):
         self._channel = None
 
-    def connect(self, endpoint):
-        self._channel = grpc.insecure_channel(endpoint)
+    def connect(self, endpoints):
+        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
+                   ('grpc.lb_policy_name', 'round_robin')]
+        g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
+        self._channel = grpc.insecure_channel(g_endpoint, options=options)
         self._stub = pipeline_service_pb2_grpc.PipelineServiceStub(
             self._channel)
 
