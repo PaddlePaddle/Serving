@@ -45,7 +45,7 @@ from .channel import ThreadChannel, ProcessChannel, ChannelData, ChannelDataEcod
 from .profiler import TimeProfiler
 from .util import NameGenerator
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 _profiler = TimeProfiler()
 
 
@@ -235,6 +235,10 @@ class PipelineServer(object):
             return use_ops, succ_ops_of_use_op
 
         use_ops, out_degree_ops = get_use_ops(response_op)
+        _LOGGER.info("================= use op ==================")
+        for op in use_ops:
+            _LOGGER.info(op.name)
+        _LOGGER.info("===========================================")
         if len(use_ops) <= 1:
             raise Exception(
                 "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."

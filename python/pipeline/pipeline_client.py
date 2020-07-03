@@ -20,7 +20,7 @@ import functools
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class PipelineClient(object):
@@ -52,7 +52,7 @@ class PipelineClient(object):
             return {"ecode": resp.ecode, "error_info": resp.error_info}
         fetch_map = {"ecode": resp.ecode}
         for idx, key in enumerate(resp.key):
-            if key not in fetch:
+            if fetch is not None and key not in fetch:
                 continue
             data = resp.value[idx]
             try:
@@ -62,16 +62,16 @@ class PipelineClient(object):
             fetch_map[key] = data
         return fetch_map
 
-    def predict(self, feed_dict, fetch, asyn=False):
+    def predict(self, feed_dict, fetch=None, asyn=False):
         if not isinstance(feed_dict, dict):
             raise TypeError(
                 "feed must be dict type with format: {name: value}.")
-        if not isinstance(fetch, list):
+        if fetch is not None and not isinstance(fetch, list):
             raise TypeError("fetch must be list type with format: [name].")
         req = self._pack_request_package(feed_dict)
         if not asyn:
             resp = self._stub.inference(req)
-            return self._unpack_response_package(resp)
+            return self._unpack_response_package(resp, fetch)
         else:
             call_future = self._stub.inference.future(req)
             return PipelinePredictFuture(
