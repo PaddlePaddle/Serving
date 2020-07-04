@@ -184,9 +184,6 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 
 <h2 align="center">Community</h2>
 
-### User Group in China
-
-<p align="center">PaddleServing交流QQ群&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;&#8194;PaddleServing微信群</p>    
 
 ### Slack
 
