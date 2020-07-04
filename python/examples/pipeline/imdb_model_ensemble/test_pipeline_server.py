@@ -30,7 +30,7 @@ logging.basicConfig(
 
 
 class ImdbRequestOp(RequestOp):
-    def load_user_resources(self):
+    def init_op(self):
         self.imdb_dataset = IMDBDataset()
         self.imdb_dataset.load_resource('imdb.vocab')
 
@@ -46,7 +46,7 @@ class ImdbRequestOp(RequestOp):
 
 
 class CombineOp(Op):
-    def preprocess(self, input_data):
+    def preprocess(self, input_data, private_obj):
         combined_prediction = 0
         for op_name, data in input_data.items():
             _LOGGER.info("{}: {}".format(op_name, data["prediction"]))
