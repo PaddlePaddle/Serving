@@ -44,7 +44,7 @@ class DAGExecutor(object):
         self._dag.start()
 
         self._set_in_channel(in_channel)
-        self.set_out_channel(out_channel)
+        self._set_out_channel(out_channel)
         self._pack_rpc_func = pack_rpc_func
         self._unpack_rpc_func = unpack_rpc_func
 
@@ -56,6 +56,10 @@ class DAGExecutor(object):
         self._globel_resp_dict = {}
         self._id_counter = 0
         self._reset_max_id = 1000000000000000000
+        self._is_run = False
+        self._recive_func = None
+
+    def start(self):
         self._is_run = True
         self._recive_func = threading.Thread(
             target=DAGExecutor._recive_out_channel_func, args=(self, ))
@@ -169,7 +173,7 @@ class DAGExecutor(object):
 
 
 class DAG(object):
-    def __init__(slef, response_op, profiler, use_multithread, client_type,
+    def __init__(self, response_op, profiler, use_multithread, client_type,
                  channel_size):
         self._response_op = response_op
         self._use_multithread = use_multithread
@@ -181,7 +185,7 @@ class DAG(object):
 
     def get_use_ops(self, response_op):
         unique_names = set()
-        use_ops = set()
+        used_ops = set()
         succ_ops_of_use_op = {}  # {op_name: succ_ops}
         que = Queue.Queue()
         que.put(response_op)
@@ -192,15 +196,15 @@ class DAG(object):
                     succ_ops_of_use_op[pred_op.name] = []
                 if op != response_op:
                     succ_ops_of_use_op[pred_op.name].append(op)
-                if pred_op not in use_ops:
+                if pred_op not in used_ops:
                     que.put(pred_op)
-                    use_ops.add(pred_op)
+                    used_ops.add(pred_op)
                     # check the name of op is globally unique
                     if pred_op.name in unique_names:
                         raise Exception("the name of Op must be unique: {}".
                                         format(pred_op.name))
                     unique_names.add(pred_op.name)
-        return use_ops, succ_ops_of_use_op
+        return used_ops, succ_ops_of_use_op
 
     def _gen_channel(self, name_gen):
         channel = None
@@ -223,7 +227,7 @@ class DAG(object):
         que_idx = 0  # scroll queue 
         ques = [Queue.Queue() for _ in range(2)]
         zero_indegree_num = 0
-        for op in use_ops:
+        for op in used_ops:
             if len(op.get_input_ops()) == 0:
                 zero_indegree_num += 1
         if zero_indegree_num != 1:
@@ -250,20 +254,20 @@ class DAG(object):
             if next_que.qsize() == 0:
                 break
             que_idx = (que_idx + 1) % 2
-        if sorted_op_num < len(use_ops):
+        if sorted_op_num < len(used_ops):
             raise Exception("not legal DAG")
 
         return dag_views, last_op
 
-    def build(slef, response_op):
+    def _build_dag(self, response_op):
         if response_op is None:
             raise Exception("response_op has not been set.")
-        use_ops, out_degree_ops = self.get_use_ops(response_op)
+        used_ops, out_degree_ops = self.get_use_ops(response_op)
         _LOGGER.info("================= use op ==================")
-        for op in use_ops:
+        for op in used_ops:
             _LOGGER.info(op.name)
         _LOGGER.info("===========================================")
-        if len(use_ops) <= 1:
+        if len(used_ops) <= 1:
             raise Exception(
                 "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."
             )
@@ -349,7 +353,7 @@ class DAG(object):
         pack_func = response_op.pack_response_package
 
         actual_ops = virtual_ops
-        for op in use_ops:
+        for op in used_ops:
             if len(op.get_input_ops()) == 0:
                 unpack_func = op.unpack_request_package
                 continue
@@ -363,7 +367,7 @@ class DAG(object):
 
     def build(self):
         (actual_ops, channels, input_channel, output_channel, pack_func,
-         unpack_func) = self._topo_sort(self._response_op)
+         unpack_func) = self._build_dag(self._response_op)
 
         self._actual_ops = actual_ops
         self._channels = channels
@@ -379,10 +383,10 @@ class DAG(object):
         for op in self._actual_ops:
             op.init_profiler(self._profiler)
             if self._use_multithread:
-                threads_or_proces.extend(
+                self._threads_or_proces.extend(
                     op.start_with_thread(self._client_type))
             else:
-                threads_or_proces.extend(
+                self._threads_or_proces.extend(
                     op.start_with_process(self._client_type))
         # not join yet
         return self._threads_or_proces
