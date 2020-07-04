@@ -20,7 +20,7 @@ from contextlib import closing
 import yaml
 
 from .proto import pipeline_service_pb2_grpc
-from .operator import Op
+from .operator import ResponseOp
 from .profiler import TimeProfiler
 from .dag import DAGExecutor
 
@@ -49,8 +49,8 @@ class PipelineServer(object):
         pass
 
     def set_response_op(self, response_op):
-        if not isinstance(response_op, Op):
-            raise Exception("response_op must be Op type.")
+        if not isinstance(response_op, ResponseOp):
+            raise Exception("response_op must be ResponseOp type.")
         if len(response_op.get_input_ops()) != 1:
             raise Exception("response_op can only have one previous op.")
         self._response_op = response_op
