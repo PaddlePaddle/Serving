@@ -26,21 +26,34 @@ import logging
 
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import ThreadChannel, ProcessChannel, ChannelData, ChannelDataEcode, ChannelDataType
+from .profiler import TimeProfiler
 from .util import NameGenerator
 
 _LOGGER = logging.getLogger()
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, profiler, use_multithread, retry,
-                 client_type, channel_size):
+    def __init__(self, response_op, yml_config):
+        self._retry = yml_config.get('retry', 1)
+
+        client_type = yml_config.get('client_type', 'brpc')
+        use_multithread = yml_config.get('use_multithread', True)
+        use_profile = yml_config.get('profile', False)
+        channel_size = yml_config.get('channel_size', 0)
+
+        if not use_multithread:
+            if use_profile:
+                raise Exception(
+                    "profile cannot be used in multiprocess version temporarily")
+
         self.name = "#G"
-        self._retry = min(retry, 1)
-        self._profiler = profiler
-        self._dag = DAG(response_op, profiler, use_multithread, client_type,
-                        channel_size)
-        in_channel, out_channel, pack_rpc_func, unpack_rpc_func = self._dag.build(
-        )
+        self._profiler = TimeProfiler()
+        self._profiler.enable(use_profile)
+
+        self._dag = DAG(response_op, self._profiler, use_multithread,
+                        client_type, channel_size)
+        (in_channel, out_channel, pack_rpc_func,
+         unpack_rpc_func) = self._dag.build()
         self._dag.start()
 
         self._set_in_channel(in_channel)
@@ -52,10 +65,10 @@ class DAGExecutor(object):
         _LOGGER.debug(self._log(out_channel.debug()))
 
         self._id_lock = threading.Lock()
-        self._cv = threading.Condition()
-        self._fetch_buffer = {}
         self._id_counter = 0
         self._reset_max_id = 1000000000000000000
+        self._cv = threading.Condition()
+        self._fetch_buffer = {}
         self._is_run = False
         self._recive_func = None
 
@@ -136,6 +149,8 @@ class DAGExecutor(object):
                 data_id=data_id), data_id
 
     def call(self, rpc_request):
+        self._profiler.record("dag-call_0".format(self.name))
+
         self._profiler.record("{}-prepack_0".format(self.name))
         req_channeldata, data_id = self._pack_channeldata(rpc_request)
         self._profiler.record("{}-prepack_1".format(self.name))
@@ -161,6 +176,8 @@ class DAGExecutor(object):
         self._profiler.record("{}-postpack_0".format(self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("{}-postpack_1".format(self.name))
+
+        self._profiler.record("dag-call_1".format(self.name))
         self._profiler.print_profile()
         return rpc_resp
 

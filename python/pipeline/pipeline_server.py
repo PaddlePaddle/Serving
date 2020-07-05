@@ -21,17 +21,16 @@ import yaml
 
 from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
-from .profiler import TimeProfiler
 from .dag import DAGExecutor
 
 _LOGGER = logging.getLogger()
-_profiler = TimeProfiler()
 
 
 class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
     def __init__(self, dag_executor):
         super(PipelineService, self).__init__()
         self._dag_executor = dag_executor
+        self._dag_executor.start()
 
     def inference(self, request, context):
         resp = self._dag_executor.call(request)
@@ -43,10 +42,6 @@ class PipelineServer(object):
         self._port = None
         self._worker_num = None
         self._response_op = None
-
-    def gen_desc(self):
-        _LOGGER.info('here will generate desc for PAAS')
-        pass
 
     def set_response_op(self, response_op):
         if not isinstance(response_op, ResponseOp):
@@ -69,25 +64,8 @@ class PipelineServer(object):
             raise SystemExit("Prot {} is already used".format(self._port))
         self._worker_num = yml_config.get('worker_num', 2)
 
-        retry = yml_config.get('retry', 1)
-        client_type = yml_config.get('client_type', 'brpc')
-        use_multithread = yml_config.get('use_multithread', True)
-        use_profile = yml_config.get('profile', False)
-        channel_size = yml_config.get('channel_size', 0)
-
-        if not use_multithread:
-            if use_profile:
-                raise Exception(
-                    "profile cannot be used in multiprocess version temporarily")
-        _profiler.enable(use_profile)
-
         # init dag executor
-        self._dag_executor = DAGExecutor(self._response_op, _profiler,
-                                         use_multithread, retry, client_type,
-                                         channel_size)
-        self._dag_executor.start()
-
-        self.gen_desc()
+        self._dag_executor = DAGExecutor(self._response_op, yml_config)
 
     def run_server(self):
         service = PipelineService(self._dag_executor)
