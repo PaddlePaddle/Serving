@@ -197,7 +197,7 @@ class Op(object):
             threads.append(t)
         return threads
 
-    def init_op(self, concurrency_idx):
+    def init_op(self):
         pass
 
     def _run_preprocess(self, parsed_data, data_id, log_func):
