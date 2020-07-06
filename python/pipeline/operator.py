@@ -20,6 +20,7 @@ from concurrent import futures
 import logging
 import func_timeout
 import os
+import sys
 from numpy import *
 
 from .proto import pipeline_service_pb2
@@ -59,14 +60,14 @@ class Op(object):
         self._retry = max(1, retry)
         self._input = None
         self._outputs = []
-        self._profiler = None
+
+        self._use_profile = False
 
         # only for multithread
         self._for_init_op_lock = threading.Lock()
         self._succ_init_op = False
 
-    def init_profiler(self, profiler, use_profile):
-        self._profiler = profiler
+    def use_profiler(self, use_profile):
         self._use_profile = use_profile
 
     def _profiler_record(self, string):
@@ -351,9 +352,8 @@ class Op(object):
             os._exit(-1)
 
         # init profiler
-        if not use_multithread:
-            self._profiler = TimeProfiler()
-            self._profiler.enable(self._use_profile)
+        self._profiler = TimeProfiler()
+        self._profiler.enable(self._use_profile)
 
         self._is_run = True
         while self._is_run:
@@ -400,11 +400,17 @@ class Op(object):
                                               output_channels)
                 continue
 
+            if self._use_profile:
+                profile_str = self._profiler.gen_profile_str()
+                sys.stderr.write(profile_str)
+                #TODO
+                #output_data.add_profile(profile_str)
+
             # push data to channel (if run succ)
             #self._profiler_record("push#{}_0".format(op_info_prefix))
             self._push_to_output_channels(output_data, output_channels)
             #self._profiler_record("push#{}_1".format(op_info_prefix))
-            self._profiler.print_profile()
+            #self._profiler.print_profile()
 
     def _log(self, info):
         return "{} {}".format(self.name, info)

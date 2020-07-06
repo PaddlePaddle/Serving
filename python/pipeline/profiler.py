@@ -50,6 +50,9 @@ class TimeProfiler(object):
             self._time_record.put((name, tag, timestamp))
 
     def print_profile(self):
+        sys.stderr.write(self.gen_profile_str())
+
+    def gen_profile_str(self):
         if self._enable is False:
             return
         print_str = self._print_head
@@ -64,7 +67,7 @@ class TimeProfiler(object):
                 else:
                     tmp[name] = (tag, timestamp)
             print_str = "\n{}\n".format(print_str)
-            sys.stderr.write(print_str)
             for name, item in tmp.items():
                 tag, timestamp = item
                 self._time_record.put((name, tag, timestamp))
+            return print_str
