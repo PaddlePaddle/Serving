@@ -329,13 +329,7 @@ class ProcessChannel(object):
                         _LOGGER.debug(
                             self._log("{} try to get(with channel empty: {})".
                                       format(op_name, self._que.empty())))
-                        # For queue multiprocess: after putting an object on 
-                        # an empty queue there may be an infinitessimal delay
-                        # before the queue's :meth:`~Queue.empty`
-                        # see more:
-                        # - https://bugs.python.org/issue18277
-                        # - https://hg.python.org/cpython/rev/860fc6a2bd21
-                        resp = self._que.get(timeout=1e-3)
+                        resp = self._que.get(timeout=0)
                         break
                     except Queue.Empty:
                         _LOGGER.debug(
@@ -376,7 +370,7 @@ class ProcessChannel(object):
                     _LOGGER.debug(
                         self._log("{} try to get(with channel size: {})".format(
                             op_name, self._que.qsize())))
-                    channeldata = self._que.get(timeout=1e-3)
+                    channeldata = self._que.get(timeout=0)
                     self._output_buf.append(channeldata)
                     break
                 except Queue.Empty:
