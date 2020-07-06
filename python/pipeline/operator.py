@@ -25,6 +25,7 @@ from numpy import *
 from .proto import pipeline_service_pb2
 from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
 from .util import NameGenerator
+from .profiler import TimeProfiler
 
 _LOGGER = logging.getLogger()
 _op_name_gen = NameGenerator("Op")
