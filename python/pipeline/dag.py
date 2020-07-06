@@ -46,7 +46,7 @@ class DAGExecutor(object):
                 raise Exception(
                     "profile cannot be used in multiprocess version temporarily")
 
-        self.name = "#G"
+        self.name = "@G"
         self._profiler = TimeProfiler()
         self._profiler.enable(use_profile)
 
@@ -149,23 +149,23 @@ class DAGExecutor(object):
                 data_id=data_id), data_id
 
     def call(self, rpc_request):
-        self._profiler.record("dag-call_0".format(self.name))
+        self._profiler.record("call#DAG_0")
 
-        self._profiler.record("{}-prepack_0".format(self.name))
+        self._profiler.record("prepack#{}_0".format(self.name))
         req_channeldata, data_id = self._pack_channeldata(rpc_request)
-        self._profiler.record("{}-prepack_1".format(self.name))
+        self._profiler.record("prepack#{}_1".format(self.name))
 
         resp_channeldata = None
         for i in range(self._retry):
             _LOGGER.debug(self._log('push data'))
-            #self._profiler.record("{}-push_0".format(self.name))
+            #self._profiler.record("push#{}_0".format(self.name))
             self._in_channel.push(req_channeldata, self.name)
-            #self._profiler.record("{}-push_1".format(self.name))
+            #self._profiler.record("push#{}_1".format(self.name))
 
             _LOGGER.debug(self._log('wait for infer'))
-            #self._profiler.record("{}-fetch_0".format(self.name))
+            #self._profiler.record("fetch#{}_0".format(self.name))
             resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id)
-            #self._profiler.record("{}-fetch_1".format(self.name))
+            #self._profiler.record("fetch#{}_1".format(self.name))
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
                 break
@@ -173,11 +173,11 @@ class DAGExecutor(object):
                 _LOGGER.warn("retry({}): {}".format(
                     i + 1, resp_channeldata.error_info))
 
-        self._profiler.record("{}-postpack_0".format(self.name))
+        self._profiler.record("postpack#{}_0".format(self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
-        self._profiler.record("{}-postpack_1".format(self.name))
+        self._profiler.record("postpack#{}_1".format(self.name))
 
-        self._profiler.record("dag-call_1".format(self.name))
+        self._profiler.record("call#DAG_1")
         self._profiler.print_profile()
         return rpc_resp
 
