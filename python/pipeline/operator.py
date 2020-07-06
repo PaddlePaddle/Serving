@@ -339,14 +339,15 @@ class Op(object):
             os._exit(-1)
 
         # init op
+        self.concurrency_idx = concurrency_idx
         try:
             if use_multithread:
                 with self._for_init_op_lock:
                     if not self._succ_init_op:
-                        self.init_op(concurrency_idx)
+                        self.init_op()
                         self._succ_init_op = True
             else:
-                self.init_op(concurrency_idx)
+                self.init_op()
         except Exception as e:
             _LOGGER.error(log(e))
             os._exit(-1)
@@ -424,8 +425,9 @@ class RequestOp(Op):
         super(RequestOp, self).__init__(
             name="@G", input_ops=[], concurrency=concurrency)
         # init op
+        self.concurrency_idx = concurrency_idx
         try:
-            self.init_op(0)
+            self.init_op()
         except Exception as e:
             _LOGGER.error(e)
             os._exit(-1)
@@ -449,8 +451,9 @@ class ResponseOp(Op):
         super(ResponseOp, self).__init__(
             name="@R", input_ops=input_ops, concurrency=concurrency)
         # init op
+        self.concurrency_idx = concurrency_idx
         try:
-            self.init_op(0)
+            self.init_op()
         except Exception as e:
             _LOGGER.error(e)
             os._exit(-1)
