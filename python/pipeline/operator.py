@@ -197,7 +197,7 @@ class Op(object):
             threads.append(t)
         return threads
 
-    def init_op(self):
+    def init_op(self, concurrency_idx):
         pass
 
     def _run_preprocess(self, parsed_data, data_id, log_func):
@@ -343,10 +343,10 @@ class Op(object):
             if use_multithread:
                 with self._for_init_op_lock:
                     if not self._succ_init_op:
-                        self.init_op()
+                        self.init_op(concurrency_idx)
                         self._succ_init_op = True
             else:
-                self.init_op()
+                self.init_op(concurrency_idx)
         except Exception as e:
             _LOGGER.error(log(e))
             os._exit(-1)
@@ -425,7 +425,7 @@ class RequestOp(Op):
             name="@G", input_ops=[], concurrency=concurrency)
         # init op
         try:
-            self.init_op()
+            self.init_op(0)
         except Exception as e:
             _LOGGER.error(e)
             os._exit(-1)
@@ -450,7 +450,7 @@ class ResponseOp(Op):
             name="@R", input_ops=input_ops, concurrency=concurrency)
         # init op
         try:
-            self.init_op()
+            self.init_op(0)
         except Exception as e:
             _LOGGER.error(e)
             os._exit(-1)

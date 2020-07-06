@@ -50,6 +50,8 @@ class TimeProfiler(object):
             self._time_record.put((name, tag, timestamp))
 
     def print_profile(self):
+        if self._enable is False:
+            return
         sys.stderr.write(self.gen_profile_str())
 
     def gen_profile_str(self):
