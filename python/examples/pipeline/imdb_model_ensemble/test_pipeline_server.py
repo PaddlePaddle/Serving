@@ -46,7 +46,7 @@ class ImdbRequestOp(RequestOp):
 
 
 class CombineOp(Op):
-    def preprocess(self, input_data, private_obj):
+    def preprocess(self, input_data):
         combined_prediction = 0
         for op_name, data in input_data.items():
             _LOGGER.info("{}: {}".format(op_name, data["prediction"]))
