@@ -147,6 +147,8 @@ class DAGExecutor(object):
             _LOGGER.debug("resp func get lock (data_id: {})".format(data_id))
             resp = copy.deepcopy(self._fetch_buffer)
             # cv.notify_all()
+        with self._cv_for_cv_pool:
+            self._cv_pool.pop(data_id)
         return resp
 
     def _pack_channeldata(self, rpc_request, data_id):
