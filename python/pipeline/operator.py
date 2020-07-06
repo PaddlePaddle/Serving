@@ -365,8 +365,8 @@ class Op(object):
 
             # preprecess
             self._profiler_record("prep#{}_0".format(op_info_prefix))
-            preped_data, error_channeldata = self._run_preprocess(
-                parsed_data, data_id, log)
+            preped_data, error_channeldata = self._run_preprocess(parsed_data,
+                                                                  data_id, log)
             self._profiler_record("prep#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
