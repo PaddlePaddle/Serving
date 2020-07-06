@@ -40,7 +40,7 @@ class DAGExecutor(object):
         use_multithread = yml_config.get('use_multithread', True)
         use_profile = yml_config.get('profile', False)
         channel_size = yml_config.get('channel_size', 0)
-        self._asyn_profile = yml_config.get('asgn_profile', False)
+        self._asyn_profile = yml_config.get('asyn_profile', False)
 
         if use_profile:
             _LOGGER.info("====> profiler <====")
