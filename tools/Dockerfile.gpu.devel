@@ -1,3 +1,5 @@
+FROM nvidia/cuda:9.0-cudnn7-devel-centos7 as builder
+
 FROM nvidia/cuda:9.0-cudnn7-devel-centos7
 RUN yum -y install wget >/dev/null \
     && yum -y install gcc gcc-c++ make glibc-static which  \
@@ -28,4 +30,7 @@ RUN yum install -y python3 python3-devel \
     && yum clean all 
 
 RUN localedef -c -i en_US -f UTF-8 en_US.UTF-8 \
-    && echo "export LANG=en_US.utf8" >> /root/.bashrc
+    && echo "export LANG=en_US.utf8" >> /root/.bashrc \
+    && mkdir -p /usr/local/cuda/extras
+
+COPY --from=builder /usr/local/cuda/extras/CUPTI /usr/local/cuda/extras/CUPTI
