@@ -364,9 +364,9 @@ class Op(object):
 
         self._is_run = True
         while self._is_run:
-            #self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("get#{}_0".format(op_info_prefix))
             channeldata_dict = input_channel.front(self.name)
-            #self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("get#{}_1".format(op_info_prefix))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
             data_id, error_channeldata, parsed_data = self._parse_channeldata(
@@ -378,39 +378,39 @@ class Op(object):
                 continue
 
             # preprecess
-            self._profiler_record("{}-prep#{}_0".format(op_info_prefix, tid))
+            self._profiler_record("prep#{}_0".format(op_info_prefix))
             preped_data, error_channeldata = self._run_preprocess(
                 parsed_data, data_id, private_obj, log)
-            self._profiler_record("{}-prep#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("prep#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
                                               output_channels)
                 continue
 
             # process
-            self._profiler_record("{}-midp#{}_0".format(op_info_prefix, tid))
+            self._profiler_record("midp#{}_0".format(op_info_prefix))
             midped_data, error_channeldata = self._run_process(
                 client_predict_handler, preped_data, data_id, private_obj, log)
-            self._profiler_record("{}-midp#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("midp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
                                               output_channels)
                 continue
 
             # postprocess
-            self._profiler_record("{}-postp#{}_0".format(op_info_prefix, tid))
+            self._profiler_record("postp#{}_0".format(op_info_prefix))
             output_data, error_channeldata = self._run_postprocess(
                 parsed_data, midped_data, data_id, private_obj, log)
-            self._profiler_record("{}-postp#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("postp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 self._push_to_output_channels(error_channeldata,
                                               output_channels)
                 continue
 
             # push data to channel (if run succ)
-            #self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("push#{}_0".format(op_info_prefix))
             self._push_to_output_channels(output_data, output_channels)
-            #self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("push#{}_1".format(op_info_prefix))
 
     def _log(self, info):
         return "{} {}".format(self.name, info)
@@ -420,9 +420,9 @@ class RequestOp(Op):
     """ RequestOp do not run preprocess, process, postprocess. """
 
     def __init__(self, concurrency=1):
-        # PipelineService.name = "#G"
+        # PipelineService.name = "@G"
         super(RequestOp, self).__init__(
-            name="#G", input_ops=[], concurrency=concurrency)
+            name="@G", input_ops=[], concurrency=concurrency)
         # init op
         try:
             self.init_op()
@@ -447,7 +447,7 @@ class ResponseOp(Op):
 
     def __init__(self, input_ops, concurrency=1):
         super(ResponseOp, self).__init__(
-            name="#R", input_ops=input_ops, concurrency=concurrency)
+            name="@R", input_ops=input_ops, concurrency=concurrency)
         # init op
         try:
             self.init_op()
@@ -530,12 +530,12 @@ class VirtualOp(Op):
 
         self._is_run = True
         while self._is_run:
-            #self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("get#{}_0".format(op_info_prefix))
             channeldata_dict = input_channel.front(self.name)
-            #self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("get#{}_1".format(op_info_prefix))
 
-            #self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
+            #self._profiler_record("push#{}_0".format(op_info_prefix))
             for name, data in channeldata_dict.items():
                 self._push_to_output_channels(
                     data, channels=output_channels, name=name)
-            #self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("push#{}_1".format(op_info_prefix))
