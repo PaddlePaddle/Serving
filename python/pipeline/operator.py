@@ -425,7 +425,6 @@ class RequestOp(Op):
         super(RequestOp, self).__init__(
             name="@G", input_ops=[], concurrency=concurrency)
         # init op
-        self.concurrency_idx = concurrency_idx
         try:
             self.init_op()
         except Exception as e:
@@ -451,7 +450,6 @@ class ResponseOp(Op):
         super(ResponseOp, self).__init__(
             name="@R", input_ops=input_ops, concurrency=concurrency)
         # init op
-        self.concurrency_idx = concurrency_idx
         try:
             self.init_op()
         except Exception as e:
