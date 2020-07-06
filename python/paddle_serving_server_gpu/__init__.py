@@ -26,7 +26,7 @@ from contextlib import closing
 import argparse
 import collections
 import fcntl
-
+import shutil
 import numpy as np
 import grpc
 from .proto import multi_lang_general_model_service_pb2
@@ -285,7 +285,7 @@ class Server(object):
             infer_service.workflows.extend(["workflow1"])
             self.infer_service_conf.services.extend([infer_service])
 
-    def _prepare_resource(self, workdir):
+    def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
@@ -297,6 +297,11 @@ class Server(object):
                     if "dist_kv" in node.name:
                         self.resource_conf.cube_config_path = workdir
                         self.resource_conf.cube_config_file = self.cube_config_fn
+                        if cube_conf == None:
+                            raise ValueError(
+                                "Please set the path of cube.conf while use dist_kv op."
+                            )
+                        shutil.copy(cube_conf, workdir)
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
@@ -406,7 +411,11 @@ class Server(object):
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
@@ -419,6 +428,7 @@ class Server(object):
 
         self.set_port(port)
         self._prepare_resource(workdir)
+        self._prepare_resource(workdir, cube_conf)
         self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
