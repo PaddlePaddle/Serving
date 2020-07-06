@@ -65,8 +65,9 @@ class Op(object):
         self._for_init_op_lock = threading.Lock()
         self._succ_init_op = False
 
-    def init_profiler(self, profiler):
+    def init_profiler(self, profiler, use_profile):
         self._profiler = profiler
+        self._use_profile = use_profile
 
     def _profiler_record(self, string):
         if self._profiler is None:
@@ -349,6 +350,11 @@ class Op(object):
             _LOGGER.error(log(e))
             os._exit(-1)
 
+        # init profiler
+        if not use_multithread:
+            self._profiler = TimeProfiler()
+            self._profiler.enable(self._use_profile)
+
         self._is_run = True
         while self._is_run:
             #self._profiler_record("get#{}_0".format(op_info_prefix))
@@ -398,6 +404,7 @@ class Op(object):
             #self._profiler_record("push#{}_0".format(op_info_prefix))
             self._push_to_output_channels(output_data, output_channels)
             #self._profiler_record("push#{}_1".format(op_info_prefix))
+            self._profiler.print_profile()
 
     def _log(self, info):
         return "{} {}".format(self.name, info)
