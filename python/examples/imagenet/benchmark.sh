@@ -11,7 +11,7 @@ $PYTHONROOT/bin/python benchmark.py --thread 8 --batch_size 1 --model $2/serving
 
 for thread_num in 4 8 16
 do
-for batch_size in 1 4 16 64 256
+for batch_size in 1 4 16 64
 do
     $PYTHONROOT/bin/python benchmark.py --thread $thread_num --batch_size $batch_size --model $2/serving_client_conf.prototxt --request rpc > profile 2>&1
     echo "model name :" $1

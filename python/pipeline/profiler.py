@@ -24,7 +24,7 @@ else:
     raise Exception("Error Python version")
 import time
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class TimeProfiler(object):
@@ -58,7 +58,7 @@ class TimeProfiler(object):
                 print_str += "{}_{}:{} ".format(name, tag, timestamp)
             else:
                 tmp[name] = (tag, timestamp)
-        print_str += "\n"
+        print_str = "\n{}\n".format(print_str)
         sys.stderr.write(print_str)
         for name, item in tmp.items():
             tag, timestamp = item

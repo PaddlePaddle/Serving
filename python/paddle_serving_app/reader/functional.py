@@ -29,6 +29,7 @@ def normalize(img, mean, std, channel_first):
     else:
         img_mean = np.array(mean).reshape((1, 1, 3))
         img_std = np.array(std).reshape((1, 1, 3))
+    img = np.array(img).astype("float32")
     img -= img_mean
     img /= img_std
     return img
