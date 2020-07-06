@@ -24,7 +24,7 @@ from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
 from paddle_serving_client.metric import auc
 
-bash: npm: command not found
+py_version = sys.version_info[0]
 args = benchmark_args()
 
 
