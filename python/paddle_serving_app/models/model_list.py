@@ -24,14 +24,15 @@ class ServingModels(object):
             "SentimentAnalysis"] = ["senta_bilstm", "senta_bow", "senta_cnn"]
         self.model_dict["SemanticRepresentation"] = ["ernie"]
         self.model_dict["ChineseWordSegmentation"] = ["lac"]
-        self.model_dict["ObjectDetection"] = ["faster_rcnn", "yolov4"]
+        self.model_dict[
+            "ObjectDetection"] = ["faster_rcnn", "yolov4", "blazeface"]
         self.model_dict["ImageSegmentation"] = [
             "unet", "deeplabv3", "deeplabv3+cityscapes"
         ]
         self.model_dict["ImageClassification"] = [
             "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"
         ]
-        self.model_dict["TextDetection"] = ["ocr_detection"]
+        self.model_dict["TextDetection"] = ["ocr_det"]
         self.model_dict["OCR"] = ["ocr_rec"]
 
         image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"

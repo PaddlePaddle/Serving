@@ -29,6 +29,7 @@ args = benchmark_args()
 
 def single_func(idx, resource):
     client = Client()
+    print([resource["endpoint"][idx % len(resource["endpoint"])]])
     client.load_client_config('ctr_client_conf/serving_client_conf.prototxt')
     client.connect(['127.0.0.1:9292'])
     batch = 1
@@ -40,27 +41,29 @@ def single_func(idx, resource):
     ]
     reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:],
                                   batch, buf_size)
-    args.batch_size = 1
     if args.request == "rpc":
         fetch = ["prob"]
-        print("Start Time")
         start = time.time()
         itr = 1000
         for ei in range(itr):
-            if args.batch_size == 1:
-                data = reader().next()
-                feed_dict = {}
-                feed_dict['dense_input'] = data[0][0]
-                for i in range(1, 27):
-                    feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][i]
-                result = client.predict(feed=feed_dict, fetch=fetch)
+            if args.batch_size > 0:
+                feed_batch = []
+                for bi in range(args.batch_size):
+                    data = reader().next()
+                    feed_dict = {}
+                    feed_dict['dense_input'] = data[0][0]
+                    for i in range(1, 27):
+                        feed_dict["embedding_{}.tmp_0".format(i - 1)] = data[0][
+                            i]
+                    feed_batch.append(feed_dict)
+                result = client.predict(feed=feed_batch, fetch=fetch)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
     elif args.request == "http":
         raise ("Not support http service.")
     end = time.time()
-    qps = itr / (end - start)
+    qps = itr * args.batch_size / (end - start)
     return [[end - start, qps]]
 
 
@@ -70,6 +73,7 @@ if __name__ == '__main__':
     #result = single_func(0, {"endpoint": endpoint_list})
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
+    print(result)
     avg_cost = 0
     qps = 0
     for i in range(args.thread):
