@@ -25,7 +25,7 @@ from paddle_serving_client.utils import benchmark_args
 from paddle_serving_client.metric import auc
 
 args = benchmark_args()
-
+py_version = sys.version_info[0]
 
 def single_func(idx, resource):
     client = Client()
@@ -49,7 +49,10 @@ def single_func(idx, resource):
             if args.batch_size > 0:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    data = reader().next()
+                    if py_version == 2:
+                        data = reader().next()
+                    else:
+                        data = reader().__next__()
                     feed_dict = {}
                     feed_dict['dense_input'] = data[0][0]
                     for i in range(1, 27):
