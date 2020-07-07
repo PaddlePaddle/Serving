@@ -699,7 +699,11 @@ class MultiLangServer(object):
                     server_config_paths)
         self.bclient_config_path_ = client_config_path
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
         if not self._port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
         default_port = 12000
@@ -710,7 +714,10 @@ class MultiLangServer(object):
                 self.port_list_.append(default_port + i)
                 break
         self.bserver_.prepare_server(
-            workdir=workdir, port=self.port_list_[0], device=device)
+            workdir=workdir,
+            port=self.port_list_[0],
+            device=device,
+            cube_conf=cube_conf)
         self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
