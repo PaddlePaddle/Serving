@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger()
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, yml_config):
+    def __init__(self, response_op, yml_config, show_info):
         self._retry = yml_config.get('retry', 1)
 
         client_type = yml_config.get('client_type', 'brpc')
@@ -43,24 +43,25 @@ class DAGExecutor(object):
         channel_size = yml_config.get('channel_size', 0)
         self._asyn_profile = yml_config.get('asyn_profile', False)
 
-        if use_profile:
-            _LOGGER.info("====> profiler <====")
+        if show_info and use_profile:
+            _LOGGER.info("================= PROFILER ================")
             if use_multithread:
                 _LOGGER.info("op: thread")
             else:
                 _LOGGER.info("op: process")
             if self._asyn_profile:
-                _LOGGER.info("profile mode: asyn")
+                _LOGGER.info("profile mode: asyn (This mode is only used"
+                             " when using the process version Op)")
             else:
                 _LOGGER.info("profile mode: sync")
-            _LOGGER.info("====================")
+            _LOGGER.info("-------------------------------------------")
 
         self.name = "@G"
         self._profiler = TimeProfiler()
         self._profiler.enable(use_profile)
 
-        self._dag = DAG(response_op, use_profile, use_multithread, client_type,
-                        channel_size)
+        self._dag = DAG(self.name, response_op, use_profile, use_multithread,
+                        client_type, channel_size, show_info)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
@@ -216,13 +217,15 @@ class DAGExecutor(object):
 
 
 class DAG(object):
-    def __init__(self, response_op, use_profile, use_multithread, client_type,
-                 channel_size):
+    def __init__(self, request_name, response_op, use_profile, use_multithread,
+                 client_type, channel_size, show_info):
+        self._request_name = request_name
         self._response_op = response_op
         self._use_profile = use_profile
         self._use_multithread = use_multithread
         self._channel_size = channel_size
         self._client_type = client_type
+        self._show_info = show_info
         if not self._use_multithread:
             self._manager = multiprocessing.Manager()
 
@@ -306,10 +309,12 @@ class DAG(object):
         if response_op is None:
             raise Exception("response_op has not been set.")
         used_ops, out_degree_ops = self.get_use_ops(response_op)
-        _LOGGER.info("================= use op ==================")
-        for op in used_ops:
-            _LOGGER.info(op.name)
-        _LOGGER.info("===========================================")
+        if self._show_info:
+            _LOGGER.info("================= USED OP =================")
+            for op in used_ops:
+                if op.name != self._request_name:
+                    _LOGGER.info(op.name)
+            _LOGGER.info("-------------------------------------------")
         if len(used_ops) <= 1:
             raise Exception(
                 "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."
@@ -317,6 +322,16 @@ class DAG(object):
 
         dag_views, last_op = self._topo_sort(used_ops, response_op,
                                              out_degree_ops)
+        dag_views = list(reversed(dag_views))
+        if self._show_info:
+            _LOGGER.info("================== DAG ====================")
+            for idx, view in enumerate(dag_views):
+                _LOGGER.info("(VIEW {})".format(idx))
+                for op in view:
+                    _LOGGER.info("  [{}]".format(op.name))
+                    for out_op in out_degree_ops[op.name]:
+                        _LOGGER.info("    - {}".format(out_op.name))
+            _LOGGER.info("-------------------------------------------")
 
         # create channels and virtual ops
         virtual_op_name_gen = NameGenerator("vir")
@@ -325,7 +340,6 @@ class DAG(object):
         channels = []
         input_channel = None
         actual_view = None
-        dag_views = list(reversed(dag_views))
         for v_idx, view in enumerate(dag_views):
             if v_idx + 1 >= len(dag_views):
                 break
