@@ -16,7 +16,9 @@ from concurrent import futures
 import grpc
 import logging
 import socket
+import contextlib
 from contextlib import closing
+import multiprocessing
 import yaml
 
 from .proto import pipeline_service_pb2_grpc
@@ -27,14 +29,29 @@ _LOGGER = logging.getLogger()
 
 
 class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, dag_executor):
+    def __init__(self, response_op, yml_config, show_info=True):
         super(PipelineService, self).__init__()
-        self._dag_executor = dag_executor
+        # init dag executor
+        self._dag_executor = DAGExecutor(response_op, yml_config, show_info)
         self._dag_executor.start()
 
     def inference(self, request, context):
         resp = self._dag_executor.call(request)
         return resp
+
+
+@contextlib.contextmanager
+def _reserve_port(port):
+    """Find and reserve a port for all subprocesses to use."""
+    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    if sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT) == 0:
+        raise RuntimeError("Failed to set SO_REUSEPORT.")
+    sock.bind(('', port))
+    try:
+        yield sock.getsockname()[1]
+    finally:
+        sock.close()
 
 
 class PipelineServer(object):
@@ -58,21 +75,56 @@ class PipelineServer(object):
 
     def prepare_server(self, yml_file):
         with open(yml_file) as f:
-            yml_config = yaml.load(f.read())
-        self._port = yml_config.get('port', 8080)
+            self._yml_config = yaml.load(f.read())
+        self._port = self._yml_config.get('port', 8080)
         if not self._port_is_available(self._port):
             raise SystemExit("Prot {} is already used".format(self._port))
-        self._worker_num = yml_config.get('worker_num', 2)
-
-        # init dag executor
-        self._dag_executor = DAGExecutor(self._response_op, yml_config)
+        self._worker_num = self._yml_config.get('worker_num', 2)
+        self._multiprocess_servicer = self._yml_config.get(
+            'multiprocess_servicer', False)
+        _LOGGER.info("============= PIPELINE SERVER =============")
+        _LOGGER.info("port: {}".format(self._port))
+        _LOGGER.info("worker_num: {}".format(self._worker_num))
+        servicer_info = "multiprocess_servicer: {}".format(
+            self._multiprocess_servicer)
+        if self._multiprocess_servicer is True:
+            servicer_info += " (Make sure that install grpcio whl with --no-binary flag)"
+        _LOGGER.info(servicer_info)
+        _LOGGER.info("-------------------------------------------")
 
     def run_server(self):
-        service = PipelineService(self._dag_executor)
+        if self._multiprocess_servicer:
+            with _reserve_port(self._port) as port:
+                bind_address = 'localhost:{}'.format(port)
+                workers = []
+                for i in range(self._worker_num):
+                    show_info = (i == 0)
+                    worker = multiprocessing.Process(
+                        target=self._run_server_func,
+                        args=(bind_address, self._response_op, self._yml_config,
+                              self._worker_num, show_info))
+                    worker.start()
+                    workers.append(worker)
+                for worker in workers:
+                    worker.join()
+        else:
+            server = grpc.server(
+                futures.ThreadPoolExecutor(max_workers=self._worker_num))
+            pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
+                PipelineService(self._response_op, self._yml_config), server)
+            server.add_insecure_port('[::]:{}'.format(self._port))
+            server.start()
+            server.wait_for_termination()
+
+    def _run_server_func(self, bind_address, response_op, yml_config,
+                         worker_num, show_info):
+        options = (('grpc.so_reuseport', 1), )
         server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self._worker_num))
-        pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(service,
-                                                                        server)
-        server.add_insecure_port('[::]:{}'.format(self._port))
+            futures.ThreadPoolExecutor(
+                max_workers=worker_num, ),
+            options=options)
+        pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
+            PipelineService(response_op, yml_config, show_info), server)
+        server.add_insecure_port(bind_address)
         server.start()
         server.wait_for_termination()
