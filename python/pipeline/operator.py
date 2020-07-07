@@ -144,7 +144,7 @@ class Op(object):
         if err != 0:
             raise NotImplementedError(
                 "{} Please override preprocess func.".format(err_info))
-        call_result = self.client.predict(
+        call_result = self._client.predict(
             feed=feed_dict, fetch=self._fetch_names)
         _LOGGER.debug(self._log("get call_result"))
         return call_result
@@ -332,7 +332,7 @@ class Op(object):
                         self._profiler = TimeProfiler()
                         self._profiler.enable(self._use_profile)
                         # init client
-                        self.client = self.init_client(
+                        self._client = self.init_client(
                             client_type, self._client_config,
                             self._server_endpoints, self._fetch_names)
                         # user defined
@@ -343,9 +343,9 @@ class Op(object):
                 self._profiler = TimeProfiler()
                 self._profiler.enable(self._use_profile)
                 # init client
-                self.client = self.init_client(client_type, self._client_config,
-                                               self._server_endpoints,
-                                               self._fetch_names)
+                self._client = self.init_client(
+                    client_type, self._client_config, self._server_endpoints,
+                    self._fetch_names)
                 # user defined
                 self.init_op()
         except Exception as e:
