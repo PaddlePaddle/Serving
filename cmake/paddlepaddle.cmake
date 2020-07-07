@@ -31,10 +31,10 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "1.7.2")
+SET(PADDLE_VERSION "1.8.1")
 
 if (WITH_GPU)
-    SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda${CUDA_VERSION_MAJOR}-cudnn7-avx-mkl")
+    SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10-cudnn7-avx-mkl")
 else()
     if (WITH_AVX)
         if (WITH_MKLML)
@@ -92,8 +92,15 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
-ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
+ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
+
+ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION /paddle/third_party/TensorRT-6.0.1.5/lib/libnvinfer.so)
+
+ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION /paddle/third_party/TensorRT-6.0.1.5/lib/libnvinfer_plugin.so)
+
 
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
@@ -101,4 +108,4 @@ SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/thir
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash)
+        xxhash nvinfer nvinfer_plugin)
