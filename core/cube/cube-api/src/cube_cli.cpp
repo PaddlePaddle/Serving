@@ -188,6 +188,7 @@ int run_m(int argc, char** argv) {
   request_list.resize(thread_num);
   time_list.resize(thread_num);
   std::vector<std::thread*> thread_pool;
+  TIME_FLAG(main_start);
   for (int i = 0; i < thread_num; i++) {
     thread_pool.push_back(new std::thread(run, argc, argv, i));
   }
@@ -195,6 +196,7 @@ int run_m(int argc, char** argv) {
     thread_pool[i]->join();
     delete thread_pool[i];
   }
+  TIME_FLAG(main_end);
   uint64_t sum_time = 0;
   uint64_t max_time = 0;
   uint64_t min_time = 1000000;
@@ -210,12 +212,14 @@ int run_m(int argc, char** argv) {
     request_num += request_list[i];
   }
   uint64_t mean_time = sum_time / thread_num;
+  uint64_t main_time = time_diff(main_start, main_end);
   LOG(INFO) << thread_num << " thread seek cost"
             << " avg = " << std::to_string(mean_time)
             << " max = " << std::to_string(max_time)
             << " min = " << std::to_string(min_time);
-  LOG(INFO) << " total_request = " << std::to_string(request_num) << " speed = "
-            << std::to_string(1000000 * thread_num / mean_time)  // mean_time us
+  LOG(INFO) << " total_request = " << std::to_string(request_num)
+            << " speed = " << std::to_string(request_num * 1000000 /
+                                             main_time)  // mean_time us
             << " query per second";
   return 0;
 }
