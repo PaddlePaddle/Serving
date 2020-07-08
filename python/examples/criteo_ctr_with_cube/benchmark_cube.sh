@@ -14,9 +14,9 @@ sh cube_prepare.sh &
 cp ../../../build_server/core/cube/cube-api/cube-cli .
 python gen_key.py
 
-for thread_num in 1
+for thread_num in 1 4 16 32
 do
-for batch_size in 1
+for batch_size in 1000
 do
     ./cube-cli -config_file ./cube/conf/cube.conf -keys key -dict test_dict -thread_num $thread_num --batch $batch_size > profile 2>&1
     echo "batch size : $batch_size"
