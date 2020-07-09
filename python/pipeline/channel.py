@@ -37,7 +37,8 @@ class ChannelDataEcode(enum.Enum):
     TYPE_ERROR = 3
     RPC_PACKAGE_ERROR = 4
     CLIENT_ERROR = 5
-    UNKNOW = 6
+    CLOSED_ERROR = 6
+    UNKNOW = 7
 
 
 class ChannelDataType(enum.Enum):
@@ -258,6 +259,8 @@ class ProcessChannel(object):
                         break
                     except Queue.Full:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
                 _LOGGER.debug(
                     self._log("{} channel size: {}".format(op_name,
                                                            self._que.qsize())))
@@ -308,6 +311,8 @@ class ProcessChannel(object):
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
 
                 _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
@@ -337,6 +342,8 @@ class ProcessChannel(object):
                                 "{} wait for empty queue(with channel empty: {})".
                                 format(op_name, self._que.empty())))
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
             _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
@@ -379,6 +386,8 @@ class ProcessChannel(object):
                             "{} wait for empty queue(with channel size: {})".
                             format(op_name, self._que.qsize())))
                     self._cv.wait()
+            if self._stop:
+                raise ChannelStopError()
 
             consumer_cursor = self._consumer_cursors[op_name]
             base_cursor = self._base_cursor.value
@@ -425,10 +434,10 @@ class ProcessChannel(object):
         return resp  # reference, read only
 
     def stop(self):
-        #TODO
-        self.close()
+        _LOGGER.info(self._log("stop."))
         self._stop = True
-        self._cv.notify_all()
+        with self._cv:
+            self._cv.notify_all()
 
 
 class ThreadChannel(Queue.Queue):
@@ -527,6 +536,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Full:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
                 self._cv.notify_all()
             _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
             return True
@@ -565,6 +576,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
 
                 _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
@@ -587,6 +600,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
             _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
@@ -617,6 +632,8 @@ class ThreadChannel(Queue.Queue):
                     break
                 except Queue.Empty:
                     self._cv.wait()
+            if self._stop:
+                raise ChannelStopError()
 
             consumer_cursor = self._consumer_cursors[op_name]
             base_cursor = self._base_cursor
@@ -657,7 +674,12 @@ class ThreadChannel(Queue.Queue):
         return resp
 
     def stop(self):
-        #TODO
-        self.close()
+        _LOGGER.info(self._log("stop."))
         self._stop = True
-        self._cv.notify_all()
+        with self._cv:
+            self._cv.notify_all()
+
+
+class ChannelStopError(RuntimeError):
+    def __init__(self):
+        pass
