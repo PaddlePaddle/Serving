@@ -24,7 +24,7 @@ import json
 import base64
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
-from paddle_serving_client.utils import benchmark_args
+from paddle_serving_client.utils import benchmark_args, show_latency
 from paddle_serving_app.reader import Sequential, File2Image, Resize
 from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 
@@ -38,7 +38,11 @@ seq_preprocess = Sequential([
 
 def single_func(idx, resource):
     file_list = []
-    turns = 10
+    turns = resource["turns"]
+    latency_flags = False
+    if os.getenv("FLAGS_serving_latency"):
+        latency_flags = True
+        latency_list = []
     for file_name in os.listdir("./image_data/n01440764"):
         file_list.append(file_name)
     img_list = []
@@ -56,6 +60,7 @@ def single_func(idx, resource):
         start = time.time()
         for i in range(turns):
             if args.batch_size >= 1:
+                l_start = time.time()
                 feed_batch = []
                 i_start = time.time()
                 for bi in range(args.batch_size):
@@ -69,6 +74,9 @@ def single_func(idx, resource):
                                  int(round(i_end * 1000000))))
 
                 result = client.predict(feed=feed_batch, fetch=fetch)
+                l_end = time.time()
+                if latency_flags:
+                    latency_list.append(l_end * 1000 - l_start * 1000)
             else:
                 print("unsupport batch size {}".format(args.batch_size))
 
@@ -88,6 +96,8 @@ def single_func(idx, resource):
             r = requests.post(
                 server, data=req, headers={"Content-Type": "application/json"})
     end = time.time()
+    if latency_flags:
+        return [[end - start], latency_list]
     return [[end - start]]
 
 
@@ -96,11 +106,21 @@ if __name__ == '__main__':
     endpoint_list = [
         "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
     ]
-    result = multi_thread_runner.run(single_func, args.thread,
-                                     {"endpoint": endpoint_list})
+    turns = 100
+    start = time.time()
+    result = multi_thread_runner.run(
+        single_func, args.thread, {"endpoint": endpoint_list,
+                                   "turns": turns})
     #result = single_func(0, {"endpoint": endpoint_list})
+    end = time.time()
+    total_cost = end - start
     avg_cost = 0
     for i in range(args.thread):
         avg_cost += result[0][i]
     avg_cost = avg_cost / args.thread
-    print("average total cost {} s.".format(avg_cost))
+    print("total cost: {}s".format(end - start))
+    print("each thread cost: {}s.".format(avg_cost))
+    print("qps: {}samples/s".format(args.batch_size * args.thread * turns /
+                                    total_cost))
+    if os.getenv("FLAGS_serving_latency"):
+        show_latency(result[1])

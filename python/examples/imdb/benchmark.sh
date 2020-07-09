@@ -8,9 +8,9 @@ hostname=`echo $(hostname)|awk -F '.baidu.com' '{print $1}'`
 
 sleep 5
 
-for thread_num in 4 8 16
+for thread_num in 1 4 8 16
 do
-for batch_size in 1 4 16 64 256
+for batch_size in 1 4 16 64
 do
     job_bt=`date '+%Y%m%d%H%M%S'`
     python benchmark.py --thread $thread_num --batch_size $batch_size --model $2/serving_client_conf.prototxt --request rpc > profile 2>&1
