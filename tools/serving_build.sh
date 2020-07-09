@@ -229,10 +229,7 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mv models/data ./cube/"
             check_cmd "mv models/ut_data ./"
             cp ../../../build-server-$TYPE/output/bin/cube* ./cube/
-            mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
-            yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server/serving-cpu-avx-openblas-0.1.3/
             sh cube_prepare.sh &
-            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server.py ctr_serving_model_kv &
             sleep 5
             check_cmd "python test_client.py ctr_client_conf/serving_client_conf.prototxt ./ut_data >score"
@@ -257,10 +254,7 @@ function python_run_criteo_ctr_with_cube() {
             check_cmd "mv models/data ./cube/"
             check_cmd "mv models/ut_data ./"
             cp ../../../build-server-$TYPE/output/bin/cube* ./cube/
-            mkdir -p $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server_gpu/serving-gpu-0.1.3/
-            yes | cp ../../../build-server-$TYPE/output/demo/serving/bin/serving $PYTHONROOT/lib/python2.7/site-packages/paddle_serving_server_gpu/serving-gpu-0.1.3/
             sh cube_prepare.sh &
-            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
             python test_server_gpu.py ctr_serving_model_kv &
             sleep 5
             # for warm up
