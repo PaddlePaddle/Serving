@@ -3,7 +3,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 export FLAGS_profile_server=1
 export FLAGS_profile_client=1
 export FLAGS_serving_latency=1
-python3 -m paddle_serving_server_gpu.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim False --ir_optim True 2> elog > stdlog &
+python3 -m paddle_serving_server_gpu.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim --ir_optim 2> elog > stdlog &
 hostname=`echo $(hostname)|awk -F '.baidu.com' '{print $1}'`
 sleep 5
 gpu_id=0
