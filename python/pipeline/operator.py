@@ -24,7 +24,8 @@ import sys
 from numpy import *
 
 from .proto import pipeline_service_pb2
-from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
+from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
+                      ChannelData, ChannelDataType, ChannelStopError)
 from .util import NameGenerator
 from .profiler import TimeProfiler
 
@@ -44,7 +45,6 @@ class Op(object):
                  retry=1):
         if name is None:
             name = _op_name_gen.next()
-        self._is_run = False
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
@@ -65,7 +65,9 @@ class Op(object):
 
         # only for multithread
         self._for_init_op_lock = threading.Lock()
+        self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
+        self._succ_close_op = False
 
     def use_profiler(self, use_profile):
         self._use_profile = use_profile
@@ -93,9 +95,6 @@ class Op(object):
         self._fetch_names = fetch_names
         return client
 
-    def _get_input_channel(self):
-        return self._input
-
     def get_input_ops(self):
         return self._input_ops
 
@@ -118,8 +117,11 @@ class Op(object):
         channel.add_consumer(self.name)
         self._input = channel
 
-    def _get_output_channels(self):
-        return self._outputs
+    def _clean_input_channel(self):
+        self._input = None
+
+    def _get_input_channel(self):
+        return self._input
 
     def add_output_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
@@ -128,6 +130,12 @@ class Op(object):
                     type(channel))))
         channel.add_producer(self.name)
         self._outputs.append(channel)
+
+    def _clean_output_channels(self):
+        self._outputs = []
+
+    def _get_output_channels(self):
+        return self._outputs
 
     def preprocess(self, input_dicts):
         # multiple previous Op
@@ -144,16 +152,13 @@ class Op(object):
         if err != 0:
             raise NotImplementedError(
                 "{} Please override preprocess func.".format(err_info))
-        call_result = self._client.predict(
+        call_result = self.client.predict(
             feed=feed_dict, fetch=self._fetch_names)
         _LOGGER.debug(self._log("get call_result"))
         return call_result
 
     def postprocess(self, input_dict, fetch_dict):
         return fetch_dict
-
-    def stop(self):
-        self._is_run = False
 
     def _parse_channeldata(self, channeldata_dict):
         data_id, error_channeldata = None, None
@@ -332,30 +337,42 @@ class Op(object):
                         self._profiler = TimeProfiler()
                         self._profiler.enable(self._use_profile)
                         # init client
-                        self._client = self.init_client(
+                        self.client = self.init_client(
                             client_type, self._client_config,
                             self._server_endpoints, self._fetch_names)
                         # user defined
                         self.init_op()
                         self._succ_init_op = True
+                        self._succ_close_op = False
             else:
                 # init profiler
                 self._profiler = TimeProfiler()
                 self._profiler.enable(self._use_profile)
                 # init client
-                self._client = self.init_client(
-                    client_type, self._client_config, self._server_endpoints,
-                    self._fetch_names)
+                self.client = self.init_client(client_type, self._client_config,
+                                               self._server_endpoints,
+                                               self._fetch_names)
                 # user defined
                 self.init_op()
         except Exception as e:
             _LOGGER.error(log(e))
             os._exit(-1)
 
-        self._is_run = True
-        while self._is_run:
+        while True:
             #self._profiler_record("get#{}_0".format(op_info_prefix))
-            channeldata_dict = input_channel.front(self.name)
+            try:
+                channeldata_dict = input_channel.front(self.name)
+            except ChannelStopError:
+                _LOGGER.info(log("stop."))
+                with self._for_close_op_lock:
+                    if not self._succ_close_op:
+                        self._clean_input_channel()
+                        self._clean_output_channels()
+                        self._profiler = None
+                        self.client = None
+                        self._succ_init_op = False
+                        self._succ_close_op = True
+                break
             #self._profiler_record("get#{}_1".format(op_info_prefix))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
@@ -363,8 +380,11 @@ class Op(object):
                 channeldata_dict)
             # error data in predecessor Op
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(error_channeldata,
+                                                  output_channels)
+                except ChannelStopError:
+                    _LOGGER.info(log("stop."))
                 continue
 
             # preprecess
@@ -373,8 +393,11 @@ class Op(object):
                                                                   data_id, log)
             self._profiler_record("prep#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(error_channeldata,
+                                                  output_channels)
+                except ChannelStopError:
+                    _LOGGER.info(log("stop."))
                 continue
 
             # process
@@ -383,8 +406,11 @@ class Op(object):
                                                                data_id, log)
             self._profiler_record("midp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(error_channeldata,
+                                                  output_channels)
+                except ChannelStopError:
+                    _LOGGER.info(log("stop."))
                 continue
 
             # postprocess
@@ -393,8 +419,11 @@ class Op(object):
                 parsed_data, midped_data, data_id, log)
             self._profiler_record("postp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(error_channeldata,
+                                                  output_channels)
+                except ChannelStopError:
+                    _LOGGER.info(log("stop."))
                 continue
 
             if self._use_profile:
@@ -405,7 +434,11 @@ class Op(object):
 
             # push data to channel (if run succ)
             #self._profiler_record("push#{}_0".format(op_info_prefix))
-            self._push_to_output_channels(output_data, output_channels)
+            try:
+                self._push_to_output_channels(output_data, output_channels)
+            except ChannelStopError:
+                _LOGGER.info(log("stop."))
+                break
             #self._profiler_record("push#{}_1".format(op_info_prefix))
             #self._profiler.print_profile()
 
@@ -525,10 +558,17 @@ class VirtualOp(Op):
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
 
-        self._is_run = True
-        while self._is_run:
-            channeldata_dict = input_channel.front(self.name)
+        while True:
+            try:
+                channeldata_dict = input_channel.front(self.name)
+            except ChannelStopError:
+                _LOGGER.info(log("stop."))
+                break
 
-            for name, data in channeldata_dict.items():
-                self._push_to_output_channels(
-                    data, channels=output_channels, name=name)
+            try:
+                for name, data in channeldata_dict.items():
+                    self._push_to_output_channels(
+                        data, channels=output_channels, name=name)
+            except ChannelStopError:
+                _LOGGER.info(log("stop."))
+                break

@@ -26,7 +26,8 @@ import os
 import logging
 
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
-from .channel import ThreadChannel, ProcessChannel, ChannelData, ChannelDataEcode, ChannelDataType
+from .channel import (ThreadChannel, ProcessChannel, ChannelData,
+                      ChannelDataEcode, ChannelDataType, ChannelStopError)
 from .profiler import TimeProfiler
 from .util import NameGenerator
 
@@ -34,33 +35,29 @@ _LOGGER = logging.getLogger()
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, yml_config, show_info):
-        self._retry = yml_config.get('retry', 1)
+    def __init__(self, response_op, dag_config, show_info):
+        self._retry = dag_config.get('retry', 1)
 
-        client_type = yml_config.get('client_type', 'brpc')
-        use_multithread = yml_config.get('use_multithread', True)
-        use_profile = yml_config.get('profile', False)
-        channel_size = yml_config.get('channel_size', 0)
-        self._asyn_profile = yml_config.get('asyn_profile', False)
+        client_type = dag_config.get('client_type', 'brpc')
+        use_profile = dag_config.get('use_profile', False)
+        channel_size = dag_config.get('channel_size', 0)
+        self._is_thread_op = dag_config.get('is_thread_op', True)
 
         if show_info and use_profile:
             _LOGGER.info("================= PROFILER ================")
-            if use_multithread:
+            if self._is_thread_op:
                 _LOGGER.info("op: thread")
+                _LOGGER.info("profile mode: sync")
             else:
                 _LOGGER.info("op: process")
-            if self._asyn_profile:
-                _LOGGER.info("profile mode: asyn (This mode is only used"
-                             " when using the process version Op)")
-            else:
-                _LOGGER.info("profile mode: sync")
+                _LOGGER.info("profile mode: asyn")
             _LOGGER.info("-------------------------------------------")
 
         self.name = "@G"
         self._profiler = TimeProfiler()
         self._profiler.enable(use_profile)
 
-        self._dag = DAG(self.name, response_op, use_profile, use_multithread,
+        self._dag = DAG(self.name, response_op, use_profile, self._is_thread_op,
                         client_type, channel_size, show_info)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
@@ -80,17 +77,14 @@ class DAGExecutor(object):
         self._cv_pool = {}
         self._cv_for_cv_pool = threading.Condition()
         self._fetch_buffer = None
-        self._is_run = False
         self._recive_func = None
 
     def start(self):
-        self._is_run = True
         self._recive_func = threading.Thread(
             target=DAGExecutor._recive_out_channel_func, args=(self, ))
         self._recive_func.start()
 
     def stop(self):
-        self._is_run = False
         self._dag.stop()
         self._dag.join()
 
@@ -119,8 +113,22 @@ class DAGExecutor(object):
 
     def _recive_out_channel_func(self):
         cv = None
-        while self._is_run:
-            channeldata_dict = self._out_channel.front(self.name)
+        while True:
+            try:
+                channeldata_dict = self._out_channel.front(self.name)
+            except ChannelStopError:
+                _LOGGER.info(self._log("stop."))
+                with self._cv_for_cv_pool:
+                    for data_id, cv in self._cv_pool.items():
+                        closed_errror_data = ChannelData(
+                            ecode=ChannelDataEcode.CLOSED_ERROR.value,
+                            error_info="dag closed.",
+                            data_id=data_id)
+                        with cv:
+                            self._fetch_buffer = closed_errror_data
+                            cv.notify_all()
+                break
+
             if len(channeldata_dict) != 1:
                 _LOGGER.error("out_channel cannot have multiple input ops")
                 os._exit(-1)
@@ -147,7 +155,6 @@ class DAGExecutor(object):
             cv.wait()
             _LOGGER.debug("resp func get lock (data_id: {})".format(data_id))
             resp = copy.deepcopy(self._fetch_buffer)
-            # cv.notify_all()
         with self._cv_for_cv_pool:
             self._cv_pool.pop(data_id)
         return resp
@@ -170,7 +177,7 @@ class DAGExecutor(object):
 
     def call(self, rpc_request):
         data_id = self._get_next_data_id()
-        if self._asyn_profile:
+        if not self._is_thread_op:
             self._profiler.record("call_{}#DAG-{}_0".format(data_id, data_id))
         else:
             self._profiler.record("call_{}#DAG_0".format(data_id))
@@ -183,7 +190,15 @@ class DAGExecutor(object):
         for i in range(self._retry):
             _LOGGER.debug(self._log('push data'))
             #self._profiler.record("push_{}#{}_0".format(data_id, self.name))
-            self._in_channel.push(req_channeldata, self.name)
+            try:
+                self._in_channel.push(req_channeldata, self.name)
+            except ChannelStopError:
+                _LOGGER.info(self._log("stop."))
+                return self._pack_for_rpc_resp(
+                    ChannelData(
+                        ecode=ChannelDataEcode.CLOSED_ERROR.value,
+                        error_info="dag closed.",
+                        data_id=data_id))
             #self._profiler.record("push_{}#{}_1".format(data_id, self.name))
 
             _LOGGER.debug(self._log('wait for infer'))
@@ -201,7 +216,7 @@ class DAGExecutor(object):
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("postpack_{}#{}_1".format(data_id, self.name))
 
-        if self._asyn_profile:
+        if not self._is_thread_op:
             self._profiler.record("call_{}#DAG-{}_1".format(data_id, data_id))
         else:
             self._profiler.record("call_{}#DAG_1".format(data_id))
@@ -217,16 +232,16 @@ class DAGExecutor(object):
 
 
 class DAG(object):
-    def __init__(self, request_name, response_op, use_profile, use_multithread,
+    def __init__(self, request_name, response_op, use_profile, is_thread_op,
                  client_type, channel_size, show_info):
         self._request_name = request_name
         self._response_op = response_op
         self._use_profile = use_profile
-        self._use_multithread = use_multithread
+        self._is_thread_op = is_thread_op
         self._channel_size = channel_size
         self._client_type = client_type
         self._show_info = show_info
-        if not self._use_multithread:
+        if not self._is_thread_op:
             self._manager = multiprocessing.Manager()
 
     def get_use_ops(self, response_op):
@@ -254,7 +269,7 @@ class DAG(object):
 
     def _gen_channel(self, name_gen):
         channel = None
-        if self._use_multithread:
+        if self._is_thread_op:
             channel = ThreadChannel(
                 name=name_gen.next(), maxsize=self._channel_size)
         else:
@@ -439,7 +454,7 @@ class DAG(object):
         self._threads_or_proces = []
         for op in self._actual_ops:
             op.use_profiler(self._use_profile)
-            if self._use_multithread:
+            if self._is_thread_op:
                 self._threads_or_proces.extend(
                     op.start_with_thread(self._client_type))
             else:
@@ -453,7 +468,5 @@ class DAG(object):
             x.join()
 
     def stop(self):
-        for op in self._actual_ops:
-            op.stop()
         for chl in self._channels:
             chl.stop()
