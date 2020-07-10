@@ -90,6 +90,9 @@ int GeneralDistKVInferOp::inference() {
               keys.begin() + key_idx);
     key_idx += dataptr_size_pairs[i].second;
   }
+  Timer timeline;
+  int64_t cube_start = timeline.TimeStampUS();
+  timeline.Start();
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   std::vector<std::string> table_names = cube->get_table_names();
   if (table_names.size() == 0) {
@@ -97,7 +100,7 @@ int GeneralDistKVInferOp::inference() {
     return -1;
   }
   int ret = cube->seek(table_names[0], keys, &values);
-
+  int64_t cube_end = timeline.TimeStampUS();
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
     LOG(ERROR) << "cube value return null";
   }
@@ -153,9 +156,7 @@ int GeneralDistKVInferOp::inference() {
 
   VLOG(2) << "infer batch size: " << batch_size;
 
-  Timer timeline;
   int64_t start = timeline.TimeStampUS();
-  timeline.Start();
 
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
@@ -165,6 +166,8 @@ int GeneralDistKVInferOp::inference() {
 
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
+  AddBlobInfo(output_blob, cube_start);
+  AddBlobInfo(output_blob, cube_end);
   AddBlobInfo(output_blob, start);
   AddBlobInfo(output_blob, end);
   return 0;
