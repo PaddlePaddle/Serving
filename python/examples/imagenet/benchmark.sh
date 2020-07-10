@@ -2,14 +2,14 @@ rm profile_log
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export FLAGS_profile_server=1
 export FLAGS_profile_client=1
-python -m paddle_serving_server_gpu.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 2> elog > stdlog &
+python -m paddle_serving_server_gpu.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim --ir_optim  2> elog > stdlog &
 
 sleep 5
 
 #warm up
 $PYTHONROOT/bin/python benchmark.py --thread 8 --batch_size 1 --model $2/serving_client_conf.prototxt --request rpc > profile 2>&1
 
-for thread_num in 4 8 16
+for thread_num in 1 4 8 16
 do
 for batch_size in 1 4 16 64
 do
