@@ -197,7 +197,7 @@ class ProcessChannel(object):
         self._maxsize = maxsize
         self._timeout = timeout
         self.name = name
-        self._stop = False
+        self._stop = manager.Value('i', 0)
 
         self._cv = multiprocessing.Condition()
 
@@ -253,13 +253,13 @@ class ProcessChannel(object):
                 ))
         elif len(self._producers) == 1:
             with self._cv:
-                while self._stop is False:
+                while self._stop.value == 0:
                     try:
                         self._que.put({op_name: channeldata}, timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
-                if self._stop:
+                if self._stop.value == 1:
                     raise ChannelStopError()
                 _LOGGER.debug(
                     self._log("{} channel size: {}".format(op_name,
@@ -302,7 +302,7 @@ class ProcessChannel(object):
                     self._log("{} push data succ, but not push to queue.".
                               format(op_name)))
             else:
-                while self._stop is False:
+                while self._stop.value == 0:
                     try:
                         _LOGGER.debug(
                             self._log("{} push data succ: {}".format(
@@ -311,7 +311,7 @@ class ProcessChannel(object):
                         break
                     except Queue.Empty:
                         self._cv.wait()
-                if self._stop:
+                if self._stop.value == 1:
                     raise ChannelStopError()
 
                 _LOGGER.debug(
@@ -329,7 +329,7 @@ class ProcessChannel(object):
         elif len(self._consumer_cursors) == 1:
             resp = None
             with self._cv:
-                while self._stop is False and resp is None:
+                while self._stop.value == 0 and resp is None:
                     try:
                         _LOGGER.debug(
                             self._log("{} try to get(with channel empty: {})".
@@ -342,7 +342,7 @@ class ProcessChannel(object):
                                 "{} wait for empty queue(with channel empty: {})".
                                 format(op_name, self._que.empty())))
                         self._cv.wait()
-                if self._stop:
+                if self._stop.value == 1:
                     raise ChannelStopError()
             _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
@@ -366,7 +366,7 @@ class ProcessChannel(object):
         with self._cv:
             # When the data required by the current Op is not in output_buf,
             # it is necessary to obtain a data from queue and add it to output_buf.
-            while self._stop is False and self._consumer_cursors[
+            while self._stop.value == 0 and self._consumer_cursors[
                     op_name] - self._base_cursor.value >= len(self._output_buf):
                 _LOGGER.debug(
                     self._log(
@@ -386,7 +386,7 @@ class ProcessChannel(object):
                             "{} wait for empty queue(with channel size: {})".
                             format(op_name, self._que.qsize())))
                     self._cv.wait()
-            if self._stop:
+            if self._stop.value == 1:
                 raise ChannelStopError()
 
             consumer_cursor = self._consumer_cursors[op_name]
@@ -435,7 +435,7 @@ class ProcessChannel(object):
 
     def stop(self):
         _LOGGER.info(self._log("stop."))
-        self._stop = True
+        self._stop.value = 1
         with self._cv:
             self._cv.notify_all()
 
