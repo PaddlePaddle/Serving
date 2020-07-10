@@ -61,7 +61,7 @@ class Op(object):
         self._input = None
         self._outputs = []
 
-        self._use_profile = False
+        self._server_use_profile = False
 
         # only for multithread
         self._for_init_op_lock = threading.Lock()
@@ -70,7 +70,7 @@ class Op(object):
         self._succ_close_op = False
 
     def use_profiler(self, use_profile):
-        self._use_profile = use_profile
+        self._server_use_profile = use_profile
 
     def _profiler_record(self, string):
         if self._profiler is None:
@@ -162,23 +162,45 @@ class Op(object):
 
     def _parse_channeldata(self, channeldata_dict):
         data_id, error_channeldata = None, None
+        client_need_profile, profile_list = False, []
         parsed_data = {}
 
         key = list(channeldata_dict.keys())[0]
         data_id = channeldata_dict[key].id
+        client_need_profile = channeldata_dict[key].client_need_profile
 
         for name, data in channeldata_dict.items():
             if data.ecode != ChannelDataEcode.OK.value:
                 error_channeldata = data
                 break
             parsed_data[name] = data.parse()
-        return data_id, error_channeldata, parsed_data
+            if client_need_profile:
+                profile_list.extend(data.profile_data_list)
+        return (data_id, error_channeldata, parsed_data, client_need_profile,
+                profile_list)
 
-    def _push_to_output_channels(self, data, channels, name=None):
+    def _push_to_output_channels(self,
+                                 data,
+                                 channels,
+                                 name=None,
+                                 client_need_profile=False,
+                                 profile_list=None):
         if name is None:
             name = self.name
+        self._add_profile_into_channeldata(data, client_need_profile,
+                                           profile_list)
         for channel in channels:
             channel.push(data, name)
+
+    def _add_profile_into_channeldata(self, data, client_need_profile,
+                                      profile_list):
+        profile_str = self._profiler.gen_profile_str()
+        if self._server_use_profile:
+            sys.stderr.write(profile_str)
+
+        if client_need_profile and profile_list is not None:
+            profile_list.append(profile_str)
+            data.add_profile(profile_list)
 
     def start_with_process(self, client_type):
         proces = []
@@ -335,7 +357,7 @@ class Op(object):
                     if not self._succ_init_op:
                         # init profiler
                         self._profiler = TimeProfiler()
-                        self._profiler.enable(self._use_profile)
+                        self._profiler.enable(True)
                         # init client
                         self.client = self.init_client(
                             client_type, self._client_config,
@@ -347,7 +369,7 @@ class Op(object):
             else:
                 # init profiler
                 self._profiler = TimeProfiler()
-                self._profiler.enable(self._use_profile)
+                self._profiler.enable(True)
                 # init client
                 self.client = self.init_client(client_type, self._client_config,
                                                self._server_endpoints,
@@ -363,7 +385,7 @@ class Op(object):
             try:
                 channeldata_dict = input_channel.front(self.name)
             except ChannelStopError:
-                _LOGGER.info(log("stop."))
+                _LOGGER.debug(log("stop."))
                 if is_thread_op:
                     with self._for_close_op_lock:
                         if not self._succ_close_op:
@@ -375,15 +397,17 @@ class Op(object):
             #self._profiler_record("get#{}_1".format(op_info_prefix))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
-            data_id, error_channeldata, parsed_data = self._parse_channeldata(
-                channeldata_dict)
+            (data_id, error_channeldata, parsed_data, client_need_profile,
+             profile_list) = self._parse_channeldata(channeldata_dict)
             # error data in predecessor Op
             if error_channeldata is not None:
                 try:
+                    # error_channeldata with profile info
                     self._push_to_output_channels(error_channeldata,
                                                   output_channels)
                 except ChannelStopError:
-                    _LOGGER.info(log("stop."))
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # preprecess
@@ -393,10 +417,14 @@ class Op(object):
             self._profiler_record("prep#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 try:
-                    self._push_to_output_channels(error_channeldata,
-                                                  output_channels)
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_list=profile_list)
                 except ChannelStopError:
-                    _LOGGER.info(log("stop."))
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # process
@@ -406,10 +434,14 @@ class Op(object):
             self._profiler_record("midp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 try:
-                    self._push_to_output_channels(error_channeldata,
-                                                  output_channels)
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_list=profile_list)
                 except ChannelStopError:
-                    _LOGGER.info(log("stop."))
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # postprocess
@@ -419,27 +451,28 @@ class Op(object):
             self._profiler_record("postp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
                 try:
-                    self._push_to_output_channels(error_channeldata,
-                                                  output_channels)
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_list=profile_list)
                 except ChannelStopError:
-                    _LOGGER.info(log("stop."))
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
-
-            if self._use_profile:
-                profile_str = self._profiler.gen_profile_str()
-                sys.stderr.write(profile_str)
-                #TODO
-                #output_data.add_profile(profile_str)
 
             # push data to channel (if run succ)
             #self._profiler_record("push#{}_0".format(op_info_prefix))
             try:
-                self._push_to_output_channels(output_data, output_channels)
+                self._push_to_output_channels(
+                    output_data,
+                    output_channels,
+                    client_need_profile=client_need_profile,
+                    profile_list=profile_list)
             except ChannelStopError:
-                _LOGGER.info(log("stop."))
+                _LOGGER.debug(log("stop."))
                 break
             #self._profiler_record("push#{}_1".format(op_info_prefix))
-            #self._profiler.print_profile()
 
     def _log(self, info):
         return "{} {}".format(self.name, info)
@@ -561,7 +594,7 @@ class VirtualOp(Op):
             try:
                 channeldata_dict = input_channel.front(self.name)
             except ChannelStopError:
-                _LOGGER.info(log("stop."))
+                _LOGGER.debug(log("stop."))
                 break
 
             try:
@@ -569,5 +602,5 @@ class VirtualOp(Op):
                     self._push_to_output_channels(
                         data, channels=output_channels, name=name)
             except ChannelStopError:
-                _LOGGER.info(log("stop."))
+                _LOGGER.debug(log("stop."))
                 break

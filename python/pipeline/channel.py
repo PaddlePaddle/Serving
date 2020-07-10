@@ -54,7 +54,8 @@ class ChannelData(object):
                  dictdata=None,
                  data_id=None,
                  ecode=None,
-                 error_info=None):
+                 error_info=None,
+                 client_need_profile=False):
         '''
         There are several ways to use it:
         
@@ -88,6 +89,13 @@ class ChannelData(object):
         self.id = data_id
         self.ecode = ecode
         self.error_info = error_info
+        self.client_need_profile = client_need_profile
+        self.profile_data_list = []
+
+    def add_profile(self, profile_list):
+        if self.client_need_profile is False:
+            self.client_need_profile = True
+        self.profile_data_list.extend(profile_list)
 
     @staticmethod
     def check_dictdata(dictdata):
@@ -434,7 +442,7 @@ class ProcessChannel(object):
         return resp  # reference, read only
 
     def stop(self):
-        _LOGGER.info(self._log("stop."))
+        _LOGGER.debug(self._log("stop."))
         self._stop.value = 1
         with self._cv:
             self._cv.notify_all()
@@ -674,7 +682,7 @@ class ThreadChannel(Queue.Queue):
         return resp
 
     def stop(self):
-        _LOGGER.info(self._log("stop."))
+        _LOGGER.debug(self._log("stop."))
         self._stop = True
         with self._cv:
             self._cv.notify_all()
