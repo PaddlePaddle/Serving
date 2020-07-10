@@ -470,3 +470,6 @@ class DAG(object):
     def stop(self):
         for chl in self._channels:
             chl.stop()
+        for op in self._actual_ops:
+            op.clean_input_channel()
+            op.clean_output_channels()

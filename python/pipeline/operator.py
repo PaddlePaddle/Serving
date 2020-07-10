@@ -117,7 +117,7 @@ class Op(object):
         channel.add_consumer(self.name)
         self._input = channel
 
-    def _clean_input_channel(self):
+    def clean_input_channel(self):
         self._input = None
 
     def _get_input_channel(self):
@@ -131,7 +131,7 @@ class Op(object):
         channel.add_producer(self.name)
         self._outputs.append(channel)
 
-    def _clean_output_channels(self):
+    def clean_output_channels(self):
         self._outputs = []
 
     def _get_output_channels(self):
@@ -316,7 +316,7 @@ class Op(object):
         return output_data, error_channeldata
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
-             use_multithread):
+             is_thread_op):
         def get_log_func(op_info_prefix):
             def log_func(info_str):
                 return "{} {}".format(op_info_prefix, info_str)
@@ -330,7 +330,7 @@ class Op(object):
         # init op
         self.concurrency_idx = concurrency_idx
         try:
-            if use_multithread:
+            if is_thread_op:
                 with self._for_init_op_lock:
                     if not self._succ_init_op:
                         # init profiler
@@ -364,14 +364,13 @@ class Op(object):
                 channeldata_dict = input_channel.front(self.name)
             except ChannelStopError:
                 _LOGGER.info(log("stop."))
-                with self._for_close_op_lock:
-                    if not self._succ_close_op:
-                        self._clean_input_channel()
-                        self._clean_output_channels()
-                        self._profiler = None
-                        self.client = None
-                        self._succ_init_op = False
-                        self._succ_close_op = True
+                if is_thread_op:
+                    with self._for_close_op_lock:
+                        if not self._succ_close_op:
+                            self._profiler = None
+                            self.client = None
+                            self._succ_init_op = False
+                            self._succ_close_op = True
                 break
             #self._profiler_record("get#{}_1".format(op_info_prefix))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
@@ -547,7 +546,7 @@ class VirtualOp(Op):
         self._outputs.append(channel)
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
-             use_multithread):
+             is_thread_op):
         def get_log_func(op_info_prefix):
             def log_func(info_str):
                 return "{} {}".format(op_info_prefix, info_str)
