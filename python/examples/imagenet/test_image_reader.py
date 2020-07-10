@@ -21,7 +21,7 @@ def test_String2Image():
         img_str = f.read()
     seq = Sequential([String2Image()])
     img = seq(img_str)
-    print(img.shape)
+    assert (img.shape == (563, 500, 3))
 
 
 def test_Base64ToImage():
@@ -29,7 +29,7 @@ def test_Base64ToImage():
         img_str = f.read()
     seq = Sequential([Base64ToImage()])
     img = seq(base64.b64encode(img_str))
-    print(img.shape)
+    assert (img.shape == (563, 500, 3))
 
 
 if __name__ == "__main__":
