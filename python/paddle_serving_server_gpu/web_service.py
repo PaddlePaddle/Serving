@@ -133,8 +133,8 @@ class WebService(object):
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
-        except ValueError:
-            result = {"result": "Request Value Error"}
+        except ValueError, err:
+            result = {"result": err}
         return result
 
     def run_rpc_service(self):
