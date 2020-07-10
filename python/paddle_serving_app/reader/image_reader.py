@@ -440,6 +440,30 @@ class RCNNPostprocess(object):
             self.label_file, self.output_dir)
 
 
+class BlazeFacePostprocess(RCNNPostprocess):
+    def clip_bbox(self, bbox, im_size=None):
+        h = 1. if im_size is None else im_size[0]
+        w = 1. if im_size is None else im_size[1]
+        xmin = max(min(bbox[0], w), 0.)
+        ymin = max(min(bbox[1], h), 0.)
+        xmax = max(min(bbox[2], w), 0.)
+        ymax = max(min(bbox[3], h), 0.)
+        return xmin, ymin, xmax, ymax
+
+    def _get_bbox_result(self, fetch_map, fetch_name, clsid2catid):
+        result = {}
+        is_bbox_normalized = True  #for blaze face, set true here
+        output = fetch_map[fetch_name]
+        lod = [fetch_map[fetch_name + '.lod']]
+        lengths = self._offset_to_lengths(lod)
+        np_data = np.array(output)
+        result['bbox'] = (np_data, lengths)
+        result['im_id'] = np.array([[0]])
+        result["im_shape"] = np.array(fetch_map["im_shape"]).astype(np.int32)
+        bbox_results = self._bbox2out([result], clsid2catid, is_bbox_normalized)
+        return bbox_results
+
+
 class Sequential(object):
     """
     Args:
@@ -653,7 +677,7 @@ class Resize(object):
 
     Args:
         size (sequence or int): Desired output size. If size is a sequence like
-            (h, w), output size will be matched to this. If size is an int,
+            (w, h), output size will be matched to this. If size is an int,
             smaller edge of the image will be matched to this number.
             i.e, if height > width, then image will be rescaled to
             (size * height / width, size)
