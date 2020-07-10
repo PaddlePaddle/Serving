@@ -39,11 +39,11 @@ class DAGExecutor(object):
         self._retry = dag_config.get('retry', 1)
 
         client_type = dag_config.get('client_type', 'brpc')
-        use_profile = dag_config.get('use_profile', False)
+        self._server_use_profile = dag_config.get('use_profile', False)
         channel_size = dag_config.get('channel_size', 0)
         self._is_thread_op = dag_config.get('is_thread_op', True)
 
-        if show_info and use_profile:
+        if show_info and self._server_use_profile:
             _LOGGER.info("================= PROFILER ================")
             if self._is_thread_op:
                 _LOGGER.info("op: thread")
@@ -55,10 +55,11 @@ class DAGExecutor(object):
 
         self.name = "@G"
         self._profiler = TimeProfiler()
-        self._profiler.enable(use_profile)
+        self._profiler.enable(True)
 
-        self._dag = DAG(self.name, response_op, use_profile, self._is_thread_op,
-                        client_type, channel_size, show_info)
+        self._dag = DAG(self.name, response_op, self._server_use_profile,
+                        self._is_thread_op, client_type, channel_size,
+                        show_info)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
@@ -78,6 +79,9 @@ class DAGExecutor(object):
         self._cv_for_cv_pool = threading.Condition()
         self._fetch_buffer = None
         self._recive_func = None
+
+        self._client_profile_key = "pipeline.profile"
+        self._client_profile_value = "1"
 
     def start(self):
         self._recive_func = threading.Thread(
@@ -117,7 +121,7 @@ class DAGExecutor(object):
             try:
                 channeldata_dict = self._out_channel.front(self.name)
             except ChannelStopError:
-                _LOGGER.info(self._log("stop."))
+                _LOGGER.debug(self._log("stop."))
                 with self._cv_for_cv_pool:
                     for data_id, cv in self._cv_pool.items():
                         closed_errror_data = ChannelData(
@@ -170,10 +174,19 @@ class DAGExecutor(object):
                 error_info="rpc package error: {}".format(e),
                 data_id=data_id)
         else:
+            # because unpack_rpc_func is rewritten by user, we need
+            # to look for client_profile_key field in rpc_request
+            profile_value = None
+            for idx, key in enumerate(rpc_request.key):
+                if key == self._client_profile_key:
+                    profile_value = rpc_request.value[idx]
+                    break
             return ChannelData(
                 datatype=ChannelDataType.DICT.value,
                 dictdata=dictdata,
-                data_id=data_id)
+                data_id=data_id,
+                client_need_profile=(
+                    profile_value == self._client_profile_value))
 
     def call(self, rpc_request):
         data_id = self._get_next_data_id()
@@ -193,7 +206,7 @@ class DAGExecutor(object):
             try:
                 self._in_channel.push(req_channeldata, self.name)
             except ChannelStopError:
-                _LOGGER.info(self._log("stop."))
+                _LOGGER.debug(self._log("stop."))
                 return self._pack_for_rpc_resp(
                     ChannelData(
                         ecode=ChannelDataEcode.CLOSED_ERROR.value,
@@ -215,12 +228,25 @@ class DAGExecutor(object):
         self._profiler.record("postpack_{}#{}_0".format(data_id, self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("postpack_{}#{}_1".format(data_id, self.name))
-
         if not self._is_thread_op:
             self._profiler.record("call_{}#DAG-{}_1".format(data_id, data_id))
         else:
             self._profiler.record("call_{}#DAG_1".format(data_id))
-        self._profiler.print_profile()
+        #self._profiler.print_profile()
+
+        profile_str = self._profiler.gen_profile_str()
+        if self._server_use_profile:
+            sys.stderr.write(profile_str)
+
+        # add profile info into rpc_resp
+        profile_value = ""
+        if resp_channeldata.client_need_profile:
+            profile_list = resp_channeldata.profile_data_list
+            profile_list.append(profile_str)
+            profile_value = "".join(profile_list)
+        rpc_resp.key.append(self._client_profile_key)
+        rpc_resp.value.append(profile_value)
+
         return rpc_resp
 
     def _pack_for_rpc_resp(self, channeldata):
