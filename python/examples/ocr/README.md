@@ -41,5 +41,15 @@ python ocr_web_server.py
 
 ### Client Prediction
 ```
-sh ocr_web_client.sh
+python ocr_web_client.py
+```
+
+## Web Debugger Service
+```
+python ocr_debugger_server.py
+```
+
+## Web Debugger Client Prediction
+```
+python ocr_web_clint.py
 ```
