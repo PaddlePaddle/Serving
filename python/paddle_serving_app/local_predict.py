@@ -130,5 +130,6 @@ class Debugger(object):
             fetch_map[name] = outputs[self.fetch_names_to_idx_[
                 name]].as_ndarray()
             if len(outputs[self.fetch_names_to_idx_[name]].lod) > 0:
-                fetch_map[name+".lod"] = outputs[self.fetch_names_to_idx_[name]].lod[0]
+                fetch_map[name + ".lod"] = outputs[self.fetch_names_to_idx_[
+                    name]].lod[0]
         return fetch_map

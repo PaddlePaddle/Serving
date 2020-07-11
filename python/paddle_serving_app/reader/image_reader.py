@@ -781,10 +781,12 @@ class Transpose(object):
                         "({})".format(self.transpose_target)
         return format_string
 
+
 class SortedBoxes(object):
     """
     Sorted bounding boxes from Detection
     """
+
     def __init__(self):
         pass
 
@@ -798,12 +800,14 @@ class SortedBoxes(object):
                 tmp = _boxes[i]
                 _boxes[i] = _boxes[i + 1]
                 _boxes[i + 1] = tmp
-        return _boxes       
+        return _boxes
+
 
 class GetRotateCropImage(object):
     """
     Rotate and Crop image from OCR Det output
     """
+
     def __init__(self):
         pass
 

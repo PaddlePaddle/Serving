@@ -189,7 +189,8 @@ class WebService(object):
     def _launch_local_predictor(self, gpu):
         from paddle_serving_app.local_predict import Debugger
         self.client = Debugger()
-        self.client.load_model_config("{}".format(self.model_config), gpu=gpu, profile=False)
+        self.client.load_model_config(
+            "{}".format(self.model_config), gpu=gpu, profile=False)
 
     def run_web_service(self):
         self.app_instance.run(host="0.0.0.0",
