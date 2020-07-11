@@ -77,7 +77,6 @@ class OCRService(WebService):
             feed = {"image": norm_img}
             feed_list.append(feed)
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        print(feed_list)
         return feed_list, fetch
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
