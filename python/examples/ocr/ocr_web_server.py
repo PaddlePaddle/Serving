@@ -90,7 +90,8 @@ class OCRService(WebService):
 
 ocr_service = OCRService(name="ocr")
 ocr_service.load_model_config("ocr_rec_model")
-ocr_service.prepare_server(workdir="workdir", port=9292)
+ocr_service.set_gpus("0")
+ocr_service.prepare_server(workdir="workdir", port=9292, device="gpu", gpuid=0)
 ocr_service.init_det_client(
     det_port=9293,
     det_client_config="ocr_det_client/serving_client_conf.prototxt")
