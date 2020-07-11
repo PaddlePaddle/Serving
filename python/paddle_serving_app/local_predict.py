@@ -122,11 +122,13 @@ class Debugger(object):
                     feed[name] = feed[name].astype("int64")
                 else:
                     feed[name] = feed[name].astype("float32")
-            inputs.append(PaddleTensor(feed[name][np.newaxis, :]))
+            inputs.append(PaddleTensor(feed[name]))
 
         outputs = self.predictor.run(inputs)
         fetch_map = {}
         for name in fetch:
             fetch_map[name] = outputs[self.fetch_names_to_idx_[
                 name]].as_ndarray()
+            if len(outputs[self.fetch_names_to_idx_[name]].lod) > 0:
+                fetch_map[name+".lod"] = outputs[self.fetch_names_to_idx_[name]].lod[0]
         return fetch_map
