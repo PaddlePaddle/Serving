@@ -120,7 +120,12 @@ class CharacterOps(object):
 
 
 class OCRReader(object):
-    def __init__(self, algorithm="CRNN", image_shape=[3,32,320], char_type="ch", batch_num=1, char_dict_path="./ppocr_keys_v1.txt"):
+    def __init__(self,
+                 algorithm="CRNN",
+                 image_shape=[3, 32, 320],
+                 char_type="ch",
+                 batch_num=1,
+                 char_dict_path="./ppocr_keys_v1.txt"):
         self.rec_image_shape = image_shape
         self.character_type = char_type
         self.rec_batch_num = batch_num
@@ -129,7 +134,7 @@ class OCRReader(object):
         char_ops_params["character_dict_path"] = char_dict_path
         char_ops_params['loss_type'] = 'ctc'
         self.char_ops = CharacterOps(char_ops_params)
-    
+
     def resize_norm_img(self, img, max_wh_ratio):
         imgC, imgH, imgW = self.rec_image_shape
         if self.character_type == "ch":
@@ -150,7 +155,6 @@ class OCRReader(object):
 
         padding_im[:, :, 0:resized_w] = resized_image
         return padding_im
-
 
     def preprocess(self, img_list):
         img_num = len(img_list)
@@ -180,14 +184,15 @@ class OCRReader(object):
             end = rec_idx_lod[rno + 1]
             if isinstance(rec_idx_batch, list):
                 rec_idx_tmp = [x[0] for x in rec_idx_batch[beg:end]]
-            else: #nd array
+            else:  #nd array
                 rec_idx_tmp = rec_idx_batch[beg:end, 0]
             preds_text = self.char_ops.decode(rec_idx_tmp)
             if with_score:
                 beg = predict_lod[rno]
                 end = predict_lod[rno + 1]
                 if isinstance(outputs["softmax_0.tmp_0"], list):
-                    outputs["softmax_0.tmp_0"] = np.array(outputs["softmax_0.tmp_0"]).astype(np.float32)
+                    outputs["softmax_0.tmp_0"] = np.array(outputs[
+                        "softmax_0.tmp_0"]).astype(np.float32)
                 probs = outputs["softmax_0.tmp_0"][beg:end, :]
                 ind = np.argmax(probs, axis=1)
                 blank = probs.shape[1]

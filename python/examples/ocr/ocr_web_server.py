@@ -27,6 +27,7 @@ import time
 import re
 import base64
 
+
 class OCRService(WebService):
     def init_det_client(self, det_port, det_client_config):
         self.det_preprocess = Sequential([
@@ -46,7 +47,7 @@ class OCRService(WebService):
         ori_h, ori_w, _ = im.shape
         det_img = self.det_preprocess(im)
         det_out = self.det_client.predict(
-                feed={"image": det_img}, fetch=["concat_1.tmp_0"])
+            feed={"image": det_img}, fetch=["concat_1.tmp_0"])
         _, new_h, new_w = det_img.shape
         filter_func = FilterBoxes(10, 10)
         post_func = DBPostProcess({
