@@ -40,6 +40,8 @@ CPU: Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz * 40
 
 GPU: Nvidia Tesla V100 * 1
 
+Dataset: RCTW 500 sample images
+
 | engine                       | client read image(ms) | client-server tras time(ms) | server read image（ms） | det pre(ms) | det infer(ms) | det post(ms) | rec pre(ms) | rec infer(ms) | rec post(ms) | server-client trans time(ms) | server side time consumption(ms) | server side overhead(ms) | total time（ms) |
 |------------------------------|----------------|----------------------------|------------------|--------------------|------------------|--------------------|--------------------|------------------|--------------------|--------------------------|--------------------|--------------|---------------|
 | Serving web service          | 112.02         | 13.41                      | 109.97           | 2.82               | 87.76            | 4.29               | 3.98               | 78.51            | 3.66               | 4.12                     | 181.02             | 239.52       | 420.54        |
