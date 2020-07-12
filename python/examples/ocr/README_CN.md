@@ -1,45 +1,52 @@
-# OCR 
+# OCR 服务
 
-(English|[简体中文](./README_CN.md))
+([English](./README.md)|简体中文)
 
-## Get Model
+## 获取模型
 ```
 python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
-## Web Service
 
-### Start Service
+### 客户端预测
+
+```
+python ocr_rpc_client.py
+```
+
+## Web Service服务
+
+### 启动服务
 
 ```
 python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
 python ocr_web_server.py
 ```
 
-### Client Prediction
+### 启动客户端
 ```
 python ocr_web_client.py
 ```
-If you want a faster web service, please try Web Debugger Service
 
-## Web Debugger Service
+如果用户需要更快的执行速度，请尝试Debugger版Web服务
+## 启动Debugger版Web服务
 ```
 python ocr_debugger_server.py
 ```
 
-## Web Debugger Client Prediction
+## 启动客户端
 ```
 python ocr_web_clint.py
 ```
 
-## Benchmark
+## 性能指标
 
 CPU: Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz * 40
-GPU: Nvidia Tesla V100 * 1
+GPU: Nvidia Tesla V100单卡
 
-| engine                       | client read image(ms) | client-server tras time(ms) | server read image（ms） | det pre(ms) | det infer(ms) | det post(ms) | rec pre(ms) | rec infer(ms) | rec post(ms) | server-client trans time(ms) | server side time consumption(ms) | server side overhead(ms) | total time（ms) |
+| engine                       | 客户端读图(ms) | 客户端发送请求到服务端(ms) | 服务端读图（ms） | 检测预处理耗时(ms) | 检测模型耗时(ms) | 检测后处理耗时(ms) | 识别预处理耗时(ms) | 识别模型耗时(ms) | 识别后处理耗时(ms) | 服务端回传客户端时间(ms) | 服务端整体耗时(ms) | 空跑耗时(ms) | 整体耗时（ms) |
 |------------------------------|----------------|----------------------------|------------------|--------------------|------------------|--------------------|--------------------|------------------|--------------------|--------------------------|--------------------|--------------|---------------|
 | Serving web service          | 112.02         | 13.41                      | 109.97           | 2.82               | 87.76            | 4.29               | 3.98               | 78.51            | 3.66               | 4.12                     | 181.02             | 239.52       | 420.54        |
 | Serving Debugger web service | 111.68         | 16.42                      | 115.27           | 2.93               | 20.63            | 3.97               | 4.48               | 13.84            | 3.60               | 6.91                     | 49.45              | 250.28       | 299.73        |
