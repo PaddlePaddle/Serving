@@ -241,9 +241,9 @@ class DAGExecutor(object):
         # add profile info into rpc_resp
         profile_value = ""
         if resp_channeldata.client_need_profile:
-            profile_list = resp_channeldata.profile_data_list
-            profile_list.append(profile_str)
-            profile_value = "".join(profile_list)
+            profile_set = resp_channeldata.profile_data_set
+            profile_set.add(profile_str)
+            profile_value = "".join(list(profile_set))
         rpc_resp.key.append(self._client_profile_key)
         rpc_resp.value.append(profile_value)
 

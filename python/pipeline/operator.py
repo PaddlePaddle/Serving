@@ -162,7 +162,7 @@ class Op(object):
 
     def _parse_channeldata(self, channeldata_dict):
         data_id, error_channeldata = None, None
-        client_need_profile, profile_list = False, []
+        client_need_profile, profile_set = False, set()
         parsed_data = {}
 
         key = list(channeldata_dict.keys())[0]
@@ -175,32 +175,32 @@ class Op(object):
                 break
             parsed_data[name] = data.parse()
             if client_need_profile:
-                profile_list.extend(data.profile_data_list)
+                profile_set |= data.profile_data_set
         return (data_id, error_channeldata, parsed_data, client_need_profile,
-                profile_list)
+                profile_set)
 
     def _push_to_output_channels(self,
                                  data,
                                  channels,
                                  name=None,
                                  client_need_profile=False,
-                                 profile_list=None):
+                                 profile_set=None):
         if name is None:
             name = self.name
         self._add_profile_into_channeldata(data, client_need_profile,
-                                           profile_list)
+                                           profile_set)
         for channel in channels:
             channel.push(data, name)
 
     def _add_profile_into_channeldata(self, data, client_need_profile,
-                                      profile_list):
+                                      profile_set):
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
             sys.stderr.write(profile_str)
 
-        if client_need_profile and profile_list is not None:
-            profile_list.append(profile_str)
-            data.add_profile(profile_list)
+        if client_need_profile and profile_set is not None:
+            profile_set.add(profile_str)
+            data.add_profile(profile_set)
 
     def start_with_process(self, client_type):
         proces = []
@@ -398,7 +398,7 @@ class Op(object):
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
             (data_id, error_channeldata, parsed_data, client_need_profile,
-             profile_list) = self._parse_channeldata(channeldata_dict)
+             profile_set) = self._parse_channeldata(channeldata_dict)
             # error data in predecessor Op
             if error_channeldata is not None:
                 try:
@@ -421,7 +421,7 @@ class Op(object):
                         error_channeldata,
                         output_channels,
                         client_need_profile=client_need_profile,
-                        profile_list=profile_list)
+                        profile_set=profile_set)
                 except ChannelStopError:
                     _LOGGER.debug(log("stop."))
                     break
@@ -438,7 +438,7 @@ class Op(object):
                         error_channeldata,
                         output_channels,
                         client_need_profile=client_need_profile,
-                        profile_list=profile_list)
+                        profile_set=profile_set)
                 except ChannelStopError:
                     _LOGGER.debug(log("stop."))
                     break
@@ -455,7 +455,7 @@ class Op(object):
                         error_channeldata,
                         output_channels,
                         client_need_profile=client_need_profile,
-                        profile_list=profile_list)
+                        profile_set=profile_set)
                 except ChannelStopError:
                     _LOGGER.debug(log("stop."))
                     break
@@ -468,7 +468,7 @@ class Op(object):
                     output_data,
                     output_channels,
                     client_need_profile=client_need_profile,
-                    profile_list=profile_list)
+                    profile_set=profile_set)
             except ChannelStopError:
                 _LOGGER.debug(log("stop."))
                 break
