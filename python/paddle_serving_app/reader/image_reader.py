@@ -517,6 +517,19 @@ class BGR2RGB(object):
         return self.__class__.__name__ + "()"
 
 
+class String2Image(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img_buffer):
+        data = np.fromstring(img_buffer, np.uint8)
+        img = cv2.imdecode(data, cv2.IMREAD_COLOR)
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+
 class File2Image(object):
     def __init__(self):
         pass
@@ -561,7 +574,9 @@ class Base64ToImage(object):
         pass
 
     def __call__(self, img_base64):
-        img = base64.b64decode(img_base64)
+        sample = base64.b64decode(img_base64)
+        data = np.fromstring(sample, np.uint8)
+        img = cv2.imdecode(data, cv2.IMREAD_COLOR)
         return img
 
     def __repr__(self):
@@ -677,7 +692,7 @@ class Resize(object):
 
     Args:
         size (sequence or int): Desired output size. If size is a sequence like
-            (h, w), output size will be matched to this. If size is an int,
+            (w, h), output size will be matched to this. If size is an int,
             smaller edge of the image will be matched to this number.
             i.e, if height > width, then image will be rescaled to
             (size * height / width, size)
