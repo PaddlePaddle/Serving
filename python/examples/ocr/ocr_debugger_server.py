@@ -82,7 +82,7 @@ class OCRService(WebService):
         for id, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
             imgs[id] = norm_img
-        feed = {"image": imgs}
+        feed = {"image": imgs.copy()}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
         return feed, fetch
 
