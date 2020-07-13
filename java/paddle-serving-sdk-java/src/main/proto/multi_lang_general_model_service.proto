@@ -18,8 +18,6 @@ option java_multiple_files = true;
 option java_package = "io.paddle.serving.grpc";
 option java_outer_classname = "ServingProto";
 
-package paddle.serving.grpc;
-
 message Tensor {
   optional bytes data = 1;
   repeated int32 int_data = 2;
