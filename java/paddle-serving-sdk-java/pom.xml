@@ -73,7 +73,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+ 
     <dependencies>
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
