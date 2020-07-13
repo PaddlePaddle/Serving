@@ -70,6 +70,7 @@ class Debugger(object):
             config.enable_use_gpu(100, 0)
         if profile:
             config.enable_profile()
+        config.delete_pass("conv_transpose_eltwiseadd_bn_fuse_pass")
         config.set_cpu_math_library_num_threads(cpu_num)
         config.switch_ir_optim(False)
         config.switch_use_feed_fetch_ops(False)
