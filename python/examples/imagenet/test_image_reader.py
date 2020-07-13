@@ -11,10 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
-#! /bin/bash
 
-mkdir -p cube_model
-mkdir -p cube/data
-./cube/cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=${PWD}/cube/data -shard_num=1  -only_build=false
-cd cube && ./cube
+from paddle_serving_app.reader.image_reader import String2Image, Base64ToImage, Sequential
+import base64
+
+
+def test_String2Image():
+    with open("./daisy.jpg") as f:
+        img_str = f.read()
+    seq = Sequential([String2Image()])
+    img = seq(img_str)
+    assert (img.shape == (563, 500, 3))
+
+
+def test_Base64ToImage():
+    with open("./daisy.jpg") as f:
+        img_str = f.read()
+    seq = Sequential([Base64ToImage()])
+    img = seq(base64.b64encode(img_str))
+    assert (img.shape == (563, 500, 3))
+
+
+if __name__ == "__main__":
+    test_String2Image()
+    test_Base64ToImage()
