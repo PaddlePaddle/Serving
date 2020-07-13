@@ -9,6 +9,11 @@ tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
+## 获取数据集
+```
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/ocr/test_imgs.tar
+tar xf test_imgs.tar
+```
 
 ### 客户端预测
 
