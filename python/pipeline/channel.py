@@ -90,12 +90,12 @@ class ChannelData(object):
         self.ecode = ecode
         self.error_info = error_info
         self.client_need_profile = client_need_profile
-        self.profile_data_list = []
+        self.profile_data_set = set()
 
-    def add_profile(self, profile_list):
+    def add_profile(self, profile_set):
         if self.client_need_profile is False:
             self.client_need_profile = True
-        self.profile_data_list.extend(profile_list)
+        self.profile_data_set |= profile_set
 
     @staticmethod
     def check_dictdata(dictdata):
