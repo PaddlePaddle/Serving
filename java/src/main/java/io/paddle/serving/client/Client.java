@@ -31,7 +31,7 @@ public class Client {
     private Set<String> lodTensorSet_;
     private Map<String, Integer> feedTensorLen_;
 
-    Client() {
+    public Client() {
         channel_ = null;
         blockingStub_ = null;
         futureStub_ = null;
@@ -45,7 +45,7 @@ public class Client {
         lodTensorSet_ = null;
         feedTensorLen_ = null;
     }
-
+    
     public Boolean setRpcTimeoutMs(int rpc_timeout) throws NullPointerException {
         if (futureStub_ == null || blockingStub_ == null) {
             throw new NullPointerException("set timeout must be set after connect.");
@@ -164,7 +164,6 @@ public class Client {
                 long[] flattened_shape = {-1};
                 INDArray flattened_list = variable.reshape(flattened_shape);
                 int v_type = feedTypes_.get(name);
-                System.out.println(flattened_list);
                 NdIndexIterator iter = new NdIndexIterator(flattened_list.shape());
                 //System.out.format("name: %s, type: %d\n", name, v_type);
                 if (v_type == 0) { // int64
@@ -406,26 +405,27 @@ public class Client {
         return predict_future;
     }
 
+    
     public static void main( String[] args ) {
-        /*
-        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
-                    0.0582f, -0.0727f, -0.1583f, -0.0584f,
-                    0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
-        INDArray npdata = Nd4j.createFromArray(data);
-        HashMap<String, INDArray> feed_data
-            = new HashMap<String, INDArray>() {{
-                put("x", npdata);
-        }};
-        List<String> fetch = Arrays.asList("price");
-        */
-        /*
-        Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
-        for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
-            System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
-        }
-        */
+        // DL4J（Deep Learning for Java）Document:
+        // https://www.bookstack.cn/read/deeplearning4j/bcb48e8eeb38b0c6.md
         
-        //int[] data = {8, 233, 52, 601};
+        //float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+        //            0.0582f, -0.0727f, -0.1583f, -0.0584f,
+        //            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
+        //INDArray npdata = Nd4j.createFromArray(data);
+        //HashMap<String, INDArray> feed_data
+        //    = new HashMap<String, INDArray>() {{
+        //        put("x", npdata);
+        //}};
+        //List<String> fetch = Arrays.asList("price");
+        
+        //Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
+        //for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
+        //    System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
+        //}
+        
+        
         long[] data = {8, 233, 52, 601};
         INDArray npdata = Nd4j.createFromArray(data);
         //System.out.println(npdata);
@@ -452,8 +452,8 @@ public class Client {
                 System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
             }
         }
-        
     }
+    
 }
 
 class PredictFuture {
