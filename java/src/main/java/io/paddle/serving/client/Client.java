@@ -2,6 +2,8 @@ package io.paddle.serving.client;
 
 import java.util.*;
 import java.util.function.Function;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -17,6 +19,41 @@ import io.paddle.serving.grpc.*;
 import io.paddle.serving.configure.*;
 import io.paddle.serving.client.PredictFuture;
 
+class Profiler {
+    int pid_;
+    String print_head_ = null;
+    List<String> time_record_ = null;
+    boolean enable_ = false;
+
+    Profiler() {
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        pid_ = Integer.valueOf(runtimeMXBean.getName().split("@")[0]).intValue();
+        print_head_ = "\nPROFILE\tpid:" + pid_ + "\t";
+        time_record_ = new ArrayList<String>();
+        time_record_.add(print_head_);
+    }
+
+    void record(String name) {
+        if (enable_) {
+            long ctime = System.currentTimeMillis() * 1000;
+            time_record_.add(name + ":" + String.valueOf(ctime) + " ");
+        }
+    }
+
+    void printProfile() {
+        if (enable_) {
+            String profile_str = String.join("", time_record_);
+            System.out.println(profile_str);
+            time_record_ = new ArrayList<String>();
+            time_record_.add(print_head_);
+        }
+    }
+
+    void enable(boolean flag) {
+        enable_ = flag;
+    }
+}
+
 public class Client {
     private ManagedChannel channel_;
     private MultiLangGeneralModelServiceGrpc.MultiLangGeneralModelServiceBlockingStub blockingStub_;
@@ -29,6 +66,7 @@ public class Client {
     private Map<String, Integer> fetchTypes_;
     private Set<String> lodTensorSet_;
     private Map<String, Integer> feedTensorLen_;
+    private Profiler profiler_;
 
     public Client() {
         channel_ = null;
@@ -43,9 +81,17 @@ public class Client {
         fetchTypes_ = null;
         lodTensorSet_ = null;
         feedTensorLen_ = null;
+        
+        profiler_ = new Profiler();
+        boolean is_profile = false;
+        String FLAGS_profile_client = System.getenv("FLAGS_profile_client");
+        if (FLAGS_profile_client != null && FLAGS_profile_client.equals("1")) {
+            is_profile = true;
+        }
+        profiler_.enable(is_profile);
     }
     
-    public Boolean setRpcTimeoutMs(int rpc_timeout) throws NullPointerException {
+    public boolean setRpcTimeoutMs(int rpc_timeout) throws NullPointerException {
         if (futureStub_ == null || blockingStub_ == null) {
             throw new NullPointerException("set timeout must be set after connect.");
         }
@@ -63,7 +109,7 @@ public class Client {
         return resp.getErrCode() == 0;
     }
 
-    public Boolean connect(List<String> endpoints) {
+    public boolean connect(List<String> endpoints) {
         // TODO
         //String target = "ipv4:" + String.join(",", endpoints);
         String target = endpoints.get(0);
@@ -164,7 +210,7 @@ public class Client {
                 INDArray flattened_list = variable.reshape(flattened_shape);
                 int v_type = feedTypes_.get(name);
                 NdIndexIterator iter = new NdIndexIterator(flattened_list.shape());
-                //System.out.format("name: %s, type: %d\n", name, v_type);
+                //System.out.format("[A] name: %s, type: %d\n", name, v_type);
                 if (v_type == 0) { // int64
                     while (iter.hasNext()) {
                         long[] next_index = iter.next();
@@ -355,9 +401,16 @@ public class Client {
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
-        InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
         try {
+            profiler_.record("java_prepro_0");
+            InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
+            profiler_.record("java_prepro_1");
+            
+            profiler_.record("java_client_infer_0");
             InferenceResponse resp = blockingStub_.inference(req);
+            profiler_.record("java_client_infer_1");
+
+            profiler_.record("java_postpro_0");
             Map<String, HashMap<String, INDArray>> ensemble_result
                 = _unpackInferenceResponse(resp, fetch, need_variant_tag);
             List<Map.Entry<String, HashMap<String, INDArray>>> list
@@ -367,6 +420,9 @@ public class Client {
                 System.out.format("grpc failed: please use ensemble_predict impl.\n");
                 return null;
             }
+            profiler_.record("java_postpro_1");
+            profiler_.printProfile();
+
             return list.get(0).getValue();
         } catch (StatusRuntimeException e) {
             System.out.format("grpc failed: %s\n", e.toString());
@@ -378,11 +434,22 @@ public class Client {
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
-        InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
         try {
+            profiler_.record("java_prepro_0");
+            InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
+            profiler_.record("java_prepro_1");
+            
+            profiler_.record("java_client_infer_0");
             InferenceResponse resp = blockingStub_.inference(req);
-            return _unpackInferenceResponse(
-                    resp, fetch, need_variant_tag);
+            profiler_.record("java_client_infer_1");
+            
+            profiler_.record("java_postpro_0");
+            Map<String, HashMap<String, INDArray>> ensemble_result 
+               = _unpackInferenceResponse(resp, fetch, need_variant_tag);
+            profiler_.record("java_postpro_1");
+            profiler_.printProfile();
+
+            return ensemble_result;
         } catch (StatusRuntimeException e) {
             System.out.format("grpc failed: %s\n", e.toString());
             return null;

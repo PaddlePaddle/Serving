@@ -540,6 +540,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         results, tag = ret
         resp.tag = tag
         resp.err_code = 0
+
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
         for model_name, model_result in results.items():
