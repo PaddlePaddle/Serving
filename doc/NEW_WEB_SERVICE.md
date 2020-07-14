@@ -2,7 +2,7 @@
 
 ([简体中文](NEW_WEB_SERVICE_CN.md)|English)
 
-This document will take the image classification service based on the Imagenet data set as an example to introduce how to develop a new web service. The complete code can be visited at [here](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/imagenet/image_classification_service.py).
+This document will take the image classification service based on the Imagenet data set as an example to introduce how to develop a new web service. The complete code can be visited at [here](../python/examples/imagenet/resnet50_web_service.py).
 
 ## WebService base class
 
