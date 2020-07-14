@@ -61,7 +61,7 @@ function build_app() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DAPP=ON ..
-            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            rerun "make -j10 >/dev/null" 3 # due to some network reasons, compilation may fail
             pip install -U python/dist/paddle_serving_app* >/dev/null
             ;;
         *)
@@ -84,7 +84,7 @@ function build_client() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DCLIENT=ON ..
-            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            rerun "make -j10 >/dev/null" 3 # due to some network reasons, compilation may fail
             pip install -U python/dist/paddle_serving_client* >/dev/null
             ;;
         *)
@@ -108,7 +108,7 @@ function build_server() {
                   -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython2.7.so \
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DSERVER=ON ..
-            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            rerun "make -j10 >/dev/null" 3 # due to some network reasons, compilation may fail
             check_cmd "make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
@@ -118,7 +118,7 @@ function build_server() {
                   -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
                   -DSERVER=ON \
                   -DWITH_GPU=ON ..
-            rerun "make -j2 >/dev/null" 3 # due to some network reasons, compilation may fail
+            rerun "make -j10 >/dev/null" 3 # due to some network reasons, compilation may fail
             check_cmd "make install -j2 >/dev/null"
             pip install -U python/dist/paddle_serving_server* >/dev/null
             ;;
@@ -643,13 +643,7 @@ function python_test_yolov4(){
     cd yolov4
     case $TYPE in
         CPU)
-            python -m paddle_serving_app.package --get_model yolov4
-            tar -xzvf yolov4.tar.gz
-            check_cmd "python -m paddle_serving_server.serve --model yolov4_model/ --port 9393 &"
-            sleep 5
-            check_cmd "python test_client.py 000000570688.jpg"
-            echo "yolov4 CPU RPC inference pass"
-            kill_server_process
+            echo "no implement for cpu type"
             ;;
         GPU)
             python -m paddle_serving_app.package --get_model yolov4
@@ -670,6 +664,53 @@ function python_test_yolov4(){
     cd ..
 }
 
+function python_test_resnet50(){
+    #pwd:/ Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    cd imagenet
+    case $TYPE in
+        CPU)
+            echo "no implement for cpu type"
+            ;;
+        GPU)
+            sh get_model.sh
+            check_cmd"python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0"
+            sleep 5
+            check_cmd"python resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt"
+            echo "resnet50 GPU RPC inference pass"
+            kill_server_process
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test resnet $TYPE finished as expected"
+    unset SERVING_BIN
+    cd ..
+}
+
+function python_app_api_test(){
+    #pwd:/ Serving/python/examples
+    #test image reader
+    local TYPE=$1
+    cd imagenet
+    case $TYPE in
+        CPU)
+            check_cmd "python test_image_reader.py"
+            ;;
+        GPU)
+            echo "no implement for cpu type"
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "test app api finised as expected"
+    cd ..
+}
 
 function python_run_test() {
     # Using the compiled binary
@@ -684,6 +725,7 @@ function python_run_test() {
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
+    python_test_resnet50 $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
