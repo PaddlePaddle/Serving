@@ -135,6 +135,7 @@ class Client(object):
         self.rpc_timeout_ms = 20000
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
+        self.write_profile_into_fetch_map_ = False  # only for grpc impl
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
@@ -399,6 +400,7 @@ class MultiLangClient(object):
         self.channel_ = None
         self.stub_ = None
         self.rpc_timeout_s_ = 2
+        self.profile_ = _Profiler()
 
     def add_variant(self, tag, cluster, variant_weight):
         # TODO
@@ -582,6 +584,7 @@ class MultiLangClient(object):
             ret = list(multi_result_map.values())[0]
         else:
             ret = multi_result_map
+
         ret["serving_status_code"] = 0
         return ret if not need_variant_tag else [ret, tag]
 
@@ -601,18 +604,30 @@ class MultiLangClient(object):
                 need_variant_tag=False,
                 asyn=False,
                 is_python=True):
-        req = self._pack_inference_request(feed, fetch, is_python=is_python)
         if not asyn:
             try:
+                self.profile_.record('py_prepro_0')
+                req = self._pack_inference_request(
+                    feed, fetch, is_python=is_python)
+                self.profile_.record('py_prepro_1')
+
+                self.profile_.record('py_client_infer_0')
                 resp = self.stub_.Inference(req, timeout=self.rpc_timeout_s_)
-                return self._unpack_inference_response(
+                self.profile_.record('py_client_infer_1')
+
+                self.profile_.record('py_postpro_0')
+                ret = self._unpack_inference_response(
                     resp,
                     fetch,
                     is_python=is_python,
                     need_variant_tag=need_variant_tag)
+                self.profile_.record('py_postpro_1')
+                self.profile_.print_profile()
+                return ret
             except grpc.RpcError as e:
                 return {"serving_status_code": e.code()}
         else:
+            req = self._pack_inference_request(feed, fetch, is_python=is_python)
             call_future = self.stub_.Inference.future(
                 req, timeout=self.rpc_timeout_s_)
             return MultiLangPredictFuture(
