@@ -7,8 +7,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -17,6 +15,7 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import io.paddle.serving.grpc.*;
 import io.paddle.serving.configure.*;
+import io.paddle.serving.client.PredictFuture;
 
 public class Client {
     private ManagedChannel channel_;
@@ -84,7 +83,7 @@ public class Client {
         GetClientConfigResponse resp;
         try {
             resp = blockingStub_.getClientConfig(get_client_config_req);
-        } catch (StatusRuntimeException e) {
+        } catch (Exception e) {
             System.out.format("Get Client config failed: %s\n", e.toString());
             return false;
         }
@@ -298,10 +297,10 @@ public class Client {
         return ensemble_predict(feed, fetch, false);
     }
 
-    public PredictFuture async_predict(
+    public PredictFuture asyn_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch) {
-        return async_predict(feed, fetch, false);
+        return asyn_predict(feed, fetch, false);
     }
 
     public Map<String, INDArray> predict(
@@ -324,14 +323,14 @@ public class Client {
         return ensemble_predict(feed_batch, fetch, need_variant_tag);
     }
 
-    public PredictFuture async_predict(
+    public PredictFuture asyn_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
         List<HashMap<String, INDArray>> feed_batch
             = new ArrayList<HashMap<String, INDArray>>();
         feed_batch.add(feed);
-        return async_predict(feed_batch, fetch, need_variant_tag);
+        return asyn_predict(feed_batch, fetch, need_variant_tag);
     }
 
     public Map<String, INDArray> predict(
@@ -346,10 +345,10 @@ public class Client {
         return ensemble_predict(feed_batch, fetch, false);
     }
 
-    public PredictFuture async_predict(
+    public PredictFuture asyn_predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch) {
-        return async_predict(feed_batch, fetch, false);
+        return asyn_predict(feed_batch, fetch, false);
     }
 
     public Map<String, INDArray> predict(
@@ -390,7 +389,7 @@ public class Client {
         }
     }
 
-    public PredictFuture async_predict(
+    public PredictFuture asyn_predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
@@ -405,36 +404,20 @@ public class Client {
         return predict_future;
     }
 
-    
     public static void main( String[] args ) {
         // DL4J（Deep Learning for Java）Document:
         // https://www.bookstack.cn/read/deeplearning4j/bcb48e8eeb38b0c6.md
         
-        //float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
-        //            0.0582f, -0.0727f, -0.1583f, -0.0584f,
-        //            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
-        //INDArray npdata = Nd4j.createFromArray(data);
-        //HashMap<String, INDArray> feed_data
-        //    = new HashMap<String, INDArray>() {{
-        //        put("x", npdata);
-        //}};
-        //List<String> fetch = Arrays.asList("price");
-        
-        //Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
-        //for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
-        //    System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
-        //}
-        
-        
-        long[] data = {8, 233, 52, 601};
+        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+                    0.0582f, -0.0727f, -0.1583f, -0.0584f,
+                    0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
         INDArray npdata = Nd4j.createFromArray(data);
-        //System.out.println(npdata);
         HashMap<String, INDArray> feed_data
             = new HashMap<String, INDArray>() {{
-                put("words", npdata);
+                put("x", npdata);
         }};
-        List<String> fetch = Arrays.asList("prediction");
-
+        List<String> fetch = Arrays.asList("price");
+        
         Client client = new Client();
         List<String> endpoints = Arrays.asList("localhost:9393");
         boolean succ = client.connect(endpoints);
@@ -443,59 +426,9 @@ public class Client {
             return;
         }
         
-        Map<String, HashMap<String, INDArray>> fetch_map
-            = client.ensemble_predict(feed_data, fetch);
-        for (Map.Entry<String, HashMap<String, INDArray>> entry : fetch_map.entrySet()) {
-            System.out.println("Model = " + entry.getKey());
-            HashMap<String, INDArray> tt = entry.getValue();
-            for (Map.Entry<String, INDArray> e : tt.entrySet()) {
-                System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
-            }
+        Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
+        for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
+            System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
         }
-    }
-    
-}
-
-class PredictFuture {
-    private ListenableFuture<InferenceResponse> callFuture_;
-    private Function<InferenceResponse, 
-                     Map<String, HashMap<String, INDArray>>> callBackFunc_;
-    
-    PredictFuture(ListenableFuture<InferenceResponse> call_future,
-            Function<InferenceResponse, 
-                     Map<String, HashMap<String, INDArray>>> call_back_func) {
-        callFuture_ = call_future;
-        callBackFunc_ = call_back_func;
-    }
-
-    public Map<String, INDArray> get() throws Exception {
-        InferenceResponse resp = null;
-        try {
-            resp = callFuture_.get();
-        } catch (Exception e) {
-            System.out.format("grpc failed: %s\n", e.toString());
-            return null;
-        }
-        Map<String, HashMap<String, INDArray>> ensemble_result
-            = callBackFunc_.apply(resp);
-        List<Map.Entry<String, HashMap<String, INDArray>>> list
-            = new ArrayList<Map.Entry<String, HashMap<String, INDArray>>>(
-                    ensemble_result.entrySet());
-        if (list.size() != 1) {
-            System.out.format("grpc failed: please use get_ensemble impl.\n");
-            return null;
-        }
-        return list.get(0).getValue();
-    }
-
-    public Map<String, HashMap<String, INDArray>> ensemble_get() throws Exception {
-        InferenceResponse resp = null;
-        try {
-            resp = callFuture_.get();
-        } catch (Exception e) {
-            System.out.format("grpc failed: %s\n", e.toString());
-            return null;
-        }
-        return callBackFunc_.apply(resp);
     }
 }
