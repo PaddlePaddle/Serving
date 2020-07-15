@@ -163,7 +163,6 @@ int run_m(int argc, char** argv) {
   uint64_t max_time = 0;
   uint64_t min_time = 1000000;
   std::vector<uint64_t> all_time_list;
-  all_time_list.resize(turns * thread_num);
   for (int i = 0; i < thread_num; i++) {
     for (int j = 0; j < request_list[i]; j++) {
       sum_time += time_list[i][j];
@@ -191,11 +190,11 @@ int run_m(int argc, char** argv) {
       << std::to_string(all_time_list[static_cast<int>(0.9 * request_num)])
       << "\n99 percent: "
       << std::to_string(all_time_list[static_cast<int>(0.99 * request_num)])
-      << "\n999 percent: "
-      << std::to_string(all_time_list[static_cast<int>(0.999 * request_num)]);
-  LOG(INFO) << "\ntotal_request: " << std::to_string(request_num) << "\nspeed: "
-            << std::to_string(turns * 1000000 / main_time)  // mean_time us
-            << " query per second";
+      << "\n99.9 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.999 * request_num)])
+      << "\ntotal_request: " << std::to_string(request_num) << "\nspeed: "
+      << std::to_string(turns * 1000000 / main_time)  // mean_time us
+      << " query per second";
   return 0;
 }
 
