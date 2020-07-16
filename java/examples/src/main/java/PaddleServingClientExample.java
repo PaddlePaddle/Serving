@@ -20,7 +20,7 @@ public class PaddleServingClientExample {
             = new HashMap<String, INDArray>() {{
                 put("x", npdata);
             }};
-        List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
+        List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
         String target = "localhost:9393";

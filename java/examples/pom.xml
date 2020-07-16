@@ -51,30 +51,16 @@
         <nd4j.backend>nd4j-native</nd4j.backend>
         <nd4j.version>1.0.0-beta7</nd4j.version>
         <datavec.version>1.0.0-beta7</datavec.version>
+        <paddle.serving.client.version>0.0.1</paddle.serving.client.version>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
-
-    <!--  For development use  -->
-    <!--  Include this if you want to try the latest SNAPSHOT version  -->
-    <repositories>
-        <repository>
-            <id>oss.sonatype.org-snapshot</id>
-            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories> 
 
     <dependencies>
         <dependency>
             <groupId>io.paddle.serving.client</groupId>
             <artifactId>paddle-serving-sdk-java</artifactId>
-            <version>0.0.1</version>
+            <version>${paddle.serving.client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
