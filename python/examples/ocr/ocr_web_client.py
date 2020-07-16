@@ -29,13 +29,9 @@ def cv2_to_base64(image):
 
 headers = {"Content-type": "application/json"}
 url = "http://127.0.0.1:9292/ocr/prediction"
-test_img_dir = "./imgs"
+test_img_dir = "test_imgs/rctw_samples/"
 
 for img_file in os.listdir(test_img_dir):
-    image_data = cv2.imread(os.path.join(test_img_dir, img_file))
-    if image_data is None:
-        print("invalid image: ", os.path.join(test_img_dir, img_file))
-        continue
     with open(os.path.join(test_img_dir, img_file), 'rb') as file:
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
