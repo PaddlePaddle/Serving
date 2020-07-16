@@ -1,6 +1,12 @@
 import io.paddle.serving.client.*;
-import org.nd4j.linalg.api.ndarray.INDArray;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.datavec.image.loader.NativeImageLoader;
+import org.nd4j.linalg.api.ops.CustomOp;
+import org.nd4j.linalg.api.ops.DynamicCustomOp;
 import org.nd4j.linalg.factory.Nd4j;
 import java.util.*;
 
@@ -14,7 +20,63 @@ public class PaddleServingClientExample {
             = new HashMap<String, INDArray>() {{
                 put("x", npdata);
             }};
-        List<String> fetch = Arrays.asList("price");
+        List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
+        
+        Client client = new Client();
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
+        if (succ != true) {
+            System.out.println("connect failed.");
+            return false;
+        }
+
+        Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
+        if (fetch_map == null) {
+            return false;
+        }
+
+        for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
+            System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
+        }
+        return true;
+    }
+
+    boolean yolov4(String filename) {
+        // https://deeplearning4j.konduit.ai/
+        int height = 608;
+        int width = 608;
+        int channels = 3;
+        NativeImageLoader loader = new NativeImageLoader(height, width, channels);
+        INDArray BGRimage = null;
+        try {
+            BGRimage = loader.asMatrix(new File(filename));
+        } catch (java.io.IOException e) {
+            System.out.println("load image fail.");
+            return false;
+        }   
+
+        // shape: (channels, height, width)
+        BGRimage = BGRimage.reshape(channels, height, width);
+        INDArray RGBimage = Nd4j.create(BGRimage.shape());
+
+        // BGR2RGB
+        CustomOp op = DynamicCustomOp.builder("reverse")
+            .addInputs(BGRimage)
+            .addOutputs(RGBimage)
+            .addIntegerArguments(0)
+            .build();
+        Nd4j.getExecutioner().exec(op);
+        
+        // Div(255.0)
+        INDArray image = RGBimage.divi(255.0);
+        
+        INDArray im_size = Nd4j.createFromArray(new int[]{height, width});
+        HashMap<String, INDArray> feed_data
+            = new HashMap<String, INDArray>() {{
+                put("image", image);
+                put("im_size", im_size);
+            }};
+        List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
         
         Client client = new Client();
         String target = "localhost:9393";
@@ -255,26 +317,36 @@ public class PaddleServingClientExample {
         PaddleServingClientExample e = new PaddleServingClientExample();
         boolean succ = false;
         
-        for (String arg : args) {
-            System.out.format("[Example] %s\n", arg);
-            if ("fit_a_line".equals(arg)) {
-                succ = e.fit_a_line();
-            } else if ("bert".equals(arg)) {
-                succ = e.bert();
-            } else if ("model_ensemble".equals(arg)) {
-                succ = e.model_ensemble();
-            } else if ("asyn_predict".equals(arg)) {
-                succ = e.asyn_predict();
-            } else if ("batch_predict".equals(arg)) {
-                succ = e.batch_predict();
-            } else if ("cube_local".equals(arg)) {
-                succ = e.cube_local();
-            } else if ("cube_quant".equals(arg)) {
-                succ = e.cube_local();
-            } else {
-                System.out.format("%s not match: java -cp <jar> PaddleServingClientExample <exp>.\n", arg);
-                System.out.println("<exp>: fit_a_line bert model_ensemble asyn_predict batch_predict cube_local cube_quant.");
+        if (args.length < 1) {
+            System.out.println("Usage: java -cp <jar> PaddleServingClientExample <test-type>.");
+            System.out.println("<test-type>: fit_a_line bert model_ensemble asyn_predict batch_predict cube_local cube_quant yolov4");
+            return;
+        }
+        String testType = args[0];
+        System.out.format("[Example] %s\n", testType);
+        if ("fit_a_line".equals(testType)) {
+            succ = e.fit_a_line();
+        } else if ("bert".equals(testType)) {
+            succ = e.bert();
+        } else if ("model_ensemble".equals(testType)) {
+            succ = e.model_ensemble();
+        } else if ("asyn_predict".equals(testType)) {
+            succ = e.asyn_predict();
+        } else if ("batch_predict".equals(testType)) {
+            succ = e.batch_predict();
+        } else if ("cube_local".equals(testType)) {
+            succ = e.cube_local();
+        } else if ("cube_quant".equals(testType)) {
+            succ = e.cube_local();
+        } else if ("yolov4".equals(testType)) {
+            if (args.length < 2) {
+                System.out.println("Usage: java -cp <jar> PaddleServingClientExample yolov4 <image-filepath>.");
+                return;
             }
+            succ = e.yolov4(args[1]);
+        } else {
+            System.out.format("test-type(%s) not match.\n", testType);
+            return;
         }
 
         if (succ == true) {

@@ -22,35 +22,21 @@
         </license>
     </licenses>
 
-    <!--
     <developers>
         <developer>
-            <name>Zhiru Zhu</name>
-            <email>zhiru.zhu@zilliz.com</email>
-            <organization>Milvus</organization>
-            <organizationUrl>http://www.milvus.io</organizationUrl>
-        </developer>
-        <developer>
-            <name>Xiaohai Xu</name>
-            <email>xiaohai.xu@zilliz.com</email>
-            <organization>Milvus</organization>
-            <organizationUrl>http://www.milvus.io</organizationUrl>
+            <name>PaddlePaddle Author</name>
+            <email>guru4elephant@gmail.com</email>
+            <organization>PaddlePaddle</organization>
+            <organizationUrl>https://github.com/PaddlePaddle/Serving</organizationUrl>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/milvus-io/milvus-sdk-java.git</connection>
-        <developerConnection>scm:git:https://github.com/milvus-io/milvus-sdk-java.git</developerConnection>
-        <url>https://github.com/milvus-io/milvus-sdk-java</url>
+        <connection>scm:git:https://github.com/PaddlePaddle/Serving.git</connection>
+        <developerConnection>scm:git:https://github.com/PaddlePaddle/Serving.git</developerConnection>
+        <url>https://github.com/PaddlePaddle/Serving</url>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
-    -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <grpc.version>1.27.2</grpc.version>

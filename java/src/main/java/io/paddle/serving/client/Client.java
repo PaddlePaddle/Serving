@@ -324,7 +324,7 @@ public class Client {
             multi_result_map.put(engine_name, result_map);
         }
 
-        // TODO: tag
+        // TODO: tag(ABtest not support now)
         return multi_result_map;
     }
 
@@ -414,7 +414,7 @@ public class Client {
                 = new ArrayList<Map.Entry<String, HashMap<String, INDArray>>>(
                     ensemble_result.entrySet());
             if (list.size() != 1) {
-                System.out.format("grpc failed: please use ensemble_predict impl.\n");
+                System.out.format("predict failed: please use ensemble_predict impl.\n");
                 return null;
             }
             profiler_.record("java_postpro_1");
@@ -422,7 +422,7 @@ public class Client {
 
             return list.get(0).getValue();
         } catch (StatusRuntimeException e) {
-            System.out.format("grpc failed: %s\n", e.toString());
+            System.out.format("predict failed: %s\n", e.toString());
             return null;
         }
     }
@@ -448,7 +448,7 @@ public class Client {
 
             return ensemble_result;
         } catch (StatusRuntimeException e) {
-            System.out.format("grpc failed: %s\n", e.toString());
+            System.out.format("predict failed: %s\n", e.toString());
             return null;
         }
     }

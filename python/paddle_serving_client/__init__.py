@@ -522,7 +522,7 @@ class MultiLangClient(object):
                             tensor.float_data.extend(
                                 var.reshape(-1).astype('float32').tolist())
                         elif v_type == 2:
-                            tensor.int32_data.extend(
+                            tensor.int_data.extend(
                                 var.reshape(-1).astype('int32').tolist())
                         else:
                             raise Exception("error tensor value type.")
@@ -532,7 +532,7 @@ class MultiLangClient(object):
                         elif v_type == 1:
                             tensor.float_data.extend(self._flatten_list(var))
                         elif v_type == 2:
-                            tensor.int32_data.extend(self._flatten_list(var))
+                            tensor.int_data.extend(self._flatten_list(var))
                         else:
                             raise Exception("error tensor value type.")
                     else:
