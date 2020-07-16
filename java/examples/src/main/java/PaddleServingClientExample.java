@@ -17,8 +17,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -52,8 +52,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -82,8 +82,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
 
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -112,8 +112,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("prediction");
 
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -150,8 +150,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("pooled_output");
 
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -231,8 +231,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("prob");
 
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9292");
-        boolean succ = client.connect(endpoints);
+        String target = "localhost:9393";
+        boolean succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
@@ -269,9 +269,11 @@ public class PaddleServingClientExample {
                 succ = e.batch_predict();
             } else if ("cube_local".equals(arg)) {
                 succ = e.cube_local();
+            } else if ("cube_quant".equals(arg)) {
+                succ = e.cube_local();
             } else {
                 System.out.format("%s not match: java -cp <jar> PaddleServingClientExample <exp>.\n", arg);
-                System.out.println("<exp>: fit_a_line bert model_ensemble asyn_predict batch_predict cube_local.");
+                System.out.println("<exp>: fit_a_line bert model_ensemble asyn_predict batch_predict cube_local cube_quant.");
             }
         }
 

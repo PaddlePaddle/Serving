@@ -109,10 +109,9 @@ public class Client {
         return resp.getErrCode() == 0;
     }
 
-    public boolean connect(List<String> endpoints) {
-        // TODO
-        //String target = "ipv4:" + String.join(",", endpoints);
-        String target = endpoints.get(0);
+    public boolean connect(String target) {
+        // TODO: target must be NameResolver-compliant URI
+        // https://grpc.github.io/grpc-java/javadoc/io/grpc/ManagedChannelBuilder.html
         try {
             channel_ = ManagedChannelBuilder.forTarget(target)
                 .defaultLoadBalancingPolicy("round_robin")
@@ -484,8 +483,8 @@ public class Client {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        List<String> endpoints = Arrays.asList("localhost:9393");
-        boolean succ = client.connect(endpoints);
+        String endpoint = "localhost:9393";
+        boolean succ = client.connect(endpoint);
         if (succ != true) {
             System.out.println("connect failed.");
             return;
