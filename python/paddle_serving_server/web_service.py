@@ -88,7 +88,7 @@ class WebService(object):
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
-        except ValueError, err:
+        except ValueError as err:
             result = {"result": err}
         return result
 
