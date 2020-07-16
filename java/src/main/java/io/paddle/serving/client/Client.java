@@ -8,6 +8,7 @@ import java.lang.management.RuntimeMXBean;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import com.google.protobuf.ByteString;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -43,7 +44,6 @@ class Profiler {
     void printProfile() {
         if (enable_) {
             String profile_str = String.join("", time_record_);
-            System.out.println(profile_str);
             time_record_ = new ArrayList<String>();
             time_record_.add(print_head_);
         }
@@ -177,7 +177,6 @@ public class Client {
                     counter *= dim;
                 }
                 feedTensorLen_.put(var_name, counter);
-                // TODO: check shape
             }
         }
 
@@ -210,7 +209,6 @@ public class Client {
                 INDArray flattened_list = variable.reshape(flattened_shape);
                 int v_type = feedTypes_.get(name);
                 NdIndexIterator iter = new NdIndexIterator(flattened_list.shape());
-                //System.out.format("[A] name: %s, type: %d\n", name, v_type);
                 if (v_type == 0) { // int64
                     while (iter.hasNext()) {
                         long[] next_index = iter.next();
