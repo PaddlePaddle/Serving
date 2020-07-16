@@ -30,8 +30,6 @@ imdb_dataset.load_resource('imdb.vocab')
 for i in range(3):
     line = 'i am very sad | 0'
     word_ids, label = imdb_dataset.get_words_and_label(line)
-    print(type(word_ids[0]))
-    print(word_ids)
     feed = {"words": word_ids}
     fetch = ["prediction"]
     fetch_maps = client.predict(feed=feed, fetch=fetch)

@@ -26,7 +26,7 @@ public class PredictFuture {
         try {
             resp = callFuture_.get();
         } catch (Exception e) {
-            System.out.format("grpc failed: %s\n", e.toString());
+            System.out.format("predict failed: %s\n", e.toString());
             return null;
         }
         Map<String, HashMap<String, INDArray>> ensemble_result
@@ -35,7 +35,7 @@ public class PredictFuture {
             = new ArrayList<Map.Entry<String, HashMap<String, INDArray>>>(
                     ensemble_result.entrySet());
         if (list.size() != 1) {
-            System.out.format("grpc failed: please use get_ensemble impl.\n");
+            System.out.format("predict failed: please use get_ensemble impl.\n");
             return null;
         }
         return list.get(0).getValue();
@@ -46,7 +46,7 @@ public class PredictFuture {
         try {
             resp = callFuture_.get();
         } catch (Exception e) {
-            System.out.format("grpc failed: %s\n", e.toString());
+            System.out.format("predict failed: %s\n", e.toString());
             return null;
         }
         return callBackFunc_.apply(resp);
