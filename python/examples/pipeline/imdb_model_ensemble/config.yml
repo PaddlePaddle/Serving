@@ -1,6 +1,6 @@
 port: 18080
 worker_num: 1
-build_dag_each_request: false
+build_dag_each_worker: false
 dag:
     is_thread_op: true
     client_type: brpc
