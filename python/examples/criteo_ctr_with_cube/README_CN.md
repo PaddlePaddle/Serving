@@ -24,8 +24,8 @@ tar xf cube_app.tar.gz
 mv cube_app/cube* ./cube/
 sh cube_prepare.sh &
 ```
-
-此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中，关于稀疏参数索引服务Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
+# it should be fixed before the next release time
+### 此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中，关于稀疏参数索引服务Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
 
 ### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
