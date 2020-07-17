@@ -2,7 +2,7 @@
 
 (简体中文|[English](NEW_WEB_SERVICE.md))
 
-本文档将以Imagenet图像分类服务为例，来介绍如何开发一个新的Web Service。您可以在[这里](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/imagenet/image_classification_service.py)查阅完整的代码。
+本文档将以Imagenet图像分类服务为例，来介绍如何开发一个新的Web Service。您可以在[这里](../python/examples/imagenet/resnet50_web_service.py)查阅完整的代码。
 
 ## WebService基类
 
