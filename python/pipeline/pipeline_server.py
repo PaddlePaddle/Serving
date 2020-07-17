@@ -126,8 +126,8 @@ class PipelineServer(object):
                     show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
-                        args=(bind_address, self._response_op, self._dag_config,
-                              self._worker_num))
+                        args=(bind_address, self._response_op,
+                              self._dag_config))
                     worker.start()
                     workers.append(worker)
                 for worker in workers:
@@ -141,13 +141,11 @@ class PipelineServer(object):
             server.start()
             server.wait_for_termination()
 
-    def _run_server_func(self, bind_address, response_op, dag_config,
-                         worker_num):
+    def _run_server_func(self, bind_address, response_op, dag_config):
         options = (('grpc.so_reuseport', 1), )
         server = grpc.server(
             futures.ThreadPoolExecutor(
-                max_workers=worker_num, ),
-            options=options)
+                max_workers=1, ), options=options)
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
             ProcessPipelineService(response_op, dag_config), server)
         server.add_insecure_port(bind_address)
