@@ -261,33 +261,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--
-            Package dependencies into the jar:
-            https://stackoverflow.com/questions/37732086/maven-compile-cause-classnotfoundexception
-            -->
-			<plugin>
-              <artifactId>maven-assembly-plugin</artifactId>
-              <configuration>
-                  <archive>
-                      <manifest>
-                          <addClasspath>true</addClasspath>
-                          <mainClass>my.fully.qualified.class.Main</mainClass>
-                      </manifest>
-                  </archive>
-                  <descriptorRefs>
-                      <descriptorRef>jar-with-dependencies</descriptorRef>
-                  </descriptorRefs>
-              </configuration>
-              <executions>
-                  <execution>
-                      <id>make-my-jar-with-dependencies</id>
-                      <phase>package</phase>
-                      <goals>
-                          <goal>single</goal>
-                      </goals>
-                  </execution>
-              </executions>
-            </plugin>
         </plugins>
     </build>
 
