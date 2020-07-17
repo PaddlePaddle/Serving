@@ -43,7 +43,6 @@ message InferenceResponse {
   repeated ModelOutput outputs = 1;
   optional string tag = 2;
   required int32 err_code = 3;
-  optional string profile = 4;
 };
 
 message ModelOutput {
