@@ -25,7 +25,7 @@ Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测
 
 您可以使用 Apache Maven 下载该 SDK。 
 
-```shell
+```text
  <dependency>
      <groupId>io.paddle.serving.client</groupId>
      <artifactId>paddle-serving-sdk-java</artifactId>

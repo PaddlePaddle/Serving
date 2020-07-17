@@ -23,7 +23,7 @@ The following table shows compatibilities between Paddle Serving Server and Java
 
 You can use Apache Maven to download the SDK.
 
-```shell
+```text
  <dependency>
      <groupId>io.paddle.serving.client</groupId>
      <artifactId>paddle-serving-sdk-java</artifactId>
