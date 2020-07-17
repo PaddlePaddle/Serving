@@ -543,26 +543,7 @@ function java_run_test() {
             cd ../../../java/examples # /Serving/java/examples
             java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 src/main/resources/000000570688.jpg
             kill_server_process
-
-            # cube (load server config and client config in Server side)
-            cd ../../python/examples/grpc_impl_example/criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
-            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz > /dev/null"
-            check_cmd "tar xf ctr_cube_unittest.tar.gz"
-            check_cmd "mv models/ctr_client_conf ./"
-            check_cmd "mv models/ctr_serving_model_kv ./"
-            check_cmd "mv models/data ./cube/"
-            check_cmd "mv models/ut_data ./"
-            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
-            sh cube_prepare.sh &
-            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
-            python test_server.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
-            sleep 5
-            cd ../../../java/examples # /Serving/java/examples
-            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample cube_local
-
-            kill_server_process
-            ps -ef | grep "test_server" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
-            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            cd ../../ # pwd: /Serving
             ;;
         GPU)
             ;;
@@ -574,7 +555,6 @@ function java_run_test() {
     echo "java-sdk $TYPE part finished as expected."
     setproxy
     unset SERVING_BIN
-    cd ../../ # pwd: /Serving
 }
 
 function python_test_grpc_impl() {
