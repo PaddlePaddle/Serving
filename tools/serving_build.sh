@@ -499,6 +499,84 @@ function python_test_lac() {
     cd ..
 }
 
+function java_run_test() {
+    # pwd: /Serving
+    # compile java sdk
+    cd java # pwd: /Serving/java
+    mvn compile
+    mvn install
+    # compile java sdk example
+    cd examples # pwd: /Serving/java/examples
+    mvn compile
+    mvn install
+
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    unsetproxy
+    case $TYPE in
+        CPU)
+            # fit_a_line (general, asyn_predict, batch_predict)
+            cd ../../python/examples/grpc_impl_example/fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
+            sh get_data.sh
+            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --port 9393 --thread 4 --use_multilang > /dev/null &"
+            sleep 5 # wait for the server to start
+            cd ../../../java/examples # /Serving/java/examples
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample fit_a_line
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample asyn_predict
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample batch_predict
+            kill_server_process
+
+            # imdb (model_ensemble)
+            cd ../../python/examples/grpc_impl_example/imdb # pwd: /Serving/python/examples/grpc_impl_example/imdb
+            sh get_data.sh
+            check_cmd "python test_multilang_ensemble_server.py > /dev/null &"
+            sleep 5 # wait for the server to start
+            cd ../../../java/examples # /Serving/java/examples
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample model_ensemble
+            kill_server_process
+
+            # yolov4 (int32)
+            cd ../../python/examples/grpc_impl_example/yolov4 # pwd: /Serving/python/examples/grpc_impl_example/yolov4
+            python -m paddle_serving_app.package --get_model yolov4
+            tar -xzvf yolov4.tar.gz
+            check_cmd "python -m paddle_serving_server.serve --model yolov4_model --port 9393 --use_multilang > /dev/null &"
+            cd ../../../java/examples # /Serving/java/examples
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 src/main/resources/000000570688.jpg
+            kill_server_process
+
+            # cube (load server config and client config in Server side)
+            cd ../../python/examples/grpc_impl_example/criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "tar xf ctr_cube_unittest.tar.gz"
+            check_cmd "mv models/ctr_client_conf ./"
+            check_cmd "mv models/ctr_serving_model_kv ./"
+            check_cmd "mv models/data ./cube/"
+            check_cmd "mv models/ut_data ./"
+            cp ../../../../build-server-$TYPE/output/bin/cube* ./cube/
+            sh cube_prepare.sh &
+            check_cmd "mkdir work_dir1 && cp cube/conf/cube.conf ./work_dir1/"
+            python test_server.py ctr_serving_model_kv ctr_client_conf/serving_client_conf.prototxt &
+            sleep 5
+            cd ../../../java/examples # /Serving/java/examples
+            java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample cube_local
+
+            kill_server_process
+            ps -ef | grep "test_server" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
+            ;;
+        GPU)
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "java-sdk $TYPE part finished as expected."
+    setproxy
+    unset SERVING_BIN
+    cd ../../ # pwd: /Serving
+}
+
 function python_test_grpc_impl() {
     # pwd: /Serving/python/examples
     cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
@@ -979,6 +1057,7 @@ function main() {
     build_server $TYPE # pwd: /Serving
     build_app $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
+    java_run_test $TYPE # pwd: /Serving
     monitor_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }

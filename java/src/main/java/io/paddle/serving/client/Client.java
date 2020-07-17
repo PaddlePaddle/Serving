@@ -91,9 +91,10 @@ public class Client {
         profiler_.enable(is_profile);
     }
     
-    public boolean setRpcTimeoutMs(int rpc_timeout) throws NullPointerException {
+    public boolean setRpcTimeoutMs(int rpc_timeout) {
         if (futureStub_ == null || blockingStub_ == null) {
-            throw new NullPointerException("set timeout must be set after connect.");
+            System.out.println("set timeout must be set after connect.");
+            return false;
         }
         rpcTimeoutS_ = rpc_timeout / 1000.0;
         SetTimeoutRequest timeout_req = SetTimeoutRequest.newBuilder()
