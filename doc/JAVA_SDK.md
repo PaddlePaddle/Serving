@@ -5,6 +5,7 @@ Paddle Serving provides Java SDK，which supports predict on the Client side wit
 
 ## Getting started
 
+
 ### Prerequisites
 
 ```
