@@ -42,7 +42,7 @@ cd python/examples/criteo_ctr_with_cube
 python local_train.py
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
-sh cube_prepare_quant.sh &
+sh cube_quant_prepare.sh &
 python test_server_quant.py ctr_serving_model_kv &
 python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 ```
