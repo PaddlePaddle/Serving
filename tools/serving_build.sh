@@ -503,12 +503,12 @@ function java_run_test() {
     # pwd: /Serving
     # compile java sdk
     cd java # pwd: /Serving/java
-    mvn compile
-    mvn install
+    mvn compile > /dev/null
+    mvn install > /dev/null
     # compile java sdk example
     cd examples # pwd: /Serving/java/examples
-    mvn compile
-    mvn install
+    mvn compile > /dev/null
+    mvn install > /dev/null
 
     local TYPE=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
@@ -528,7 +528,7 @@ function java_run_test() {
 
             # imdb (model_ensemble)
             cd ../../python/examples/grpc_impl_example/imdb # pwd: /Serving/python/examples/grpc_impl_example/imdb
-            sh get_data.sh
+            sh get_data.sh > /dev/null
             check_cmd "python test_multilang_ensemble_server.py > /dev/null &"
             sleep 5 # wait for the server to start
             cd ../../../java/examples # /Serving/java/examples
@@ -537,8 +537,8 @@ function java_run_test() {
 
             # yolov4 (int32)
             cd ../../python/examples/grpc_impl_example/yolov4 # pwd: /Serving/python/examples/grpc_impl_example/yolov4
-            python -m paddle_serving_app.package --get_model yolov4
-            tar -xzvf yolov4.tar.gz
+            python -m paddle_serving_app.package --get_model yolov4 > /dev/null
+            tar -xzf yolov4.tar.gz > /dev/null
             check_cmd "python -m paddle_serving_server.serve --model yolov4_model --port 9393 --use_multilang --mem_optim > /dev/null &"
             cd ../../../java/examples # /Serving/java/examples
             java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 src/main/resources/000000570688.jpg
@@ -546,7 +546,7 @@ function java_run_test() {
 
             # cube (load server config and client config in Server side)
             cd ../../python/examples/grpc_impl_example/criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
-            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz > /dev/null"
             check_cmd "tar xf ctr_cube_unittest.tar.gz"
             check_cmd "mv models/ctr_client_conf ./"
             check_cmd "mv models/ctr_serving_model_kv ./"
@@ -615,7 +615,7 @@ function python_test_grpc_impl() {
             # test load server config and client config in Server side
             cd criteo_ctr_with_cube # pwd: /Serving/python/examples/grpc_impl_example/criteo_ctr_with_cube
 
-            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
+            check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz > /dev/null"
             check_cmd "tar xf ctr_cube_unittest.tar.gz"
             check_cmd "mv models/ctr_client_conf ./"
             check_cmd "mv models/ctr_serving_model_kv ./"
@@ -1056,8 +1056,8 @@ function main() {
     build_client $TYPE # pwd: /Serving
     build_server $TYPE # pwd: /Serving
     build_app $TYPE # pwd: /Serving
-    python_run_test $TYPE # pwd: /Serving
     java_run_test $TYPE # pwd: /Serving
+    python_run_test $TYPE # pwd: /Serving
     monitor_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
