@@ -691,6 +691,109 @@ function python_test_resnet50(){
     cd ..
 }
 
+function python_test_pipeline(){
+    # pwd:/ Serving/python/examples
+    local TYPE=$1
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    unsetproxy
+    cd pipeline/imdb_model_ensemble
+    case $TYPE in
+        CPU)
+            # start paddle serving service (brpc)
+            sh get_data.sh
+            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
+            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
+            sleep 5
+            
+            # test: thread servicer & thread op
+            cat << EOF > config.yaml
+port: 18080
+worker_num: 2
+build_dag_each_worker: false
+dag:
+    is_thread_op: true
+    client_type: brpc
+    retry: 1
+    use_profile: false
+EOF
+            python test_pipeline_server.py > /dev/null/ &
+            sleep 5
+            check_cmd "python test_pipeline_client.py"
+            ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+
+            # test: thread servicer & process op
+            cat << EOF > config.yaml
+port: 18080
+worker_num: 2
+build_dag_each_worker: false
+dag:
+    is_thread_op: false
+    client_type: brpc
+    retry: 1
+    use_profile: false
+EOF
+            python test_pipeline_server.py > /dev/null/ &
+            sleep 5
+            check_cmd "python test_pipeline_client.py"
+            ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+
+            # test: process servicer & thread op
+            cat << EOF > config.yaml
+port: 18080
+worker_num: 2
+build_dag_each_worker: true
+dag:
+    is_thread_op: flase
+    client_type: brpc
+    retry: 1
+    use_profile: false
+EOF
+            python test_pipeline_server.py > /dev/null/ &
+            sleep 5
+            check_cmd "python test_pipeline_client.py"
+            ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+
+            # test: process servicer & process op
+            cat << EOF > config.yaml
+port: 18080
+worker_num: 2
+build_dag_each_worker: false
+dag:
+    is_thread_op: false
+    client_type: brpc
+    retry: 1
+    use_profile: false
+EOF
+            python test_pipeline_server.py > /dev/null/ &
+            sleep 5
+            check_cmd "python test_pipeline_client.py"
+            ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            
+            kill_server_process
+
+            # start paddle serving service (grpc)
+            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang &> cnn.log &
+            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang &> bow.log &
+            sleep 5
+            python test_pipeline_server.py > /dev/null/ &
+            sleep 5
+            check_cmd "python test_pipeline_client.py"
+            ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
+            ;;
+        GPU)
+            echo "pipeline ignore GPU test"
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    cd ../../
+    setproxy
+    unset SERVING_BIN
+}
+
 function python_app_api_test(){
     #pwd:/ Serving/python/examples
     #test image reader
@@ -726,6 +829,7 @@ function python_run_test() {
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     python_test_resnet50 $TYPE # pwd: /Serving/python/examples
+    python_test_pipeline $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
