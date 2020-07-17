@@ -21,6 +21,7 @@ import logging
 import func_timeout
 import os
 import sys
+import numpy as np
 from numpy import *
 
 from .proto import pipeline_service_pb2
@@ -481,10 +482,9 @@ class Op(object):
 class RequestOp(Op):
     """ RequestOp do not run preprocess, process, postprocess. """
 
-    def __init__(self, concurrency=1):
+    def __init__(self):
         # PipelineService.name = "@G"
-        super(RequestOp, self).__init__(
-            name="@G", input_ops=[], concurrency=concurrency)
+        super(RequestOp, self).__init__(name="@G", input_ops=[])
         # init op
         try:
             self.init_op()
@@ -507,9 +507,8 @@ class RequestOp(Op):
 class ResponseOp(Op):
     """ ResponseOp do not run preprocess, process, postprocess. """
 
-    def __init__(self, input_ops, concurrency=1):
-        super(ResponseOp, self).__init__(
-            name="@R", input_ops=input_ops, concurrency=concurrency)
+    def __init__(self, input_ops):
+        super(ResponseOp, self).__init__(name="@R", input_ops=input_ops)
         # init op
         try:
             self.init_op()
@@ -525,6 +524,7 @@ class ResponseOp(Op):
                 feed = channeldata.parse()
                 # ndarray to string:
                 # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
+                np.set_printoptions(threshold=np.nan)
                 for name, var in feed.items():
                     resp.value.append(var.__repr__())
                     resp.key.append(name)
