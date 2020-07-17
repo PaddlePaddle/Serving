@@ -539,7 +539,7 @@ function java_run_test() {
             cd ../../python/examples/grpc_impl_example/yolov4 # pwd: /Serving/python/examples/grpc_impl_example/yolov4
             python -m paddle_serving_app.package --get_model yolov4
             tar -xzvf yolov4.tar.gz
-            check_cmd "python -m paddle_serving_server.serve --model yolov4_model --port 9393 --use_multilang > /dev/null &"
+            check_cmd "python -m paddle_serving_server.serve --model yolov4_model --port 9393 --use_multilang --mem_optim > /dev/null &"
             cd ../../../java/examples # /Serving/java/examples
             java -cp target/paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 src/main/resources/000000570688.jpg
             kill_server_process
