@@ -1,5 +1,3 @@
-
-
 # Pipeline Serving
 
 Paddle Serving 通常用于单模型的一键部署，但端到端的深度学习模型当前还不能解决所有问题，多个深度学习模型配合起来使用还是解决现实问题的常规手段。
@@ -374,4 +372,3 @@ for f in futures:
         print(res)
         exit(1)
 ```
-
