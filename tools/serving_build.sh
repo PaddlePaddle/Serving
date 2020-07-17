@@ -706,7 +706,7 @@ function python_test_pipeline(){
             sleep 5
             
             # test: thread servicer & thread op
-            cat << EOF > config.yaml
+            cat << EOF > config.yml
 port: 18080
 worker_num: 2
 build_dag_each_worker: false
@@ -722,7 +722,7 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
 
             # test: thread servicer & process op
-            cat << EOF > config.yaml
+            cat << EOF > config.yml
 port: 18080
 worker_num: 2
 build_dag_each_worker: false
@@ -738,7 +738,7 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
 
             # test: process servicer & thread op
-            cat << EOF > config.yaml
+            cat << EOF > config.yml
 port: 18080
 worker_num: 2
 build_dag_each_worker: true
@@ -754,7 +754,7 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
 
             # test: process servicer & process op
-            cat << EOF > config.yaml
+            cat << EOF > config.yml
 port: 18080
 worker_num: 2
 build_dag_each_worker: false
