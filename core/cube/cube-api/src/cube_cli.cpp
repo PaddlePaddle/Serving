@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
+#include <algorithm>
 #include <atomic>
 #include <fstream>
 #include <thread>  //NOLINT
@@ -33,7 +34,7 @@ std::atomic<int> g_concurrency(0);
 
 std::vector<std::vector<uint64_t>> time_list;
 std::vector<uint64_t> request_list;
-int turns = 1000000 / FLAGS_batch;
+int turns = 1000;
 
 namespace {
 inline uint64_t time_diff(const struct timeval& start_time,
@@ -94,14 +95,15 @@ int run(int argc, char** argv, int thread_id) {
   uint64_t file_size = key_list.size();
   uint64_t index = 0;
   uint64_t request = 0;
-
   while (g_concurrency.load() >= FLAGS_thread_num) {
   }
   g_concurrency++;
   time_list[thread_id].resize(turns);
-  while (index < file_size) {
+  while (request < turns) {
     // uint64_t key = strtoul(buffer, NULL, 10);
-
+    if (index >= file_size) {
+      index = 0;
+    }
     keys.push_back(key_list[index]);
     index += 1;
     int ret = 0;
@@ -160,7 +162,7 @@ int run_m(int argc, char** argv) {
   uint64_t sum_time = 0;
   uint64_t max_time = 0;
   uint64_t min_time = 1000000;
-  uint64_t request_num = 0;
+  std::vector<uint64_t> all_time_list;
   for (int i = 0; i < thread_num; i++) {
     for (int j = 0; j < request_list[i]; j++) {
       sum_time += time_list[i][j];
@@ -170,20 +172,29 @@ int run_m(int argc, char** argv) {
       if (time_list[i][j] < min_time) {
         min_time = time_list[i][j];
       }
+      all_time_list.push_back(time_list[i][j]);
     }
-    request_num += request_list[i];
   }
+  std::sort(all_time_list.begin(), all_time_list.end());
   uint64_t mean_time = sum_time / (thread_num * turns);
   uint64_t main_time = time_diff(main_start, main_end);
-  LOG(INFO) << "\n"
-            << thread_num << " thread seek cost"
-            << "\navg = " << std::to_string(mean_time)
-            << "\nmax = " << std::to_string(max_time)
-            << "\nmin = " << std::to_string(min_time);
-  LOG(INFO) << "\ntotal_request = " << std::to_string(request_num)
-            << "\nspeed = " << std::to_string(request_num * 1000000 /
-                                              main_time)  // mean_time us
-            << " query per second";
+  uint64_t request_num = turns * thread_num;
+  LOG(INFO)
+      << "\n"
+      << thread_num << " thread seek cost"
+      << "\navg: " << std::to_string(mean_time) << "\n50 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.5 * request_num)])
+      << "\n80 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.8 * request_num)])
+      << "\n90 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.9 * request_num)])
+      << "\n99 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.99 * request_num)])
+      << "\n99.9 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.999 * request_num)])
+      << "\ntotal_request: " << std::to_string(request_num) << "\nspeed: "
+      << std::to_string(turns * 1000000 / main_time)  // mean_time us
+      << " query per second";
   return 0;
 }
 
