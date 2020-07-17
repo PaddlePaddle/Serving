@@ -85,7 +85,7 @@ public class PaddleServingClientExample {
             System.out.println("connect failed.");
             return false;
         }
-        succ = client.setRpcTimeoutMs(10000); // cpu
+        succ = client.setRpcTimeoutMs(20000); // cpu
         if (succ != true) {
             System.out.println("set timeout failed.");
             return false;
