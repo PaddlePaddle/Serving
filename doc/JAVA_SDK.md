@@ -20,7 +20,22 @@ The following table shows compatibilities between Paddle Serving Server and Java
 
 ### Install Java SDK
 
-You can use Apache Maven to download the SDK.
+You can download jar and install it to the local Maven repository:
+
+```shell
+wget https://paddle-serving.bj.bcebos.com/jar/paddle-serving-sdk-java-0.0.1.jar
+mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId=io.paddle.serving.client -DartifactId=paddle-serving-sdk-java -Dversion=0.0.1 -Dpackaging=jar
+```
+
+Or compile from the source code and install it to the local Maven repository:
+
+```shell
+cd Serving/java
+mvn compile
+mvn install
+```
+
+### Maven configure
 
 ```text
  <dependency>
