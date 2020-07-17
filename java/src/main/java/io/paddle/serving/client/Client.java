@@ -467,32 +467,4 @@ public class Client {
         );
         return predict_future;
     }
-
-    public static void main( String[] args ) {
-        // DL4J（Deep Learning for Java）Document:
-        // https://www.bookstack.cn/read/deeplearning4j/bcb48e8eeb38b0c6.md
-        
-        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
-                    0.0582f, -0.0727f, -0.1583f, -0.0584f,
-                    0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
-        INDArray npdata = Nd4j.createFromArray(data);
-        HashMap<String, INDArray> feed_data
-            = new HashMap<String, INDArray>() {{
-                put("x", npdata);
-        }};
-        List<String> fetch = Arrays.asList("price");
-        
-        Client client = new Client();
-        String endpoint = "localhost:9393";
-        boolean succ = client.connect(endpoint);
-        if (succ != true) {
-            System.out.println("connect failed.");
-            return;
-        }
-        
-        Map<String, INDArray> fetch_map = client.predict(feed_data, fetch);
-        for (Map.Entry<String, INDArray> e : fetch_map.entrySet()) {
-            System.out.println("Key = " + e.getKey() + ", Value = " + e.getValue());
-        }
-    }
 }
