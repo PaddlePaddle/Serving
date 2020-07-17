@@ -701,8 +701,8 @@ function python_test_pipeline(){
         CPU)
             # start paddle serving service (brpc)
             sh get_data.sh
-            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
-            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
+            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
+            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --workdir test9393 &> bow.log &
             sleep 5
             
             # test: thread servicer & thread op
@@ -772,8 +772,8 @@ EOF
             kill_server_process
 
             # start paddle serving service (grpc)
-            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang &> cnn.log &
-            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang &> bow.log &
+            python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
+            python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
             python test_pipeline_server.py > /dev/null &
             sleep 5
