@@ -22,7 +22,22 @@ Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测
 
 ### 安装
 
-您可以使用 Apache Maven 下载该 SDK。 
+您可以直接下载 jar，安装到本地 Maven 库：
+
+```shell
+wget https://paddle-serving.bj.bcebos.com/jar/paddle-serving-sdk-java-0.0.1.jar
+mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId=io.paddle.serving.client -DartifactId=paddle-serving-sdk-java -Dversion=0.0.1 -Dpackaging=jar
+```
+
+或者从源码进行编译，安装到本地 Maven 库：
+
+```shell
+cd Serving/java
+mvn compile
+mvn install
+```
+
+### Maven 配置
 
 ```text
  <dependency>
@@ -31,6 +46,8 @@ Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测
      <version>0.0.1</version>
  </dependency>
 ```
+
+
 
 
 ## 使用样例
