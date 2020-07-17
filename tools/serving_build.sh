@@ -716,7 +716,7 @@ dag:
     retry: 1
     use_profile: false
 EOF
-            python test_pipeline_server.py > /dev/null/ &
+            python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
@@ -732,7 +732,7 @@ dag:
     retry: 1
     use_profile: false
 EOF
-            python test_pipeline_server.py > /dev/null/ &
+            python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
@@ -748,7 +748,7 @@ dag:
     retry: 1
     use_profile: false
 EOF
-            python test_pipeline_server.py > /dev/null/ &
+            python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
@@ -764,7 +764,7 @@ dag:
     retry: 1
     use_profile: false
 EOF
-            python test_pipeline_server.py > /dev/null/ &
+            python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
@@ -775,7 +775,7 @@ EOF
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang &> cnn.log &
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang &> bow.log &
             sleep 5
-            python test_pipeline_server.py > /dev/null/ &
+            python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
