@@ -702,6 +702,7 @@ function python_test_pipeline(){
             # start paddle serving service (brpc)
             sh get_data.sh
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
+            sleep 5
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --workdir test9393 &> bow.log &
             sleep 5
             
@@ -773,6 +774,7 @@ EOF
 
             # start paddle serving service (grpc)
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
+            sleep 5
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
             python test_pipeline_server.py > /dev/null &
