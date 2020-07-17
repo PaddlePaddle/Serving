@@ -5,7 +5,6 @@
 Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测，本文档说明了如何使用 Java SDK。
 
 
-
 ## 快速开始
 
 ### 环境要求
@@ -92,4 +91,3 @@ public class PaddleServingClientExample {
     }
 }
 ```
-
