@@ -135,7 +135,6 @@ class Client(object):
         self.rpc_timeout_ms = 20000
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
-        self.write_profile_into_fetch_map_ = False  # only for grpc impl
 
     def load_client_config(self, path):
         from .serving_client import PredictorClient
