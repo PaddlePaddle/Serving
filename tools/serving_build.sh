@@ -501,20 +501,20 @@ function python_test_lac() {
 
 function java_run_test() {
     # pwd: /Serving
-    # compile java sdk
-    cd java # pwd: /Serving/java
-    mvn compile > /dev/null
-    mvn install > /dev/null
-    # compile java sdk example
-    cd examples # pwd: /Serving/java/examples
-    mvn compile > /dev/null
-    mvn install > /dev/null
-
     local TYPE=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     case $TYPE in
         CPU)
+            # compile java sdk
+            cd java # pwd: /Serving/java
+            mvn compile > /dev/null
+            mvn install > /dev/null
+            # compile java sdk example
+            cd examples # pwd: /Serving/java/examples
+            mvn compile > /dev/null
+            mvn install > /dev/null
+            
             # fit_a_line (general, asyn_predict, batch_predict)
             cd ../../python/examples/grpc_impl_example/fit_a_line # pwd: /Serving/python/examples/grpc_impl_example/fit_a_line
             sh get_data.sh
