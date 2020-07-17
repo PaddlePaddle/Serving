@@ -1,7 +1,6 @@
 # Paddle Serving Client Java SDK
 
 ([简体中文](JAVA_SDK_CN.md)|English)
-
 Paddle Serving provides Java SDK，which supports predict on the Client side with Java language. This document shows how to use the Java SDK.
 
 ## Getting started
@@ -91,4 +90,3 @@ public class PaddleServingClientExample {
     }
 }
 ```
-
