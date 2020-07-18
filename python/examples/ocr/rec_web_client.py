@@ -28,7 +28,7 @@ def cv2_to_base64(image):
 
 
 headers = {"Content-type": "application/json"}
-url = "http://127.0.0.1:8900/ocr/prediction"
+url = "http://127.0.0.1:9292/ocr/prediction"
 test_img_dir = "rec_img/"
 
 for img_file in os.listdir(test_img_dir):
