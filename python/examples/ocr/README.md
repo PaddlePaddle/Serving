@@ -38,7 +38,7 @@ python ocr_debugger_server.py
 
 ## Web Debugger Client Prediction
 ```
-python ocr_web_clint.py
+python ocr_web_client.py
 ```
 
 ## Benchmark
@@ -53,3 +53,35 @@ Dataset: RCTW 500 sample images
 |------------------------------|----------------|----------------------------|------------------|--------------------|------------------|--------------------|--------------------|------------------|--------------------|--------------------------|--------------------|--------------|---------------|
 | Serving web service          | 8.69         | 13.41                      | 109.97           | 2.82               | 87.76            | 4.29               | 3.98               | 78.51            | 3.66               | 4.12                     | 181.02             | 136.49       | 317.51        |
 | Serving Debugger web service |  8.73        | 16.42                      | 115.27           | 2.93               | 20.63            | 3.97               | 4.48               | 13.84            | 3.60               | 6.91                     | 49.45              | 147.33       | 196.78        |
+
+## Appendix: Det or Rec only
+if you are going to detect images not recognize it or directly recognize the words from images. We also provide Det and Rec server for you.
+
+### Det Server 
+
+```
+python det_web_server.py 
+#or
+python det_debugger_server.py
+```
+
+### Det Client
+
+```
+# also use ocr_web_client.py
+python ocr_web_client.py
+```
+
+### Rec Server
+
+```
+python rec_web_server.py 
+#or
+python rec_debugger_server.py
+```
+
+### Rec Client
+
+```
+python rec_web_client.py
+```
