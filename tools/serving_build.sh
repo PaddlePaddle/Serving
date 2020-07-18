@@ -182,7 +182,7 @@ function python_test_fit_a_line() {
             kill_server_process
 
             # test web
-            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
+            #unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
             #check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 2 --gpu_ids 0 --name uci > /dev/null &"
             #sleep 5 # wait for the server to start
             #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
@@ -200,7 +200,7 @@ function python_test_fit_a_line() {
             #    echo "HTTP status code -ne 200"
             #    exit 1
             #fi
-            setproxy # recover proxy state
+            #setproxy # recover proxy state
             #kill_server_process
             ;;
         *)
