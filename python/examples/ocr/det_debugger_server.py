@@ -65,7 +65,7 @@ class OCRService(WebService):
 ocr_service = OCRService(name="ocr")
 ocr_service.load_model_config("ocr_det_model")
 ocr_service.set_gpus("0")
-ocr_service.prepare_server(workdir="workdir", port=8900, device="gpu", gpuid=0)
+ocr_service.prepare_server(workdir="workdir", port=9292, device="gpu", gpuid=0)
 ocr_service.init_det()
 ocr_service.run_debugger_service()
 ocr_service.run_web_service()
