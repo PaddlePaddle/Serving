@@ -130,7 +130,7 @@ def postprocess(self, input_dicts, fetch_dict):
 
 **preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量是一个以前继 OP 的 name 为 Key，对应 OP 的输出为 Value 的字典。
 
-**process ** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict`（preprocess 函数的返回值），该变量是一个以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。
+**process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict`（preprocess 函数的返回值），该变量是一个以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。
 
 **postprocess** 的参数是 `input_dicts` 和 `fetch_dict`，`input_dicts` 与 preprocess 的参数一致，`fetch_dict` 是 process 函数的返回值（如果没有执行 process ，则该值为 preprocess 的返回值）。
 

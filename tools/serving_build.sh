@@ -137,6 +137,15 @@ function kill_server_process() {
     sleep 1
 }
 
+function kill_process_by_pid() {
+    if [ $# != 1 ]; then
+        echo "usage: kill_process_by_pid <PID>"
+        exit 1
+    fi
+    local PID=$1
+    lsof -i:$PID | awk 'NR == 1 {next} {print $2}' | xargs kill
+}
+
 function python_test_fit_a_line() {
     # pwd: /Serving/python/examples
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
@@ -521,6 +530,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
+            kill_process_by_pid 9393
 
             check_cmd "python test_server.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
@@ -531,6 +541,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
+            kill_process_by_pid 9393
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
 
@@ -579,6 +590,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
+            kill_process_by_pid 9393
 
             check_cmd "python test_server_gpu.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
@@ -589,7 +601,8 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
-            ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 9393
+            #ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
 
@@ -702,7 +715,6 @@ function python_test_pipeline(){
             # start paddle serving service (brpc)
             sh get_data.sh
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
-            sleep 5
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --workdir test9393 &> bow.log &
             sleep 5
             
@@ -771,10 +783,11 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             
             kill_server_process
+            kill_process_by_pid 9292
+            kill_process_by_pid 9393
 
             # start paddle serving service (grpc)
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
-            sleep 5
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
             python test_pipeline_server.py > /dev/null &
@@ -782,6 +795,8 @@ EOF
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             kill_server_process
+            kill_process_by_pid 9292
+            kill_process_by_pid 9393
             ;;
         GPU)
             echo "pipeline ignore GPU test"
