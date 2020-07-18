@@ -733,6 +733,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 18080
 
             # test: thread servicer & process op
             cat << EOF > config.yml
@@ -749,6 +750,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 18080
 
             # test: process servicer & thread op
             cat << EOF > config.yml
@@ -765,6 +767,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 18080
 
             # test: process servicer & process op
             cat << EOF > config.yml
@@ -781,6 +784,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 18080
             
             kill_server_process
             kill_process_by_pid 9292
@@ -794,6 +798,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_process_by_pid 18080
             kill_server_process
             kill_process_by_pid 9292
             kill_process_by_pid 9393
