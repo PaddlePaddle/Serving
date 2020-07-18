@@ -10,7 +10,7 @@ python -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
-## Get Dataset
+## Get Dataset (Optional)
 ```
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/ocr/test_imgs.tar
 tar xf test_imgs.tar
