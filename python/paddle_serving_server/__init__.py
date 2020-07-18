@@ -524,7 +524,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
                     elif v_type == 2:  # int32
-                        data = np.array(list(var.int32_data), dtype="int32")
+                        data = np.array(list(var.int_data), dtype="int32")
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
@@ -540,6 +540,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         results, tag = ret
         resp.tag = tag
         resp.err_code = 0
+
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
         for model_name, model_result in results.items():
@@ -558,8 +559,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         tensor.float_data.extend(model_result[name].reshape(-1)
                                                  .tolist())
                     elif v_type == 2:  # int32
-                        tensor.int32_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
+                        tensor.int_data.extend(model_result[name].reshape(-1)
+                                               .tolist())
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
