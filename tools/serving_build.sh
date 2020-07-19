@@ -628,7 +628,6 @@ function python_test_grpc_impl() {
             fi
             echo "grpc impl test success"
             kill_server_process
-            kill_process_by_port 9393
             ps -ef | grep "cube" | grep -v grep | awk '{print $2}' | xargs kill
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
