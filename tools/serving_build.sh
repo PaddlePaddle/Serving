@@ -137,9 +137,9 @@ function kill_server_process() {
     sleep 1
 }
 
-function kill_process_by_pid() {
+function kill_process_by_port() {
     if [ $# != 1 ]; then
-        echo "usage: kill_process_by_pid <PID>"
+        echo "usage: kill_process_by_port <PID>"
         exit 1
     fi
     local PID=$1
@@ -530,7 +530,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
-            kill_process_by_pid 9393
+            kill_process_by_port 9393
 
             check_cmd "python test_server.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
@@ -541,7 +541,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
-            kill_process_by_pid 9393
+            kill_process_by_port 9393
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
 
@@ -590,7 +590,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
-            kill_process_by_pid 9393
+            kill_process_by_port 9393
 
             check_cmd "python test_server_gpu.py uci_housing_model > /dev/null &"
             sleep 5 # wait for the server to start
@@ -601,7 +601,7 @@ function python_test_grpc_impl() {
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
-            kill_process_by_pid 9393
+            kill_process_by_port 9393
             #ps -ef | grep "test_server_gpu" | grep -v serving_build | grep -v grep | awk '{print $2}' | xargs kill
 
             cd .. # pwd: /Serving/python/examples/grpc_impl_example
@@ -717,6 +717,8 @@ function python_test_pipeline(){
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --workdir test9393 &> bow.log &
             sleep 5
+            cat cnn.log
+            cat bow.log
             
             # test: thread servicer & thread op
             cat << EOF > config.yml
@@ -733,7 +735,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_process_by_pid 18080
+            kill_process_by_port 18080
 
             # test: thread servicer & process op
             cat << EOF > config.yml
@@ -750,7 +752,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_process_by_pid 18080
+            kill_process_by_port 18080
 
             # test: process servicer & thread op
             cat << EOF > config.yml
@@ -767,7 +769,7 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_process_by_pid 18080
+            kill_process_by_port 18080
 
             # test: process servicer & process op
             cat << EOF > config.yml
@@ -784,11 +786,11 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_process_by_pid 18080
+            kill_process_by_port 18080
             
             kill_server_process
-            kill_process_by_pid 9292
-            kill_process_by_pid 9393
+            kill_process_by_port 9292
+            kill_process_by_port 9393
 
             # start paddle serving service (grpc)
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
@@ -798,10 +800,10 @@ EOF
             sleep 5
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_process_by_pid 18080
+            kill_process_by_port 18080
             kill_server_process
-            kill_process_by_pid 9292
-            kill_process_by_pid 9393
+            kill_process_by_port 9292
+            kill_process_by_port 9393
             ;;
         GPU)
             echo "pipeline ignore GPU test"
