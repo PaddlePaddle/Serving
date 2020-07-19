@@ -2,7 +2,7 @@
 
 Paddle Serving 通常用于单模型的一键部署，但端到端的深度学习模型当前还不能解决所有问题，多个深度学习模型配合起来使用还是解决现实问题的常规手段。
 
-Paddle Serving 提供了用户友好的多模型组合服务编程框架，Pipeline Serving，旨在降低编程门槛，提升整体的预估效率。
+Paddle Serving 提供了用户友好的多模型组合服务编程框架，Pipeline Serving，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体的预估效率。
 
 ## 整体架构设计
 
@@ -372,3 +372,35 @@ for f in futures:
         print(res)
         exit(1)
 ```
+
+
+
+## 如何通过 Timeline 工具进行优化
+
+为了更好地对性能进行优化，PipelineServing 提供了 Timeline 工具，对整个服务的各个阶段时间进行打点。
+
+### 在 Server 端输出 Profile 信息
+
+Server 端用 yaml 中的 `use_profile` 字段进行控制：
+
+```yaml
+dag:
+    use_profile: true
+```
+
+开启该功能后，Server 端在预测的过程中会将对应的日志信息打印到标准输出，为了更直观地展现各阶段的耗时，提供脚本对日志文件做进一步的分析处理。
+
+使用时先将 Server 的输出保存到文件，以 profile 为例，脚本将日志中的时间打点信息转换成 json 格式保存到trace 文件，trace 文件可以通过 chrome 浏览器的 tracing 功能进行可视化。
+
+```shell
+python timeline_trace.py profile trace
+```
+
+具体操作：打开 chrome 浏览器，在地址栏输入 chrome://tracing/ ，跳转至 tracing 页面，点击 load 按钮，打开保存的 trace 文件，即可将预测服务的各阶段时间信息可视化。
+
+### 在 Client 端输出 Profile 信息
+
+Client 端在 `predict` 接口设置 `profile=True`，即可开启 Profile 功能。
+
+开启该功能后，Client 端在预测的过程中会将该次预测对应的日志信息打印到标准输出，后续分析处理同 Server。
+
