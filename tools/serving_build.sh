@@ -852,6 +852,16 @@ EOF
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
+            cat << EOF > config.yml
+port: 18080
+worker_num: 2
+build_dag_each_worker: false
+dag:
+    is_thread_op: false
+    client_type: grpc
+    retry: 1
+    use_profile: false
+EOF
             python test_pipeline_server.py > /dev/null &
             sleep 5
             check_cmd "python test_pipeline_client.py"
