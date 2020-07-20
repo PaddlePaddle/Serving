@@ -23,21 +23,22 @@ from paddle_serving_app.reader import Sequential, URL2Image, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 from paddle_serving_server_gpu.web_service import WebService
+from paddle_serving_app.local_predict import Debugger
 import time
 import re
 import base64
 
 
 class OCRService(WebService):
-    def init_det_client(self, det_port, det_client_config):
+    def init_det_debugger(self, det_model_config):
         self.det_preprocess = Sequential([
             ResizeByFactor(32, 960), Div(255),
             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                 (2, 0, 1))
         ])
-        self.det_client = Client()
-        self.det_client.load_client_config(det_client_config)
-        self.det_client.connect(["127.0.0.1:{}".format(det_port)])
+        self.det_client = Debugger()
+        self.det_client.load_model_config(
+            det_model_config, gpu=True, profile=False)
         self.ocr_reader = OCRReader()
 
     def preprocess(self, feed=[], fetch=[]):
@@ -46,9 +47,11 @@ class OCRService(WebService):
         im = cv2.imdecode(data, cv2.IMREAD_COLOR)
         ori_h, ori_w, _ = im.shape
         det_img = self.det_preprocess(im)
+        _, new_h, new_w = det_img.shape
+        det_img = det_img[np.newaxis, :]
+        det_img = det_img.copy()
         det_out = self.det_client.predict(
             feed={"image": det_img}, fetch=["concat_1.tmp_0"])
-        _, new_h, new_w = det_img.shape
         filter_func = FilterBoxes(10, 10)
         post_func = DBPostProcess({
             "thresh": 0.3,
@@ -63,7 +66,6 @@ class OCRService(WebService):
         dt_boxes = filter_func(dt_boxes_list[0], [ori_h, ori_w])
         dt_boxes = sorted_boxes(dt_boxes)
         get_rotate_crop_image = GetRotateCropImage()
-        feed_list = []
         img_list = []
         max_wh_ratio = 0
         for i, dtbox in enumerate(dt_boxes):
@@ -72,12 +74,17 @@ class OCRService(WebService):
             h, w = boximg.shape[0:2]
             wh_ratio = w * 1.0 / h
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
-        for img in img_list:
+        if len(img_list) == 0:
+            return [], []
+        _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
+                                                  max_wh_ratio).shape
+        imgs = np.zeros((len(img_list), 3, w, h)).astype('float32')
+        for id, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            feed = {"image": norm_img}
-            feed_list.append(feed)
+            imgs[id] = norm_img
+        feed = {"image": imgs.copy()}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed_list, fetch
+        return feed, fetch
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
@@ -90,10 +97,7 @@ class OCRService(WebService):
 
 ocr_service = OCRService(name="ocr")
 ocr_service.load_model_config("ocr_rec_model")
-ocr_service.set_gpus("0")
-ocr_service.prepare_server(workdir="workdir", port=9292, device="gpu", gpuid=0)
-ocr_service.init_det_client(
-    det_port=9293,
-    det_client_config="ocr_det_client/serving_client_conf.prototxt")
-ocr_service.run_rpc_service()
+ocr_service.prepare_server(workdir="workdir", port=9292)
+ocr_service.init_det_debugger(det_model_config="ocr_det_model")
+ocr_service.run_debugger_service(gpu=True)
 ocr_service.run_web_service()
