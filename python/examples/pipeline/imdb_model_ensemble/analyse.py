@@ -11,21 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from paddle_serving_client.pipeline import PipelineClient
-import numpy as np
 
-client = PipelineClient()
-client.connect(['127.0.0.1:18080'])
+from paddle_serving_server.pipeline import Analyst
+import json
+import logging
+import sys
 
-words = 'i am very sad | 0'
+logging.basicConfig(level=logging.INFO)
 
-futures = []
-for i in range(100):
-    futures.append(
-        client.predict(
-            feed_dict={"words": words}, fetch=["prediction"], asyn=True))
-
-for f in futures:
-    res = f.result()
-    if res["ecode"] != 0:
-        print("predict failed: {}".format(res))
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python analyse.py <log_filename> <trace_filename>")
+        exit(1)
+    log_filename = sys.argv[1]
+    trace_filename = sys.argv[2]
+    analyst = Analyst(log_filename)
+    analyst.save_trace(trace_filename)
+    op_analyst = analyst.get_op_analyst()
+    op_concurrency = op_analyst.concurrency_analysis("analyse.yaml")
+    print(json.dumps(op_concurrency, indent=2, separators=(',', ':')))
