@@ -120,28 +120,20 @@ class CharacterOps(object):
 
 
 class OCRReader(object):
-    def __init__(self):
-        args = self.parse_args()
-        image_shape = [int(v) for v in args.rec_image_shape.split(",")]
+    def __init__(self,
+                 algorithm="CRNN",
+                 image_shape=[3, 32, 320],
+                 char_type="ch",
+                 batch_num=1,
+                 char_dict_path="./ppocr_keys_v1.txt"):
         self.rec_image_shape = image_shape
-        self.character_type = args.rec_char_type
-        self.rec_batch_num = args.rec_batch_num
+        self.character_type = char_type
+        self.rec_batch_num = batch_num
         char_ops_params = {}
-        char_ops_params["character_type"] = args.rec_char_type
-        char_ops_params["character_dict_path"] = args.rec_char_dict_path
+        char_ops_params["character_type"] = char_type
+        char_ops_params["character_dict_path"] = char_dict_path
         char_ops_params['loss_type'] = 'ctc'
         self.char_ops = CharacterOps(char_ops_params)
-
-    def parse_args(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--rec_algorithm", type=str, default='CRNN')
-        parser.add_argument("--rec_model_dir", type=str)
-        parser.add_argument("--rec_image_shape", type=str, default="3, 32, 320")
-        parser.add_argument("--rec_char_type", type=str, default='ch')
-        parser.add_argument("--rec_batch_num", type=int, default=1)
-        parser.add_argument(
-            "--rec_char_dict_path", type=str, default="./ppocr_keys_v1.txt")
-        return parser.parse_args()
 
     def resize_norm_img(self, img, max_wh_ratio):
         imgC, imgH, imgW = self.rec_image_shape
@@ -154,15 +146,14 @@ class OCRReader(object):
             resized_w = imgW
         else:
             resized_w = int(math.ceil(imgH * ratio))
-
-        seq = Sequential([
-            Resize(imgH, resized_w), Transpose((2, 0, 1)), Div(255),
-            Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5], True)
-        ])
-        resized_image = seq(img)
+        resized_image = cv2.resize(img, (resized_w, imgH))
+        resized_image = resized_image.astype('float32')
+        resized_image = resized_image.transpose((2, 0, 1)) / 255
+        resized_image -= 0.5
+        resized_image /= 0.5
         padding_im = np.zeros((imgC, imgH, imgW), dtype=np.float32)
-        padding_im[:, :, 0:resized_w] = resized_image
 
+        padding_im[:, :, 0:resized_w] = resized_image
         return padding_im
 
     def preprocess(self, img_list):
@@ -191,11 +182,17 @@ class OCRReader(object):
         for rno in range(len(rec_idx_lod) - 1):
             beg = rec_idx_lod[rno]
             end = rec_idx_lod[rno + 1]
-            rec_idx_tmp = rec_idx_batch[beg:end, 0]
+            if isinstance(rec_idx_batch, list):
+                rec_idx_tmp = [x[0] for x in rec_idx_batch[beg:end]]
+            else:  #nd array
+                rec_idx_tmp = rec_idx_batch[beg:end, 0]
             preds_text = self.char_ops.decode(rec_idx_tmp)
             if with_score:
                 beg = predict_lod[rno]
                 end = predict_lod[rno + 1]
+                if isinstance(outputs["softmax_0.tmp_0"], list):
+                    outputs["softmax_0.tmp_0"] = np.array(outputs[
+                        "softmax_0.tmp_0"]).astype(np.float32)
                 probs = outputs["softmax_0.tmp_0"][beg:end, :]
                 ind = np.argmax(probs, axis=1)
                 blank = probs.shape[1]
