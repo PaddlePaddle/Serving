@@ -35,7 +35,7 @@
 | CPU 开发镜像                                       | CentOS7  | latest-devel                 | [Dockerfile.devel](../tools/Dockerfile.devel)                |
 | GPU (cuda9.0-cudnn7) 运行镜像                      | CentOS7  | latest-cuda9.0-cudnn7        | [Dockerfile.cuda9.0-cudnn7](../tools/Dockerfile.cuda9.0-cudnn7) |
 | GPU (cuda9.0-cudnn7) 开发镜像                      | CentOS7  | latest-cuda9.0-cudnn7-devel  | [Dockerfile.cuda9.0-cudnn7.devel](../tools/Dockerfile.cuda9.0-cudnn7.devel) |
-| GPU (cuda9.0-cudnn7) 运行镜像                      | CentOS7  | latest-cuda10.0-cudnn7       | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
+| GPU (cuda10.0-cudnn7) 运行镜像                     | CentOS7  | latest-cuda10.0-cudnn7       | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
 | GPU (cuda10.0-cudnn7) 开发镜像                     | CentOS7  | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
 | CPU 开发镜像 (用于编译 Ubuntu 包)                  | CentOS6  | <无>                         | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
 | GPU (cuda9.0-cudnn7) 开发镜像 (用于编译 Ubuntu 包) | CentOS6  | <无>                         | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
