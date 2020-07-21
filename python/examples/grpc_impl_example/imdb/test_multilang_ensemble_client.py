@@ -34,4 +34,6 @@ for i in range(3):
     fetch = ["prediction"]
     fetch_maps = client.predict(feed=feed, fetch=fetch)
     for model, fetch_map in fetch_maps.items():
+        if model == "serving_status_code":
+            continue
         print("step: {}, model: {}, res: {}".format(i, model, fetch_map))
