@@ -70,9 +70,10 @@ class Debugger(object):
             config.enable_use_gpu(100, 0)
         if profile:
             config.enable_profile()
+        config.delete_pass("conv_transpose_eltwiseadd_bn_fuse_pass")
         config.set_cpu_math_library_num_threads(cpu_num)
         config.switch_ir_optim(False)
-
+        config.switch_use_feed_fetch_ops(False)
         self.predictor = create_paddle_predictor(config)
 
     def predict(self, feed=None, fetch=None):
@@ -113,20 +114,30 @@ class Debugger(object):
                 "Fetch names should not be empty or out of saved fetch list.")
             return {}
 
-        inputs = []
-        for name in self.feed_names_:
+        input_names = self.predictor.get_input_names()
+        for name in input_names:
             if isinstance(feed[name], list):
                 feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
                     name])
-                if self.feed_types_[name] == 0:
-                    feed[name] = feed[name].astype("int64")
-                else:
-                    feed[name] = feed[name].astype("float32")
-            inputs.append(PaddleTensor(feed[name][np.newaxis, :]))
-
-        outputs = self.predictor.run(inputs)
+            if self.feed_types_[name] == 0:
+                feed[name] = feed[name].astype("int64")
+            else:
+                feed[name] = feed[name].astype("float32")
+            input_tensor = self.predictor.get_input_tensor(name)
+            input_tensor.copy_from_cpu(feed[name])
+        output_tensors = []
+        output_names = self.predictor.get_output_names()
+        for output_name in output_names:
+            output_tensor = self.predictor.get_output_tensor(output_name)
+            output_tensors.append(output_tensor)
+        outputs = []
+        self.predictor.zero_copy_run()
+        for output_tensor in output_tensors:
+            output = output_tensor.copy_to_cpu()
+            outputs.append(output)
         fetch_map = {}
-        for name in fetch:
-            fetch_map[name] = outputs[self.fetch_names_to_idx_[
-                name]].as_ndarray()
+        for i, name in enumerate(fetch):
+            fetch_map[name] = outputs[i]
+            if len(output_tensors[i].lod()) > 0:
+                fetch_map[name + ".lod"] = output_tensors[i].lod()[0]
         return fetch_map
