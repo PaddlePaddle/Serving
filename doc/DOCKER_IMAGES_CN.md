@@ -25,6 +25,7 @@
 
    
 
+
 ## 镜像说明
 
 运行时镜像不能用于开发编译。
@@ -39,4 +40,3 @@
 | GPU (cuda10.0-cudnn7) 开发镜像                     | CentOS7  | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
 | CPU 开发镜像 (用于编译 Ubuntu 包)                  | CentOS6  | <无>                         | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
 | GPU (cuda9.0-cudnn7) 开发镜像 (用于编译 Ubuntu 包) | CentOS6  | <无>                         | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
-

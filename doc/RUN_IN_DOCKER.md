@@ -18,6 +18,7 @@ Refer to [this document](DOCKER_IMAGES.md) for a docker image:
 docker pull hub.baidubce.com/paddlepaddle/serving:latest
 ```
 
+
 ### Create container
 
 ```bash

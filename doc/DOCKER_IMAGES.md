@@ -23,6 +23,7 @@ You can get images in two ways:
    docker build -t <image-name>:<images-tag> .
    ```
 
+
    
 
 ## Image description
@@ -39,4 +40,3 @@ Runtime images cannot be used for compilation.
 |              GPU (cuda10.0-cudnn7) development               | CentOS7 | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
 |     CPU development (Used to compile packages on Ubuntu)     | CentOS6 |            <None>            | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
 | GPU (cuda9.0-cudnn7) development (Used to compile packages on Ubuntu) | CentOS6 |            <None>            | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
-
