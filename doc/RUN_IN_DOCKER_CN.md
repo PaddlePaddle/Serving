@@ -18,6 +18,7 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 docker pull hub.baidubce.com/paddlepaddle/serving:latest
 ```
 
+
 ### 创建容器并进入
 
 ```bash
