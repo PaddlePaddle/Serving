@@ -8,7 +8,7 @@
 
 您可以通过两种方式获取镜像。
 
-1. 通过 TAG 直接从 `hub.baidubce.com ` 或 `hub.docker.com` 拉取镜像：
+1. 通过 TAG 直接从 `hub.baidubce.com ` 或 `docker.io` 拉取镜像：
 
    ```shell
    docker pull hub.baidubce.com/paddlepaddle/serving:<TAG> # hub.baidubce.com
