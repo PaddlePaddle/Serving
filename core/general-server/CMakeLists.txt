@@ -28,8 +28,14 @@ if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
 endif()
 
+#link_libraries(${PROJECT_BINARY_DIR}/third_party/install/Paddle/third_party/install/lite/cxx/lib/libpaddle_full_api_shared.so)
+
 if(WITH_MKL OR WITH_GPU)
-    target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
+    target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread
+        -lcrypto -lm -lrt -lssl -ldl -lz -lbz2 )
+    target_link_libraries(serving
+        ${PROJECT_BINARY_DIR}/third_party/install/Paddle/third_party/install/lite/cxx/lib/libpaddle_full_api_shared.so)
+
 else()
     target_link_libraries(serving openblas -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 endif()

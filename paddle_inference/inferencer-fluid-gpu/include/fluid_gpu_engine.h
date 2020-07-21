@@ -535,6 +535,45 @@ class FluidGpuAnalysisDirWithSigmoidCore : public FluidGpuWithSigmoidCore {
   }
 };
 
+class FluidXpuAnalysisDirCore : public FluidFamilyCore {
+ public:
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
+    if (access(data_path.c_str(), F_OK) == -1) {
+      LOG(ERROR) << "create paddle predictor failed, path not exits: "
+                 << data_path;
+      return -1;
+    }
+
+    paddle::AnalysisConfig analysis_config;
+    analysis_config.SetModel(data_path);
+    analysis_config.EnableXpu();
+    analysis_config.SwitchSpecifyInputNames(true);
+    analysis_config.SetCpuMathLibraryNumThreads(1);
+
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim();
+    }
+
+    if (params.enable_ir_optimization()) {
+      analysis_config.SwitchIrOptim(true);
+    } else {
+      analysis_config.SwitchIrOptim(false);
+    }
+
+    AutoLock lock(GlobalPaddleCreateMutex::instance());
+    _core =
+        paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
+    if (NULL == _core.get()) {
+      LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
+      return -1;
+    }
+
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    return 0;
+  }
+};
+
 }  // namespace fluid_gpu
 }  // namespace paddle_serving
 }  // namespace baidu

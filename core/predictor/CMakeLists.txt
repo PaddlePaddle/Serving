@@ -15,7 +15,8 @@ set_source_files_properties(
 add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure)
 
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
+        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt
+        -lssl -ldl -lz)
 
 # install
 install(TARGETS pdserving
