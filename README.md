@@ -29,7 +29,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">Installation</h2>
 
-We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md). See the [document](doc/DOCKER_IMAGES.md) for more docker images.
 ```
 # Run CPU Docker
 docker pull hub.baidubce.com/paddlepaddle/serving:latest
@@ -38,8 +38,8 @@ docker exec -it test bash
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
 nvidia-docker exec -it test bash
 ```
 
@@ -75,7 +75,7 @@ Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use H
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-    
+
 ``` shell
 > python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
