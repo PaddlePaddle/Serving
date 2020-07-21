@@ -43,7 +43,7 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 设备 ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
 
-模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
+模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/criteo_ctr_with_cube/network_conf.py)
 
 server core/thread num ： 4/8
 
