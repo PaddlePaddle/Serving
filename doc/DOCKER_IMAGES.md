@@ -8,7 +8,7 @@ This document maintains a list of docker images provided by Paddle Serving.
 
 You can get images in two ways:
 
-1. Pull image directly from `hub.baidubce.com ` or `hub.docker.com` through TAG:
+1. Pull image directly from `hub.baidubce.com ` or `docker.io` through TAG:
 
    ```shell
    docker pull hub.baidubce.com/paddlepaddle/serving:<TAG> # hub.baidubce.com
