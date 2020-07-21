@@ -19,6 +19,9 @@ set(PADDLE_SERVING_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 SET(PADDLE_SERVING_INSTALL_DIR ${CMAKE_BINARY_DIR}/output)
 SET(CMAKE_INSTALL_RPATH "\$ORIGIN" "${CMAKE_INSTALL_RPATH}")
 
+SET(CMAKE_C_COMPILER "/opt/compiler/gcc-8.2/bin/gcc")
+SET(CMAKE_CXX_COMPILER "/opt/compiler/gcc-8.2/bin/g++")
+
 include(system)
 
 project(paddle-serving CXX C)
