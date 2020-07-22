@@ -55,7 +55,7 @@ If you need install modules compiled with develop branch, please download packag
 
 Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7 and Ubuntu 16/18.
 
-Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but only support python2.7/3.6/3.7.
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.6/3.7.
 
 Recommended to install paddle >= 1.8.2.
 
