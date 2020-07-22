@@ -57,7 +57,7 @@ pip install paddle-serving-server-gpu # GPU
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7和Ubuntu 16/18。
 
-paddle-serving-client和paddle-serving-app安装包支持Linux和Windows。
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6。
 
 推荐安装1.8.2及以上版本的paddle
 
