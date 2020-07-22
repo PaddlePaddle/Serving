@@ -55,7 +55,11 @@ pip install paddle-serving-server-gpu # GPU
 
 如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。
 
-Paddle Serving安装包支持Centos 6/7和Ubuntu 16/18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
+paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7和Ubuntu 16/18。
+
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows。
+
+推荐安装1.8.2及以上版本的paddle
 
 <h2 align="center"> Paddle Serving预装的服务 </h2>
 
