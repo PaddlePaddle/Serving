@@ -11,10 +11,7 @@
 - CMake：3.2.2 and later
 - Python：2.7.2 and later / 3.6 and later
 
-It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you: 
-
-- CPU: `hub.baidubce.com/paddlepaddle/serving:latest-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
-- GPU: `hub.baidubce.com/paddlepaddle/serving:latest-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you, see [this document](DOCKER_IMAGES.md).
 
 This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python3, just adjust the Python options of cmake:
 
@@ -29,6 +26,9 @@ git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
+
+
+
 ## PYTHONROOT Setting
 
 ```shell
@@ -37,6 +37,18 @@ export PYTHONROOT=/usr/
 ```
 
 In the default centos7 image we provide, the Python path is `/usr/bin/python`. If you want to use our centos6 image, you need to set it to `export PYTHONROOT=/usr/local/python2.7/`.
+
+
+
+## Install Python dependencies
+
+```shell
+pip install -r python/requirements.txt
+```
+
+If Python3 is used, replace `pip` with `pip3`.
+
+
 
 ## Compile Server
 
@@ -62,6 +74,8 @@ execute `make install` to put targets under directory `./output`
 
 **Attention：** After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
 
+
+
 ## Compile Client
 
 ``` shell
@@ -72,6 +86,8 @@ make -j10
 
 execute `make install` to put targets under directory `./output`
 
+
+
 ## Compile the App
 
 ```bash
@@ -80,13 +96,18 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make
 ```
 
+
+
 ## Install wheel package
 
 Regardless of the client, server or App part, after compiling, install the whl package under `python/dist/`.
 
+
+
 ## Note
 
 When running the python server, it will check the `SERVING_BIN` environment variable. If you want to use your own compiled binary file, set the environment variable to the path of the corresponding binary file, usually`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`.
+
 
 
 ## CMake Option Description
