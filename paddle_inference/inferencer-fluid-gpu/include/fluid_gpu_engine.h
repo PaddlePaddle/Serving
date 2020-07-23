@@ -547,7 +547,8 @@ class FluidXpuAnalysisDirCore : public FluidFamilyCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.EnableXpu();
+    analysis_config.EnableLiteEngine();
+    analysis_config.EnableXpu(0xfffc00);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
 
@@ -555,11 +556,7 @@ class FluidXpuAnalysisDirCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
-    if (params.enable_ir_optimization()) {
-      analysis_config.SwitchIrOptim(true);
-    } else {
-      analysis_config.SwitchIrOptim(false);
-    }
+    analysis_config.SwitchIrOptim(true);
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
@@ -569,7 +566,7 @@ class FluidXpuAnalysisDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create xpu paddle predictor sucess, path: " << data_path;
     return 0;
   }
 };

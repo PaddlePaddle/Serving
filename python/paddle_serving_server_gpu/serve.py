@@ -38,6 +38,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_multilang = args.use_multilang
+    use_kunlun = args.use_kunlun
     workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
@@ -66,6 +67,8 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     server.set_max_body_size(max_body_size)
 
     server.load_model_config(model)
+    if use_kunlun:
+        device = "xpu"
     server.prepare_server(workdir=workdir, port=port, device=device)
     if gpuid >= 0:
         server.set_gpuid(gpuid)
@@ -89,7 +92,10 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
         else:
             env_gpus = []
     if len(gpus) <= 0:
-        print("gpu_ids not set, going to run cpu service.")
+        if args.use_kunlun:
+            print("use kunlun")
+        else:
+            print("gpu_ids not set, going to run cpu service.")
         start_gpu_card_model(-1, -1, args)
     else:
         gpu_processes = []

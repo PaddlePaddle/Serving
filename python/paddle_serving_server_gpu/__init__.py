@@ -73,6 +73,11 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--use_kunlun",
+        default=False,
+        action="store_true",
+        help="Use kunlun XPU")
     return parser.parse_args()
 
 
@@ -273,6 +278,8 @@ class Server(object):
                 engine.type = "FLUID_CPU_ANALYSIS_DIR"
             elif device == "gpu":
                 engine.type = "FLUID_GPU_ANALYSIS_DIR"
+            elif device == "xpu":
+                engine.type = "FLUID_XPU_ANALYSIS_DIR"
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -462,7 +469,7 @@ class Server(object):
                 time.sleep(1)
         else:
             print("Use local bin : {}".format(self.bin_path))
-        self.check_cuda()
+        #self.check_cuda()
         command = "{} " \
                   "-enable_model_toolkit " \
                   "-inferservice_path {} " \

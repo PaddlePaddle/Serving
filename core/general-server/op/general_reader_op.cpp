@@ -82,8 +82,6 @@ int GeneralReaderOp::inference() {
   GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *out = &res->tensor_vector;
 
-  res->SetBatchSize(batch_size);
-
   if (!res) {
     LOG(ERROR) << "Failed get op tls reader object output";
   }
@@ -257,6 +255,7 @@ int GeneralReaderOp::inference() {
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
   res->p_size = 0;
+  res->_batch_size = batch_size;
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
