@@ -59,6 +59,15 @@ Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use H
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
+<h3 align="center">Latest release</h4>
+<p align="center">
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/ocr">Optical Character Recognition</a>
+    <br>
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/faster_rcnn_model">Object Detection</a>
+    <br>
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/deeplabv3">Image Segmentation</a>
+<p>
+
 <h3 align="center">Chinese Word Segmentation</h4>
 
 ``` shell
