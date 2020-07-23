@@ -11,10 +11,7 @@
 - CMake：3.2.2及以上
 - Python：2.7.2及以上 / 3.6及以上
 
-推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
-
-- CPU: `hub.baidubce.com/paddlepaddle/serving:latest-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
-- GPU: `hub.baidubce.com/paddlepaddle/serving:latest-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境，详见[该文档](DOCKER_IMAGES_CN.md)。
 
 本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可：
 
@@ -29,6 +26,9 @@ git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
+
+
+
 ## PYTHONROOT设置
 
 ```shell
@@ -37,6 +37,18 @@ export PYTHONROOT=/usr/
 ```
 
 我们提供默认Centos7的Python路径为`/usr/bin/python`，如果您要使用我们的Centos6镜像，需要将其设置为`export PYTHONROOT=/usr/local/python2.7/`。
+
+
+
+## 安装Python依赖
+
+```shell
+pip install -r python/requirements.txt
+```
+
+如果使用 Python3，请以 `pip3` 替换 `pip`。
+
+
 
 ## 编译Server部分
 
@@ -62,6 +74,8 @@ make -j10
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
+
+
 ## 编译Client部分
 
 ``` shell
@@ -72,6 +86,8 @@ make -j10
 
 执行`make install`可以把目标产出放在`./output`目录下。
 
+
+
 ## 编译App部分
 
 ```bash
@@ -80,13 +96,19 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PY
 make
 ```
 
+
+
 ## 安装wheel包
 
 无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
 
+
+
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+
+
 
 ## CMake选项说明
 
