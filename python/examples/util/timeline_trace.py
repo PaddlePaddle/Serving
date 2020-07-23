@@ -43,6 +43,8 @@ if __name__ == "__main__":
         for line in f.readlines():
             line = line.strip().split("\t")
             if line[0] == "PROFILE":
+                if len(line) < 2:
+                    continue
                 trace_list = prase(line[1], line[2], counter)
                 counter += 1
                 for trace in trace_list:

@@ -21,16 +21,13 @@ import numpy as np
 import logging
 from paddle_serving_app.reader import IMDBDataset
 
-_LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d %H:%M',
-    level=logging.DEBUG)
+_LOGGER = logging.getLogger()
 
 
 class ImdbRequestOp(RequestOp):
-    def load_user_resources(self):
+    def init_op(self):
         self.imdb_dataset = IMDBDataset()
         self.imdb_dataset.load_resource('imdb.vocab')
 
@@ -91,7 +88,7 @@ cnn_op = Op(name="cnn",
 combine_op = CombineOp(
     name="combine",
     input_ops=[bow_op, cnn_op],
-    concurrency=1,
+    concurrency=5,
     timeout=-1,
     retry=1)
 
