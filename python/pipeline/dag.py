@@ -111,14 +111,14 @@ class DAGExecutor(object):
     def _set_in_channel(self, in_channel):
         if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError("in_channel must be Channel type, but get {}"
-                    .format(type(in_channel))))
+                    .format(type(in_channel)))
         in_channel.add_producer(self.name)
         self._in_channel = in_channel
 
     def _set_out_channel(self, out_channel):
         if not isinstance(out_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError("out_channel must be Channel type, but get {}"
-                    .format(type(out_channel))))
+                    .format(type(out_channel)))
         out_channel.add_consumer(self.name)
         self._out_channel = out_channel
 
@@ -128,7 +128,7 @@ class DAGExecutor(object):
             try:
                 channeldata_dict = self._out_channel.front(self.name)
             except ChannelStopError:
-                _LOGGER.debug(self._log("stop."))
+                _LOGGER.debug("[DAG Executor] channel stop.")
                 with self._cv_for_cv_pool:
                     for data_id, cv in self._cv_pool.items():
                         closed_errror_data = ChannelData(
@@ -141,14 +141,14 @@ class DAGExecutor(object):
                 break
 
             if len(channeldata_dict) != 1:
-                _LOGGER.error("out_channel cannot have multiple input ops")
+                _LOGGER.error("[DAG Executor] out_channel cannot have multiple input ops")
                 os._exit(-1)
 
             (_, channeldata), = channeldata_dict.items()
             if not isinstance(channeldata, ChannelData):
-                raise TypeError(
-                    self._log('data must be ChannelData type, but get {}'.
-                              format(type(channeldata))))
+                _LOGGER.error("[DAG Executor] data must be ChannelData type, but get {}"
+                        .format(type(channeldata)))
+                os._exit(-1)
 
             data_id = channeldata.id
             _LOGGER.debug("(id: {}) recive thread fetch data".format(data_id))
@@ -172,7 +172,6 @@ class DAGExecutor(object):
         return resp
 
     def _pack_channeldata(self, rpc_request, data_id):
-        _LOGGER.debug("(id: {}) pack channeldata".format(data_id))
         dictdata = None
         try:
             dictdata = self._unpack_rpc_func(rpc_request)
@@ -209,18 +208,19 @@ class DAGExecutor(object):
         else:
             self._profiler.record("call_{}#DAG_0".format(data_id))
 
+        _LOGGER.debug("(id: {}) pack channeldata".format(data_id))
         self._profiler.record("prepack_{}#{}_0".format(data_id, self.name))
         req_channeldata = self._pack_channeldata(rpc_request, data_id)
         self._profiler.record("prepack_{}#{}_1".format(data_id, self.name))
 
         resp_channeldata = None
         for i in range(self._retry):
-            _LOGGER.debug("(id: {}) push data into Graph engine".format(data_id)))
+            _LOGGER.debug("(id: {}) push data into Graph engine".format(data_id))
             #self._profiler.record("push_{}#{}_0".format(data_id, self.name))
             try:
                 self._in_channel.push(req_channeldata, self.name)
             except ChannelStopError:
-                _LOGGER.debug(self._log("stop."))
+                _LOGGER.debug("[DAG Executor] channel stop.")
                 return self._pack_for_rpc_resp(
                     ChannelData(
                         ecode=ChannelDataEcode.CLOSED_ERROR.value,
@@ -228,7 +228,7 @@ class DAGExecutor(object):
                         data_id=data_id))
             #self._profiler.record("push_{}#{}_1".format(data_id, self.name))
 
-            _LOGGER.debug("(id: {}) wait for Graph engine infer...".format(data_id)))
+            _LOGGER.debug("(id: {}) wait for Graph engine infer...".format(data_id))
             #self._profiler.record("fetch_{}#{}_0".format(data_id, self.name))
             resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id)
             #self._profiler.record("fetch_{}#{}_1".format(data_id, self.name))
@@ -246,6 +246,7 @@ class DAGExecutor(object):
                 _LOGGER.warn("(id: {}) retry({}/{})".format(
                         data_id, i+1, self._retry))
 
+        _LOGGER.debug("(id: {}) unpack channeldata for RPC resp".format(data_id))
         self._profiler.record("postpack_{}#{}_0".format(data_id, self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("postpack_{}#{}_1".format(data_id, self.name))
@@ -253,7 +254,6 @@ class DAGExecutor(object):
             self._profiler.record("call_{}#DAG-{}_1".format(data_id, data_id))
         else:
             self._profiler.record("call_{}#DAG_1".format(data_id))
-        #self._profiler.print_profile()
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
@@ -271,11 +271,7 @@ class DAGExecutor(object):
         return rpc_resp
 
     def _pack_for_rpc_resp(self, channeldata):
-        _LOGGER.debug(self._log('get channeldata'))
         return self._pack_rpc_func(channeldata)
-
-    def _log(self, info_str):
-        return "[{}] {}".format(self.name, info_str)
 
 
 class DAG(object):
@@ -323,10 +319,13 @@ class DAG(object):
         else:
             channel = ProcessChannel(
                 self._manager, name=name_gen.next(), maxsize=self._channel_size)
+        _LOGGER.debug("[DAG] gen Channel: {}".format(channel.name))
         return channel
 
     def _gen_virtual_op(self, name_gen):
-        return VirtualOp(name=name_gen.next())
+        vir_op = VirtualOp(name=name_gen.next())
+        _LOGGER.debug("[DAG] gen VirtualOp: {}".format(vir_op.name))
+        return vir_op
 
     def _topo_sort(self, used_ops, response_op, out_degree_ops):
         out_degree_num = {
@@ -436,7 +435,8 @@ class DAG(object):
                     continue
                 channel = self._gen_channel(channel_name_gen)
                 channels.append(channel)
-                _LOGGER.debug("{} => {}".format(channel.name, op.name))
+                _LOGGER.debug("[DAG] Channel({}) => Op({})"
+                        .format(channel.name, op.name))
                 op.add_input_channel(channel)
                 pred_ops = pred_op_of_next_view_op[op.name]
                 if v_idx == 0:
@@ -444,8 +444,8 @@ class DAG(object):
                 else:
                     # if pred_op is virtual op, it will use ancestors as producers to channel
                     for pred_op in pred_ops:
-                        _LOGGER.debug("{} => {}".format(pred_op.name,
-                                                        channel.name))
+                        _LOGGER.debug("[DAG] Op({}) => Channel({})"
+                                .format(pred_op.name, channel.name))
                         pred_op.add_output_channel(channel)
                 processed_op.add(op.name)
                 # find same input op to combine channel
@@ -461,8 +461,8 @@ class DAG(object):
                             same_flag = False
                             break
                     if same_flag:
-                        _LOGGER.debug("{} => {}".format(channel.name,
-                                                        other_op.name))
+                        _LOGGER.debug("[DAG] Channel({}) => Op({})"
+                                .format(channel.name, other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
         output_channel = self._gen_channel(channel_name_gen)
@@ -480,7 +480,8 @@ class DAG(object):
             actual_ops.append(op)
 
         for c in channels:
-            _LOGGER.debug(c.debug())
+            _LOGGER.debug("Channel({}):\n -producers: {}\n -consumers: {}"
+                    .format(c.name, c.get_producers(), c.get_consumers()))
 
         return (actual_ops, channels, input_channel, output_channel, pack_func,
                 unpack_func)
@@ -509,6 +510,7 @@ class DAG(object):
             else:
                 self._threads_or_proces.extend(
                     op.start_with_process(self._client_type))
+        _LOGGER.info("[DAG] start")
         # not join yet
         return self._threads_or_proces
 

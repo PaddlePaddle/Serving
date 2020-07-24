@@ -228,10 +228,6 @@ class ProcessChannel(object):
     def _log(self, info_str):
         return "[{}] {}".format(self.name, info_str)
 
-    def debug(self):
-        return self._log("p: {}, c: {}".format(self.get_producers(),
-                                               self.get_consumers()))
-
     def add_producer(self, op_name):
         """ not thread safe, and can only be called during initialization. """
         if op_name in self._producers:
