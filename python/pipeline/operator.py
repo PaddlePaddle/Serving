@@ -20,11 +20,15 @@ from concurrent import futures
 import logging
 import func_timeout
 import os
+import sys
+import numpy as np
 from numpy import *
 
 from .proto import pipeline_service_pb2
-from .channel import ThreadChannel, ProcessChannel, ChannelDataEcode, ChannelData, ChannelDataType
+from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
+                      ChannelData, ChannelDataType, ChannelStopError)
 from .util import NameGenerator
+from .profiler import TimeProfiler
 
 _LOGGER = logging.getLogger()
 _op_name_gen = NameGenerator("Op")
@@ -42,7 +46,6 @@ class Op(object):
                  retry=1):
         if name is None:
             name = _op_name_gen.next()
-        self._is_run = False
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
@@ -58,14 +61,17 @@ class Op(object):
         self._retry = max(1, retry)
         self._input = None
         self._outputs = []
-        self._profiler = None
+
+        self._server_use_profile = False
 
         # only for multithread
         self._for_init_op_lock = threading.Lock()
+        self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
+        self._succ_close_op = False
 
-    def init_profiler(self, profiler):
-        self._profiler = profiler
+    def use_profiler(self, use_profile):
+        self._server_use_profile = use_profile
 
     def _profiler_record(self, string):
         if self._profiler is None:
@@ -90,9 +96,6 @@ class Op(object):
         self._fetch_names = fetch_names
         return client
 
-    def _get_input_channel(self):
-        return self._input
-
     def get_input_ops(self):
         return self._input_ops
 
@@ -115,8 +118,11 @@ class Op(object):
         channel.add_consumer(self.name)
         self._input = channel
 
-    def _get_output_channels(self):
-        return self._outputs
+    def clean_input_channel(self):
+        self._input = None
+
+    def _get_input_channel(self):
+        return self._input
 
     def add_output_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
@@ -125,6 +131,12 @@ class Op(object):
                     type(channel))))
         channel.add_producer(self.name)
         self._outputs.append(channel)
+
+    def clean_output_channels(self):
+        self._outputs = []
+
+    def _get_output_channels(self):
+        return self._outputs
 
     def preprocess(self, input_dicts):
         # multiple previous Op
@@ -136,12 +148,12 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict
 
-    def process(self, client_predict_handler, feed_dict):
+    def process(self, feed_dict):
         err, err_info = ChannelData.check_npdata(feed_dict)
         if err != 0:
             raise NotImplementedError(
                 "{} Please override preprocess func.".format(err_info))
-        call_result = client_predict_handler(
+        call_result = self.client.predict(
             feed=feed_dict, fetch=self._fetch_names)
         _LOGGER.debug(self._log("get call_result"))
         return call_result
@@ -149,28 +161,47 @@ class Op(object):
     def postprocess(self, input_dict, fetch_dict):
         return fetch_dict
 
-    def stop(self):
-        self._is_run = False
-
     def _parse_channeldata(self, channeldata_dict):
         data_id, error_channeldata = None, None
+        client_need_profile, profile_set = False, set()
         parsed_data = {}
 
         key = list(channeldata_dict.keys())[0]
         data_id = channeldata_dict[key].id
+        client_need_profile = channeldata_dict[key].client_need_profile
 
         for name, data in channeldata_dict.items():
             if data.ecode != ChannelDataEcode.OK.value:
                 error_channeldata = data
                 break
             parsed_data[name] = data.parse()
-        return data_id, error_channeldata, parsed_data
+            if client_need_profile:
+                profile_set |= data.profile_data_set
+        return (data_id, error_channeldata, parsed_data, client_need_profile,
+                profile_set)
 
-    def _push_to_output_channels(self, data, channels, name=None):
+    def _push_to_output_channels(self,
+                                 data,
+                                 channels,
+                                 name=None,
+                                 client_need_profile=False,
+                                 profile_set=None):
         if name is None:
             name = self.name
+        self._add_profile_into_channeldata(data, client_need_profile,
+                                           profile_set)
         for channel in channels:
             channel.push(data, name)
+
+    def _add_profile_into_channeldata(self, data, client_need_profile,
+                                      profile_set):
+        profile_str = self._profiler.gen_profile_str()
+        if self._server_use_profile:
+            sys.stderr.write(profile_str)
+
+        if client_need_profile and profile_set is not None:
+            profile_set.add(profile_str)
+            data.add_profile(profile_set)
 
     def start_with_process(self, client_type):
         proces = []
@@ -226,15 +257,13 @@ class Op(object):
                 data_id=data_id)
         return preped_data, error_channeldata
 
-    def _run_process(self, client_predict_handler, preped_data, data_id,
-                     log_func):
+    def _run_process(self, preped_data, data_id, log_func):
         midped_data, error_channeldata = None, None
         if self.with_serving:
             ecode = ChannelDataEcode.OK.value
             if self._timeout <= 0:
                 try:
-                    midped_data = self.process(client_predict_handler,
-                                               preped_data)
+                    midped_data = self.process(preped_data)
                 except Exception as e:
                     ecode = ChannelDataEcode.UNKNOW.value
                     error_info = log_func(e)
@@ -243,11 +272,7 @@ class Op(object):
                 for i in range(self._retry):
                     try:
                         midped_data = func_timeout.func_timeout(
-                            self._timeout,
-                            self.process,
-                            args=(
-                                client_predict_handler,
-                                preped_data, ))
+                            self._timeout, self.process, args=(preped_data, ))
                     except func_timeout.FunctionTimedOut as e:
                         if i + 1 >= self._retry:
                             ecode = ChannelDataEcode.TIMEOUT.value
@@ -314,7 +339,7 @@ class Op(object):
         return output_data, error_channeldata
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
-             use_multithread):
+             is_thread_op):
         def get_log_func(op_info_prefix):
             def log_func(info_str):
                 return "{} {}".format(op_info_prefix, info_str)
@@ -325,80 +350,130 @@ class Op(object):
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
 
-        client = None
-        client_predict_handler = None
-        # create client based on client_type
+        # init op
+        self.concurrency_idx = concurrency_idx
         try:
-            client = self.init_client(client_type, self._client_config,
-                                      self._server_endpoints, self._fetch_names)
-            if client is not None:
-                client_predict_handler = client.predict
-        except Exception as e:
-            _LOGGER.error(log(e))
-            os._exit(-1)
-
-        # load user resources
-        try:
-            if use_multithread:
+            if is_thread_op:
                 with self._for_init_op_lock:
                     if not self._succ_init_op:
+                        # init profiler
+                        self._profiler = TimeProfiler()
+                        self._profiler.enable(True)
+                        # init client
+                        self.client = self.init_client(
+                            client_type, self._client_config,
+                            self._server_endpoints, self._fetch_names)
+                        # user defined
                         self.init_op()
                         self._succ_init_op = True
+                        self._succ_close_op = False
             else:
+                # init profiler
+                self._profiler = TimeProfiler()
+                self._profiler.enable(True)
+                # init client
+                self.client = self.init_client(client_type, self._client_config,
+                                               self._server_endpoints,
+                                               self._fetch_names)
+                # user defined
                 self.init_op()
         except Exception as e:
             _LOGGER.error(log(e))
             os._exit(-1)
 
-        self._is_run = True
-        while self._is_run:
-            self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
-            channeldata_dict = input_channel.front(self.name)
-            self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+        while True:
+            #self._profiler_record("get#{}_0".format(op_info_prefix))
+            try:
+                channeldata_dict = input_channel.front(self.name)
+            except ChannelStopError:
+                _LOGGER.debug(log("stop."))
+                if is_thread_op:
+                    with self._for_close_op_lock:
+                        if not self._succ_close_op:
+                            self._profiler = None
+                            self.client = None
+                            self._succ_init_op = False
+                            self._succ_close_op = True
+                break
+            #self._profiler_record("get#{}_1".format(op_info_prefix))
             _LOGGER.debug(log("input_data: {}".format(channeldata_dict)))
 
-            data_id, error_channeldata, parsed_data = self._parse_channeldata(
-                channeldata_dict)
+            (data_id, error_channeldata, parsed_data, client_need_profile,
+             profile_set) = self._parse_channeldata(channeldata_dict)
             # error data in predecessor Op
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    # error_channeldata with profile info
+                    self._push_to_output_channels(error_channeldata,
+                                                  output_channels)
+                except ChannelStopError:
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # preprecess
-            self._profiler_record("{}-prep#{}_0".format(op_info_prefix, tid))
+            self._profiler_record("prep#{}_0".format(op_info_prefix))
             preped_data, error_channeldata = self._run_preprocess(parsed_data,
                                                                   data_id, log)
-            self._profiler_record("{}-prep#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("prep#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_set=profile_set)
+                except ChannelStopError:
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # process
-            self._profiler_record("{}-midp#{}_0".format(op_info_prefix, tid))
-            midped_data, error_channeldata = self._run_process(
-                client_predict_handler, preped_data, data_id, log)
-            self._profiler_record("{}-midp#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("midp#{}_0".format(op_info_prefix))
+            midped_data, error_channeldata = self._run_process(preped_data,
+                                                               data_id, log)
+            self._profiler_record("midp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_set=profile_set)
+                except ChannelStopError:
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # postprocess
-            self._profiler_record("{}-postp#{}_0".format(op_info_prefix, tid))
+            self._profiler_record("postp#{}_0".format(op_info_prefix))
             output_data, error_channeldata = self._run_postprocess(
                 parsed_data, midped_data, data_id, log)
-            self._profiler_record("{}-postp#{}_1".format(op_info_prefix, tid))
+            self._profiler_record("postp#{}_1".format(op_info_prefix))
             if error_channeldata is not None:
-                self._push_to_output_channels(error_channeldata,
-                                              output_channels)
+                try:
+                    self._push_to_output_channels(
+                        error_channeldata,
+                        output_channels,
+                        client_need_profile=client_need_profile,
+                        profile_set=profile_set)
+                except ChannelStopError:
+                    _LOGGER.debug(log("stop."))
+                    break
                 continue
 
             # push data to channel (if run succ)
-            self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
-            self._push_to_output_channels(output_data, output_channels)
-            self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            #self._profiler_record("push#{}_0".format(op_info_prefix))
+            try:
+                self._push_to_output_channels(
+                    output_data,
+                    output_channels,
+                    client_need_profile=client_need_profile,
+                    profile_set=profile_set)
+            except ChannelStopError:
+                _LOGGER.debug(log("stop."))
+                break
+            #self._profiler_record("push#{}_1".format(op_info_prefix))
 
     def _log(self, info):
         return "{} {}".format(self.name, info)
@@ -407,11 +482,10 @@ class Op(object):
 class RequestOp(Op):
     """ RequestOp do not run preprocess, process, postprocess. """
 
-    def __init__(self, concurrency=1):
-        # PipelineService.name = "#G"
-        super(RequestOp, self).__init__(
-            name="#G", input_ops=[], concurrency=concurrency)
-        # load user resources
+    def __init__(self):
+        # PipelineService.name = "@G"
+        super(RequestOp, self).__init__(name="@G", input_ops=[])
+        # init op
         try:
             self.init_op()
         except Exception as e:
@@ -433,10 +507,9 @@ class RequestOp(Op):
 class ResponseOp(Op):
     """ ResponseOp do not run preprocess, process, postprocess. """
 
-    def __init__(self, input_ops, concurrency=1):
-        super(ResponseOp, self).__init__(
-            name="#R", input_ops=input_ops, concurrency=concurrency)
-        # load user resources
+    def __init__(self, input_ops):
+        super(ResponseOp, self).__init__(name="@R", input_ops=input_ops)
+        # init op
         try:
             self.init_op()
         except Exception as e:
@@ -451,6 +524,7 @@ class ResponseOp(Op):
                 feed = channeldata.parse()
                 # ndarray to string:
                 # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
+                np.set_printoptions(threshold=np.nan)
                 for name, var in feed.items():
                     resp.value.append(var.__repr__())
                     resp.key.append(name)
@@ -505,7 +579,7 @@ class VirtualOp(Op):
         self._outputs.append(channel)
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
-             use_multithread):
+             is_thread_op):
         def get_log_func(op_info_prefix):
             def log_func(info_str):
                 return "{} {}".format(op_info_prefix, info_str)
@@ -516,14 +590,17 @@ class VirtualOp(Op):
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
 
-        self._is_run = True
-        while self._is_run:
-            self._profiler_record("{}-get#{}_0".format(op_info_prefix, tid))
-            channeldata_dict = input_channel.front(self.name)
-            self._profiler_record("{}-get#{}_1".format(op_info_prefix, tid))
+        while True:
+            try:
+                channeldata_dict = input_channel.front(self.name)
+            except ChannelStopError:
+                _LOGGER.debug(log("stop."))
+                break
 
-            self._profiler_record("{}-push#{}_0".format(op_info_prefix, tid))
-            for name, data in channeldata_dict.items():
-                self._push_to_output_channels(
-                    data, channels=output_channels, name=name)
-            self._profiler_record("{}-push#{}_1".format(op_info_prefix, tid))
+            try:
+                for name, data in channeldata_dict.items():
+                    self._push_to_output_channels(
+                        data, channels=output_channels, name=name)
+            except ChannelStopError:
+                _LOGGER.debug(log("stop."))
+                break
