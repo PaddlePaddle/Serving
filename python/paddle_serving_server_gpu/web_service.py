@@ -60,12 +60,12 @@ class WebService(object):
         general_infer_op = op_maker.create('general_infer')
         general_response_op = op_maker.create('general_response')
 
-        op_seq_maker = serving.OpSeqMaker()
+        op_seq_maker = OpSeqMaker()
         op_seq_maker.add_op(read_op)
         op_seq_maker.add_op(general_infer_op)
         op_seq_maker.add_op(general_response_op)
 
-        server = serving.Server()
+        server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
 
@@ -128,14 +128,14 @@ class WebService(object):
                                           request.json["fetch"])
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
+            if len(feed) == 0:
+                raise ValueError("empty input")
             fetch_map = self.client.predict(feed=feed, fetch=fetch)
-            for key in fetch_map:
-                fetch_map[key] = fetch_map[key].tolist()
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
-        except ValueError:
-            result = {"result": "Request Value Error"}
+        except ValueError as err:
+            result = {"result": err}
         return result
 
     def run_rpc_service(self):
@@ -165,6 +165,33 @@ class WebService(object):
 
         self.app_instance = app_instance
 
+    # TODO: maybe change another API name: maybe run_local_predictor?
+    def run_debugger_service(self, gpu=False):
+        import socket
+        localIP = socket.gethostbyname(socket.gethostname())
+        print("web service address:")
+        print("http://{}:{}/{}/prediction".format(localIP, self.port,
+                                                  self.name))
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            self._launch_local_predictor(gpu)
+
+        service_name = "/" + self.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return self.get_prediction(request)
+
+        self.app_instance = app_instance
+
+    def _launch_local_predictor(self, gpu):
+        from paddle_serving_app.local_predict import Debugger
+        self.client = Debugger()
+        self.client.load_model_config(
+            "{}".format(self.model_config), gpu=gpu, profile=False)
+
     def run_web_service(self):
         self.app_instance.run(host="0.0.0.0",
                               port=self.port,
@@ -172,7 +199,7 @@ class WebService(object):
                               processes=1)
 
     def get_app_instance(self):
-        return app_instance
+        return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
         return feed, fetch

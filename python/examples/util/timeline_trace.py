@@ -16,10 +16,16 @@ def prase(pid_str, time_str, counter):
         if len(name_list) == 2:
             name = name_list[0]
         else:
-            name = name_list[0] + "_" + name_list[1]
+            name = "_".join(name_list[:-1])
+        name_list = name.split("#")
+        if len(name_list) > 1:
+            tid = name_list[-1]
+            name = "#".join(name_list[:-1])
+        else:
+            tid = 0
         event_dict = {}
         event_dict["name"] = name
-        event_dict["tid"] = 0
+        event_dict["tid"] = tid
         event_dict["pid"] = pid
         event_dict["ts"] = ts
         event_dict["ph"] = ph
@@ -37,6 +43,8 @@ if __name__ == "__main__":
         for line in f.readlines():
             line = line.strip().split("\t")
             if line[0] == "PROFILE":
+                if len(line) < 2:
+                    continue
                 trace_list = prase(line[1], line[2], counter)
                 counter += 1
                 for trace in trace_list:

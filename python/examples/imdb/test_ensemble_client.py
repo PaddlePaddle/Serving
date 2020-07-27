@@ -32,11 +32,7 @@ for i in range(3):
     line = 'i am very sad | 0'
     word_ids, label = imdb_dataset.get_words_and_label(line)
     feed = {"words": word_ids}
-    fetch = ["acc", "cost", "prediction"]
+    fetch = ["prediction"]
     fetch_maps = client.predict(feed=feed, fetch=fetch)
-    if len(fetch_maps) == 1:
-        print("step: {}, res: {}".format(i, fetch_maps['prediction'][0][1]))
-    else:
-        for model, fetch_map in fetch_maps.items():
-            print("step: {}, model: {}, res: {}".format(i, model, fetch_map[
-                'prediction'][0][1]))
+    for model, fetch_map in fetch_maps.items():
+        print("step: {}, model: {}, res: {}".format(i, model, fetch_map))

@@ -17,11 +17,11 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <thread>
+#include <thread>  //NOLINT
 
 #include "core/predictor/framework.pb.h"
-#include "quant.h"
-#include "seq_file.h"
+#include "quant.h"     // NOLINT
+#include "seq_file.h"  // NOLINT
 
 inline uint64_t time_diff(const struct timeval &start_time,
                           const struct timeval &end_time) {
@@ -113,13 +113,15 @@ int dump_parameter(const char *input_file, const char *output_file) {
     // std::cout << "key_len " << key_len << " value_len " << value_buf_len
     // << std::endl;
     memcpy(value_buf, tensor_buf + offset, value_buf_len);
-    seq_file_writer.write((char *)&i, sizeof(i), value_buf, value_buf_len);
+    seq_file_writer.write(
+        static_cast<int>(&i), sizeof(i), value_buf, value_buf_len);
     offset += value_buf_len;
   }
   return 0;
 }
 
-float *read_embedding_table(const char *file1, std::vector<int64_t> &dims) {
+float *read_embedding_table(const char *file1,
+                            std::vector<int64_t> &dims) {  // NOLINT
   std::ifstream is(file1);
   // Step 1: is read version, os write version
   uint32_t version;
@@ -233,7 +235,7 @@ int compress_parameter_parallel(const char *file1,
         greedy_search(
             emb_table + k * emb_size, xmin, xmax, loss, emb_size, bits);
         // 得出 loss 最小的时候的 scale
-        float scale = (xmax - xmin) * (pow2bits - 1);
+        float scale = (xmax - xmin) / (pow2bits - 1);
         char *min_ptr = tensor_temp;
         char *max_ptr = tensor_temp + sizeof(float);
         memcpy(min_ptr, &xmin, sizeof(float));
@@ -242,7 +244,7 @@ int compress_parameter_parallel(const char *file1,
           float x = *(emb_table + k * emb_size + e);
           int val = round((x - xmin) / scale);
           val = std::max(0, val);
-          val = std::min((int)pow2bits - 1, val);
+          val = std::min(static_cast<int>(pow2bits) - 1, val);
           *(tensor_temp + 2 * sizeof(float) + e) = val;
         }
         result[k] = tensor_temp;
@@ -262,7 +264,8 @@ int compress_parameter_parallel(const char *file1,
   }
   SeqFileWriter seq_file_writer(file2);
   for (int64_t i = 0; i < dict_size; i++) {
-    seq_file_writer.write((char *)&i, sizeof(i), result[i], per_line_size);
+    seq_file_writer.write(
+        static_cast<char *>(&i), sizeof(i), result[i], per_line_size);
   }
   return 0;
 }

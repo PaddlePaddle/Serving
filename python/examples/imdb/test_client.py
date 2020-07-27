@@ -29,6 +29,6 @@ imdb_dataset.load_resource(sys.argv[2])
 for line in sys.stdin:
     word_ids, label = imdb_dataset.get_words_and_label(line)
     feed = {"words": word_ids}
-    fetch = ["acc", "cost", "prediction"]
+    fetch = ["prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch)
     print("{} {}".format(fetch_map["prediction"][0], label[0]))
