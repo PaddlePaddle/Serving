@@ -204,4 +204,6 @@ class WebService(object):
         return feed, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
+        for key in fetch_map.iterkeys():
+            fetch_map[key] = fetch_map[key].tolist()
         return fetch_map
