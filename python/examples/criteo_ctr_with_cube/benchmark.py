@@ -24,6 +24,7 @@ from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args
 from paddle_serving_client.metric import auc
 
+py_version = sys.version_info[0]
 args = benchmark_args()
 
 
@@ -49,7 +50,10 @@ def single_func(idx, resource):
             if args.batch_size > 0:
                 feed_batch = []
                 for bi in range(args.batch_size):
-                    data = reader().next()
+                    if py_version == 2:
+                        data = reader().next()
+                    else:
+                        data = reader().__next__()
                     feed_dict = {}
                     feed_dict['dense_input'] = data[0][0]
                     for i in range(1, 27):
@@ -71,14 +75,17 @@ if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
     endpoint_list = ["127.0.0.1:9292"]
     #result = single_func(0, {"endpoint": endpoint_list})
+    start = time.time()
     result = multi_thread_runner.run(single_func, args.thread,
                                      {"endpoint": endpoint_list})
-    print(result)
+    end = time.time()
+    total_cost = end - start
     avg_cost = 0
     qps = 0
     for i in range(args.thread):
         avg_cost += result[0][i * 2 + 0]
         qps += result[0][i * 2 + 1]
     avg_cost = avg_cost / args.thread
+    print("total cost: {}".format(total_cost))
     print("average total cost {} s.".format(avg_cost))
     print("qps {} ins/s".format(qps))

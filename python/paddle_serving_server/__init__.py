@@ -25,6 +25,7 @@ from contextlib import closing
 import collections
 import fcntl
 
+import shutil
 import numpy as np
 import grpc
 from .proto import multi_lang_general_model_service_pb2
@@ -230,7 +231,7 @@ class Server(object):
             infer_service.workflows.extend(["workflow1"])
             self.infer_service_conf.services.extend([infer_service])
 
-    def _prepare_resource(self, workdir):
+    def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
@@ -242,6 +243,11 @@ class Server(object):
                     if "dist_kv" in node.name:
                         self.resource_conf.cube_config_path = workdir
                         self.resource_conf.cube_config_file = self.cube_config_fn
+                        if cube_conf == None:
+                            raise ValueError(
+                                "Please set the path of cube.conf while use dist_kv op."
+                            )
+                        shutil.copy(cube_conf, workdir)
                         if "quant" in node.name:
                             self.resource_conf.cube_quant_bits = 8
             self.resource_conf.model_toolkit_path = workdir
@@ -366,7 +372,11 @@ class Server(object):
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
@@ -377,7 +387,7 @@ class Server(object):
         if not self.port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
         self.set_port(port)
-        self._prepare_resource(workdir)
+        self._prepare_resource(workdir, cube_conf)
         self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
@@ -514,7 +524,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
                     elif v_type == 2:  # int32
-                        data = np.array(list(var.int32_data), dtype="int32")
+                        data = np.array(list(var.int_data), dtype="int32")
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
@@ -530,6 +540,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         results, tag = ret
         resp.tag = tag
         resp.err_code = 0
+
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
         for model_name, model_result in results.items():
@@ -548,8 +559,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         tensor.float_data.extend(model_result[name].reshape(-1)
                                                  .tolist())
                     elif v_type == 2:  # int32
-                        tensor.int32_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
+                        tensor.int_data.extend(model_result[name].reshape(-1)
+                                               .tolist())
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
@@ -645,7 +656,11 @@ class MultiLangServer(object):
                     server_config_paths)
         self.bclient_config_path_ = client_config_path
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
         if not self._port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
         default_port = 12000
@@ -656,7 +671,10 @@ class MultiLangServer(object):
                 self.port_list_.append(default_port + i)
                 break
         self.bserver_.prepare_server(
-            workdir=workdir, port=self.port_list_[0], device=device)
+            workdir=workdir,
+            port=self.port_list_[0],
+            device=device,
+            cube_conf=cube_conf)
         self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
