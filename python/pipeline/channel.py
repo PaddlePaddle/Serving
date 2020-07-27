@@ -27,7 +27,7 @@ import logging
 import enum
 import copy
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class ChannelDataEcode(enum.Enum):
@@ -37,7 +37,8 @@ class ChannelDataEcode(enum.Enum):
     TYPE_ERROR = 3
     RPC_PACKAGE_ERROR = 4
     CLIENT_ERROR = 5
-    UNKNOW = 6
+    CLOSED_ERROR = 6
+    UNKNOW = 7
 
 
 class ChannelDataType(enum.Enum):
@@ -53,7 +54,8 @@ class ChannelData(object):
                  dictdata=None,
                  data_id=None,
                  ecode=None,
-                 error_info=None):
+                 error_info=None,
+                 client_need_profile=False):
         '''
         There are several ways to use it:
         
@@ -87,12 +89,28 @@ class ChannelData(object):
         self.id = data_id
         self.ecode = ecode
         self.error_info = error_info
+        self.client_need_profile = client_need_profile
+        self.profile_data_set = set()
+
+    def add_profile(self, profile_set):
+        if self.client_need_profile is False:
+            self.client_need_profile = True
+        self.profile_data_set |= profile_set
 
     @staticmethod
     def check_dictdata(dictdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
-        if not isinstance(dictdata, dict):
+        if isinstance(dictdata, list):
+            # batch data
+            for sample in dictdata:
+                if not isinstance(sample, dict):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be dict, but get {}.".format(type(sample))
+                    break
+        elif not isinstance(dictdata, dict):
+            # batch size = 1
             ecode = ChannelDataEcode.TYPE_ERROR.value
             error_info = "the value of data must " \
                         "be dict, but get {}.".format(type(dictdata))
@@ -102,12 +120,32 @@ class ChannelData(object):
     def check_npdata(npdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
-        for _, value in npdata.items():
-            if not isinstance(value, np.ndarray):
-                ecode = ChannelDataEcode.TYPE_ERROR.value
-                error_info = "the value of data must " \
-                        "be np.ndarray, but get {}.".format(type(value))
-                break
+        if isinstance(npdata, list):
+            # batch data
+            for sample in npdata:
+                if not isinstance(sample, dict):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be dict, but get {}.".format(type(sample))
+                    break
+                for _, value in sample.items():
+                    if not isinstance(value, np.ndarray):
+                        ecode = ChannelDataEcode.TYPE_ERROR.value
+                        error_info = "the value of data must " \
+                                "be np.ndarray, but get {}.".format(type(value))
+                        return ecode, error_info
+        elif isinstance(npdata, dict):
+            # batch_size = 1
+            for _, value in npdata.items():
+                if not isinstance(value, np.ndarray):
+                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_info = "the value of data must " \
+                            "be np.ndarray, but get {}.".format(type(value))
+                    break
+        else:
+            ecode = ChannelDataEcode.TYPE_ERROR.value
+            error_info = "the value of data must " \
+                    "be dict, but get {}.".format(type(npdata))
         return ecode, error_info
 
     def parse(self):
@@ -127,7 +165,7 @@ class ChannelData(object):
             ChannelDataType(self.datatype).name, self.ecode, self.id)
 
 
-class ProcessChannel(multiprocessing.queues.Queue):
+class ProcessChannel(object):
     """ 
     (Process version) The channel used for communication between Ops.
 
@@ -157,18 +195,17 @@ class ProcessChannel(multiprocessing.queues.Queue):
     """
 
     def __init__(self, manager, name=None, maxsize=0, timeout=None):
-        # https://stackoverflow.com/questions/39496554/cannot-subclass-multiprocessing-queue-in-python-3-5/
-        if sys.version_info.major == 2:
-            super(ProcessChannel, self).__init__(maxsize=maxsize)
-        elif sys.version_info.major == 3:
-            super(ProcessChannel, self).__init__(
-                maxsize=maxsize, ctx=multiprocessing.get_context())
-        else:
-            raise Exception("Error Python version")
+        # For queue multiprocess: after putting an object on 
+        # an empty queue there may be an infinitessimal delay
+        # before the queue's :meth:`~Queue.empty`
+        # see more:
+        # - https://bugs.python.org/issue18277
+        # - https://hg.python.org/cpython/rev/860fc6a2bd21
+        self._que = manager.Queue(maxsize=maxsize)
         self._maxsize = maxsize
         self._timeout = timeout
         self.name = name
-        self._stop = False
+        self._stop = manager.Value('i', 0)
 
         self._cv = multiprocessing.Condition()
 
@@ -224,15 +261,17 @@ class ProcessChannel(multiprocessing.queues.Queue):
                 ))
         elif len(self._producers) == 1:
             with self._cv:
-                while self._stop is False:
+                while self._stop.value == 0:
                     try:
-                        self.put({op_name: channeldata}, timeout=0)
+                        self._que.put({op_name: channeldata}, timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
+                if self._stop.value == 1:
+                    raise ChannelStopError()
                 _LOGGER.debug(
                     self._log("{} channel size: {}".format(op_name,
-                                                           self.qsize())))
+                                                           self._que.qsize())))
                 self._cv.notify_all()
                 _LOGGER.debug(self._log("{} notify all".format(op_name)))
             _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
@@ -271,15 +310,17 @@ class ProcessChannel(multiprocessing.queues.Queue):
                     self._log("{} push data succ, but not push to queue.".
                               format(op_name)))
             else:
-                while self._stop is False:
+                while self._stop.value == 0:
                     try:
                         _LOGGER.debug(
                             self._log("{} push data succ: {}".format(
                                 op_name, put_data.__str__())))
-                        self.put(put_data, timeout=0)
+                        self._que.put(put_data, timeout=0)
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop.value == 1:
+                    raise ChannelStopError()
 
                 _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
@@ -296,25 +337,21 @@ class ProcessChannel(multiprocessing.queues.Queue):
         elif len(self._consumer_cursors) == 1:
             resp = None
             with self._cv:
-                while self._stop is False and resp is None:
+                while self._stop.value == 0 and resp is None:
                     try:
                         _LOGGER.debug(
                             self._log("{} try to get(with channel empty: {})".
-                                      format(op_name, self.empty())))
-                        # For queue multiprocess: after putting an object on 
-                        # an empty queue there may be an infinitessimal delay
-                        # before the queue's :meth:`~Queue.empty`
-                        # see more:
-                        # - https://bugs.python.org/issue18277
-                        # - https://hg.python.org/cpython/rev/860fc6a2bd21
-                        resp = self.get(timeout=1e-3)
+                                      format(op_name, self._que.empty())))
+                        resp = self._que.get(timeout=0)
                         break
                     except Queue.Empty:
                         _LOGGER.debug(
                             self._log(
                                 "{} wait for empty queue(with channel empty: {})".
-                                format(op_name, self.empty())))
+                                format(op_name, self._que.empty())))
                         self._cv.wait()
+                if self._stop.value == 1:
+                    raise ChannelStopError()
             _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
@@ -337,7 +374,7 @@ class ProcessChannel(multiprocessing.queues.Queue):
         with self._cv:
             # When the data required by the current Op is not in output_buf,
             # it is necessary to obtain a data from queue and add it to output_buf.
-            while self._stop is False and self._consumer_cursors[
+            while self._stop.value == 0 and self._consumer_cursors[
                     op_name] - self._base_cursor.value >= len(self._output_buf):
                 _LOGGER.debug(
                     self._log(
@@ -347,22 +384,18 @@ class ProcessChannel(multiprocessing.queues.Queue):
                 try:
                     _LOGGER.debug(
                         self._log("{} try to get(with channel size: {})".format(
-                            op_name, self.qsize())))
-                    # For queue multiprocess: after putting an object on 
-                    # an empty queue there may be an infinitessimal delay
-                    # before the queue's :meth:`~Queue.empty`
-                    # see more:
-                    # - https://bugs.python.org/issue18277
-                    # - https://hg.python.org/cpython/rev/860fc6a2bd21
-                    channeldata = self.get(timeout=1e-3)
+                            op_name, self._que.qsize())))
+                    channeldata = self._que.get(timeout=0)
                     self._output_buf.append(channeldata)
                     break
                 except Queue.Empty:
                     _LOGGER.debug(
                         self._log(
                             "{} wait for empty queue(with channel size: {})".
-                            format(op_name, self.qsize())))
+                            format(op_name, self._que.qsize())))
                     self._cv.wait()
+            if self._stop.value == 1:
+                raise ChannelStopError()
 
             consumer_cursor = self._consumer_cursors[op_name]
             base_cursor = self._base_cursor.value
@@ -409,10 +442,10 @@ class ProcessChannel(multiprocessing.queues.Queue):
         return resp  # reference, read only
 
     def stop(self):
-        #TODO
-        self.close()
-        self._stop = True
-        self._cv.notify_all()
+        _LOGGER.debug(self._log("stop."))
+        self._stop.value = 1
+        with self._cv:
+            self._cv.notify_all()
 
 
 class ThreadChannel(Queue.Queue):
@@ -511,6 +544,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Full:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
                 self._cv.notify_all()
             _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
             return True
@@ -549,6 +584,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
 
                 _LOGGER.debug(
                     self._log("multi | {} push data succ!".format(op_name)))
@@ -571,6 +608,8 @@ class ThreadChannel(Queue.Queue):
                         break
                     except Queue.Empty:
                         self._cv.wait()
+                if self._stop:
+                    raise ChannelStopError()
             _LOGGER.debug(
                 self._log("{} get data succ: {}".format(op_name, resp.__str__(
                 ))))
@@ -601,12 +640,14 @@ class ThreadChannel(Queue.Queue):
                     break
                 except Queue.Empty:
                     self._cv.wait()
+            if self._stop:
+                raise ChannelStopError()
 
             consumer_cursor = self._consumer_cursors[op_name]
             base_cursor = self._base_cursor
             data_idx = consumer_cursor - base_cursor
-            resp = self._output_buf[data_idx]
-            _LOGGER.debug(self._log("{} get data: {}".format(op_name, resp)))
+
+            resp = None
 
             self._cursor_count[consumer_cursor] -= 1
             if consumer_cursor == base_cursor and self._cursor_count[
@@ -614,7 +655,7 @@ class ThreadChannel(Queue.Queue):
                 # When all the different Ops get the data that data_idx points
                 # to, pop the data from output_buf.
                 self._cursor_count.pop(consumer_cursor)
-                self._output_buf.pop(0)
+                resp = self._output_buf.pop(0)
                 self._base_cursor += 1
                 # to avoid cursor overflow
                 if self._base_cursor >= self._reset_max_cursor:
@@ -625,6 +666,9 @@ class ThreadChannel(Queue.Queue):
                         cursor - self._reset_max_cursor: count
                         for cursor, count in self._cursor_count.items()
                     }
+            else:
+                resp = copy.deepcopy(self._output_buf[data_idx])
+            _LOGGER.debug(self._log("{} get data: {}".format(op_name, resp)))
 
             self._consumer_cursors[op_name] += 1
             new_consumer_cursor = self._consumer_cursors[op_name]
@@ -635,11 +679,15 @@ class ThreadChannel(Queue.Queue):
             self._cv.notify_all()
 
         _LOGGER.debug(self._log("multi | {} get data succ!".format(op_name)))
-        # return resp  # reference, read only
-        return copy.deepcopy(resp)
+        return resp
 
     def stop(self):
-        #TODO
-        self.close()
+        _LOGGER.debug(self._log("stop."))
         self._stop = True
-        self._cv.notify_all()
+        with self._cv:
+            self._cv.notify_all()
+
+
+class ChannelStopError(RuntimeError):
+    def __init__(self):
+        pass

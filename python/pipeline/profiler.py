@@ -23,8 +23,9 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 import time
+import threading
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger()
 
 
 class TimeProfiler(object):
@@ -33,6 +34,7 @@ class TimeProfiler(object):
         self._print_head = 'PROFILE\tpid:{}\t'.format(self._pid)
         self._time_record = Queue.Queue()
         self._enable = False
+        self._lock = threading.Lock()
 
     def enable(self, enable):
         self._enable = enable
@@ -40,26 +42,34 @@ class TimeProfiler(object):
     def record(self, name_with_tag):
         if self._enable is False:
             return
+        timestamp = int(round(time.time() * 1000000))
         name_with_tag = name_with_tag.split("_")
         tag = name_with_tag[-1]
         name = '_'.join(name_with_tag[:-1])
-        self._time_record.put((name, tag, int(round(time.time() * 1000000))))
+        with self._lock:
+            self._time_record.put((name, tag, timestamp))
 
     def print_profile(self):
         if self._enable is False:
             return
+        sys.stderr.write(self.gen_profile_str())
+
+    def gen_profile_str(self):
+        if self._enable is False:
+            return
         print_str = self._print_head
         tmp = {}
-        while not self._time_record.empty():
-            name, tag, timestamp = self._time_record.get()
-            if name in tmp:
-                ptag, ptimestamp = tmp.pop(name)
-                print_str += "{}_{}:{} ".format(name, ptag, ptimestamp)
-                print_str += "{}_{}:{} ".format(name, tag, timestamp)
-            else:
-                tmp[name] = (tag, timestamp)
-        print_str += "\n"
-        sys.stderr.write(print_str)
-        for name, item in tmp.items():
-            tag, timestamp = item
-            self._time_record.put((name, tag, timestamp))
+        with self._lock:
+            while not self._time_record.empty():
+                name, tag, timestamp = self._time_record.get()
+                if name in tmp:
+                    ptag, ptimestamp = tmp.pop(name)
+                    print_str += "{}_{}:{} ".format(name, ptag, ptimestamp)
+                    print_str += "{}_{}:{} ".format(name, tag, timestamp)
+                else:
+                    tmp[name] = (tag, timestamp)
+            print_str = "\n{}\n".format(print_str)
+            for name, item in tmp.items():
+                tag, timestamp = item
+                self._time_record.put((name, tag, timestamp))
+            return print_str

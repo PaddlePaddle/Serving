@@ -114,70 +114,48 @@ int GeneralResponseOp::inference() {
       for (int j = 0; j < in->at(idx).shape.size(); ++j) {
         cap *= in->at(idx).shape[j];
       }
-      if (in->at(idx).dtype == paddle::PaddleDType::INT64) {
+
+      FetchInst *fetch_p = output->mutable_insts(0);
+      auto dtype = in->at(idx).dtype;
+
+      if (dtype == paddle::PaddleDType::INT64) {
         VLOG(2) << "Prepare int64 var [" << model_config->_fetch_name[idx]
                 << "].";
         int64_t *data_ptr = static_cast<int64_t *>(in->at(idx).data.data());
-        if (model_config->_is_lod_fetch[idx]) {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_lod(
-                in->at(idx).lod[0][j]);
-          }
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[j]);
-          }
-        } else {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_int64_data(data_ptr[j]);
-          }
-        }
-        VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
-        var_idx++;
-      } else if (in->at(idx).dtype == paddle::PaddleDType::FLOAT32) {
+        // from
+        // https://stackoverflow.com/questions/15499641/copy-a-stdvector-to-a-repeated-field-from-protobuf-with-memcpy
+        // `Swap` method is faster than `{}` method.
+        google::protobuf::RepeatedField<int64_t> tmp_data(data_ptr,
+                                                          data_ptr + cap);
+        fetch_p->mutable_tensor_array(var_idx)->mutable_int64_data()->Swap(
+            &tmp_data);
+      } else if (dtype == paddle::PaddleDType::FLOAT32) {
         VLOG(2) << "Prepare float var [" << model_config->_fetch_name[idx]
                 << "].";
         float *data_ptr = static_cast<float *>(in->at(idx).data.data());
-        if (model_config->_is_lod_fetch[idx]) {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_lod(
-                in->at(idx).lod[0][j]);
-          }
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
-          }
-        } else {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_float_data(data_ptr[j]);
-          }
-        }
-        VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
-        var_idx++;
-      } else if (in->at(idx).dtype == paddle::PaddleDType::INT32) {
+        google::protobuf::RepeatedField<float> tmp_data(data_ptr,
+                                                        data_ptr + cap);
+        fetch_p->mutable_tensor_array(var_idx)->mutable_float_data()->Swap(
+            &tmp_data);
+      } else if (dtype == paddle::PaddleDType::INT32) {
         VLOG(2) << "Prepare int32 var [" << model_config->_fetch_name[idx]
                 << "].";
         int32_t *data_ptr = static_cast<int32_t *>(in->at(idx).data.data());
-        if (model_config->_is_lod_fetch[idx]) {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_lod(
-                in->at(idx).lod[0][j]);
-          }
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
-          }
-        } else {
-          FetchInst *fetch_p = output->mutable_insts(0);
-          for (int j = 0; j < cap; ++j) {
-            fetch_p->mutable_tensor_array(var_idx)->add_int_data(data_ptr[j]);
-          }
-        }
-        VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
-        var_idx++;
+        google::protobuf::RepeatedField<int32_t> tmp_data(data_ptr,
+                                                          data_ptr + cap);
+        fetch_p->mutable_tensor_array(var_idx)->mutable_int_data()->Swap(
+            &tmp_data);
       }
+
+      if (model_config->_is_lod_fetch[idx]) {
+        for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+          fetch_p->mutable_tensor_array(var_idx)->add_lod(
+              in->at(idx).lod[0][j]);
+        }
+      }
+
+      VLOG(2) << "fetch var [" << model_config->_fetch_name[idx] << "] ready";
+      var_idx++;
     }
   }
 

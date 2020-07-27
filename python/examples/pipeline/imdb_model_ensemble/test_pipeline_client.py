@@ -13,18 +13,19 @@
 # limitations under the License.
 from paddle_serving_client.pipeline import PipelineClient
 import numpy as np
-from line_profiler import LineProfiler
 
 client = PipelineClient()
-client.connect('localhost:8080')
-
-lp = LineProfiler()
-lp_wrapper = lp(client.predict)
+client.connect(['127.0.0.1:18080'])
 
 words = 'i am very sad | 0'
 
-for i in range(1):
-    fetch_map = lp_wrapper(feed_dict={"words": words}, fetch=["prediction"])
-    print(fetch_map)
+futures = []
+for i in range(100):
+    futures.append(
+        client.predict(
+            feed_dict={"words": words}, fetch=["prediction"], asyn=True))
 
-#lp.print_stats()
+for f in futures:
+    res = f.result()
+    if res["ecode"] != 0:
+        print("predict failed: {}".format(res))

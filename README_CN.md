@@ -7,6 +7,7 @@
 <p>
 
 
+
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
@@ -31,7 +32,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">安装</h2>
 
-**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](doc/DOCKER_IMAGES_CN.md)。
 
 ```
 # 启动 CPU Docker
@@ -41,8 +42,8 @@ docker exec -it test bash
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
 nvidia-docker exec -it test bash
 ```
 ```shell
@@ -76,7 +77,7 @@ Paddle Serving安装包支持Centos 6/7和Ubuntu 16/18，或者您可以使用HT
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-    
+
 ``` shell
 > python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
