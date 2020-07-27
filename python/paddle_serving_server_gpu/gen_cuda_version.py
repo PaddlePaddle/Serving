@@ -1,6 +1,6 @@
-# Copyright (c) 2020  PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
-# Licensed under the Apache License, Version 2.0 (the "License"
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -11,8 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Paddle Serving Client version string """
-serving_client_version = "0.3.2"
-serving_server_version = "0.3.2"
-module_proto_version = "0.3.2"
-cuda_version = "9"
+
+import sys
+import re
+import os
+
+new_str = ""
+with open("paddle_serving_server_gpu/version.py", "r") as f:
+    for line in f.readlines():
+        if re.match("cuda_version", line):
+            line = re.sub(r"\d+", "10", line)
+        new_str = new_str + line
+
+with open("paddle_serving_server_gpu/version.py", "w") as f:
+    f.write(new_str)
