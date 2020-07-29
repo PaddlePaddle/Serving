@@ -65,7 +65,7 @@ image_service = ImageService(name="image")
 image_service.load_model_config(sys.argv[1])
 image_service.init_imagenet_setting()
 if device == "gpu":
-    image_service.set_gpus("0,1")
+    image_service.set_gpus("0")
 image_service.prepare_server(
     workdir="workdir", port=int(sys.argv[3]), device=device)
 image_service.run_rpc_service()
