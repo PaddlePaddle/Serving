@@ -16,5 +16,5 @@ Parameters for performance optimization:
 
 | Parameters | Type | Default | Description                                                  |
 | ---------- | ---- | ------- | ------------------------------------------------------------ |
-| mem_optim  | - | - | Enable memory / graphic memory optimization                                   |
+| mem_optim_off  | - | - | Disable memory / graphic memory optimization                                   |
 | ir_optim   | - | -  | Enable analysis and optimization of calculation graph,including OP fusion, etc |
