@@ -41,7 +41,7 @@ from concurrent import futures
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
+        "--thread", type=int, default=4, help="Concurrency of server")
     parser.add_argument(
         "--model", type=str, default="", help="Model for serving")
     parser.add_argument(
