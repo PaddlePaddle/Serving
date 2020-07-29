@@ -20,7 +20,7 @@ new_str = ""
 with open("paddle_serving_server_gpu/version.py", "r") as f:
     for line in f.readlines():
         if re.match("cuda_version", line):
-            line = re.sub(r"\d+", "10", line)
+            line = re.sub(r"\d+", sys.argv[1], line)
         new_str = new_str + line
 
 with open("paddle_serving_server_gpu/version.py", "w") as f:
