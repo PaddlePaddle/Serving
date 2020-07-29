@@ -13,6 +13,3 @@
   client.set_rpc_timeout_ms(100000)
   client.connect(["127.0.0.1:9393"])
    ```
-
-- Q: 执行GPU预测时出现显存不足的问题应该怎么办？
-  A: 请使用--thread 4参数限制server端的线程数为4，并使用--mem_optim参数开启显存优化选项。
