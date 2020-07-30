@@ -13,18 +13,18 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server.pipeline import PipelineServer
-from paddle_serving_server.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server.pipeline.channel import ChannelDataEcode
-import numpy as np
 import logging
+logging.basicConfig(format='%(levelname)s:%(asctime)s:%(message)s',
+                    level=logging.INFO)
+
+from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
+from paddle_serving_server_gpu.pipeline import PipelineServer
+from paddle_serving_server_gpu.pipeline.proto import pipeline_service_pb2
+from paddle_serving_server_gpu.pipeline.channel import ChannelDataEcode
+import numpy as np
 from paddle_serving_app.reader import IMDBDataset
 
-logging.basicConfig(level=logging.DEBUG)
-
 _LOGGER = logging.getLogger()
-
 
 class ImdbRequestOp(RequestOp):
     def init_op(self):
@@ -50,7 +50,6 @@ class CombineOp(Op):
             combined_prediction += data["prediction"]
         data = {"prediction": combined_prediction / 2}
         return data
-
 
 class ImdbResponseOp(ResponseOp):
     # Here ImdbResponseOp is consistent with the default ResponseOp implementation

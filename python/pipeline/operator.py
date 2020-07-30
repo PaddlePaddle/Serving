@@ -67,8 +67,9 @@ class Op(object):
 
         self._batch_size = batch_size
         self._auto_batching_timeout = auto_batching_timeout
-        if self._auto_batching_timeout is not None and self._auto_batching_timeout <= 0:
-            self._auto_batching_timeout = None
+        if self._auto_batching_timeout is not None:
+            if self._auto_batching_timeout <= 0 or self._batch_size == 1:
+                self._auto_batching_timeout = None
 
         self._server_use_profile = False
 
@@ -77,6 +78,10 @@ class Op(object):
         self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
         self._succ_close_op = False
+
+    def use_default_auto_batching_config(self):
+        self._batch_size = 1
+        self._auto_batching_timeout = None
 
     def use_profiler(self, use_profile):
         self._server_use_profile = use_profile
@@ -89,11 +94,12 @@ class Op(object):
     def init_client(self, client_type, client_config, server_endpoints,
                     fetch_names):
         if self.with_serving == False:
-            _LOGGER.debug("{} no client".format(self.name))
+            _LOGGER.info("Op({}) no client".format(self.name))
             return None
-        _LOGGER.debug("{} client_config: {}".format(self.name, client_config))
-        _LOGGER.debug("{} fetch_names: {}".format(self.name, fetch_names))
+        _LOGGER.info("Op({}) service endpoints: {}".format(self.name, server_endpoints))
+        _LOGGER.debug("Op({}) fetch_names: {}".format(self.name, fetch_names))
         if client_type == 'brpc':
+            _LOGGER.debug("Op({}) client_config: {}".format(self.name, client_config))
             client = Client()
             client.load_client_config(client_config)
         elif client_type == 'grpc':
@@ -163,7 +169,6 @@ class Op(object):
                 "{} Please override preprocess func.".format(err_info))
         call_result = self.client.predict(
             feed=feed_batch, fetch=self._fetch_names)
-        _LOGGER.debug(self._log("get call_result"))
         return call_result
 
     def postprocess(self, input_dict, fetch_dict):
@@ -237,6 +242,7 @@ class Op(object):
         pass
 
     def _run_preprocess(self, parsed_data_dict, log_func):
+        _LOGGER.debug(log_func("try to run preprocess"))
         preped_data_dict = {}
         err_channeldata_dict = {}
         for data_id, parsed_data in parsed_data_dict.items():
@@ -245,22 +251,27 @@ class Op(object):
                 preped_data = self.preprocess(parsed_data)
             except NotImplementedError as e:
                 # preprocess function not implemented
-                error_info = log_func(e)
-                _LOGGER.error(error_info)
+                error_info = log_func(
+                        "preprocess data[{}] failed: {}".format(
+                            data_id, e))
                 error_channeldata = ChannelData(
                     ecode=ChannelDataEcode.NOT_IMPLEMENTED.value,
                     error_info=error_info,
                     data_id=data_id)
             except TypeError as e:
                 # Error type in channeldata.datatype
-                error_info = log_func(e)
+                error_info = log_func(
+                        "preprocess data[{}] failed: {}".format(
+                            data_id, e))
                 _LOGGER.error(error_info)
                 error_channeldata = ChannelData(
                     ecode=ChannelDataEcode.TYPE_ERROR.value,
                     error_info=error_info,
                     data_id=data_id)
             except Exception as e:
-                error_info = log_func(e)
+                error_info = log_func(
+                        "preprocess data[{}] failed: {}".format(
+                            data_id, e))
                 _LOGGER.error(error_info)
                 error_channeldata = ChannelData(
                     ecode=ChannelDataEcode.UNKNOW.value,
@@ -270,9 +281,11 @@ class Op(object):
                 err_channeldata_dict[data_id] = error_channeldata
             else:
                 preped_data_dict[data_id] = preped_data
+        _LOGGER.debug(log_func("succ run preprocess"))
         return preped_data_dict, err_channeldata_dict
 
     def _run_process(self, preped_data_dict, log_func):
+        _LOGGER.debug(log_func("try to run process"))
         midped_data_dict = {}
         err_channeldata_dict = {}
         if self.with_serving:
@@ -285,7 +298,7 @@ class Op(object):
                     midped_batch = self.process(feed_batch)
                 except Exception as e:
                     ecode = ChannelDataEcode.UNKNOW.value
-                    error_info = log_func(e)
+                    error_info = log_func("process batch failed: {}".format(e))
                     _LOGGER.error(error_info)
             else:
                 for i in range(self._retry):
@@ -299,10 +312,11 @@ class Op(object):
                             _LOGGER.error(error_info)
                         else:
                             _LOGGER.warn(
-                                log_func("timeout, retry({})".format(i + 1)))
+                                log_func("timeout, retry({}/{})"
+                                    .format(i + 1, self._retry)))
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
-                        error_info = log_func(e)
+                        error_info = log_func("process batch failed: {}".format(e))
                         _LOGGER.error(error_info)
                         break
                     else:
@@ -315,11 +329,13 @@ class Op(object):
                             data_id=data_id)
             elif midped_batch is None:
                 # op client return None
+                error_info=log_func(
+                        "predict failed. pls check the server side.")
+                _LOGGER.error(error_info)
                 for data_id in data_ids:
                     err_channeldata_dict[data_id] = ChannelData(
                             ecode=ChannelDataEcode.CLIENT_ERROR.value,
-                            error_info=log_func(
-                                "predict failed. pls check the server side."),
+                            error_info=error_info,
                             data_id=data_id)
             else:
                 # transform np format to dict format
@@ -329,9 +345,11 @@ class Op(object):
                     }
         else:
             midped_data_dict = preped_data_dict
+        _LOGGER.debug(log_func("succ run process"))
         return midped_data_dict, err_channeldata_dict
 
     def _run_postprocess(self, parsed_data_dict, midped_data_dict, log_func):
+        _LOGGER.debug(log_func("try to run postprocess"))
         postped_data_dict = {}
         err_channeldata_dict = {}
         for data_id, midped_data in midped_data_dict.items():
@@ -340,7 +358,8 @@ class Op(object):
                 postped_data = self.postprocess(
                         parsed_data_dict[data_id], midped_data)
             except Exception as e:
-                error_info = log_func(e)
+                error_info = log_func("postprocess data[{}] failed: {}"
+                        .format(data_id, e))
                 _LOGGER.error(error_info)
                 err_channeldata = ChannelData(
                     ecode=ChannelDataEcode.UNKNOW.value,
@@ -374,11 +393,17 @@ class Op(object):
                         dictdata=postped_data,
                         data_id=data_id)
                 postped_data_dict[data_id] = output_data
+        _LOGGER.debug(log_func("succ run postprocess"))
         return postped_data_dict, err_channeldata_dict
     
-    def _auto_batching_generator(self, input_channel, op_name, batch_size, timeout):
+    def _auto_batching_generator(self, input_channel, op_name,
+            batch_size, timeout, log_func):
         while True:
             batch = []
+            _LOGGER.debug(
+                    log_func(
+                        "Auto-batching expect size: {}; timeout: {}".format(
+                            batch_size, timeout)))
             while len(batch) == 0:
                 endtime = None
                 if timeout is not None:
@@ -389,15 +414,16 @@ class Op(object):
                         if timeout is not None:
                             remaining = endtime - _time()
                             if remaining <= 0.0:
-                                _LOGGER.info(log("auto-batching timeout"))
+                                _LOGGER.debug(log_func("Auto-batching timeout"))
                                 break
                             channeldata_dict = input_channel.front(op_name, timeout)
                         else:
                             channeldata_dict = input_channel.front(op_name)
                         batch.append(channeldata_dict)
                     except ChannelTimeoutError:
-                        _LOGGER.info(log("auto-batching timeout"))
+                        _LOGGER.debug(log_func("Auto-batching timeout"))
                         break
+            _LOGGER.debug(log_func("Auto-batching actual size: {}".format(len(batch))))
             yield batch
 
     def _parse_channeldata_batch(self, batch, output_channels):
@@ -429,29 +455,28 @@ class Op(object):
 
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         log = get_log_func(op_info_prefix)
-        preplog = get_log_func(op_info_prefix + "(prep)")
-        midplog = get_log_func(op_info_prefix + "(midp)")
-        postplog = get_log_func(op_info_prefix + "(postp)")
         tid = threading.current_thread().ident
 
         # init op
         try:
             self._initialize(is_thread_op, client_type)
         except Exception as e:
-            _LOGGER.error(log(e))
+            _LOGGER.error(log("init op failed: {}".format(e)))
             os._exit(-1)
+        _LOGGER.info(log("succ init"))
 
         batch_generator = self._auto_batching_generator(
                 input_channel=input_channel, 
                 op_name=self.name,
                 batch_size=self._batch_size,
-                timeout=self._auto_batching_timeout)
+                timeout=self._auto_batching_timeout,
+                log_func=log)
         
         while True:
             try:
                 channeldata_dict_batch = next(batch_generator)
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
 
@@ -461,7 +486,7 @@ class Op(object):
                         = self._parse_channeldata_batch(
                                 channeldata_dict_batch, output_channels)
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
             if len(parsed_data_dict) == 0:
@@ -471,7 +496,7 @@ class Op(object):
             # preprecess
             self._profiler_record("prep#{}_0".format(op_info_prefix))
             preped_data_dict, err_channeldata_dict \
-                    = self._run_preprocess(parsed_data_dict, preplog)
+                    = self._run_preprocess(parsed_data_dict, log)
             self._profiler_record("prep#{}_1".format(op_info_prefix))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -481,7 +506,7 @@ class Op(object):
                         client_need_profile=need_profile_dict[data_id],
                         profile_set=profile_dict[data_id])
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
             if len(parsed_data_dict) == 0:
@@ -490,7 +515,7 @@ class Op(object):
             # process
             self._profiler_record("midp#{}_0".format(op_info_prefix))
             midped_data_dict, err_channeldata_dict \
-                    = self._run_process(preped_data_dict, midplog)
+                    = self._run_process(preped_data_dict, log)
             self._profiler_record("midp#{}_1".format(op_info_prefix))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -500,7 +525,7 @@ class Op(object):
                             client_need_profile=need_profile_dict[data_id],
                             profile_set=profile_dict[data_id])
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
             if len(midped_data_dict) == 0:
@@ -510,7 +535,7 @@ class Op(object):
             self._profiler_record("postp#{}_0".format(op_info_prefix))
             postped_data_dict, err_channeldata_dict \
                     = self._run_postprocess(
-                            parsed_data_dict, midped_data_dict, postplog)
+                            parsed_data_dict, midped_data_dict, log)
             self._profiler_record("postp#{}_1".format(op_info_prefix))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -520,7 +545,7 @@ class Op(object):
                             client_need_profile=need_profile_dict[data_id],
                             profile_set=profile_dict[data_id])
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
             if len(postped_data_dict) == 0:
@@ -535,7 +560,7 @@ class Op(object):
                             client_need_profile=need_profile_dict[data_id],
                             profile_set=profile_dict[data_id])
             except ChannelStopError:
-                _LOGGER.debug(log("stop."))
+                _LOGGER.debug(log("channel stop."))
                 self._finalize(is_thread_op)
                 break
 

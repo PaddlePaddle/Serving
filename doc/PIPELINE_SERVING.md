@@ -103,7 +103,7 @@ The meaning of each parameter is as follows:
 |          def process(self, feed_dict)          | The RPC prediction process is based on the Paddle Serving Client, and the processed data will be used as the input of the **postprocess** function. |
 | def postprocess(self, input_dicts, fetch_dict) | After processing the prediction results, the processed data will be put into the subsequent Channel to be obtained by the subsequent OP. |
 |               def init_op(self)                |      Used to load resources (such as word dictionary).       |
-|              self.concurrency_idx              | Concurrency index of current thread / process (different kinds of OP are calculated separately). |
+|              self.concurrency_idx              | Concurrency index of current process(not thread) (different kinds of OP are calculated separately). |
 
 In a running cycle, OP will execute three operations: preprocess, process, and postprocess (when the `server_endpoints` parameter is not set, the process operation is not executed). Users can rewrite these three functions. The default implementation is as follows:
 
