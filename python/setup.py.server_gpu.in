@@ -41,7 +41,6 @@ REQUIRED_PACKAGES = [
     'paddle_serving_client', 'flask >= 1.1.1', 'paddle_serving_app'
 ]
 
-
 packages=['paddle_serving_server_gpu',
           'paddle_serving_server_gpu.proto',
           'paddle_serving_server_gpu.pipeline',
@@ -58,7 +57,7 @@ package_dir={'paddle_serving_server_gpu':
 
 setup(
     name='paddle-serving-server-gpu',
-    version=serving_server_version.replace('-', ''),
+    version=serving_server_version.replace('-', '') + '.post@CUDA_VERSION_MAJOR@',
     description=
     ('Paddle Serving Package for saved model with PaddlePaddle'),
     url='https://github.com/PaddlePaddle/Serving',
