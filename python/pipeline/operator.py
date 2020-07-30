@@ -80,8 +80,16 @@ class Op(object):
         self._succ_close_op = False
 
     def use_default_auto_batching_config(self):
-        self._batch_size = 1
-        self._auto_batching_timeout = None
+        if self._batch_size != 1:
+            _LOGGER.warn(
+                    "Op({}) reset batch_size=1 (original: {})"
+                    .format(self.name, self._batch_size))
+            self._batch_size = 1
+        if self._auto_batching_timeout != None:
+            _LOGGER.warn(
+                    "Op({}) reset auto_batching_timeout=1 (original: {})"
+                    .format(self.name, self._auto_batching_timeout))
+            self._auto_batching_timeout = None
 
     def use_profiler(self, use_profile):
         self._server_use_profile = use_profile
@@ -459,7 +467,7 @@ class Op(object):
 
         # init op
         try:
-            self._initialize(is_thread_op, client_type)
+            self._initialize(is_thread_op, client_type, concurrency_idx)
         except Exception as e:
             _LOGGER.error(log("init op failed: {}".format(e)))
             os._exit(-1)
@@ -564,7 +572,7 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
 
-    def _initialize(self, is_thread_op, client_type):
+    def _initialize(self, is_thread_op, client_type, concurrency_idx):
         if is_thread_op:
             with self._for_init_op_lock:
                 if not self._succ_init_op:

@@ -69,7 +69,7 @@ class Analyst(object):
         with open(self._profile_file) as f:
             for line in f.readlines():
                 line = line.strip().split("\t")
-                if line[0] == "PROFILE":
+                if line[0] == "PROFILE" and len(line) >= 3:
                     trace_list = self._prase_line(line[1], line[2], counter)
                     counter += 1
                     for trace in trace_list:
