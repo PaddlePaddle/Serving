@@ -60,8 +60,8 @@ class WebService(object):
         server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
-        server.set_mem_optim(mem_optim)
-        server.set_ir_optim(ir_optim)
+        server.set_memory_optimize(mem_optim)
+        server.set_ir_optimize(ir_optim)
 
         server.load_model_config(self.model_config)
         if gpuid >= 0:
@@ -108,8 +108,8 @@ class WebService(object):
                     self.port_list[0],
                     -1,
                     thread_num=2,
-                    mem_optim,
-                    ir_optim))
+                    mem_optim=mem_optim,
+                    ir_optim=ir_optim))
         else:
             for i, gpuid in enumerate(self.gpus):
                 self.rpc_service_list.append(
@@ -118,8 +118,8 @@ class WebService(object):
                         self.port_list[i],
                         gpuid,
                         thread_num=2,
-                        mem_optim,
-                        ir_optim))
+                        mem_optim=mem_optim,
+                        ir_optim=ir_optim))
 
     def _launch_web_service(self):
         gpu_num = len(self.gpus)
