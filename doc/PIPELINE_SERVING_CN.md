@@ -100,6 +100,7 @@ def __init__(name=None,
 |      batch_size       | （int）进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值。 |
 | auto_batching_timeout |     （float）进行 Auto-Batching 构建 batch 的超时时间。      |
 
+
 #### 2. 普通 OP二次开发接口
 
 |                   变量或接口                   |                             说明                             |
