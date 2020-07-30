@@ -100,6 +100,7 @@ The meaning of each parameter is as follows:
 |      batch_size       | (int) The expected batch_size of Auto-Batching, since building batches may time out, the actual batch_size may be less than the set value. |
 | auto_batching_timeout |    (float) Timeout for building batches of Auto-Batching.    |
 
+
 #### 2. General OP Secondary Development Interface
 
 |             Interface or Variable              |                           Explain                            |
