@@ -70,6 +70,8 @@ class Op(object):
         if self._auto_batching_timeout is not None:
             if self._auto_batching_timeout <= 0 or self._batch_size == 1:
                 self._auto_batching_timeout = None
+            else:
+                self._auto_batching_timeout = self._auto_batching_timeout / 1000.0
 
         self._server_use_profile = False
 

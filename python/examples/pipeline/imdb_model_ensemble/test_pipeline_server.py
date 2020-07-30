@@ -15,13 +15,13 @@
 
 import logging
 logging.basicConfig(
-    format="[%(process)d](%(threadName)s) %(levelname)s %(asctime)s [%(funcName)s:%(lineno)d] %(message)s",
+    format="[%(process)d](%(threadName)s) %(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s",
     level=logging.INFO)
 
-from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server_gpu.pipeline import PipelineServer
-from paddle_serving_server_gpu.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server_gpu.pipeline.channel import ChannelDataEcode
+from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
+from paddle_serving_server.pipeline import PipelineServer
+from paddle_serving_server.pipeline.proto import pipeline_service_pb2
+from paddle_serving_server.pipeline.channel import ChannelDataEcode
 import numpy as np
 from paddle_serving_app.reader import IMDBDataset
 
@@ -80,7 +80,7 @@ bow_op = Op(name="bow",
             timeout=-1,
             retry=1,
             batch_size=3,
-            auto_batching_timeout=1)
+            auto_batching_timeout=1000)
 cnn_op = Op(name="cnn",
             input_ops=[read_op],
             server_endpoints=["127.0.0.1:9292"],
