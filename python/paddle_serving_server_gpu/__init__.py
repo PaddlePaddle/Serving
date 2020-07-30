@@ -363,7 +363,15 @@ class Server(object):
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
-        device_version = "serving-gpu-"
+
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        import re
+        for line in version_file.readlines():
+            if re.match("cuda_version", line):
+                cuda_version = line.split("\"")[1]
+                device_version = "serving-gpu-cuda" + cuda_version + "-"
+
         folder_name = device_version + serving_server_version
         tar_name = folder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
@@ -372,8 +380,6 @@ class Server(object):
         download_flag = "{}/{}.is_download".format(self.module_path,
                                                    folder_name)
 
-        #acquire lock
-        version_file = open("{}/version.py".format(self.module_path), "r")
         fcntl.flock(version_file, fcntl.LOCK_EX)
 
         if os.path.exists(download_flag):
@@ -385,6 +391,7 @@ class Server(object):
             os.system("touch {}/{}.is_download".format(self.module_path,
                                                        folder_name))
             print('Frist time run, downloading PaddleServing components ...')
+
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
                 if os.path.exists(tar_name):
