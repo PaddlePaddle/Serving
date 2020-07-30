@@ -1,8 +1,8 @@
 port: 18080
-worker_num: 1
+worker_num: 4
 build_dag_each_worker: false
 dag:
-    is_thread_op: true
+    is_thread_op: false
     client_type: brpc
     retry: 1
     use_profile: false

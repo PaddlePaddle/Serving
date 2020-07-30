@@ -14,8 +14,9 @@
 # pylint: disable=doc-string-missing
 
 import logging
-logging.basicConfig(format='%(levelname)s:%(asctime)s:%(message)s',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="[%(process)d](%(threadName)s) %(levelname)s %(asctime)s [%(funcName)s:%(lineno)d] %(message)s",
+    level=logging.INFO)
 
 from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server_gpu.pipeline import PipelineServer
@@ -25,6 +26,7 @@ import numpy as np
 from paddle_serving_app.reader import IMDBDataset
 
 _LOGGER = logging.getLogger()
+
 
 class ImdbRequestOp(RequestOp):
     def init_op(self):
@@ -51,6 +53,7 @@ class CombineOp(Op):
         data = {"prediction": combined_prediction / 2}
         return data
 
+
 class ImdbResponseOp(ResponseOp):
     # Here ImdbResponseOp is consistent with the default ResponseOp implementation
     def pack_response_package(self, channeldata):
@@ -75,7 +78,9 @@ bow_op = Op(name="bow",
             client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
             concurrency=1,
             timeout=-1,
-            retry=1)
+            retry=1,
+            batch_size=3,
+            auto_batching_timeout=1)
 cnn_op = Op(name="cnn",
             input_ops=[read_op],
             server_endpoints=["127.0.0.1:9292"],
@@ -83,13 +88,17 @@ cnn_op = Op(name="cnn",
             client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
             concurrency=1,
             timeout=-1,
-            retry=1)
+            retry=1,
+            batch_size=1,
+            auto_batching_timeout=None)
 combine_op = CombineOp(
     name="combine",
     input_ops=[bow_op, cnn_op],
-    concurrency=5,
+    concurrency=1,
     timeout=-1,
-    retry=1)
+    retry=1,
+    batch_size=2,
+    auto_batching_timeout=None)
 
 # fetch output of bow_op
 # response_op = ImdbResponseOp(input_ops=[bow_op])
