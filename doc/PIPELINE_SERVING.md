@@ -98,7 +98,7 @@ The meaning of each parameter is as follows:
 |        timeout        | (int) The timeout time of the process operation, in seconds. If the value is less than zero, no timeout is considered. |
 |         retry         | (int) Timeout number of retries. When the value is 1, no retries are made. |
 |      batch_size       | (int) The expected batch_size of Auto-Batching, since building batches may time out, the actual batch_size may be less than the set value. |
-| auto_batching_timeout |    (float) Timeout for building batches of Auto-Batching.    |
+| auto_batching_timeout | (float) Timeout for building batches of Auto-Batching (the unit is ms). |
 
 
 #### 2. General OP Secondary Development Interface
