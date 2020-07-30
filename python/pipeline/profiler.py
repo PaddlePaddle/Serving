@@ -22,7 +22,7 @@ elif sys.version_info.major == 3:
     import queue as Queue
 else:
     raise Exception("Error Python version")
-import time
+from time import time as _time
 import threading
 
 _LOGGER = logging.getLogger()
@@ -42,7 +42,7 @@ class TimeProfiler(object):
     def record(self, name_with_tag):
         if self._enable is False:
             return
-        timestamp = int(round(time.time() * 1000000))
+        timestamp = int(round(_time() * 1000000))
         name_with_tag = name_with_tag.split("_")
         tag = name_with_tag[-1]
         name = '_'.join(name_with_tag[:-1])

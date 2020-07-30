@@ -103,7 +103,7 @@ def __init__(name=None,
 |          def process(self, feed_dict)          | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。 |
 | def postprocess(self, input_dicts, fetch_dict) | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。 |
 |               def init_op(self)                |                  用于加载资源（如字典等）。                  |
-|              self.concurrency_idx              |   当前线程（进程）的并发数索引（不同种类的 OP 单独计算）。   |
+|              self.concurrency_idx              |   当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。   |
 
 OP 在一个运行周期中会依次执行 preprocess，process，postprocess 三个操作（当不设置 `server_endpoints` 参数时，不执行 process 操作），用户可以对这三个函数进行重写，默认实现如下：
 
