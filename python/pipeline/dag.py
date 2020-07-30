@@ -47,7 +47,7 @@ class DAGExecutor(object):
         for key, val in default_conf.items():
             if dag_config.get(key) is None:
                 _LOGGER.warning("[CONF] {} not set, use default: {}"
-                        .format(key, val))
+                                .format(key, val))
                 dag_config[key] = val
 
         self._retry = dag_config["retry"]
@@ -60,7 +60,7 @@ class DAGExecutor(object):
         if show_info:
             _LOGGER.info("=============== DAGExecutor ===============")
             for key in default_conf.keys():
-                _LOGGER.info("{}: {}".format(key, dag_config[key]))            
+                _LOGGER.info("{}: {}".format(key, dag_config[key]))
             _LOGGER.info("-------------------------------------------")
 
         self.name = "@G"
@@ -110,17 +110,15 @@ class DAGExecutor(object):
 
     def _set_in_channel(self, in_channel):
         if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
-            raise TypeError(
-                "in_channel must be Channel type, but get {}".format(
-                    type(in_channel)))
+            raise TypeError("in_channel must be Channel type, but get {}".
+                            format(type(in_channel)))
         in_channel.add_producer(self.name)
         self._in_channel = in_channel
 
     def _set_out_channel(self, out_channel):
         if not isinstance(out_channel, (ThreadChannel, ProcessChannel)):
-            raise TypeError(
-                "iout_channel must be Channel type, but get {}".format(
-                    type(out_channel)))
+            raise TypeError("iout_channel must be Channel type, but get {}".
+                            format(type(out_channel)))
         out_channel.add_consumer(self.name)
         self._out_channel = out_channel
 
@@ -143,12 +141,14 @@ class DAGExecutor(object):
                 break
 
             if len(channeldata_dict) != 1:
-                _LOGGER.error("[DAG Executor] out_channel cannot have multiple input ops")
+                _LOGGER.error(
+                    "[DAG Executor] out_channel cannot have multiple input ops")
                 os._exit(-1)
             (_, channeldata), = channeldata_dict.items()
             if not isinstance(channeldata, ChannelData):
-                _LOGGER.error('[DAG Executor] data must be ChannelData type, but get {}'
-                        .format(type(channeldata)))
+                _LOGGER.error(
+                    '[DAG Executor] data must be ChannelData type, but get {}'
+                    .format(type(channeldata)))
                 os._exit(-1)
 
             data_id = channeldata.id
@@ -178,7 +178,7 @@ class DAGExecutor(object):
             dictdata = self._unpack_rpc_func(rpc_request)
         except Exception as e:
             _LOGGER.error("parse RPC package to data[{}] Error: {}"
-                    .format(data_id, e))
+                          .format(data_id, e))
             return ChannelData(
                 ecode=ChannelDataEcode.RPC_PACKAGE_ERROR.value,
                 error_info="rpc package error: {}".format(e),
@@ -192,7 +192,8 @@ class DAGExecutor(object):
                     profile_value = rpc_request.value[idx]
                     break
             client_need_profile = (profile_value == self._client_profile_value)
-            _LOGGER.debug("request[{}] need profile: {}".format(data_id, client_need_profile))
+            _LOGGER.debug("request[{}] need profile: {}".format(
+                data_id, client_need_profile))
             return ChannelData(
                 datatype=ChannelDataType.DICT.value,
                 dictdata=dictdata,
@@ -208,7 +209,8 @@ class DAGExecutor(object):
         else:
             self._profiler.record("call_{}#DAG_0".format(data_id))
 
-        _LOGGER.debug("try parse RPC package to channeldata[{}]".format(data_id))
+        _LOGGER.debug("try parse RPC package to channeldata[{}]".format(
+            data_id))
         self._profiler.record("prepack_{}#{}_0".format(data_id, self.name))
         req_channeldata = self._pack_channeldata(rpc_request, data_id)
         self._profiler.record("prepack_{}#{}_1".format(data_id, self.name))
@@ -226,23 +228,26 @@ class DAGExecutor(object):
                         error_info="dag closed.",
                         data_id=data_id))
 
-            _LOGGER.debug("wait for Graph engine for data[{}]...".format(data_id))
+            _LOGGER.debug("wait for Graph engine for data[{}]...".format(
+                data_id))
             resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id)
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
-                _LOGGER.debug("Graph engine predict data[{}] succ".format(data_id))
+                _LOGGER.debug("Graph engine predict data[{}] succ".format(
+                    data_id))
                 break
             else:
                 _LOGGER.warn("Graph engine predict data[{}] failed: {}"
-                        .format(data_id, resp_channeldata.error_info))
+                             .format(data_id, resp_channeldata.error_info))
                 if resp_channeldata.ecode != ChannelDataEcode.TIMEOUT.value:
                     break
 
             if i + 1 < self._retry:
-                _LOGGER.warn("retry({}/{}) data[{}]".format(
-                    i + 1, self._retry, data_id))
+                _LOGGER.warn("retry({}/{}) data[{}]".format(i + 1, self._retry,
+                                                            data_id))
 
-        _LOGGER.debug("unpack channeldata[{}] into RPC resp package".format(data_id))
+        _LOGGER.debug("unpack channeldata[{}] into RPC resp package".format(
+            data_id))
         self._profiler.record("postpack_{}#{}_0".format(data_id, self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("postpack_{}#{}_1".format(data_id, self.name))
@@ -380,8 +385,8 @@ class DAG(object):
             )
         if self._build_dag_each_worker:
             _LOGGER.info("Because `build_dag_each_worker` mode is used, "
-                    "Auto-batching is set to the default config: "
-                    "batch_size=1, auto_batching_timeout=None")
+                         "Auto-batching is set to the default config: "
+                         "batch_size=1, auto_batching_timeout=None")
             for op in used_ops:
                 op.use_default_auto_batching_config()
 
@@ -439,7 +444,7 @@ class DAG(object):
                 channel = self._gen_channel(channel_name_gen)
                 channels.append(channel)
                 _LOGGER.debug("[DAG] Channel({}) => Op({})"
-                        .format(channel.name, op.name))
+                              .format(channel.name, op.name))
                 op.add_input_channel(channel)
                 pred_ops = pred_op_of_next_view_op[op.name]
                 if v_idx == 0:
@@ -448,7 +453,7 @@ class DAG(object):
                     # if pred_op is virtual op, it will use ancestors as producers to channel
                     for pred_op in pred_ops:
                         _LOGGER.debug("[DAG] Op({}) => Channel({})"
-                                .format(pred_op.name, channel.name))
+                                      .format(pred_op.name, channel.name))
                         pred_op.add_output_channel(channel)
                 processed_op.add(op.name)
                 # find same input op to combine channel
@@ -465,7 +470,7 @@ class DAG(object):
                             break
                     if same_flag:
                         _LOGGER.debug("[DAG] Channel({}) => Op({})"
-                                .format(channel.name, other_op.name))
+                                      .format(channel.name, other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
         output_channel = self._gen_channel(channel_name_gen)
@@ -484,7 +489,7 @@ class DAG(object):
 
         for c in channels:
             _LOGGER.debug("Channel({}):\n -producers: {}\n -consumers: {}"
-                    .format(c.name, c.get_producers(), c.get_consumers()))
+                          .format(c.name, c.get_producers(), c.get_consumers()))
 
         return (actual_ops, channels, input_channel, output_channel, pack_func,
                 unpack_func)

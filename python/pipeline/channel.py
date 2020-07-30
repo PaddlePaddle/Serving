@@ -258,7 +258,8 @@ class ProcessChannel(object):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("{} try to push data[{}]".format(op_name, channeldata.id)))
+            self._log("{} try to push data[{}]".format(op_name,
+                                                       channeldata.id)))
         if len(self._producers) == 0:
             raise Exception(
                 self._log(
@@ -275,8 +276,9 @@ class ProcessChannel(object):
                 if self._stop.value == 1:
                     raise ChannelStopError()
                 self._cv.notify_all()
-                _LOGGER.debug(self._log("{} notify all".format(op_name)))
-            _LOGGER.debug(self._log("{} push data succ!".format(op_name)))
+            _LOGGER.debug(
+                self._log("{} succ push data[{}] into internal queue.".format(
+                    op_name, channeldata.id)))
             return True
         elif op_name is None:
             raise Exception(
@@ -287,7 +289,6 @@ class ProcessChannel(object):
         data_id = channeldata.id
         put_data = None
         with self._cv:
-            _LOGGER.debug(self._log("{} get lock".format(op_name)))
             if data_id not in self._input_buf:
                 self._input_buf[data_id] = {
                     name: None
@@ -309,14 +310,11 @@ class ProcessChannel(object):
 
             if put_data is None:
                 _LOGGER.debug(
-                    self._log("{} push data succ, but not push to queue.".
-                              format(op_name)))
+                    self._log("{} succ push data[{}] into input_buffer.".format(
+                        op_name, data_id)))
             else:
                 while self._stop.value == 0:
                     try:
-                        _LOGGER.debug(
-                            self._log("{} push data succ: {}".format(
-                                op_name, put_data.__str__())))
                         self._que.put(put_data, timeout=0)
                         break
                     except Queue.Empty:
@@ -325,11 +323,15 @@ class ProcessChannel(object):
                     raise ChannelStopError()
 
                 _LOGGER.debug(
-                    self._log("multi | {} push data succ!".format(op_name)))
+                    self._log("{} succ push data[{}] into internal queue.".
+                              format(op_name, data_id)))
             self._cv.notify_all()
         return True
 
     def front(self, op_name=None, timeout=None):
+        _LOGGER.debug(
+            self._log("{} try to get data[?]; timeout={}".format(op_name,
+                                                                 timeout)))
         endtime = None
         if timeout is not None:
             if timeout <= 0:
@@ -337,7 +339,6 @@ class ProcessChannel(object):
             else:
                 endtime = _time() + timeout
 
-        _LOGGER.debug(self._log("{} try to get data...".format(op_name)))
         if len(self._consumer_cursors) == 0:
             raise Exception(
                 self._log(
@@ -348,21 +349,24 @@ class ProcessChannel(object):
             with self._cv:
                 while self._stop.value == 0 and resp is None:
                     try:
-                        _LOGGER.debug(
-                            self._log("{} try to get(with channel empty: {})".
-                                      format(op_name, self._que.empty())))
                         resp = self._que.get(timeout=0)
                         break
                     except Queue.Empty:
                         if timeout is not None:
                             remaining = endtime - _time()
                             if remaining <= 0.0:
+                                _LOGGER.debug(
+                                    self._log("{} get data[?] timeout".format(
+                                        op_name)))
                                 raise ChannelTimeoutError()
                             self._cv.wait(remaining)
                         else:
                             self._cv.wait()
                 if self._stop.value == 1:
                     raise ChannelStopError()
+            _LOGGER.debug(
+                self._log("{} succ get data[{}]".format(op_name,
+                                                        resp.values()[0].id)))
             return resp
         elif op_name is None:
             raise Exception(
@@ -384,22 +388,20 @@ class ProcessChannel(object):
             # it is necessary to obtain a data from queue and add it to output_buf.
             while self._stop.value == 0 and self._consumer_cursors[
                     op_name] - self._base_cursor.value >= len(self._output_buf):
-                _LOGGER.debug(
-                    self._log(
-                        "({}) B self._consumer_cursors: {}, self._base_cursor: {}, len(self._output_buf): {}".
-                        format(op_name, self._consumer_cursors,
-                               self._base_cursor.value, len(self._output_buf))))
                 try:
-                    _LOGGER.debug(
-                        self._log("{} try to get(with channel size: {})".format(
-                            op_name, self._que.qsize())))
                     channeldata = self._que.get(timeout=0)
                     self._output_buf.append(channeldata)
+                    _LOGGER.debug(
+                        self._log("pop ready item[{}] into output_buffer".
+                                  format(channeldata.values()[0].id)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
                         remaining = endtime - _time()
                         if remaining <= 0.0:
+                            _LOGGER.debug(
+                                self._log("{} get data[?] timeout".format(
+                                    op_name)))
                             raise ChannelTimeoutError()
                         self._cv.wait(remaining)
                     else:
@@ -411,7 +413,6 @@ class ProcessChannel(object):
             base_cursor = self._base_cursor.value
             data_idx = consumer_cursor - base_cursor
             resp = self._output_buf[data_idx]
-            _LOGGER.debug(self._log("{} get data: {}".format(op_name, resp)))
 
             self._cursor_count[consumer_cursor] -= 1
             if consumer_cursor == base_cursor and self._cursor_count[
@@ -423,6 +424,7 @@ class ProcessChannel(object):
                 self._base_cursor.value += 1
                 # to avoid cursor overflow
                 if self._base_cursor.value >= self._reset_max_cursor:
+                    _LOGGER.info(self._log("reset cursor in Channel"))
                     self._base_cursor.value -= self._reset_max_cursor
                     for name in self._consumer_cursors.keys():
                         self._consumer_cursors[name] -= self._reset_max_cursor
@@ -440,16 +442,12 @@ class ProcessChannel(object):
                 self._cursor_count[new_consumer_cursor] = 0
             self._cursor_count[new_consumer_cursor] += 1
 
-            _LOGGER.debug(
-                self._log(
-                    "({}) A self._consumer_cursors: {}, self._base_cursor: {}, len(self._output_buf): {}".
-                    format(op_name, self._consumer_cursors,
-                           self._base_cursor.value, len(self._output_buf))))
-            _LOGGER.debug(self._log("{} notify all".format(op_name)))
             self._cv.notify_all()
 
-        _LOGGER.debug(self._log("multi | {} get data succ!".format(op_name)))
-        return resp  # reference, read only
+        _LOGGER.debug(
+            self._log("{} succ get data[{}] from output_buffer".format(
+                op_name, resp.values()[0].id)))
+        return resp
 
     def stop(self):
         _LOGGER.debug(self._log("stop."))
@@ -538,7 +536,8 @@ class ThreadChannel(Queue.Queue):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("{} try to push data[{}]".format(op_name, channeldata.id)))
+            self._log("{} try to push data[{}]".format(op_name,
+                                                       channeldata.id)))
         if len(self._producers) == 0:
             raise Exception(
                 self._log(
@@ -556,9 +555,8 @@ class ThreadChannel(Queue.Queue):
                     raise ChannelStopError()
                 self._cv.notify_all()
             _LOGGER.debug(
-                    self._log(
-                        "{} succ push data[{}] into internal queue.".format(
-                            op_name, channeldata.id)))
+                self._log("{} succ push data[{}] into internal queue.".format(
+                    op_name, channeldata.id)))
             return True
         elif op_name is None:
             raise Exception(
@@ -585,9 +583,8 @@ class ThreadChannel(Queue.Queue):
 
             if put_data is None:
                 _LOGGER.debug(
-                    self._log(
-                        "{} succ push data[{}] into input_buffer.".format(
-                            op_name, data_id)))
+                    self._log("{} succ push data[{}] into input_buffer.".format(
+                        op_name, data_id)))
             else:
                 while self._stop is False:
                     try:
@@ -599,17 +596,15 @@ class ThreadChannel(Queue.Queue):
                     raise ChannelStopError()
 
                 _LOGGER.debug(
-                    self._log(
-                        "{} succ push data[{}] into internal queue.".format(
-                            op_name, data_id)))
+                    self._log("{} succ push data[{}] into internal queue.".
+                              format(op_name, data_id)))
             self._cv.notify_all()
         return True
 
     def front(self, op_name=None, timeout=None):
         _LOGGER.debug(
-                self._log(
-                    "{} try to get data[?]; timeout={}".format(
-                        op_name, timeout)))
+            self._log("{} try to get data[?]; timeout={}".format(op_name,
+                                                                 timeout)))
         endtime = None
         if timeout is not None:
             if timeout <= 0:
@@ -634,8 +629,8 @@ class ThreadChannel(Queue.Queue):
                             remaining = endtime - _time()
                             if remaining <= 0.0:
                                 _LOGGER.debug(
-                                        self._log(
-                                            "{} get data[?] timeout".format(op_name)))
+                                    self._log("{} get data[?] timeout".format(
+                                        op_name)))
                                 raise ChannelTimeoutError()
                             self._cv.wait(remaining)
                         else:
@@ -643,8 +638,8 @@ class ThreadChannel(Queue.Queue):
                 if self._stop:
                     raise ChannelStopError()
             _LOGGER.debug(
-                self._log("{} succ get data[{}]".format(
-                    op_name, resp.values()[0].id)))
+                self._log("{} succ get data[{}]".format(op_name,
+                                                        resp.values()[0].id)))
             return resp
         elif op_name is None:
             raise Exception(
@@ -670,17 +665,16 @@ class ThreadChannel(Queue.Queue):
                     channeldata = self.get(timeout=0)
                     self._output_buf.append(channeldata)
                     _LOGGER.debug(
-                            self._log(
-                                "pop ready item[{}] into output_buffer".format(
-                                    channeldata.values()[0].id)))
+                        self._log("pop ready item[{}] into output_buffer".
+                                  format(channeldata.values()[0].id)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
                         remaining = endtime - _time()
                         if remaining <= 0.0:
                             _LOGGER.debug(
-                                    self._log(
-                                        "{} get data[?] timeout".format(op_name)))
+                                self._log("{} get data[?] timeout".format(
+                                    op_name)))
                             raise ChannelTimeoutError()
                         self._cv.wait(remaining)
                     else:
@@ -704,8 +698,7 @@ class ThreadChannel(Queue.Queue):
                 self._base_cursor += 1
                 # to avoid cursor overflow
                 if self._base_cursor >= self._reset_max_cursor:
-                    _LOGGER.info(
-                            self._log("reset cursor in Channel"))
+                    _LOGGER.info(self._log("reset cursor in Channel"))
                     self._base_cursor -= self._reset_max_cursor
                     for name in self._consumer_cursors:
                         self._consumer_cursors[name] -= self._reset_max_cursor
@@ -725,9 +718,8 @@ class ThreadChannel(Queue.Queue):
             self._cv.notify_all()
 
         _LOGGER.debug(
-                self._log(
-                    "{} succ get data[{}] from output_buffer".format(
-                        op_name, resp.values()[0].id)))
+            self._log("{} succ get data[{}] from output_buffer".format(
+                op_name, resp.values()[0].id)))
         return resp
 
     def stop(self):
@@ -736,9 +728,11 @@ class ThreadChannel(Queue.Queue):
         with self._cv:
             self._cv.notify_all()
 
+
 class ChannelTimeoutError(RuntimeError):
     def __init__(self):
         pass
+
 
 class ChannelStopError(RuntimeError):
     def __init__(self):
