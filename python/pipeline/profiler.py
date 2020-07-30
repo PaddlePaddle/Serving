@@ -28,6 +28,36 @@ import threading
 _LOGGER = logging.getLogger()
 
 
+class UnsafeTimeProfiler(object):
+    def __init__(self):
+        self.pid = os.getpid()
+        self.print_head = 'PROFILE\tpid:{}\t'.format(self.pid)
+        self.time_record = [self.print_head]
+        self._enable = False
+
+    def enable(self, enable):
+        self._enable = enable
+
+    def record(self, name):
+        if self._enable is False:
+            return
+        self.time_record.append('{}:{} '.format(name,
+                                                int(round(_time() * 1000000))))
+
+    def print_profile(self):
+        if self._enable is False:
+            return
+        sys.stderr.write(self.gen_profile_str())
+
+    def gen_profile_str(self):
+        if self._enable is False:
+            return
+        self.time_record.append('\n')
+        profile_str = ''.join(self.time_record)
+        self.time_record = [self.print_head]
+        return profile_str
+
+
 class TimeProfiler(object):
     def __init__(self):
         self._pid = os.getpid()
