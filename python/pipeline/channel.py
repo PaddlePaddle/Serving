@@ -118,6 +118,16 @@ class ChannelData(object):
         return ecode, error_info
 
     @staticmethod
+    def check_batch_npdata(batch):
+        ecode = ChannelDataEcode.OK.value
+        error_info = None
+        for npdata in batch:
+            ecode, error_info = ChannelData.check_npdata(npdata)
+            if ecode != ChannelDataEcode.OK.value:
+                break
+        return ecode, error_info
+
+    @staticmethod
     def check_npdata(npdata):
         ecode = ChannelDataEcode.OK.value
         error_info = None
@@ -329,10 +339,11 @@ class ProcessChannel(object):
 
     def front(self, op_name=None, timeout=None):
         endtime = None
-        if timeout is not None and timeout <= 0:
-            timeout = None
-        else:
-            endtime = _time() + timeout
+        if timeout is not None:
+            if timeout <= 0:
+                timeout = None
+            else:
+                endtime = _time() + timeout
 
         _LOGGER.debug(self._log("{} try to get data...".format(op_name)))
         if len(self._consumer_cursors) == 0:
@@ -600,10 +611,11 @@ class ThreadChannel(Queue.Queue):
 
     def front(self, op_name=None, timeout=None):
         endtime = None
-        if timeout is not None and timeout <= 0:
-            timeout = None
-        else:
-            endtime = _time() + timeout
+        if timeout is not None:
+            if timeout <= 0:
+                timeout = None
+            else:
+                endtime = _time() + timeout
 
         _LOGGER.debug(self._log("{} try to get data".format(op_name)))
         if len(self._consumer_cursors) == 0:
