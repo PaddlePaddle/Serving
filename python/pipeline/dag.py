@@ -112,7 +112,7 @@ class DAGExecutor(object):
         if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 "in_channel must be Channel type, but get {}".format(
-                    type(in_channel))))
+                    type(in_channel)))
         in_channel.add_producer(self.name)
         self._in_channel = in_channel
 
@@ -120,7 +120,7 @@ class DAGExecutor(object):
         if not isinstance(out_channel, (ThreadChannel, ProcessChannel)):
             raise TypeError(
                 "iout_channel must be Channel type, but get {}".format(
-                    type(out_channel))))
+                    type(out_channel)))
         out_channel.add_consumer(self.name)
         self._out_channel = out_channel
 
@@ -148,7 +148,7 @@ class DAGExecutor(object):
             (_, channeldata), = channeldata_dict.items()
             if not isinstance(channeldata, ChannelData):
                 _LOGGER.error('[DAG Executor] data must be ChannelData type, but get {}'
-                        .format(type(channeldata))))
+                        .format(type(channeldata)))
                 os._exit(-1)
 
             data_id = channeldata.id
@@ -380,7 +380,8 @@ class DAG(object):
             )
         if self._build_dag_each_worker:
             _LOGGER.info("Because `build_dag_each_worker` mode is used, "
-                    "Auto-batching is set to the default config.")
+                    "Auto-batching is set to the default config: "
+                    "batch_size=1, auto_batching_timeout=None")
             for op in used_ops:
                 op.use_default_auto_batching_config()
 
