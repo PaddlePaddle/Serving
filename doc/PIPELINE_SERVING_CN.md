@@ -30,9 +30,10 @@ Server端基于 gRPC 和图执行引擎构建，两者的关系如下图所示�
 
 ### OP的设计
 
-- 单个OP默认的功能是根据输入的 Channel 数据，访问一个 Paddle Serving 的单模型服务，并将结果存在输出的 Channel
+- 单个 OP 默认的功能是根据输入的 Channel 数据，访问一个 Paddle Serving 的单模型服务，并将结果存在输出的 Channel
 - 单个 OP 可以支持用户自定义，包括 preprocess，process，postprocess 三个函数都可以由用户继承和实现
 - 单个 OP 可以控制并发数，从而增加处理并发数
+- 单个 OP 可以获取多个不同 RPC 请求的数据，以实现 Auto-Batching
 - OP 可以由线程或进程启动
 
 ### Channel的设计
@@ -79,31 +80,35 @@ def __init__(name=None,
              client_config=None,
              concurrency=1,
              timeout=-1,
-             retry=1)
+             retry=1,
+             batch_size=1,
+             auto_batching_timeout=None)
 ```
 
 各参数含义如下
 
-|      参数名      |                             含义                             |
-| :--------------: | :----------------------------------------------------------: |
-|       name       |    （str）用于标识 OP 类型的字符串，该字段必须全局唯一。     |
-|    input_ops     |            （list）当前 OP 的所有前继 OP 的列表。            |
-| server_endpoints | （list）远程 Paddle Serving Service 的 endpoints 列表。如果不设置该参数，则不访问远程 Paddle Serving Service，即 不会执行 process 操作。 |
-|    fetch_list    |     （list）远程 Paddle Serving Service 的 fetch 列表。      |
-|  client_config   | （str）Paddle Serving Service 对应的 Client 端配置文件路径。 |
-|   concurrency    |                     （int）OP 的并发数。                     |
-|     timeout      | （int）process 操作的超时时间，单位为秒。若该值小于零，则视作不超时。 |
-|      retry       |       （int）超时重试次数。当该值为 1 时，不进行重试。       |
+|        参数名         |                             含义                             |
+| :-------------------: | :----------------------------------------------------------: |
+|         name          |    （str）用于标识 OP 类型的字符串，该字段必须全局唯一。     |
+|       input_ops       |            （list）当前 OP 的所有前继 OP 的列表。            |
+|   server_endpoints    | （list）远程 Paddle Serving Service 的 endpoints 列表。如果不设置该参数，则不访问远程 Paddle Serving Service，即 不会执行 process 操作。 |
+|      fetch_list       |     （list）远程 Paddle Serving Service 的 fetch 列表。      |
+|     client_config     | （str）Paddle Serving Service 对应的 Client 端配置文件路径。 |
+|      concurrency      |                     （int）OP 的并发数。                     |
+|        timeout        | （int）process 操作的超时时间，单位为秒。若该值小于零，则视作不超时。 |
+|         retry         |       （int）超时重试次数。当该值为 1 时，不进行重试。       |
+|      batch_size       | （int）进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值。 |
+| auto_batching_timeout |     （float）进行 Auto-Batching 构建 batch 的超时时间。      |
 
 #### 2. 普通 OP二次开发接口
 
 |                   变量或接口                   |                             说明                             |
 | :--------------------------------------------: | :----------------------------------------------------------: |
-|       def preprocess(self, input_dicts)        | 对从 Channel 中获取的数据进行处理，处理完的数据将作为 **process** 函数的输入。 |
-|          def process(self, feed_dict)          | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。 |
-| def postprocess(self, input_dicts, fetch_dict) | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。 |
+|       def preprocess(self, input_dicts)        | 对从 Channel 中获取的数据进行处理，处理完的数据将作为 **process** 函数的输入。（该函数对一个 **sample** 进行处理） |
+|       def process(self, feed_dict_list)        | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。（该函数对一个 **batch** 进行处理） |
+| def postprocess(self, input_dicts, fetch_dict) | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。（该函数对一个 **sample** 进行处理） |
 |               def init_op(self)                |                  用于加载资源（如字典等）。                  |
-|              self.concurrency_idx              |   当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。   |
+|              self.concurrency_idx              |  当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。  |
 
 OP 在一个运行周期中会依次执行 preprocess，process，postprocess 三个操作（当不设置 `server_endpoints` 参数时，不执行 process 操作），用户可以对这三个函数进行重写，默认实现如下：
 
@@ -117,25 +122,24 @@ def preprocess(self, input_dicts):
   (_, input_dict), = input_dicts.items()
   return input_dict
 
-def process(self, feed_dict):
-  err, err_info = ChannelData.check_npdata(feed_dict)
+def process(self, feed_dict_list):
+  err, err_info = ChannelData.check_batch_npdata(feed_dict_list)
   if err != 0:
     raise NotImplementedError(
       "{} Please override preprocess func.".format(err_info))
   call_result = self.client.predict(
-    feed=feed_dict, fetch=self._fetch_names)
+    feed=feed_dict_list, fetch=self._fetch_names)
   return call_result
 
 def postprocess(self, input_dicts, fetch_dict):
   return fetch_dict
 ```
 
+**preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量（作为一个 **sample**）是一个以前继 OP 的 name 为 Key，对应 OP 的输出为 Value 的字典。
 
-**preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量是一个以前继 OP 的 name 为 Key，对应 OP 的输出为 Value 的字典。
+**process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict_list`（preprocess 函数的返回值的列表），该变量（作为一个 **batch**）是一个列表，列表中的元素为以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。
 
-**process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict`（preprocess 函数的返回值），该变量是一个以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。
-
-**postprocess** 的参数是 `input_dicts` 和 `fetch_dict`，`input_dicts` 与 preprocess 的参数一致，`fetch_dict` 是 process 函数的返回值（如果没有执行 process ，则该值为 preprocess 的返回值）。
+**postprocess** 的参数是 `input_dicts` 和 `fetch_dict`，`input_dicts` 与 preprocess 的参数一致，`fetch_dict` （作为一个 **sample**）是 process 函数的返回 batch 中的一个 sample（如果没有执行 process ，则该值为 preprocess 的返回值）。
 
 用户还可以对 **init_op** 函数进行重写，已加载自定义的一些资源（比如字典等），默认实现如下：
 
@@ -144,7 +148,7 @@ def init_op(self):
   pass
 ```
 
-需要注意的是，在线程版 OP 中，每个 OP 只会调用一次该函数，故加载的资源必须要求是线程安全的。
+需要**注意**的是，在线程版 OP 中，每个 OP 只会调用一次该函数，故加载的资源必须要求是线程安全的。
 
 #### 3. RequestOp 定义
 
@@ -278,15 +282,15 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 运行下面代码
 
 ```python
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
 from paddle_serving_server.pipeline.channel import ChannelDataEcode
 import numpy as np
-import logging
 from paddle_serving_app.reader import IMDBDataset
-
-logging.basicConfig(level=logging.DEBUG)
 
 _LOGGER = logging.getLogger()
 
@@ -391,15 +395,26 @@ dag:
     use_profile: true
 ```
 
-开启该功能后，Server 端在预测的过程中会将对应的日志信息打印到标准输出，为了更直观地展现各阶段的耗时，提供脚本对日志文件做进一步的分析处理。
+开启该功能后，Server 端在预测的过程中会将对应的日志信息打印到标准输出，为了更直观地展现各阶段的耗时，提供 Analyst 模块对日志文件做进一步的分析处理。
 
-使用时先将 Server 的输出保存到文件，以 profile 为例，脚本将日志中的时间打点信息转换成 json 格式保存到trace 文件，trace 文件可以通过 chrome 浏览器的 tracing 功能进行可视化。
+使用时先将 Server 的输出保存到文件，以 `profile.txt` 为例，脚本将日志中的时间打点信息转换成 json 格式保存到 `trace` 文件，`trace` 文件可以通过 chrome 浏览器的 tracing 功能进行可视化。
 
-```shell
-python timeline_trace.py profile trace
+```python
+import logging
+logging.basicConfig(level=logging.INFO)
+
+from paddle_serving_server.pipeline import Analyst
+import json
+import sys
+
+if __name__ == "__main__":
+    log_filename = "profile.txt"
+    trace_filename = "trace"
+    analyst = Analyst(log_filename)
+    analyst.save_trace(trace_filename)
 ```
 
-具体操作：打开 chrome 浏览器，在地址栏输入 chrome://tracing/ ，跳转至 tracing 页面，点击 load 按钮，打开保存的 trace 文件，即可将预测服务的各阶段时间信息可视化。
+具体操作：打开 chrome 浏览器，在地址栏输入 `chrome://tracing/` ，跳转至 tracing 页面，点击 load 按钮，打开保存的 `trace` 文件，即可将预测服务的各阶段时间信息可视化。
 
 ### 在 Client 端输出 Profile 信息
 
