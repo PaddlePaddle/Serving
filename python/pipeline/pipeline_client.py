@@ -61,7 +61,7 @@ class PipelineClient(object):
     def _unpack_response_package(self, resp, fetch):
         if resp.ecode != 0:
             return {
-                "ecode": resp.ecode, 
+                "ecode": resp.ecode,
                 "ecode_desc": ChannelDataEcode(resp.ecode),
                 "error_info": resp.error_info,
             }

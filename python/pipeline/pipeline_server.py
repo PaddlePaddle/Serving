@@ -90,7 +90,7 @@ class PipelineServer(object):
         for key, val in default_config.items():
             if yml_config.get(key) is None:
                 _LOGGER.warning("[CONF] {} not set, use default: {}"
-                        .format(key, val))
+                                .format(key, val))
                 yml_config[key] = val
 
         self._port = yml_config["port"]
@@ -98,12 +98,13 @@ class PipelineServer(object):
             raise SystemExit("Prot {} is already used".format(self._port))
         self._worker_num = yml_config["worker_num"]
         self._build_dag_each_worker = yml_config["build_dag_each_worker"]
-        
+
         _LOGGER.info("============= PIPELINE SERVER =============")
         for key in default_config.keys():
             _LOGGER.info("{}: {}".format(key, yml_config[key]))
         if self._build_dag_each_worker is True:
-            _LOGGER.info("(Make sure that install grpcio whl with --no-binary flag)")
+            _LOGGER.info(
+                "(Make sure that install grpcio whl with --no-binary flag)")
         _LOGGER.info("-------------------------------------------")
 
         self._dag_config = yml_config.get("dag", {})
