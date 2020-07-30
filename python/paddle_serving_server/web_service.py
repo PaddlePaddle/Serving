@@ -92,8 +92,6 @@ class WebService(object):
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
             fetch_map = self.client.predict(feed=feed, fetch=fetch)
-            for key in fetch_map:
-                fetch_map[key] = fetch_map[key].tolist()
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
@@ -137,4 +135,6 @@ class WebService(object):
         return feed, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
+        for key in fetch_map:
+            fetch_map[key] = fetch_map[key].tolist()
         return fetch_map
