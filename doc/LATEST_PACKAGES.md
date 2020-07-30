@@ -14,11 +14,17 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server-0.3.2-py2-none-an
 ## GPU server
 ### Python 3
 ```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2-py3-none-any.whl
+#cuda 9.0
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2.post9-py3-none-any.whl
+#cuda 10.0
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2.post10-py3-none-any.whl
 ```
 ### Python 2
 ```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2-py2-none-any.whl
+#cuda 9.0
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2.post9-py2-none-any.whl
+#cuda 10.0
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.3.2.post10-py2-none-any.whl
 ```
 
 ## Client
