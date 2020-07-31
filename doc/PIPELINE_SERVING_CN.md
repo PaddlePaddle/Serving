@@ -95,7 +95,7 @@ def __init__(name=None,
 |      fetch_list       |     （list）远程 Paddle Serving Service 的 fetch 列表。      |
 |     client_config     | （str）Paddle Serving Service 对应的 Client 端配置文件路径。 |
 |      concurrency      |                     （int）OP 的并发数。                     |
-|        timeout        | （int）process 操作的超时时间，单位为秒。若该值小于零，则视作不超时。 |
+|        timeout        | （int）process 操作的超时时间，单位为毫秒。若该值小于零，则视作不超时。 |
 |         retry         |       （int）超时重试次数。当该值为 1 时，不进行重试。       |
 |      batch_size       | （int）进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值。 |
 | auto_batching_timeout | （float）进行 Auto-Batching 构建 batch 的超时时间，单位为毫秒。 |
