@@ -330,8 +330,8 @@ class ProcessChannel(object):
 
     def front(self, op_name=None, timeout=None):
         _LOGGER.debug(
-            self._log("{} try to get data[?]; timeout={}".format(op_name,
-                                                                 timeout)))
+            self._log("{} try to get data[?]; timeout(s)={}".format(op_name,
+                                                                    timeout)))
         endtime = None
         if timeout is not None:
             if timeout <= 0:
@@ -603,8 +603,8 @@ class ThreadChannel(Queue.Queue):
 
     def front(self, op_name=None, timeout=None):
         _LOGGER.debug(
-            self._log("{} try to get data[?]; timeout={}".format(op_name,
-                                                                 timeout)))
+            self._log("{} try to get data[?]; timeout(s)={}".format(op_name,
+                                                                    timeout)))
         endtime = None
         if timeout is not None:
             if timeout <= 0:
