@@ -344,7 +344,6 @@ class Op(object):
                         data_id=data_id)
             else:
                 # transform np format to dict format
-                print("midped_batch: {}".format(midped_batch))
                 for idx, data_id in enumerate(data_ids):
                     midped_data_dict[data_id] = {
                         k: v[idx]
