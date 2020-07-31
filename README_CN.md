@@ -120,7 +120,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | - | - | Enable memory optimization |
+| `mem_optim_off` | - | - | Disable memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 

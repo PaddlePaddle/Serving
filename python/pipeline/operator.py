@@ -60,7 +60,10 @@ class Op(object):
         self._client_config = client_config
         self._fetch_names = fetch_list
 
-        self._timeout = timeout
+        if timeout > 0:
+            self._timeout = timeout / 1000.0
+        else:
+            self._timeout = -1
         self._retry = max(1, retry)
         self._input = None
         self._outputs = []
@@ -69,13 +72,32 @@ class Op(object):
         self._auto_batching_timeout = auto_batching_timeout
         if self._auto_batching_timeout is not None:
             if self._auto_batching_timeout <= 0 or self._batch_size == 1:
+                _LOGGER.warning(
+                    "Because auto_batching_timeout <= 0 or batch_size == 1,"
+                    " set auto_batching_timeout to None.")
                 self._auto_batching_timeout = None
             else:
                 self._auto_batching_timeout = self._auto_batching_timeout / 1000.0
+        if not isinstance(self, RequestOp) and not isinstance(self, ResponseOp):
+            _LOGGER.info(
+                self._log("\n\tinput_ops: {},"
+                          "\n\tserver_endpoints: {}"
+                          "\n\tfetch_list: {}"
+                          "\n\tclient_config: {}"
+                          "\n\tconcurrency: {},"
+                          "\n\ttimeout(s): {},"
+                          "\n\tretry: {},"
+                          "\n\tbatch_size: {},"
+                          "\n\tauto_batching_timeout(s): {}".format(
+                              ", ".join([op.name for op in input_ops
+                                         ]), self._server_endpoints,
+                              self._fetch_names, self._client_config,
+                              self.concurrency, self._timeout, self._retry,
+                              self._batch_size, self._auto_batching_timeout)))
 
         self._server_use_profile = False
 
-        # only for multithread
+        # only for thread op
         self._for_init_op_lock = threading.Lock()
         self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
@@ -83,11 +105,11 @@ class Op(object):
 
     def use_default_auto_batching_config(self):
         if self._batch_size != 1:
-            _LOGGER.warn("Op({}) reset batch_size=1 (original: {})"
-                         .format(self.name, self._batch_size))
+            _LOGGER.warning("Op({}) reset batch_size=1 (original: {})"
+                            .format(self.name, self._batch_size))
             self._batch_size = 1
         if self._auto_batching_timeout != None:
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "Op({}) reset auto_batching_timeout=None (original: {})"
                 .format(self.name, self._auto_batching_timeout))
             self._auto_batching_timeout = None
@@ -100,12 +122,7 @@ class Op(object):
         if self.with_serving == False:
             _LOGGER.info("Op({}) no client".format(self.name))
             return None
-        _LOGGER.info("Op({}) service endpoints: {}".format(self.name,
-                                                           server_endpoints))
-        _LOGGER.debug("Op({}) fetch_names: {}".format(self.name, fetch_names))
         if client_type == 'brpc':
-            _LOGGER.debug("Op({}) client_config: {}".format(self.name,
-                                                            client_config))
             client = Client()
             client.load_client_config(client_config)
         elif client_type == 'grpc':
@@ -125,16 +142,18 @@ class Op(object):
         self._input_ops = []
         for op in ops:
             if not isinstance(op, Op):
-                raise TypeError(
-                    self._log('input op must be Op type, not {}'.format(
-                        type(op))))
+                _LOGGER.critical(
+                    self._log("input op must be Op type, not {}"
+                              .format(type(op))))
+                os._exit(-1)
             self._input_ops.append(op)
 
     def add_input_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
-            raise TypeError(
-                self._log('input channel must be Channel type, not {}'.format(
-                    type(channel))))
+            _LOGGER.critical(
+                self._log("input channel must be Channel type, not {}"
+                          .format(type(channel))))
+            os._exit(-1)
         channel.add_consumer(self.name)
         self._input = channel
 
@@ -146,9 +165,10 @@ class Op(object):
 
     def add_output_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
-            raise TypeError(
-                self._log('output channel must be Channel type, not {}'.format(
-                    type(channel))))
+            _LOGGER.critical(
+                self._log("output channel must be Channel type, not {}"
+                          .format(type(channel))))
+            os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
 
@@ -161,9 +181,11 @@ class Op(object):
     def preprocess(self, input_dicts):
         # multiple previous Op
         if len(input_dicts) != 1:
-            raise NotImplementedError(
-                'this Op has multiple previous inputs. Please override this func.'
-            )
+            _LOGGER.critical(
+                self._log(
+                    "this Op has multiple previous inputs. Please override this func."
+                ))
+            os._exit(-1)
 
         (_, input_dict), = input_dicts.items()
         return input_dict
@@ -171,8 +193,10 @@ class Op(object):
     def process(self, feed_batch):
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
-            raise NotImplementedError(
-                "{} Please override preprocess func.".format(err_info))
+            _LOGGER.critical(
+                self._log("{}, Please override preprocess func.".format(
+                    err_info)))
+            os._exit(-1)
         call_result = self.client.predict(
             feed=feed_batch, fetch=self._fetch_names)
         if isinstance(self.client, MultiLangClient):
@@ -258,26 +282,18 @@ class Op(object):
             preped_data, error_channeldata = None, None
             try:
                 preped_data = self.preprocess(parsed_data)
-            except NotImplementedError as e:
-                # preprocess function not implemented
-                error_info = log_func("preprocess data[{}] failed: {}".format(
-                    data_id, e))
-                error_channeldata = ChannelData(
-                    ecode=ChannelDataEcode.NOT_IMPLEMENTED.value,
-                    error_info=error_info,
-                    data_id=data_id)
             except TypeError as e:
                 # Error type in channeldata.datatype
-                error_info = log_func("preprocess data[{}] failed: {}".format(
-                    data_id, e))
+                error_info = log_func("preprocess data[{}] failed: {}"
+                                      .format(data_id, e))
                 _LOGGER.error(error_info)
                 error_channeldata = ChannelData(
                     ecode=ChannelDataEcode.TYPE_ERROR.value,
                     error_info=error_info,
                     data_id=data_id)
             except Exception as e:
-                error_info = log_func("preprocess data[{}] failed: {}".format(
-                    data_id, e))
+                error_info = log_func("preprocess data[{}] failed: {}"
+                                      .format(data_id, e))
                 _LOGGER.error(error_info)
                 error_channeldata = ChannelData(
                     ecode=ChannelDataEcode.UNKNOW.value,
@@ -317,7 +333,7 @@ class Op(object):
                             error_info = log_func(e)
                             _LOGGER.error(error_info)
                         else:
-                            _LOGGER.warn(
+                            _LOGGER.warning(
                                 log_func("PaddleService timeout, retry({}/{})"
                                          .format(i + 1, self._retry)))
                     except Exception as e:
@@ -376,7 +392,8 @@ class Op(object):
                 continue
             else:
                 if not isinstance(postped_data, dict):
-                    error_info = log_func("output of postprocess funticon must be " \
+                    error_info = log_func(
+                        "output of postprocess funticon must be "
                         "dict type, but get {}".format(type(postped_data)))
                     _LOGGER.error(error_info)
                     err_channeldata = ChannelData(
@@ -471,7 +488,7 @@ class Op(object):
             profiler = self._initialize(is_thread_op, client_type,
                                         concurrency_idx)
         except Exception as e:
-            _LOGGER.error(log("init op failed: {}".format(e)))
+            _LOGGER.critical(log("init op failed: {}".format(e)))
             os._exit(-1)
         _LOGGER.info(log("succ init"))
 
@@ -629,7 +646,7 @@ class RequestOp(Op):
         try:
             self.init_op()
         except Exception as e:
-            _LOGGER.error("Op(Request) init op failed: {}".format(e))
+            _LOGGER.critical("Op(Request) init op failed: {}".format(e))
             os._exit(-1)
 
     def unpack_request_package(self, request):
@@ -653,7 +670,7 @@ class ResponseOp(Op):
         try:
             self.init_op()
         except Exception as e:
-            _LOGGER.error("Op(ResponseOp) init op failed: {}".format(e))
+            _LOGGER.critical("Op(ResponseOp) init op failed: {}".format(e))
             os._exit(-1)
 
     def pack_response_package(self, channeldata):
@@ -710,9 +727,10 @@ class VirtualOp(Op):
 
     def add_output_channel(self, channel):
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
-            raise TypeError(
-                self._log('output channel must be Channel type, not {}'.format(
-                    type(channel))))
+            _LOGGER.critical(
+                self._log("output channel must be Channel type, not {}"
+                          .format(type(channel))))
+            os._exit(-1)
         for op in self._virtual_pred_ops:
             for op_name in self._actual_pred_op_names(op):
                 channel.add_producer(op_name)
@@ -730,17 +748,27 @@ class VirtualOp(Op):
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
 
+        batch_generator = self._auto_batching_generator(
+            input_channel=input_channel,
+            op_name=self.name,
+            batch_size=1,
+            timeout=None,
+            log_func=log)
+
         while True:
             try:
-                channeldata_dict = input_channel.front(self.name)
+                channeldata_dict_batch = next(batch_generator)
             except ChannelStopError:
-                _LOGGER.debug(log("Channel stop."))
+                _LOGGER.debug(log("channel stop."))
+                self._finalize(is_thread_op)
                 break
 
             try:
-                for name, data in channeldata_dict.items():
-                    self._push_to_output_channels(
-                        data, channels=output_channels, name=name)
+                for channeldata_dict in channeldata_dict_batch:
+                    for name, data in channeldata_dict.items():
+                        self._push_to_output_channels(
+                            data, channels=output_channels, name=name)
             except ChannelStopError:
                 _LOGGER.debug(log("Channel stop."))
+                self._finalize(is_thread_op)
                 break
