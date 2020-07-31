@@ -102,11 +102,16 @@ class DAGExecutor(object):
         _LOGGER.info("[DAG Executor] succ stop")
 
     def _get_next_data_id(self):
+        data_id = None
         with self._id_lock:
             if self._id_counter >= self._reset_max_id:
                 self._id_counter -= self._reset_max_id
+            data_id = self._id_counter
             self._id_counter += 1
-            return self._id_counter - 1
+        cond_v = threading.Condition()
+        with self._cv_for_cv_pool:
+            self._cv_pool[data_id] = cond_v
+        return data_id, cond_v
 
     def _set_in_channel(self, in_channel):
         if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
@@ -159,13 +164,10 @@ class DAGExecutor(object):
                 self._fetch_buffer = channeldata
                 cv.notify_all()
 
-    def _get_channeldata_from_fetch_buffer(self, data_id):
+    def _get_channeldata_from_fetch_buffer(self, data_id, cond_v):
         resp = None
-        cv = threading.Condition()
-        with self._cv_for_cv_pool:
-            self._cv_pool[data_id] = cv
-        with cv:
-            cv.wait()
+        with cond_v:
+            cond_v.wait()
         with self._cv_for_cv_pool:
             resp = copy.deepcopy(self._fetch_buffer)
             _LOGGER.debug("resp thread get resp data[{}]".format(data_id))
@@ -201,7 +203,7 @@ class DAGExecutor(object):
                 client_need_profile=client_need_profile)
 
     def call(self, rpc_request):
-        data_id = self._get_next_data_id()
+        data_id, cond_v = self._get_next_data_id()
         _LOGGER.debug("generate id: {}".format(data_id))
 
         if not self._is_thread_op:
@@ -222,6 +224,8 @@ class DAGExecutor(object):
                 self._in_channel.push(req_channeldata, self.name)
             except ChannelStopError:
                 _LOGGER.debug("[DAG Executor] channel stop.")
+                with self._cv_for_cv_pool:
+                    self._cv_pool.pop(data_id)
                 return self._pack_for_rpc_resp(
                     ChannelData(
                         ecode=ChannelDataEcode.CLOSED_ERROR.value,
@@ -230,7 +234,8 @@ class DAGExecutor(object):
 
             _LOGGER.debug("wait for Graph engine for data[{}]...".format(
                 data_id))
-            resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id)
+            resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id,
+                                                                       cond_v)
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
                 _LOGGER.debug("Graph engine predict data[{}] succ".format(
