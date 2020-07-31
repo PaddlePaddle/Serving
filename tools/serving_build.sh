@@ -827,10 +827,6 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             kill_process_by_port 18080
             
-            kill_server_process
-            kill_process_by_port 9292
-            kill_process_by_port 9393
-
             # test: process servicer & thread op
             pip uninstall grpcio -y
             pip install grpcio --no-binary=grpcio
@@ -849,6 +845,10 @@ EOF
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             kill_process_by_port 18080
+
+            kill_server_process
+            kill_process_by_port 9292
+            kill_process_by_port 9393
 
             # start paddle serving service (grpc)
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --use_multilang --workdir test9292 &> cnn.log &
