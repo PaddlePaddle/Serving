@@ -839,7 +839,7 @@ port: 18080
 worker_num: 4
 build_dag_each_worker: true
 dag:
-    is_thread_op: flase
+    is_thread_op: false
     client_type: brpc
     retry: 1
     use_profile: false
