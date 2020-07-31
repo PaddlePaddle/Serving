@@ -14,7 +14,33 @@
 
 性能优化相关参数：
 
+Paddle Serving中默认开启内存/显存优化选项，可以减少对内存/显存的占用，通常不会对性能造成影响，如果需要关闭可以在命令行启动模式中使用--mem_optim_off。
+ir_optim可以优化计算图，提升推理速度，默认关闭，在命令行启动的模式中通过--ir_optim开启。
+
 | 参数      | 类型 | 默认值 | 含义                      |
 | --------- | ---- | ------ | -------------------------------- |
-| mem_optim | - | -  | 开启内存/显存优化                |
+| mem_optim_off | - | -  | 关闭内存/显存优化                |
 | ir_optim  | - | -  | 开启计算图分析优化，包括OP融合等 |
+
+
+对于使用Python代码启动预测服务的模式，以上两个参数的接口如下：
+RPC服务
+```
+from paddle_serving_server import Server
+server = Server()
+...
+server.set_memory_optimize(mem_optim)
+server.set_ir_optimize(ir_optim)
+...
+```
+
+HTTP服务
+```
+from paddle_serving_server import WebService
+class NewService(WebService):
+...
+new_service = NewService(name="new")
+...
+new_service.prepare_server(mem_optim=True, ir_optim=False)
+...
+```
