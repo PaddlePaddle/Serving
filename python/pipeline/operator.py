@@ -175,6 +175,10 @@ class Op(object):
                 "{} Please override preprocess func.".format(err_info))
         call_result = self.client.predict(
             feed=feed_batch, fetch=self._fetch_names)
+        if isinstance(self.client, MultiLangClient):
+            if call_result is None or call_result["serving_status_code"] != 0:
+                return None
+            call_result.pop("serving_status_code")
         return call_result
 
     def postprocess(self, input_dict, fetch_dict):
@@ -340,6 +344,7 @@ class Op(object):
                         data_id=data_id)
             else:
                 # transform np format to dict format
+                print("midped_batch: {}".format(midped_batch))
                 for idx, data_id in enumerate(data_ids):
                     midped_data_dict[data_id] = {
                         k: v[idx]
