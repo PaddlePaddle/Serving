@@ -41,7 +41,7 @@ from concurrent import futures
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
+        "--thread", type=int, default=2, help="Concurrency of server")
     parser.add_argument(
         "--model", type=str, default="", help="Model for serving")
     parser.add_argument(
@@ -57,7 +57,7 @@ def serve_args():
     parser.add_argument(
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
-        "--mem_optim",
+        "--mem_optim_off",
         default=False,
         action="store_true",
         help="Memory optimize")
@@ -187,7 +187,7 @@ class Server(object):
         self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
-        self.num_threads = 4
+        self.num_threads = 2
         self.port = 8080
         self.reload_interval_s = 10
         self.max_body_size = 64 * 1024 * 1024
