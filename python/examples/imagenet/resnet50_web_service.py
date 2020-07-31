@@ -54,6 +54,7 @@ class ImageService(WebService):
         score_list = fetch_map["score"]
         result = {"label": [], "prob": []}
         for score in score_list:
+            score = score.tolist()
             max_score = max(score)
             result["label"].append(self.label_dict[score.index(max_score)]
                                    .strip().replace(",", ""))
