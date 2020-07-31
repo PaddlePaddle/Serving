@@ -832,7 +832,7 @@ EOF
             kill_process_by_port 9393
 
             # test: process servicer & thread op
-            pip uninstall grpcio
+            pip uninstall grpcio -y
             pip install grpcio --no-binary=grpcio
             cat << EOF > config.yml
 port: 18080
