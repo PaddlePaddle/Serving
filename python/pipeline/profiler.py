@@ -29,6 +29,8 @@ _LOGGER = logging.getLogger()
 
 
 class UnsafeTimeProfiler(object):
+    """ thread unsafe profiler """
+
     def __init__(self):
         self.pid = os.getpid()
         self.print_head = 'PROFILE\tpid:{}\t'.format(self.pid)
