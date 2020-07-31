@@ -26,6 +26,7 @@ else:
 import numpy as np
 import logging
 import enum
+import os
 import copy
 
 _LOGGER = logging.getLogger()
@@ -69,7 +70,8 @@ class ChannelData(object):
         '''
         if ecode is not None:
             if data_id is None or error_info is None:
-                raise ValueError("data_id and error_info cannot be None")
+                _LOGGER.critical("data_id and error_info cannot be None")
+                os._exit(-1)
             datatype = ChannelDataType.ERROR.value
         else:
             if datatype == ChannelDataType.CHANNEL_NPDATA.value:
@@ -83,7 +85,8 @@ class ChannelData(object):
                     datatype = ChannelDataType.ERROR.value
                     _LOGGER.error(error_info)
             else:
-                raise ValueError("datatype not match")
+                _LOGGER.critical("datatype not match")
+                os._exit(-1)
         self.datatype = datatype
         self.npdata = npdata
         self.dictdata = dictdata
@@ -168,7 +171,9 @@ class ChannelData(object):
             # return dict
             feed = self.dictdata
         else:
-            raise TypeError("Error type({}) in datatype.".format(self.datatype))
+            _LOGGER.critical("Error type({}) in datatype.".format(
+                self.datatype))
+            os._exit(-1)
         return feed
 
     def __str__(self):
@@ -241,30 +246,35 @@ class ProcessChannel(object):
     def add_producer(self, op_name):
         """ not thread safe, and can only be called during initialization. """
         if op_name in self._producers:
-            raise ValueError(
+            _LOGGER.critical(
                 self._log("producer({}) is already in channel".format(op_name)))
+            os._exit(-1)
         self._producers.append(op_name)
+        _LOGGER.debug(self._log("add a producer: {}".format(op_name)))
 
     def add_consumer(self, op_name):
         """ not thread safe, and can only be called during initialization. """
         if op_name in self._consumer_cursors:
-            raise ValueError(
+            _LOGGER.critical(
                 self._log("consumer({}) is already in channel".format(op_name)))
+            os._exit(-1)
         self._consumer_cursors[op_name] = 0
 
         if self._cursor_count.get(0) is None:
             self._cursor_count[0] = 0
         self._cursor_count[0] += 1
+        _LOGGER.debug(self._log("add a consumer: {}".format(op_name)))
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
             self._log("{} try to push data[{}]".format(op_name,
                                                        channeldata.id)))
         if len(self._producers) == 0:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "expected number of producers to be greater than 0, but the it is 0."
                 ))
+            os._exit(-1)
         elif len(self._producers) == 1:
             with self._cv:
                 while self._stop.value == 0:
@@ -281,9 +291,10 @@ class ProcessChannel(object):
                     op_name, channeldata.id)))
             return True
         elif op_name is None:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "There are multiple producers, so op_name cannot be None."))
+            os._exit(-1)
 
         producer_num = len(self._producers)
         data_id = channeldata.id
@@ -340,10 +351,11 @@ class ProcessChannel(object):
                 endtime = _time() + timeout
 
         if len(self._consumer_cursors) == 0:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "expected number of consumers to be greater than 0, but the it is 0."
                 ))
+            os._exit(-1)
         elif len(self._consumer_cursors) == 1:
             resp = None
             with self._cv:
@@ -369,9 +381,10 @@ class ProcessChannel(object):
                                                         resp.values()[0].id)))
             return resp
         elif op_name is None:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "There are multiple consumers, so op_name cannot be None."))
+            os._exit(-1)
 
         # In output_buf, different Ops (according to op_name) have different
         # cursors. In addition, there is a base_cursor. Their difference is
@@ -450,7 +463,7 @@ class ProcessChannel(object):
         return resp
 
     def stop(self):
-        _LOGGER.debug(self._log("stop."))
+        _LOGGER.info(self._log("stop."))
         self._stop.value = 1
         with self._cv:
             self._cv.notify_all()
@@ -512,37 +525,38 @@ class ThreadChannel(Queue.Queue):
     def _log(self, info_str):
         return "[{}] {}".format(self.name, info_str)
 
-    def debug(self):
-        return self._log("p: {}, c: {}".format(self.get_producers(),
-                                               self.get_consumers()))
-
     def add_producer(self, op_name):
         """ not thread safe, and can only be called during initialization. """
         if op_name in self._producers:
-            raise ValueError(
+            _LOGGER.critical(
                 self._log("producer({}) is already in channel".format(op_name)))
+            os._exit(-1)
         self._producers.append(op_name)
+        _LOGGER.debug(self._log("add a producer: {}".format(op_name)))
 
     def add_consumer(self, op_name):
         """ not thread safe, and can only be called during initialization. """
         if op_name in self._consumer_cursors:
-            raise ValueError(
+            _LOGGER.critical(
                 self._log("consumer({}) is already in channel".format(op_name)))
+            os._exit(-1)
         self._consumer_cursors[op_name] = 0
 
         if self._cursor_count.get(0) is None:
             self._cursor_count[0] = 0
         self._cursor_count[0] += 1
+        _LOGGER.debug(self._log("add a consumer: {}".format(op_name)))
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
             self._log("{} try to push data[{}]".format(op_name,
                                                        channeldata.id)))
         if len(self._producers) == 0:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "expected number of producers to be greater than 0, but the it is 0."
                 ))
+            os._exit(-1)
         elif len(self._producers) == 1:
             with self._cv:
                 while self._stop is False:
@@ -559,9 +573,10 @@ class ThreadChannel(Queue.Queue):
                     op_name, channeldata.id)))
             return True
         elif op_name is None:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "There are multiple producers, so op_name cannot be None."))
+            os._exit(-1)
 
         producer_num = len(self._producers)
         data_id = channeldata.id
@@ -613,10 +628,11 @@ class ThreadChannel(Queue.Queue):
                 endtime = _time() + timeout
 
         if len(self._consumer_cursors) == 0:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "expected number of consumers to be greater than 0, but the it is 0."
                 ))
+            os._exit(-1)
         elif len(self._consumer_cursors) == 1:
             resp = None
             with self._cv:
@@ -642,9 +658,10 @@ class ThreadChannel(Queue.Queue):
                                                         resp.values()[0].id)))
             return resp
         elif op_name is None:
-            raise Exception(
+            _LOGGER.critical(
                 self._log(
                     "There are multiple consumers, so op_name cannot be None."))
+            os._exit(-1)
 
         # In output_buf, different Ops (according to op_name) have different
         # cursors. In addition, there is a base_cursor. Their difference is
@@ -723,7 +740,7 @@ class ThreadChannel(Queue.Queue):
         return resp
 
     def stop(self):
-        _LOGGER.debug(self._log("stop."))
+        _LOGGER.info(self._log("stop."))
         self._stop = True
         with self._cv:
             self._cv.notify_all()
