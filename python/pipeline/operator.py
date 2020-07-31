@@ -87,8 +87,9 @@ class Op(object):
                          .format(self.name, self._batch_size))
             self._batch_size = 1
         if self._auto_batching_timeout != None:
-            _LOGGER.warn("Op({}) reset auto_batching_timeout=1 (original: {})"
-                         .format(self.name, self._auto_batching_timeout))
+            _LOGGER.warn(
+                "Op({}) reset auto_batching_timeout=None (original: {})"
+                .format(self.name, self._auto_batching_timeout))
             self._auto_batching_timeout = None
 
     def use_profiler(self, use_profile):
@@ -235,6 +236,9 @@ class Op(object):
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), client_type, True))
+            # When a process exits, it attempts to terminate
+            # all of its daemonic child processes.
+            t.daemon = True
             t.start()
             threads.append(t)
         return threads
@@ -310,7 +314,7 @@ class Op(object):
                             _LOGGER.error(error_info)
                         else:
                             _LOGGER.warn(
-                                log_func("timeout, retry({}/{})"
+                                log_func("PaddleService timeout, retry({}/{})"
                                          .format(i + 1, self._retry)))
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
@@ -399,7 +403,7 @@ class Op(object):
         while True:
             batch = []
             _LOGGER.debug(
-                log_func("Auto-batching expect size: {}; timeout: {}".format(
+                log_func("Auto-batching expect size: {}; timeout(s): {}".format(
                     batch_size, timeout)))
             while len(batch) == 0:
                 endtime = None
