@@ -13,6 +13,7 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 from time import time as _time
+import time
 import threading
 import multiprocessing
 from paddle_serving_client import MultiLangClient, Client
@@ -97,6 +98,7 @@ class Op(object):
                               self._batch_size, self._auto_batching_timeout)))
 
         self._server_use_profile = False
+        self._tracer = None
 
         # only for thread op
         self._for_init_op_lock = threading.Lock()
@@ -117,6 +119,9 @@ class Op(object):
 
     def use_profiler(self, use_profile):
         self._server_use_profile = use_profile
+
+    def set_tracer(self, tracer):
+        self._tracer = tracer
 
     def init_client(self, client_type, client_config, server_endpoints,
                     fetch_names):
@@ -256,7 +261,9 @@ class Op(object):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), client_type, False))
+                      self._get_output_channels(), client_type, False,
+                      self._tracer.data_buffer()))
+            p.daemon = True
             p.start()
             proces.append(p)
         return proces
@@ -267,7 +274,8 @@ class Op(object):
             t = threading.Thread(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), client_type, True))
+                      self._get_output_channels(), client_type, True,
+                      self._tracer.data_buffer()))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -482,7 +490,7 @@ class Op(object):
         return parsed_data_dict, need_profile_dict, profile_dict
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
-             is_thread_op):
+             is_thread_op, trace_buffer):
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         tid = threading.current_thread().ident
 
@@ -505,16 +513,18 @@ class Op(object):
             timeout=self._auto_batching_timeout,
             op_info_prefix=op_info_prefix)
 
-        start_prep, end_prep = None, None
-        start_midp, end_midp = None, None
-        start_postp, end_postp = None, None
+        start, end = None, None
         while True:
+            start = int(round(_time() * 1000000))
+            trace_buffer.put((self.name, "in", 0, start))
             try:
                 channeldata_dict_batch = next(batch_generator)
             except ChannelStopError:
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
+            end = int(round(_time() * 1000000))
+            trace_buffer.put((self.name, "in", 1, end))
 
             # parse channeldata batch
             try:
@@ -530,14 +540,12 @@ class Op(object):
                 continue
 
             # preprecess
-            start_prep = profiler.record("prep#{}_0".format(op_info_prefix))
+            start = profiler.record("prep#{}_0".format(op_info_prefix))
+            trace_buffer.put((self.name, "prep", 0, start))
             preped_data_dict, err_channeldata_dict \
                     = self._run_preprocess(parsed_data_dict, op_info_prefix)
-            end_prep = profiler.record("prep#{}_1".format(op_info_prefix))
-            _LOGGER.log(level=1,
-                        msg="(logid={}) {} prep[{} ms]".format(
-                            parsed_data_dict.keys(), op_info_prefix,
-                            (end_prep - start_prep) / 1e3))
+            end = profiler.record("prep#{}_1".format(op_info_prefix))
+            trace_buffer.put((self.name, "prep", 1, end))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -553,14 +561,12 @@ class Op(object):
                 continue
 
             # process
-            start_midp = profiler.record("midp#{}_0".format(op_info_prefix))
+            start = profiler.record("midp#{}_0".format(op_info_prefix))
+            trace_buffer.put((self.name, "midp", 0, start))
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix)
-            end_midp = profiler.record("midp#{}_1".format(op_info_prefix))
-            _LOGGER.log(level=1,
-                        msg="(logid={}) {} midp[{} ms]".format(
-                            preped_data_dict.keys(), op_info_prefix,
-                            (end_midp - start_midp) / 1e3))
+            end = profiler.record("midp#{}_1".format(op_info_prefix))
+            trace_buffer.put((self.name, "midp", 1, end))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -576,15 +582,13 @@ class Op(object):
                 continue
 
             # postprocess
-            start_postp = profiler.record("postp#{}_0".format(op_info_prefix))
+            start = profiler.record("postp#{}_0".format(op_info_prefix))
+            trace_buffer.put((self.name, "postp", 0, start))
             postped_data_dict, err_channeldata_dict \
                     = self._run_postprocess(
                             parsed_data_dict, midped_data_dict, op_info_prefix)
-            end_postp = profiler.record("postp#{}_1".format(op_info_prefix))
-            _LOGGER.log(level=1,
-                        msg="(logid={}) {} postp[{} ms]".format(
-                            midped_data_dict.keys(), op_info_prefix,
-                            (end_midp - start_midp) / 1e3))
+            end = profiler.record("postp#{}_1".format(op_info_prefix))
+            trace_buffer.put((self.name, "postp", 1, end))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -600,6 +604,8 @@ class Op(object):
                 continue
 
             # push data to channel (if run succ)
+            start = int(round(_time() * 1000000))
+            trace_buffer.put((self.name, "out", 0, start))
             try:
                 profile_str = profiler.gen_profile_str()
                 for data_id, postped_data in postped_data_dict.items():
@@ -615,6 +621,8 @@ class Op(object):
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
+            end = int(round(_time() * 1000000))
+            trace_buffer.put((self.name, "out", 1, end))
 
     def _initialize(self, is_thread_op, client_type, concurrency_idx):
         if is_thread_op:

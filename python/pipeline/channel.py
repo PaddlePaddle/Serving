@@ -239,6 +239,9 @@ class ProcessChannel(object):
         self._base_cursor = manager.Value('i', 0)
         self._output_buf = manager.list()
 
+    def size(self):
+        return self._que.qsize()
+
     def get_producers(self):
         return self._producers
 
@@ -529,6 +532,9 @@ class ThreadChannel(Queue.Queue):
         self._cursor_count = {}  # {cursor: count}
         self._base_cursor = 0
         self._output_buf = []
+
+    def size(self):
+        return self.qsize()
 
     def get_producers(self):
         return self._producers
