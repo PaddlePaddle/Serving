@@ -164,7 +164,7 @@ class OpAnalyst(object):
 
     def add(self, name_str, ts_list):
         if self._close:
-            _LOGGER.error("OpAnalyst is closed.")
+            _LOGGER.error("Failed to add item: OpAnalyst is closed.")
             return
         op_name, curr_idx, step = self._parse(name_str)
         if op_name not in self.op_time_list_dict:
