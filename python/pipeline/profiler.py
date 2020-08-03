@@ -23,9 +23,83 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 from time import time as _time
+import time
 import threading
+import multiprocessing
 
 _LOGGER = logging.getLogger()
+
+
+class PerformanceTracer(object):
+    def __init__(self, interval_s=1):
+        self._data_buffer = multiprocessing.Manager().Queue()
+        self._interval_s = interval_s
+        self._proc = None
+        self._channels = []
+        self._trace_filename = os.path.join("PipelineServingLogs", "INDEX.log")
+
+    def data_buffer(self):
+        return self._data_buffer
+
+    def start(self):
+        self._proc = multiprocessing.Process(
+            target=self._trace_func, args=(self._channels, ))
+        self._proc.daemon = True
+        self._proc.start()
+
+    def set_channels(self, channels):
+        self._channels = channels
+
+    def _trace_func(self, channels):
+        trace_file = open(self._trace_filename, "a")
+        actions = ["prep", "midp", "postp"]
+        tag_dict = {}
+        while True:
+            op_cost = {}
+            trace_file.write("==========================")
+
+            # op
+            while not self._data_buffer.empty():
+                name, action, stage, timestamp = self._data_buffer.get()
+                tag = "{}_{}".format(name, action)
+                if tag in tag_dict:
+                    assert stage == 1
+                    start_timestamp = tag_dict.pop(tag)
+                    cost = timestamp - start_timestamp
+                    if name not in op_cost:
+                        op_cost[name] = {}
+                    if action not in op_cost[name]:
+                        op_cost[name][action] = []
+                    op_cost[name][action].append(cost)
+                else:
+                    assert stage == 0
+                    tag_dict[tag] = timestamp
+
+            for name in op_cost:
+                tot_cost, cal_cost = 0.0, 0.0
+                for action, costs in op_cost[name].items():
+                    op_cost[name][action] = sum(costs) / (1e3 * len(costs))
+                    tot_cost += op_cost[name][action]
+
+                msg = ", ".join([
+                    "{}[{} ms]".format(action, cost)
+                    for action, cost in op_cost[name].items()
+                ])
+
+                for action in actions:
+                    if action in op_cost[name]:
+                        cal_cost += op_cost[name][action]
+
+                trace_file.write("Op({}) {}".format(name, msg))
+                if name != "DAG":
+                    trace_file.write("Op({}) idle[{}]".format(
+                        name, 1 - 1.0 * cal_cost / tot_cost))
+
+            # channel
+            for channel in channels:
+                trace_file.write("Channel({}) size[{}]".format(channel.name,
+                                                               channel.size()))
+            time.sleep(self._interval_s)
 
 
 class UnsafeTimeProfiler(object):

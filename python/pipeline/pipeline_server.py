@@ -41,9 +41,6 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
         resp = self._dag_executor.call(request)
         return resp
 
-    def __del__(self):
-        self._dag_executor.stop()
-
 
 @contextlib.contextmanager
 def _reserve_port(port):
