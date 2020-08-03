@@ -67,9 +67,11 @@ class PipelineServer(object):
 
     def set_response_op(self, response_op):
         if not isinstance(response_op, ResponseOp):
-            raise Exception("response_op must be ResponseOp type.")
+            raise Exception("Failed to set response_op: response_op "
+                            "must be ResponseOp type.")
         if len(response_op.get_input_ops()) != 1:
-            raise Exception("response_op can only have one previous op.")
+            raise Exception("Failed to set response_op: response_op "
+                            "can only have one previous op.")
         self._response_op = response_op
 
     def _port_is_available(self, port):
@@ -83,7 +85,8 @@ class PipelineServer(object):
 
         self._port = conf["port"]
         if not self._port_is_available(self._port):
-            raise SystemExit("Prot {} is already used".format(self._port))
+            raise SystemExit("Failed to prepare_server: prot {} "
+                             "is already used".format(self._port))
         self._worker_num = conf["worker_num"]
         self._build_dag_each_worker = conf["build_dag_each_worker"]
 
