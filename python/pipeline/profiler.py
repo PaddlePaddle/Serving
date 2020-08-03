@@ -43,8 +43,9 @@ class UnsafeTimeProfiler(object):
     def record(self, name):
         if self._enable is False:
             return
-        self.time_record.append('{}:{} '.format(name,
-                                                int(round(_time() * 1000000))))
+        timestamp = int(round(_time() * 1000000))
+        self.time_record.append('{}:{} '.format(name, timestamp))
+        return timestamp
 
     def print_profile(self):
         if self._enable is False:
@@ -80,6 +81,7 @@ class TimeProfiler(object):
         name = '_'.join(name_with_tag[:-1])
         with self._lock:
             self._time_record.put((name, tag, timestamp))
+        return timestamp
 
     def print_profile(self):
         if self._enable is False:

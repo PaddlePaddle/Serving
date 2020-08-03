@@ -30,6 +30,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataEcode, ChannelDataType, ChannelStopError)
 from .profiler import TimeProfiler
 from .util import NameGenerator
+from .proto import pipeline_service_pb2
 
 _LOGGER = logging.getLogger()
 
@@ -74,17 +75,18 @@ class DAGExecutor(object):
         self._recive_func = threading.Thread(
             target=DAGExecutor._recive_out_channel_func, args=(self, ))
         self._recive_func.start()
-        _LOGGER.debug("[DAG Executor] start recive thread")
+        _LOGGER.debug("[DAG Executor] Start recive thread")
 
     def stop(self):
         self._dag.stop()
         self._dag.join()
-        _LOGGER.info("[DAG Executor] succ stop")
+        _LOGGER.info("[DAG Executor] Stop")
 
     def _get_next_data_id(self):
         data_id = None
         with self._id_lock:
             if self._id_counter >= self._reset_max_id:
+                _LOGGER.info("[DAG Executor] Reset request id")
                 self._id_counter -= self._reset_max_id
             data_id = self._id_counter
             self._id_counter += 1
@@ -96,16 +98,18 @@ class DAGExecutor(object):
 
     def _set_in_channel(self, in_channel):
         if not isinstance(in_channel, (ThreadChannel, ProcessChannel)):
-            _LOGGER.critical("[DAG Executor] in_channel must be Channel"
-                             " type, but get {}".format(type(in_channel)))
+            _LOGGER.critical("[DAG Executor] Failed to set in_channel: "
+                             "in_channel must be Channel type, but get {}".
+                             format(type(in_channel)))
             os._exit(-1)
         in_channel.add_producer(self.name)
         self._in_channel = in_channel
 
     def _set_out_channel(self, out_channel):
         if not isinstance(out_channel, (ThreadChannel, ProcessChannel)):
-            _LOGGER.critical("[DAG Executor]iout_channel must be Channel"
-                             " type, but get {}".format(type(out_channel)))
+            _LOGGER.critical("[DAG Executor] Failed to set out_channel: "
+                             "must be Channel type, but get {}".format(
+                                 type(out_channel)))
             os._exit(-1)
         out_channel.add_consumer(self.name)
         self._out_channel = out_channel
@@ -116,7 +120,7 @@ class DAGExecutor(object):
             try:
                 channeldata_dict = self._out_channel.front(self.name)
             except ChannelStopError:
-                _LOGGER.info("[DAG Executor] channel stop.")
+                _LOGGER.info("[DAG Executor] Stop.")
                 with self._cv_for_cv_pool:
                     for data_id, cv in self._cv_pool.items():
                         closed_errror_data = ChannelData(
@@ -130,17 +134,20 @@ class DAGExecutor(object):
 
             if len(channeldata_dict) != 1:
                 _LOGGER.critical(
-                    "[DAG Executor] out_channel cannot have multiple input ops")
+                    "[DAG Executor] Failed to fetch result: out_channel "
+                    "cannot have multiple input ops")
                 os._exit(-1)
             (_, channeldata), = channeldata_dict.items()
             if not isinstance(channeldata, ChannelData):
                 _LOGGER.critical(
-                    '[DAG Executor] data must be ChannelData type, but get {}'
+                    '[DAG Executor] Failed to fetch result: data in out_channel" \
+                    " must be ChannelData type, but get {}'
                     .format(type(channeldata)))
                 os._exit(-1)
 
             data_id = channeldata.id
-            _LOGGER.debug("recive thread fetch data[{}]".format(data_id))
+            _LOGGER.debug("(logid={}) [recive thread] Fetched data".format(
+                data_id))
             with self._cv_for_cv_pool:
                 cond_v = self._cv_pool[data_id]
             with cond_v:
@@ -164,7 +171,7 @@ class DAGExecutor(object):
                     ready_data = self._fetch_buffer[data_id]
                     self._cv_pool.pop(data_id)
                     self._fetch_buffer.pop(data_id)
-        _LOGGER.debug("resp thread get resp data[{}]".format(data_id))
+        _LOGGER.debug("(logid={}) [resp thread] Got data".format(data_id))
         return ready_data
 
     def _pack_channeldata(self, rpc_request, data_id):
@@ -172,8 +179,10 @@ class DAGExecutor(object):
         try:
             dictdata = self._unpack_rpc_func(rpc_request)
         except Exception as e:
-            _LOGGER.error("parse RPC package to data[{}] Error: {}"
-                          .format(data_id, e))
+            _LOGGER.error(
+                "(logid={}) Failed to parse RPC request package: {}"
+                .format(data_id, e),
+                exc_info=True)
             return ChannelData(
                 ecode=ChannelDataEcode.RPC_PACKAGE_ERROR.value,
                 error_info="rpc package error: {}".format(e),
@@ -187,7 +196,7 @@ class DAGExecutor(object):
                     profile_value = rpc_request.value[idx]
                     break
             client_need_profile = (profile_value == self._client_profile_value)
-            _LOGGER.debug("request[{}] need profile: {}".format(
+            _LOGGER.debug("(logid={}) Need profile in client: {}".format(
                 data_id, client_need_profile))
             return ChannelData(
                 datatype=ChannelDataType.DICT.value,
@@ -197,26 +206,28 @@ class DAGExecutor(object):
 
     def call(self, rpc_request):
         data_id, cond_v = self._get_next_data_id()
-        _LOGGER.debug("generate Request id: {}".format(data_id))
+        _LOGGER.info("(logid={}) Succ generate id".format(data_id))
 
+        start_call, end_call = None, None
         if not self._is_thread_op:
-            self._profiler.record("call_{}#DAG-{}_0".format(data_id, data_id))
+            start_call = self._profiler.record("call_{}#DAG-{}_0".format(
+                data_id, data_id))
         else:
-            self._profiler.record("call_{}#DAG_0".format(data_id))
+            start_call = self._profiler.record("call_{}#DAG_0".format(data_id))
 
-        _LOGGER.debug("try parse RPC request to channeldata[{}]".format(
-            data_id))
+        _LOGGER.debug("(logid={}) Parsing RPC request package".format(data_id))
         self._profiler.record("prepack_{}#{}_0".format(data_id, self.name))
         req_channeldata = self._pack_channeldata(rpc_request, data_id)
         self._profiler.record("prepack_{}#{}_1".format(data_id, self.name))
 
         resp_channeldata = None
         for i in range(self._retry):
-            _LOGGER.debug("push data[{}] into Graph engine".format(data_id))
+            _LOGGER.debug("(logid={}) Pushing data into Graph engine".format(
+                data_id))
             try:
                 self._in_channel.push(req_channeldata, self.name)
             except ChannelStopError:
-                _LOGGER.debug("[DAG Executor] channel stop.")
+                _LOGGER.debug("[DAG Executor] Stop")
                 with self._cv_for_cv_pool:
                     self._cv_pool.pop(data_id)
                 return self._pack_for_rpc_resp(
@@ -225,32 +236,35 @@ class DAGExecutor(object):
                         error_info="dag closed.",
                         data_id=data_id))
 
-            _LOGGER.debug("wait Graph engine for data[{}]...".format(data_id))
+            _LOGGER.debug("(logid={}) Wait for Graph engine...".format(data_id))
             resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id,
                                                                        cond_v)
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
-                _LOGGER.debug("request[{}] succ predict".format(data_id))
+                _LOGGER.debug("(logid={}) Succ predict".format(data_id))
                 break
             else:
-                _LOGGER.warning("request[{}] predict failed: {}"
-                                .format(data_id, resp_channeldata.error_info))
+                _LOGGER.error("(logid={}) Failed to predict: {}"
+                              .format(data_id, resp_channeldata.error_info))
                 if resp_channeldata.ecode != ChannelDataEcode.TIMEOUT.value:
                     break
 
             if i + 1 < self._retry:
-                _LOGGER.warning("retry({}/{}) data[{}]".format(
-                    i + 1, self._retry, data_id))
+                _LOGGER.warning("(logid={}) DAGExecutor retry({}/{})".format(
+                    data_id, i + 1, self._retry))
 
-        _LOGGER.debug("unpack channeldata[{}] into RPC response".format(
-            data_id))
+        _LOGGER.debug("(logid={}) Packing RPC response package".format(data_id))
         self._profiler.record("postpack_{}#{}_0".format(data_id, self.name))
         rpc_resp = self._pack_for_rpc_resp(resp_channeldata)
         self._profiler.record("postpack_{}#{}_1".format(data_id, self.name))
         if not self._is_thread_op:
-            self._profiler.record("call_{}#DAG-{}_1".format(data_id, data_id))
+            end_call = self._profiler.record("call_{}#DAG-{}_1".format(data_id,
+                                                                       data_id))
         else:
-            self._profiler.record("call_{}#DAG_1".format(data_id))
+            end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
+        _LOGGER.log(level=1,
+                    msg="(logid={}) call[{} ms]".format(
+                        data_id, (end_call - start_call) / 1e3))
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
@@ -268,7 +282,17 @@ class DAGExecutor(object):
         return rpc_resp
 
     def _pack_for_rpc_resp(self, channeldata):
-        return self._pack_rpc_func(channeldata)
+        try:
+            return self._pack_rpc_func(channeldata)
+        except Exception as e:
+            _LOGGER.error(
+                "(logid={}) Failed to pack RPC response package: {}"
+                .format(channeldata.id, e),
+                exc_info=True)
+            resp = pipeline_service_pb2.Response()
+            resp.ecode = ChannelDataEcode.RPC_PACKAGE_ERROR.value
+            resp.error_info = "rpc package error: {}".format(e)
+            return resp
 
 
 class DAG(object):
@@ -283,7 +307,7 @@ class DAG(object):
         self._build_dag_each_worker = build_dag_each_worker
         if not self._is_thread_op:
             self._manager = multiprocessing.Manager()
-        _LOGGER.info("[DAG] succ init")
+        _LOGGER.info("[DAG] Succ init")
 
     def get_use_ops(self, response_op):
         unique_names = set()
@@ -303,7 +327,8 @@ class DAG(object):
                     used_ops.add(pred_op)
                     # check the name of op is globally unique
                     if pred_op.name in unique_names:
-                        _LOGGER.critical("the name of Op must be unique: {}".
+                        _LOGGER.critical("Failed to get used Ops: the"
+                                         " name of Op must be unique: {}".
                                          format(pred_op.name))
                         os._exit(-1)
                     unique_names.add(pred_op.name)
@@ -317,12 +342,12 @@ class DAG(object):
         else:
             channel = ProcessChannel(
                 self._manager, name=name_gen.next(), maxsize=self._channel_size)
-        _LOGGER.debug("[DAG] gen Channel: {}".format(channel.name))
+        _LOGGER.debug("[DAG] Generate channel: {}".format(channel.name))
         return channel
 
     def _gen_virtual_op(self, name_gen):
         vir_op = VirtualOp(name=name_gen.next())
-        _LOGGER.debug("[DAG] gen VirtualOp: {}".format(vir_op.name))
+        _LOGGER.debug("[DAG] Generate virtual_op: {}".format(vir_op.name))
         return vir_op
 
     def _topo_sort(self, used_ops, response_op, out_degree_ops):
@@ -337,7 +362,8 @@ class DAG(object):
             if len(op.get_input_ops()) == 0:
                 zero_indegree_num += 1
         if zero_indegree_num != 1:
-            _LOGGER.critical("DAG contains multiple RequestOps")
+            _LOGGER.critical("Failed to topo sort: DAG contains "
+                             "multiple RequestOps")
             os._exit(-1)
         last_op = response_op.get_input_ops()[0]
         ques[que_idx].put(last_op)
@@ -362,14 +388,15 @@ class DAG(object):
                 break
             que_idx = (que_idx + 1) % 2
         if sorted_op_num < len(used_ops):
-            _LOGGER.critical("not legal DAG")
+            _LOGGER.critical("Failed to topo sort: not legal DAG")
             os._exit(-1)
 
         return dag_views, last_op
 
     def _build_dag(self, response_op):
         if response_op is None:
-            _LOGGER.critical("ResponseOp has not been set.")
+            _LOGGER.critical("Failed to build DAG: ResponseOp"
+                             " has not been set.")
             os._exit(-1)
         used_ops, out_degree_ops = self.get_use_ops(response_op)
         if not self._build_dag_each_worker:
@@ -380,8 +407,8 @@ class DAG(object):
             _LOGGER.info("-------------------------------------------")
         if len(used_ops) <= 1:
             _LOGGER.critical(
-                "Besides RequestOp and ResponseOp, there should be at least one Op in DAG."
-            )
+                "Failed to build DAG: besides RequestOp and ResponseOp, "
+                "there should be at least one Op in DAG.")
             os._exit(-1)
         if self._build_dag_each_worker:
             _LOGGER.info("Because `build_dag_each_worker` mode is used, "
@@ -443,8 +470,6 @@ class DAG(object):
                     continue
                 channel = self._gen_channel(channel_name_gen)
                 channels.append(channel)
-                _LOGGER.debug("[DAG] Channel({}) => Op({})"
-                              .format(channel.name, op.name))
                 op.add_input_channel(channel)
                 pred_ops = pred_op_of_next_view_op[op.name]
                 if v_idx == 0:
@@ -452,8 +477,6 @@ class DAG(object):
                 else:
                     # if pred_op is virtual op, it will use ancestors as producers to channel
                     for pred_op in pred_ops:
-                        _LOGGER.debug("[DAG] Op({}) => Channel({})"
-                                      .format(pred_op.name, channel.name))
                         pred_op.add_output_channel(channel)
                 processed_op.add(op.name)
                 # find same input op to combine channel
@@ -469,8 +492,6 @@ class DAG(object):
                             same_flag = False
                             break
                     if same_flag:
-                        _LOGGER.debug("[DAG] Channel({}) => Op({})"
-                                      .format(channel.name, other_op.name))
                         other_op.add_input_channel(channel)
                         processed_op.add(other_op.name)
         output_channel = self._gen_channel(channel_name_gen)
@@ -488,7 +509,7 @@ class DAG(object):
             actual_ops.append(op)
 
         for c in channels:
-            _LOGGER.debug("Channel({}):\n\t-producers: {}\n\t-consumers: {}"
+            _LOGGER.debug("Channel({}):\n\t- producers: {}\n\t- consumers: {}"
                           .format(c.name, c.get_producers(), c.get_consumers()))
 
         return (actual_ops, channels, input_channel, output_channel, pack_func,
@@ -497,7 +518,7 @@ class DAG(object):
     def build(self):
         (actual_ops, channels, input_channel, output_channel, pack_func,
          unpack_func) = self._build_dag(self._response_op)
-        _LOGGER.info("[DAG] succ build dag")
+        _LOGGER.info("[DAG] Succ build DAG")
 
         self._actual_ops = actual_ops
         self._channels = channels
