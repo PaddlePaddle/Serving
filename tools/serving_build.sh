@@ -54,7 +54,6 @@ function build_app() {
     local DIRNAME=build-app-$TYPE
     mkdir $DIRNAME # pwd: /Serving
     cd $DIRNAME # pwd: /Serving/build-app-$TYPE
-    pip install numpy sentencepiece
     case $TYPE in
         CPU|GPU)
             cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
@@ -295,8 +294,6 @@ function python_run_criteo_ctr_with_cube() {
 function python_test_bert() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    yum install -y libXext libSM libXrender >/dev/null
-    pip install ujson
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
