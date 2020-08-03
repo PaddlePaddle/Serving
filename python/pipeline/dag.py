@@ -28,7 +28,7 @@ import logging
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataEcode, ChannelDataType, ChannelStopError)
-from .profiler import TimeProfiler
+from .profiler import TimeProfiler, PerformanceTracer
 from .util import NameGenerator
 from .proto import pipeline_service_pb2
 
@@ -48,12 +48,17 @@ class DAGExecutor(object):
         self._profiler = TimeProfiler()
         self._profiler.enable(True)
 
+        self._tracer = PerformanceTracer()
+
         self._dag = DAG(self.name, response_op, self._server_use_profile,
                         self._is_thread_op, client_type, channel_size,
-                        build_dag_each_worker)
+                        build_dag_each_worker, self._tracer)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
+
+        self._tracer.set_channels(self._dag.get_channels())
+        self._tracer.start()
 
         self._set_in_channel(in_channel)
         self._set_out_channel(out_channel)
@@ -74,6 +79,7 @@ class DAGExecutor(object):
     def start(self):
         self._recive_func = threading.Thread(
             target=DAGExecutor._recive_out_channel_func, args=(self, ))
+        self._recive_func.daemon = True
         self._recive_func.start()
         _LOGGER.debug("[DAG Executor] Start recive thread")
 
@@ -205,6 +211,8 @@ class DAGExecutor(object):
                 client_need_profile=client_need_profile)
 
     def call(self, rpc_request):
+        data_buffer = self._tracer.data_buffer()
+
         data_id, cond_v = self._get_next_data_id()
         _LOGGER.info("(logid={}) Succ generate id".format(data_id))
 
@@ -214,6 +222,7 @@ class DAGExecutor(object):
                 data_id, data_id))
         else:
             start_call = self._profiler.record("call_{}#DAG_0".format(data_id))
+        data_buffer.put(("DAG", "call_{}".format(data_id), 0, start_call))
 
         _LOGGER.debug("(logid={}) Parsing RPC request package".format(data_id))
         self._profiler.record("prepack_{}#{}_0".format(data_id, self.name))
@@ -262,9 +271,7 @@ class DAGExecutor(object):
                                                                        data_id))
         else:
             end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
-        _LOGGER.log(level=1,
-                    msg="(logid={}) call[{} ms]".format(
-                        data_id, (end_call - start_call) / 1e3))
+        data_buffer.put(("DAG", "call_{}".format(data_id), 1, end_call))
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
@@ -297,7 +304,7 @@ class DAGExecutor(object):
 
 class DAG(object):
     def __init__(self, request_name, response_op, use_profile, is_thread_op,
-                 client_type, channel_size, build_dag_each_worker):
+                 client_type, channel_size, build_dag_each_worker, tracer):
         self._request_name = request_name
         self._response_op = response_op
         self._use_profile = use_profile
@@ -305,6 +312,7 @@ class DAG(object):
         self._channel_size = channel_size
         self._client_type = client_type
         self._build_dag_each_worker = build_dag_each_worker
+        self._tracer = tracer
         if not self._is_thread_op:
             self._manager = multiprocessing.Manager()
         _LOGGER.info("[DAG] Succ init")
@@ -515,6 +523,9 @@ class DAG(object):
         return (actual_ops, channels, input_channel, output_channel, pack_func,
                 unpack_func)
 
+    def get_channels(self):
+        return self._channels
+
     def build(self):
         (actual_ops, channels, input_channel, output_channel, pack_func,
          unpack_func) = self._build_dag(self._response_op)
@@ -533,6 +544,7 @@ class DAG(object):
         self._threads_or_proces = []
         for op in self._actual_ops:
             op.use_profiler(self._use_profile)
+            op.set_tracer(self._tracer)
             if self._is_thread_op:
                 self._threads_or_proces.extend(
                     op.start_with_thread(self._client_type))
