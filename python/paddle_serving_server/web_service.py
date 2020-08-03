@@ -41,6 +41,8 @@ class WebService(object):
         server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(16)
+        server.set_memory_optimize(self.mem_optim)
+        server.set_ir_optimize(self.ir_optim)
         server.load_model_config(self.model_config)
         server.prepare_server(
             workdir=self.workdir, port=self.port_list[0], device=self.device)
@@ -55,12 +57,19 @@ class WebService(object):
         else:
             return False
 
-    def prepare_server(self, workdir="", port=9393, device="cpu"):
+    def prepare_server(self,
+                       workdir="",
+                       port=9393,
+                       device="cpu",
+                       mem_optim=True,
+                       ir_optim=False):
         self.workdir = workdir
         self.port = port
         self.device = device
         default_port = 12000
         self.port_list = []
+        self.mem_optim = mem_optim
+        self.ir_optim = ir_optim
         for i in range(1000):
             if self.port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
@@ -83,8 +92,6 @@ class WebService(object):
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
             fetch_map = self.client.predict(feed=feed, fetch=fetch)
-            for key in fetch_map:
-                fetch_map[key] = fetch_map[key].tolist()
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
@@ -128,4 +135,6 @@ class WebService(object):
         return feed, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
+        for key in fetch_map:
+            fetch_map[key] = fetch_map[key].tolist()
         return fetch_map
