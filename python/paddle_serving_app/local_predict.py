@@ -76,7 +76,7 @@ class Debugger(object):
         config.switch_use_feed_fetch_ops(False)
         self.predictor = create_paddle_predictor(config)
 
-    def predict(self, feed=None, fetch=None):
+    def predict(self, feed=None, fetch=None, batch=True):
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
         fetch_list = []
@@ -116,15 +116,26 @@ class Debugger(object):
 
         input_names = self.predictor.get_input_names()
         for name in input_names:
+            print(feed)
             if isinstance(feed[name], list):
                 feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
                     name])
             if self.feed_types_[name] == 0:
                 feed[name] = feed[name].astype("int64")
-            else:
+            elif self.feed_types_[name] == 1:
                 feed[name] = feed[name].astype("float32")
+            elif self.feed_types_[name] == 2:
+                feed[name] = feed[name].astype("int32")
+            else:
+                raise ValueError("local predictor receives wrong data type")
             input_tensor = self.predictor.get_input_tensor(name)
-            input_tensor.copy_from_cpu(feed[name])
+            #TODO:set lods
+            if "{}.lod".format(name) in feed:
+                input_tensor.set_lod(feed["{}.lod".format(name)])
+            if batch == True:
+                input_tensor.copy_from_cpu(feed[name][np.newaxis,:])
+            else:
+                input_tensor.copy_from_cpu(feed[name])
         output_tensors = []
         output_names = self.predictor.get_output_names()
         for output_name in output_names:
