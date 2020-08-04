@@ -68,7 +68,7 @@ Paddle Serving uses this [Git branching model](http://nvie.com/posts/a-successfu
 
 1. Build and test
 
-   Users can build Paddle Serving natively on Linux, see the [BUILD steps](doc/INSTALL.md).
+   Users can build Paddle Serving natively on Linux, see the [BUILD steps](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md).
 
 1. Keep pulling
 
