@@ -95,7 +95,7 @@ The meaning of each parameter is as follows:
 |      fetch_list       | (list) List of fetch variable names for remote Paddle Serving Service. |
 |     client_config     | (str) The path of the client configuration file corresponding to the Paddle Serving Service. |
 |      concurrency      |             (int) The number of concurrent OPs.              |
-|        timeout        | (int) The timeout time of the process operation, in seconds. If the value is less than zero, no timeout is considered. |
+|        timeout        | (int) The timeout time of the process operation, in ms. If the value is less than zero, no timeout is considered. |
 |         retry         | (int) Timeout number of retries. When the value is 1, no retries are made. |
 |      batch_size       | (int) The expected batch_size of Auto-Batching, since building batches may time out, the actual batch_size may be less than the set value. |
 | auto_batching_timeout | (float) Timeout for building batches of Auto-Batching (the unit is ms). |

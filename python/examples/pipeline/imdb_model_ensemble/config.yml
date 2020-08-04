@@ -6,3 +6,5 @@ dag:
     client_type: brpc
     retry: 1
     use_profile: false
+    tracer:
+        interval_s: 10
