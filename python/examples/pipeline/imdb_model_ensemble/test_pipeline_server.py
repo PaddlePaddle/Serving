@@ -12,20 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-
-import logging
-logging.basicConfig(
-    format="[%(process)d](%(threadName)s) %(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s",
-    level=logging.INFO)
-
+import paddle_serving_server.pipeline as pipeline
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
 from paddle_serving_server.pipeline.channel import ChannelDataEcode
 import numpy as np
 from paddle_serving_app.reader import IMDBDataset
+import logging
 
 _LOGGER = logging.getLogger()
+console_handler = pipeline.logger.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(
+    logging.Formatter(
+        "%(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s"))
+_LOGGER.addHandler(console_handler)
 
 
 class ImdbRequestOp(RequestOp):
