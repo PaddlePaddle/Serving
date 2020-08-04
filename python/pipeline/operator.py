@@ -256,26 +256,32 @@ class Op(object):
             channel.push(data, name)
 
     def start_with_process(self, client_type):
+        trace_buffer = None
+        if self._tracer is not None:
+            trace_buffer = self._tracer.data_buffer()
         proces = []
         for concurrency_idx in range(self.concurrency):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), client_type, False,
-                      self._tracer.data_buffer()))
+                      trace_buffer))
             p.daemon = True
             p.start()
             proces.append(p)
         return proces
 
     def start_with_thread(self, client_type):
+        trace_buffer = None
+        if self._tracer is not None:
+            trace_buffer = self._tracer.data_buffer()
         threads = []
         for concurrency_idx in range(self.concurrency):
             t = threading.Thread(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), client_type, True,
-                      self._tracer.data_buffer()))
+                      trace_buffer))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -516,7 +522,6 @@ class Op(object):
         start, end = None, None
         while True:
             start = int(round(_time() * 1000000))
-            trace_buffer.put((self.name, "in", 0, start))
             try:
                 channeldata_dict_batch = next(batch_generator)
             except ChannelStopError:
@@ -524,7 +529,8 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
-            trace_buffer.put((self.name, "in", 1, end))
+            if trace_buffer is not None:
+                trace_buffer.put((self.name, "in", True, end - start))
 
             # parse channeldata batch
             try:
@@ -541,11 +547,11 @@ class Op(object):
 
             # preprecess
             start = profiler.record("prep#{}_0".format(op_info_prefix))
-            trace_buffer.put((self.name, "prep", 0, start))
             preped_data_dict, err_channeldata_dict \
                     = self._run_preprocess(parsed_data_dict, op_info_prefix)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
-            trace_buffer.put((self.name, "prep", 1, end))
+            if trace_buffer is not None:
+                trace_buffer.put((self.name, "prep", True, end - start))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -562,11 +568,11 @@ class Op(object):
 
             # process
             start = profiler.record("midp#{}_0".format(op_info_prefix))
-            trace_buffer.put((self.name, "midp", 0, start))
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
-            trace_buffer.put((self.name, "midp", 1, end))
+            if trace_buffer is not None:
+                trace_buffer.put((self.name, "midp", True, end - start))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -583,12 +589,12 @@ class Op(object):
 
             # postprocess
             start = profiler.record("postp#{}_0".format(op_info_prefix))
-            trace_buffer.put((self.name, "postp", 0, start))
             postped_data_dict, err_channeldata_dict \
                     = self._run_postprocess(
                             parsed_data_dict, midped_data_dict, op_info_prefix)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
-            trace_buffer.put((self.name, "postp", 1, end))
+            if trace_buffer is not None:
+                trace_buffer.put((self.name, "postp", True, end - start))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -605,7 +611,6 @@ class Op(object):
 
             # push data to channel (if run succ)
             start = int(round(_time() * 1000000))
-            trace_buffer.put((self.name, "out", 0, start))
             try:
                 profile_str = profiler.gen_profile_str()
                 for data_id, postped_data in postped_data_dict.items():
@@ -622,7 +627,8 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
-            trace_buffer.put((self.name, "out", 1, end))
+            if trace_buffer is not None:
+                trace_buffer.put((self.name, "out", True, end - start))
 
     def _initialize(self, is_thread_op, client_type, concurrency_idx):
         if is_thread_op:
@@ -669,8 +675,8 @@ class RequestOp(Op):
     """ RequestOp do not run preprocess, process, postprocess. """
 
     def __init__(self):
-        # PipelineService.name = "@G"
-        super(RequestOp, self).__init__(name="@G", input_ops=[])
+        # PipelineService.name = "@DAGExecutor"
+        super(RequestOp, self).__init__(name="@DAGExecutor", input_ops=[])
         # init op
         try:
             self.init_op()
@@ -694,7 +700,8 @@ class ResponseOp(Op):
     """ ResponseOp do not run preprocess, process, postprocess. """
 
     def __init__(self, input_ops):
-        super(ResponseOp, self).__init__(name="@R", input_ops=input_ops)
+        super(ResponseOp, self).__init__(
+            name="@DAGExecutor", input_ops=input_ops)
         # init op
         try:
             self.init_op()
