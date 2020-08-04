@@ -27,78 +27,114 @@ import time
 import threading
 import multiprocessing
 
-_LOGGER = logging.getLogger()
+_TRACER = logging.getLogger("tracer")
 
 
 class PerformanceTracer(object):
-    def __init__(self, interval_s=1):
-        self._data_buffer = multiprocessing.Manager().Queue()
+    def __init__(self, is_thread_mode, interval_s, server_worker_num):
+        self._is_thread_mode = is_thread_mode
+        if is_thread_mode:
+            # Because the Channel in the thread mode cannot be
+            # accessed across processes, when using thread mode,
+            # the PerformanceTracer is also the thread mode.
+            # However, performance may be affected by GIL.
+            self._data_buffer = Queue.Queue()
+        else:
+            self._data_buffer = multiprocessing.Manager().Queue()
         self._interval_s = interval_s
+        self._thrd = None
         self._proc = None
         self._channels = []
-        self._trace_filename = os.path.join("PipelineServingLogs", "INDEX.log")
+        # The size of data in Channel will not exceed server_worker_num
+        self._server_worker_num = server_worker_num
 
     def data_buffer(self):
         return self._data_buffer
 
     def start(self):
-        self._proc = multiprocessing.Process(
-            target=self._trace_func, args=(self._channels, ))
-        self._proc.daemon = True
-        self._proc.start()
+        if self._is_thread_mode:
+            self._thrd = threading.Thread(
+                target=self._trace_func, args=(self._channels, ))
+            self._thrd.daemon = True
+            self._thrd.start()
+        else:
+            self._proc = multiprocessing.Process(
+                target=self._trace_func, args=(self._channels, ))
+            self._proc.daemon = True
+            self._proc.start()
 
     def set_channels(self, channels):
         self._channels = channels
 
     def _trace_func(self, channels):
-        trace_file = open(self._trace_filename, "a")
-        actions = ["prep", "midp", "postp"]
-        tag_dict = {}
+        actions = ["in", "prep", "midp", "postp", "out"]
+        calcu_actions = ["prep", "midp", "postp"]
         while True:
             op_cost = {}
-            trace_file.write("==========================")
+            err_count = 0
 
+            _TRACER.info("==================== TRACER ======================")
             # op
-            while not self._data_buffer.empty():
-                name, action, stage, timestamp = self._data_buffer.get()
-                tag = "{}_{}".format(name, action)
-                if tag in tag_dict:
-                    assert stage == 1
-                    start_timestamp = tag_dict.pop(tag)
-                    cost = timestamp - start_timestamp
+            while True:
+                try:
+                    name, action, stage, cost = self._data_buffer.get_nowait()
+                    if stage == False:
+                        # only for name == DAG
+                        assert name == "DAG"
+                        err_count += 1
                     if name not in op_cost:
                         op_cost[name] = {}
                     if action not in op_cost[name]:
                         op_cost[name][action] = []
                     op_cost[name][action].append(cost)
-                else:
-                    assert stage == 0
-                    tag_dict[tag] = timestamp
+                except Queue.Empty:
+                    break
 
-            for name in op_cost:
-                tot_cost, cal_cost = 0.0, 0.0
-                for action, costs in op_cost[name].items():
-                    op_cost[name][action] = sum(costs) / (1e3 * len(costs))
-                    tot_cost += op_cost[name][action]
+            if len(op_cost) != 0:
+                for name in op_cost:
+                    tot_cost, calcu_cost = 0.0, 0.0
+                    for action, costs in op_cost[name].items():
+                        op_cost[name][action] = sum(costs) / (1e3 * len(costs))
+                        tot_cost += op_cost[name][action]
 
-                msg = ", ".join([
-                    "{}[{} ms]".format(action, cost)
-                    for action, cost in op_cost[name].items()
-                ])
+                    if name != "DAG":
+                        _TRACER.info("Op({}):".format(name))
+                        for action in actions:
+                            if action in op_cost[name]:
+                                _TRACER.info("\t{}[{} ms]".format(
+                                    action, op_cost[name][action]))
+                        for action in calcu_actions:
+                            if action in op_cost[name]:
+                                calcu_cost += op_cost[name][action]
+                        _TRACER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
+                                                         tot_cost))
 
-                for action in actions:
-                    if action in op_cost[name]:
-                        cal_cost += op_cost[name][action]
-
-                trace_file.write("Op({}) {}".format(name, msg))
-                if name != "DAG":
-                    trace_file.write("Op({}) idle[{}]".format(
-                        name, 1 - 1.0 * cal_cost / tot_cost))
+            if "DAG" in op_cost:
+                calls = op_cost["DAG"].values()
+                calls.sort()
+                tot = len(calls)
+                qps = 1.0 * tot / self._interval_s
+                ave_cost = sum(calls) / tot
+                latencys = [50, 60, 70, 80, 90, 95, 99]
+                _TRACER.info("DAGExecutor:")
+                _TRACER.info("\tquery count[{}]".format(tot))
+                _TRACER.info("\tqps[{} q/s]".format(qps))
+                _TRACER.info("\tsucc[{}]".format(1 - 1.0 * err_count / tot))
+                _TRACER.info("\tlatency:")
+                _TRACER.info("\t\tave[{} ms]".format(ave_cost))
+                for latency in latencys:
+                    _TRACER.info("\t\t.{}[{} ms]".format(latency, calls[int(
+                        tot * latency / 100.0)]))
 
             # channel
+            _TRACER.info("Channel (server worker num[{}]):".format(
+                self._server_worker_num))
             for channel in channels:
-                trace_file.write("Channel({}) size[{}]".format(channel.name,
-                                                               channel.size()))
+                _TRACER.info("\t{}(In: {}, Out: {}) size[{}/{}]".format(
+                    channel.name,
+                    channel.get_producers(),
+                    channel.get_consumers(),
+                    channel.size(), channel.get_maxsize()))
             time.sleep(self._interval_s)
 
 

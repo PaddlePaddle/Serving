@@ -239,6 +239,9 @@ class ProcessChannel(object):
         self._base_cursor = manager.Value('i', 0)
         self._output_buf = manager.list()
 
+    def get_maxsize(self):
+        return self._maxsize
+
     def size(self):
         return self._que.qsize()
 
@@ -532,6 +535,9 @@ class ThreadChannel(Queue.Queue):
         self._cursor_count = {}  # {cursor: count}
         self._base_cursor = 0
         self._output_buf = []
+
+    def get_maxsize(self):
+        return self._maxsize
 
     def size(self):
         return self.qsize()

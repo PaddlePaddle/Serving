@@ -36,19 +36,28 @@ _LOGGER = logging.getLogger()
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, dag_conf):
+    def __init__(self, response_op, server_conf):
+        build_dag_each_worker = server_conf["build_dag_each_worker"]
+        server_worker_num = server_conf["worker_num"]
+        dag_conf = server_conf["dag"]
+
         self._retry = dag_conf["retry"]
         client_type = dag_conf["client_type"]
         self._server_use_profile = dag_conf["use_profile"]
         channel_size = dag_conf["channel_size"]
         self._is_thread_op = dag_conf["is_thread_op"]
-        build_dag_each_worker = dag_conf["build_dag_each_worker"]
 
-        self.name = "@G"
+        tracer_conf = dag_conf["tracer"]
+        tracer_interval_s = tracer_conf["interval_s"]
+
+        self.name = "@DAGExecutor"
         self._profiler = TimeProfiler()
         self._profiler.enable(True)
 
-        self._tracer = PerformanceTracer()
+        self._tracer = None
+        if tracer_interval_s >= 1:
+            self._tracer = PerformanceTracer(
+                self._is_thread_op, tracer_interval_s, server_worker_num)
 
         self._dag = DAG(self.name, response_op, self._server_use_profile,
                         self._is_thread_op, client_type, channel_size,
@@ -57,13 +66,13 @@ class DAGExecutor(object):
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
 
-        self._tracer.set_channels(self._dag.get_channels())
-        self._tracer.start()
-
         self._set_in_channel(in_channel)
         self._set_out_channel(out_channel)
         self._pack_rpc_func = pack_rpc_func
         self._unpack_rpc_func = unpack_rpc_func
+
+        if self._tracer is not None:
+            self._tracer.start()
 
         self._id_lock = threading.Lock()
         self._id_counter = 0
@@ -211,7 +220,8 @@ class DAGExecutor(object):
                 client_need_profile=client_need_profile)
 
     def call(self, rpc_request):
-        data_buffer = self._tracer.data_buffer()
+        if self._tracer is not None:
+            trace_buffer = self._tracer.data_buffer()
 
         data_id, cond_v = self._get_next_data_id()
         _LOGGER.info("(logid={}) Succ generate id".format(data_id))
@@ -222,7 +232,6 @@ class DAGExecutor(object):
                 data_id, data_id))
         else:
             start_call = self._profiler.record("call_{}#DAG_0".format(data_id))
-        data_buffer.put(("DAG", "call_{}".format(data_id), 0, start_call))
 
         _LOGGER.debug("(logid={}) Parsing RPC request package".format(data_id))
         self._profiler.record("prepack_{}#{}_0".format(data_id, self.name))
@@ -250,7 +259,7 @@ class DAGExecutor(object):
                                                                        cond_v)
 
             if resp_channeldata.ecode == ChannelDataEcode.OK.value:
-                _LOGGER.debug("(logid={}) Succ predict".format(data_id))
+                _LOGGER.info("(logid={}) Succ predict".format(data_id))
                 break
             else:
                 _LOGGER.error("(logid={}) Failed to predict: {}"
@@ -271,7 +280,14 @@ class DAGExecutor(object):
                                                                        data_id))
         else:
             end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
-        data_buffer.put(("DAG", "call_{}".format(data_id), 1, end_call))
+
+        if self._tracer is not None:
+            if resp_channeldata.ecode == ChannelDataEcode.OK.value:
+                trace_buffer.put(("DAG", "call_{}".format(data_id), True,
+                                  end_call - start_call))
+            else:
+                trace_buffer.put(("DAG", "call_{}".format(data_id), False,
+                                  end_call - start_call))
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
@@ -537,6 +553,8 @@ class DAG(object):
         self._output_channel = output_channel
         self._pack_func = pack_func
         self._unpack_func = unpack_func
+
+        self._tracer.set_channels(self._channels)
 
         return self._input_channel, self._output_channel, self._pack_func, self._unpack_func
 
