@@ -22,7 +22,7 @@ from .channel import ChannelDataEcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger("pipeline.pipeline_client")
 
 
 class PipelineClient(object):

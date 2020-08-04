@@ -27,7 +27,7 @@ import time
 import threading
 import multiprocessing
 
-_TRACER = logging.getLogger("tracer")
+_TRACER = logging.getLogger("pipeline.profiler")
 
 
 class PerformanceTracer(object):

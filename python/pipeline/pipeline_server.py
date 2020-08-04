@@ -26,7 +26,7 @@ from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
 from .dag import DAGExecutor
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger("pipeline.pipeline_server")
 
 
 class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
