@@ -254,6 +254,8 @@ dag:
     client_type: brpc  # 使用 brpc 或 grpc client，默认为 brpc
     retry: 1  # DAG Executor 在失败后重试次数，默认为 1，即不重试
     use_profile: false  # 是否在 Server 端打印日志，默认为 false
+    tracer:
+        interval_s: 600 # Tracer 监控的时间间隔，单位为秒。当该值小于 1 时不启动监控，默认为 600
 ```
 
 
