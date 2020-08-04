@@ -17,7 +17,7 @@ import copy
 import re
 import logging
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger("pipeline.analyse")
 
 
 class Analyst(object):
