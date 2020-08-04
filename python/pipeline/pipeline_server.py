@@ -96,8 +96,7 @@ class PipelineServer(object):
                 "(Make sure that install grpcio whl with --no-binary flag)")
         _LOGGER.info("-------------------------------------------")
 
-        self._dag_conf = conf["dag"]
-        self._dag_conf["build_dag_each_worker"] = self._build_dag_each_worker
+        self._conf = conf
 
     def run_server(self):
         if self._build_dag_each_worker:
@@ -108,7 +107,7 @@ class PipelineServer(object):
                     show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
-                        args=(bind_address, self._response_op, self._dag_conf))
+                        args=(bind_address, self._response_op, self._conf))
                     worker.start()
                     workers.append(worker)
                 for worker in workers:
@@ -117,7 +116,7 @@ class PipelineServer(object):
             server = grpc.server(
                 futures.ThreadPoolExecutor(max_workers=self._worker_num))
             pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-                PipelineServicer(self._response_op, self._dag_conf), server)
+                PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._port))
             server.start()
             server.wait_for_termination()
@@ -144,7 +143,14 @@ class ServerYamlConfChecker(object):
             conf = yaml.load(f.read())
         ServerYamlConfChecker.check_server_conf(conf)
         ServerYamlConfChecker.check_dag_conf(conf["dag"])
+        ServerYamlConfChecker.check_tracer_conf(conf["dag"]["tracer"])
         return conf
+
+    @staticmethod
+    def check_conf(conf, default_conf, conf_type, conf_qualification):
+        ServerYamlConfChecker.fill_with_default_conf(conf, default_conf)
+        ServerYamlConfChecker.check_conf_type(conf, conf_type)
+        ServerYamlConfChecker.check_conf_qualification(conf, conf_qualification)
 
     @staticmethod
     def check_server_conf(conf):
@@ -155,22 +161,30 @@ class ServerYamlConfChecker(object):
             "dag": {},
         }
 
-        ServerYamlConfChecker.fill_with_default_conf(conf, default_conf)
-
         conf_type = {
             "port": int,
             "worker_num": int,
             "build_dag_each_worker": bool,
         }
 
-        ServerYamlConfChecker.check_conf_type(conf, conf_type)
-
         conf_qualification = {
             "port": [(">=", 1024), ("<=", 65535)],
             "worker_num": (">=", 1),
         }
 
-        ServerYamlConfChecker.check_conf_qualification(conf, conf_qualification)
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
+
+    @staticmethod
+    def check_tracer_conf(conf):
+        default_conf = {"interval_s": 600, }
+
+        conf_type = {"interval_s": int, }
+
+        conf_qualification = {}
+
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
 
     @staticmethod
     def check_dag_conf(conf):
@@ -179,10 +193,9 @@ class ServerYamlConfChecker(object):
             "client_type": "brpc",
             "use_profile": False,
             "channel_size": 0,
-            "is_thread_op": True
+            "is_thread_op": True,
+            "tracer": {},
         }
-
-        ServerYamlConfChecker.fill_with_default_conf(conf, default_conf)
 
         conf_type = {
             "retry": int,
@@ -192,15 +205,14 @@ class ServerYamlConfChecker(object):
             "is_thread_op": bool,
         }
 
-        ServerYamlConfChecker.check_conf_type(conf, conf_type)
-
         conf_qualification = {
             "retry": (">=", 1),
             "client_type": ("in", ["brpc", "grpc"]),
             "channel_size": (">=", 0),
         }
 
-        ServerYamlConfChecker.check_conf_qualification(conf, conf_qualification)
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
 
     @staticmethod
     def fill_with_default_conf(conf, default_conf):
