@@ -56,7 +56,11 @@ pip install paddle-serving-server-gpu # GPU
 
 如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。
 
-Paddle Serving安装包支持Centos 6/7和Ubuntu 16/18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
+paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7和Ubuntu 16/18。
+
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6。
+
+推荐安装1.8.2及以上版本的paddle
 
 <h2 align="center"> Paddle Serving预装的服务 </h2>
 
@@ -116,7 +120,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | - | - | Enable memory optimization |
+| `mem_optim_off` | - | - | Disable memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 

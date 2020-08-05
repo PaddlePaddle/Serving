@@ -54,8 +54,11 @@ You may need to use a domestic mirror source (in China, you can use the Tsinghua
 
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
-Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use HTTP service without install client.
+Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7 and Ubuntu 16/18.
 
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.6/3.7.
+
+Recommended to install paddle >= 1.8.2.
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
@@ -121,7 +124,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | - | - | Enable memory / graphic memory optimization |
+| `mem_optim_off` | - | - | Disable memory / graphic memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 

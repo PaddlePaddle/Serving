@@ -83,6 +83,7 @@ if (SERVER)
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
             COMMAND cp -r
             ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
+            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} paddle_serving_server_gpu/gen_cuda_version.py ${CUDA_VERSION_MAJOR}
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
