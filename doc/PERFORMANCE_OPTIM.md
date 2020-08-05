@@ -14,7 +14,35 @@ Under the same conditions, the communication time of the HTTP prediction service
 
 Parameters for performance optimization:
 
+The memory/graphic memory optimization option is enabled by default in Paddle Serving, which can reduce the memory/video memory usage and usually does not affect performance. If you need to turn it off, you can use --mem_optim_off in the command line.
+
+r_optim can optimize the calculation graph and increase the inference speed. It is turned off by default and turned on by --ir_optim in the command line.
+
 | Parameters | Type | Default | Description                                                  |
 | ---------- | ---- | ------- | ------------------------------------------------------------ |
-| mem_optim  | - | - | Enable memory / graphic memory optimization                                   |
+| mem_optim_off  | - | - | Disable memory / graphic memory optimization                                   |
 | ir_optim   | - | -  | Enable analysis and optimization of calculation graph,including OP fusion, etc |
+
+
+For the mode of using Python code to start the prediction service, the API of the above two parameters is as follows:
+
+RPC Service
+```
+from paddle_serving_server import Server
+server = Server()
+...
+server.set_memory_optimize(mem_optim)
+server.set_ir_optimize(ir_optim)
+...
+```
+
+HTTP Service
+```
+from paddle_serving_server import WebService
+class NewService(WebService):
+...
+new_service = NewService(name="new")
+...
+new_service.prepare_server(mem_optim=True, ir_optim=False)
+...
+```
