@@ -32,7 +32,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 
-_LOGGER = logging.getLogger("pipeline.operator")
+_LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
 
 
