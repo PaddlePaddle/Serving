@@ -32,7 +32,7 @@ from .profiler import TimeProfiler, PerformanceTracer
 from .util import NameGenerator
 from .proto import pipeline_service_pb2
 
-_LOGGER = logging.getLogger("pipeline.dag")
+_LOGGER = logging.getLogger(__name__)
 
 
 class DAGExecutor(object):
