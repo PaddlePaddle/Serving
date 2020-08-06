@@ -27,7 +27,8 @@ import time
 import threading
 import multiprocessing
 
-_TRACER = logging.getLogger("pipeline.profiler")
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.propagate = False
 
 
 class PerformanceTracer(object):
@@ -73,7 +74,7 @@ class PerformanceTracer(object):
             op_cost = {}
             err_count = 0
 
-            _TRACER.info("==================== TRACER ======================")
+            _LOGGER.info("==================== TRACER ======================")
             # op
             while True:
                 try:
@@ -98,15 +99,15 @@ class PerformanceTracer(object):
                         tot_cost += op_cost[name][action]
 
                     if name != "DAG":
-                        _TRACER.info("Op({}):".format(name))
+                        _LOGGER.info("Op({}):".format(name))
                         for action in actions:
                             if action in op_cost[name]:
-                                _TRACER.info("\t{}[{} ms]".format(
+                                _LOGGER.info("\t{}[{} ms]".format(
                                     action, op_cost[name][action]))
                         for action in calcu_actions:
                             if action in op_cost[name]:
                                 calcu_cost += op_cost[name][action]
-                        _TRACER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
+                        _LOGGER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
                                                          tot_cost))
 
             if "DAG" in op_cost:
@@ -116,21 +117,21 @@ class PerformanceTracer(object):
                 qps = 1.0 * tot / self._interval_s
                 ave_cost = sum(calls) / tot
                 latencys = [50, 60, 70, 80, 90, 95, 99]
-                _TRACER.info("DAGExecutor:")
-                _TRACER.info("\tquery count[{}]".format(tot))
-                _TRACER.info("\tqps[{} q/s]".format(qps))
-                _TRACER.info("\tsucc[{}]".format(1 - 1.0 * err_count / tot))
-                _TRACER.info("\tlatency:")
-                _TRACER.info("\t\tave[{} ms]".format(ave_cost))
+                _LOGGER.info("DAGExecutor:")
+                _LOGGER.info("\tquery count[{}]".format(tot))
+                _LOGGER.info("\tqps[{} q/s]".format(qps))
+                _LOGGER.info("\tsucc[{}]".format(1 - 1.0 * err_count / tot))
+                _LOGGER.info("\tlatency:")
+                _LOGGER.info("\t\tave[{} ms]".format(ave_cost))
                 for latency in latencys:
-                    _TRACER.info("\t\t.{}[{} ms]".format(latency, calls[int(
+                    _LOGGER.info("\t\t.{}[{} ms]".format(latency, calls[int(
                         tot * latency / 100.0)]))
 
             # channel
-            _TRACER.info("Channel (server worker num[{}]):".format(
+            _LOGGER.info("Channel (server worker num[{}]):".format(
                 self._server_worker_num))
             for channel in channels:
-                _TRACER.info("\t{}(In: {}, Out: {}) size[{}/{}]".format(
+                _LOGGER.info("\t{}(In: {}, Out: {}) size[{}/{}]".format(
                     channel.name,
                     channel.get_producers(),
                     channel.get_consumers(),

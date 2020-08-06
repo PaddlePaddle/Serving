@@ -29,7 +29,7 @@ import enum
 import os
 import copy
 
-_LOGGER = logging.getLogger("pipeline.channel")
+_LOGGER = logging.getLogger(__name__)
 
 
 class ChannelDataEcode(enum.Enum):
