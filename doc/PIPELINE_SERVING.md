@@ -254,6 +254,8 @@ dag:
     client_type: brpc  # Use brpc or grpc client. The default is brpc
     retry: 1  # The number of times DAG executor retries after failure. The default value is 1, that is, no retrying
     use_profile: false  # Whether to print the log on the server side. The default is false
+    tracer:
+        interval_s: 600 # Monitoring time interval of Tracer (in seconds). Do not start monitoring when the value is less than 1. The default value is 600
 ```
 
 
