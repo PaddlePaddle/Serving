@@ -533,6 +533,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
+                if len(var.lod) > 0:
+                    feed_dict["{}.lod".format(name)] = var.lod
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python
 
@@ -569,12 +571,16 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
                 if name in self.lod_tensor_set_:
-                    tensor.lod.extend(model_result["{}.lod".format(name)]
-                                      .tolist())
+                    tmp_lod = model_result["{}.lod".format(name)]
+                    if isinstance(tmp_lod, list):
+                        tensor.lod.extend(tmp_lod)
+                    else:
+                        tensor.lod.extend(tmp_lod.tolist())
                 inst.tensor_array.append(tensor)
             model_output.insts.append(inst)
             model_output.engine_name = model_name
             resp.outputs.append(model_output)
+            #print("resp", resp)
         return resp
 
     def SetTimeout(self, request, context):
@@ -587,15 +593,21 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_inference_request(
-            request)
-        if self.local_predictor == None:
-            ret = self.bclient_.predict(
-                    feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        else:
-            ret = [self.local_predictor.predict(
-                    feed=feed_dict[0], fetch=fetch_names), "VariantTagNeeded"]
-        return self._pack_inference_response(ret, fetch_names, is_python)
+        try:
+            feed_dict, fetch_names, is_python = self._unpack_inference_request(
+                request)
+            if self.local_predictor == None:
+                ret = self.bclient_.predict(
+                        feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
+            else:
+                ret = [self.local_predictor.predict(
+                        feed=feed_dict[0], fetch=fetch_names), "VariantTagNeeded"]
+            #print("ret", ret)            
+            res = self._pack_inference_response(ret, fetch_names, is_python)
+            return res
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
 
     def GetClientConfig(self, request, context):
         resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()

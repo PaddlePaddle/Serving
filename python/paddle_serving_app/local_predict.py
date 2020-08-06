@@ -116,7 +116,6 @@ class Debugger(object):
 
         input_names = self.predictor.get_input_names()
         for name in input_names:
-            print(feed)
             if isinstance(feed[name], list):
                 feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
                     name])
@@ -131,7 +130,7 @@ class Debugger(object):
             input_tensor = self.predictor.get_input_tensor(name)
             #TODO:set lods
             if "{}.lod".format(name) in feed:
-                input_tensor.set_lod(feed["{}.lod".format(name)])
+                input_tensor.set_lod([feed["{}.lod".format(name)]])
             if batch == True:
                 input_tensor.copy_from_cpu(feed[name][np.newaxis,:])
             else:

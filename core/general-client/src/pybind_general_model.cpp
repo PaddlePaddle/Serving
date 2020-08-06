@@ -127,6 +127,7 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<int>> &float_shape,
               const std::vector<std::vector<py::array_t<int64_t>>>
                   &int_feed_batch,
+              const std::vector<std::vector<py::array_t<int64_t>>>& lod_slot_batch,  
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
@@ -136,6 +137,7 @@ PYBIND11_MODULE(serving_client, m) {
                                        float_feed_name,
                                        float_shape,
                                        int_feed_batch,
+                                       lod_slot_batch,
                                        int_feed_name,
                                        int_shape,
                                        fetch_name,

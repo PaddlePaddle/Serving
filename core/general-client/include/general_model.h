@@ -234,6 +234,7 @@ class PredictorClient {
       const std::vector<std::string>& float_feed_name,
       const std::vector<std::vector<int>>& float_shape,
       const std::vector<std::vector<py::array_t<int64_t>>>& int_feed_batch,
+      const std::vector<std::vector<py::array_t<int64_t>>>& lod_slot_batch,
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,

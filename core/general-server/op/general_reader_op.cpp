@@ -69,6 +69,17 @@ int conf_check(const Request *req,
   return 0;
 }
 
+void print_lods(const std::vector<std::vector<size_t>>& lod) {
+    std::cout << "print lod info here" << std::endl;
+    for (size_t i = 0; i < lod.size(); ++i) {
+        std::cout << "the " <<  i << " th level of lod: " << std::endl;
+        for (size_t j = 0; j < lod[i].size(); ++j) {
+            std::cout << lod[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 int GeneralReaderOp::inference() {
   // reade request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
@@ -133,13 +144,20 @@ int GeneralReaderOp::inference() {
       elem_size[i] = sizeof(int32_t);
       lod_tensor.dtype = paddle::PaddleDType::INT32;
     }
-
-    if (model_config->_is_lod_feed[i]) {
-      lod_tensor.lod.resize(1);
-      lod_tensor.lod[0].push_back(0);
-      VLOG(2) << "var[" << i << "] is lod_tensor";
-    } else {
-      lod_tensor.shape.push_back(batch_size);
+    //implement lod tensor here
+    std::cout << "lod size: "<< req->insts(0).tensor_array(i).lod_size() << std::endl;
+    if (req->insts(0).tensor_array(i).lod_size() > 0) {
+        lod_tensor.lod.resize(1);
+        for (int k = 0; k < req->insts(0).tensor_array(i).lod_size(); ++k) {
+            lod_tensor.lod[0].push_back(req->insts(0).tensor_array(i).lod(k));
+        }
+    }
+    //if (model_config->_is_lod_feed[i]) {
+    //  lod_tensor.lod.resize(1);
+    //  lod_tensor.lod[0].push_back(0);
+    //  VLOG(2) << "var[" << i << "] is lod_tensor";
+    //} 
+    else {
       capacity[i] = 1;
       for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
         int dim = req->insts(0).tensor_array(i).shape(k);
@@ -150,6 +168,7 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
     }
     lod_tensor.name = model_config->_feed_name[i];
+    print_lods(lod_tensor.lod);
     out->push_back(lod_tensor);
   }
 
@@ -183,13 +202,13 @@ int GeneralReaderOp::inference() {
         VLOG(2) << "new len: " << cur_len + sample_len;
       }
       out->at(i).data.Resize(tensor_size * elem_size[i]);
-      out->at(i).shape = {out->at(i).lod[0].back()};
+      out->at(i).shape = {};
       for (int j = 1; j < req->insts(0).tensor_array(i).shape_size(); ++j) {
         out->at(i).shape.push_back(req->insts(0).tensor_array(i).shape(j));
       }
-      if (out->at(i).shape.size() == 1) {
-        out->at(i).shape.push_back(1);
-      }
+      //if (out->at(i).shape.size() == 1) {
+      //  out->at(i).shape.push_back(1);
+      //}
       VLOG(2) << "var[" << i
               << "] is lod_tensor and len=" << out->at(i).lod[0].back();
     } else {
@@ -211,11 +230,6 @@ int GeneralReaderOp::inference() {
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).int64_data(k);
         }
-        if (out->at(i).lod.size() == 1) {
-          offset = out->at(i).lod[0][j + 1];
-        } else {
-          offset += capacity[i];
-        }
       }
     } else if (elem_type[i] == 1) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
@@ -227,11 +241,6 @@ int GeneralReaderOp::inference() {
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).float_data(k);
         }
-        if (out->at(i).lod.size() == 1) {
-          offset = out->at(i).lod[0][j + 1];
-        } else {
-          offset += capacity[i];
-        }
       }
     } else if (elem_type[i] == 2) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
@@ -242,11 +251,6 @@ int GeneralReaderOp::inference() {
         int elem_num = req->insts(j).tensor_array(i).int_data_size();
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).int_data(k);
-        }
-        if (out->at(i).lod.size() == 1) {
-          offset = out->at(i).lod[0][j + 1];
-        } else {
-          offset += capacity[i];
         }
       }
     }

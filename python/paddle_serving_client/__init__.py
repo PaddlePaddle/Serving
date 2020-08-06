@@ -234,6 +234,11 @@ class Client(object):
             pass
 
     def predict(self, feed=None, fetch=None, need_variant_tag=False):
+        """
+        predict inferface
+
+        @feed: feed name and its lod
+        """
         self.profile_.record('py_prepro_0')
 
         if feed is None or fetch is None:
@@ -257,6 +262,7 @@ class Client(object):
 
         int_slot_batch = []
         float_slot_batch = []
+        lod_slot_batch = []
         int_feed_names = []
         float_feed_names = []
         int_shape = []
@@ -277,9 +283,14 @@ class Client(object):
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
+            lod_slot = []
+            #print("feed_i", feed_i)
             for key in feed_i:
-                if key not in self.feed_names_:
+                #print("key", key)
+                if ".lod" not in key and key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
+                if ".lod" in key:
+                    continue
                 #if not isinstance(feed_i[key], np.ndarray):
                 self.shape_check(feed_i, key)
                 if self.feed_types_[key] in int_type:
@@ -308,8 +319,14 @@ class Client(object):
                     else:
                         float_slot.append(feed_i[key])
                         self.all_numpy_input = False
+                if ".lod" in key:
+                    lod_slot.append(var.lod)
+
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
+            lod_slot_batch.append(lod_slot)
+            #print("int slot", int_slot_batch)
+            #print("float slot", float_slot_batch)
 
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
@@ -318,7 +335,7 @@ class Client(object):
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, fetch_names, result_batch_handle,
+                int_feed_names, lod_slot_batch, int_shape, fetch_names, result_batch_handle,
                 self.pid)
         elif self.has_numpy_input == False:
             res = self.client_handle_.batch_predict(
@@ -466,7 +483,7 @@ class MultiLangClient(object):
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
 
-    def _pack_inference_request(self, feed, fetch, is_python):
+    def _pack_inference_request(self, feed, fetch, is_python, batch=False):
         req = multi_lang_general_model_service_pb2.InferenceRequest()
         req.fetch_var_names.extend(fetch)
         req.is_python = is_python
@@ -477,12 +494,17 @@ class MultiLangClient(object):
             feed_batch = feed
         else:
             raise Exception("{} not support".format(type(feed)))
-        req.feed_var_names.extend(feed_batch[0].keys())
+        for x in feed_batch[0].keys():
+            if ".lod" not in x:
+                req.feed_var_names.append(x)
         init_feed_names = False
         for feed_data in feed_batch:
             inst = multi_lang_general_model_service_pb2.FeedInst()
             for name in req.feed_var_names:
                 tensor = multi_lang_general_model_service_pb2.Tensor()
+                if "{}.lod".format(name) in feed_data:
+                    var_lod = feed_data["{}.lod".format(name)]
+                    tensor.lod.extend(var_lod)
                 var = feed_data[name]
                 v_type = self.feed_types_[name]
                 if is_python:
@@ -536,6 +558,8 @@ class MultiLangClient(object):
                             raise Exception("error tensor value type.")
                     else:
                         raise Exception("var must be list or ndarray.")
+                if batch == False:
+                    tensor.shape.append(1)
                 if isinstance(var, np.ndarray):
                     tensor.shape.extend(list(var.shape))
                 else:
@@ -602,12 +626,12 @@ class MultiLangClient(object):
                 fetch,
                 need_variant_tag=False,
                 asyn=False,
-                is_python=True):
+                is_python=True,
+                batch=False):
         if not asyn:
             try:
                 self.profile_.record('py_prepro_0')
-                req = self._pack_inference_request(
-                    feed, fetch, is_python=is_python)
+                req = self._pack_inference_request(feed, fetch, is_python=is_python, batch=batch)
                 self.profile_.record('py_prepro_1')
 
                 self.profile_.record('py_client_infer_0')
@@ -626,7 +650,7 @@ class MultiLangClient(object):
             except grpc.RpcError as e:
                 return {"serving_status_code": e.code()}
         else:
-            req = self._pack_inference_request(feed, fetch, is_python=is_python)
+            req = self._pack_inference_request(feed, fetch, is_python=is_python, batch=batch)
             call_future = self.stub_.Inference.future(
                 req, timeout=self.rpc_timeout_s_)
             return MultiLangPredictFuture(
