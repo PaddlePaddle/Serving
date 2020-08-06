@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-import logging.handlers
+import logging.config
 import os
 
 
@@ -25,66 +25,59 @@ class SectionLevelFilter(object):
         return logRecord.levelno in self._levels
 
 
-class OutOfMouduleFilter(object):
-    def __init__(self, out_names):
-        self._out_names = out_names
-
-    def filter(self, logRecord):
-        return logRecord.name not in self._out_names
-
-
-class OutOfMouduleAndSectionLevelFilter(object):
-    def __init__(self, out_names, levels):
-        self._out_names = out_names
-        self._levels = levels
-
-    def filter(self, logRecord):
-        if logRecord.name in self._out_names:
-            return False
-        return logRecord.levelno in self._levels
-
-
-class StreamHandler(logging.StreamHandler):
-    def __init__(self, *args, **kwargs):
-        super(StreamHandler, self).__init__(*args, **kwargs)
-        self.addFilter(OutOfMouduleFilter(["pipeline.profiler"]))
-
-
 log_dir = "PipelineServingLogs"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-# root logger
-_LOGGER = logging.getLogger()
-_LOGGER.setLevel(logging.DEBUG)
+logger_config = {
+    "version": 1,
+    "formatters": {
+        "normal_fmt": {
+            "format":
+            "%(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s",
+        },
+        "tracer_fmt": {
+            "format": "%(asctime)s %(message)s",
+        },
+    },
+    "filters": {
+        "info_only_filter": {
+            "()": SectionLevelFilter,
+            "levels": [logging.INFO],
+        },
+    },
+    "handlers": {
+        "f_pipeline.log": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "normal_fmt",
+            "filters": ["info_only_filter"],
+            "filename": os.path.join(log_dir, "pipeline.log"),
+        },
+        "f_pipeline.log.wf": {
+            "class": "logging.FileHandler",
+            "level": "WARNING",
+            "formatter": "normal_fmt",
+            "filename": os.path.join(log_dir, "pipeline.log.wf"),
+        },
+        "f_tracer.log": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "tracer_fmt",
+            "filename": os.path.join(log_dir, "pipeline.tracer"),
+        },
+    },
+    "loggers": {
+        # propagate = True
+        ".".join(__name__.split(".")[:-1] + ["profiler"]): {
+            "level": "INFO",
+            "handlers": ["f_tracer.log"],
+        },
+    },
+    "root": {
+        "level": "DEBUG",
+        "handlers": ["f_pipeline.log", "f_pipeline.log.wf"],
+    },
+}
 
-formatter = logging.Formatter(
-    "%(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s")
-# info and warn
-file_info = logging.handlers.RotatingFileHandler(
-    os.path.join(log_dir, "INFO.log"))
-file_info.addFilter(OutOfMouduleFilter(["pipeline.profiler"]))
-file_info.addFilter(SectionLevelFilter([logging.INFO, logging.WARNING]))
-file_info.setFormatter(formatter)
-
-# err and critical
-file_err = logging.handlers.RotatingFileHandler(
-    os.path.join(log_dir, "ERROR.log"))
-file_err.addFilter(OutOfMouduleFilter(["pipeline.profiler"]))
-file_err.setLevel(logging.ERROR)
-file_err.setFormatter(formatter)
-
-_LOGGER.addHandler(file_info)
-_LOGGER.addHandler(file_err)
-
-# tracer logger
-_TRACER = logging.getLogger("pipeline.profiler")
-_TRACER.setLevel(logging.INFO)
-_TRACER.addFilter(logging.Filter("pipeline.profiler"))
-
-# tracer
-tracer_formatter = logging.Formatter("%(asctime)s %(message)s")
-file_trace = logging.handlers.RotatingFileHandler(
-    os.path.join(log_dir, "TRACE.log"))
-file_trace.setFormatter(tracer_formatter)
-_TRACER.addHandler(file_trace)
+logging.config.dictConfig(logger_config)
