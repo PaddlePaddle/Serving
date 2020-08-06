@@ -29,7 +29,7 @@ from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataEcode, ChannelDataType, ChannelStopError)
 from .profiler import TimeProfiler, PerformanceTracer
-from .util import NameGenerator
+from .util import NameGenerator, ThreadIdGenerator
 from .proto import pipeline_service_pb2
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,9 +74,9 @@ class DAGExecutor(object):
         if self._tracer is not None:
             self._tracer.start()
 
-        self._id_lock = threading.Lock()
-        self._id_counter = 0
-        self._reset_max_id = 1000000000000000000
+        self._id_generator = ThreadIdGenerator(
+            max_id=1000000000000000000, base_counter=0, step=1)
+
         self._cv_pool = {}
         self._cv_for_cv_pool = threading.Condition()
         self._fetch_buffer = {}
@@ -98,13 +98,7 @@ class DAGExecutor(object):
         _LOGGER.info("[DAG Executor] Stop")
 
     def _get_next_data_id(self):
-        data_id = None
-        with self._id_lock:
-            if self._id_counter >= self._reset_max_id:
-                _LOGGER.info("[DAG Executor] Reset request id")
-                self._id_counter -= self._reset_max_id
-            data_id = self._id_counter
-            self._id_counter += 1
+        data_id = self._id_generator.next()
         cond_v = threading.Condition()
         with self._cv_for_cv_pool:
             self._cv_pool[data_id] = cond_v
