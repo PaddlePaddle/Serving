@@ -233,7 +233,7 @@ class Client(object):
             #    key))
             pass
 
-    def predict(self, feed=None, fetch=None, need_variant_tag=False):
+    def predict(self, feed=None, fetch=None, need_variant_tag=False, log_id=0):
         self.profile_.record('py_prepro_0')
 
         if feed is None or fetch is None:
@@ -319,12 +319,12 @@ class Client(object):
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid)
+                self.pid, log_id)
         elif self.has_numpy_input == False:
             res = self.client_handle_.batch_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid)
+                self.pid, log_id)
         else:
             raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
