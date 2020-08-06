@@ -1,0 +1,18 @@
+feed_var {
+  name: "image"
+  alias_name: "image"
+  is_lod_tensor: false
+  feed_type: 1
+  shape: 3
+  shape: 640
+  shape: 640
+}
+fetch_var {
+  name: "concat_1.tmp_0"
+  alias_name: "concat_1.tmp_0"
+  is_lod_tensor: false
+  fetch_type: 1
+  shape: 3
+  shape: 640
+  shape: 640
+}

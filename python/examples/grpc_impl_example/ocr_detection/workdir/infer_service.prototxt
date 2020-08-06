@@ -1,0 +1,5 @@
+port: 12005
+services {
+  name: "GeneralModelService"
+  workflows: "workflow1"
+}

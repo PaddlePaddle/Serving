@@ -1,0 +1,331 @@
+Log file created at: 2020/08/06 14:02:37
+Running on machine: yq01-sys-hic-v100-box-a225-0264.yq01.baidu.com
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0806 14:02:37.103036 156478 resource.cpp:110] Successfully proc initialized mempool wrapper
+I0806 14:02:37.103628 156478 infer.h:782] model_toolkit_conf.engines(0).name: general_infer_0
+I0806 14:02:37.103651 156478 infer.h:74] InferEngineCreationParams: model_path = ocr_det_model/, enable_memory_optimization = 1, enable_ir_optimization = 0, static_optimization = 0, force_update_static_cache = 0
+I0806 14:02:37.103706 156478 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:02:37.116084 156478 analysis_predictor.cc:833] MODEL VERSION: 1.8.1
+I0806 14:02:37.116107 156478 analysis_predictor.cc:835] PREDICTOR VERSION: 1.7.2
+I0806 14:02:37.116448 156478 analysis_predictor.cc:440] ir_optim is turned off, no IR pass will be executed
+I0806 14:02:37.370463 156478 memory_optimize_pass.cc:223] Cluster name : conv2d_48.tmp_0  size: 153600
+I0806 14:02:37.370486 156478 memory_optimize_pass.cc:223] Cluster name : elementwise_add_7  size: 358400
+I0806 14:02:37.370491 156478 memory_optimize_pass.cc:223] Cluster name : nearest_interp_3.tmp_0  size: 2457600
+I0806 14:02:37.370496 156478 memory_optimize_pass.cc:223] Cluster name : hard_swish_0.tmp_0  size: 3276800
+I0806 14:02:37.370498 156478 memory_optimize_pass.cc:223] Cluster name : image  size: 4915200
+I0806 14:02:37.370502 156478 memory_optimize_pass.cc:223] Cluster name : elementwise_add_12  size: 9830400
+I0806 14:02:37.370507 156478 memory_optimize_pass.cc:223] Cluster name : elementwise_add_10  size: 614400
+I0806 14:02:37.370509 156478 memory_optimize_pass.cc:223] Cluster name : batch_norm_4.tmp_2  size: 13107200
+I0806 14:02:37.370513 156478 memory_optimize_pass.cc:223] Cluster name : relu_2.tmp_0  size: 13107200
+I0806 14:02:37.404268 156478 analysis_predictor.cc:462] ======= optimize end =======
+W0806 14:02:37.406005 156478 infer.h:487] Succ load common model[0x5ff1800], path[ocr_det_model/].
+W0806 14:02:37.406028 156478 infer.h:185] Succ load model_data_pathocr_det_model/
+W0806 14:02:37.406038 156478 infer.h:620] Succ proc initialize version engine: 18446744073709551615
+W0806 14:02:37.406044 156478 infer.h:594] Succ proc initialize engine: general_infer_0
+W0806 14:02:37.406051 156478 infer.h:799] Succ proc initialize engine: general_infer_0
+W0806 14:02:37.406121 156478 kv_manager.h:70] general_infer_0: 
+W0806 14:02:37.406127 156478 kv_manager.h:72] Succ proc initialize kvmanager for engine: general_infer_0
+I0806 14:02:37.406301 156478 dag.cpp:217] (general_reader_0) in_degree[0]: 0
+I0806 14:02:37.406311 156478 dag.cpp:217] (general_infer_0) in_degree[1]: 1
+I0806 14:02:37.406316 156478 dag.cpp:217] (general_response_0) in_degree[2]: 1
+I0806 14:02:37.406332 156478 dag.cpp:158] DAG: workflow1
+I0806 14:02:37.406335 156478 dag.cpp:159] , Op Num: 3
+I0806 14:02:37.406339 156478 dag.cpp:162] , OP-1-general_reader_0-GeneralReaderOp
+I0806 14:02:37.406343 156478 dag.cpp:164]  depends: 0
+I0806 14:02:37.406347 156478 dag.cpp:162] , OP-2-general_infer_0-GeneralInferOp
+I0806 14:02:37.406352 156478 dag.cpp:164]  depends: 1
+I0806 14:02:37.406354 156478 dag.cpp:168]  general_reader_0 0
+I0806 14:02:37.406358 156478 dag.cpp:162] , OP-3-general_response_0-GeneralResponseOp
+I0806 14:02:37.406363 156478 dag.cpp:164]  depends: 1
+I0806 14:02:37.406366 156478 dag.cpp:168]  general_infer_0 0
+I0806 14:02:37.406369 156478 dag.cpp:171] 
+I0806 14:02:37.406374 156478 manager.h:86] Succ init item:workflow1 from conf:workdir/workflow.prototxt, at:0!
+W0806 14:02:37.406426 156478 service.cpp:49] Succ get merger: default for service: GeneralModelService
+I0806 14:02:37.406443 156478 service.cpp:61] service[GeneralModelService], enable_map_request_to_workflow[0].
+I0806 14:02:37.406457 156478 predictor_metric.h:170] try to regist latency metric[workflow_GeneralModelService_workflow1].
+I0806 14:02:37.406505 156478 predictor_metric.h:175] succ to regist latency metric[workflow_GeneralModelService_workflow1].
+I0806 14:02:37.406721 156478 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_0].
+I0806 14:02:37.406778 156478 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_0].
+I0806 14:02:37.406790 156478 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_0_general_reader_0].
+I0806 14:02:37.406819 156478 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_0_general_reader_0].
+I0806 14:02:37.406829 156478 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_1].
+I0806 14:02:37.406855 156478 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_1].
+I0806 14:02:37.406863 156478 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_1_general_infer_0].
+I0806 14:02:37.406890 156478 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_1_general_infer_0].
+I0806 14:02:37.406898 156478 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_2].
+I0806 14:02:37.406922 156478 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_2].
+I0806 14:02:37.406929 156478 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_2_general_response_0].
+I0806 14:02:37.406955 156478 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_2_general_response_0].
+I0806 14:02:37.406962 156478 service.cpp:126] Succ load infer_service: GeneralModelService!
+I0806 14:02:37.406970 156478 manager.h:184] Succ init item:GeneralModelService from conf:workdir/infer_service.prototxt, at:0!
+I0806 14:02:37.407202 156536 server.cpp:147] Entrence reload worker, interval_s: 10
+I0806 14:02:37.407418 156536 server.cpp:150] Begin reload framework...
+W0806 14:02:37.407435 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:02:37.407445 156536 manager.h:131] Finish reload 1 workflow(s)
+W0806 14:02:37.409699 156537 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.409718 156537 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.409761 156537 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.409811 156537 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.412027 156537 infer.h:524] td_core[0x7efcb4004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.412057 156537 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.412066 156537 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.412073 156537 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efcb40a10f0
+W0806 14:02:37.412127 156538 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.412160 156538 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.412186 156538 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.412209 156538 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.414376 156538 infer.h:524] td_core[0x7efca8004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.414394 156538 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.414402 156538 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.414409 156538 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efca80a10f0
+W0806 14:02:37.414448 156539 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.414461 156539 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.414481 156539 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.414505 156539 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:02:37.416344 156478 server.cpp:1037] Server[baidu::paddle_serving::predictor::general_model::GeneralModelServiceImpl] is serving on port=12005.
+W0806 14:02:37.417438 156539 infer.h:524] td_core[0x7efc9c004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.417472 156539 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.417488 156539 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.417497 156539 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc9c0050b0
+W0806 14:02:37.417553 156540 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.417704 156540 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.417757 156540 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.417793 156540 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:02:37.417870 156478 server.cpp:1040] Check out http://yq01-sys-hic-v100-box-a225-0264.yq01.baidu.com:12005 in web browser.
+W0806 14:02:37.419915 156540 infer.h:524] td_core[0x7efc94004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.419946 156540 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.419955 156540 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.419962 156540 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc940050b0
+W0806 14:02:37.420040 156541 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.420064 156541 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.420115 156541 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.420142 156541 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.422400 156541 infer.h:524] td_core[0x7efc88004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.422433 156541 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.422442 156541 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.422449 156541 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc880050b0
+W0806 14:02:37.422505 156542 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.422526 156542 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.422749 156542 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.422780 156542 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.425043 156542 infer.h:524] td_core[0x7efc7c004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.425079 156542 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.425088 156542 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.425097 156542 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc7c0050b0
+W0806 14:02:37.425153 156543 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.425176 156543 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.425199 156543 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.425220 156543 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.427461 156543 infer.h:524] td_core[0x7efc50004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.427484 156543 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.427491 156543 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.427500 156543 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc500050b0
+W0806 14:02:37.427541 156544 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.427567 156544 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.427613 156544 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.427654 156544 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.429817 156544 infer.h:524] td_core[0x7efc80004a20] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.429838 156544 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.429847 156544 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.429855 156544 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc800050d0
+W0806 14:02:37.429898 156545 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.429919 156545 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.429941 156545 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.429965 156545 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.432090 156545 infer.h:524] td_core[0x7efc78004a20] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.432108 156545 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.432117 156545 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.432126 156545 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc780050d0
+W0806 14:02:37.432155 156546 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.432178 156546 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.432199 156546 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.432220 156546 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.434355 156546 infer.h:524] td_core[0x7efc68004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.434373 156546 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.434382 156546 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.434391 156546 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc680050b0
+W0806 14:02:37.434429 156547 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:02:37.434451 156547 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:02:37.434473 156547 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:02:37.434494 156547 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:02:37.436630 156547 infer.h:524] td_core[0x7efc64004a00] clone model from pd_core[0x5ff1800] succ, cur_idx[0].
+W0806 14:02:37.436662 156547 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:02:37.436671 156547 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:02:37.436702 156547 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7efc640050b0
+I0806 14:02:47.407516 156536 server.cpp:150] Begin reload framework...
+W0806 14:02:47.407585 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:02:47.407603 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:02:57.407671 156536 server.cpp:150] Begin reload framework...
+W0806 14:02:57.407722 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:02:57.407739 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:07.407783 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:07.408761 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:07.408960 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:17.409039 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:17.409281 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:17.409462 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:27.409544 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:27.410604 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:27.410805 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:37.410890 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:37.415237 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:37.415333 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:47.415410 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:47.415473 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:47.415491 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:03:57.415565 156536 server.cpp:150] Begin reload framework...
+W0806 14:03:57.415637 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:03:57.415654 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:07.415737 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:07.416664 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:07.416908 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:17.416985 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:17.418031 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:17.418262 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:27.418344 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:27.418583 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:27.418908 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:37.418995 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:37.419210 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:37.419287 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:47.419365 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:47.419431 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:47.419450 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:04:57.419520 156536 server.cpp:150] Begin reload framework...
+W0806 14:04:57.419589 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:04:57.419606 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:07.419679 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:07.419908 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:07.420078 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:17.420157 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:17.420564 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:17.420625 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:27.420699 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:27.421170 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:27.421254 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:37.421339 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:37.421972 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:37.422061 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:47.422142 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:47.422217 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:47.422236 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:05:57.422305 156536 server.cpp:150] Begin reload framework...
+W0806 14:05:57.422369 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:05:57.422384 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:07.422466 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:07.422853 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:07.423043 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:17.423123 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:17.423410 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:17.423642 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:27.423735 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:27.423972 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:27.424049 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:37.424125 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:37.424383 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:37.424482 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:47.424564 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:47.424626 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:47.424646 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:06:57.424721 156536 server.cpp:150] Begin reload framework...
+W0806 14:06:57.424785 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:06:57.424804 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:07.424881 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:07.425130 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:07.425333 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:17.425410 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:17.425923 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:17.426025 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:27.426110 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:27.426560 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:27.426640 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:37.426710 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:37.427246 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:37.427347 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:47.427429 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:47.427496 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:47.427513 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:07:57.427587 156536 server.cpp:150] Begin reload framework...
+W0806 14:07:57.427654 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:07:57.427671 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:07.427743 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:07.428156 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:07.428344 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:17.428423 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:17.428987 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:17.429075 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:27.429160 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:27.429641 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:27.429723 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:37.429783 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:37.430028 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:37.430132 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:47.430217 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:47.430279 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:47.430296 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:08:57.430371 156536 server.cpp:150] Begin reload framework...
+W0806 14:08:57.430434 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:08:57.430454 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:07.430531 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:07.430938 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:07.431118 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:17.431196 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:17.432104 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:17.432193 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:27.432276 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:27.432746 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:27.432915 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:37.432993 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:37.433378 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:37.433470 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:47.433545 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:47.433604 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:47.433622 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:09:57.433691 156536 server.cpp:150] Begin reload framework...
+W0806 14:09:57.433737 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:09:57.433753 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:07.433781 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:07.434521 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:07.434710 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:17.434782 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:17.435451 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:17.435637 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:27.435860 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:27.435983 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:27.436175 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:37.436255 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:37.436888 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:37.436970 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:47.437044 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:47.437104 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:47.437124 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:10:57.437196 156536 server.cpp:150] Begin reload framework...
+W0806 14:10:57.437255 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:10:57.437273 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:07.437345 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:07.437703 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:07.437903 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:17.437988 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:17.438475 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:17.438674 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:27.438756 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:27.439246 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:27.439465 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:37.439550 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:37.440121 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:37.440225 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:47.440304 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:47.440408 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:47.440426 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:11:57.440498 156536 server.cpp:150] Begin reload framework...
+W0806 14:11:57.440562 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:11:57.440577 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:12:07.440647 156536 server.cpp:150] Begin reload framework...
+W0806 14:12:07.441253 156536 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:12:07.441473 156536 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:12:16.926959 156541 general_model_service.pb.cc:2975]  remote_side=[127.0.0.1:30563]
+I0806 14:12:16.927906 156541 general_model_service.pb.cc:2976]  local_side=[127.0.0.1:12005]
+I0806 14:12:16.928133 156541 general_model_service.pb.cc:2977]  service_name=[GeneralModelService]
+I0806 14:12:16.928154 156541 general_model_service.pb.cc:2978]  log_id=[0]
+I0806 14:12:16.928179 156541 service.cpp:173] enable map request == False
+I0806 14:12:16.931885 156541 op.cpp:159]  general_reader_0_time=[2612]

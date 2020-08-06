@@ -1,0 +1,24 @@
+workflows {
+  name: "workflow1"
+  workflow_type: "Sequence"
+  nodes {
+    name: "general_reader_0"
+    type: "GeneralReaderOp"
+  }
+  nodes {
+    name: "general_infer_0"
+    type: "GeneralInferOp"
+    dependencies {
+      name: "general_reader_0"
+      mode: "RO"
+    }
+  }
+  nodes {
+    name: "general_response_0"
+    type: "GeneralResponseOp"
+    dependencies {
+      name: "general_infer_0"
+      mode: "RO"
+    }
+  }
+}

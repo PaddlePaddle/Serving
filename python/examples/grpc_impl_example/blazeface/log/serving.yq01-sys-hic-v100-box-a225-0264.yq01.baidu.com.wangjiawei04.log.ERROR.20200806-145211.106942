@@ -1,0 +1,6 @@
+Log file created at: 2020/08/06 14:52:11
+Running on machine: yq01-sys-hic-v100-box-a225-0264.yq01.baidu.com
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E0806 14:52:11.281495 106942 server.cpp:929] Fail to listen 0.0.0.0:12005
+E0806 14:52:11.286175 106942 server.cpp:95] Failed to start Paddle Inference Server
+E0806 14:52:11.286290 106942 pdserving.cpp:221] Failed start server and wait!

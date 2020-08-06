@@ -1,0 +1,248 @@
+Log file created at: 2020/08/06 14:24:05
+Running on machine: yq01-sys-hic-v100-box-a225-0264.yq01.baidu.com
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0806 14:24:05.644876 198445 resource.cpp:110] Successfully proc initialized mempool wrapper
+I0806 14:24:05.645656 198445 infer.h:782] model_toolkit_conf.engines(0).name: general_infer_0
+I0806 14:24:05.645678 198445 infer.h:74] InferEngineCreationParams: model_path = ocr_det_model/, enable_memory_optimization = 1, enable_ir_optimization = 0, static_optimization = 0, force_update_static_cache = 0
+I0806 14:24:05.645731 198445 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:24:05.658001 198445 analysis_predictor.cc:833] MODEL VERSION: 1.8.1
+I0806 14:24:05.658022 198445 analysis_predictor.cc:835] PREDICTOR VERSION: 1.7.2
+I0806 14:24:05.658363 198445 analysis_predictor.cc:440] ir_optim is turned off, no IR pass will be executed
+I0806 14:24:05.914120 198445 memory_optimize_pass.cc:223] Cluster name : conv2d_48.tmp_0  size: 153600
+I0806 14:24:05.914149 198445 memory_optimize_pass.cc:223] Cluster name : elementwise_add_7  size: 358400
+I0806 14:24:05.914153 198445 memory_optimize_pass.cc:223] Cluster name : nearest_interp_3.tmp_0  size: 2457600
+I0806 14:24:05.914157 198445 memory_optimize_pass.cc:223] Cluster name : hard_swish_0.tmp_0  size: 3276800
+I0806 14:24:05.914161 198445 memory_optimize_pass.cc:223] Cluster name : image  size: 4915200
+I0806 14:24:05.914165 198445 memory_optimize_pass.cc:223] Cluster name : elementwise_add_12  size: 9830400
+I0806 14:24:05.914168 198445 memory_optimize_pass.cc:223] Cluster name : elementwise_add_10  size: 614400
+I0806 14:24:05.914172 198445 memory_optimize_pass.cc:223] Cluster name : batch_norm_4.tmp_2  size: 13107200
+I0806 14:24:05.914175 198445 memory_optimize_pass.cc:223] Cluster name : relu_2.tmp_0  size: 13107200
+I0806 14:24:05.948047 198445 analysis_predictor.cc:462] ======= optimize end =======
+W0806 14:24:05.949836 198445 infer.h:487] Succ load common model[0x7057800], path[ocr_det_model/].
+W0806 14:24:05.949858 198445 infer.h:185] Succ load model_data_pathocr_det_model/
+W0806 14:24:05.949868 198445 infer.h:620] Succ proc initialize version engine: 18446744073709551615
+W0806 14:24:05.949874 198445 infer.h:594] Succ proc initialize engine: general_infer_0
+W0806 14:24:05.949882 198445 infer.h:799] Succ proc initialize engine: general_infer_0
+W0806 14:24:05.949959 198445 kv_manager.h:70] general_infer_0: 
+W0806 14:24:05.949965 198445 kv_manager.h:72] Succ proc initialize kvmanager for engine: general_infer_0
+I0806 14:24:05.950152 198445 dag.cpp:217] (general_reader_0) in_degree[0]: 0
+I0806 14:24:05.950162 198445 dag.cpp:217] (general_infer_0) in_degree[1]: 1
+I0806 14:24:05.950166 198445 dag.cpp:217] (general_response_0) in_degree[2]: 1
+I0806 14:24:05.950182 198445 dag.cpp:158] DAG: workflow1
+I0806 14:24:05.950186 198445 dag.cpp:159] , Op Num: 3
+I0806 14:24:05.950191 198445 dag.cpp:162] , OP-1-general_reader_0-GeneralReaderOp
+I0806 14:24:05.950194 198445 dag.cpp:164]  depends: 0
+I0806 14:24:05.950198 198445 dag.cpp:162] , OP-2-general_infer_0-GeneralInferOp
+I0806 14:24:05.950202 198445 dag.cpp:164]  depends: 1
+I0806 14:24:05.950206 198445 dag.cpp:168]  general_reader_0 0
+I0806 14:24:05.950209 198445 dag.cpp:162] , OP-3-general_response_0-GeneralResponseOp
+I0806 14:24:05.950213 198445 dag.cpp:164]  depends: 1
+I0806 14:24:05.950217 198445 dag.cpp:168]  general_infer_0 0
+I0806 14:24:05.950220 198445 dag.cpp:171] 
+I0806 14:24:05.950225 198445 manager.h:86] Succ init item:workflow1 from conf:workdir/workflow.prototxt, at:0!
+W0806 14:24:05.950281 198445 service.cpp:49] Succ get merger: default for service: GeneralModelService
+I0806 14:24:05.950299 198445 service.cpp:61] service[GeneralModelService], enable_map_request_to_workflow[0].
+I0806 14:24:05.950312 198445 predictor_metric.h:170] try to regist latency metric[workflow_GeneralModelService_workflow1].
+I0806 14:24:05.950366 198445 predictor_metric.h:175] succ to regist latency metric[workflow_GeneralModelService_workflow1].
+I0806 14:24:05.950460 198445 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_0].
+I0806 14:24:05.950492 198445 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_0].
+I0806 14:24:05.950500 198445 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_0_general_reader_0].
+I0806 14:24:05.950527 198445 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_0_general_reader_0].
+I0806 14:24:05.950536 198445 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_1].
+I0806 14:24:05.950562 198445 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_1].
+I0806 14:24:05.950567 198445 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_1_general_infer_0].
+I0806 14:24:05.950594 198445 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_1_general_infer_0].
+I0806 14:24:05.950601 198445 predictor_metric.h:170] try to regist latency metric[stage_GeneralModelService_workflow1_2].
+I0806 14:24:05.950626 198445 predictor_metric.h:175] succ to regist latency metric[stage_GeneralModelService_workflow1_2].
+I0806 14:24:05.950632 198445 predictor_metric.h:170] try to regist latency metric[op_GeneralModelService_workflow1_2_general_response_0].
+I0806 14:24:05.950659 198445 predictor_metric.h:175] succ to regist latency metric[op_GeneralModelService_workflow1_2_general_response_0].
+I0806 14:24:05.950664 198445 service.cpp:126] Succ load infer_service: GeneralModelService!
+I0806 14:24:05.950671 198445 manager.h:184] Succ init item:GeneralModelService from conf:workdir/infer_service.prototxt, at:0!
+I0806 14:24:05.950911 198513 server.cpp:147] Entrence reload worker, interval_s: 10
+I0806 14:24:05.951179 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:05.951198 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:05.951211 198513 manager.h:131] Finish reload 1 workflow(s)
+W0806 14:24:05.953459 198514 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.953542 198514 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.953588 198514 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.953640 198514 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.957310 198514 infer.h:524] td_core[0x7fb028004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.957342 198514 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.957352 198514 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.957360 198514 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fb0280a10f0
+W0806 14:24:05.957420 198515 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.957453 198515 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.957475 198515 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.957499 198515 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.960199 198515 infer.h:524] td_core[0x7fb01c004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.960220 198515 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.960229 198515 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.960237 198515 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fb01c0a10f0
+W0806 14:24:05.960278 198516 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.960292 198516 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.960310 198516 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.960330 198516 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:24:05.962174 198445 server.cpp:1037] Server[baidu::paddle_serving::predictor::general_model::GeneralModelServiceImpl] is serving on port=12005.
+W0806 14:24:05.963593 198516 infer.h:524] td_core[0x7fb014004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.963636 198516 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.963654 198516 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.963665 198516 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fb0140050b0
+W0806 14:24:05.963747 198517 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.963912 198517 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.963973 198517 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.963996 198517 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+I0806 14:24:05.964088 198445 server.cpp:1040] Check out http://yq01-sys-hic-v100-box-a225-0264.yq01.baidu.com:12005 in web browser.
+W0806 14:24:05.966516 198517 infer.h:524] td_core[0x7fb008004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.966554 198517 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.966563 198517 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.966580 198517 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fb0080050b0
+W0806 14:24:05.966651 198518 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.966675 198518 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.966732 198518 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.966766 198518 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.969388 198518 infer.h:524] td_core[0x7fb000004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.969422 198518 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.969430 198518 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.969439 198518 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fb0000050b0
+W0806 14:24:05.969485 198519 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.969504 198519 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.969548 198519 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.969581 198519 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.972041 198519 infer.h:524] td_core[0x7faff0004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.972076 198519 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.972086 198519 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.972095 198519 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7faff00050b0
+W0806 14:24:05.972159 198520 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.972182 198520 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.972204 198520 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.972225 198520 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.974644 198520 infer.h:524] td_core[0x7fafc8004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.974678 198520 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.974689 198520 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.974696 198520 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fafc80050b0
+W0806 14:24:05.974726 198521 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.974750 198521 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.974798 198521 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.974831 198521 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.977105 198521 infer.h:524] td_core[0x7faff4004a20] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.977124 198521 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.977133 198521 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.977142 198521 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7faff40050d0
+W0806 14:24:05.977171 198522 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.977195 198522 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.977216 198522 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.977237 198522 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.979465 198522 infer.h:524] td_core[0x7fafec004a20] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.979485 198522 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.979493 198522 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.979501 198522 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fafec0050d0
+W0806 14:24:05.979530 198523 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.979553 198523 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.979573 198523 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.979594 198523 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.981830 198523 infer.h:524] td_core[0x7fafd4004a20] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.981849 198523 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.981858 198523 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.981866 198523 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fafd40050d0
+W0806 14:24:05.981906 198524 memory.cpp:73] Succ thread initialize mempool wrapper
+W0806 14:24:05.981928 198524 resource.cpp:279] Successfully thread initialized mempool wrapper
+W0806 14:24:05.981950 198524 memory.cpp:73] Succ thread initialize mempool wrapper
+I0806 14:24:05.981969 198524 analysis_predictor.cc:84] Profiler is deactivated, and no profiling report will be generated.
+W0806 14:24:05.984169 198524 infer.h:524] td_core[0x7fafe4004a00] clone model from pd_core[0x7057800] succ, cur_idx[0].
+W0806 14:24:05.984189 198524 infer.h:641] Succ thrd initialize version engine: 18446744073709551615
+W0806 14:24:05.984197 198524 infer.h:810] Succ thrd initialize engine, name: general_infer_0
+I0806 14:24:05.984206 198524 resource.cpp:313] 0: Successfully thread initialized dynamic resource 0x7fafe40050b0
+I0806 14:24:15.035326 198518 general_model_service.pb.cc:2975]  remote_side=[127.0.0.1:40931]
+I0806 14:24:15.035548 198518 general_model_service.pb.cc:2976]  local_side=[127.0.0.1:12005]
+I0806 14:24:15.035559 198518 general_model_service.pb.cc:2977]  service_name=[GeneralModelService]
+I0806 14:24:15.035567 198518 general_model_service.pb.cc:2978]  log_id=[0]
+I0806 14:24:15.035579 198518 service.cpp:173] enable map request == False
+I0806 14:24:15.040182 198518 op.cpp:159]  general_reader_0_time=[3547]
+I0806 14:24:15.805876 198518 op.cpp:159]  general_infer_0_time=[765621]
+I0806 14:24:15.810362 198518 op.cpp:159]  general_response_0_time=[4397]
+I0806 14:24:15.814441 198518 service.cpp:238] workflow total time: 778851
+I0806 14:24:15.816313 198518 general_model_service.pb.cc:2989]  tc=[780993]
+I0806 14:24:15.951282 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:15.952162 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:15.952359 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:24:25.952456 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:25.952745 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:25.952962 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:24:35.953038 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:35.953555 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:35.953747 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:24:45.953836 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:45.955035 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:45.955348 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:24:55.955622 198513 server.cpp:150] Begin reload framework...
+W0806 14:24:55.955703 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:24:55.955720 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:05.955783 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:05.955845 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:05.955864 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:15.955938 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:15.957168 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:15.957366 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:25.957442 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:25.957669 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:25.957871 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:35.957952 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:35.959995 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:35.960585 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:45.960738 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:45.960815 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:45.960837 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:25:49.479151 198515 general_model_service.pb.cc:2975]  remote_side=[127.0.0.1:42392]
+I0806 14:25:49.479259 198515 general_model_service.pb.cc:2976]  local_side=[127.0.0.1:12005]
+I0806 14:25:49.479269 198515 general_model_service.pb.cc:2977]  service_name=[GeneralModelService]
+I0806 14:25:49.479275 198515 general_model_service.pb.cc:2978]  log_id=[0]
+I0806 14:25:49.479285 198515 service.cpp:173] enable map request == False
+I0806 14:25:49.480275 198515 op.cpp:159]  general_reader_0_time=[941]
+I0806 14:25:50.139209 198515 op.cpp:159]  general_infer_0_time=[658907]
+I0806 14:25:50.143543 198515 op.cpp:159]  general_response_0_time=[4227]
+I0806 14:25:50.147944 198515 service.cpp:238] workflow total time: 668652
+I0806 14:25:50.147997 198515 general_model_service.pb.cc:2989]  tc=[668856]
+I0806 14:25:55.960907 198513 server.cpp:150] Begin reload framework...
+W0806 14:25:55.960981 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:25:55.960999 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:05.961071 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:05.961141 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:05.961159 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:15.961232 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:15.962246 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:15.962424 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:25.962500 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:25.962945 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:25.963145 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:35.963685 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:35.964130 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:35.964304 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:45.964615 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:45.964679 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:45.964699 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:26:55.964777 198513 server.cpp:150] Begin reload framework...
+W0806 14:26:55.964860 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:26:55.964881 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:05.964956 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:05.965042 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:05.965059 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:15.965133 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:15.965865 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:15.965962 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:25.966430 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:25.966964 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:25.967144 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:35.967221 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:35.968348 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:35.968575 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:45.968648 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:45.968715 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:45.968732 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:27:55.968776 198513 server.cpp:150] Begin reload framework...
+W0806 14:27:55.971711 198513 infer.h:673] Succ reload version engine: 18446744073709551615
+I0806 14:27:55.971742 198513 manager.h:131] Finish reload 1 workflow(s)
+I0806 14:28:03.190059 198445 server.cpp:1095] Server[baidu::paddle_serving::predictor::general_model::GeneralModelServiceImpl] is going to quit
+I0806 14:28:05.971779 198513 server.cpp:162] Exit reload worker!
+W0806 14:28:05.972167 198445 infer.h:630] Succ proc finalize version engine: 18446744073709551615
+W0806 14:28:05.972218 198445 infer.h:852] Succ proc finalize engine, name: general_infer_0
+W0806 14:28:05.972232 198445 cube_api.cpp:111] Destroy, cube meta is null
