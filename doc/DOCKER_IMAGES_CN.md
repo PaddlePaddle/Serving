@@ -40,3 +40,13 @@
 | GPU (cuda10.0-cudnn7) 开发镜像                     | CentOS7  | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
 | CPU 开发镜像 (用于编译 Ubuntu 包)                  | CentOS6  | <无>                         | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
 | GPU (cuda9.0-cudnn7) 开发镜像 (用于编译 Ubuntu 包) | CentOS6  | <无>                         | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
+
+
+
+## 运行CUDA容器的要求
+
+运行CUDA容器需要至少具有一个支持CUDA的GPU以及与您所使用的CUDA工具包版本兼容的驱动程序。
+
+运行CUDA容器的机器**只需要相应的NVIDIA驱动程序**，而CUDA工具包不是必要的。
+
+相关CUDA工具包版本、驱动版本和GPU架构的关系请参阅 [nvidia-docker wiki](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA)。

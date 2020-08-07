@@ -24,7 +24,7 @@ You can get images in two ways:
    ```
 
 
-   
+
 
 ## Image description
 
@@ -40,3 +40,14 @@ Runtime images cannot be used for compilation.
 |              GPU (cuda10.0-cudnn7) development               | CentOS7 | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
 |     CPU development (Used to compile packages on Ubuntu)     | CentOS6 |            <None>            | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
 | GPU (cuda9.0-cudnn7) development (Used to compile packages on Ubuntu) | CentOS6 |            <None>            | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
+
+
+
+## Requirements for running CUDA containers
+
+Running a CUDA container requires a machine with at least one CUDA-capable GPU and a driver compatible with the CUDA toolkit version you are using. 
+
+The machine running the CUDA container **only requires the NVIDIA driver**, the CUDA toolkit doesn't have to be installed.
+
+For the relationship between CUDA toolkit version, Driver version and GPU architecture, please refer to [nvidia-docker wiki](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA).
+
