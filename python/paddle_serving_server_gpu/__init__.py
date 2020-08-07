@@ -585,7 +585,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
             feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python
+        return feed_batch, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
