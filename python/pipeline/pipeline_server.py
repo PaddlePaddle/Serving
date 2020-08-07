@@ -30,10 +30,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, response_op, dag_conf):
+    def __init__(self, response_op, dag_conf, worker_idx=-1):
         super(PipelineServicer, self).__init__()
         # init dag executor
-        self._dag_executor = DAGExecutor(response_op, dag_conf)
+        self._dag_executor = DAGExecutor(response_op, dag_conf, worker_idx)
         self._dag_executor.start()
         _LOGGER.info("[PipelineServicer] succ init")
 
@@ -107,7 +107,7 @@ class PipelineServer(object):
                     show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
-                        args=(bind_address, self._response_op, self._conf))
+                        args=(bind_address, self._response_op, self._conf, i))
                     worker.start()
                     workers.append(worker)
                 for worker in workers:
@@ -121,13 +121,13 @@ class PipelineServer(object):
             server.start()
             server.wait_for_termination()
 
-    def _run_server_func(self, bind_address, response_op, dag_conf):
+    def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
         options = (('grpc.so_reuseport', 1), )
         server = grpc.server(
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineServicer(response_op, dag_conf), server)
+            PipelineServicer(response_op, dag_conf, worker_idx), server)
         server.add_insecure_port(bind_address)
         server.start()
         server.wait_for_termination()

@@ -164,7 +164,6 @@ int PredictorClient::batch_predict(
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
   req.set_log_id(log_id);
-  VLOG(2) << "(logid=" << req.log_id() << ")";
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
@@ -379,7 +378,6 @@ int PredictorClient::numpy_predict(
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
   req.set_log_id(log_id);
-  VLOG(2) << "(logid=" << req.log_id() << ")";
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
