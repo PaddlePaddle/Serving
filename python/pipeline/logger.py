@@ -40,18 +40,11 @@ logger_config = {
             "format": "%(asctime)s %(message)s",
         },
     },
-    "filters": {
-        "info_only_filter": {
-            "()": SectionLevelFilter,
-            "levels": [logging.INFO],
-        },
-    },
     "handlers": {
         "f_pipeline.log": {
             "class": "logging.FileHandler",
             "level": "INFO",
             "formatter": "normal_fmt",
-            "filters": ["info_only_filter"],
             "filename": os.path.join(log_dir, "pipeline.log"),
         },
         "f_pipeline.log.wf": {
