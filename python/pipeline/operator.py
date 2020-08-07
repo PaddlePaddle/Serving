@@ -199,7 +199,7 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict
 
-    def process(self, feed_batch):
+    def process(self, feed_batch, typical_logid):
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -207,7 +207,7 @@ class Op(object):
                           "preprocess func.".format(err_info)))
             os._exit(-1)
         call_result = self.client.predict(
-            feed=feed_batch, fetch=self._fetch_names)
+            feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
@@ -330,53 +330,64 @@ class Op(object):
         err_channeldata_dict = {}
         if self.with_serving:
             data_ids = preped_data_dict.keys()
+            typical_logid = data_ids[0]
+            if len(data_ids) != 1:
+                for data_id in data_ids:
+                    _LOGGER.info(
+                        "(logid={}) During access to PaddleServingService,"
+                        " we selected logid={} (batch: {}) as a representative"
+                        " for logging.".format(data_id, typical_logid,
+                                               data_ids))
             feed_batch = [preped_data_dict[data_id] for data_id in data_ids]
             midped_batch = None
             ecode = ChannelDataEcode.OK.value
             if self._timeout <= 0:
                 try:
-                    midped_batch = self.process(feed_batch)
+                    midped_batch = self.process(feed_batch, typical_logid)
                 except Exception as e:
                     ecode = ChannelDataEcode.UNKNOW.value
-                    error_info = "{} Failed to process(batch: {}): {}".format(
-                        op_info_prefix, data_ids, e)
+                    error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
+                        typical_logid, op_info_prefix, data_ids, e)
                     _LOGGER.error(error_info, exc_info=True)
             else:
                 for i in range(self._retry):
                     try:
                         midped_batch = func_timeout.func_timeout(
-                            self._timeout, self.process, args=(feed_batch, ))
+                            self._timeout,
+                            self.process,
+                            args=(feed_batch, typical_logid))
                     except func_timeout.FunctionTimedOut as e:
                         if i + 1 >= self._retry:
                             ecode = ChannelDataEcode.TIMEOUT.value
-                            error_info = "{} Failed to process(batch: {}): " \
+                            error_info = "(logid={}) {} Failed to process(batch: {}): " \
                                     "exceeded retry count.".format(
-                                            op_info_prefix, data_ids)
+                                            typical_logid, op_info_prefix, data_ids)
                             _LOGGER.error(error_info)
                         else:
                             _LOGGER.warning(
-                                "{} Failed to process(batch: {}): timeout, and retrying({}/{})"
-                                .format(op_info_prefix, data_ids, i + 1,
-                                        self._retry))
+                                "(logid={}) {} Failed to process(batch: {}): timeout,"
+                                " and retrying({}/{})...".format(
+                                    typical_logid, op_info_prefix, data_ids, i +
+                                    1, self._retry))
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
-                        error_info = "{} Failed to process(batch: {}): {}".format(
-                            op_info_prefix, data_ids, e)
+                        error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
+                            typical_logid, op_info_prefix, data_ids, e)
                         _LOGGER.error(error_info, exc_info=True)
                         break
                     else:
                         break
             if ecode != ChannelDataEcode.OK.value:
                 for data_id in data_ids:
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
                     err_channeldata_dict[data_id] = ChannelData(
                         ecode=ecode, error_info=error_info, data_id=data_id)
             elif midped_batch is None:
                 # op client return None
-                error_info = "{} Failed to predict, please check if PaddleServingService" \
-                        " is working properly.".format(op_info_prefix)
+                error_info = "(logid={}) {} Failed to predict, please check if " \
+                        "PaddleServingService is working properly.".format(
+                                typical_logid, op_info_prefix)
+                _LOGGER.error(error_info)
                 for data_id in data_ids:
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
                     err_channeldata_dict[data_id] = ChannelData(
                         ecode=ChannelDataEcode.CLIENT_ERROR.value,
                         error_info=error_info,
