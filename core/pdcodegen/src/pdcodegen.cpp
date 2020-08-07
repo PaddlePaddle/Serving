@@ -268,6 +268,7 @@ class PdsCodeGenerator : public CodeGenerator {
           "        const $input_name$* request,\n"
           "        $output_name$* response,\n"
           "        google::protobuf::Closure* done) {\n"
+          "   std::cout << \"WTFFFFFFFFFFFFFFFF\";\n"
           "   struct timeval tv;\n"
           "   gettimeofday(&tv, NULL);"
           "   long start = tv.tv_sec * 1000000 + tv.tv_usec;",
@@ -1013,6 +1014,7 @@ class PdsCodeGenerator : public CodeGenerator {
             "  brpc::ClosureGuard done_guard(done);\n"
             "  brpc::Controller* cntl = \n"
             "        static_cast<brpc::Controller*>(cntl_base);\n"
+            "  cntl->set_log_id(request->log_id());\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
@@ -1050,6 +1052,7 @@ class PdsCodeGenerator : public CodeGenerator {
             "  brpc::ClosureGuard done_guard(done);\n"
             "  brpc::Controller* cntl = \n"
             "        static_cast<brpc::Controller*>(cntl_base);\n"
+            "  cntl->set_log_id(request->log_id());\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
