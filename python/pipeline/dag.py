@@ -36,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, server_conf):
+    def __init__(self, response_op, server_conf, worker_idx):
         build_dag_each_worker = server_conf["build_dag_each_worker"]
         server_worker_num = server_conf["worker_num"]
         dag_conf = server_conf["dag"]
@@ -74,8 +74,16 @@ class DAGExecutor(object):
         if self._tracer is not None:
             self._tracer.start()
 
+        # generate id: data_id == request_id == log_id
+        base_counter = 0
+        gen_id_step = 1
+        if build_dag_each_worker:
+            base_counter = worker_idx
+            gen_id_step = server_worker_num
         self._id_generator = ThreadIdGenerator(
-            max_id=1000000000000000000, base_counter=0, step=1)
+            max_id=1000000000000000000,
+            base_counter=base_counter,
+            step=gen_id_step)
 
         self._cv_pool = {}
         self._cv_for_cv_pool = threading.Condition()
