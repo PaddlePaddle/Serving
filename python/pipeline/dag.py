@@ -29,7 +29,7 @@ from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataEcode, ChannelDataType, ChannelStopError)
 from .profiler import TimeProfiler, PerformanceTracer
-from .util import NameGenerator, ThreadIdGenerator
+from .util import NameGenerator, ThreadIdGenerator, PipelineProcSyncManager
 from .proto import pipeline_service_pb2
 
 _LOGGER = logging.getLogger(__name__)
@@ -324,7 +324,7 @@ class DAG(object):
         self._build_dag_each_worker = build_dag_each_worker
         self._tracer = tracer
         if not self._is_thread_op:
-            self._manager = multiprocessing.Manager()
+            self._manager = PipelineProcSyncManager()
         _LOGGER.info("[DAG] Succ init")
 
     def get_use_ops(self, response_op):
