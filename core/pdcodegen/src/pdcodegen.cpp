@@ -268,7 +268,6 @@ class PdsCodeGenerator : public CodeGenerator {
           "        const $input_name$* request,\n"
           "        $output_name$* response,\n"
           "        google::protobuf::Closure* done) {\n"
-          "   std::cout << \"WTFFFFFFFFFFFFFFFF\";\n"
           "   struct timeval tv;\n"
           "   gettimeofday(&tv, NULL);"
           "   long start = tv.tv_sec * 1000000 + tv.tv_usec;",
