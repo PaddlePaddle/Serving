@@ -16,6 +16,14 @@ import sys
 import logging
 import threading
 import multiprocessing
+if sys.version_info.major == 2:
+    import Queue
+    from Queue import PriorityQueue
+elif sys.version_info.major == 3:
+    import queue as Queue
+    from queue import PriorityQueue
+else:
+    raise Exception("Error Python version")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,3 +95,18 @@ class ProcessIdGenerator(UnsafeIdGenerator):
             next_id = self._counter.value
             self._counter.value += self._step
         return next_id
+
+
+def PipelineProcSyncManager():
+    """
+    add PriorityQueue into SyncManager, see more: 
+    https://stackoverflow.com/questions/25324560/strange-queue-priorityqueue-behaviour-with-multiprocessing-in-python-2-7-6?answertab=active#tab-top
+    """
+
+    class PipelineManager(multiprocessing.managers.SyncManager):
+        pass
+
+    PipelineManager.register("PriorityQueue", PriorityQueue)
+    m = PipelineManager()
+    m.start()
+    return m

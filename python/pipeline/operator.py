@@ -22,6 +22,7 @@ import logging
 import func_timeout
 import os
 import sys
+import collections
 import numpy as np
 from numpy import *
 
@@ -127,7 +128,7 @@ class Op(object):
                     fetch_names):
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
-                         "run the process function".format(self.name))
+                         "run the process function)".format(self.name))
             return None
         if client_type == 'brpc':
             client = Client()
@@ -294,8 +295,8 @@ class Op(object):
 
     def _run_preprocess(self, parsed_data_dict, op_info_prefix):
         _LOGGER.debug("{} Running preprocess".format(op_info_prefix))
-        preped_data_dict = {}
-        err_channeldata_dict = {}
+        preped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         for data_id, parsed_data in parsed_data_dict.items():
             preped_data, error_channeldata = None, None
             try:
@@ -326,18 +327,18 @@ class Op(object):
 
     def _run_process(self, preped_data_dict, op_info_prefix):
         _LOGGER.debug("{} Running process".format(op_info_prefix))
-        midped_data_dict = {}
-        err_channeldata_dict = {}
+        midped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         if self.with_serving:
             data_ids = preped_data_dict.keys()
             typical_logid = data_ids[0]
             if len(data_ids) != 1:
                 for data_id in data_ids:
                     _LOGGER.info(
-                        "(logid={}) During access to PaddleServingService,"
-                        " we selected logid={} (batch: {}) as a representative"
-                        " for logging.".format(data_id, typical_logid,
-                                               data_ids))
+                        "(logid={}) {} During access to PaddleServingService,"
+                        " we selected logid={} (from batch: {}) as a "
+                        "representative for logging.".format(
+                            data_id, op_info_prefix, typical_logid, data_ids))
             feed_batch = [preped_data_dict[data_id] for data_id in data_ids]
             midped_batch = None
             ecode = ChannelDataEcode.OK.value
@@ -407,8 +408,8 @@ class Op(object):
     def _run_postprocess(self, parsed_data_dict, midped_data_dict,
                          op_info_prefix):
         _LOGGER.debug("{} Running postprocess".format(op_info_prefix))
-        postped_data_dict = {}
-        err_channeldata_dict = {}
+        postped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         for data_id, midped_data in midped_data_dict.items():
             postped_data, err_channeldata = None, None
             try:
@@ -487,7 +488,7 @@ class Op(object):
             yield batch
 
     def _parse_channeldata_batch(self, batch, output_channels):
-        parsed_data_dict = {}
+        parsed_data_dict = collections.OrderedDict()
         need_profile_dict = {}
         profile_dict = {}
         for channeldata_dict in batch:
