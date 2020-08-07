@@ -22,7 +22,6 @@
    ```shell
    docker build -t <image-name>:<images-tag> .
    ```
-
    
 
 

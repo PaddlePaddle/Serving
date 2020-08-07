@@ -25,7 +25,6 @@ You can get images in two ways:
 
 
 
-
 ## Image description
 
 Runtime images cannot be used for compilation.
@@ -50,4 +49,3 @@ Running a CUDA container requires a machine with at least one CUDA-capable GPU a
 The machine running the CUDA container **only requires the NVIDIA driver**, the CUDA toolkit doesn't have to be installed.
 
 For the relationship between CUDA toolkit version, Driver version and GPU architecture, please refer to [nvidia-docker wiki](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA).
-
