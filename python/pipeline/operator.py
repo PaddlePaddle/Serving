@@ -575,7 +575,7 @@ class Op(object):
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
-            if len(parsed_data_dict) == 0:
+            if len(preped_data_dict) == 0:
                 continue
 
             # process
@@ -610,7 +610,7 @@ class Op(object):
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
-                        data=error_channeldata,
+                        data=err_channeldata,
                         channels=output_channels,
                         client_need_profile=need_profile_dict[data_id],
                         profile_set=profile_dict[data_id])
