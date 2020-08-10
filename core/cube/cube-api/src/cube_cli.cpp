@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <gflags/gflags.h>
+#include <algorithm>
 #include <atomic>
 #include <fstream>
 #include <thread>  //NOLINT
@@ -31,8 +32,9 @@ DEFINE_bool(print_output, false, "print output flag");
 DEFINE_int32(thread_num, 1, "thread num");
 std::atomic<int> g_concurrency(0);
 
-std::vector<uint64_t> time_list;
+std::vector<std::vector<uint64_t>> time_list;
 std::vector<uint64_t> request_list;
+int turns = 1000;
 
 namespace {
 inline uint64_t time_diff(const struct timeval& start_time,
@@ -93,14 +95,15 @@ int run(int argc, char** argv, int thread_id) {
   uint64_t file_size = key_list.size();
   uint64_t index = 0;
   uint64_t request = 0;
-
   while (g_concurrency.load() >= FLAGS_thread_num) {
   }
   g_concurrency++;
-
-  while (index < file_size) {
+  time_list[thread_id].resize(turns);
+  while (request < turns) {
     // uint64_t key = strtoul(buffer, NULL, 10);
-
+    if (index >= file_size) {
+      index = 0;
+    }
     keys.push_back(key_list[index]);
     index += 1;
     int ret = 0;
@@ -121,47 +124,12 @@ int run(int argc, char** argv, int thread_id) {
       }
       ++seek_counter;
       uint64_t seek_cost = time_diff(seek_start, seek_end);
-      seek_cost_total += seek_cost;
-      if (seek_cost > seek_cost_max) {
-        seek_cost_max = seek_cost;
-      }
-      if (seek_cost < seek_cost_min) {
-        seek_cost_min = seek_cost;
-      }
+      time_list[thread_id][request - 1] = seek_cost;
 
       keys.clear();
       values.clear();
     }
   }
-  /*
-    if (keys.size() > 0) {
-      int ret = 0;
-      values.resize(keys.size());
-      TIME_FLAG(seek_start);
-      ret = cube->seek(FLAGS_dict, keys, &values);
-      TIME_FLAG(seek_end);
-      if (ret != 0) {
-        LOG(WARNING) << "cube seek failed";
-      } else if (FLAGS_print_output) {
-        for (size_t i = 0; i < keys.size(); ++i) {
-          fprintf(stdout,
-                  "key:%lu value:%s\n",
-                  keys[i],
-                  string_to_hex(values[i].buff).c_str());
-        }
-      }
-
-      ++seek_counter;
-      uint64_t seek_cost = time_diff(seek_start, seek_end);
-      seek_cost_total += seek_cost;
-      if (seek_cost > seek_cost_max) {
-        seek_cost_max = seek_cost;
-      }
-      if (seek_cost < seek_cost_min) {
-        seek_cost_min = seek_cost;
-      }
-    }
-  */
   g_concurrency--;
 
   // fclose(key_file);
@@ -171,12 +139,6 @@ int run(int argc, char** argv, int thread_id) {
     LOG(WARNING) << "destroy cube api failed err=" << ret;
   }
 
-  uint64_t seek_cost_avg = seek_cost_total / seek_counter;
-  LOG(INFO) << "seek cost avg = " << seek_cost_avg;
-  LOG(INFO) << "seek cost max = " << seek_cost_max;
-  LOG(INFO) << "seek cost min = " << seek_cost_min;
-
-  time_list[thread_id] = seek_cost_avg;
   request_list[thread_id] = request;
 
   return 0;
@@ -188,6 +150,7 @@ int run_m(int argc, char** argv) {
   request_list.resize(thread_num);
   time_list.resize(thread_num);
   std::vector<std::thread*> thread_pool;
+  TIME_FLAG(main_start);
   for (int i = 0; i < thread_num; i++) {
     thread_pool.push_back(new std::thread(run, argc, argv, i));
   }
@@ -195,28 +158,43 @@ int run_m(int argc, char** argv) {
     thread_pool[i]->join();
     delete thread_pool[i];
   }
+  TIME_FLAG(main_end);
   uint64_t sum_time = 0;
   uint64_t max_time = 0;
   uint64_t min_time = 1000000;
-  uint64_t request_num = 0;
+  std::vector<uint64_t> all_time_list;
   for (int i = 0; i < thread_num; i++) {
-    sum_time += time_list[i];
-    if (time_list[i] > max_time) {
-      max_time = time_list[i];
+    for (int j = 0; j < request_list[i]; j++) {
+      sum_time += time_list[i][j];
+      if (time_list[i][j] > max_time) {
+        max_time = time_list[i][j];
+      }
+      if (time_list[i][j] < min_time) {
+        min_time = time_list[i][j];
+      }
+      all_time_list.push_back(time_list[i][j]);
     }
-    if (time_list[i] < min_time) {
-      min_time = time_list[i];
-    }
-    request_num += request_list[i];
   }
-  uint64_t mean_time = sum_time / thread_num;
-  LOG(INFO) << thread_num << " thread seek cost"
-            << " avg = " << std::to_string(mean_time)
-            << " max = " << std::to_string(max_time)
-            << " min = " << std::to_string(min_time);
-  LOG(INFO) << " total_request = " << std::to_string(request_num) << " speed = "
-            << std::to_string(1000000 * thread_num / mean_time)  // mean_time us
-            << " query per second";
+  std::sort(all_time_list.begin(), all_time_list.end());
+  uint64_t mean_time = sum_time / (thread_num * turns);
+  uint64_t main_time = time_diff(main_start, main_end);
+  uint64_t request_num = turns * thread_num;
+  LOG(INFO)
+      << "\n"
+      << thread_num << " thread seek cost"
+      << "\navg: " << std::to_string(mean_time) << "\n50 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.5 * request_num)])
+      << "\n80 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.8 * request_num)])
+      << "\n90 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.9 * request_num)])
+      << "\n99 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.99 * request_num)])
+      << "\n99.9 percent: "
+      << std::to_string(all_time_list[static_cast<int>(0.999 * request_num)])
+      << "\ntotal_request: " << std::to_string(request_num) << "\nspeed: "
+      << std::to_string(turns * 1000000 / main_time)  // mean_time us
+      << " query per second";
   return 0;
 }
 

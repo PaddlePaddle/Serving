@@ -7,6 +7,7 @@
 <p>
 
 
+
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
@@ -29,7 +30,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">Installation</h2>
 
-We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md)
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md). See the [document](doc/DOCKER_IMAGES.md) for more docker images.
 ```
 # Run CPU Docker
 docker pull hub.baidubce.com/paddlepaddle/serving:latest
@@ -38,8 +39,8 @@ docker exec -it test bash
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
 nvidia-docker exec -it test bash
 ```
 
@@ -53,10 +54,22 @@ You may need to use a domestic mirror source (in China, you can use the Tsinghua
 
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
-Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use HTTP service without install client.
+Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7 and Ubuntu 16/18.
 
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.6/3.7.
+
+Recommended to install paddle >= 1.8.2.
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
+
+<h3 align="center">Latest release</h4>
+<p align="center">
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/ocr">Optical Character Recognition</a>
+    <br>
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/faster_rcnn_model">Object Detection</a>
+    <br>
+    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/deeplabv3">Image Segmentation</a>
+<p>
 
 <h3 align="center">Chinese Word Segmentation</h4>
 
@@ -75,7 +88,7 @@ Packages of Paddle Serving support Centos 6/7 and Ubuntu 16/18, or you can use H
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-    
+
 ``` shell
 > python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
@@ -111,7 +124,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | - | - | Enable memory / graphic memory optimization |
+| `mem_optim_off` | - | - | Disable memory / graphic memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 
@@ -183,6 +196,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 - [Design Doc](doc/DESIGN_DOC.md)
 
 <h2 align="center">Community</h2>
+
 
 ### Slack
 

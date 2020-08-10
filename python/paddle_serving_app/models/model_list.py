@@ -24,13 +24,15 @@ class ServingModels(object):
             "SentimentAnalysis"] = ["senta_bilstm", "senta_bow", "senta_cnn"]
         self.model_dict["SemanticRepresentation"] = ["ernie"]
         self.model_dict["ChineseWordSegmentation"] = ["lac"]
-        self.model_dict["ObjectDetection"] = ["faster_rcnn"]
+        self.model_dict[
+            "ObjectDetection"] = ["faster_rcnn", "yolov4", "blazeface"]
         self.model_dict["ImageSegmentation"] = [
             "unet", "deeplabv3", "deeplabv3+cityscapes"
         ]
         self.model_dict["ImageClassification"] = [
             "resnet_v2_50_imagenet", "mobilenet_v2_imagenet"
         ]
+        self.model_dict["TextDetection"] = ["ocr_det"]
         self.model_dict["OCR"] = ["ocr_rec"]
 
         image_class_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/"
@@ -40,6 +42,7 @@ class ServingModels(object):
         senta_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/"
         semantic_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/"
         wordseg_url = "https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/"
+        ocr_det_url = "https://paddle-serving.bj.bcebos.com/ocr/"
 
         self.url_dict = {}
 
@@ -55,6 +58,7 @@ class ServingModels(object):
         pack_url(self.model_dict, "ImageSegmentation", image_seg_url)
         pack_url(self.model_dict, "ImageClassification", image_class_url)
         pack_url(self.model_dict, "OCR", ocr_url)
+        pack_url(self.model_dict, "TextDetection", ocr_det_url)
 
     def get_model_list(self):
         return self.model_dict
