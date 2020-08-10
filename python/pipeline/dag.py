@@ -24,6 +24,7 @@ else:
     raise Exception("Error Python version")
 import os
 import logging
+import collections
 
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
@@ -284,12 +285,14 @@ class DAGExecutor(object):
             end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
 
         if self._tracer is not None:
-            if resp_channeldata.ecode == ChannelDataEcode.OK.value:
-                trace_buffer.put(("DAG", "call_{}".format(data_id), True,
-                                  end_call - start_call))
-            else:
-                trace_buffer.put(("DAG", "call_{}".format(data_id), False,
-                                  end_call - start_call))
+            trace_buffer.put_nowait({
+                "name": "DAG",
+                "id": data_id,
+                "succ": resp_channeldata.ecode == ChannelDataEcode.OK.value,
+                "actions": {
+                    "call_{}".format(data_id): end_call - start_call,
+                },
+            })
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:

@@ -25,6 +25,12 @@ import sys
 import collections
 import numpy as np
 from numpy import *
+if sys.version_info.major == 2:
+    import Queue
+elif sys.version_info.major == 3:
+    import queue as Queue
+else:
+    raise Exception("Error Python version")
 
 from .proto import pipeline_service_pb2
 from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
@@ -532,6 +538,7 @@ class Op(object):
             op_info_prefix=op_info_prefix)
 
         start, end = None, None
+        trace_que = collections.deque()
         while True:
             start = int(round(_time() * 1000000))
             try:
@@ -541,8 +548,7 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "in", True, end - start))
+            in_time = end - start
 
             # parse channeldata batch
             try:
@@ -562,8 +568,7 @@ class Op(object):
             preped_data_dict, err_channeldata_dict \
                     = self._run_preprocess(parsed_data_dict, op_info_prefix)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "prep", True, end - start))
+            prep_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -583,8 +588,7 @@ class Op(object):
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "midp", True, end - start))
+            midp_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -605,8 +609,7 @@ class Op(object):
                     = self._run_postprocess(
                             parsed_data_dict, midped_data_dict, op_info_prefix)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "postp", True, end - start))
+            postp_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -639,8 +642,25 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
+            out_time = end - start
             if trace_buffer is not None:
-                trace_buffer.put((self.name, "out", True, end - start))
+                trace_que.append({
+                    "name": self.name,
+                    "actions": {
+                        "in": in_time,
+                        "prep": prep_time,
+                        "midp": midp_time,
+                        "postp": postp_time,
+                        "out": out_time,
+                    }
+                })
+                while trace_que:
+                    info = trace_que[0]
+                    try:
+                        trace_buffer.put_nowait(info)
+                        trace_que.popleft()
+                    except Queue.Full:
+                        break
 
     def _initialize(self, is_thread_op, client_type, concurrency_idx):
         if is_thread_op:
