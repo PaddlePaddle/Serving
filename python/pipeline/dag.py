@@ -285,7 +285,7 @@ class DAGExecutor(object):
             end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
 
         if self._tracer is not None:
-            trace_buffer.put_nowait({
+            trace_buffer.put({
                 "name": "DAG",
                 "id": data_id,
                 "succ": resp_channeldata.ecode == ChannelDataEcode.OK.value,
