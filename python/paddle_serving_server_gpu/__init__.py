@@ -235,15 +235,11 @@ class Server(object):
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        cuda_flag = False
-        r = os.popen("ldd {} | grep cudart".format(self.bin_path))
-        r = r.read().split("=")
-        if len(r) >= 2 and "cudart" in r[1] and os.system(
-                "ls /dev/ | grep nvidia > /dev/null") == 0:
-            cuda_flag = True
-        if not cuda_flag:
+        if os.system("ls /dev/ | grep nvidia > /dev/null") == 0:
+            pass
+        else:
             raise SystemExit(
-                "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
+                "GPU not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
 
     def set_gpuid(self, gpuid=0):
