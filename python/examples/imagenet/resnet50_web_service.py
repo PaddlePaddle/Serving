@@ -54,6 +54,7 @@ class ImageService(WebService):
         score_list = fetch_map["score"]
         result = {"label": [], "prob": []}
         for score in score_list:
+            score = score.tolist()
             max_score = max(score)
             result["label"].append(self.label_dict[score.index(max_score)]
                                    .strip().replace(",", ""))
@@ -65,7 +66,7 @@ image_service = ImageService(name="image")
 image_service.load_model_config(sys.argv[1])
 image_service.init_imagenet_setting()
 if device == "gpu":
-    image_service.set_gpus("0,1")
+    image_service.set_gpus("0")
 image_service.prepare_server(
     workdir="workdir", port=int(sys.argv[3]), device=device)
 image_service.run_rpc_service()

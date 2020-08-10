@@ -31,7 +31,7 @@ with open(profile_file) as f:
         if line[0] == "PROFILE":
             prase(line[2])
 
-print("thread num :{}".format(thread_num))
+print("thread_num: {}".format(thread_num))
 for name in time_dict:
-    print("{} cost :{} s in each thread ".format(name, time_dict[name] / (
+    print("{} cost: {}s in each thread ".format(name, time_dict[name] / (
         1000000.0 * float(thread_num))))

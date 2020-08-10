@@ -106,7 +106,7 @@ class FluidFamilyCore {
 
 ![预测服务Service](predict-service.png)
 
-关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](CREATING.md)的相关章节
+关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](https://github.com/PaddlePaddle/Serving/blob/develop/doc/deprecated/CREATING.md)的相关章节
 
 服务端实例透视图
 

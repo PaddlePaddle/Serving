@@ -58,17 +58,21 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'protobuf >= 3.1.0', 'numpy >= 1.12'
+    'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio >= 1.28.1',
+    'grpcio-tools >= 1.28.1'
 ]
 
 if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
     REQUIRED_PACKAGES.append("paddlepaddle")
 
+
 packages=['paddle_serving_client',
           'paddle_serving_client.proto',
           'paddle_serving_client.io',
-	  'paddle_serving_client.metric',
-	  'paddle_serving_client.utils',]
+    	  'paddle_serving_client.metric',
+    	  'paddle_serving_client.utils',
+          'paddle_serving_client.pipeline',
+          'paddle_serving_client.pipeline.proto']
 package_data={'paddle_serving_client': ['serving_client.so','lib/*'],}
 package_dir={'paddle_serving_client':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client',
@@ -76,10 +80,14 @@ package_dir={'paddle_serving_client':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto',
              'paddle_serving_client.io':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/io',
-	     'paddle_serving_client.metric':
-	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/metric',
-	     'paddle_serving_client.utils':
-	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/utils',}
+	         'paddle_serving_client.metric':
+	         '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/metric',
+	         'paddle_serving_client.utils':
+	         '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/utils',
+             'paddle_serving_client.pipeline':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline',
+             'paddle_serving_client.pipeline.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline/proto'}
 
 setup(
     name='paddle-serving-client',
