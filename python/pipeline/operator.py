@@ -364,9 +364,9 @@ class Op(object):
                     input_offset.append(offset)
             else:
                 _LOGGER.critical(
-                        "{} Failed to process: expect input type is dict(sample"
-                        " input) or list(batch input), but get {}".format(
-                            op_info_prefix, type(one_input)))
+                    "{} Failed to process: expect input type is dict(sample"
+                    " input) or list(batch input), but get {}".format(
+                        op_info_prefix, type(one_input)))
                 os._exit(-1)
 
             midped_batch = None
@@ -434,10 +434,10 @@ class Op(object):
                             typical_logid, op_info_prefix, name))
                         lod_var_names.add(name)
                         lod_offset_names.add(lod_offset_name)
-                
+
                 for idx, data_id in enumerate(data_ids):
                     midped_data_dict[data_id] = {}
- 
+
                 for name, value in midped_batch.items():
                     if name in lod_offset_names:
                         continue
@@ -450,7 +450,8 @@ class Op(object):
                             data_offset_right = input_offset[idx + 1]
                             lod_offset_left = lod_offset[data_offset_left]
                             lod_offset_right = lod_offset[data_offset_right]
-                            midped_data_dict[data_id][name] = value[lod_offset_left:lod_offset_right]
+                            midped_data_dict[data_id][name] = value[
+                                lod_offset_left:lod_offset_right]
                             midped_data_dict[data_id][lod_offset_name] = \
                                     lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
                     else:

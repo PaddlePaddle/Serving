@@ -6,6 +6,7 @@ Paddle Serving 通常用于单模型的一键部署，但端到端的深度学�
 
 Paddle Serving 提供了用户友好的多模型组合服务编程框架，Pipeline Serving，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体的预估效率。
 
+
 ## 整体架构设计
 
 Server端基于 gRPC 和图执行引擎构建，两者的关系如下图所示。
