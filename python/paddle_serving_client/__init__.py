@@ -233,7 +233,7 @@ class Client(object):
             #    key))
             pass
 
-    def predict(self, feed=None, fetch=None, need_variant_tag=False):
+    def predict(self, feed=None, fetch=None, need_variant_tag=False, log_id=0):
         self.profile_.record('py_prepro_0')
 
         if feed is None or fetch is None:
@@ -319,12 +319,12 @@ class Client(object):
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid)
+                self.pid, log_id)
         elif self.has_numpy_input == False:
             res = self.client_handle_.batch_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
                 int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid)
+                self.pid, log_id)
         else:
             raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
@@ -466,10 +466,11 @@ class MultiLangClient(object):
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
 
-    def _pack_inference_request(self, feed, fetch, is_python):
+    def _pack_inference_request(self, feed, fetch, is_python, log_id):
         req = multi_lang_general_model_service_pb2.InferenceRequest()
         req.fetch_var_names.extend(fetch)
         req.is_python = is_python
+        req.log_id = log_id
         feed_batch = None
         if isinstance(feed, dict):
             feed_batch = [feed]
@@ -602,12 +603,13 @@ class MultiLangClient(object):
                 fetch,
                 need_variant_tag=False,
                 asyn=False,
-                is_python=True):
+                is_python=True,
+                log_id=0):
         if not asyn:
             try:
                 self.profile_.record('py_prepro_0')
                 req = self._pack_inference_request(
-                    feed, fetch, is_python=is_python)
+                    feed, fetch, is_python=is_python, log_id=log_id)
                 self.profile_.record('py_prepro_1')
 
                 self.profile_.record('py_client_infer_0')
@@ -626,7 +628,8 @@ class MultiLangClient(object):
             except grpc.RpcError as e:
                 return {"serving_status_code": e.code()}
         else:
-            req = self._pack_inference_request(feed, fetch, is_python=is_python)
+            req = self._pack_inference_request(
+                feed, fetch, is_python=is_python, log_id=log_id)
             call_future = self.stub_.Inference.future(
                 req, timeout=self.rpc_timeout_s_)
             return MultiLangPredictFuture(

@@ -24,19 +24,20 @@ else:
     raise Exception("Error Python version")
 import os
 import logging
+import collections
 
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataEcode, ChannelDataType, ChannelStopError)
 from .profiler import TimeProfiler, PerformanceTracer
-from .util import NameGenerator
+from .util import NameGenerator, ThreadIdGenerator, PipelineProcSyncManager
 from .proto import pipeline_service_pb2
 
-_LOGGER = logging.getLogger("pipeline.dag")
+_LOGGER = logging.getLogger(__name__)
 
 
 class DAGExecutor(object):
-    def __init__(self, response_op, server_conf):
+    def __init__(self, response_op, server_conf, worker_idx):
         build_dag_each_worker = server_conf["build_dag_each_worker"]
         server_worker_num = server_conf["worker_num"]
         dag_conf = server_conf["dag"]
@@ -74,9 +75,17 @@ class DAGExecutor(object):
         if self._tracer is not None:
             self._tracer.start()
 
-        self._id_lock = threading.Lock()
-        self._id_counter = 0
-        self._reset_max_id = 1000000000000000000
+        # generate id: data_id == request_id == log_id
+        base_counter = 0
+        gen_id_step = 1
+        if build_dag_each_worker:
+            base_counter = worker_idx
+            gen_id_step = server_worker_num
+        self._id_generator = ThreadIdGenerator(
+            max_id=1000000000000000000,
+            base_counter=base_counter,
+            step=gen_id_step)
+
         self._cv_pool = {}
         self._cv_for_cv_pool = threading.Condition()
         self._fetch_buffer = {}
@@ -98,13 +107,7 @@ class DAGExecutor(object):
         _LOGGER.info("[DAG Executor] Stop")
 
     def _get_next_data_id(self):
-        data_id = None
-        with self._id_lock:
-            if self._id_counter >= self._reset_max_id:
-                _LOGGER.info("[DAG Executor] Reset request id")
-                self._id_counter -= self._reset_max_id
-            data_id = self._id_counter
-            self._id_counter += 1
+        data_id = self._id_generator.next()
         cond_v = threading.Condition()
         with self._cv_for_cv_pool:
             self._cv_pool[data_id] = cond_v
@@ -282,12 +285,14 @@ class DAGExecutor(object):
             end_call = self._profiler.record("call_{}#DAG_1".format(data_id))
 
         if self._tracer is not None:
-            if resp_channeldata.ecode == ChannelDataEcode.OK.value:
-                trace_buffer.put(("DAG", "call_{}".format(data_id), True,
-                                  end_call - start_call))
-            else:
-                trace_buffer.put(("DAG", "call_{}".format(data_id), False,
-                                  end_call - start_call))
+            trace_buffer.put({
+                "name": "DAG",
+                "id": data_id,
+                "succ": resp_channeldata.ecode == ChannelDataEcode.OK.value,
+                "actions": {
+                    "call_{}".format(data_id): end_call - start_call,
+                },
+            })
 
         profile_str = self._profiler.gen_profile_str()
         if self._server_use_profile:
@@ -330,7 +335,7 @@ class DAG(object):
         self._build_dag_each_worker = build_dag_each_worker
         self._tracer = tracer
         if not self._is_thread_op:
-            self._manager = multiprocessing.Manager()
+            self._manager = PipelineProcSyncManager()
         _LOGGER.info("[DAG] Succ init")
 
     def get_use_ops(self, response_op):
@@ -554,7 +559,8 @@ class DAG(object):
         self._pack_func = pack_func
         self._unpack_func = unpack_func
 
-        self._tracer.set_channels(self._channels)
+        if self._tracer is not None:
+            self._tracer.set_channels(self._channels)
 
         return self._input_channel, self._output_channel, self._pack_func, self._unpack_func
 

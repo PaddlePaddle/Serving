@@ -22,8 +22,15 @@ import logging
 import func_timeout
 import os
 import sys
+import collections
 import numpy as np
 from numpy import *
+if sys.version_info.major == 2:
+    import Queue
+elif sys.version_info.major == 3:
+    import queue as Queue
+else:
+    raise Exception("Error Python version")
 
 from .proto import pipeline_service_pb2
 from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
@@ -32,7 +39,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 
-_LOGGER = logging.getLogger("pipeline.operator")
+_LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
 
 
@@ -127,7 +134,7 @@ class Op(object):
                     fetch_names):
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
-                         "run the process function".format(self.name))
+                         "run the process function)".format(self.name))
             return None
         if client_type == 'brpc':
             client = Client()
@@ -199,7 +206,7 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict
 
-    def process(self, feed_batch):
+    def process(self, feed_batch, typical_logid):
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -207,7 +214,7 @@ class Op(object):
                           "preprocess func.".format(err_info)))
             os._exit(-1)
         call_result = self.client.predict(
-            feed=feed_batch, fetch=self._fetch_names)
+            feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
@@ -294,8 +301,8 @@ class Op(object):
 
     def _run_preprocess(self, parsed_data_dict, op_info_prefix):
         _LOGGER.debug("{} Running preprocess".format(op_info_prefix))
-        preped_data_dict = {}
-        err_channeldata_dict = {}
+        preped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         for data_id, parsed_data in parsed_data_dict.items():
             preped_data, error_channeldata = None, None
             try:
@@ -326,68 +333,132 @@ class Op(object):
 
     def _run_process(self, preped_data_dict, op_info_prefix):
         _LOGGER.debug("{} Running process".format(op_info_prefix))
-        midped_data_dict = {}
-        err_channeldata_dict = {}
+        midped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         if self.with_serving:
             data_ids = preped_data_dict.keys()
-            feed_batch = [preped_data_dict[data_id] for data_id in data_ids]
+            typical_logid = data_ids[0]
+            if len(data_ids) != 1:
+                for data_id in data_ids:
+                    _LOGGER.info(
+                        "(logid={}) {} During access to PaddleServingService,"
+                        " we selected logid={} (from batch: {}) as a "
+                        "representative for logging.".format(
+                            data_id, op_info_prefix, typical_logid, data_ids))
+
+            # combine samples to batch
+            one_input = preped_data_dict[data_ids[0]]
+            feed_batch = []
+            input_offset = None
+            if isinstance(one_input, dict):
+                # sample input
+                feed_batch = [preped_data_dict[data_id] for data_id in data_ids]
+                input_offset = list(range(len(data_ids) + 1))
+            elif isinstance(one_input, list):
+                # batch input
+                input_offset = [0]
+                for data_id in data_ids:
+                    batch_input = preped_data_dict[data_id]
+                    offset = input_offset[-1] + len(batch_input)
+                    feed_batch += batch_input
+                    input_offset.append(offset)
+            else:
+                _LOGGER.critical(
+                        "{} Failed to process: expect input type is dict(sample"
+                        " input) or list(batch input), but get {}".format(
+                            op_info_prefix, type(one_input)))
+                os._exit(-1)
+
             midped_batch = None
             ecode = ChannelDataEcode.OK.value
             if self._timeout <= 0:
                 try:
-                    midped_batch = self.process(feed_batch)
+                    midped_batch = self.process(feed_batch, typical_logid)
                 except Exception as e:
                     ecode = ChannelDataEcode.UNKNOW.value
-                    error_info = "{} Failed to process(batch: {}): {}".format(
-                        op_info_prefix, data_ids, e)
+                    error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
+                        typical_logid, op_info_prefix, data_ids, e)
                     _LOGGER.error(error_info, exc_info=True)
             else:
                 for i in range(self._retry):
                     try:
                         midped_batch = func_timeout.func_timeout(
-                            self._timeout, self.process, args=(feed_batch, ))
+                            self._timeout,
+                            self.process,
+                            args=(feed_batch, typical_logid))
                     except func_timeout.FunctionTimedOut as e:
                         if i + 1 >= self._retry:
                             ecode = ChannelDataEcode.TIMEOUT.value
-                            error_info = "{} Failed to process(batch: {}): " \
+                            error_info = "(logid={}) {} Failed to process(batch: {}): " \
                                     "exceeded retry count.".format(
-                                            op_info_prefix, data_ids)
+                                            typical_logid, op_info_prefix, data_ids)
                             _LOGGER.error(error_info)
                         else:
                             _LOGGER.warning(
-                                "{} Failed to process(batch: {}): timeout, and retrying({}/{})"
-                                .format(op_info_prefix, data_ids, i + 1,
-                                        self._retry))
+                                "(logid={}) {} Failed to process(batch: {}): timeout,"
+                                " and retrying({}/{})...".format(
+                                    typical_logid, op_info_prefix, data_ids, i +
+                                    1, self._retry))
                     except Exception as e:
                         ecode = ChannelDataEcode.UNKNOW.value
-                        error_info = "{} Failed to process(batch: {}): {}".format(
-                            op_info_prefix, data_ids, e)
+                        error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
+                            typical_logid, op_info_prefix, data_ids, e)
                         _LOGGER.error(error_info, exc_info=True)
                         break
                     else:
                         break
             if ecode != ChannelDataEcode.OK.value:
                 for data_id in data_ids:
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
                     err_channeldata_dict[data_id] = ChannelData(
                         ecode=ecode, error_info=error_info, data_id=data_id)
             elif midped_batch is None:
                 # op client return None
-                error_info = "{} Failed to predict, please check if PaddleServingService" \
-                        " is working properly.".format(op_info_prefix)
+                error_info = "(logid={}) {} Failed to predict, please check if " \
+                        "PaddleServingService is working properly.".format(
+                                typical_logid, op_info_prefix)
+                _LOGGER.error(error_info)
                 for data_id in data_ids:
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
                     err_channeldata_dict[data_id] = ChannelData(
                         ecode=ChannelDataEcode.CLIENT_ERROR.value,
                         error_info=error_info,
                         data_id=data_id)
             else:
                 # transform np format to dict format
+                var_names = midped_batch.keys()
+                lod_var_names = set()
+                lod_offset_names = set()
+                for name in var_names:
+                    lod_offset_name = "{}.lod".format(name)
+                    if lod_offset_name in var_names:
+                        _LOGGER.debug("(logid={}) {} {} is LodTensor".format(
+                            typical_logid, op_info_prefix, name))
+                        lod_var_names.add(name)
+                        lod_offset_names.add(lod_offset_name)
+                
                 for idx, data_id in enumerate(data_ids):
-                    midped_data_dict[data_id] = {
-                        k: v[idx]
-                        for k, v in midped_batch.items()
-                    }
+                    midped_data_dict[data_id] = {}
+ 
+                for name, value in midped_batch.items():
+                    if name in lod_offset_names:
+                        continue
+                    if name in lod_var_names:
+                        # lodtensor
+                        lod_offset_name = "{}.lod".format(name)
+                        lod_offset = midped_batch[lod_offset_name]
+                        for idx, data_id in enumerate(data_ids):
+                            data_offset_left = input_offset[idx]
+                            data_offset_right = input_offset[idx + 1]
+                            lod_offset_left = lod_offset[data_offset_left]
+                            lod_offset_right = lod_offset[data_offset_right]
+                            midped_data_dict[data_id][name] = value[lod_offset_left:lod_offset_right]
+                            midped_data_dict[data_id][lod_offset_name] = \
+                                    lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
+                    else:
+                        # normal tensor
+                        for idx, data_id in enumerate(data_ids):
+                            left = input_offset[idx]
+                            right = input_offset[idx + 1]
+                            midped_data_dict[data_id][name] = value[left:right]
         else:
             midped_data_dict = preped_data_dict
         _LOGGER.debug("{} Succ process".format(op_info_prefix))
@@ -396,8 +467,8 @@ class Op(object):
     def _run_postprocess(self, parsed_data_dict, midped_data_dict,
                          op_info_prefix):
         _LOGGER.debug("{} Running postprocess".format(op_info_prefix))
-        postped_data_dict = {}
-        err_channeldata_dict = {}
+        postped_data_dict = collections.OrderedDict()
+        err_channeldata_dict = collections.OrderedDict()
         for data_id, midped_data in midped_data_dict.items():
             postped_data, err_channeldata = None, None
             try:
@@ -476,7 +547,7 @@ class Op(object):
             yield batch
 
     def _parse_channeldata_batch(self, batch, output_channels):
-        parsed_data_dict = {}
+        parsed_data_dict = collections.OrderedDict()
         need_profile_dict = {}
         profile_dict = {}
         for channeldata_dict in batch:
@@ -520,6 +591,7 @@ class Op(object):
             op_info_prefix=op_info_prefix)
 
         start, end = None, None
+        trace_que = collections.deque()
         while True:
             start = int(round(_time() * 1000000))
             try:
@@ -529,8 +601,7 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "in", True, end - start))
+            in_time = end - start
 
             # parse channeldata batch
             try:
@@ -550,8 +621,7 @@ class Op(object):
             preped_data_dict, err_channeldata_dict \
                     = self._run_preprocess(parsed_data_dict, op_info_prefix)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "prep", True, end - start))
+            prep_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -563,7 +633,7 @@ class Op(object):
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
-            if len(parsed_data_dict) == 0:
+            if len(preped_data_dict) == 0:
                 continue
 
             # process
@@ -571,8 +641,7 @@ class Op(object):
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "midp", True, end - start))
+            midp_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -593,12 +662,11 @@ class Op(object):
                     = self._run_postprocess(
                             parsed_data_dict, midped_data_dict, op_info_prefix)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
-            if trace_buffer is not None:
-                trace_buffer.put((self.name, "postp", True, end - start))
+            postp_time = end - start
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
-                        data=error_channeldata,
+                        data=err_channeldata,
                         channels=output_channels,
                         client_need_profile=need_profile_dict[data_id],
                         profile_set=profile_dict[data_id])
@@ -627,8 +695,25 @@ class Op(object):
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
+            out_time = end - start
             if trace_buffer is not None:
-                trace_buffer.put((self.name, "out", True, end - start))
+                trace_que.append({
+                    "name": self.name,
+                    "actions": {
+                        "in": in_time,
+                        "prep": prep_time,
+                        "midp": midp_time,
+                        "postp": postp_time,
+                        "out": out_time,
+                    }
+                })
+                while trace_que:
+                    info = trace_que[0]
+                    try:
+                        trace_buffer.put_nowait(info)
+                        trace_que.popleft()
+                    except Queue.Full:
+                        break
 
     def _initialize(self, is_thread_op, client_type, concurrency_idx):
         if is_thread_op:
@@ -718,7 +803,7 @@ class ResponseOp(Op):
                 feed = channeldata.parse()
                 # ndarray to string:
                 # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
-                np.set_printoptions(threshold=np.nan)
+                np.set_printoptions(threshold=sys.maxsize)
                 for name, var in feed.items():
                     resp.value.append(var.__repr__())
                     resp.key.append(name)

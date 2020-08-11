@@ -29,7 +29,7 @@ import enum
 import os
 import copy
 
-_LOGGER = logging.getLogger("pipeline.channel")
+_LOGGER = logging.getLogger(__name__)
 
 
 class ChannelDataEcode(enum.Enum):
@@ -181,6 +181,14 @@ class ChannelData(object):
             os._exit(-1)
         return feed
 
+    def __cmp__(self, other):
+        if self.id < other.id:
+            return -1
+        elif self.id == other.id:
+            return 0
+        else:
+            return 1
+
     def __str__(self):
         return "type[{}], ecode[{}], id[{}]".format(
             ChannelDataType(self.datatype).name, self.ecode, self.id)
@@ -222,7 +230,7 @@ class ProcessChannel(object):
         # see more:
         # - https://bugs.python.org/issue18277
         # - https://hg.python.org/cpython/rev/860fc6a2bd21
-        self._que = manager.Queue(maxsize=maxsize)
+        self._que = manager.PriorityQueue(maxsize=maxsize)
         self._maxsize = maxsize
         self.name = name
         self._stop = manager.Value('i', 0)
@@ -489,7 +497,7 @@ class ProcessChannel(object):
             self._cv.notify_all()
 
 
-class ThreadChannel(Queue.Queue):
+class ThreadChannel(Queue.PriorityQueue):
     """ 
     (Thread version)The channel used for communication between Ops.
 
