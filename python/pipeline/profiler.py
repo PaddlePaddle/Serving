@@ -130,7 +130,7 @@ class PerformanceTracer(object):
                 _LOGGER.info("\tQuery count[{}]".format(tot))
                 _LOGGER.info("\tQPS[{} q/s]".format(qps))
                 _LOGGER.info("\tSucc[{}]".format(1 - 1.0 * err_count / tot))
-                _LOGGER.info("\tError req[{}]".format([", ".join([str(x) for x in err_request])]))
+                _LOGGER.info("\tError req[{}]".format(", ".join([str(x) for x in err_request)]))
                 _LOGGER.info("\tLatency:")
                 _LOGGER.info("\t\tave[{} ms]".format(ave_cost))
                 for latency in latencys:

@@ -559,7 +559,8 @@ class DAG(object):
         self._pack_func = pack_func
         self._unpack_func = unpack_func
 
-        self._tracer.set_channels(self._channels)
+        if self._tracer is not None:
+            self._tracer.set_channels(self._channels)
 
         return self._input_channel, self._output_channel, self._pack_func, self._unpack_func
 

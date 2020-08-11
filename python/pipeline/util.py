@@ -16,6 +16,7 @@ import sys
 import logging
 import threading
 import multiprocessing
+import multiprocessing.managers
 if sys.version_info.major == 2:
     import Queue
     from Queue import PriorityQueue

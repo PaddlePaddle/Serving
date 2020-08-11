@@ -364,8 +364,9 @@ class Op(object):
                     input_offset.append(offset)
             else:
                 _LOGGER.critical(
-                        "{} Failed to process: expect input type is dict or listi"
-                        ", but get {}".format(op_info_prefix, type(one_input)))
+                        "{} Failed to process: expect input type is dict(sample"
+                        " input) or list(batch input), but get {}".format(
+                            op_info_prefix, type(one_input)))
                 os._exit(-1)
 
             midped_batch = None
