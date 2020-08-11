@@ -85,6 +85,7 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       inner_port=12000,
                        gpuid=0,
                        mem_optim=True,
                        ir_optim=False):
@@ -93,7 +94,7 @@ class WebService(object):
         self.device = device
         self.gpuid = gpuid
         self.port_list = []
-        default_port = 12000
+        default_port = inner_port
         for i in range(1000):
             if self.port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
