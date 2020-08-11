@@ -178,7 +178,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
   }
 };
 
-class FluidGpuAnalysisDirCore : public FluidFamilyCore {
+class FluidTRTAnalysisDirCore : public FluidFamilyCore {
  public:
   int create(const predictor::InferEngineCreationParams& params) {
     std::string data_path = params.get_path();
@@ -198,13 +198,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
-    /*
-     if (params.enable_ir_optimization()) {
-       analysis_config.SwitchIrOptim(true);
-     } else {
-       analysis_config.SwitchIrOptim(false);
-     }
-    */
+#if 0
 
     int min_seq_len = 1;
     int max_seq_len = 512;
@@ -241,16 +235,18 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
         {input4_name, {batch, head_number, opt_seq_len, opt_seq_len}},
     };
 
-    analysis_config.EnableTensorRtEngine(
-        1 << 30,
-        batch,
-        5,
-        paddle::AnalysisConfig::Precision::kHalf,
-        true,
-        true);
     analysis_config.SetTRTDynamicShapeInfo(
         min_input_shape, max_input_shape, opt_input_shape);
-
+#endif
+    if (params.use_trt()) {
+      analysis_config.EnableTensorRtEngine(
+          1 << 30,
+          batch,
+          5,
+          paddle::AnalysisConfig::Precision::kFloat32,
+          true,
+          true);
+    }
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
