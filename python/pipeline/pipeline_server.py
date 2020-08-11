@@ -92,8 +92,9 @@ class PipelineServer(object):
             json.dumps(
                 conf, indent=4, separators=(',', ':'))))
         if self._build_dag_each_worker is True:
-            _LOGGER.info(
-                "(Make sure that install grpcio whl with --no-binary flag)")
+            _LOGGER.warning(
+                "(Make sure that install grpcio whl with --no-binary flag: "
+                "pip install grpcio --no-binary grpcio)")
         _LOGGER.info("-------------------------------------------")
 
         self._conf = conf
@@ -181,7 +182,7 @@ class ServerYamlConfChecker(object):
 
     @staticmethod
     def check_tracer_conf(conf):
-        default_conf = {"interval_s": 600, }
+        default_conf = {"interval_s": -1, }
 
         conf_type = {"interval_s": int, }
 
