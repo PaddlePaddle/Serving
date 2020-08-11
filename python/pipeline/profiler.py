@@ -27,7 +27,8 @@ import time
 import threading
 import multiprocessing
 
-_TRACER = logging.getLogger("pipeline.profiler")
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.propagate = False
 
 
 class PerformanceTracer(object):
@@ -67,26 +68,35 @@ class PerformanceTracer(object):
         self._channels = channels
 
     def _trace_func(self, channels):
-        actions = ["in", "prep", "midp", "postp", "out"]
+        all_actions = ["in", "prep", "midp", "postp", "out"]
         calcu_actions = ["prep", "midp", "postp"]
         while True:
             op_cost = {}
+            err_request = []
             err_count = 0
 
-            _TRACER.info("==================== TRACER ======================")
+            _LOGGER.info("==================== TRACER ======================")
             # op
             while True:
                 try:
-                    name, action, stage, cost = self._data_buffer.get_nowait()
-                    if stage == False:
-                        # only for name == DAG
-                        assert name == "DAG"
-                        err_count += 1
+                    item = self._data_buffer.get_nowait()
+                    name = item["name"]
+                    actions = item["actions"]
+
+                    if name == "DAG":
+                        succ = item["succ"]
+                        req_id = item["id"]
+                        if not succ:
+                            err_count += 1
+                            err_request.append(req_id)
+                    
                     if name not in op_cost:
                         op_cost[name] = {}
-                    if action not in op_cost[name]:
-                        op_cost[name][action] = []
-                    op_cost[name][action].append(cost)
+
+                    for action, cost in actions.items():
+                        if action not in op_cost[name]:
+                            op_cost[name][action] = []
+                        op_cost[name][action].append(cost)
                 except Queue.Empty:
                     break
 
@@ -98,15 +108,15 @@ class PerformanceTracer(object):
                         tot_cost += op_cost[name][action]
 
                     if name != "DAG":
-                        _TRACER.info("Op({}):".format(name))
-                        for action in actions:
+                        _LOGGER.info("Op({}):".format(name))
+                        for action in all_actions:
                             if action in op_cost[name]:
-                                _TRACER.info("\t{}[{} ms]".format(
+                                _LOGGER.info("\t{}[{} ms]".format(
                                     action, op_cost[name][action]))
                         for action in calcu_actions:
                             if action in op_cost[name]:
                                 calcu_cost += op_cost[name][action]
-                        _TRACER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
+                        _LOGGER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
                                                          tot_cost))
 
             if "DAG" in op_cost:
@@ -116,21 +126,22 @@ class PerformanceTracer(object):
                 qps = 1.0 * tot / self._interval_s
                 ave_cost = sum(calls) / tot
                 latencys = [50, 60, 70, 80, 90, 95, 99]
-                _TRACER.info("DAGExecutor:")
-                _TRACER.info("\tquery count[{}]".format(tot))
-                _TRACER.info("\tqps[{} q/s]".format(qps))
-                _TRACER.info("\tsucc[{}]".format(1 - 1.0 * err_count / tot))
-                _TRACER.info("\tlatency:")
-                _TRACER.info("\t\tave[{} ms]".format(ave_cost))
+                _LOGGER.info("DAGExecutor:")
+                _LOGGER.info("\tQuery count[{}]".format(tot))
+                _LOGGER.info("\tQPS[{} q/s]".format(qps))
+                _LOGGER.info("\tSucc[{}]".format(1 - 1.0 * err_count / tot))
+                _LOGGER.info("\tError req[{}]".format(", ".join([str(x) for x in err_request)]))
+                _LOGGER.info("\tLatency:")
+                _LOGGER.info("\t\tave[{} ms]".format(ave_cost))
                 for latency in latencys:
-                    _TRACER.info("\t\t.{}[{} ms]".format(latency, calls[int(
+                    _LOGGER.info("\t\t.{}[{} ms]".format(latency, calls[int(
                         tot * latency / 100.0)]))
 
             # channel
-            _TRACER.info("Channel (server worker num[{}]):".format(
+            _LOGGER.info("Channel (server worker num[{}]):".format(
                 self._server_worker_num))
             for channel in channels:
-                _TRACER.info("\t{}(In: {}, Out: {}) size[{}/{}]".format(
+                _LOGGER.info("\t{}(In: {}, Out: {}) size[{}/{}]".format(
                     channel.name,
                     channel.get_producers(),
                     channel.get_consumers(),

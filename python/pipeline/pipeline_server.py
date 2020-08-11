@@ -26,14 +26,14 @@ from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
 from .dag import DAGExecutor
 
-_LOGGER = logging.getLogger("pipeline.pipeline_server")
+_LOGGER = logging.getLogger(__name__)
 
 
 class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, response_op, dag_conf):
+    def __init__(self, response_op, dag_conf, worker_idx=-1):
         super(PipelineServicer, self).__init__()
         # init dag executor
-        self._dag_executor = DAGExecutor(response_op, dag_conf)
+        self._dag_executor = DAGExecutor(response_op, dag_conf, worker_idx)
         self._dag_executor.start()
         _LOGGER.info("[PipelineServicer] succ init")
 
@@ -92,8 +92,9 @@ class PipelineServer(object):
             json.dumps(
                 conf, indent=4, separators=(',', ':'))))
         if self._build_dag_each_worker is True:
-            _LOGGER.info(
-                "(Make sure that install grpcio whl with --no-binary flag)")
+            _LOGGER.warning(
+                "(Make sure that install grpcio whl with --no-binary flag: "
+                "pip install grpcio --no-binary grpcio)")
         _LOGGER.info("-------------------------------------------")
 
         self._conf = conf
@@ -107,27 +108,31 @@ class PipelineServer(object):
                     show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
-                        args=(bind_address, self._response_op, self._conf))
+                        args=(bind_address, self._response_op, self._conf, i))
                     worker.start()
                     workers.append(worker)
                 for worker in workers:
                     worker.join()
         else:
             server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._worker_num))
+                futures.ThreadPoolExecutor(max_workers=self._worker_num),
+                options=[('grpc.max_send_message_length', 256 * 1024 * 1024),
+                    ('grpc.max_receive_message_length', 256 * 1024 * 1024)])
             pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
                 PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._port))
             server.start()
             server.wait_for_termination()
 
-    def _run_server_func(self, bind_address, response_op, dag_conf):
-        options = (('grpc.so_reuseport', 1), )
+    def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
+        options = [('grpc.so_reuseport', 1),
+                ('grpc.max_send_message_length', 256 * 1024 * 1024),
+                ('grpc.max_send_message_length', 256 * 1024 * 1024)]
         server = grpc.server(
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineServicer(response_op, dag_conf), server)
+            PipelineServicer(response_op, dag_conf, worker_idx), server)
         server.add_insecure_port(bind_address)
         server.start()
         server.wait_for_termination()
@@ -177,7 +182,7 @@ class ServerYamlConfChecker(object):
 
     @staticmethod
     def check_tracer_conf(conf):
-        default_conf = {"interval_s": 600, }
+        default_conf = {"interval_s": -1, }
 
         conf_type = {"interval_s": int, }
 
