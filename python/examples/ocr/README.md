@@ -21,8 +21,13 @@ tar xf test_imgs.tar
 ### Start Service
 
 ```
+#choose one of cpu/gpu commands as following
+#for cpu user
+python -m paddle_serving_server.serve --model ocr_det_model --port 9293
+python ocr_web_server.py cpu
+#for gpu user
 python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
-python ocr_web_server.py
+python ocr_web_server.py gpu
 ```
 
 ### Client Prediction
@@ -33,7 +38,11 @@ If you want a faster web service, please try Web Debugger Service
 
 ## Web Debugger Service
 ```
-python ocr_debugger_server.py
+#choose one of cpu/gpu commands as following
+#for cpu user
+python ocr_debugger_server.py cpu
+#for gpu user
+python ocr_debugger_server.py gpu 
 ```
 
 ## Web Debugger Client Prediction
@@ -60,9 +69,11 @@ if you are going to detect images not recognize it or directly recognize the wor
 ### Det Server 
 
 ```
-python det_web_server.py 
+python det_web_server.py cpu #for cpu user
+python det_web_server.py gpu #for gpu user
 #or
-python det_debugger_server.py
+python det_debugger_server.py cpu #for cpu user
+python det_debugger_server.py gpu #for gpu user
 ```
 
 ### Det Client
@@ -75,9 +86,11 @@ python ocr_web_client.py
 ### Rec Server
 
 ```
-python rec_web_server.py 
+python rec_web_server.py cpu #for cpu user
+python rec_web_server.py gpu #for gpu user
 #or
-python rec_debugger_server.py
+python rec_debugger_server.py cpu #for cpu user
+python rec_debugger_server.py gpu #for gpu user
 ```
 
 ### Rec Client
