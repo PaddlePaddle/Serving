@@ -60,11 +60,9 @@ Server端基于 gRPC 和图执行引擎构建，两者的关系如下图所示�
 - Channel 设计中的 input buffer 和 output buffer 是否会无限增加
 
   - 不会。整个图执行引擎的输入会放到一个 Channel 的 internal queue 里面，直接作为整个服务的流量控制缓冲队列
-  - 对于 input buffer，根据计算量的情况调整 OP1 和 OP2 的并发数，使得 input buffer 来自各个输入 OP 的数量相对平衡
-  - 对于 output buffer，可以采用和 input buffer 类似的处理方法，即调整 OP3 和 OP4 的并发数，使得 output buffer 的缓冲长度得到控制
-  - 注：input buffer 的长度取决于 internal queue 中每个 item 完全 ready 的速度，output buffer 的长度取决于下游 OP 从 output buffer 获取数据的速度
-
-## 详细设计
+  - 对于 input buffer，根据计算量的情况调整 OP1 和 OP2 的并发数，使得 input buffer 来自各个输入 OP 的数量相对平衡（input buffer 的长度取决于 internal queue 中每个 item 完全 ready 的速度）
+  - 对于 output buffer，可以采用和 input buffer 类似的处理方法，即调整 OP3 和 OP4 的并发数，使得 output buffer 的缓冲长度得到控制（output buffer 的长度取决于下游 OP 从 output buffer 获取数据的速度）
+  - 同时 Channel 中数据量不会超过 gRPC 的 `worker_num`，即线程池大小
 
 ### 用户接口设计
 
@@ -103,13 +101,13 @@ def __init__(name=None,
 
 #### 2. 普通 OP二次开发接口
 
-|                   变量或接口                   |                             说明                             |
-| :--------------------------------------------: | :----------------------------------------------------------: |
-|       def preprocess(self, input_dicts)        | 对从 Channel 中获取的数据进行处理，处理完的数据将作为 **process** 函数的输入。（该函数对一个 **sample** 进行处理） |
-|       def process(self, feed_dict_list)        | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。（该函数对一个 **batch** 进行处理） |
-| def postprocess(self, input_dicts, fetch_dict) | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。（该函数对一个 **sample** 进行处理） |
-|               def init_op(self)                |                  用于加载资源（如字典等）。                  |
-|              self.concurrency_idx              |  当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。  |
+|                    变量或接口                    |                             说明                             |
+| :----------------------------------------------: | :----------------------------------------------------------: |
+|        def preprocess(self, input_dicts)         | 对从 Channel 中获取的数据进行处理，处理完的数据将作为 **process** 函数的输入。（该函数对一个 **sample** 进行处理） |
+| def process(self, feed_dict_list, typical_logid) | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。（该函数对一个 **batch** 进行处理） |
+|  def postprocess(self, input_dicts, fetch_dict)  | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。（该函数对一个 **sample** 进行处理） |
+|                def init_op(self)                 |                  用于加载资源（如字典等）。                  |
+|               self.concurrency_idx               |  当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。  |
 
 OP 在一个运行周期中会依次执行 preprocess，process，postprocess 三个操作（当不设置 `server_endpoints` 参数时，不执行 process 操作），用户可以对这三个函数进行重写，默认实现如下：
 
@@ -123,13 +121,17 @@ def preprocess(self, input_dicts):
   (_, input_dict), = input_dicts.items()
   return input_dict
 
-def process(self, feed_dict_list):
+def process(self, feed_dict_list, typical_logid):
   err, err_info = ChannelData.check_batch_npdata(feed_dict_list)
   if err != 0:
     raise NotImplementedError(
       "{} Please override preprocess func.".format(err_info))
   call_result = self.client.predict(
-    feed=feed_dict_list, fetch=self._fetch_names)
+    feed=feed_dict_list, fetch=self._fetch_names, log_id=typical_logid)
+  if isinstance(self.client, MultiLangClient):
+    if call_result is None or call_result["serving_status_code"] != 0:
+      return None
+    call_result.pop("serving_status_code")
   return call_result
 
 def postprocess(self, input_dicts, fetch_dict):
@@ -138,7 +140,7 @@ def postprocess(self, input_dicts, fetch_dict):
 
 **preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量（作为一个 **sample**）是一个以前继 OP 的 name 为 Key，对应 OP 的输出为 Value 的字典。
 
-**process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict_list`（preprocess 函数的返回值的列表），该变量（作为一个 **batch**）是一个列表，列表中的元素为以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。
+**process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict_list`（preprocess 函数的返回值的列表），该变量（作为一个 **batch**）是一个列表，列表中的元素为以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。`typical_logid` 作为向 PaddleServingService 穿透的 logid。
 
 **postprocess** 的参数是 `input_dicts` 和 `fetch_dict`，`input_dicts` 与 preprocess 的参数一致，`fetch_dict` （作为一个 **sample**）是 process 函数的返回 batch 中的一个 sample（如果没有执行 process ，则该值为 preprocess 的返回值）。
 
@@ -255,7 +257,7 @@ dag:
     retry: 1  # DAG Executor 在失败后重试次数，默认为 1，即不重试
     use_profile: false  # 是否在 Server 端打印日志，默认为 false
     tracer:
-        interval_s: 600 # Tracer 监控的时间间隔，单位为秒。当该值小于 1 时不启动监控，默认为 600
+        interval_s: 600 # Tracer 监控的时间间隔，单位为秒。当该值小于 1 时不启动监控，默认为 -1
 ```
 
 
@@ -286,17 +288,12 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 
 ```python
 import logging
-logging.basicConfig(level=logging.INFO)
-
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
 from paddle_serving_server.pipeline.channel import ChannelDataEcode
 import numpy as np
 from paddle_serving_app.reader import IMDBDataset
-
-_LOGGER = logging.getLogger()
-
 
 class ImdbRequestOp(RequestOp):
     def init_op(self):
@@ -318,7 +315,6 @@ class CombineOp(Op):
     def preprocess(self, input_data):
         combined_prediction = 0
         for op_name, data in input_data.items():
-            _LOGGER.info("{}: {}".format(op_name, data["prediction"]))
             combined_prediction += data["prediction"]
         data = {"prediction": combined_prediction / 2}
         return data

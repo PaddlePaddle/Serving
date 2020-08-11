@@ -60,9 +60,9 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - Whether input buffers and output buffers in Channel will increase indefinitely
 
   - It will not increase indefinitely. The input to the entire graph execution engine is placed inside a Channel's internal queue, directly acting as a traffic control buffer queue for the entire service.
-  - For input buffer, adjust the number of concurrencies of OP1 and OP2 according to the amount of computation, so that the number of input buffers from each input OP is relatively balanced.
-  - For output buffer, you can use a similar process as input buffer, which adjusts the concurrency of OP3 and OP4 to control the buffer length of output buffer.
-  - Note: The length of the input buffer depends on the speed at which each item in the internal queue is ready, and the length of the output buffer depends on the speed at which downstream OPs obtain data from the output buffer.
+  - For input buffer, adjust the number of concurrencies of OP1 and OP2 according to the amount of computation, so that the number of input buffers from each input OP is relatively balanced. (The length of the input buffer depends on the speed at which each item in the internal queue is ready)
+  - For output buffer, you can use a similar process as input buffer, which adjusts the concurrency of OP3 and OP4 to control the buffer length of output buffer. (The length of the output buffer depends on the speed at which downstream OPs obtain data from the output buffer)
+  - The amount of data in the Channel will not exceed `worker_num` of gRPC, that is, it will not exceed the thread pool size.
 
 ## Detailed Design
 
@@ -103,13 +103,13 @@ The meaning of each parameter is as follows:
 
 #### 2. General OP Secondary Development Interface
 
-|             Interface or Variable              |                           Explain                            |
-| :--------------------------------------------: | :----------------------------------------------------------: |
-|       def preprocess(self, input_dicts)        | Process the data obtained from the channel, and the processed data will be used as the input of the **process** function. (This function handles a **sample**) |
-|       def process(self, feed_dict_list)        | The RPC prediction process is based on the Paddle Serving Client, and the processed data will be used as the input of the **postprocess** function. (This function handles a **batch**) |
-| def postprocess(self, input_dicts, fetch_dict) | After processing the prediction results, the processed data will be put into the subsequent Channel to be obtained by the subsequent OP. (This function handles a **sample**) |
-|               def init_op(self)                |      Used to load resources (such as word dictionary).       |
-|              self.concurrency_idx              | Concurrency index of current process(not thread) (different kinds of OP are calculated separately). |
+|              Interface or Variable               |                           Explain                            |
+| :----------------------------------------------: | :----------------------------------------------------------: |
+|        def preprocess(self, input_dicts)         | Process the data obtained from the channel, and the processed data will be used as the input of the **process** function. (This function handles a **sample**) |
+| def process(self, feed_dict_list, typical_logid) | The RPC prediction process is based on the Paddle Serving Client, and the processed data will be used as the input of the **postprocess** function. (This function handles a **batch**) |
+|  def postprocess(self, input_dicts, fetch_dict)  | After processing the prediction results, the processed data will be put into the subsequent Channel to be obtained by the subsequent OP. (This function handles a **sample**) |
+|                def init_op(self)                 |      Used to load resources (such as word dictionary).       |
+|               self.concurrency_idx               | Concurrency index of current process(not thread) (different kinds of OP are calculated separately). |
 
 In a running cycle, OP will execute three operations: preprocess, process, and postprocess (when the `server_endpoints` parameter is not set, the process operation is not executed). Users can rewrite these three functions. The default implementation is as follows:
 
@@ -123,13 +123,17 @@ def preprocess(self, input_dicts):
   (_, input_dict), = input_dicts.items()
   return input_dict
 
-def process(self, feed_dict_list):
+def process(self, feed_dict_list, typical_logid):
   err, err_info = ChannelData.check_batch_npdata(feed_dict_list)
   if err != 0:
     raise NotImplementedError(
       "{} Please override preprocess func.".format(err_info))
   call_result = self.client.predict(
-    feed=feed_dict_list, fetch=self._fetch_names)
+    feed=feed_dict_list, fetch=self._fetch_names, log_id=typical_logid)
+  if isinstance(self.client, MultiLangClient):
+    if call_result is None or call_result["serving_status_code"] != 0:
+      return None
+    call_result.pop("serving_status_code")
   return call_result
 
 def postprocess(self, input_dicts, fetch_dict):
@@ -138,7 +142,7 @@ def postprocess(self, input_dicts, fetch_dict):
 
 The parameter of **preprocess** is the data `input_dicts` in the previous Channel. This variable (as a **sample**) is a dictionary with the name of the previous OP as key and the output of the corresponding OP as value.
 
-The parameter of **process** is the input variable `fetch_dict_list` (a list of the return value of the preprocess function) of the Paddle Serving Client prediction interface. This variable (as a **batch**) is a list of dictionaries with feed_name as the key and the data in the ndarray format as the value.
+The parameter of **process** is the input variable `fetch_dict_list` (a list of the return value of the preprocess function) of the Paddle Serving Client prediction interface. This variable (as a **batch**) is a list of dictionaries with feed_name as the key and the data in the ndarray format as the value. `typical_logid` is used as the logid that penetrates to PaddleServingService.
 
 The parameters of **postprocess** are `input_dicts` and `fetch_dict`. `input_dicts` is consistent with the parameter of preprocess, and `fetch_dict` (as a **sample**) is a sample of the return batch of the process function (if process is not executed, this value is the return value of preprocess).
 
@@ -255,7 +259,7 @@ dag:
     retry: 1  # The number of times DAG executor retries after failure. The default value is 1, that is, no retrying
     use_profile: false  # Whether to print the log on the server side. The default is false
     tracer:
-        interval_s: 600 # Monitoring time interval of Tracer (in seconds). Do not start monitoring when the value is less than 1. The default value is 600
+        interval_s: 600 # Monitoring time interval of Tracer (in seconds). Do not start monitoring when the value is less than 1. The default value is -1
 ```
 
 
@@ -286,18 +290,12 @@ Run the following code
 
 ```python
 import logging
-logging.basicConfig(level=logging.INFO)
-
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
 from paddle_serving_server.pipeline.channel import ChannelDataEcode
 import numpy as np
 from paddle_serving_app.reader import IMDBDataset
-
-
-_LOGGER = logging.getLogger()
-
 
 class ImdbRequestOp(RequestOp):
     def init_op(self):
