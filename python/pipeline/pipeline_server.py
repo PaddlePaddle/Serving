@@ -117,7 +117,8 @@ class PipelineServer(object):
             server = grpc.server(
                 futures.ThreadPoolExecutor(max_workers=self._worker_num),
                 options=[('grpc.max_send_message_length', 256 * 1024 * 1024),
-                    ('grpc.max_receive_message_length', 256 * 1024 * 1024)])
+                         ('grpc.max_receive_message_length', 256 * 1024 * 1024)
+                         ])
             pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
                 PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._port))
@@ -126,8 +127,8 @@ class PipelineServer(object):
 
     def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
         options = [('grpc.so_reuseport', 1),
-                ('grpc.max_send_message_length', 256 * 1024 * 1024),
-                ('grpc.max_send_message_length', 256 * 1024 * 1024)]
+                   ('grpc.max_send_message_length', 256 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 256 * 1024 * 1024)]
         server = grpc.server(
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
