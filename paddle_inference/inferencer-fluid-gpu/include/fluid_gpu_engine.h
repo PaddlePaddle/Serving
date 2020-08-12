@@ -178,7 +178,7 @@ class FluidGpuNativeCore : public FluidFamilyCore {
   }
 };
 
-class FluidTRTAnalysisDirCore : public FluidFamilyCore {
+class FluidGpuAnalysisDirCore : public FluidFamilyCore {
  public:
   int create(const predictor::InferEngineCreationParams& params) {
     std::string data_path = params.get_path();
@@ -238,14 +238,26 @@ class FluidTRTAnalysisDirCore : public FluidFamilyCore {
     analysis_config.SetTRTDynamicShapeInfo(
         min_input_shape, max_input_shape, opt_input_shape);
 #endif
+    int batch = 8;
+    int min_subgraph_size = 3;
     if (params.use_trt()) {
       analysis_config.EnableTensorRtEngine(
           1 << 30,
           batch,
-          5,
+          min_subgraph_size,
           paddle::AnalysisConfig::Precision::kFloat32,
           true,
           true);
+    } else {
+      if (params.enable_memory_optimization()) {
+        analysis_config.EnableMemoryOptim();
+      }
+
+      if (params.enable_ir_optimization()) {
+        analysis_config.SwitchIrOptim(true);
+      } else {
+        analysis_config.SwitchIrOptim(false);
+      }
     }
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =

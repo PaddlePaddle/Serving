@@ -38,6 +38,7 @@ class InferEngineCreationParams {
     _enable_ir_optimization = false;
     _static_optimization = false;
     _force_update_static_cache = false;
+    _use_trt = false;
   }
 
   void set_path(const std::string& path) { _path = path; }
@@ -50,11 +51,15 @@ class InferEngineCreationParams {
     _enable_ir_optimization = enable_ir_optimization;
   }
 
+  void set_use_trt(bool use_trt) { _use_trt = use_trt; }
+
   bool enable_memory_optimization() const {
     return _enable_memory_optimization;
   }
 
   bool enable_ir_optimization() const { return _enable_ir_optimization; }
+
+  bool use_trt() const { return _use_trt; }
 
   void set_static_optimization(bool static_optimization = false) {
     _static_optimization = static_optimization;
@@ -86,6 +91,7 @@ class InferEngineCreationParams {
   bool _enable_ir_optimization;
   bool _static_optimization;
   bool _force_update_static_cache;
+  bool _use_trt;
 };
 
 class InferEngine {
@@ -170,6 +176,10 @@ class ReloadableInferEngine : public InferEngine {
       _infer_engine_params.set_static_optimization(static_optimization);
       _infer_engine_params.set_force_update_static_cache(
           force_update_static_cache);
+    }
+
+    if (conf.has_use_trt()) {
+      _infer_engine_params.set_use_trt(conf.use_trt());
     }
 
     if (!check_need_reload() || load(_infer_engine_params) != 0) {
