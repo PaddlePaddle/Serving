@@ -46,7 +46,7 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
-        "--mem_optim",
+        "--mem_optim_off",
         default=False,
         action="store_true",
         help="Memory optimize")
@@ -79,7 +79,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     port = serving_port
     workdir = args.workdir
     device = args.device
-    mem_optim = args.mem_optim
+    mem_optim = args.mem_optim_off is False
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_mkl = args.use_mkl

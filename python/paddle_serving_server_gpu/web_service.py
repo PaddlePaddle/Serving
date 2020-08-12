@@ -51,7 +51,9 @@ class WebService(object):
                             workdir="conf",
                             port=9292,
                             gpuid=0,
-                            thread_num=10):
+                            thread_num=2,
+                            mem_optim=True,
+                            ir_optim=False):
         device = "gpu"
         if gpuid == -1:
             device = "cpu"
@@ -68,6 +70,8 @@ class WebService(object):
         server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
+        server.set_memory_optimize(mem_optim)
+        server.set_ir_optimize(ir_optim)
 
         server.load_model_config(self.model_config)
         if gpuid >= 0:
@@ -78,7 +82,22 @@ class WebService(object):
     def _launch_rpc_service(self, service_idx):
         self.rpc_service_list[service_idx].run_server()
 
-    def prepare_server(self, workdir="", port=9393, device="gpu", gpuid=0):
+    def port_is_available(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('0.0.0.0', port))
+        if result != 0:
+            return True
+        else:
+            return False
+
+    def prepare_server(self,
+                       workdir="",
+                       port=9393,
+                       device="gpu",
+                       gpuid=0,
+                       mem_optim=True,
+                       ir_optim=False):
         self.workdir = workdir
         self.port = port
         self.device = device
@@ -95,7 +114,12 @@ class WebService(object):
             # init cpu service
             self.rpc_service_list.append(
                 self.default_rpc_service(
-                    self.workdir, self.port_list[0], -1, thread_num=10))
+                    self.workdir,
+                    self.port_list[0],
+                    -1,
+                    thread_num=2,
+                    mem_optim=mem_optim,
+                    ir_optim=ir_optim))
         else:
             for i, gpuid in enumerate(self.gpus):
                 self.rpc_service_list.append(
@@ -103,7 +127,9 @@ class WebService(object):
                         "{}_{}".format(self.workdir, i),
                         self.port_list[i],
                         gpuid,
-                        thread_num=10))
+                        thread_num=2,
+                        mem_optim=mem_optim,
+                        ir_optim=ir_optim))
 
     def _launch_web_service(self):
         gpu_num = len(self.gpus)
@@ -205,4 +231,6 @@ class WebService(object):
         return feed, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
+        for key in fetch_map.iterkeys():
+            fetch_map[key] = fetch_map[key].tolist()
         return fetch_map
