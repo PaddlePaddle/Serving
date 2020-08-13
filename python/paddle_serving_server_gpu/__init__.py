@@ -248,7 +248,7 @@ class Server(object):
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
 
-    def use_trt(self):
+    def set_trt(self):
         self.use_trt = True
 
     def _prepare_engine(self, model_config_paths, device):
