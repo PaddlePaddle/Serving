@@ -89,12 +89,13 @@ int GeneralTextResponseOp::inference() {
         // currently only response float tensor or lod_tensor
         tensor->set_elem_type(1);
         if (model_config->_is_lod_fetch[idx]) {
-          VLOG(2) << "out[" << idx << " is lod_tensor";
+          VLOG(2) << "(logid=" << log_id << ") out[" << idx << " is lod_tensor";
           tensor->add_shape(-1);
         } else {
-          VLOG(2) << "out[" << idx << "] is tensor";
+          VLOG(2) << "(logid=" << log_id << ") out[" << idx << "] is tensor";
           for (int k = 1; k < in->at(idx).shape.size(); ++k) {
-            VLOG(2) << "shape[" << k - 1 << "]: " << in->at(idx).shape[k];
+            VLOG(2) << "(logid=" << log_id << ") shape[" << k - 1
+                    << "]: " << in->at(idx).shape[k];
             tensor->add_shape(in->at(idx).shape[k]);
           }
         }
@@ -138,7 +139,9 @@ int GeneralTextResponseOp::inference() {
     // a more elegant way.
     for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
       input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
-      VLOG(2) << "p size for input blob: " << input_blob->p_size;
+      uint64_t log_id = input_blob->GetLogId();
+      VLOG(2) << "(logid=" << log_id
+              << ") p size for input blob: " << input_blob->p_size;
       int profile_time_idx = -1;
       if (pi == 0) {
         profile_time_idx = 0;

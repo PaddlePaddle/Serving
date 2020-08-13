@@ -35,6 +35,7 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 int GeneralTextReaderOp::inference() {
   // reade request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
+  uint64_t log_id = req->log_id();
 
   int batch_size = req->insts_size();
   int input_var_num = 0;
@@ -44,16 +45,18 @@ int GeneralTextReaderOp::inference() {
   std::vector<int64_t> capacity;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
-  TensorVector *out = &res->tensor_vector;
-
-  res->SetBatchSize(batch_size);
 
   if (!res) {
-    LOG(ERROR) << "Failed get op tls reader object output";
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed get op tls reader object output";
   }
 
+  TensorVector *out = &res->tensor_vector;
+  res->SetBatchSize(batch_size);
+  res->SetLogId(log_id);
+
   if (batch_size <= 0) {
-    LOG(ERROR) << "Batch size < 0";
+    LOG(ERROR) << "(logid=" << log_id << ") Batch size < 0";
     return -1;
   }
 
@@ -61,17 +64,18 @@ int GeneralTextReaderOp::inference() {
   int64_t start = timeline.TimeStampUS();
 
   int var_num = req->insts(0).tensor_array_size();
-  VLOG(2) << "var num: " << var_num;
+  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num;
 
-  VLOG(2) << "start to call load general model_conf op";
+  VLOG(2) << "(logid=" << log_id
+          << ") start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
 
-  VLOG(2) << "get resource pointer done.";
+  VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
-  VLOG(2) << "print general model config done.";
+  VLOG(2) << "(logid=" << log_id << ") print general model config done.";
 
   elem_type.resize(var_num);
   elem_size.resize(var_num);
@@ -79,7 +83,8 @@ int GeneralTextReaderOp::inference() {
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor lod_tensor;
     elem_type[i] = req->insts(0).tensor_array(i).elem_type();
-    VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
+    VLOG(2) << "(logid=" << log_id << ") var[" << i
+            << "] has elem type: " << elem_type[i];
     if (elem_type[i] == 0) {  // int64
       elem_size[i] = sizeof(int64_t);
       lod_tensor.dtype = paddle::PaddleDType::INT64;
@@ -91,17 +96,19 @@ int GeneralTextReaderOp::inference() {
     if (req->insts(0).tensor_array(i).shape(0) == -1) {
       lod_tensor.lod.resize(1);
       lod_tensor.lod[0].push_back(0);
-      VLOG(2) << "var[" << i << "] is lod_tensor";
+      VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
     } else {
       lod_tensor.shape.push_back(batch_size);
       capacity[i] = 1;
       for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
         int dim = req->insts(0).tensor_array(i).shape(k);
-        VLOG(2) << "shape for var[" << i << "]: " << dim;
+        VLOG(2) << "(logid=" << log_id << ") shape for var[" << i
+                << "]: " << dim;
         capacity[i] *= dim;
         lod_tensor.shape.push_back(dim);
       }
-      VLOG(2) << "var[" << i << "] is tensor, capacity: " << capacity[i];
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
+              << "] is tensor, capacity: " << capacity[i];
     }
     lod_tensor.name = model_config->_feed_name[i];
     out->push_back(lod_tensor);
@@ -117,11 +124,11 @@ int GeneralTextReaderOp::inference() {
       }
       out->at(i).data.Resize(out->at(i).lod[0].back() * elem_size[i]);
       out->at(i).shape = {out->at(i).lod[0].back(), 1};
-      VLOG(2) << "var[" << i
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] is lod_tensor and len=" << out->at(i).lod[0].back();
     } else {
       out->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
-      VLOG(2) << "var[" << i
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] is tensor and capacity=" << batch_size * capacity[i];
     }
   }
@@ -163,7 +170,7 @@ int GeneralTextReaderOp::inference() {
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
-  VLOG(2) << "read data from client success";
+  VLOG(2) << "(logid=" << log_id << ") read data from client success";
   return 0;
 }
 DEFINE_OP(GeneralTextReaderOp);
