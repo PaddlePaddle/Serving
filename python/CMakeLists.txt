@@ -47,6 +47,9 @@ if (SERVER)
     endif()
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gen_version.py
+    ${CMAKE_CURRENT_BINARY_DIR}/gen_version.py)
+
 set (SERVING_CLIENT_CORE ${PADDLE_SERVING_BINARY_DIR}/core/general-client/*.so)
 message("python env: " ${py_env})
 
@@ -54,6 +57,7 @@ if (APP)
 add_custom_command(
         OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
         COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_app/ ${PADDLE_SERVING_BINARY_DIR}/python/
+        COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py "app"
         COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
         DEPENDS ${SERVING_APP_CORE} general_model_config_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
@@ -65,6 +69,7 @@ add_custom_command(
 	COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_client/ ${PADDLE_SERVING_BINARY_DIR}/python/
 	COMMAND ${CMAKE_COMMAND} -E copy ${SERVING_CLIENT_CORE} ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/serving_client.so
     COMMAND env ${py_env} ${PYTHON_EXECUTABLE} python_tag.py
+    COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py "client"
 	COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
 	DEPENDS ${SERVING_CLIENT_CORE} sdk_configure_py_proto ${PY_FILES})
 add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
@@ -75,6 +80,7 @@ if (SERVER)
         add_custom_command(
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
             COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server/ ${PADDLE_SERVING_BINARY_DIR}/python/
+            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py "server"
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
@@ -83,7 +89,8 @@ if (SERVER)
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
             COMMAND cp -r
             ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
-            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} paddle_serving_server_gpu/gen_cuda_version.py ${CUDA_VERSION_MAJOR}
+            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
+            "server_gpu" ${CUDA_VERSION_MAJOR}
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)

@@ -15,13 +15,25 @@
 import sys
 import re
 import os
+import subprocess
 
-new_str = ""
-with open("paddle_serving_server_gpu/version.py", "r") as f:
-    for line in f.readlines():
-        if re.match("cuda_version", line):
-            line = re.sub(r"\d+", sys.argv[1], line)
-        new_str = new_str + line
 
-with open("paddle_serving_server_gpu/version.py", "w") as f:
-    f.write(new_str)
+def update_info(file_name, feature, info):
+    new_str = ""
+    with open(file_name, "r") as f:
+        for line in f.readlines():
+            if re.match(feature, line):
+                line = feature + " = \"" + info.strip() + "\"\n"
+            new_str = new_str + line
+
+    with open(file_name, "w") as f:
+        f.write(new_str)
+
+
+if len(sys.argv) > 2:
+    update_info("paddle_serving_server_gpu/version.py", "cuda_version",
+                sys.argv[2])
+
+path = "paddle_serving_" + sys.argv[1]
+commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+update_info(path + "/version.py", "commit_id", commit_id)
