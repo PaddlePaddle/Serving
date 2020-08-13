@@ -248,6 +248,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
           paddle::AnalysisConfig::Precision::kFloat32,
           true,
           true);
+      LOG(INFO) << "create TensorRT predictor";
     } else {
       if (params.enable_memory_optimization()) {
         analysis_config.EnableMemoryOptim();
