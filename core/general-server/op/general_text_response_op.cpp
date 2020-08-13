@@ -74,9 +74,10 @@ int GeneralTextResponseOp::inference() {
       return -1;
     }
 
+    uint64_t log_id = input_blob->GetLogId();
     const TensorVector *in = &input_blob->tensor_vector;
     int batch_size = input_blob->GetBatchSize();
-    VLOG(2) << "input batch size: " << batch_size;
+    VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
 
     ModelOutput *output = res->add_outputs();
     output->set_engine_name(
