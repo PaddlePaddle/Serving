@@ -37,9 +37,9 @@ int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
   int var_num = req->insts(0).tensor_array_size();
   if (var_num != model_config->_feed_type.size()) {
-    VLOG(2) << "var num: " << var_num;
-    VLOG(2) << "model config var num: " << model_config->_feed_type.size();
-    LOG(ERROR) << "feed var number not match.";
+    LOG(ERROR) << "feed var number not match: model config["
+               << model_config->_feed_type.size() << "] vs. actual[" << var_num
+               << "]";
     return -1;
   }
 

@@ -47,21 +47,22 @@ class DagView {
 
   ~DagView() {}
 
-  int init(Dag* dag, const std::string& service_name);
+  int init(Dag* dag, const std::string& service_name, const uint64_t log_id);
 
   int deinit();
 
-  int execute(butil::IOBufBuilder* debug_os);
+  int execute(const uint64_t log_id, butil::IOBufBuilder* debug_os);
 
   // The default execution strategy is in sequencing
   // You can derive a subclass to implement this func.
   // ParallelDagView maybe the one you want.
   virtual int execute_one_stage(ViewStage* vstage,
+                                const uint64_t log_id,
                                 butil::IOBufBuilder* debug_os);
 
-  int set_request_channel(Channel& request);  // NOLINT
+  int set_request_channel(Channel& request, const uint64_t log_id);  // NOLINT
 
-  const Channel* get_response_channel() const;
+  const Channel* get_response_channel(const uint64_t log_id) const;
 
   const std::string& name() const { return _name; }
 
