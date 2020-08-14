@@ -288,7 +288,6 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 运行下面代码
 
 ```python
-import logging
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
@@ -400,9 +399,6 @@ dag:
 使用时先将 Server 的输出保存到文件，以 `profile.txt` 为例，脚本将日志中的时间打点信息转换成 json 格式保存到 `trace` 文件，`trace` 文件可以通过 chrome 浏览器的 tracing 功能进行可视化。
 
 ```python
-import logging
-logging.basicConfig(level=logging.INFO)
-
 from paddle_serving_server.pipeline import Analyst
 import json
 import sys
