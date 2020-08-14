@@ -347,6 +347,11 @@ class Client(object):
                     result_map[name] = result_batch_handle.get_int64_by_name(
                         mi, name)
                     shape = result_batch_handle.get_shape(mi, name)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
                         result_map["{}.lod".format(
@@ -354,6 +359,11 @@ class Client(object):
                 elif self.fetch_names_to_type_[name] == float32_type:
                     result_map[name] = result_batch_handle.get_float_by_name(
                         mi, name)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
@@ -364,6 +374,11 @@ class Client(object):
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int32_by_name(
                         mi, name)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
