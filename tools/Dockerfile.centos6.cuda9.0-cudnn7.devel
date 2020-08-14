@@ -45,4 +45,5 @@ RUN yum -y install wget && \
     pip3 install google protobuf setuptools wheel flask numpy==1.16.4 && \
     yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
     yum clean all && \
-    echo "export LANG=en_US.utf8" >> /root/.bashrc
+    echo "export LANG=en_US.utf8" >> /root/.bashrc && \
+    echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc
