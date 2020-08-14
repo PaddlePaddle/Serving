@@ -290,7 +290,6 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 Run the following code
 
 ```python
-import logging
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
@@ -403,9 +402,6 @@ After the function is enabled, the server will print the corresponding log infor
 The output of the server is first saved to a file. Taking `profile.txt` as an example, the script converts the time monitoring information in the log into JSON format and saves it to the `trace` file. The `trace` file can be visualized through the tracing function of Chrome browser.
 
 ```shell
-import logging
-logging.basicConfig(level=logging.INFO)
-
 from paddle_serving_server.pipeline import Analyst
 import json
 import sys
