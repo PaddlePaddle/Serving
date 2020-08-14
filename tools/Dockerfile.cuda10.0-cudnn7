@@ -18,6 +18,7 @@ RUN ln -s /usr/local/cuda-10.0/lib64/libcublas.so.10.0 /usr/local/cuda-10.0/lib6
     ln -s /usr/local/cuda-10.0/targets/x86_64-linux/lib/libcudnn.so.7 /usr/local/cuda-10.0/targets/x86_64-linux/lib/libcudnn.so && \
     echo 'export LD_LIBRARY_PATH=/usr/local/cuda-10.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
     echo "export LANG=en_US.utf8" >> /root/.bashrc && \
+    echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc && \
     mkdir -p /usr/local/cuda/extras
 
 COPY --from=builder /usr/local/cuda/extras/CUPTI /usr/local/cuda/extras/CUPTI
