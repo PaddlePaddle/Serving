@@ -32,4 +32,5 @@ RUN yum install -y python3 python3-devel \
     && yum clean all 
 
 RUN localedef -c -i en_US -f UTF-8 en_US.UTF-8 \
-    && echo "export LANG=en_US.utf8" >> /root/.bashrc
+    && echo "export LANG=en_US.utf8" >> /root/.bashrc \
+    && echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc
