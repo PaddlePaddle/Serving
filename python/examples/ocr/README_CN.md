@@ -15,19 +15,18 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/ocr/test_imgs.t
 tar xf test_imgs.tar
 ```
 
-### 客户端预测
-
-```
-python ocr_rpc_client.py
-```
-
 ## Web Service服务
 
 ### 启动服务
 
 ```
+#根据CPU/GPU设备选择一种启动方式
+#for cpu user
+python -m paddle_serving_server.serve --model ocr_det_model --port 9293
+python ocr_web_server.py cpu
+#for gpu user
 python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
-python ocr_web_server.py
+python ocr_web_server.py gpu
 ```
 
 ### 启动客户端
@@ -38,7 +37,11 @@ python ocr_web_client.py
 如果用户需要更快的执行速度，请尝试Debugger版Web服务
 ## 启动Debugger版Web服务
 ```
-python ocr_debugger_server.py
+#根据CPU/GPU设备选择一种启动方式
+#for cpu user
+python ocr_debugger_server.py cpu
+#for gpu user
+python ocr_debugger_server.py gpu
 ```
 
 ## 启动客户端
@@ -66,9 +69,11 @@ GPU: Nvidia Tesla V100单卡
 ### 启动检测服务
 
 ```
-python det_web_server.py 
+python det_web_server.py cpu #for cpu user
+python det_web_server.py gpu #for gpu user
 #or
-python det_debugger_server.py
+python det_debugger_server.py cpu #for cpu user
+python det_debugger_server.py gpu #for gpu user
 ```
 
 ### 检测服务客户端
@@ -81,9 +86,11 @@ python ocr_web_client.py
 ### 启动识别服务
 
 ```
-python rec_web_server.py 
+python rec_web_server.py cpu #for cpu user
+python rec_web_server.py gpu #for gpu user
 #or
-python rec_debugger_server.py
+python rec_debugger_server.py cpu #for cpu user
+python rec_debugger_server.py gpu #for gpu user
 ```
 
 ### 识别服务客户端
