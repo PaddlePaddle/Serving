@@ -3,6 +3,7 @@ wheel>=0.34.0, <0.35.0
 setuptools>=44.1.0
 opencv-python==4.2.0.32
 google>=2.0.3
+opencv-python==4.2.0.32
 protobuf>=3.12.2
 grpcio-tools>=1.28.1
 grpcio>=1.28.1
