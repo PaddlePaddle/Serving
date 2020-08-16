@@ -21,8 +21,13 @@ tar xf test_imgs.tar
 ### Start Service
 
 ```
+#choose one of cpu/gpu commands as following
+#for cpu user
+python -m paddle_serving_server.serve --model ocr_det_model --port 9293
+python ocr_web_server.py cpu
+#for gpu user
 python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
-python ocr_web_server.py
+python ocr_web_server.py gpu
 ```
 
 ### Client Prediction
@@ -33,7 +38,11 @@ If you want a faster web service, please try Web Debugger Service
 
 ## Web Debugger Service
 ```
-python ocr_debugger_server.py
+#choose one of cpu/gpu commands as following
+#for cpu user
+python ocr_debugger_server.py cpu
+#for gpu user
+python ocr_debugger_server.py gpu 
 ```
 
 ## Web Debugger Client Prediction
@@ -54,15 +63,17 @@ Dataset: RCTW 500 sample images
 | Serving web service          | 8.69         | 13.41                      | 109.97           | 2.82               | 87.76            | 4.29               | 3.98               | 78.51            | 3.66               | 4.12                     | 181.02             | 136.49       | 317.51        |
 | Serving Debugger web service |  8.73        | 16.42                      | 115.27           | 2.93               | 20.63            | 3.97               | 4.48               | 13.84            | 3.60               | 6.91                     | 49.45              | 147.33       | 196.78        |
 
-## Appendix: Det or Rec only
+## Appendix: For Users who want to launch Det or Rec only
 if you are going to detect images not recognize it or directly recognize the words from images. We also provide Det and Rec server for you.
 
 ### Det Server 
 
 ```
-python det_web_server.py 
+python det_web_server.py cpu #for cpu user
+python det_web_server.py gpu #for gpu user
 #or
-python det_debugger_server.py
+python det_debugger_server.py cpu #for cpu user
+python det_debugger_server.py gpu #for gpu user
 ```
 
 ### Det Client
@@ -75,9 +86,11 @@ python ocr_web_client.py
 ### Rec Server
 
 ```
-python rec_web_server.py 
+python rec_web_server.py cpu #for cpu user
+python rec_web_server.py gpu #for gpu user
 #or
-python rec_debugger_server.py
+python rec_debugger_server.py cpu #for cpu user
+python rec_debugger_server.py gpu #for gpu user
 ```
 
 ### Rec Client
