@@ -42,7 +42,7 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece', 'opencv-python', 'pillow',
+    'six >= 1.10.0', 'sentencepiece', 'opencv-python<=4.2.0.32', 'pillow',
     'shapely', 'pyclipper'
 ]
 
