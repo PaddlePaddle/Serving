@@ -52,25 +52,29 @@ class InferService {
   // Execute each workflow serially
   virtual int inference(const google::protobuf::Message* request,
                         google::protobuf::Message* response,
+                        const uint64_t log_id,
                         butil::IOBufBuilder* debug_os = NULL);
 
   int debug(const google::protobuf::Message* request,
             google::protobuf::Message* response,
+            const uint64_t log_id,
             butil::IOBufBuilder* debug_os);
 
   int execute_one_workflow(uint32_t index,
                            const google::protobuf::Message* request,
                            google::protobuf::Message* response,
+                           const uint64_t log_id,
                            butil::IOBufBuilder* debug_os);
 
  private:
   int _execute_workflow(Workflow* workflow,
                         const google::protobuf::Message* request,
                         google::protobuf::Message* response,
+                        const uint64_t log_id,
                         butil::IOBufBuilder* debug_os);
 
   std::vector<Workflow*>* _map_request_to_workflow(
-      const google::protobuf::Message* request);
+      const google::protobuf::Message* request, const uint64_t log_id);
 
  private:
   std::vector<Workflow*> _flows;
@@ -88,6 +92,7 @@ class ParallelInferService : public InferService {
   // Execute workflows in parallel
   int inference(const google::protobuf::Message* request,
                 google::protobuf::Message* response,
+                const uint64_t log_id,
                 butil::IOBufBuilder* debug_os) {
     return 0;
   }
