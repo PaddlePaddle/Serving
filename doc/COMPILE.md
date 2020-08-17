@@ -4,26 +4,25 @@
 
 ## Compilation environment requirements
 
-|            module            |                           version                            |
-| :--------------------------: | :----------------------------------------------------------: |
-|              OS              |                           CentOS 7                           |
-|             gcc              |                       4.8.5 and later                        |
-|           gcc-c++            |                       4.8.5 and later                        |
-|             git              |                        3.82 and later                        |
-|            cmake             |                       3.2.0 and later                        |
-|            Python            |               2.7.2 and later / 3.6 and later                |
-|              Go              |                       1.9.2 and later                        |
-|             git              |                       2.17.1 and later                       |
-|         glibc-static         |                             2.17                             |
-|        openssl-devel         |                            1.0.2k                            |
-|         bzip2-devel          |                       1.0.6 and later                        |
-| python-devel / python3-devel |              2.7.5 and later / 3.6.8 and later               |
-|         sqlite-devel         |                       3.7.17 and later                       |
-|           patchelf           |                        0.9 and later                         |
-|           libXext            |                            1.3.3                             |
-|            libSM             |                            1.2.2                             |
-|          libXrender          |                            0.9.10                            |
-|          python-whl          | numpy>=1.12, <=1.16.4<br/>wheel>=0.34.0, <0.35.0<br/>setuptools>=44.1.0<br/>opencv-python==4.2.0.32<br/>google>=2.0.3<br/>protobuf>=3.12.2<br/>grpcio-tools>=1.28.1<br/>grpcio>=1.28.1<br/>func-timeout>=4.3.5<br/>pyyaml>=1.3.0<br/>sentencepiece==0.1.92<br>flask>=1.1.2<br>ujson>=2.0.3 |
+|            module            |              version              |
+| :--------------------------: | :-------------------------------: |
+|              OS              |             CentOS 7              |
+|             gcc              |          4.8.5 and later          |
+|           gcc-c++            |          4.8.5 and later          |
+|             git              |          3.82 and later           |
+|            cmake             |          3.2.0 and later          |
+|            Python            |  2.7.2 and later / 3.6 and later  |
+|              Go              |          1.9.2 and later          |
+|             git              |         2.17.1 and later          |
+|         glibc-static         |               2.17                |
+|        openssl-devel         |              1.0.2k               |
+|         bzip2-devel          |          1.0.6 and later          |
+| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+|         sqlite-devel         |         3.7.17 and later          |
+|           patchelf           |           0.9 and later           |
+|           libXext            |               1.3.3               |
+|            libSM             |               1.2.2               |
+|          libXrender          |              0.9.10               |
 
 It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you, see [this document](DOCKER_IMAGES.md).
 
