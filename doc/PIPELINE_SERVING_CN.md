@@ -417,3 +417,165 @@ if __name__ == "__main__":
 Client 端在 `predict` 接口设置 `profile=True`，即可开启 Profile 功能。
 
 开启该功能后，Client 端在预测的过程中会将该次预测对应的日志信息打印到标准输出，后续分析处理同 Server。
+
+
+
+## 如何通过 gRPC-gateway 开启 HTTP 服务
+
+基于 [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)，PipelineServing 可以提供 RESTful API，参考 grpc-gateway 的[文档](https://grpc-ecosystem.github.io/grpc-gateway/docs/background.html)。
+
+### 安装依赖
+
+#### 1. Protobuf 3
+
+在我们提供的容器中需要先安装 `autoconf` ，`automake`，`libtool` ：
+
+```shell
+yum install -y autoconf automake libtool
+```
+
+编译 protobuf 3：
+
+```shell
+mkdir tmp
+cd tmp
+git clone https://github.com/google/protobuf
+cd protobuf && git submodule update --init --recursive
+./autogen.sh
+./configure
+make
+make check
+sudo make install
+```
+
+#### 2. Go packages
+
+设置 `GOPATH`：
+
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+```
+
+下载 packages：
+
+```shell
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+go get -u github.com/golang/protobuf/protoc-gen-go
+```
+
+### 使用 gRPC-gateway
+
+#### 1. 定义 proto 文件
+
+```protobuf
+syntax = "proto3";
+package baidu.paddle_serving.pipeline_serving;
+option go_package = ".;test";
+
+import "google/api/annotations.proto";
+
+message Response {
+  repeated string key = 1;
+  repeated string value = 2;
+  int32 ecode = 3;
+  string error_info = 4;
+};
+
+message Request {
+  repeated string key = 1;
+  repeated string value = 2;
+}
+
+service PipelineService {
+  rpc inference(Request) returns (Response) {
+    option (google.api.http) = {
+      post: "/v1/example/echo"
+      body: "*"
+    };
+  }
+};
+```
+
+#### 2. 生成 gRPC stub 和 反向代理
+
+```shell
+# generate <path/to/your_service>.pb.go
+protoc -I/usr/local/include -I. \
+  -I$GOPATH/src \
+  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+  --go_out=plugins=grpc:. \
+  <path/to/your/service.proto>
+
+# generate <path/to/your_service>.gw.go
+protoc -I/usr/local/include -I. \
+  -I$GOPATH/src \
+  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+  --grpc-gateway_out=logtostderr=true:. \
+  <path/to/your/service.proto>
+```
+
+#### 3. 编写代理服务器的入口程序
+
+```go
+package main
+
+import (
+  "flag"
+  "net/http"
+  "log"
+
+  "github.com/golang/glog"
+  "golang.org/x/net/context"
+  "github.com/grpc-ecosystem/grpc-gateway/runtime"
+  "google.golang.org/grpc"
+
+  gw "path/to/your_service_package" // TODO
+)
+
+var (
+  echoEndpoint = flag.String("echo_endpoint", "localhost:<PipelineServing-Port>", "endpoint of YourService") // TODO
+)
+
+func run() error {
+  ctx := context.Background()
+  ctx, cancel := context.WithCancel(ctx)
+  defer cancel()
+
+  mux := runtime.NewServeMux()
+  opts := []grpc.DialOption{grpc.WithInsecure()}
+  err := gw.RegisterPipelineServiceHandlerFromEndpoint(ctx, mux, *echoEndpoint, opts)
+  if err != nil {
+    return err
+  }
+
+  log.Println("start service")
+  return http.ListenAndServe(":8080", mux) // proxy port
+}
+
+func main() {
+  flag.Parse()
+  defer glog.Flush()
+
+  if err := run(); err != nil {
+    glog.Fatal(err)
+  }
+}
+```
+
+#### 4. 编译上述 Go 程序并运行
+
+```shell
+go build <filename>.go
+./<filename> &>log.txt &
+```
+
+#### 5. 测试 RESTful API
+
+以  imdb model ensemble 为例：
+
+```shell
+curl -X POST -k http://localhost:8080/v1/example/echo -d '{"key": ["words"], "value": ["i am very sad | 0"]}'
+```
+
