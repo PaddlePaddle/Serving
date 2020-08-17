@@ -581,4 +581,3 @@ Take imdb model ensemble as an example:
 ```shell
 curl -X POST -k http://localhost:8080/v1/example/echo -d '{"key": ["words"], "value": ["i am very sad | 0"]}'
 ```
-
