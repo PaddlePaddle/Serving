@@ -35,7 +35,8 @@ int Op::init(Bus* bus,
              uint32_t id,
              const std::string& name,
              const std::string& type,
-             void* conf) {
+             void* conf,
+             const uint64_t log_id) {
   _bus = bus;
   _dag = dag;
   _id = id;
@@ -45,7 +46,8 @@ int Op::init(Bus* bus,
 
   _timer = butil::get_object<TimerFlow>();
   if (!_timer) {
-    LOG(ERROR) << "Invalid timerflow in op:" << this->name();
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Invalid timerflow in op:" << this->name();
     return -1;
   }
 
@@ -55,7 +57,8 @@ int Op::init(Bus* bus,
 
   Channel* channel = mutable_channel();
   if (channel == NULL) {
-    LOG(ERROR) << "Failed mutable channel in op: " << this->id() << ", "
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed mutable channel in op: " << this->id() << ", "
                << this->name() << "!";
     return -1;
   }
@@ -96,18 +99,20 @@ int Op::check_time(const char* tag) {
   return 0;
 }
 
-int Op::process(bool debug) {
+int Op::process(const uint64_t log_id, bool debug) {
   butil::Timer op_time(butil::Timer::STARTED);
   if (debug && _timer) {
     _timer->start();
   }
   if (!_has_init) {
-    LOG(ERROR) << "Make sure op has been init before inference";
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Make sure op has been init before inference";
     return ERR_INTERNAL_FAILURE;
   }
 
   if (_has_calc) {
-    LOG(INFO) << "Op: " << _name << " already processed before";
+    LOG(INFO) << "(logid=" << log_id << ") Op: " << _name
+              << " already processed before";
     return ERR_OK;
   }
 
@@ -143,7 +148,7 @@ int Op::process(bool debug) {
 
   // 3. share output to bus
   Channel* channel = mutable_channel();
-  channel->share_to_bus(_bus);
+  channel->share_to_bus(_bus, log_id);
 
   // 4. mark has calculated
   _has_calc = true;
@@ -156,7 +161,8 @@ int Op::process(bool debug) {
   op_time.stop();
   PredictorMetric::GetInstance()->update_latency_metric(
       OP_METRIC_PREFIX + full_name(), op_time.u_elapsed());
-  LOG(INFO) << " " << name() << "_time=[" << op_time.u_elapsed() << "]";
+  LOG(INFO) << "(logid=" << log_id << ") " << name() << "_time=["
+            << op_time.u_elapsed() << "]";
   return ERR_OK;
 }
 
