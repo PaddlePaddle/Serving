@@ -46,7 +46,7 @@ class PipelineClient(object):
             req.key.append(key)
             if isinstance(value, np.ndarray):
                 req.value.append(value.__repr__())
-            elif isinstance(value, str):
+            elif isinstance(value, (str, unicode)):
                 req.value.append(value)
             elif isinstance(value, list):
                 req.value.append(np.array(value).__repr__())
