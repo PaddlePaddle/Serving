@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import platform
 import os
 import sys
 
@@ -25,19 +24,10 @@ from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_client.version import serving_client_version
 from pkg_resources import DistributionNotFound, get_distribution
+import util
 
 py_version = sys.version_info
         
-def python_version():
-    return [int(v) for v in platform.python_version().split(".")]
-
-def find_package(pkgname):
-    try:
-        get_distribution(pkgname)
-        return True
-    except DistributionNotFound:
-        return False
-
 def copy_lib():
     if py_version[0] == 2:
         lib_list = ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10'] 
@@ -51,18 +41,20 @@ def copy_lib():
         text = r.read()
         os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip().split(' ')[1]))
 
-max_version, mid_version, min_version = python_version()
+max_version, mid_version, min_version = util.python_version()
+
+# gen pipeline proto code
+util.gen_pipeline_code("paddle_serving_client")
 
 if '${PACK}' == 'ON':
     copy_lib()
-
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio >= 1.28.1',
     'grpcio-tools >= 1.28.1'
 ]
 
-if not find_package("paddlepaddle") and not find_package("paddlepaddle-gpu"):
+if not util.find_package("paddlepaddle") and not util.find_package("paddlepaddle-gpu"):
     REQUIRED_PACKAGES.append("paddlepaddle")
 
 

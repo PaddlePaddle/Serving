@@ -61,6 +61,30 @@ class PipelineServer(object):
         self._port = None
         self._worker_num = None
         self._response_op = None
+        self._proxy_server = None
+
+    def _grpc_gateway(self, port):
+        import os
+        from ctypes import cdll
+        from . import gateway
+        lib_path = os.path.join(
+            os.path.dirname(gateway.__file__), "libproxy_server.so")
+        proxy_server = cdll.LoadLibrary(lib_path)
+        proxy_server.run_proxy_server(port)
+
+    def _run_grpc_gateway(self, port):
+        if port <= 0:
+            _LOGGER.info("Ignore grpc_gateway configuration.")
+            return
+        if not self._port_is_available(port):
+            raise SystemExit("Failed to run grpc-gateway: prot {} "
+                             "is already used".format(port))
+        if self._proxy_server is not None:
+            raise RuntimeError("Proxy server has been started.")
+        self._proxy_server = multiprocessing.Process(
+            target=self._grpc_gateway, args=(port, ))
+        self._proxy_server.daemon = True
+        self._proxy_server.start()
 
     def set_response_op(self, response_op):
         if not isinstance(response_op, ResponseOp):
@@ -85,6 +109,7 @@ class PipelineServer(object):
             raise SystemExit("Failed to prepare_server: prot {} "
                              "is already used".format(self._port))
         self._worker_num = conf["worker_num"]
+        self._grpc_gateway_port = conf["grpc_gateway_port"]
         self._build_dag_each_worker = conf["build_dag_each_worker"]
 
         _LOGGER.info("============= PIPELINE SERVER =============")
@@ -111,6 +136,8 @@ class PipelineServer(object):
                         args=(bind_address, self._response_op, self._conf, i))
                     worker.start()
                     workers.append(worker)
+                self._run_grpc_gateway(
+                    self._grpc_gateway_port)  # start grpc_gateway
                 for worker in workers:
                     worker.join()
         else:
@@ -123,6 +150,8 @@ class PipelineServer(object):
                 PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._port))
             server.start()
+            self._run_grpc_gateway(
+                self._grpc_gateway_port)  # start grpc_gateway
             server.wait_for_termination()
 
     def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
@@ -164,6 +193,7 @@ class ServerYamlConfChecker(object):
             "port": 9292,
             "worker_num": 1,
             "build_dag_each_worker": False,
+            "grpc_gateway_port": 0,
             "dag": {},
         }
 
@@ -171,6 +201,7 @@ class ServerYamlConfChecker(object):
             "port": int,
             "worker_num": int,
             "build_dag_each_worker": bool,
+            "grpc_gateway_port": int,
         }
 
         conf_qualification = {

@@ -16,25 +16,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import platform
-
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_server.version import serving_server_version
 from pkg_resources import DistributionNotFound, get_distribution
+import util
 
-def find_package(pkgname):
-    try:
-        get_distribution(pkgname)
-        return True
-    except DistributionNotFound:
-        return False
+max_version, mid_version, min_version = util.python_version()
 
-def python_version():
-    return [int(v) for v in platform.python_version().split(".")]
-
-max_version, mid_version, min_version = python_version()
+# gen pipeline proto code
+util.gen_pipeline_code("paddle_serving_server")
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'grpcio >= 1.28.1', 'grpcio-tools >= 1.28.1',
