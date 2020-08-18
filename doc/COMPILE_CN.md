@@ -113,13 +113,19 @@ make
 
 ## 安装wheel包
 
-无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
+无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
 
 
 
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+
+
+
+## 如何验证
+
+请使用 `python/examples` 下的例子进行验证。
 
 
 

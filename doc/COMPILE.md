@@ -113,13 +113,19 @@ make
 
 ## Install wheel package
 
-Regardless of the client, server or App part, after compiling, install the whl package under `python/dist/`.
+Regardless of the client, server or App part, after compiling, install the whl package in `python/dist/` in the temporary directory(`server-build-cpu`, `server-build-gpu`, `client-build`,`app-build`) of the compilation process.
 
 
 
 ## Note
 
 When running the python server, it will check the `SERVING_BIN` environment variable. If you want to use your own compiled binary file, set the environment variable to the path of the corresponding binary file, usually`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`.
+
+
+
+## Verify
+
+Please use the example under `python/examples` to verify.
 
 
 
