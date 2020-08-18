@@ -19,6 +19,12 @@ function init() {
     cd Serving
     export SERVING_WORKDIR=$PWD
     $PYTHONROOT/bin/python -m pip install -r python/requirements.txt
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+    go get -u github.com/golang/protobuf/protoc-gen-go
 }
 
 function check_cmd() {

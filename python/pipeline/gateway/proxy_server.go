@@ -15,23 +15,26 @@
 package main
 
 import (
+  "C"
   "flag"
   "net/http"
   "log"
+  "strconv"
 
-  "github.com/golang/glog"
+  //"github.com/golang/glog"
   "golang.org/x/net/context"
   "github.com/grpc-ecosystem/grpc-gateway/runtime"
   "google.golang.org/grpc"
 
-  gw "./gateway"
+  gw "./proto"
 )
 
 var (
   pipelineEndpoint = flag.String("pipeline_endpoint", "localhost:18080", "endpoint of PipelineService")
 )
 
-func run() error {
+//export run_proxy_server
+func run_proxy_server(port int) error {
   ctx := context.Background()
   ctx, cancel := context.WithCancel(ctx)
   defer cancel()
@@ -43,15 +46,17 @@ func run() error {
     return err
   }
 
-  log.Println("start service")
-  return http.ListenAndServe(":8080", mux) // proxy port
+  log.Println("start proxy service")
+  return http.ListenAndServe(":" + strconv.Itoa(port), mux) // proxy port
 }
 
 func main() {
+  /*
   flag.Parse()
   defer glog.Flush()
 
   if err := run(); err != nil {
     glog.Fatal(err)
   }
+  */
 }
