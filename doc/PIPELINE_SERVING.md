@@ -425,7 +425,7 @@ After the function is enabled, the client will print the log information corresp
 
 ## How to start HTTP service with gRPC-gateway
 
-Based on [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway), PipelineServing can provide RESTful API. Refer to the [document](https://grpc-ecosystem.github.io/grpc-gateway/docs/background.html) of grpc-gateway.
+Based on [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway), PipelineServing can provide RESTful API. Refer to the [document](https://grpc-ecosystem.github.io/grpc-gateway/docs/background.html) of grpc-gateway. Relevant code reference `python/examples/pipeline/grpc-gateway`.
 
 ### Installation
 
@@ -475,7 +475,7 @@ go get -u github.com/golang/protobuf/protoc-gen-go
 ```protobuf
 syntax = "proto3";
 package baidu.paddle_serving.pipeline_serving;
-option go_package = ".;test";
+option go_package = ".;pipeline_gateway";
 
 import "google/api/annotations.proto";
 
@@ -494,8 +494,8 @@ message Request {
 service PipelineService {
   rpc inference(Request) returns (Response) {
     option (google.api.http) = {
-      post: "/v1/example/echo"
-      body: "*"
+      post : "/pipeline/prediction"
+      body : "*"
     };
   }
 };
@@ -579,5 +579,5 @@ go build <filename>.go
 Take imdb model ensemble as an example:
 
 ```shell
-curl -X POST -k http://localhost:8080/v1/example/echo -d '{"key": ["words"], "value": ["i am very sad | 0"]}'
+curl -X POST -k http://localhost:8080/pipeline/prediction -d '{"key": ["words"], "value": ["i am very sad | 0"]}'
 ```
