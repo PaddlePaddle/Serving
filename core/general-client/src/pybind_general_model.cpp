@@ -107,7 +107,8 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
-              const int &pid) {
+              const int &pid,
+              const uint64_t log_id) {
              return self.batch_predict(float_feed_batch,
                                        float_feed_name,
                                        float_shape,
@@ -116,7 +117,8 @@ PYBIND11_MODULE(serving_client, m) {
                                        int_shape,
                                        fetch_name,
                                        predict_res_batch,
-                                       pid);
+                                       pid,
+                                       log_id);
            },
            py::call_guard<py::gil_scoped_release>())
       .def("numpy_predict",
@@ -131,7 +133,8 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
-              const int &pid) {
+              const int &pid,
+              const uint64_t log_id) {
              return self.numpy_predict(float_feed_batch,
                                        float_feed_name,
                                        float_shape,
@@ -140,7 +143,8 @@ PYBIND11_MODULE(serving_client, m) {
                                        int_shape,
                                        fetch_name,
                                        predict_res_batch,
-                                       pid);
+                                       pid,
+                                       log_id);
            },
            py::call_guard<py::gil_scoped_release>());
 }

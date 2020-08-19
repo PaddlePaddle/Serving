@@ -227,7 +227,8 @@ class PredictorClient {
       const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,
       PredictorRes& predict_res_batch,  // NOLINT
-      const int& pid);
+      const int& pid,
+      const uint64_t log_id);
 
   int numpy_predict(
       const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
@@ -238,7 +239,8 @@ class PredictorClient {
       const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::string>& fetch_name,
       PredictorRes& predict_res_batch,  // NOLINT
-      const int& pid);
+      const int& pid,
+      const uint64_t log_id);
 
  private:
   PredictorApi _api;

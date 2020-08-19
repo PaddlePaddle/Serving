@@ -578,6 +578,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
+        log_id = request.log_id
         feed_batch = []
         for feed_inst in request.insts:
             feed_dict = {}
@@ -606,7 +607,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
             feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python
+        return feed_batch, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
@@ -659,10 +660,13 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_inference_request(
-            request)
+        feed_dict, fetch_names, is_python, log_id \
+                = self._unpack_inference_request(request)
         ret = self.bclient_.predict(
-            feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
+            feed=feed_dict,
+            fetch=fetch_names,
+            need_variant_tag=True,
+            log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
 
     def GetClientConfig(self, request, context):

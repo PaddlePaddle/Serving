@@ -45,36 +45,41 @@ int GeneralCopyOp::inference() {
   const std::string pre_name = pre_node_names[0];
 
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
-  VLOG(2) << "precedent name: " << pre_name;
+  uint64_t log_id = input_blob->GetLogId();
+
+  VLOG(2) << "(logid=" << log_id << ") precedent name: " << pre_name;
   const TensorVector *in = &input_blob->tensor_vector;
-  VLOG(2) << "input size: " << in->size();
+  VLOG(2) << "(logid=" << log_id << ") input size: " << in->size();
   int batch_size = input_blob->GetBatchSize();
   int input_var_num = 0;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
+  res->SetLogId(log_id);
   TensorVector *out = &res->tensor_vector;
 
-  VLOG(2) << "input batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
   res->SetBatchSize(batch_size);
 
   if (!res) {
-    LOG(ERROR) << "Failed get op tls reader object output";
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed get op tls reader object output";
   }
 
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
 
-  VLOG(2) << "Going to init lod tensor";
+  VLOG(2) << "(logid=" << log_id << ") Going to init lod tensor";
   for (int i = 0; i < in->size(); ++i) {
     paddle::PaddleTensor lod_tensor;
     CopyLod(&in->at(i), &lod_tensor);
     lod_tensor.dtype = in->at(i).dtype;
     lod_tensor.name = in->at(i).name;
-    VLOG(2) << "lod tensor [" << i << "].name = " << lod_tensor.name;
+    VLOG(2) << "(logid=" << log_id << ") lod tensor [" << i
+            << "].name = " << lod_tensor.name;
     out->push_back(lod_tensor);
   }
 
-  VLOG(2) << "pack done.";
+  VLOG(2) << "(logid=" << log_id << ") pack done.";
 
   for (int i = 0; i < out->size(); ++i) {
     int64_t *src_ptr = static_cast<int64_t *>(in->at(i).data.data());
@@ -86,7 +91,7 @@ int GeneralCopyOp::inference() {
     }
   }
 
-  VLOG(2) << "output done.";
+  VLOG(2) << "(logid=" << log_id << ") output done.";
 
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
@@ -94,7 +99,7 @@ int GeneralCopyOp::inference() {
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
-  VLOG(2) << "read data from client success";
+  VLOG(2) << "(logid=" << log_id << ") read data from client success";
   return 0;
 }
 

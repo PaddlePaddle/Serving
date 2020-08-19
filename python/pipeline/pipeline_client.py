@@ -18,10 +18,11 @@ import numpy as np
 from numpy import *
 import logging
 import functools
+from .channel import ChannelDataEcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
 
 
 class PipelineClient(object):
@@ -59,7 +60,11 @@ class PipelineClient(object):
 
     def _unpack_response_package(self, resp, fetch):
         if resp.ecode != 0:
-            return {"ecode": resp.ecode, "error_info": resp.error_info}
+            return {
+                "ecode": resp.ecode,
+                "ecode_desc": ChannelDataEcode(resp.ecode),
+                "error_info": resp.error_info,
+            }
         fetch_map = {"ecode": resp.ecode}
         for idx, key in enumerate(resp.key):
             if key == self._profile_key:
