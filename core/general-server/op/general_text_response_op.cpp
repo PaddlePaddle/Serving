@@ -40,6 +40,9 @@ int GeneralTextResponseOp::inference() {
   VLOG(2) << "Going to run inference";
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
+  const GeneralBlob *input_blob;
+  uint64_t log_id =
+      get_depend_argument<GeneralBlob>(pre_node_names[0])->GetLogId();
 
   const Request *req = dynamic_cast<const Request *>(get_request_message());
   // response inst with only fetch_var_names
@@ -48,11 +51,12 @@ int GeneralTextResponseOp::inference() {
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
 
-  VLOG(2) << "start to call load general model_conf op";
+  VLOG(2) << "(logid=" << log_id
+          << ") start to call load general model_conf op";
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
 
-  VLOG(2) << "get resource pointer done.";
+  VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
@@ -63,20 +67,20 @@ int GeneralTextResponseOp::inference() {
         model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
   }
 
-  const GeneralBlob *input_blob;
   for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
     const std::string &pre_name = pre_node_names[pi];
-    VLOG(2) << "pre names[" << pi << "]: " << pre_name << " ("
-            << pre_node_names.size() << ")";
+    VLOG(2) << "(logid=" << log_id << ") pre names[" << pi << "]: " << pre_name
+            << " (" << pre_node_names.size() << ")";
     input_blob = get_depend_argument<GeneralBlob>(pre_name);
     if (!input_blob) {
-      LOG(ERROR) << "Failed mutable depended argument, op: " << pre_name;
+      LOG(ERROR) << "(logid=" << log_id
+                 << ") Failed mutable depended argument, op: " << pre_name;
       return -1;
     }
 
     const TensorVector *in = &input_blob->tensor_vector;
     int batch_size = input_blob->GetBatchSize();
-    VLOG(2) << "input batch size: " << batch_size;
+    VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
 
     ModelOutput *output = res->add_outputs();
     output->set_engine_name(
@@ -88,12 +92,13 @@ int GeneralTextResponseOp::inference() {
         // currently only response float tensor or lod_tensor
         tensor->set_elem_type(1);
         if (model_config->_is_lod_fetch[idx]) {
-          VLOG(2) << "out[" << idx << " is lod_tensor";
+          VLOG(2) << "(logid=" << log_id << ") out[" << idx << " is lod_tensor";
           tensor->add_shape(-1);
         } else {
-          VLOG(2) << "out[" << idx << "] is tensor";
+          VLOG(2) << "(logid=" << log_id << ") out[" << idx << "] is tensor";
           for (int k = 1; k < in->at(idx).shape.size(); ++k) {
-            VLOG(2) << "shape[" << k - 1 << "]: " << in->at(idx).shape[k];
+            VLOG(2) << "(logid=" << log_id << ") shape[" << k - 1
+                    << "]: " << in->at(idx).shape[k];
             tensor->add_shape(in->at(idx).shape[k]);
           }
         }
@@ -137,7 +142,8 @@ int GeneralTextResponseOp::inference() {
     // a more elegant way.
     for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
       input_blob = get_depend_argument<GeneralBlob>(pre_node_names[pi]);
-      VLOG(2) << "p size for input blob: " << input_blob->p_size;
+      VLOG(2) << "(logid=" << log_id
+              << ") p size for input blob: " << input_blob->p_size;
       int profile_time_idx = -1;
       if (pi == 0) {
         profile_time_idx = 0;
