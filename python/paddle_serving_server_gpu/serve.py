@@ -34,7 +34,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
         port = args.port + index
     thread_num = args.thread
     model = args.model
-    mem_optim = args.mem_optim_off is False
+    mem_optim = args.mem_optim_off
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_multilang = args.use_multilang
@@ -64,6 +64,11 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
+
+    if args.product_name != None:
+        server.set_product_name(args.product_name)
+    if args.container_id != None:
+        server.set_container_id(args.container_id)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)

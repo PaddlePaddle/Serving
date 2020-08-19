@@ -157,6 +157,8 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.mkl_flag = False
+        self.product_name = None
+        self.container_id = None
         self.model_config_paths = None  # for multi-model in a workflow
 
     def set_max_concurrency(self, concurrency):
@@ -190,6 +192,16 @@ class Server(object):
 
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
+
+    def set_product_name(self, product_name=None):
+        if product_name == None:
+            raise ValueError("product_name can't be None.")
+        self.product_name = product_name
+
+    def set_container_id(self, container_id):
+        if container_id == None:
+            raise ValueError("container_id can't be None.")
+        self.container_id = container_id
 
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
@@ -254,6 +266,10 @@ class Server(object):
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
             self.resource_conf.general_model_file = self.general_model_config_fn
+            if self.product_name != None:
+                self.resource_conf.auth_product_name = self.product_name
+            if self.container_id != None:
+                self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
@@ -540,7 +556,6 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         results, tag = ret
         resp.tag = tag
         resp.err_code = 0
-
         if not self.is_multi_model_:
             results = {'general_infer_0': results}
         for model_name, model_result in results.items():
@@ -560,7 +575,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                                                  .tolist())
                     elif v_type == 2:  # int32
                         tensor.int_data.extend(model_result[name].reshape(-1)
-                                               .tolist())
+                                                 .tolist())
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
