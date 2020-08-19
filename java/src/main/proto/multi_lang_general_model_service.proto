@@ -37,6 +37,7 @@ message InferenceRequest {
   repeated string feed_var_names = 2;
   repeated string fetch_var_names = 3;
   required bool is_python = 4 [ default = false ];
+  required uint64 log_id = 5 [ default = 0 ];
 };
 
 message InferenceResponse {

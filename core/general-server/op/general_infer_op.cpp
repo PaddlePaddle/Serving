@@ -47,22 +47,25 @@ int GeneralInferOp::inference() {
   const std::string pre_name = pre_node_names[0];
 
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
-  VLOG(2) << "Get precedent op name: " << pre_name;
+  uint64_t log_id = input_blob->GetLogId();
+  VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
+  output_blob->SetLogId(log_id);
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name;
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed mutable depended argument, op:" << pre_name;
     return -1;
   }
 
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
-  VLOG(2) << "input batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
 
   output_blob->SetBatchSize(batch_size);
 
-  VLOG(2) << "infer batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
@@ -70,7 +73,8 @@ int GeneralInferOp::inference() {
 
   if (InferManager::instance().infer(
           engine_name().c_str(), in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name().c_str();
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
 

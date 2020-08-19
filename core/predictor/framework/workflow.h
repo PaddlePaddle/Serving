@@ -36,7 +36,8 @@ class Workflow {
   // different apps.
   int init(const configure::Workflow& conf);
 
-  DagView* fetch_dag_view(const std::string& service_name);
+  DagView* fetch_dag_view(const std::string& service_name,
+                          const uint64_t log_id);
 
   int deinit() { return 0; }
 
