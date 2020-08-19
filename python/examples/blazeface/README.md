@@ -3,7 +3,7 @@
 ## Get Model
 ```
 python -m paddle_serving_app.package --get_model blazeface
-tar -xzvf blazeface.tar.gz
+tar -xf blazeface.tar.gz
 ```
 
 ## RPC Service
