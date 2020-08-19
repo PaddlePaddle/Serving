@@ -73,6 +73,11 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--inner_port",
+        type=int,
+        default=12000,
+        help="Starting port of rpc service")
     return parser.parse_args()
 
 

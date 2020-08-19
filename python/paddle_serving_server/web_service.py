@@ -60,13 +60,14 @@ class WebService(object):
     def prepare_server(self,
                        workdir="",
                        port=9393,
+                       inner_port=12000,
                        device="cpu",
                        mem_optim=True,
                        ir_optim=False):
         self.workdir = workdir
         self.port = port
         self.device = device
-        default_port = 12000
+        default_port = inner_port
         self.port_list = []
         self.mem_optim = mem_optim
         self.ir_optim = ir_optim

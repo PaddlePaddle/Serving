@@ -58,6 +58,11 @@ def parse_args():  # pylint: disable=doc-string-missing
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--inner_port",
+        default=12000,
+        type=int,
+        help="Starting port for rpc service")
     return parser.parse_args()
 
 
@@ -116,7 +121,10 @@ if __name__ == "__main__":
         service = WebService(name=args.name)
         service.load_model_config(args.model)
         service.prepare_server(
-            workdir=args.workdir, port=args.port, device=args.device)
+            workdir=args.workdir,
+            port=args.port,
+            inner_port=args.inner_port,
+            device=args.device)
         service.run_rpc_service()
 
         app_instance = Flask(__name__)
