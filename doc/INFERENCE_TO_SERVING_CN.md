@@ -25,7 +25,7 @@ serving_server_dir = "serving_server_dir"
 feed_var_names, fetch_var_names = inference_model_to_serving(
 		inference_model_dir, serving_client_dir, serving_server_dir)
 ```
-如果模型中有模型描述文件`model_filename` 和 模型参数文件`params_filename`，那么调用api请用
+如果模型中有模型描述文件`model_filename` 和 模型参数文件`params_filename`，那么请用
 ```
 feed_var_names, fetch_var_names = inference_model_to_serving(
 		inference_model_dir, serving_client_dir, serving_server_dir,
