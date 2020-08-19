@@ -72,7 +72,9 @@ int conf_check(const Request *req,
 int GeneralReaderOp::inference() {
   // reade request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
-
+  VLOG(2) << "start to call load general model_conf op";
+  baidu::paddle_serving::predictor::Resource &resource =
+      baidu::paddle_serving::predictor::Resource::instance();
   int batch_size = req->insts_size();
   int input_var_num = 0;
   std::vector<int64_t> elem_type;
@@ -82,8 +84,6 @@ int GeneralReaderOp::inference() {
   GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *out = &res->tensor_vector;
 
-  res->SetBatchSize(batch_size);
-
   if (!res) {
     LOG(ERROR) << "Failed get op tls reader object output";
   }
@@ -92,10 +92,6 @@ int GeneralReaderOp::inference() {
   int64_t start = timeline.TimeStampUS();
   int var_num = req->insts(0).tensor_array_size();
   VLOG(2) << "var num: " << var_num;
-
-  VLOG(2) << "start to call load general model_conf op";
-  baidu::paddle_serving::predictor::Resource &resource =
-      baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
@@ -257,6 +253,7 @@ int GeneralReaderOp::inference() {
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
   res->p_size = 0;
+  res->_batch_size = batch_size;
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 

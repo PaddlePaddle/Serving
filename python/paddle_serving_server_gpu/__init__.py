@@ -73,6 +73,16 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -196,6 +206,8 @@ class Server(object):
         self.use_local_bin = False
         self.gpuid = 0
         self.model_config_paths = None  # for multi-model in a workflow
+        self.product_name = None
+        self.container_id = None
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -228,6 +240,16 @@ class Server(object):
 
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
+
+    def set_product_name(self, product_name=None):
+        if product_name == None:
+            raise ValueError("product_name can't be None.")
+        self.product_name = product_name
+
+    def set_container_id(self, container_id):
+        if container_id == None:
+            raise ValueError("container_id can't be None.")
+        self.container_id = container_id
 
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
@@ -302,6 +324,10 @@ class Server(object):
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
             self.resource_conf.general_model_file = self.general_model_config_fn
+            if self.product_name != None:
+                self.resource_conf.auth_product_name = self.product_name
+            if self.container_id != None:
+                self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
