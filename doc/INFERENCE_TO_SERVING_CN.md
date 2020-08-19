@@ -7,9 +7,13 @@
 在下列代码中，我们需要知道以下信息。
 
 **模型文件夹**：这个文件夹就是Paddle的inference_model所在的文件夹
+
 **serving_client_dir**: 这个文件夹是inference_model转换成Serving模型后，服务端配置的保存路径
+
 **serving_client_dir**: 这个文件夹是inference_model转换成Serving模型后，客户端配置的保存路径
+
 **模型描述文件**: 模型描述文件也就是`model_filename`默认值为`__model__`,是一个pb2文本文件，如果是别的文件名需要显式指定
+
 **模型参数文件**: 在`save_inference_model`阶段，默认方式是每一个Variable保存一个二进制文件，如果是这种情况就不需要做指定。如果所有参数用压缩成一个文件的形式保存，则需要显式指定`params_filename`
 
 
