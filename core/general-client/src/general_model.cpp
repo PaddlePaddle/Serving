@@ -146,7 +146,8 @@ int PredictorClient::batch_predict(
     const std::vector<std::vector<int>> &int_shape,
     const std::vector<std::string> &fetch_name,
     PredictorRes &predict_res_batch,
-    const int &pid) {
+    const int &pid,
+    const uint64_t log_id) {
   int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
 
   predict_res_batch.clear();
@@ -164,6 +165,7 @@ int PredictorClient::batch_predict(
   VLOG(2) << "int feed name size: " << int_feed_name.size();
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
+  req.set_log_id(log_id);
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
@@ -358,7 +360,8 @@ int PredictorClient::numpy_predict(
     const std::vector<std::vector<int>> &int_shape,
     const std::vector<std::string> &fetch_name,
     PredictorRes &predict_res_batch,
-    const int &pid) {
+    const int &pid,
+    const uint64_t log_id) {
   int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
   VLOG(2) << "batch size: " << batch_size;
   predict_res_batch.clear();
@@ -376,6 +379,7 @@ int PredictorClient::numpy_predict(
   VLOG(2) << "int feed name size: " << int_feed_name.size();
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
+  req.set_log_id(log_id);
   for (auto &name : fetch_name) {
     req.add_fetch_var_names(name);
   }
