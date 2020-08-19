@@ -31,4 +31,3 @@ feed_var_names, fetch_var_names = inference_model_to_serving(
 		inference_model_dir, serving_client_dir, serving_server_dir,
 		 model_filename="model", params_filename="params")
 ```
-
