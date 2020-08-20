@@ -775,7 +775,9 @@ class RequestOp(Op):
         for idx, key in enumerate(request.key):
             data = request.value[idx]
             try:
-                data = eval(data)
+                evaled_data = eval(data)
+                if isinstance(evaled_data, np.ndarray):
+                    data = evaled_data
             except Exception as e:
                 pass
             dictdata[key] = data

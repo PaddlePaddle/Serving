@@ -28,12 +28,12 @@ import (
   gw "./proto"
 )
 
-var (
-  pipelineEndpoint = flag.String("pipeline_endpoint", "localhost:18080", "endpoint of PipelineService")
-)
-
 //export run_proxy_server
-func run_proxy_server(port int) error {
+func run_proxy_server(grpc_port int, http_port int) error {
+  var (
+    pipelineEndpoint = flag.String("pipeline_endpoint", "localhost:" + strconv.Itoa(grpc_port), "endpoint of PipelineService")
+  )
+
   ctx := context.Background()
   ctx, cancel := context.WithCancel(ctx)
   defer cancel()
@@ -46,7 +46,7 @@ func run_proxy_server(port int) error {
   }
 
   log.Println("start proxy service")
-  return http.ListenAndServe(":" + strconv.Itoa(port), mux) // proxy port
+  return http.ListenAndServe(":" + strconv.Itoa(http_port), mux) // proxy port
 }
 
 func main() {}

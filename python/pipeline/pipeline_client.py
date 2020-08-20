@@ -42,6 +42,7 @@ class PipelineClient(object):
 
     def _pack_request_package(self, feed_dict, profile):
         req = pipeline_service_pb2.Request()
+        np.set_printoptions(threshold=sys.maxsize)
         for key, value in feed_dict.items():
             req.key.append(key)
             if isinstance(value, np.ndarray):
@@ -75,7 +76,9 @@ class PipelineClient(object):
                 continue
             data = resp.value[idx]
             try:
-                data = eval(data)
+                evaled_data = eval(data)
+                if isinstance(evaled_data, np.ndarray):
+                    data = evaled_data
             except Exception as e:
                 pass
             fetch_map[key] = data
