@@ -29,31 +29,36 @@ namespace brpc = baidu::rpc;
 
 #define ERROR_STRING_LEN 10240
 
-#define INLINE_REGIST_OBJECT(D, B, E)                                   \
-  do {                                                                  \
-    Factory<D, B>* factory = new (std::nothrow) Factory<D, B>();        \
-    if (factory == NULL ||                                              \
-        FactoryPool<B>::instance().register_factory(#D, factory) != 0) {\
-      char err_str[ERROR_STRING_LEN];                                   \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                           \
-        "Failed regist factory: %s->%s in macro!", #D, #B);             \
-      RAW_LOG(ERROR, err_str);                                          \
-      return E;                                                         \
-    }                                                                   \
+#define INLINE_REGIST_OBJECT(D, B, E)                                    \
+  do {                                                                   \
+    Factory<D, B>* factory = new (std::nothrow) Factory<D, B>();         \
+    if (factory == NULL ||                                               \
+        FactoryPool<B>::instance().register_factory(#D, factory) != 0) { \
+      char err_str[ERROR_STRING_LEN];                                    \
+      snprintf(err_str,                                                  \
+               ERROR_STRING_LEN - 1,                                     \
+               "Failed regist factory: %s->%s in macro!",                \
+               #D,                                                       \
+               #B);                                                      \
+      RAW_LOG(ERROR, err_str);                                           \
+      return E;                                                          \
+    }                                                                    \
   } while (0)
 
-#define DECLARE_FACTORY_OBJECT(D, B)                                    \
-  static int regist(const std::string& tag) {                           \
-    Factory<D, B>* factory = new (std::nothrow) Factory<D, B>();        \
-    if (factory == NULL ||                                              \
-      FactoryPool<B>::instance().register_factory(tag, factory) != 0) { \
-      char err_str[ERROR_STRING_LEN];                                   \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                           \
-        "Failed regist factory: %s in macro!", #D);                     \
-      RAW_LOG(ERROR, err_str);                                          \
-      return -1;                                                        \
-    }                                                                   \
-    return 0;                                                           \
+#define DECLARE_FACTORY_OBJECT(D, B)                                      \
+  static int regist(const std::string& tag) {                             \
+    Factory<D, B>* factory = new (std::nothrow) Factory<D, B>();          \
+    if (factory == NULL ||                                                \
+        FactoryPool<B>::instance().register_factory(tag, factory) != 0) { \
+      char err_str[ERROR_STRING_LEN];                                     \
+      snprintf(err_str,                                                   \
+               ERROR_STRING_LEN - 1,                                      \
+               "Failed regist factory: %s in macro!",                     \
+               #D);                                                       \
+      RAW_LOG(ERROR, err_str);                                            \
+      return -1;                                                          \
+    }                                                                     \
+    return 0;                                                             \
   }
 
 #define PDS_STR_CAT(a, b) PDS_STR_CAT_I(a, b)
@@ -65,39 +70,46 @@ namespace brpc = baidu::rpc;
     D::regist(#D);                                                         \
   }
 
-#define REGIST_FACTORY_OBJECT_IMPL(D, B)                                    \
-  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject,  \
-                                                       __LINE__)(void) {    \
-    ::baidu::paddle_serving::sdk_cpp::Factory<D, B>* factory =              \
-      new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<D, B>();\
-    if (factory == NULL ||                                                  \
-      ::baidu::paddle_serving::sdk_cpp::FactoryPool<B>::instance()          \
-                .register_factory(#D, factory) != 0) {                      \
-      char err_str[ERROR_STRING_LEN];                                       \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                               \
-        "Failed regist factory: %s->%s in macro!", #D, #B);                 \
-      RAW_LOG(ERROR, err_str);                                              \
-      return;                                                               \
-    }                                                                       \
-    return;                                                                 \
+#define REGIST_FACTORY_OBJECT_IMPL(D, B)                                       \
+  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject,     \
+                                                       __LINE__)(void) {       \
+    ::baidu::paddle_serving::sdk_cpp::Factory<D, B>* factory =                 \
+        new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<D, B>(); \
+    if (factory == NULL ||                                                     \
+        ::baidu::paddle_serving::sdk_cpp::FactoryPool<B>::instance()           \
+                .register_factory(#D, factory) != 0) {                         \
+      char err_str[ERROR_STRING_LEN];                                          \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s in macro!",                      \
+               #D,                                                             \
+               #B);                                                            \
+      RAW_LOG(ERROR, err_str);                                                 \
+      return;                                                                  \
+    }                                                                          \
+    return;                                                                    \
   }
 
-#define REGIST_FACTORY_OBJECT_IMPL_WITH_TAG(D, B, T)                        \
-  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject,  \
-                                                       __LINE__)(void) {    \
-    ::baidu::paddle_serving::sdk_cpp::Factory<D, B>* factory =              \
-      new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<D, B>();\
-    if (factory == NULL ||                                                  \
-      ::baidu::paddle_serving::sdk_cpp::FactoryPool<B>::instance()          \
-            .register_factory(T, factory) != 0) {                           \
-      char err_str[ERROR_STRING_LEN];                                       \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                               \
-        "Failed regist factory: %s->%s, tag %s in macro!", #D, #B, T);      \
-      RAW_LOG(ERROR, err_str);                                              \
-      return;                                                               \
-    }                                                                       \
-    return;                                                                 \
-  } 
+#define REGIST_FACTORY_OBJECT_IMPL_WITH_TAG(D, B, T)                           \
+  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject,     \
+                                                       __LINE__)(void) {       \
+    ::baidu::paddle_serving::sdk_cpp::Factory<D, B>* factory =                 \
+        new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<D, B>(); \
+    if (factory == NULL ||                                                     \
+        ::baidu::paddle_serving::sdk_cpp::FactoryPool<B>::instance()           \
+                .register_factory(T, factory) != 0) {                          \
+      char err_str[ERROR_STRING_LEN];                                          \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s, tag %s in macro!",              \
+               #D,                                                             \
+               #B,                                                             \
+               T);                                                             \
+      RAW_LOG(ERROR, err_str);                                                 \
+      return;                                                                  \
+    }                                                                          \
+    return;                                                                    \
+  }
 
 #define REGIST_ABTEST_OBJECT(D) \
   REGIST_FACTORY_OBJECT_IMPL(   \
@@ -107,26 +119,29 @@ namespace brpc = baidu::rpc;
   REGIST_FACTORY_OBJECT_IMPL_WITH_TAG(      \
       D, ::baidu::paddle_serving::sdk_cpp::ABTestRouterBase, T)
 
-#define REGIST_STUB_OBJECT_WITH_TAG(D, C, R, I, O, T)                       \
-  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject,  \
-                                                       __LINE__)(void) {    \
-    ::baidu::paddle_serving::sdk_cpp::Factory<                              \
-        ::baidu::paddle_serving::sdk_cpp::StubImpl<D, C, R, I, O>,          \
-        ::baidu::paddle_serving::sdk_cpp::Stub>* factory =                  \
-        new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<      \
-            ::baidu::paddle_serving::sdk_cpp::StubImpl<D, C, R, I, O>,      \
-            ::baidu::paddle_serving::sdk_cpp::Stub>();                      \
-    if (factory == NULL ||                                                  \
-        ::baidu::paddle_serving::sdk_cpp::FactoryPool<                      \
-            ::baidu::paddle_serving::sdk_cpp::Stub>::instance()             \
-                .register_factory(T, factory) != 0) {                       \
-      char err_str[ERROR_STRING_LEN];                                       \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                               \
-        "Failed regist factory: %s->Stub, tag: %s in macro!", #D, T);       \
-      RAW_LOG(ERROR, err_str);                                              \
-      return;                                                               \
-    }                                                                       \
-    return;                                                                 \
+#define REGIST_STUB_OBJECT_WITH_TAG(D, C, R, I, O, T)                      \
+  __attribute__((constructor)) static void PDS_STR_CAT(GlobalRegistObject, \
+                                                       __LINE__)(void) {   \
+    ::baidu::paddle_serving::sdk_cpp::Factory<                             \
+        ::baidu::paddle_serving::sdk_cpp::StubImpl<D, C, R, I, O>,         \
+        ::baidu::paddle_serving::sdk_cpp::Stub>* factory =                 \
+        new (::std::nothrow)::baidu::paddle_serving::sdk_cpp::Factory<     \
+            ::baidu::paddle_serving::sdk_cpp::StubImpl<D, C, R, I, O>,     \
+            ::baidu::paddle_serving::sdk_cpp::Stub>();                     \
+    if (factory == NULL ||                                                 \
+        ::baidu::paddle_serving::sdk_cpp::FactoryPool<                     \
+            ::baidu::paddle_serving::sdk_cpp::Stub>::instance()            \
+                .register_factory(T, factory) != 0) {                      \
+      char err_str[ERROR_STRING_LEN];                                      \
+      snprintf(err_str,                                                    \
+               ERROR_STRING_LEN - 1,                                       \
+               "Failed regist factory: %s->Stub, tag: %s in macro!",       \
+               #D,                                                         \
+               T);                                                         \
+      RAW_LOG(ERROR, err_str);                                             \
+      return;                                                              \
+    }                                                                      \
+    return;                                                                \
   }
 
 class Stub;
@@ -161,8 +176,10 @@ class FactoryPool {
         _pool.find(tag);
     if (it != _pool.end()) {
       char err_str[ERROR_STRING_LEN];
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Insert duplicate with tag: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Insert duplicate with tag: %s",
+               tag.c_str());
       RAW_LOG(ERROR, err_str);
       return -1;
     }
@@ -171,8 +188,10 @@ class FactoryPool {
         r = _pool.insert(std::make_pair(tag, factory));
     if (!r.second) {
       char err_str[ERROR_STRING_LEN];
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Failed insert new factory with: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Failed insert new factory with: %s",
+               tag.c_str());
       RAW_LOG(ERROR, err_str);
       return -1;
     }
@@ -185,9 +204,11 @@ class FactoryPool {
         _pool.find(tag);
     if (it == _pool.end() || it->second == NULL) {
       char err_str[ERROR_STRING_LEN];
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Not found factory pool, tag: %s, pool size: %u", 
-        tag.c_str(), _pool.size());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Not found factory pool, tag: %s, pool size: %u",
+               tag.c_str(),
+               _pool.size());
       RAW_LOG(ERROR, err_str);
       return NULL;
     }

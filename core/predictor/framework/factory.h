@@ -23,18 +23,20 @@ namespace paddle_serving {
 namespace predictor {
 
 //////////////// DECLARE INTERFACE ////////////////
-#define DECLARE_FACTORY_OBJECT(D, B)                                        \
-  static int regist(const std::string& tag) {                               \
-    FactoryDerive<D, B>* factory = new (std::nothrow) FactoryDerive<D, B>();\
-    if (factory == NULL ||                                                  \
-        FactoryPool<B>::instance().register_factory(tag, factory) != 0) {   \
-      char err_str[ERROR_STRING_LEN];                                       \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                               \
-        "Failed regist factory: %s in macro!", #D);                         \
-      RAW_LOG(FATAL, err_str);                                              \
-      return -1;                                                            \
-    }                                                                       \
-    return 0;                                                               \
+#define DECLARE_FACTORY_OBJECT(D, B)                                         \
+  static int regist(const std::string& tag) {                                \
+    FactoryDerive<D, B>* factory = new (std::nothrow) FactoryDerive<D, B>(); \
+    if (factory == NULL ||                                                   \
+        FactoryPool<B>::instance().register_factory(tag, factory) != 0) {    \
+      char err_str[ERROR_STRING_LEN];                                        \
+      snprintf(err_str,                                                      \
+               ERROR_STRING_LEN - 1,                                         \
+               "Failed regist factory: %s in macro!",                        \
+               #D);                                                          \
+      RAW_LOG(FATAL, err_str);                                               \
+      return -1;                                                             \
+    }                                                                        \
+    return 0;                                                                \
   }
 
 #define PDS_STR_CAT(a, b) PDS_STR_CAT_I(a, b)
@@ -58,8 +60,11 @@ namespace predictor {
         ::baidu::paddle_serving::predictor::FactoryPool<B>::instance()         \
                 .register_factory(#D, factory) != 0) {                         \
       char err_str[ERROR_STRING_LEN];                                          \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                                  \
-        "Failed regist factory: %s->%s in macro!", #D, #B);                    \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s in macro!",                      \
+               #D,                                                             \
+               #B);                                                            \
       RAW_LOG(FATAL, err_str);                                                 \
       return;                                                                  \
     }                                                                          \
@@ -76,13 +81,21 @@ namespace predictor {
     if (factory == NULL ||                                                     \
         ::baidu::paddle_serving::predictor::FactoryPool<B>::instance()         \
                 .register_factory(N, factory) != 0) {                          \
-      snprintf(err_str, ERROR_STRING_LEN - 1,                                  \
-        "Failed regist factory: %s->%s, tag: %s in macro!", #D, #B, N);        \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s, tag: %s in macro!",             \
+               #D,                                                             \
+               #B,                                                             \
+               N);                                                             \
       RAW_LOG(FATAL, err_str);                                                 \
       return;                                                                  \
     }                                                                          \
-    snprintf(err_str, ERROR_STRING_LEN - 1,                                    \
-      "Succ regist factory: %s->%s, tag: %s in macro!", #D, #B, N);            \
+    snprintf(err_str,                                                          \
+             ERROR_STRING_LEN - 1,                                             \
+             "Succ regist factory: %s->%s, tag: %s in macro!",                 \
+             #D,                                                               \
+             #B,                                                               \
+             N);                                                               \
     RAW_LOG(WARNING, err_str);                                                 \
     return;                                                                    \
   }
@@ -115,8 +128,10 @@ class FactoryPool {
     typename std::map<std::string, FactoryBase<B>*>::iterator it =
         _pool.find(tag);
     if (it != _pool.end()) {
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Insert duplicate with tag: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Insert duplicate with tag: %s",
+               tag.c_str());
       RAW_LOG(FATAL, err_str);
       return -1;
     }
@@ -124,15 +139,19 @@ class FactoryPool {
     std::pair<typename std::map<std::string, FactoryBase<B>*>::iterator, bool>
         r = _pool.insert(std::make_pair(tag, factory));
     if (!r.second) {
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Failed insert new factory with: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Failed insert new factory with: %s",
+               tag.c_str());
       RAW_LOG(FATAL, err_str);
       return -1;
     }
-    
-    snprintf(err_str, ERROR_STRING_LEN - 1, 
-      "Succ insert one factory, tag: %s, base type %s", tag.c_str(), 
-                                                        typeid(B).name());
+
+    snprintf(err_str,
+             ERROR_STRING_LEN - 1,
+             "Succ insert one factory, tag: %s, base type %s",
+             tag.c_str(),
+             typeid(B).name());
     RAW_LOG(INFO, err_str);
     return 0;
   }
@@ -142,9 +161,11 @@ class FactoryPool {
         _pool.find(tag);
     if (it == _pool.end() || it->second == NULL) {
       char err_str[ERROR_STRING_LEN];
-      snprintf(err_str, ERROR_STRING_LEN - 1, 
-        "Not found factory pool, tag: %s, pool size %u", tag.c_str(),
-                                                         _pool.size());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Not found factory pool, tag: %s, pool size %u",
+               tag.c_str(),
+               _pool.size());
       RAW_LOG(FATAL, err_str);
       return NULL;
     }
