@@ -61,7 +61,7 @@ int GeneralInferOp::inference() {
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
 
-  int batch_size = input_blob->_batch_size();
+  int batch_size = input_blob->_batch_size;
   VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
 
   output_blob->_batch_size = batch_size;
