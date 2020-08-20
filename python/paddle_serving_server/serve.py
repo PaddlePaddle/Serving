@@ -24,58 +24,50 @@ from flask import Flask, request
 
 def parse_args():  # pylint: disable=doc-string-missing
     parser = argparse.ArgumentParser("serve")
-    parser.add_argument("--thread",
-                        type=int,
-                        default=10,
-                        help="Concurrency of server")
-    parser.add_argument("--model",
-                        type=str,
-                        default="",
-                        help="Model for serving")
-    parser.add_argument("--port",
-                        type=int,
-                        default=9292,
-                        help="Port the server")
-    parser.add_argument("--name",
-                        type=str,
-                        default="None",
-                        help="Web service name")
-    parser.add_argument("--workdir",
-                        type=str,
-                        default="workdir",
-                        help="Working dir of current service")
-    parser.add_argument("--device",
-                        type=str,
-                        default="cpu",
-                        help="Type of device")
-    parser.add_argument("--mem_optim_off",
-                        default=False,
-                        action="store_true",
-                        help="Memory optimize")
-    parser.add_argument("--ir_optim",
-                        default=False,
-                        action="store_true",
-                        help="Graph optimize")
-    parser.add_argument("--use_mkl",
-                        default=False,
-                        action="store_true",
-                        help="Use MKL")
-    parser.add_argument("--max_body_size",
-                        type=int,
-                        default=512 * 1024 * 1024,
-                        help="Limit sizes of messages")
-    parser.add_argument("--use_multilang",
-                        default=False,
-                        action="store_true",
-                        help="Use Multi-language-service")
-    parser.add_argument("--product_name",
-                        type=str,
-                        default=None,
-                        help="product_name for authentication")
-    parser.add_argument("--container_id",
-                        type=str,
-                        default=None,
-                        help="container_id for authentication")
+    parser.add_argument(
+        "--thread", type=int, default=10, help="Concurrency of server")
+    parser.add_argument(
+        "--model", type=str, default="", help="Model for serving")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port the server")
+    parser.add_argument(
+        "--name", type=str, default="None", help="Web service name")
+    parser.add_argument(
+        "--workdir",
+        type=str,
+        default="workdir",
+        help="Working dir of current service")
+    parser.add_argument(
+        "--device", type=str, default="cpu", help="Type of device")
+    parser.add_argument(
+        "--mem_optim_off",
+        default=False,
+        action="store_true",
+        help="Memory optimize")
+    parser.add_argument(
+        "--ir_optim", default=False, action="store_true", help="Graph optimize")
+    parser.add_argument(
+        "--use_mkl", default=False, action="store_true", help="Use MKL")
+    parser.add_argument(
+        "--max_body_size",
+        type=int,
+        default=512 * 1024 * 1024,
+        help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -137,9 +129,8 @@ if __name__ == "__main__":
     else:
         service = WebService(name=args.name)
         service.load_model_config(args.model)
-        service.prepare_server(workdir=args.workdir,
-                               port=args.port,
-                               device=args.device)
+        service.prepare_server(
+            workdir=args.workdir, port=args.port, device=args.device)
         service.run_rpc_service()
 
         app_instance = Flask(__name__)
