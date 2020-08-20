@@ -54,18 +54,33 @@ class Op(object):
                  timeout=-1,
                  retry=1,
                  batch_size=1,
-                 auto_batching_timeout=None):
+                 auto_batching_timeout=None,
+                 local_rpc_server_handler=None):
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
 
-        self._server_endpoints = server_endpoints
-        self.with_serving = False
-        if len(self._server_endpoints) != 0:
+        if len(server_endpoints) != 0:
+            # remote service
             self.with_serving = True
-        self._client_config = client_config
+            self._server_endpoints = server_endpoints
+            self._client_config = client_config
+        else:
+            if local_rpc_server_handler is not None:
+                # local rpc service
+                self.with_serving = True
+                serivce_ports = local_rpc_server_handler.get_port_list()
+                self._server_endpoints = [
+                    "127.0.0.1:{}".format(p) for p in serivce_ports
+                ]
+                local_rpc_server_handler.set_client_config(client_config)
+                self._client_config = client_config
+            else:
+                self.with_serving = False
+        self._local_rpc_server_handler = local_rpc_server_handler
+
         self._fetch_names = fetch_list
 
         if timeout > 0:
@@ -112,6 +127,16 @@ class Op(object):
         self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
         self._succ_close_op = False
+
+    def launch_local_rpc_service(self):
+        if self._local_rpc_server_handler is None:
+            raise ValueError("Failed to launch local rpc service: "
+                             "local_rpc_server_handler is None.")
+        port = self._local_rpc_server_handler.get_port_list()
+        self._local_rpc_server_handler.prepare_server()
+        self._local_rpc_server_handler.start_server()
+        _LOGGER.info("Op({}) launch local rpc service at port: {}"
+                     .format(self.name, port))
 
     def use_default_auto_batching_config(self):
         if self._batch_size != 1:

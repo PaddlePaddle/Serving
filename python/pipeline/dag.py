@@ -337,6 +337,7 @@ class DAG(object):
             self._manager = PipelineProcSyncManager()
         _LOGGER.info("[DAG] Succ init")
 
+    @staticmethod
     def get_use_ops(self, response_op):
         unique_names = set()
         used_ops = set()
@@ -426,7 +427,7 @@ class DAG(object):
             _LOGGER.critical("Failed to build DAG: ResponseOp"
                              " has not been set.")
             os._exit(-1)
-        used_ops, out_degree_ops = self.get_use_ops(response_op)
+        used_ops, out_degree_ops = DAG.get_use_ops(response_op)
         if not self._build_dag_each_worker:
             _LOGGER.info("================= USED OP =================")
             for op in used_ops:
