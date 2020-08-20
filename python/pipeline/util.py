@@ -17,6 +17,8 @@ import logging
 import threading
 import multiprocessing
 import multiprocessing.managers
+from contextlib import closing
+import socket
 if sys.version_info.major == 2:
     import Queue
     from Queue import PriorityQueue
@@ -27,6 +29,26 @@ else:
     raise Exception("Error Python version")
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class AvailablePortGenerator(object):
+    def __init__(self, start_port=12000):
+        self._curr_port = start_port
+
+    def port_is_available(self, port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(2)
+            result = sock.connect_ex(('0.0.0.0', port))
+        if result != 0:
+            return True
+        else:
+            return False
+
+    def next(self):
+        while not self.port_is_available(self._curr_port):
+            self._curr_port += 1
+        self._curr_port += 1
+        return self._curr_port - 1
 
 
 class NameGenerator(object):

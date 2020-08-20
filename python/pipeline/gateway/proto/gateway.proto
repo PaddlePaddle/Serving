@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 package baidu.paddle_serving.pipeline_serving;
-option go_package = ".;pipeline_gateway";
+option go_package = ".;pipeline_serving";
 
 import "google/api/annotations.proto";
 
@@ -33,7 +33,7 @@ message Request {
 service PipelineService {
   rpc inference(Request) returns (Response) {
     option (google.api.http) = {
-      post : "/pipeline/prediction"
+      post : "/prediction"
       body : "*"
     };
   }
