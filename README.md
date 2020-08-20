@@ -172,6 +172,11 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 - [An End-to-end tutorial from training to inference service deployment](doc/TRAIN_TO_SERVICE.md)
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 
+### Tutorial at AIStudio
+- [Introduction to PaddleServing](https://aistudio.baidu.com/aistudio/projectdetail/605819)
+- [Image Segmentation on Paddle Serving](https://aistudio.baidu.com/aistudio/projectdetail/457715)
+- [Sentimental Analysis](https://aistudio.baidu.com/aistudio/projectdetail/509014)
+
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)
 - [How to develop a new Serving operator?](doc/NEW_OPERATOR.md)
