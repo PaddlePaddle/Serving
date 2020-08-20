@@ -24,7 +24,7 @@ import yaml
 
 from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
-from .dag import DAGExecutor
+from .dag import DAGExecutor, DAG
 from .util import AvailablePortGenerator
 
 _LOGGER = logging.getLogger(__name__)
@@ -121,6 +121,12 @@ class PipelineServer(object):
         _LOGGER.info("-------------------------------------------")
 
         self._conf = conf
+
+    def start_local_rpc_service(self):
+        # only brpc now
+        used_op, _ = DAG.get_use_ops(self._response_op)
+        for op in used_op:
+            op.launch_local_rpc_service()
 
     def run_server(self):
         if self._build_dag_each_worker:
