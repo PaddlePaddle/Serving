@@ -169,6 +169,11 @@ print(fetch_map)
 - [端到端完成从训练到部署全流程](doc/TRAIN_TO_SERVICE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 
+### AIStudio教程
+- [PaddleServing作业](https://aistudio.baidu.com/aistudio/projectdetail/605819)
+- [PaddleServing图像分割](https://aistudio.baidu.com/aistudio/projectdetail/457715)
+- [PaddleServing情感分析](https://aistudio.baidu.com/aistudio/projectdetail/509014)
+
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
 - [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)

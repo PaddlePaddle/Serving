@@ -59,10 +59,13 @@ int GeneralDistKVQuantInferOp::inference() {
     return -1;
   }
 
+  uint64_t log_id = input_blob->GetLogId();
+  output_blob->SetLogId(log_id);
+
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
-  VLOG(2) << "input batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
   std::vector<uint64_t> keys;
   std::vector<rec::mcube::CubeValue> values;
   int sparse_count = 0;
@@ -94,13 +97,14 @@ int GeneralDistKVQuantInferOp::inference() {
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   std::vector<std::string> table_names = cube->get_table_names();
   if (table_names.size() == 0) {
-    LOG(ERROR) << "cube init error or cube config not given.";
+    LOG(ERROR) << "(logid=" << log_id
+               << ") cube init error or cube config not given.";
     return -1;
   }
   int ret = cube->seek(table_names[0], keys, &values);
 
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
-    LOG(ERROR) << "cube value return null";
+    LOG(ERROR) << "(logid=" << log_id << ") cube value return null";
   }
 
   TensorVector sparse_out;
@@ -182,7 +186,7 @@ int GeneralDistKVQuantInferOp::inference() {
 
   output_blob->SetBatchSize(batch_size);
 
-  VLOG(2) << "infer batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
@@ -190,7 +194,8 @@ int GeneralDistKVQuantInferOp::inference() {
 
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed do infer in fluid model: " << engine_name();
     return -1;
   }
 

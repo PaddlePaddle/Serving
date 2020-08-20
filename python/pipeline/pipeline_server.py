@@ -15,6 +15,7 @@
 from concurrent import futures
 import grpc
 import logging
+import json
 import socket
 import contextlib
 from contextlib import closing
@@ -25,23 +26,20 @@ from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
 from .dag import DAGExecutor
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
 
 
-class PipelineService(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, response_op, dag_config, show_info):
-        super(PipelineService, self).__init__()
+class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
+    def __init__(self, response_op, dag_conf, worker_idx=-1):
+        super(PipelineServicer, self).__init__()
         # init dag executor
-        self._dag_executor = DAGExecutor(
-            response_op, dag_config, show_info=show_info)
+        self._dag_executor = DAGExecutor(response_op, dag_conf, worker_idx)
         self._dag_executor.start()
+        _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
         resp = self._dag_executor.call(request)
         return resp
-
-    def __del__(self):
-        self._dag_executor.stop()
 
 
 @contextlib.contextmanager
@@ -66,9 +64,11 @@ class PipelineServer(object):
 
     def set_response_op(self, response_op):
         if not isinstance(response_op, ResponseOp):
-            raise Exception("response_op must be ResponseOp type.")
+            raise Exception("Failed to set response_op: response_op "
+                            "must be ResponseOp type.")
         if len(response_op.get_input_ops()) != 1:
-            raise Exception("response_op can only have one previous op.")
+            raise Exception("Failed to set response_op: response_op "
+                            "can only have one previous op.")
         self._response_op = response_op
 
     def _port_is_available(self, port):
@@ -78,28 +78,26 @@ class PipelineServer(object):
         return result != 0
 
     def prepare_server(self, yml_file):
-        with open(yml_file) as f:
-            yml_config = yaml.load(f.read())
-        self._port = yml_config.get('port')
-        if self._port is None:
-            raise SystemExit("Please set *port* in [{}] yaml file.".format(
-                yml_file))
+        conf = ServerYamlConfChecker.load_server_yaml_conf(yml_file)
+
+        self._port = conf["port"]
         if not self._port_is_available(self._port):
-            raise SystemExit("Prot {} is already used".format(self._port))
-        self._worker_num = yml_config.get('worker_num', 1)
-        self._build_dag_each_worker = yml_config.get('build_dag_each_worker',
-                                                     False)
+            raise SystemExit("Failed to prepare_server: prot {} "
+                             "is already used".format(self._port))
+        self._worker_num = conf["worker_num"]
+        self._build_dag_each_worker = conf["build_dag_each_worker"]
+
         _LOGGER.info("============= PIPELINE SERVER =============")
-        _LOGGER.info("port: {}".format(self._port))
-        _LOGGER.info("worker_num: {}".format(self._worker_num))
-        servicer_info = "build_dag_each_worker: {}".format(
-            self._build_dag_each_worker)
+        _LOGGER.info("\n{}".format(
+            json.dumps(
+                conf, indent=4, separators=(',', ':'))))
         if self._build_dag_each_worker is True:
-            servicer_info += " (Make sure that install grpcio whl with --no-binary flag)"
-        _LOGGER.info(servicer_info)
+            _LOGGER.warning(
+                "(Make sure that install grpcio whl with --no-binary flag: "
+                "pip install grpcio --no-binary grpcio)")
         _LOGGER.info("-------------------------------------------")
 
-        self._dag_config = yml_config.get("dag", {})
+        self._conf = conf
 
     def run_server(self):
         if self._build_dag_each_worker:
@@ -110,29 +108,167 @@ class PipelineServer(object):
                     show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
-                        args=(bind_address, self._response_op,
-                              self._dag_config))
+                        args=(bind_address, self._response_op, self._conf, i))
                     worker.start()
                     workers.append(worker)
                 for worker in workers:
                     worker.join()
         else:
             server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._worker_num))
+                futures.ThreadPoolExecutor(max_workers=self._worker_num),
+                options=[('grpc.max_send_message_length', 256 * 1024 * 1024),
+                         ('grpc.max_receive_message_length', 256 * 1024 * 1024)
+                         ])
             pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-                PipelineService(self._response_op, self._dag_config, True),
-                server)
+                PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._port))
             server.start()
             server.wait_for_termination()
 
-    def _run_server_func(self, bind_address, response_op, dag_config):
-        options = (('grpc.so_reuseport', 1), )
+    def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
+        options = [('grpc.so_reuseport', 1),
+                   ('grpc.max_send_message_length', 256 * 1024 * 1024),
+                   ('grpc.max_send_message_length', 256 * 1024 * 1024)]
         server = grpc.server(
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineService(response_op, dag_config, False), server)
+            PipelineServicer(response_op, dag_conf, worker_idx), server)
         server.add_insecure_port(bind_address)
         server.start()
         server.wait_for_termination()
+
+
+class ServerYamlConfChecker(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def load_server_yaml_conf(yml_file):
+        with open(yml_file) as f:
+            conf = yaml.load(f.read())
+        ServerYamlConfChecker.check_server_conf(conf)
+        ServerYamlConfChecker.check_dag_conf(conf["dag"])
+        ServerYamlConfChecker.check_tracer_conf(conf["dag"]["tracer"])
+        return conf
+
+    @staticmethod
+    def check_conf(conf, default_conf, conf_type, conf_qualification):
+        ServerYamlConfChecker.fill_with_default_conf(conf, default_conf)
+        ServerYamlConfChecker.check_conf_type(conf, conf_type)
+        ServerYamlConfChecker.check_conf_qualification(conf, conf_qualification)
+
+    @staticmethod
+    def check_server_conf(conf):
+        default_conf = {
+            "port": 9292,
+            "worker_num": 1,
+            "build_dag_each_worker": False,
+            "dag": {},
+        }
+
+        conf_type = {
+            "port": int,
+            "worker_num": int,
+            "build_dag_each_worker": bool,
+        }
+
+        conf_qualification = {
+            "port": [(">=", 1024), ("<=", 65535)],
+            "worker_num": (">=", 1),
+        }
+
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
+
+    @staticmethod
+    def check_tracer_conf(conf):
+        default_conf = {"interval_s": -1, }
+
+        conf_type = {"interval_s": int, }
+
+        conf_qualification = {}
+
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
+
+    @staticmethod
+    def check_dag_conf(conf):
+        default_conf = {
+            "retry": 1,
+            "client_type": "brpc",
+            "use_profile": False,
+            "channel_size": 0,
+            "is_thread_op": True,
+            "tracer": {},
+        }
+
+        conf_type = {
+            "retry": int,
+            "client_type": str,
+            "use_profile": bool,
+            "channel_size": int,
+            "is_thread_op": bool,
+        }
+
+        conf_qualification = {
+            "retry": (">=", 1),
+            "client_type": ("in", ["brpc", "grpc"]),
+            "channel_size": (">=", 0),
+        }
+
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
+
+    @staticmethod
+    def fill_with_default_conf(conf, default_conf):
+        for key, val in default_conf.items():
+            if conf.get(key) is None:
+                _LOGGER.warning("[CONF] {} not set, use default: {}"
+                                .format(key, val))
+                conf[key] = val
+
+    @staticmethod
+    def check_conf_type(conf, conf_type):
+        for key, val in conf_type.items():
+            if not isinstance(conf[key], val):
+                raise SystemExit("[CONF] {} must be {} type, but get {}."
+                                 .format(key, val, type(conf[key])))
+
+    @staticmethod
+    def check_conf_qualification(conf, conf_qualification):
+        for key, qualification in conf_qualification.items():
+            if not isinstance(qualification, list):
+                qualification = [qualification]
+            if not ServerYamlConfChecker.qualification_check(conf[key],
+                                                             qualification):
+                raise SystemExit("[CONF] {} must be {}, but get {}."
+                                 .format(key, ", ".join([
+                                     "{} {}"
+                                     .format(q[0], q[1]) for q in qualification
+                                 ]), conf[key]))
+
+    @staticmethod
+    def qualification_check(value, qualifications):
+        if not isinstance(qualifications, list):
+            qualifications = [qualifications]
+        ok = True
+        for q in qualifications:
+            operator, limit = q
+            if operator == "<":
+                ok = value < limit
+            elif operator == "==":
+                ok = value == limit
+            elif operator == ">":
+                ok = value > limit
+            elif operator == "<=":
+                ok = value <= limit
+            elif operator == ">=":
+                ok = value >= limit
+            elif operator == "in":
+                ok = value in limit
+            else:
+                raise SystemExit("unknow operator: {}".format(operator))
+            if ok == False:
+                break
+        return ok
