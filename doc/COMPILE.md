@@ -63,6 +63,9 @@ pip install -r python/requirements.txt
 If Python3 is used, replace `pip` with `pip3`.
 
 
+## Compile Arguments
+
+
 
 ## Compile Server
 
@@ -70,7 +73,10 @@ If Python3 is used, replace `pip` with `pip3`.
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON ..
 make -j10
 ```
 
@@ -80,7 +86,11 @@ you can execute `make install` to put targets under directory `./output`, you ne
 
 ``` shell
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON \
+      -DWITH_GPU=ON ..
 make -j10
 ```
 
@@ -94,7 +104,10 @@ execute `make install` to put targets under directory `./output`
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DCLIENT=ON ..
 make -j10
 ```
 
