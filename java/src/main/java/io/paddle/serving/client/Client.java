@@ -192,14 +192,16 @@ public class Client {
 
     private InferenceRequest _packInferenceRequest(
             List<HashMap<String, INDArray>> feed_batch,
-            Iterable<String> fetch) throws IllegalArgumentException {
+            Iterable<String> fetch,
+            long log_id) throws IllegalArgumentException {
         List<String> feed_var_names = new ArrayList<String>();
         feed_var_names.addAll(feed_batch.get(0).keySet());
 
         InferenceRequest.Builder req_builder = InferenceRequest.newBuilder()
             .addAllFeedVarNames(feed_var_names)
             .addAllFetchVarNames(fetch)
-            .setIsPython(false);
+            .setIsPython(false)
+            .setLogId(log_id);
         for (HashMap<String, INDArray> feed_data: feed_batch) {
             FeedInst.Builder inst_builder = FeedInst.newBuilder();
             for (String name: feed_var_names) {
@@ -332,76 +334,151 @@ public class Client {
     public Map<String, INDArray> predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch) {
-        return predict(feed, fetch, false);
+        return predict(feed, fetch, false, 0);
+    }
+
+    public Map<String, INDArray> predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            long log_id) {
+        return predict(feed, fetch, false, log_id);
     }
 
     public Map<String, HashMap<String, INDArray>> ensemble_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch) {
-        return ensemble_predict(feed, fetch, false);
+        return ensemble_predict(feed, fetch, false, 0);
+    }
+
+    public Map<String, HashMap<String, INDArray>> ensemble_predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            long log_id) {
+        return ensemble_predict(feed, fetch, false, log_id);
     }
 
     public PredictFuture asyn_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch) {
-        return asyn_predict(feed, fetch, false);
+        return asyn_predict(feed, fetch, false, 0);
+    }
+
+    public PredictFuture asyn_predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            long log_id) {
+        return asyn_predict(feed, fetch, false, log_id);
     }
 
     public Map<String, INDArray> predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
+        return predict(feed, fetch, need_variant_tag, 0);
+    }
+
+    public Map<String, INDArray> predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            Boolean need_variant_tag,
+            long log_id) {
         List<HashMap<String, INDArray>> feed_batch
             = new ArrayList<HashMap<String, INDArray>>();
         feed_batch.add(feed);
-        return predict(feed_batch, fetch, need_variant_tag);
+        return predict(feed_batch, fetch, need_variant_tag, log_id);
+    }
+
+    public Map<String, HashMap<String, INDArray>> ensemble_predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            Boolean need_variant_tag) {
+        return ensemble_predict(feed, fetch, need_variant_tag, 0);
     }
     
     public Map<String, HashMap<String, INDArray>> ensemble_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch,
-            Boolean need_variant_tag) {
+            Boolean need_variant_tag,
+            long log_id) {
         List<HashMap<String, INDArray>> feed_batch
             = new ArrayList<HashMap<String, INDArray>>();
         feed_batch.add(feed);
-        return ensemble_predict(feed_batch, fetch, need_variant_tag);
+        return ensemble_predict(feed_batch, fetch, need_variant_tag, log_id);
     }
 
     public PredictFuture asyn_predict(
             HashMap<String, INDArray> feed,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
+        return asyn_predict(feed, fetch, need_variant_tag, 0);
+    }
+
+    public PredictFuture asyn_predict(
+            HashMap<String, INDArray> feed,
+            Iterable<String> fetch,
+            Boolean need_variant_tag,
+            long log_id) {
         List<HashMap<String, INDArray>> feed_batch
             = new ArrayList<HashMap<String, INDArray>>();
         feed_batch.add(feed);
-        return asyn_predict(feed_batch, fetch, need_variant_tag);
+        return asyn_predict(feed_batch, fetch, need_variant_tag, log_id);
     }
 
     public Map<String, INDArray> predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch) {
-        return predict(feed_batch, fetch, false);
+        return predict(feed_batch, fetch, false, 0);
+    }
+
+    public Map<String, INDArray> predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            long log_id) {
+        return predict(feed_batch, fetch, false, log_id);
     }
     
     public Map<String, HashMap<String, INDArray>> ensemble_predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch) {
-        return ensemble_predict(feed_batch, fetch, false);
+        return ensemble_predict(feed_batch, fetch, false, 0);
+    }
+
+    public Map<String, HashMap<String, INDArray>> ensemble_predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            long log_id) {
+        return ensemble_predict(feed_batch, fetch, false, log_id);
     }
 
     public PredictFuture asyn_predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch) {
-        return asyn_predict(feed_batch, fetch, false);
+        return asyn_predict(feed_batch, fetch, false, 0);
+    }
+
+    public PredictFuture asyn_predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            long log_id) {
+        return asyn_predict(feed_batch, fetch, false, log_id);
     }
 
     public Map<String, INDArray> predict(
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
+        return predict(feed_batch, fetch, need_variant_tag, 0);        
+    }
+
+    public Map<String, INDArray> predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            Boolean need_variant_tag,
+            long log_id) {
         try {
             profiler_.record("java_prepro_0");
-            InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
+            InferenceRequest req = _packInferenceRequest(
+                    feed_batch, fetch, log_id);
             profiler_.record("java_prepro_1");
             
             profiler_.record("java_client_infer_0");
@@ -415,7 +492,7 @@ public class Client {
                 = new ArrayList<Map.Entry<String, HashMap<String, INDArray>>>(
                     ensemble_result.entrySet());
             if (list.size() != 1) {
-                System.out.format("predict failed: please use ensemble_predict impl.\n");
+                System.out.format("Failed to predict: please use ensemble_predict impl.\n");
                 return null;
             }
             profiler_.record("java_postpro_1");
@@ -423,7 +500,7 @@ public class Client {
 
             return list.get(0).getValue();
         } catch (StatusRuntimeException e) {
-            System.out.format("predict failed: %s\n", e.toString());
+            System.out.format("Failed to predict: %s\n", e.toString());
             return null;
         }
     }
@@ -432,9 +509,18 @@ public class Client {
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
+        return ensemble_predict(feed_batch, fetch, need_variant_tag, 0);        
+    }
+     
+    public Map<String, HashMap<String, INDArray>> ensemble_predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            Boolean need_variant_tag,
+            long log_id) {
         try {
             profiler_.record("java_prepro_0");
-            InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
+            InferenceRequest req = _packInferenceRequest(
+                    feed_batch, fetch, log_id);
             profiler_.record("java_prepro_1");
             
             profiler_.record("java_client_infer_0");
@@ -449,7 +535,7 @@ public class Client {
 
             return ensemble_result;
         } catch (StatusRuntimeException e) {
-            System.out.format("predict failed: %s\n", e.toString());
+            System.out.format("Failed to predict: %s\n", e.toString());
             return null;
         }
     }
@@ -458,7 +544,16 @@ public class Client {
             List<HashMap<String, INDArray>> feed_batch,
             Iterable<String> fetch,
             Boolean need_variant_tag) {
-        InferenceRequest req = _packInferenceRequest(feed_batch, fetch);
+        return asyn_predict(feed_batch, fetch, need_variant_tag, 0);
+    }
+
+    public PredictFuture asyn_predict(
+            List<HashMap<String, INDArray>> feed_batch,
+            Iterable<String> fetch,
+            Boolean need_variant_tag,
+            long log_id) {
+        InferenceRequest req = _packInferenceRequest(
+                feed_batch, fetch, log_id);
         ListenableFuture<InferenceResponse> future = futureStub_.inference(req);
         PredictFuture predict_future = new PredictFuture(future, 
             (InferenceResponse resp) -> {
