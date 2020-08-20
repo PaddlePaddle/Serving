@@ -25,6 +25,7 @@ import yaml
 from .proto import pipeline_service_pb2_grpc
 from .operator import ResponseOp
 from .dag import DAGExecutor
+from .util import AvailablePortGenerator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,26 +64,28 @@ class PipelineServer(object):
         self._response_op = None
         self._proxy_server = None
 
-    def _grpc_gateway(self, port):
+    def _grpc_gateway(self, grpc_port, http_port):
         import os
         from ctypes import cdll
         from . import gateway
         lib_path = os.path.join(
             os.path.dirname(gateway.__file__), "libproxy_server.so")
         proxy_server = cdll.LoadLibrary(lib_path)
-        proxy_server.run_proxy_server(port)
+        proxy_server.run_proxy_server(grpc_port, http_port)
 
-    def _run_grpc_gateway(self, port):
-        if port <= 0:
+    def _run_grpc_gateway(self, grpc_port, http_port):
+        if http_port <= 0:
             _LOGGER.info("Ignore grpc_gateway configuration.")
             return
-        if not self._port_is_available(port):
+        if not AvailablePortGenerator.port_is_available(http_port):
             raise SystemExit("Failed to run grpc-gateway: prot {} "
-                             "is already used".format(port))
+                             "is already used".format(http_port))
         if self._proxy_server is not None:
             raise RuntimeError("Proxy server has been started.")
         self._proxy_server = multiprocessing.Process(
-            target=self._grpc_gateway, args=(port, ))
+            target=self._grpc_gateway, args=(
+                grpc_port,
+                http_port, ))
         self._proxy_server.daemon = True
         self._proxy_server.start()
 
@@ -95,18 +98,12 @@ class PipelineServer(object):
                             "can only have one previous op.")
         self._response_op = response_op
 
-    def _port_is_available(self, port):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
-        return result != 0
-
     def prepare_server(self, yml_file=None, yml_dict=None):
         conf = ServerYamlConfChecker.load_server_yaml_conf(
             yml_file=yml_file, yml_dict=yml_dict)
 
         self._port = conf["port"]
-        if not self._port_is_available(self._port):
+        if not AvailablePortGenerator.port_is_available(self._port):
             raise SystemExit("Failed to prepare_server: prot {} "
                              "is already used".format(self._port))
         self._worker_num = conf["worker_num"]
@@ -138,7 +135,8 @@ class PipelineServer(object):
                     worker.start()
                     workers.append(worker)
                 self._run_grpc_gateway(
-                    self._grpc_gateway_port)  # start grpc_gateway
+                    grpc_port=self._port,
+                    http_port=self._grpc_gateway_port)  # start grpc_gateway
                 for worker in workers:
                     worker.join()
         else:
@@ -152,7 +150,8 @@ class PipelineServer(object):
             server.add_insecure_port('[::]:{}'.format(self._port))
             server.start()
             self._run_grpc_gateway(
-                self._grpc_gateway_port)  # start grpc_gateway
+                grpc_port=self._port,
+                http_port=self._grpc_gateway_port)  # start grpc_gateway
             server.wait_for_termination()
 
     def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):

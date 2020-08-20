@@ -35,7 +35,8 @@ class AvailablePortGenerator(object):
     def __init__(self, start_port=12000):
         self._curr_port = start_port
 
-    def port_is_available(self, port):
+    @staticmethod
+    def port_is_available(port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
             result = sock.connect_ex(('0.0.0.0', port))
@@ -45,7 +46,7 @@ class AvailablePortGenerator(object):
             return False
 
     def next(self):
-        while not self.port_is_available(self._curr_port):
+        while not AvailablePortGenerator.port_is_available(self._curr_port):
             self._curr_port += 1
         self._curr_port += 1
         return self._curr_port - 1
