@@ -23,7 +23,6 @@ from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_client.version import serving_client_version
-from pkg_resources import DistributionNotFound, get_distribution
 import util
 
 py_version = sys.version_info

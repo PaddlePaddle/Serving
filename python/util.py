@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pkg_resources import DistributionNotFound, get_distribution
 from grpc_tools import protoc
 import os
 import platform
