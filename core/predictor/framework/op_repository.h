@@ -63,8 +63,8 @@ class OpRepository {
   void regist_op(std::string op_type) {
     _repository[op_type] = &OpFactory<OP_TYPE>::instance();
     char err_str[ERROR_STRING_LEN];
-    snprintf(err_str, ERROR_STRING_LEN - 1, "Succ regist op: %s", 
-      op_type.c_str());
+    snprintf(
+        err_str, ERROR_STRING_LEN - 1, "Succ regist op: %s", op_type.c_str());
     RAW_LOG(INFO, err_str);
   }
 
