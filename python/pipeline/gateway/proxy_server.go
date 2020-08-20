@@ -21,7 +21,6 @@ import (
   "log"
   "strconv"
 
-  //"github.com/golang/glog"
   "golang.org/x/net/context"
   "github.com/grpc-ecosystem/grpc-gateway/runtime"
   "google.golang.org/grpc"
@@ -50,13 +49,4 @@ func run_proxy_server(port int) error {
   return http.ListenAndServe(":" + strconv.Itoa(port), mux) // proxy port
 }
 
-func main() {
-  /*
-  flag.Parse()
-  defer glog.Flush()
-
-  if err := run(); err != nil {
-    glog.Fatal(err)
-  }
-  */
-}
+func main() {}

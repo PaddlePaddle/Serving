@@ -101,8 +101,9 @@ class PipelineServer(object):
             result = sock.connect_ex(('0.0.0.0', port))
         return result != 0
 
-    def prepare_server(self, yml_file):
-        conf = ServerYamlConfChecker.load_server_yaml_conf(yml_file)
+    def prepare_server(self, yml_file=None, yml_dict=None):
+        conf = ServerYamlConfChecker.load_server_yaml_conf(
+            yml_file=yml_file, yml_dict=yml_dict)
 
         self._port = conf["port"]
         if not self._port_is_available(self._port):
@@ -173,9 +174,18 @@ class ServerYamlConfChecker(object):
         pass
 
     @staticmethod
-    def load_server_yaml_conf(yml_file):
-        with open(yml_file) as f:
-            conf = yaml.load(f.read())
+    def load_server_yaml_conf(yml_file=None, yml_dict=None):
+        if yml_file is not None and yml_dict is not None:
+            raise SystemExit("Failed to prepare_server: only one of yml_file"
+                             " or yml_dict can be selected as the parameter.")
+        if yml_file is not None:
+            with open(yml_file) as f:
+                conf = yaml.load(f.read())
+        elif yml_dict is not None:
+            conf = yml_dict
+        else:
+            raise SystemExit("Failed to prepare_server: yml_file or yml_dict"
+                             " can not be None.")
         ServerYamlConfChecker.check_server_conf(conf)
         ServerYamlConfChecker.check_dag_conf(conf["dag"])
         ServerYamlConfChecker.check_tracer_conf(conf["dag"]["tracer"])
