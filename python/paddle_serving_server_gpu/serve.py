@@ -99,11 +99,11 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
-            p = Process(target=start_gpu_card_model, args=(
-                i,
-                gpu_id,
-                args,
-            ))
+            p = Process(
+                target=start_gpu_card_model, args=(
+                    i,
+                    gpu_id,
+                    args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
             p.start()
@@ -125,9 +125,8 @@ if __name__ == "__main__":
                 gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
         if len(gpu_ids) > 0:
             web_service.set_gpus(gpu_ids)
-        web_service.prepare_server(workdir=args.workdir,
-                                   port=args.port,
-                                   device=args.device)
+        web_service.prepare_server(
+            workdir=args.workdir, port=args.port, device=args.device)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)

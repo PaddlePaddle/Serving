@@ -40,55 +40,49 @@ from concurrent import futures
 
 def serve_args():
     parser = argparse.ArgumentParser("serve")
-    parser.add_argument("--thread",
-                        type=int,
-                        default=2,
-                        help="Concurrency of server")
-    parser.add_argument("--model",
-                        type=str,
-                        default="",
-                        help="Model for serving")
-    parser.add_argument("--port",
-                        type=int,
-                        default=9292,
-                        help="Port of the starting gpu")
-    parser.add_argument("--workdir",
-                        type=str,
-                        default="workdir",
-                        help="Working dir of current service")
-    parser.add_argument("--device",
-                        type=str,
-                        default="gpu",
-                        help="Type of device")
+    parser.add_argument(
+        "--thread", type=int, default=2, help="Concurrency of server")
+    parser.add_argument(
+        "--model", type=str, default="", help="Model for serving")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port of the starting gpu")
+    parser.add_argument(
+        "--workdir",
+        type=str,
+        default="workdir",
+        help="Working dir of current service")
+    parser.add_argument(
+        "--device", type=str, default="gpu", help="Type of device")
     parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
-    parser.add_argument("--name",
-                        type=str,
-                        default="None",
-                        help="Default service name")
-    parser.add_argument("--mem_optim_off",
-                        default=False,
-                        action="store_true",
-                        help="Memory optimize")
-    parser.add_argument("--ir_optim",
-                        default=False,
-                        action="store_true",
-                        help="Graph optimize")
-    parser.add_argument("--max_body_size",
-                        type=int,
-                        default=512 * 1024 * 1024,
-                        help="Limit sizes of messages")
-    parser.add_argument("--use_multilang",
-                        default=False,
-                        action="store_true",
-                        help="Use Multi-language-service")
-    parser.add_argument("--product_name",
-                        type=str,
-                        default=None,
-                        help="product_name for authentication")
-    parser.add_argument("--container_id",
-                        type=str,
-                        default=None,
-                        help="container_id for authentication")
+    parser.add_argument(
+        "--name", type=str, default="None", help="Default service name")
+    parser.add_argument(
+        "--mem_optim_off",
+        default=False,
+        action="store_true",
+        help="Memory optimize")
+    parser.add_argument(
+        "--ir_optim", default=False, action="store_true", help="Graph optimize")
+    parser.add_argument(
+        "--max_body_size",
+        type=int,
+        default=512 * 1024 * 1024,
+        help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -108,8 +102,8 @@ class OpMaker(object):
 
     def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
         if node_type not in self.op_dict:
-            raise Exception(
-                "Op type {} is not supported right now".format(node_type))
+            raise Exception("Op type {} is not supported right now".format(
+                node_type))
         node = server_sdk.DAGNode()
         # node.name will be used as the infer engine name
         if engine_name:
@@ -158,8 +152,8 @@ class OpSeqMaker(object):
                 if node.dependencies[0].name != self.workflow.nodes[-1].name:
                     raise Exception(
                         'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'
-                        .format(node.dependencies[0].name,
-                                self.workflow.nodes[-1].name))
+                        .format(node.dependencies[0].name, self.workflow.nodes[
+                            -1].name))
         self.workflow.nodes.extend([node])
 
     def get_op_sequence(self):
@@ -372,8 +366,8 @@ class Server(object):
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = list(
-                self.model_config_paths.items())[0][1]
+            workflow_oi_config_path = list(self.model_config_paths.items())[0][
+                1]
         else:
             raise Exception("The type of model_config_paths must be str or "
                             "dict({op: model_path}), not {}.".format(
@@ -636,20 +630,20 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     tensor.data = model_result[name].tobytes()
                 else:
                     if v_type == 0:  # int64
-                        tensor.int64_data.extend(
-                            model_result[name].reshape(-1).tolist())
+                        tensor.int64_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
                     elif v_type == 1:  # float32
-                        tensor.float_data.extend(
-                            model_result[name].reshape(-1).tolist())
+                        tensor.float_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
                     elif v_type == 2:  # int32
-                        tensor.int_data.extend(
-                            model_result[name].reshape(-1).tolist())
+                        tensor.int_data.extend(model_result[name].reshape(-1)
+                                               .tolist())
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
                 if name in self.lod_tensor_set_:
-                    tensor.lod.extend(
-                        model_result["{}.lod".format(name)].tolist())
+                    tensor.lod.extend(model_result["{}.lod".format(name)]
+                                      .tolist())
                 inst.tensor_array.append(tensor)
             model_output.insts.append(inst)
             model_output.engine_name = model_name
@@ -668,10 +662,11 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
     def Inference(self, request, context):
         feed_dict, fetch_names, is_python, log_id \
                 = self._unpack_inference_request(request)
-        ret = self.bclient_.predict(feed=feed_dict,
-                                    fetch=fetch_names,
-                                    need_variant_tag=True,
-                                    log_id=log_id)
+        ret = self.bclient_.predict(
+            feed=feed_dict,
+            fetch=fetch_names,
+            need_variant_tag=True,
+            log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
 
     def GetClientConfig(self, request, context):
@@ -748,14 +743,15 @@ class MultiLangServer(object):
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):
-            if default_port + i != port and self._port_is_available(
-                    default_port + i):
+            if default_port + i != port and self._port_is_available(default_port
+                                                                    + i):
                 self.port_list_.append(default_port + i)
                 break
-        self.bserver_.prepare_server(workdir=workdir,
-                                     port=self.port_list_[0],
-                                     device=device,
-                                     cube_conf=cube_conf)
+        self.bserver_.prepare_server(
+            workdir=workdir,
+            port=self.port_list_[0],
+            device=device,
+            cube_conf=cube_conf)
         self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
@@ -768,8 +764,8 @@ class MultiLangServer(object):
         return result != 0
 
     def run_server(self):
-        p_bserver = Process(target=self._launch_brpc_service,
-                            args=(self.bserver_, ))
+        p_bserver = Process(
+            target=self._launch_brpc_service, args=(self.bserver_, ))
         p_bserver.start()
         options = [('grpc.max_send_message_length', self.body_size_),
                    ('grpc.max_receive_message_length', self.body_size_)]
