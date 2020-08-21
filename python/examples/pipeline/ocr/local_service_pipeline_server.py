@@ -130,6 +130,6 @@ response_op = ResponseOp(input_ops=[rec_op])
 
 server = PipelineServer()
 server.set_response_op(response_op)
-server.start_local_rpc_service()  # add this line
 server.prepare_server('config.yml')
+server.start_local_rpc_service()  # add this line
 server.run_server()
