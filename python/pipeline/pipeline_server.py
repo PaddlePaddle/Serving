@@ -23,7 +23,7 @@ import multiprocessing
 import yaml
 
 from .proto import pipeline_service_pb2_grpc
-from .operator import ResponseOp
+from .operator import ResponseOp, RequestOp
 from .dag import DAGExecutor, DAG
 from .util import AvailablePortGenerator
 
@@ -126,7 +126,8 @@ class PipelineServer(object):
         # only brpc now
         used_op, _ = DAG.get_use_ops(self._response_op)
         for op in used_op:
-            op.launch_local_rpc_service()
+            if not isinstance(op, RequestOp):
+                op.launch_local_rpc_service()
 
     def run_server(self):
         if self._build_dag_each_worker:

@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import logging
+import multiprocessing
 try:
     from paddle_serving_server import OpMaker, OpSeqMaker, Server
 except ImportError:
@@ -24,9 +26,9 @@ _workdir_name_gen = NameGenerator("workdir_")
 _available_port_gen = AvailablePortGenerator()
 
 
-class DefaultRpcServerHandler(object):
+class LocalRpcServiceHandler(object):
     def __init__(self,
-                 model_config=None,
+                 model_config,
                  workdir=None,
                  thread_num=2,
                  devices="",
@@ -36,22 +38,26 @@ class DefaultRpcServerHandler(object):
         if available_port_generator is None:
             available_port_generator = _available_port_gen
 
+        self._model_config = model_config
         self._port_list = []
         if devices == "":
             # cpu
             devices = [-1]
             self._port_list.append(available_port_generator.next())
+            _LOGGER.info("Model({}) will be launch in cpu device. Port({})"
+                         .format(model_config, self._port_list))
         else:
             # gpu
             devices = [int(x) for x in devices.split(",")]
             for _ in devices:
                 self._port_list.append(available_port_generator.next())
+            _LOGGER.info("Model({}) will be launch in gpu device: {}. Port({})"
+                         .format(model_config, devices, self._port_list))
         self._workdir = workdir
         self._devices = devices
         self._thread_num = thread_num
         self._mem_optim = mem_optim
         self._ir_optim = ir_optim
-        self._model_config = model_config
 
         self._rpc_service_list = []
         self._server_pros = []
@@ -63,15 +69,15 @@ class DefaultRpcServerHandler(object):
     def get_port_list(self):
         return self._port_list
 
-    def set_model_config(self, model_config):
-        self._model_config = model_config
+    def get_client_config(self):
+        return os.path.join(self._model_config, "serving_server_conf.prototxt")
 
     def _prepare_one_server(self, workdir, port, gpuid, thread_num, mem_optim,
                             ir_optim):
         device = "gpu"
         if gpuid == -1:
             device = "cpu"
-        op_maker = serving.OpMaker()
+        op_maker = OpMaker()
         read_op = op_maker.create('general_reader')
         general_infer_op = op_maker.create('general_infer')
         general_response_op = op_maker.create('general_response')
@@ -115,7 +121,9 @@ class DefaultRpcServerHandler(object):
 
     def start_server(self):
         for i, service in enumerate(self._rpc_service_list):
-            p = Process(target=self._start_one_server, args=(i, ))
+            p = multiprocessing.Process(
+                target=self._start_one_server, args=(i, ))
+            p.daemon = True
             self._server_pros.append(p)
         for p in self._server_pros:
             p.start()

@@ -15,4 +15,5 @@ import logger  # this module must be the first to import
 from operator import Op, RequestOp, ResponseOp
 from pipeline_server import PipelineServer
 from pipeline_client import PipelineClient
+from local_rpc_service_handler import LocalRpcServiceHandler
 from analyse import Analyst
