@@ -338,7 +338,7 @@ class DAG(object):
         _LOGGER.info("[DAG] Succ init")
 
     @staticmethod
-    def get_use_ops(self, response_op):
+    def get_use_ops(response_op):
         unique_names = set()
         used_ops = set()
         succ_ops_of_use_op = {}  # {op_name: succ_ops}
@@ -431,7 +431,7 @@ class DAG(object):
         if not self._build_dag_each_worker:
             _LOGGER.info("================= USED OP =================")
             for op in used_ops:
-                if op.name != self._request_name:
+                if not isinstance(op, RequestOp):
                     _LOGGER.info(op.name)
             _LOGGER.info("-------------------------------------------")
         if len(used_ops) <= 1:

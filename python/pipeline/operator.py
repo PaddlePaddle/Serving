@@ -55,7 +55,7 @@ class Op(object):
                  retry=1,
                  batch_size=1,
                  auto_batching_timeout=None,
-                 local_rpc_server_handler=None):
+                 local_rpc_service_handler=None):
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
@@ -65,23 +65,26 @@ class Op(object):
         if len(server_endpoints) != 0:
             # remote service
             self.with_serving = True
-            self._server_endpoints = server_endpoints
-            self._client_config = client_config
         else:
-            if local_rpc_server_handler is not None:
+            if local_rpc_service_handler is not None:
                 # local rpc service
                 self.with_serving = True
-                serivce_ports = local_rpc_server_handler.get_port_list()
-                self._server_endpoints = [
+                local_rpc_service_handler.prepare_server()  # get fetch_list
+                serivce_ports = local_rpc_service_handler.get_port_list()
+                server_endpoints = [
                     "127.0.0.1:{}".format(p) for p in serivce_ports
                 ]
-                local_rpc_server_handler.set_client_config(client_config)
-                self._client_config = client_config
+                if client_config is None:
+                    client_config = local_rpc_service_handler.get_client_config(
+                    )
+                if len(fetch_list) == 0:
+                    fetch_list = local_rpc_service_handler.get_fetch_list()
             else:
                 self.with_serving = False
-        self._local_rpc_server_handler = local_rpc_server_handler
-
+        self._local_rpc_service_handler = local_rpc_service_handler
+        self._server_endpoints = server_endpoints
         self._fetch_names = fetch_list
+        self._client_config = client_config
 
         if timeout > 0:
             self._timeout = timeout / 1000.0
@@ -129,13 +132,14 @@ class Op(object):
         self._succ_close_op = False
 
     def launch_local_rpc_service(self):
-        if self._local_rpc_server_handler is None:
-            raise ValueError("Failed to launch local rpc service: "
-                             "local_rpc_server_handler is None.")
-        port = self._local_rpc_server_handler.get_port_list()
-        self._local_rpc_server_handler.prepare_server()
-        self._local_rpc_server_handler.start_server()
-        _LOGGER.info("Op({}) launch local rpc service at port: {}"
+        if self._local_rpc_service_handler is None:
+            _LOGGER.warning(
+                self._log("Failed to launch local rpc"
+                          " service: local_rpc_service_handler is None."))
+            return
+        port = self._local_rpc_service_handler.get_port_list()
+        self._local_rpc_service_handler.start_server()
+        _LOGGER.info("Op({}) use local rpc service at port: {}"
                      .format(self.name, port))
 
     def use_default_auto_batching_config(self):
