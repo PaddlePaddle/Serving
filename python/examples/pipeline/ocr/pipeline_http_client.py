@@ -18,9 +18,6 @@ import json
 import cv2
 import base64
 import os
-import time
-import util
-import multiprocessing
 
 
 def cv2_to_base64(image):
