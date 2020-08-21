@@ -1,6 +1,8 @@
-# OCR 服务
+# Pipeline OCR 服务
 
 ([English](./README.md)|简体中文)
+
+本文档将以 OCR 为例，介绍如何使用 PipelineServing 启动多模型串联的服务。
 
 ## 获取模型
 ```

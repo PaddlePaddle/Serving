@@ -1,6 +1,8 @@
-# OCR 
+# Pipeline OCR Service 
 
 (English|[简体中文](./README_CN.md))
+
+This document will take OCR as an example to show how to use PipelineServing to start multi-model tandem services.
 
 ## Get Model
 ```
