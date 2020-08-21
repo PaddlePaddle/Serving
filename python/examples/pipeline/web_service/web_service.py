@@ -12,32 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_server_gpu.web_service import PipelineWebService
+from paddle_serving_server_gpu.web_service import DefaultPipelineWebService
 import logging
 import numpy as np
 
 _LOGGER = logging.getLogger()
-user_handler = logging.StreamHandler()
-user_handler.setLevel(logging.INFO)
-user_handler.setFormatter(
-    logging.Formatter(
-        "%(levelname)s %(asctime)s [%(filename)s:%(lineno)d] %(message)s"))
-_LOGGER.addHandler(user_handler)
 
 
-class UciService(PipelineWebService):
+class UciService(DefaultPipelineWebService):
     def init_separator(self):
         self.separator = ","
 
     def preprocess(self, input_dict):
-        _LOGGER.info(input_dict)
-        x_str = input_dict["x"]
-        input_dict["x"] = np.array(
-            [float(x.strip()) for x in x_str.split(self.separator)])
+        # _LOGGER.info(input_dict)
+        x_value = input_dict["x"]
+        if isinstance(x_value, (str, unicode)):
+            input_dict["x"] = np.array(
+                [float(x.strip()) for x in x_value.split(self.separator)])
         return input_dict
 
     def postprocess(self, input_dict, fetch_dict):
-        _LOGGER.info(fetch_dict)
+        # _LOGGER.info(fetch_dict)
         fetch_dict["price"] = str(fetch_dict["price"][0][0])
         return fetch_dict
 
@@ -45,6 +40,6 @@ class UciService(PipelineWebService):
 uci_service = UciService(name="uci")
 uci_service.init_separator()
 uci_service.load_model_config("./uci_housing_model")
-uci_service.set_gpus("0")
-uci_service.prepare_server(workdir="workdir", port=18080, device="gpu")
+uci_service.set_gpus("0,1")
+uci_service.prepare_server(workdir="workdir", port=18080)
 uci_service.run_service()

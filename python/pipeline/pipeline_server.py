@@ -124,6 +124,8 @@ class PipelineServer(object):
 
     def start_local_rpc_service(self):
         # only brpc now
+        if self._conf["dag"]["client_type"] != "brpc":
+            raise ValueError("Local Servoce Version must be brpc type now.")
         used_op, _ = DAG.get_use_ops(self._response_op)
         for op in used_op:
             if not isinstance(op, RequestOp):

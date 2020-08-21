@@ -18,13 +18,13 @@ tar xf test_imgs.tar
 
 ## Start Service
 
-You can choose one of the following versions to launch start Service.
+You can choose one of the following versions to start Service.
 
 ### Remote Service Version
 ```
 python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 12000 --gpu_id 0 &> det.log &
 python -m paddle_serving_server_gpu.serve --model ocr_rec_model --port 12001 --gpu_id 0 &> rec.log &
-python pipeline_server.py &>pipeline.log &
+python remote_service_pipeline_server.py &>pipeline.log &
 ```
 
 ### Local Service Version
