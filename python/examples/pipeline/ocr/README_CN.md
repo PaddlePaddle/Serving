@@ -23,7 +23,7 @@ tar xf test_imgs.tar
 ```
 python -m paddle_serving_server.serve --model ocr_det_model --port 12000 --gpu_id 0 &> det.log &
 python -m paddle_serving_server.serve --model ocr_rec_model --port 12001 --gpu_id 0 &> rec.log &
-python pipeline_server.py &>pipeline.log &
+python remote_service_pipeline_server.py &>pipeline.log &
 ```
 
 ### 本地服务版本
