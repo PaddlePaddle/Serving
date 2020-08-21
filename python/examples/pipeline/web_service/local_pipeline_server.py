@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-try:
-    from paddle_serving_server_gpu import pipeline
-except ImportError:
-    from paddle_serving_server import pipeline
+from paddle_serving_server_gpu import pipeline
 import numpy as np
 import logging
 
