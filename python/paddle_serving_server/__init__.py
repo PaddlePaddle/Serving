@@ -159,6 +159,10 @@ class Server(object):
         self.mkl_flag = False
         self.model_config_paths = None  # for multi-model in a workflow
 
+    def get_fetch_list(self):
+        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+        return fetch_names
+
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
 

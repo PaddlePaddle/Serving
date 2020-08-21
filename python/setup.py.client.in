@@ -63,8 +63,10 @@ packages=['paddle_serving_client',
     	  'paddle_serving_client.metric',
     	  'paddle_serving_client.utils',
           'paddle_serving_client.pipeline',
-          'paddle_serving_client.pipeline.proto']
-package_data={'paddle_serving_client': ['serving_client.so','lib/*'],}
+          'paddle_serving_client.pipeline.proto',
+          'paddle_serving_client.pipeline.gateway',
+          'paddle_serving_client.pipeline.gateway.proto']
+package_data={'paddle_serving_client': ['serving_client.so', 'lib/*', 'pipeline/gateway/libproxy_server.so'],}
 package_dir={'paddle_serving_client':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client',
              'paddle_serving_client.proto':
@@ -78,7 +80,11 @@ package_dir={'paddle_serving_client':
              'paddle_serving_client.pipeline':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline',
              'paddle_serving_client.pipeline.proto':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline/proto'}
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline/proto',
+             'paddle_serving_client.pipeline.gateway':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline/gateway',
+             'paddle_serving_client.pipeline.gateway.proto':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/pipeline/gateway/proto'}
 
 setup(
     name='paddle-serving-client',

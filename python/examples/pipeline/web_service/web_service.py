@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from paddle_serving_server_gpu.web_service import DefaultPipelineWebService
+try:
+    from paddle_serving_server_gpu.web_service import DefaultPipelineWebService
+except ImportError:
+    from paddle_serving_server.web_service import DefaultPipelineWebService
 import logging
 import numpy as np
 
@@ -40,6 +42,9 @@ class UciService(DefaultPipelineWebService):
 uci_service = UciService(name="uci")
 uci_service.init_separator()
 uci_service.load_model_config("./uci_housing_model")
-uci_service.set_gpus("0")
+try:
+    uci_service.set_gpus("0")
+except Exception:
+    pass
 uci_service.prepare_server(workdir="workdir", port=18080)
 uci_service.run_service()
