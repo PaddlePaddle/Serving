@@ -767,13 +767,14 @@ function python_test_resnet50(){
 }
 
 function python_test_pipeline(){
-    # pwd:/ Serving/python/examples
+    # pwd: /Serving/python/examples
     local TYPE=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
-    cd pipeline/imdb_model_ensemble
+    cd pipeline # pwd: /Serving/python/examples/pipeline
     case $TYPE in
         CPU)
+            cd imdb_model_ensemble # pwd: /Serving/python/examples/pipeline/imdb_model_ensemble
             # start paddle serving service (brpc)
             sh get_data.sh
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
@@ -876,16 +877,40 @@ EOF
             kill_server_process
             kill_process_by_port 9292
             kill_process_by_port 9393
+            cd ..
             ;;
         GPU)
-            echo "pipeline ignore GPU test"
+            cd web_service # pwd: /Serving/python/examples/pipeline/web_service
+            sh get_data.sh
+            python web_service.py >/dev/null &
+            sleep 5
+            curl -X POST -k http://localhost:18080/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
+            # check http code
+            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+
+            python local_pipeline_server.py >/dev/null &
+            sleep 5
+            curl -X POST -k http://localhost:18080/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
+            # check http code
+            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            cd .. # pwd: /Serving/python/examples/pipeline
             ;;
         *)
             echo "error type"
             exit 1
             ;;
     esac
-    cd ../../
+    cd ..
     setproxy
     unset SERVING_BIN
 }
