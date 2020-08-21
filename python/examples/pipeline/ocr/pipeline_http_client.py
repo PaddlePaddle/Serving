@@ -18,21 +18,23 @@ import json
 import cv2
 import base64
 import os
-
-client = PipelineClient()
-client.connect(['127.0.0.1:18080'])
+import time
+import util
+import multiprocessing
 
 
 def cv2_to_base64(image):
     return base64.b64encode(image).decode('utf8')
 
 
+url = "http://127.0.0.1:9999/prediction"
 test_img_dir = "imgs/"
+for img_file in os.listdir(test_img_dir):
+    with open(os.path.join(test_img_dir, img_file), 'rb') as file:
+        image_data1 = file.read()
+    image = cv2_to_base64(image_data1)
 
 for i in range(4):
-    for img_file in os.listdir(test_img_dir):
-        with open(os.path.join(test_img_dir, img_file), 'rb') as file:
-            image_data = file.read()
-        image = cv2_to_base64(image_data)
-        ret = client.predict(feed_dict={"image": image}, fetch=["res"])
-        print(ret)
+    data = {"key": ["image"], "value": [image]}
+    r = requests.post(url=url, data=json.dumps(data))
+    print(r.json())
