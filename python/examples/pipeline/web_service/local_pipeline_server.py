@@ -49,7 +49,7 @@ uci_op = UciOp(
         model_config="uci_housing_model",
         workdir="workdir",
         thread_num=2,
-        devices="0,1",  # if devices="", use cpu
+        devices="0",  # if devices="", use cpu
         mem_optim=True,
         ir_optim=False),
     concurrency=1)

@@ -40,6 +40,6 @@ class UciService(DefaultPipelineWebService):
 uci_service = UciService(name="uci")
 uci_service.init_separator()
 uci_service.load_model_config("./uci_housing_model")
-uci_service.set_gpus("0,1")
+uci_service.set_gpus("0")
 uci_service.prepare_server(workdir="workdir", port=18080)
 uci_service.run_service()
