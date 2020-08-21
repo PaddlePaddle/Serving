@@ -13,9 +13,9 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 try:
-    from paddle_serving_server import pipeline
-except ImportError:
     from paddle_serving_server_gpu import pipeline
+except ImportError:
+    from paddle_serving_server import pipeline
 import numpy as np
 import logging
 

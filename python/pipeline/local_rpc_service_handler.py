@@ -16,9 +16,9 @@ import os
 import logging
 import multiprocessing
 try:
-    from paddle_serving_server import OpMaker, OpSeqMaker, Server
-except ImportError:
     from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
+except ImportError:
+    from paddle_serving_server import OpMaker, OpSeqMaker, Server
 from .util import AvailablePortGenerator, NameGenerator
 
 _LOGGER = logging.getLogger(__name__)
