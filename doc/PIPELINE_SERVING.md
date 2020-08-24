@@ -279,6 +279,8 @@ Here, we build a simple imdb model enable example to show how to use Pipeline Se
 
 ### Get the model file and start the Paddle Serving Service
 
+PipelineServing also supports local automatic startup of PaddleServingService. Please refer to the example `python/examples/pipeline/ocr`.
+
 ```shell
 cd python/examples/pipeline/imdb_model_ensemble
 sh get_data.sh
