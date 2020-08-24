@@ -19,11 +19,10 @@ try:
     from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
 except ImportError:
     from paddle_serving_server import OpMaker, OpSeqMaker, Server
-from .util import AvailablePortGenerator, NameGenerator
+from . import util
 
 _LOGGER = logging.getLogger(__name__)
-_workdir_name_gen = NameGenerator("workdir_")
-_available_port_gen = AvailablePortGenerator()
+_workdir_name_gen = util.NameGenerator("workdir_")
 
 
 class LocalRpcServiceHandler(object):
@@ -36,7 +35,7 @@ class LocalRpcServiceHandler(object):
                  ir_optim=False,
                  available_port_generator=None):
         if available_port_generator is None:
-            available_port_generator = _available_port_gen
+            available_port_generator = util.GetAvailablePortGenerator()
 
         self._model_config = model_config
         self._port_list = []

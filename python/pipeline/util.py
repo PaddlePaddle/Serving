@@ -29,6 +29,11 @@ else:
     raise Exception("Error Python version")
 
 _LOGGER = logging.getLogger(__name__)
+_AvailablePortGenerator = AvailablePortGenerator()
+
+
+def GetAvailablePortGenerator():
+    return _AvailablePortGenerator
 
 
 class AvailablePortGenerator(object):
