@@ -217,7 +217,7 @@ class PredictorClient {
   int create_predictor();
 
   int destroy_predictor();
-  
+
   int numpy_predict(
       const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
       const std::vector<std::string>& float_feed_name,

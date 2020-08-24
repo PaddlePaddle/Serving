@@ -121,7 +121,7 @@ class Debugger(object):
                     name])
             if self.feed_types_[name] == 0:
                 feed[name] = feed[name].astype("int64")
-            elif self.feed_types_[name] == 1:    
+            elif self.feed_types_[name] == 1:
                 feed[name] = feed[name].astype("float32")
             elif self.feed_types_[name] == 2:
                 feed[name] = feed[name].astype("int32")
@@ -131,7 +131,7 @@ class Debugger(object):
             if "{}.lod".format(name) in feed:
                 input_tensor.set_lod([feed["{}.lod".format(name)]])
             if batch == False:
-                input_tensor.copy_from_cpu(feed[name][np.newaxis,:])
+                input_tensor.copy_from_cpu(feed[name][np.newaxis, :])
             else:
                 input_tensor.copy_from_cpu(feed[name])
         output_tensors = []

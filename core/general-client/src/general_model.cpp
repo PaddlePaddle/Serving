@@ -39,7 +39,9 @@ using configure::GeneralModelConfig;
 
 void PredictorClient::init_gflags(std::vector<std::string> argv) {
   std::call_once(gflags_init_flag, [&]() {
+#ifndef BCLOUD
     FLAGS_logtostderr = true;
+#endif
     argv.insert(argv.begin(), "dummy");
     int argc = argv.size();
     char **arr = new char *[argv.size()];
@@ -135,7 +137,6 @@ int PredictorClient::create_predictor() {
   return 0;
 }
 
-
 int PredictorClient::numpy_predict(
     const std::vector<std::vector<py::array_t<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
@@ -143,7 +144,7 @@ int PredictorClient::numpy_predict(
     const std::vector<std::vector<py::array_t<int64_t>>> &int_feed_batch,
     const std::vector<std::string> &int_feed_name,
     const std::vector<std::vector<int>> &int_shape,
-    const std::vector<std::vector<int>>& lod_slot_batch,
+    const std::vector<std::vector<int>> &lod_slot_batch,
     const std::vector<std::string> &fetch_name,
     PredictorRes &predict_res_batch,
     const int &pid,
@@ -197,7 +198,8 @@ int PredictorClient::numpy_predict(
               << float_shape[vec_idx].size();
       for (uint32_t j = 0; j < float_shape[vec_idx].size(); ++j) {
         tensor->add_shape(float_shape[vec_idx][j]);
-        std::cout << "shape " <<  j << " : " << float_shape[vec_idx][j] << std::endl;
+        std::cout << "shape " << j << " : " << float_shape[vec_idx][j]
+                  << std::endl;
       }
       for (uint32_t j = 0; j < lod_slot_batch[vec_idx].size(); ++j) {
         tensor->add_lod(lod_slot_batch[vec_idx][j]);

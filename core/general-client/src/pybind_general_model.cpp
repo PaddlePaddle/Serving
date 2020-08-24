@@ -105,7 +105,7 @@ PYBIND11_MODULE(serving_client, m) {
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
-              const std::vector<std::vector<int>>& lod_slot_batch,
+              const std::vector<std::vector<int>> &lod_slot_batch,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
               const int &pid,

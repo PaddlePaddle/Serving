@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 #include "core/predictor/common/inner_common.h"
-#include "glog/raw_logging.h"
+
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -28,7 +28,12 @@ namespace predictor {
     FactoryDerive<D, B>* factory = new (std::nothrow) FactoryDerive<D, B>(); \
     if (factory == NULL ||                                                   \
         FactoryPool<B>::instance().register_factory(tag, factory) != 0) {    \
-      RAW_LOG_FATAL("Failed regist factory: %s in macro!", #D);              \
+      char err_str[ERROR_STRING_LEN];                                        \
+      snprintf(err_str,                                                      \
+               ERROR_STRING_LEN - 1,                                         \
+               "Failed regist factory: %s in macro!",                        \
+               #D);                                                          \
+      RAW_LOG(FATAL, err_str);                                               \
       return -1;                                                             \
     }                                                                        \
     return 0;                                                                \
@@ -54,7 +59,13 @@ namespace predictor {
     if (factory == NULL ||                                                     \
         ::baidu::paddle_serving::predictor::FactoryPool<B>::instance()         \
                 .register_factory(#D, factory) != 0) {                         \
-      RAW_LOG_FATAL("Failed regist factory: %s->%s in macro!", #D, #B);        \
+      char err_str[ERROR_STRING_LEN];                                          \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s in macro!",                      \
+               #D,                                                             \
+               #B);                                                            \
+      RAW_LOG(FATAL, err_str);                                                 \
       return;                                                                  \
     }                                                                          \
     return;                                                                    \
@@ -66,15 +77,26 @@ namespace predictor {
     ::baidu::paddle_serving::predictor::FactoryDerive<D, B>* factory = new (   \
         ::std::nothrow)::baidu::paddle_serving::predictor::FactoryDerive<D,    \
                                                                          B>(); \
+    char err_str[ERROR_STRING_LEN];                                            \
     if (factory == NULL ||                                                     \
         ::baidu::paddle_serving::predictor::FactoryPool<B>::instance()         \
                 .register_factory(N, factory) != 0) {                          \
-      RAW_LOG_FATAL(                                                           \
-          "Failed regist factory: %s->%s, tag: %s in macro!", #D, #B, N);      \
+      snprintf(err_str,                                                        \
+               ERROR_STRING_LEN - 1,                                           \
+               "Failed regist factory: %s->%s, tag: %s in macro!",             \
+               #D,                                                             \
+               #B,                                                             \
+               N);                                                             \
+      RAW_LOG(FATAL, err_str);                                                 \
       return;                                                                  \
     }                                                                          \
-    RAW_LOG_WARNING(                                                           \
-        "Succ regist factory: %s->%s, tag: %s in macro!", #D, #B, N);          \
+    snprintf(err_str,                                                          \
+             ERROR_STRING_LEN - 1,                                             \
+             "Succ regist factory: %s->%s, tag: %s in macro!",                 \
+             #D,                                                               \
+             #B,                                                               \
+             N);                                                               \
+    RAW_LOG(WARNING, err_str);                                                 \
     return;                                                                    \
   }
 
@@ -102,24 +124,35 @@ class FactoryPool {
   }
 
   int register_factory(const std::string& tag, FactoryBase<B>* factory) {
+    char err_str[ERROR_STRING_LEN];
     typename std::map<std::string, FactoryBase<B>*>::iterator it =
         _pool.find(tag);
     if (it != _pool.end()) {
-      RAW_LOG_FATAL("Insert duplicate with tag: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Insert duplicate with tag: %s",
+               tag.c_str());
+      RAW_LOG(FATAL, err_str);
       return -1;
     }
 
     std::pair<typename std::map<std::string, FactoryBase<B>*>::iterator, bool>
         r = _pool.insert(std::make_pair(tag, factory));
     if (!r.second) {
-      RAW_LOG_FATAL("Failed insert new factory with: %s", tag.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Failed insert new factory with: %s",
+               tag.c_str());
+      RAW_LOG(FATAL, err_str);
       return -1;
     }
 
-    RAW_LOG_INFO("Succ insert one factory, tag: %s, base type %s",
-                 tag.c_str(),
-                 typeid(B).name());
-
+    snprintf(err_str,
+             ERROR_STRING_LEN - 1,
+             "Succ insert one factory, tag: %s, base type %s",
+             tag.c_str(),
+             typeid(B).name());
+    RAW_LOG(INFO, err_str);
     return 0;
   }
 
@@ -127,9 +160,13 @@ class FactoryPool {
     typename std::map<std::string, FactoryBase<B>*>::iterator it =
         _pool.find(tag);
     if (it == _pool.end() || it->second == NULL) {
-      RAW_LOG_FATAL("Not found factory pool, tag: %s, pool size %u",
-                    tag.c_str(),
-                    _pool.size());
+      char err_str[ERROR_STRING_LEN];
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Not found factory pool, tag: %s, pool size %u",
+               tag.c_str(),
+               _pool.size());
+      RAW_LOG(FATAL, err_str);
       return NULL;
     }
 

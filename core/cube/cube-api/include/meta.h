@@ -22,7 +22,8 @@
 #ifdef BCLOUD
 #include "baidu/rpc/channel.h"
 #include "baidu/rpc/parallel_channel.h"
-#include "rapidjson/document.h"
+#include "rapidjson_1.0/document.h"
+#include "rapidjson_1.0/rapidjson.h"
 #else
 #include "brpc/channel.h"
 #include "brpc/parallel_channel.h"

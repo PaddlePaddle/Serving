@@ -233,7 +233,12 @@ class Client(object):
             #    key))
             pass
 
-    def predict(self, feed=None, fetch=None, batch=False, need_variant_tag=False, log_id=0):
+    def predict(self,
+                feed=None,
+                fetch=None,
+                batch=False,
+                need_variant_tag=False,
+                log_id=0):
         self.profile_.record('py_prepro_0')
 
         if feed is None or fetch is None:
@@ -262,7 +267,7 @@ class Client(object):
         int_shape = []
         lod_slot_batch = []
         float_shape = []
-        
+
         fetch_names = []
         counter = 0
         batch_size = len(feed_batch)
@@ -292,7 +297,7 @@ class Client(object):
                         int_feed_names.append(key)
                         shape_lst = []
                         if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis,:]
+                            feed_i[key] = feed_i[key][np.newaxis, :]
                             shape_lst.append(1)
                         if isinstance(feed_i[key], np.ndarray):
                             print("feed_i_key shape", feed_i[key].shape)
@@ -318,7 +323,7 @@ class Client(object):
                         float_feed_names.append(key)
                         shape_lst = []
                         if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis,:]
+                            feed_i[key] = feed_i[key][np.newaxis, :]
                             shape_lst.append(1)
                         if isinstance(feed_i[key], np.ndarray):
                             print("feed_i_key shape", feed_i[key].shape)
@@ -349,10 +354,11 @@ class Client(object):
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, lod_slot_batch, fetch_names, result_batch_handle,
-                self.pid, log_id)
+                int_feed_names, int_shape, lod_slot_batch, fetch_names,
+                result_batch_handle, self.pid, log_id)
         elif self.has_numpy_input == False:
-            raise ValueError("Please make sure all of your inputs are numpy array")
+            raise ValueError(
+                "Please make sure all of your inputs are numpy array")
         else:
             raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"

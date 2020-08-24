@@ -90,5 +90,3 @@ rec_op = RecOp(
 | client_config       | 客户端配置文件  | Op接收请求作为客户端访问rpc服务，因此需要客户端的配置文件    |
 | local predictor限定 |                 |                                                              |
 | model_config        | 模型配置文件    | 由于local predictor和Op运行在一台机器上，因此需要模型配置来启动local predictor |
-
-
