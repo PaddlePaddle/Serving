@@ -277,14 +277,14 @@ dag:
 
 ### 获取模型文件并启动 Paddle Serving Service
 
-PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `python/examples/pipeline/ocr` 下的例子。
-
 ```shell
 cd python/examples/pipeline/imdb_model_ensemble
 sh get_data.sh
 python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
 python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
 ```
+
+PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `python/examples/pipeline/ocr` 下的例子。
 
 ### 启动 PipelineServer
 
