@@ -277,6 +277,8 @@ dag:
 
 ### 获取模型文件并启动 Paddle Serving Service
 
+PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `python/examples/pipeline/ocr` 下的例子。
+
 ```shell
 cd python/examples/pipeline/imdb_model_ensemble
 sh get_data.sh
