@@ -39,7 +39,9 @@ using configure::GeneralModelConfig;
 
 void PredictorClient::init_gflags(std::vector<std::string> argv) {
   std::call_once(gflags_init_flag, [&]() {
+#ifndef BCLOUD
     FLAGS_logtostderr = true;
+#endif
     argv.insert(argv.begin(), "dummy");
     int argc = argv.size();
     char **arr = new char *[argv.size()];
