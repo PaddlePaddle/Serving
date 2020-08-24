@@ -4,26 +4,25 @@
 
 ## 编译环境设置
 
-|             组件             |                           版本要求                           |
-| :--------------------------: | :----------------------------------------------------------: |
-|              OS              |                           CentOS 7                           |
-|             gcc              |                       4.8.5 and later                        |
-|           gcc-c++            |                       4.8.5 and later                        |
-|             git              |                        3.82 and later                        |
-|            cmake             |                       3.2.0 and later                        |
-|            Python            |               2.7.2 and later / 3.6 and later                |
-|              Go              |                       1.9.2 and later                        |
-|             git              |                       2.17.1 and later                       |
-|         glibc-static         |                             2.17                             |
-|        openssl-devel         |                            1.0.2k                            |
-|         bzip2-devel          |                       1.0.6 and later                        |
-| python-devel / python3-devel |              2.7.5 and later / 3.6.8 and later               |
-|         sqlite-devel         |                       3.7.17 and later                       |
-|           patchelf           |                             0.9                              |
-|           libXext            |                            1.3.3                             |
-|            libSM             |                            1.2.2                             |
-|          libXrender          |                            0.9.10                            |
-|          python-whl          | numpy>=1.12, <=1.16.4<br/>google>=2.0.3<br/>protobuf>=3.12.2<br/>grpcio-tools>=1.28.1<br/>grpcio>=1.28.1<br/>func-timeout>=4.3.5<br/>pyyaml>=1.3.0<br/>sentencepiece==0.1.92<br/>flask>=1.1.2<br/>ujson>=2.0.3 |
+|             组件             |             版本要求              |
+| :--------------------------: | :-------------------------------: |
+|              OS              |             CentOS 7              |
+|             gcc              |          4.8.5 and later          |
+|           gcc-c++            |          4.8.5 and later          |
+|             git              |          3.82 and later           |
+|            cmake             |          3.2.0 and later          |
+|            Python            |  2.7.2 and later / 3.6 and later  |
+|              Go              |          1.9.2 and later          |
+|             git              |         2.17.1 and later          |
+|         glibc-static         |               2.17                |
+|        openssl-devel         |              1.0.2k               |
+|         bzip2-devel          |          1.0.6 and later          |
+| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+|         sqlite-devel         |         3.7.17 and later          |
+|           patchelf           |                0.9                |
+|           libXext            |               1.3.3               |
+|            libSM             |               1.2.2               |
+|          libXrender          |              0.9.10               |
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境，详见[该文档](DOCKER_IMAGES_CN.md)。
 
@@ -114,13 +113,19 @@ make
 
 ## 安装wheel包
 
-无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
+无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
 
 
 
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+
+
+
+## 如何验证
+
+请使用 `python/examples` 下的例子进行验证。
 
 
 

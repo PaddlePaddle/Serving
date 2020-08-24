@@ -810,7 +810,7 @@ function python_test_pipeline(){
             # test: thread servicer & thread op
             cat << EOF > config.yml
 port: 18080
-worker_num: 2
+worker_num: 4
 build_dag_each_worker: false
 dag:
     is_thread_op: true
@@ -827,7 +827,7 @@ EOF
             # test: thread servicer & process op
             cat << EOF > config.yml
 port: 18080
-worker_num: 2
+worker_num: 4
 build_dag_each_worker: false
 dag:
     is_thread_op: false
@@ -841,13 +841,13 @@ EOF
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             kill_process_by_port 18080
 
-            # test: process servicer & thread op
+            # test: process servicer & process op
             cat << EOF > config.yml
 port: 18080
-worker_num: 2
-build_dag_each_worker: true
+worker_num: 4
+build_dag_each_worker: false
 dag:
-    is_thread_op: flase
+    is_thread_op: false
     client_type: brpc
     retry: 1
     use_profile: false
@@ -857,12 +857,14 @@ EOF
             check_cmd "python test_pipeline_client.py"
             ps -ef | grep "pipeline_server" | grep -v grep | awk '{print $2}' | xargs kill
             kill_process_by_port 18080
-
-            # test: process servicer & process op
+            
+            # test: process servicer & thread op
+            pip uninstall grpcio -y
+            pip install grpcio --no-binary=grpcio
             cat << EOF > config.yml
 port: 18080
-worker_num: 2
-build_dag_each_worker: false
+worker_num: 4
+build_dag_each_worker: true
 dag:
     is_thread_op: false
     client_type: brpc
@@ -885,7 +887,7 @@ EOF
             sleep 5
             cat << EOF > config.yml
 port: 18080
-worker_num: 2
+worker_num: 4
 build_dag_each_worker: false
 dag:
     is_thread_op: false

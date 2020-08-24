@@ -101,6 +101,8 @@ class WebService(object):
                                           request.json["fetch"])
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
+            if len(feed) == 0:
+                raise ValueError("empty input")
             fetch_map = self.client.predict(feed=feed, fetch=fetch)
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
@@ -130,6 +132,32 @@ class WebService(object):
             return self.get_prediction(request)
 
         self.app_instance = app_instance
+
+    def run_debugger_service(self):
+        import socket
+        localIP = socket.gethostbyname(socket.gethostname())
+        print("web service address:")
+        print("http://{}:{}/{}/prediction".format(localIP, self.port,
+                                                  self.name))
+        app_instance = Flask(__name__)
+
+        @app_instance.before_first_request
+        def init():
+            self._launch_local_predictor()
+
+        service_name = "/" + self.name + "/prediction"
+
+        @app_instance.route(service_name, methods=["POST"])
+        def run():
+            return self.get_prediction(request)
+
+        self.app_instance = app_instance
+
+    def _launch_local_predictor(self):
+        from paddle_serving_app.local_predict import Debugger
+        self.client = Debugger()
+        self.client.load_model_config(
+            "{}".format(self.model_config), gpu=False, profile=False)
 
     def run_web_service(self):
         self.app_instance.run(host="0.0.0.0",
