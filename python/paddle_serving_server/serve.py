@@ -58,6 +58,16 @@ def parse_args():  # pylint: disable=doc-string-missing
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -101,6 +111,10 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
+    if args.product_name != None:
+        server.set_product_name(args.product_name)
+    if args.container_id != None:
+        server.set_container_id(args.container_id)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
