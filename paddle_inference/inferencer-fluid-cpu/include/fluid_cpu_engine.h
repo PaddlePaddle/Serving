@@ -23,6 +23,7 @@
 #include "core/configure/inferencer_configure.pb.h"
 #include "core/predictor/framework/infer.h"
 #include "paddle_inference_api.h"  // NOLINT
+//#include "predictor/framework/infer.h"
 
 namespace baidu {
 namespace paddle_serving {
