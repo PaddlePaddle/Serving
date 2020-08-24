@@ -305,7 +305,6 @@ function python_test_bert() {
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
-            pip install paddlehub
             # Because download from paddlehub may timeout,
             # download the model from bos(max_seq_len=128).
             wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -313,14 +312,12 @@ function python_test_bert() {
             sh get_data.sh
             check_cmd "python -m paddle_serving_server.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 &"
             sleep 5
-            pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
             echo "bert RPC inference pass"
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
-            pip install paddlehub
             # Because download from paddlehub may timeout,
             # download the model from bos(max_seq_len=128).
             wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -328,7 +325,6 @@ function python_test_bert() {
             sh get_data.sh
             check_cmd "python -m paddle_serving_server_gpu.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 --gpu_ids 0 &"
             sleep 5
-            pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
             echo "bert RPC inference pass"
@@ -879,21 +875,20 @@ EOF
             kill_process_by_port 9393
             cd ..
 
-            # TODO: ci timeout
-            #cd web_service # pwd: /Serving/python/examples/pipeline/web_service
-            #sh get_data.sh
-            #python web_service.py >/dev/null &
-            #sleep 5
-            #curl -X POST -k http://localhost:18080/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
-            # check http code
-            #http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/prediction`
-            #if [ ${http_code} -ne 200 ]; then
-            #    echo "HTTP status code -ne 200"
-            #    exit 1
-            #fi
-            #ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
-            #kill_server_process
-            #cd ..
+            cd web_service # pwd: /Serving/python/examples/pipeline/web_service
+            sh get_data.sh
+            python web_service.py >/dev/null &
+            sleep 5
+            curl -X POST -k http://localhost:18080/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
+             check http code
+            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
+            cd ..
             ;;
         GPU)
             cd web_service # pwd: /Serving/python/examples/pipeline/web_service
