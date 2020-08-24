@@ -887,6 +887,7 @@ EOF
                 exit 1
             fi
             ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
             kill_server_process
             cd ..
             ;;
@@ -903,6 +904,7 @@ EOF
                 exit 1
             fi
             ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
             kill_server_process
 
             python local_pipeline_server.py >/dev/null &
@@ -915,6 +917,7 @@ EOF
                 exit 1
             fi
             ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
             kill_server_process
             cd .. # pwd: /Serving/python/examples/pipeline
             ;;
