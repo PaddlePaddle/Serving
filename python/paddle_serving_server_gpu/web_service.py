@@ -32,7 +32,7 @@ class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
         # pipeline
-        self._server = pipeline.PipelineServer()
+        self._server = pipeline.PipelineServer(self.name)
 
         self.gpus = []  # deprecated
         self.rpc_service_list = []  # deprecated

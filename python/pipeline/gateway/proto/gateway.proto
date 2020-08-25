@@ -28,12 +28,13 @@ message Response {
 message Request {
   repeated string key = 1;
   repeated string value = 2;
+  string name = 3;
 }
 
 service PipelineService {
   rpc inference(Request) returns (Response) {
     option (google.api.http) = {
-      post : "/prediction"
+      post : "/{name=*}/prediction"
       body : "*"
     };
   }
