@@ -1,6 +1,6 @@
-# Default Pipeline Web Service
+# Simple Pipeline WebService
 
-This document will takes UCI service as an example to introduce how to use DefaultPipelineWebService.
+This document will takes UCI service as an example to introduce how to use Pipeline WebService.
 
 ## Get model
 ```
@@ -17,6 +17,3 @@ python web_service.py &>log.txt &
 ```
 curl -X POST -k http://localhost:18080/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
 ```
-
-## More
-`web_service.py` and `local_pipeline_server.py` are essentially the same.

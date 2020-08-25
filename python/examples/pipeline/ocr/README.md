@@ -1,8 +1,8 @@
-# Pipeline OCR Service 
+# OCR Pipeline WebService 
 
 (English|[简体中文](./README_CN.md))
 
-This document will take OCR as an example to show how to use PipelineServing to start multi-model tandem services.
+This document will take OCR as an example to show how to use Pipeline WebService to start multi-model tandem services.
 
 ## Get Model
 ```
@@ -19,6 +19,19 @@ tar xf test_imgs.tar
 ```
 
 ## Start Service
+```
+python web_service.py &>log.txt &
+```
+
+## Test
+```
+python pipeline_http_client.py
+```
+
+
+
+<!--
+## More (PipelineServing)
 
 You can choose one of the following versions to start Service.
 
@@ -51,3 +64,4 @@ python pipeline_rpc_client.py
 ```
 python pipeline_http_client.py
 ```
+-->

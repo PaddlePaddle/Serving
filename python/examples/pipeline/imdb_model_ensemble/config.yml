@@ -1,7 +1,7 @@
-port: 18080
+rpc_port: 18085
 worker_num: 4
 build_dag_each_worker: false
-grpc_gateway_port: 9999
+http_port: 9999
 dag:
     is_thread_op: false
     client_type: brpc

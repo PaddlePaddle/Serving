@@ -17,8 +17,10 @@ import logging
 import multiprocessing
 try:
     from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
+    PACKAGE_VERSION = "GPU"
 except ImportError:
     from paddle_serving_server import OpMaker, OpSeqMaker, Server
+    PACKAGE_VERSION = "CPU"
 from . import util
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,6 +49,10 @@ class LocalRpcServiceHandler(object):
                          .format(model_config, self._port_list))
         else:
             # gpu
+            if PACKAGE_VERSION == "CPU":
+                raise ValueError(
+                    "You are using the CPU version package("
+                    "paddle-serving-server), unable to set devices")
             devices = [int(x) for x in devices.split(",")]
             for _ in devices:
                 self._port_list.append(available_port_generator.next())

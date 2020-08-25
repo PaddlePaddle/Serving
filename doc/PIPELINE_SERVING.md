@@ -251,10 +251,10 @@ server.run_server()
 Where `response_op` is the responseop mentioned above, PipelineServer will initialize Channels according to the topology relationship of each OP and build the calculation graph. `config_yml_path` is the configuration file of PipelineServer. The example file is as follows:
 
 ```yaml
-port: 18080  # gRPC port
+rpc_port: 18080  # gRPC port
 worker_num: 1  # gRPC thread pool size (the number of processes in the process version servicer). The default is 1
 build_dag_each_worker: false  # Whether to use process server or not. The default is false
-grpc_gateway_port: 0 # HTTP service port. Do not start HTTP service when the value is less or equals 0. The default value is 0.
+http_port: 0 # HTTP service port. Do not start HTTP service when the value is less or equals 0. The default value is 0.
 dag:
     is_thread_op: true  # Whether to use the thread version of OP. The default is true
     client_type: brpc  # Use brpc or grpc client. The default is brpc
