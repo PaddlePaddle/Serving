@@ -875,7 +875,7 @@ EOF
             kill_process_by_port 9393
             cd ..
 
-            cd sample_web_service # pwd: /Serving/python/examples/pipeline/sample_web_service
+            cd simple_web_service # pwd: /Serving/python/examples/pipeline/simple_web_service
             sh get_data.sh
             python web_service.py >/dev/null &
             sleep 5
@@ -892,7 +892,7 @@ EOF
             cd ..
             ;;
         GPU)
-            cd sample_web_service # pwd: /Serving/python/examples/pipeline/sample_web_service
+            cd simple_web_service # pwd: /Serving/python/examples/pipeline/simple_web_service
             sh get_data.sh
             python web_service.py >/dev/null &
             sleep 5
