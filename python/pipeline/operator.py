@@ -57,6 +57,7 @@ class Op(object):
                  batch_size=None,
                  auto_batching_timeout=None,
                  local_rpc_service_handler=None):
+        # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
@@ -84,7 +85,8 @@ class Op(object):
         self._succ_init_op = False
         self._succ_close_op = False
 
-    def configure_from_dict(self, conf):
+    def init_from_dict(self, conf):
+        # init op
         if self.concurrency is None:
             self.concurrency = conf["concurrency"]
         if self._retry is None:
@@ -123,7 +125,10 @@ class Op(object):
             else:
                 if self._local_rpc_service_handler is None:
                     local_service_conf = conf.get("local_service_conf")
+                    _LOGGER.info("local_service_conf: {}".format(
+                        local_service_conf))
                     model_config = local_service_conf.get("model_config")
+                    _LOGGER.info("model_config: {}".format(model_config))
                     if model_config is None:
                         self.with_serving = False
                     else:
@@ -141,12 +146,14 @@ class Op(object):
                         self._server_endpoints = [
                             "127.0.0.1:{}".format(p) for p in serivce_ports
                         ]
-                        if client_config is None:
-                            client_config = service_handler.get_client_config()
-                        if fetch_list is None:
-                            fetch_list = service_handler.get_fetch_list()
+                        if self._client_config is None:
+                            self._client_config = service_handler.get_client_config(
+                            )
+                        if self._fetch_names is None:
+                            self._fetch_names = service_handler.get_fetch_list()
                         self._local_rpc_service_handler = service_handler
                 else:
+                    self.with_serving = True
                     self._local_rpc_service_handler.prepare_server(
                     )  # get fetch_list
                     serivce_ports = self._local_rpc_service_handler.get_port_list(
@@ -154,12 +161,14 @@ class Op(object):
                     self._server_endpoints = [
                         "127.0.0.1:{}".format(p) for p in serivce_ports
                     ]
-                    if client_config is None:
-                        client_config = self._local_rpc_service_handler.get_client_config(
+                    if self._client_config is None:
+                        self._client_config = self._local_rpc_service_handler.get_client_config(
                         )
-                    if fetch_list is None:
-                        fetch_list = self._local_rpc_service_handler.get_fetch_list(
+                    if self._fetch_names is None:
+                        self._fetch_names = self._local_rpc_service_handler.get_fetch_list(
                         )
+        else:
+            self.with_serving = True
 
         if not isinstance(self, RequestOp) and not isinstance(self, ResponseOp):
             _LOGGER.info(

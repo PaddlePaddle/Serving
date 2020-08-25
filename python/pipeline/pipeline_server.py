@@ -22,7 +22,7 @@ from contextlib import closing
 import multiprocessing
 import yaml
 
-from . import proto
+from .proto import pipeline_service_pb2_grpc
 from . import operator
 from . import dag
 from . import util
@@ -30,7 +30,7 @@ from . import util
 _LOGGER = logging.getLogger(__name__)
 
 
-class PipelineServicer(proto.pipeline_service_pb2_grpc.PipelineServiceServicer):
+class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
     def __init__(self, response_op, dag_conf, worker_idx=-1):
         super(PipelineServicer, self).__init__()
         # init dag executor
@@ -133,7 +133,7 @@ class PipelineServer(object):
 
         self._worker_num = conf["worker_num"]
         self._build_dag_each_worker = conf["build_dag_each_worker"]
-        self._configure_ops(conf["op"])
+        self._init_ops(conf["op"])
 
         _LOGGER.info("============= PIPELINE SERVER =============")
         _LOGGER.info("\n{}".format(
@@ -146,16 +146,17 @@ class PipelineServer(object):
         _LOGGER.info("-------------------------------------------")
 
         self._conf = conf
+        self._start_local_rpc_service()
 
-    def _configure_ops(self, op_conf):
+    def _init_ops(self, op_conf):
         default_conf = {
             "concurrency": 1,
             "timeout": -1,
             "retry": 1,
             "batch_size": 1,
-            "auto_batching_timeout": None,
+            "auto_batching_timeout": -1,
             "local_service_conf": {
-                "workdir": None,
+                "workdir": "",
                 "thread_num": 2,
                 "devices": "",
                 "mem_optim": True,
@@ -163,9 +164,10 @@ class PipelineServer(object):
             },
         }
         for op in self._used_op:
-            if not isinstance(op, operator.RequestOp):
+            if not isinstance(op, operator.RequestOp) and not isinstance(
+                    op, operator.ResponseOp):
                 conf = op_conf.get(op.name, default_conf)
-                op.configure_from_dict(conf)
+                op.init_from_dict(conf)
 
     def _start_local_rpc_service(self):
         # only brpc now
@@ -198,7 +200,7 @@ class PipelineServer(object):
                 options=[('grpc.max_send_message_length', 256 * 1024 * 1024),
                          ('grpc.max_receive_message_length', 256 * 1024 * 1024)
                          ])
-            proto.pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
+            pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
                 PipelineServicer(self._response_op, self._conf), server)
             server.add_insecure_port('[::]:{}'.format(self._rpc_port))
             server.start()
@@ -214,7 +216,7 @@ class PipelineServer(object):
         server = grpc.server(
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
-        proto.pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
+        pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
             PipelineServicer(response_op, dag_conf, worker_idx), server)
         server.add_insecure_port(bind_address)
         server.start()
@@ -284,7 +286,7 @@ class ServerYamlConfChecker(object):
     @staticmethod
     def check_local_service_conf(conf):
         default_conf = {
-            "workdir": None,
+            "workdir": "",
             "thread_num": 2,
             "devices": "",
             "mem_optim": True,
@@ -309,7 +311,7 @@ class ServerYamlConfChecker(object):
             "timeout": -1,
             "retry": 1,
             "batch_size": 1,
-            "auto_batching_timeout": None,
+            "auto_batching_timeout": -1,
             "local_service_conf": {},
         }
         conf_type = {
@@ -327,9 +329,8 @@ class ServerYamlConfChecker(object):
             "retry": (">=", 1),
             "batch_size": (">=", 1),
         }
-        for op_name in conf:
-            ServerYamlConfChecker.check_conf(op_conf[op_name], {}, conf_type,
-                                             conf_qualification)
+        ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
+                                         conf_qualification)
 
     @staticmethod
     def check_tracer_conf(conf):
@@ -390,6 +391,8 @@ class ServerYamlConfChecker(object):
     @staticmethod
     def check_conf_qualification(conf, conf_qualification):
         for key, qualification in conf_qualification.items():
+            if key not in conf:
+                continue
             if not isinstance(qualification, list):
                 qualification = [qualification]
             if not ServerYamlConfChecker.qualification_check(conf[key],
