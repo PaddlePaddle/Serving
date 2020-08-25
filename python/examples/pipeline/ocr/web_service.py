@@ -11,25 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
-from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server_gpu.pipeline import PipelineServer
-from paddle_serving_server_gpu.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server_gpu.pipeline.channel import ChannelDataEcode
-from paddle_serving_server_gpu.pipeline import LocalRpcServiceHandler
+try:
+    from paddle_serving_server_gpu.web_service import WebService, Op
+except ImportError:
+    from paddle_serving_server.web_service import WebService, Op
+import logging
 import numpy as np
 import cv2
-import time
 import base64
-import json
 from paddle_serving_app.reader import OCRReader
 from paddle_serving_app.reader import Sequential, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
-import time
-import re
-import base64
-import logging
 
 _LOGGER = logging.getLogger()
 
@@ -107,29 +100,13 @@ class RecOp(Op):
         return res
 
 
-read_op = RequestOp()
-det_op = DetOp(
-    name="det",
-    input_ops=[read_op],
-    local_rpc_service_handler=LocalRpcServiceHandler(
-        model_config="ocr_det_model",
-        workdir="det_workdir",  # defalut: "workdir"
-        thread_num=2,  # defalut: 2
-        devices="0",  # gpu0. defalut: "" (cpu)
-        mem_optim=True,  # defalut: True
-        ir_optim=False,  # defalut: False
-        available_port_generator=None),  # defalut: None
-    concurrency=1)
-rec_op = RecOp(
-    name="rec",
-    input_ops=[det_op],
-    server_endpoints=["127.0.0.1:12001"],
-    fetch_list=["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"],
-    client_config="ocr_rec_client/serving_client_conf.prototxt",
-    concurrency=1)
-response_op = ResponseOp(input_ops=[rec_op])
+class OcrService(WebService):
+    def get_pipeline_response(self, read_op):
+        det_op = DetOp(name="det", input_ops=[read_op])
+        rec_op = RecOp(name="rec", input_ops=[det_op])
+        return rec_op
 
-server = PipelineServer()
-server.set_response_op(response_op)
-server.prepare_server('config.yml')
-server.run_server()
+
+uci_service = OcrService(name="ocr")
+uci_service.prepare_pipeline_config("config.yml")
+uci_service.run_service()

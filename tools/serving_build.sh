@@ -779,7 +779,7 @@ function python_test_pipeline(){
             
             # test: thread servicer & thread op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -796,7 +796,7 @@ EOF
 
             # test: thread servicer & process op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -813,7 +813,7 @@ EOF
 
             # test: process servicer & process op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -832,7 +832,7 @@ EOF
             pip uninstall grpcio -y
             pip install grpcio --no-binary=grpcio
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: true
 dag:
@@ -856,7 +856,7 @@ EOF
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -875,7 +875,7 @@ EOF
             kill_process_by_port 9393
             cd ..
 
-            cd web_service # pwd: /Serving/python/examples/pipeline/web_service
+            cd sample_web_service # pwd: /Serving/python/examples/pipeline/sample_web_service
             sh get_data.sh
             python web_service.py >/dev/null &
             sleep 5
@@ -892,7 +892,7 @@ EOF
             cd ..
             ;;
         GPU)
-            cd web_service # pwd: /Serving/python/examples/pipeline/web_service
+            cd sample_web_service # pwd: /Serving/python/examples/pipeline/sample_web_service
             sh get_data.sh
             python web_service.py >/dev/null &
             sleep 5

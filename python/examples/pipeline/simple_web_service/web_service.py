@@ -11,15 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
-from paddle_serving_server_gpu import pipeline
-import numpy as np
+try:
+    from paddle_serving_server_gpu.web_service import WebService, Op
+except ImportError:
+    from paddle_serving_server.web_service import WebService, Op
 import logging
+import numpy as np
 
 _LOGGER = logging.getLogger()
 
 
-class UciOp(pipeline.Op):
+class UciOp(Op):
     def init_op(self):
         self.separator = ","
 
@@ -38,22 +40,12 @@ class UciOp(pipeline.Op):
         return fetch_dict
 
 
-read_op = pipeline.RequestOp()
-uci_op = UciOp(
-    name="uci",
-    input_ops=[read_op],
-    local_rpc_service_handler=pipeline.LocalRpcServiceHandler(
-        model_config="uci_housing_model",
-        workdir="workdir",
-        thread_num=2,
-        devices="0",  # if devices="", use cpu
-        mem_optim=True,
-        ir_optim=False),
-    concurrency=1)
-response_op = pipeline.ResponseOp(input_ops=[uci_op])
+class UciService(WebService):
+    def get_pipeline_response(self, read_op):
+        uci_op = UciOp(name="uci", input_ops=[read_op])
+        return uci_op
 
-server = pipeline.PipelineServer()
-server.set_response_op(response_op)
-server.prepare_server('config.yml')
-server.start_local_rpc_service()  # after prepare_server
-server.run_server()
+
+uci_service = UciService(name="uci")
+uci_service.prepare_pipeline_config("config.yml")
+uci_service.run_service()
