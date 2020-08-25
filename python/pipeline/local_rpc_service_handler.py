@@ -28,7 +28,7 @@ _workdir_name_gen = util.NameGenerator("workdir_")
 class LocalRpcServiceHandler(object):
     def __init__(self,
                  model_config,
-                 workdir=None,
+                 workdir="",
                  thread_num=2,
                  devices="",
                  mem_optim=True,
@@ -105,7 +105,7 @@ class LocalRpcServiceHandler(object):
 
     def prepare_server(self):
         for i, device_id in enumerate(self._devices):
-            if self._workdir is not None:
+            if self._workdir != "":
                 workdir = "{}_{}".format(self._workdir, i)
             else:
                 workdir = _workdir_name_gen.next()
