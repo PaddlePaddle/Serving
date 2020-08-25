@@ -29,7 +29,7 @@ class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
         # pipeline
-        self._server = pipeline.PipelineServer()
+        self._server = pipeline.PipelineServer(self.name)
 
     def get_pipeline_response(self, read_op):
         return None

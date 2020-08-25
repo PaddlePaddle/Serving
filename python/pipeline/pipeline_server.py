@@ -22,23 +22,31 @@ from contextlib import closing
 import multiprocessing
 import yaml
 
-from .proto import pipeline_service_pb2_grpc
+from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
 from . import dag
 from . import util
+from . import channel
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
-    def __init__(self, response_op, dag_conf, worker_idx=-1):
+    def __init__(self, name, response_op, dag_conf, worker_idx=-1):
         super(PipelineServicer, self).__init__()
+        self._name = name
+
         # init dag executor
         self._dag_executor = dag.DAGExecutor(response_op, dag_conf, worker_idx)
         self._dag_executor.start()
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
+        if request.name != "" and request.name != self._name:
+            resp = pipeline_service_pb2.Response()
+            resp.ecode = channel.ChannelDataEcode.NO_SERVICE.value
+            resp.error_info = "Failed to inference: Service name error."
+            return resp
         resp = self._dag_executor.call(request)
         return resp
 
@@ -58,7 +66,8 @@ def _reserve_port(port):
 
 
 class PipelineServer(object):
-    def __init__(self):
+    def __init__(self, name=None):
+        self._name = name  # for grpc-gateway path
         self._rpc_port = None
         self._worker_num = None
         self._response_op = None
@@ -201,7 +210,8 @@ class PipelineServer(object):
                          ('grpc.max_receive_message_length', 256 * 1024 * 1024)
                          ])
             pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-                PipelineServicer(self._response_op, self._conf), server)
+                PipelineServicer(self._name, self._response_op, self._conf),
+                server)
             server.add_insecure_port('[::]:{}'.format(self._rpc_port))
             server.start()
             self._run_grpc_gateway(
@@ -217,7 +227,8 @@ class PipelineServer(object):
             futures.ThreadPoolExecutor(
                 max_workers=1, ), options=options)
         pipeline_service_pb2_grpc.add_PipelineServiceServicer_to_server(
-            PipelineServicer(response_op, dag_conf, worker_idx), server)
+            PipelineServicer(self._name, response_op, dag_conf, worker_idx),
+            server)
         server.add_insecure_port(bind_address)
         server.start()
         server.wait_for_termination()
