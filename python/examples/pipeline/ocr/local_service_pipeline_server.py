@@ -128,7 +128,7 @@ rec_op = RecOp(
     concurrency=1)
 response_op = ResponseOp(input_ops=[rec_op])
 
-server = PipelineServer()
+server = PipelineServer("ocr")
 server.set_response_op(response_op)
 server.prepare_server('config.yml')
 server.run_server()
