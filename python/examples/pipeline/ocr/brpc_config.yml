@@ -10,7 +10,7 @@ op:
     det:
         concurrency: 2
         local_service_conf:
-            client_type: local_predictor
+            client_type: brpc
             model_config: ocr_det_model
             devices: ""
     rec:
@@ -18,6 +18,6 @@ op:
         timeout: -1
         retry: 1
         local_service_conf:
-            client_type: local_predictor
+            client_type: brpc
             model_config: ocr_rec_model
             devices: ""

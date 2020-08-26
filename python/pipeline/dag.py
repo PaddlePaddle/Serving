@@ -43,7 +43,6 @@ class DAGExecutor(object):
         dag_conf = server_conf["dag"]
 
         self._retry = dag_conf["retry"]
-        client_type = dag_conf["client_type"]
         self._server_use_profile = dag_conf["use_profile"]
         channel_size = dag_conf["channel_size"]
         self._is_thread_op = dag_conf["is_thread_op"]
@@ -61,7 +60,7 @@ class DAGExecutor(object):
                 self._is_thread_op, tracer_interval_s, server_worker_num)
 
         self._dag = DAG(self.name, response_op, self._server_use_profile,
-                        self._is_thread_op, client_type, channel_size,
+                        self._is_thread_op, channel_size,
                         build_dag_each_worker, self._tracer)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
@@ -324,13 +323,12 @@ class DAGExecutor(object):
 
 class DAG(object):
     def __init__(self, request_name, response_op, use_profile, is_thread_op,
-                 client_type, channel_size, build_dag_each_worker, tracer):
+                 channel_size, build_dag_each_worker, tracer):
         self._request_name = request_name
         self._response_op = response_op
         self._use_profile = use_profile
         self._is_thread_op = is_thread_op
         self._channel_size = channel_size
-        self._client_type = client_type
         self._build_dag_each_worker = build_dag_each_worker
         self._tracer = tracer
         if not self._is_thread_op:
@@ -571,10 +569,10 @@ class DAG(object):
             op.set_tracer(self._tracer)
             if self._is_thread_op:
                 self._threads_or_proces.extend(
-                    op.start_with_thread(self._client_type))
+                    op.start_with_thread())
             else:
                 self._threads_or_proces.extend(
-                    op.start_with_process(self._client_type))
+                    op.start_with_process())
         _LOGGER.info("[DAG] start")
 
         # not join yet
@@ -582,7 +580,8 @@ class DAG(object):
 
     def join(self):
         for x in self._threads_or_proces:
-            x.join()
+            if x is not None:
+                x.join()
 
     def stop(self):
         for chl in self._channels:

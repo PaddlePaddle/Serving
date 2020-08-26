@@ -76,7 +76,9 @@ class Debugger(object):
         config.switch_use_feed_fetch_ops(False)
         self.predictor = create_paddle_predictor(config)
 
-    def predict(self, feed=None, fetch=None):
+    def predict(self, feed=None, fetch=None, log_id=0):
+        print("feed", feed)
+        print("fetch", fetch)
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
         fetch_list = []
@@ -139,5 +141,5 @@ class Debugger(object):
         for i, name in enumerate(fetch):
             fetch_map[name] = outputs[i]
             if len(output_tensors[i].lod()) > 0:
-                fetch_map[name + ".lod"] = output_tensors[i].lod()[0]
+                fetch_map[name + ".lod"] = np.array(output_tensors[i].lod()[0]).astype('int32')
         return fetch_map

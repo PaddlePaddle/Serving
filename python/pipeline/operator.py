@@ -128,29 +128,44 @@ class Op(object):
                     _LOGGER.info("local_service_conf: {}".format(
                         local_service_conf))
                     model_config = local_service_conf.get("model_config")
+                    self.client_type = local_service_conf.get("client_type")
                     _LOGGER.info("model_config: {}".format(model_config))
                     if model_config is None:
                         self.with_serving = False
                     else:
                         # local rpc service
                         self.with_serving = True
-                        service_handler = local_rpc_service_handler.LocalRpcServiceHandler(
-                            model_config=model_config,
-                            workdir=local_service_conf["workdir"],
-                            thread_num=local_service_conf["thread_num"],
-                            devices=local_service_conf["devices"],
-                            mem_optim=local_service_conf["mem_optim"],
-                            ir_optim=local_service_conf["ir_optim"])
-                        service_handler.prepare_server()  # get fetch_list
-                        serivce_ports = service_handler.get_port_list()
-                        self._server_endpoints = [
-                            "127.0.0.1:{}".format(p) for p in serivce_ports
-                        ]
-                        if self._client_config is None:
-                            self._client_config = service_handler.get_client_config(
-                            )
-                        if self._fetch_names is None:
-                            self._fetch_names = service_handler.get_fetch_list()
+                        if self.client_type == "brpc" or self.client_type == "grpc":
+                            service_handler = local_rpc_service_handler.LocalRpcServiceHandler(
+                                model_config=model_config,
+                                workdir=local_service_conf["workdir"],
+                                thread_num=local_service_conf["thread_num"],
+                                devices=local_service_conf["devices"],
+                                mem_optim=local_service_conf["mem_optim"],
+                                ir_optim=local_service_conf["ir_optim"])
+                            service_handler.prepare_server()  # get fetch_list
+                            serivce_ports = service_handler.get_port_list()
+                            self._server_endpoints = [
+                                "127.0.0.1:{}".format(p) for p in serivce_ports
+                            ]
+                            if self._client_config is None:
+                                self._client_config = service_handler.get_client_config(
+                                )
+                            if self._fetch_names is None:
+                                self._fetch_names = service_handler.get_fetch_list()
+                        elif self.client_type == "local_predictor":
+                            service_handler = local_rpc_service_handler.LocalPredictorServiceHandler(
+                                model_config=model_config,
+                                workdir=local_service_conf["workdir"],
+                                thread_num=local_service_conf["thread_num"],
+                                devices=local_service_conf["devices"])
+                            service_handler.prepare_server()  # get fetch_list
+                            self.local_predictor = service_handler.get_client()
+                            if self._client_config is None:
+                                self._client_config = service_handler.get_client_config(
+                                )
+                            if self._fetch_names is None:
+                                self._fetch_names = service_handler.get_fetch_list()
                         self._local_rpc_service_handler = service_handler
                 else:
                     self.with_serving = True
@@ -215,21 +230,27 @@ class Op(object):
     def set_tracer(self, tracer):
         self._tracer = tracer
 
-    def init_client(self, client_type, client_config, server_endpoints,
+    def init_client(self, client_config, server_endpoints,
                     fetch_names):
+        print("init client", fetch_names)
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
                          "run the process function)".format(self.name))
             return None
-        if client_type == 'brpc':
+        if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        elif client_type == 'grpc':
+        elif self.client_type == 'grpc':
             client = MultiLangClient()
+        elif self.client_type == 'local_predictor':
+            if self.local_predictor is None:
+                raise ValueError("local predictor not yet created")
+            client = self.local_predictor
         else:
             raise ValueError("Failed to init client: unknow client "
-                             "type {}".format(client_type))
-        client.connect(server_endpoints)
+                             "type {}".format(self.client_type))
+        if self.client_type != "local_predictor":
+            client.connect(server_endpoints)
         self._fetch_names = fetch_names
         return client
 
@@ -292,14 +313,19 @@ class Op(object):
         return input_dict
 
     def process(self, feed_batch, typical_logid):
+        print("now we start process")
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
                 self._log("Failed to run process: {}. Please override "
                           "preprocess func.".format(err_info)))
             os._exit(-1)
-        call_result = self.client.predict(
-            feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
+        if self.client_type == "local_predictor":
+            call_result = self.client.predict(feed=feed_batch[0], fetch=self._fetch_names, log_id=typical_logid)
+        else:
+            call_result = self.client.predict(
+                feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
+        print("now we end predict")
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
@@ -347,23 +373,23 @@ class Op(object):
         for channel in channels:
             channel.push(data, name)
 
-    def start_with_process(self, client_type):
+    def start_with_process(self):
         trace_buffer = None
         if self._tracer is not None:
             trace_buffer = self._tracer.data_buffer()
-        proces = []
+        process= []
         for concurrency_idx in range(self.concurrency):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), client_type, False,
+                      self._get_output_channels(), False,
                       trace_buffer))
             p.daemon = True
             p.start()
-            proces.append(p)
-        return proces
+            process.append(p)
+        return process
 
-    def start_with_thread(self, client_type):
+    def start_with_thread(self):
         trace_buffer = None
         if self._tracer is not None:
             trace_buffer = self._tracer.data_buffer()
@@ -372,7 +398,7 @@ class Op(object):
             t = threading.Thread(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), client_type, True,
+                      self._get_output_channels(), True,
                       trace_buffer))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
@@ -537,6 +563,7 @@ class Op(object):
                             lod_offset_right = lod_offset[data_offset_right]
                             midped_data_dict[data_id][name] = value[
                                 lod_offset_left:lod_offset_right]
+                            print(lod_offset[data_offset_left:data_offset_right + 1], lod_offset[data_offset_left])
                             midped_data_dict[data_id][lod_offset_name] = \
                                     lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
                     else:
@@ -652,7 +679,7 @@ class Op(object):
 
         return parsed_data_dict, need_profile_dict, profile_dict
 
-    def _run(self, concurrency_idx, input_channel, output_channels, client_type,
+    def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer):
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         tid = threading.current_thread().ident
@@ -660,7 +687,7 @@ class Op(object):
         # init op
         profiler = None
         try:
-            profiler = self._initialize(is_thread_op, client_type,
+            profiler = self._initialize(is_thread_op,
                                         concurrency_idx)
         except Exception as e:
             _LOGGER.critical(
@@ -801,7 +828,7 @@ class Op(object):
                     except Queue.Full:
                         break
 
-    def _initialize(self, is_thread_op, client_type, concurrency_idx):
+    def _initialize(self, is_thread_op, concurrency_idx):
         if is_thread_op:
             with self._for_init_op_lock:
                 if not self._succ_init_op:
@@ -809,7 +836,7 @@ class Op(object):
                     self.concurrency_idx = None
                     # init client
                     self.client = self.init_client(
-                        client_type, self._client_config,
+                        self._client_config,
                         self._server_endpoints, self._fetch_names)
                     # user defined
                     self.init_op()
@@ -818,7 +845,7 @@ class Op(object):
         else:
             self.concurrency_idx = concurrency_idx
             # init client
-            self.client = self.init_client(client_type, self._client_config,
+            self.client = self.init_client(self._client_config,
                                            self._server_endpoints,
                                            self._fetch_names)
             # user defined

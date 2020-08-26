@@ -21,7 +21,7 @@ try:
 except ImportError:
     from paddle_serving_server import OpMaker, OpSeqMaker, Server
     PACKAGE_VERSION = "CPU"
-from . import util
+import util
 
 _LOGGER = logging.getLogger(__name__)
 _workdir_name_gen = util.NameGenerator("workdir_")
@@ -132,3 +132,28 @@ class LocalRpcServiceHandler(object):
             self._server_pros.append(p)
         for p in self._server_pros:
             p.start()
+
+
+class LocalPredictorServiceHandler(LocalRpcServiceHandler):
+    def prepare_server(self):
+        from paddle_serving_app.local_predict import Debugger
+        gpuid = self._devices
+        if gpuid == -1:
+            gpu = False
+        else:
+            gpu = True
+        self.predictor = Debugger()
+        self.predictor.load_model_config(model_path=self._model_config, gpu=gpu, profile=False, cpu_num=1)
+
+    def get_client(self):
+        if self.predictor is None:
+            raise ValueError("local predictor not yet created.")
+        return self.predictor
+
+    def get_fetch_list(self):
+        if self.predictor is None:
+            raise ValueError("local predictor not yet created.")
+        return self.predictor.fetch_names_
+
+    def start_server(self):
+        pass
