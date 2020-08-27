@@ -102,6 +102,7 @@ int GeneralReaderOp::inference() {
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
+
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
 
@@ -265,6 +266,7 @@ int GeneralReaderOp::inference() {
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
   res->p_size = 0;
+  res->_batch_size = batch_size;
   AddBlobInfo(res, start);
   AddBlobInfo(res, end);
 
