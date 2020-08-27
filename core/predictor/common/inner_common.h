@@ -50,7 +50,7 @@
 #include "butil/time.h"
 #endif
 
-#include "glog/raw_logging.h"
+#define ERROR_STRING_LEN 10240
 
 #include "core/configure/general_model_config.pb.h"
 #include "core/configure/include/configure_parser.h"
