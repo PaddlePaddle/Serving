@@ -906,19 +906,6 @@ EOF
             ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
             ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
             kill_server_process
-
-            python local_pipeline_server.py >/dev/null &
-            sleep 5
-            curl -X POST -k http://localhost:18080/uci/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
-            # check http code
-            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
-            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
-            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
-            kill_server_process
             cd .. # pwd: /Serving/python/examples/pipeline
             ;;
         *)
