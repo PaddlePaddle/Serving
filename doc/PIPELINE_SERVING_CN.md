@@ -249,9 +249,10 @@ server.run_server()
 其中，`response_op` 为上面提到的 ResponseOp，PipelineServer 将会根据各个 OP 的拓扑关系初始化 Channel 并构建计算图。`config_yml_path` 为 PipelineServer 的配置文件，示例文件如下：
 
 ```yaml
-port: 18080  # gRPC端口号
+rpc_port: 18080  # gRPC端口号
 worker_num: 1  # gRPC线程池大小（进程版 Servicer 中为进程数），默认为 1
 build_dag_each_worker: false  # 是否使用进程版 Servicer，默认为 false
+http_port: 0 # HTTP 服务的端口号，若该值小于或等于 0 则不开启 HTTP 服务，默认为 0
 dag:
     is_thread_op: true  # 是否使用线程版Op，默认为 true
     client_type: brpc  # 使用 brpc 或 grpc client，默认为 brpc
@@ -282,6 +283,8 @@ sh get_data.sh
 python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
 python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
 ```
+
+PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `python/examples/pipeline/ocr` 下的例子。
 
 ### 启动 PipelineServer
 
