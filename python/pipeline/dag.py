@@ -299,13 +299,12 @@ class DAGExecutor(object):
             sys.stderr.write(profile_str)
 
         # add profile info into rpc_resp
-        profile_value = ""
         if resp_channeldata.client_need_profile:
             profile_set = resp_channeldata.profile_data_set
             profile_set.add(profile_str)
             profile_value = "".join(list(profile_set))
-        rpc_resp.key.append(self._client_profile_key)
-        rpc_resp.value.append(profile_value)
+            rpc_resp.key.append(self._client_profile_key)
+            rpc_resp.value.append(profile_value)
 
         return rpc_resp
 
@@ -338,7 +337,8 @@ class DAG(object):
             self._manager = PipelineProcSyncManager()
         _LOGGER.info("[DAG] Succ init")
 
-    def get_use_ops(self, response_op):
+    @staticmethod
+    def get_use_ops(response_op):
         unique_names = set()
         used_ops = set()
         succ_ops_of_use_op = {}  # {op_name: succ_ops}
@@ -427,11 +427,11 @@ class DAG(object):
             _LOGGER.critical("Failed to build DAG: ResponseOp"
                              " has not been set.")
             os._exit(-1)
-        used_ops, out_degree_ops = self.get_use_ops(response_op)
+        used_ops, out_degree_ops = DAG.get_use_ops(response_op)
         if not self._build_dag_each_worker:
             _LOGGER.info("================= USED OP =================")
             for op in used_ops:
-                if op.name != self._request_name:
+                if not isinstance(op, RequestOp):
                     _LOGGER.info(op.name)
             _LOGGER.info("-------------------------------------------")
         if len(used_ops) <= 1:
