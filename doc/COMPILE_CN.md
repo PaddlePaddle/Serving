@@ -61,6 +61,22 @@ pip install -r python/requirements.txt
 
 如果使用 Python3，请以 `pip3` 替换 `pip`。
 
+## GOPATH 设置
+
+默认 GOPATH 设置为 `$HOME/go`，您也可以设置为其他值。
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+```
+
+## 获取 Go packages
+
+```shell
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/grpc
+```
 
 
 ## 编译Server部分
