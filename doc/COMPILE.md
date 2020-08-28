@@ -63,6 +63,7 @@ If Python3 is used, replace `pip` with `pip3`.
 
 ## GOPATH Setting
 
+
 ## Compile Arguments
 
 The default GOPATH is `$HOME/go`, which you can set to other values.
@@ -79,6 +80,7 @@ go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 go get -u github.com/golang/protobuf/protoc-gen-go
 go get -u google.golang.org/grpc
 ```
+
 
 ## Compile Server
 
