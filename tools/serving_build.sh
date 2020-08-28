@@ -19,6 +19,13 @@ function init() {
     cd Serving
     export SERVING_WORKDIR=$PWD
     $PYTHONROOT/bin/python -m pip install -r python/requirements.txt
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+    go get -u github.com/golang/protobuf/protoc-gen-go
+    go get -u google.golang.org/grpc
 }
 
 function check_cmd() {
@@ -298,7 +305,6 @@ function python_test_bert() {
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
-            pip install paddlehub
             # Because download from paddlehub may timeout,
             # download the model from bos(max_seq_len=128).
             wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -306,14 +312,12 @@ function python_test_bert() {
             sh get_data.sh
             check_cmd "python -m paddle_serving_server.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 &"
             sleep 5
-            pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
             echo "bert RPC inference pass"
             ;;
         GPU)
             export CUDA_VISIBLE_DEVICES=0
-            pip install paddlehub
             # Because download from paddlehub may timeout,
             # download the model from bos(max_seq_len=128).
             wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -321,7 +325,6 @@ function python_test_bert() {
             sh get_data.sh
             check_cmd "python -m paddle_serving_server_gpu.serve --model bert_chinese_L-12_H-768_A-12_model --port 9292 --gpu_ids 0 &"
             sleep 5
-            pip install paddle_serving_app
             check_cmd "head -n 10 data-c.txt | python bert_client.py --model bert_chinese_L-12_H-768_A-12_client/serving_client_conf.prototxt"
             kill_server_process
             echo "bert RPC inference pass"
@@ -760,13 +763,14 @@ function python_test_resnet50(){
 }
 
 function python_test_pipeline(){
-    # pwd:/ Serving/python/examples
+    # pwd: /Serving/python/examples
     local TYPE=$1
     export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
-    cd pipeline/imdb_model_ensemble
+    cd pipeline # pwd: /Serving/python/examples/pipeline
     case $TYPE in
         CPU)
+            cd imdb_model_ensemble # pwd: /Serving/python/examples/pipeline/imdb_model_ensemble
             # start paddle serving service (brpc)
             sh get_data.sh
             python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 --workdir test9292 &> cnn.log &
@@ -775,7 +779,7 @@ function python_test_pipeline(){
             
             # test: thread servicer & thread op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -792,7 +796,7 @@ EOF
 
             # test: thread servicer & process op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -809,7 +813,7 @@ EOF
 
             # test: process servicer & process op
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -828,7 +832,7 @@ EOF
             pip uninstall grpcio -y
             pip install grpcio --no-binary=grpcio
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: true
 dag:
@@ -852,7 +856,7 @@ EOF
             python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 --use_multilang --workdir test9393 &> bow.log &
             sleep 5
             cat << EOF > config.yml
-port: 18080
+rpc_port: 18080
 worker_num: 4
 build_dag_each_worker: false
 dag:
@@ -869,16 +873,47 @@ EOF
             kill_server_process
             kill_process_by_port 9292
             kill_process_by_port 9393
+            cd ..
+
+            cd simple_web_service # pwd: /Serving/python/examples/pipeline/simple_web_service
+            sh get_data.sh
+            python web_service.py >/dev/null &
+            sleep 5
+            curl -X POST -k http://localhost:18080/uci/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
+             check http code
+            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
+            cd ..
             ;;
         GPU)
-            echo "pipeline ignore GPU test"
+            cd simple_web_service # pwd: /Serving/python/examples/pipeline/simple_web_service
+            sh get_data.sh
+            python web_service.py >/dev/null &
+            sleep 5
+            curl -X POST -k http://localhost:18080/uci/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
+            # check http code
+            http_code=`curl -X POST -k -d '{"key":["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}' -s -w "%{http_code}" -o /dev/null http://localhost:18080/uci/prediction`
+            if [ ${http_code} -ne 200 ]; then
+                echo "HTTP status code -ne 200"
+                exit 1
+            fi
+            ps -ef | grep "web_service" | grep -v grep | awk '{print $2}' | xargs kill
+            ps -ef | grep "pipeline" | grep -v grep | awk '{print $2}' | xargs kill
+            kill_server_process
+            cd .. # pwd: /Serving/python/examples/pipeline
             ;;
         *)
             echo "error type"
             exit 1
             ;;
     esac
-    cd ../../
+    cd ..
     setproxy
     unset SERVING_BIN
 }
@@ -928,118 +963,8 @@ function monitor_test() {
     mkdir _monitor_test && cd _monitor_test # pwd: /Serving/_monitor_test
     case $TYPE in
         CPU):
-            pip install pyftpdlib
-            mkdir remote_path
-            mkdir local_path
-            cd remote_path # pwd: /Serving/_monitor_test/remote_path
-            check_cmd "python -m pyftpdlib -p 8000 &>/dev/null &"
-            cd .. # pwd: /Serving/_monitor_test
-
-            # type: ftp
-            # remote_path: /
-            # remote_model_name: uci_housing.tar.gz
-            # local_tmp_path: ___tmp
-            # local_path: local_path
-            cd remote_path # pwd: /Serving/_monitor_test/remote_path
-            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
-            touch donefile
-            cd ..  # pwd: /Serving/_monitor_test
-            mkdir -p local_path/uci_housing_model
-            python -m paddle_serving_server.monitor \
-                    --type='ftp' --ftp_host='127.0.0.1' --ftp_port='8000' \
-                    --remote_path='/' --remote_model_name='uci_housing.tar.gz' \
-                    --remote_donefile_name='donefile' --local_path='local_path' \
-                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
-                    --local_tmp_path='___tmp' --unpacked_filename='uci_housing_model' \
-                    --interval='1' >/dev/null &
-            sleep 10
-            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
-                echo "local_path/uci_housing_model/fluid_time_file not exist."
-                exit 1
-            fi
-            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
-            rm -rf remote_path/*
-            rm -rf local_path/*
-
-            # type: ftp
-            # remote_path: /tmp_dir
-            # remote_model_name: uci_housing_model
-            # local_tmp_path: ___tmp
-            # local_path: local_path
-            mkdir -p remote_path/tmp_dir && cd remote_path/tmp_dir # pwd: /Serving/_monitor_test/remote_path/tmp_dir
-            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
-            tar -xzf uci_housing.tar.gz
-            touch donefile
-            cd ../.. # pwd: /Serving/_monitor_test
-            mkdir -p local_path/uci_housing_model
-            python -m paddle_serving_server.monitor \
-                    --type='ftp' --ftp_host='127.0.0.1' --ftp_port='8000' \
-                    --remote_path='/tmp_dir' --remote_model_name='uci_housing_model' \
-                    --remote_donefile_name='donefile' --local_path='local_path' \
-                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
-                    --local_tmp_path='___tmp' --interval='1' >/dev/null &
-            sleep 10
-            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
-                echo "local_path/uci_housing_model/fluid_time_file not exist."
-                exit 1
-            fi
-            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
-            rm -rf remote_path/*
-            rm -rf local_path/*
-
-            # type: general
-            # remote_path: /
-            # remote_model_name: uci_housing.tar.gz
-            # local_tmp_path: ___tmp
-            # local_path: local_path
-            cd remote_path # pwd: /Serving/_monitor_test/remote_path
-            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
-            touch donefile
-            cd ..  # pwd: /Serving/_monitor_test
-            mkdir -p local_path/uci_housing_model
-            python -m paddle_serving_server.monitor \
-                    --type='general' --general_host='ftp://127.0.0.1:8000' \
-                    --remote_path='/' --remote_model_name='uci_housing.tar.gz' \
-                    --remote_donefile_name='donefile' --local_path='local_path' \
-                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
-                    --local_tmp_path='___tmp' --unpacked_filename='uci_housing_model' \
-                    --interval='1' >/dev/null &
-            sleep 10
-            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
-                echo "local_path/uci_housing_model/fluid_time_file not exist."
-                exit 1
-            fi
-            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
-            rm -rf remote_path/*
-            rm -rf local_path/*
-
-            # type: general
-            # remote_path: /tmp_dir
-            # remote_model_name: uci_housing_model
-            # local_tmp_path: ___tmp
-            # local_path: local_path
-            mkdir -p remote_path/tmp_dir && cd remote_path/tmp_dir # pwd: /Serving/_monitor_test/remote_path/tmp_dir
-            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
-            tar -xzf uci_housing.tar.gz
-            touch donefile
-            cd ../.. # pwd: /Serving/_monitor_test
-            mkdir -p local_path/uci_housing_model
-            python -m paddle_serving_server.monitor \
-                    --type='general' --general_host='ftp://127.0.0.1:8000' \
-                    --remote_path='/tmp_dir' --remote_model_name='uci_housing_model' \
-                    --remote_donefile_name='donefile' --local_path='local_path' \
-                    --local_model_name='uci_housing_model' --local_timestamp_file='fluid_time_file' \
-                    --local_tmp_path='___tmp' --interval='1' >/dev/null &
-            sleep 10
-            if [ ! -f "local_path/uci_housing_model/fluid_time_file" ]; then
-                echo "local_path/uci_housing_model/fluid_time_file not exist."
-                exit 1
-            fi
-            ps -ef | grep "monitor" | grep -v grep | awk '{print $2}' | xargs kill
-            rm -rf remote_path/*
-            rm -rf local_path/*
-
-            ps -ef | grep "pyftpdlib" | grep -v grep | awk '{print $2}' | xargs kill
+            # The CPU part and GPU part are identical.
+            # In order to avoid Travis CI timeout (50 min), the CPU version is not checked
             ;;
         GPU):
             pip install pyftpdlib

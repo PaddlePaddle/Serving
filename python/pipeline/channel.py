@@ -40,7 +40,8 @@ class ChannelDataEcode(enum.Enum):
     RPC_PACKAGE_ERROR = 4
     CLIENT_ERROR = 5
     CLOSED_ERROR = 6
-    UNKNOW = 7
+    NO_SERVICE = 7
+    UNKNOW = 8
 
 
 class ChannelDataType(enum.Enum):

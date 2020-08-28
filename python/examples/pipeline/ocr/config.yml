@@ -1,0 +1,22 @@
+rpc_port: 18080
+worker_num: 4
+build_dag_each_worker: false
+http_port: 9999
+dag:
+    is_thread_op: false
+    client_type: brpc
+    retry: 1
+    use_profile: false
+op:
+    det:
+        concurrency: 2
+        local_service_conf:
+            model_config: ocr_det_model
+            devices: "0"
+    rec:
+        concurrency: 1
+        timeout: -1
+        retry: 1
+        local_service_conf:
+            model_config: ocr_rec_model
+            devices: "0"
