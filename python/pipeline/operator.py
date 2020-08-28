@@ -38,6 +38,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
                       ChannelTimeoutError)
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
+from . import local_rpc_service_handler
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -47,46 +48,128 @@ class Op(object):
     def __init__(self,
                  name=None,
                  input_ops=[],
-                 server_endpoints=[],
-                 fetch_list=[],
+                 server_endpoints=None,
+                 fetch_list=None,
                  client_config=None,
-                 concurrency=1,
-                 timeout=-1,
-                 retry=1,
-                 batch_size=1,
-                 auto_batching_timeout=None):
+                 concurrency=None,
+                 timeout=None,
+                 retry=None,
+                 batch_size=None,
+                 auto_batching_timeout=None,
+                 local_rpc_service_handler=None):
+        # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
 
+        self._local_rpc_service_handler = local_rpc_service_handler
         self._server_endpoints = server_endpoints
-        self.with_serving = False
-        if len(self._server_endpoints) != 0:
-            self.with_serving = True
-        self._client_config = client_config
         self._fetch_names = fetch_list
-
-        if timeout > 0:
-            self._timeout = timeout / 1000.0
-        else:
-            self._timeout = -1
+        self._client_config = client_config
+        self._timeout = timeout
         self._retry = max(1, retry)
+        self._batch_size = batch_size
+        self._auto_batching_timeout = auto_batching_timeout
+
         self._input = None
         self._outputs = []
 
-        self._batch_size = batch_size
-        self._auto_batching_timeout = auto_batching_timeout
-        if self._auto_batching_timeout is not None:
-            if self._auto_batching_timeout <= 0 or self._batch_size == 1:
-                _LOGGER.warning(
-                    self._log(
-                        "Because auto_batching_timeout <= 0 or batch_size == 1,"
-                        " set auto_batching_timeout to None."))
-                self._auto_batching_timeout = None
+        self._server_use_profile = False
+        self._tracer = None
+
+        # only for thread op
+        self._for_init_op_lock = threading.Lock()
+        self._for_close_op_lock = threading.Lock()
+        self._succ_init_op = False
+        self._succ_close_op = False
+
+    def init_from_dict(self, conf):
+        # init op
+        if self.concurrency is None:
+            self.concurrency = conf["concurrency"]
+        if self._retry is None:
+            self._retry = conf["retry"]
+        if self._fetch_names is None:
+            self._fetch_names = conf.get("fetch_list")
+        if self._client_config is None:
+            self._client_config = conf.get("client_config")
+
+        if self._timeout is None:
+            self._timeout = conf["timeout"]
+        if self._timeout > 0:
+            self._timeout = self._timeout / 1000.0
+        else:
+            self._timeout = -1
+
+        if self._batch_size is None:
+            self._batch_size = conf["batch_size"]
+        if self._auto_batching_timeout is None:
+            self._auto_batching_timeout = conf["auto_batching_timeout"]
+        if self._auto_batching_timeout <= 0 or self._batch_size == 1:
+            _LOGGER.warning(
+                self._log(
+                    "Because auto_batching_timeout <= 0 or batch_size == 1,"
+                    " set auto_batching_timeout to None."))
+            self._auto_batching_timeout = None
+        else:
+            self._auto_batching_timeout = self._auto_batching_timeout / 1000.0
+
+        if self._server_endpoints is None:
+            server_endpoints = conf.get("server_endpoints", [])
+            if len(server_endpoints) != 0:
+                # remote service
+                self.with_serving = True
+                self._server_endpoints = server_endpoints
             else:
-                self._auto_batching_timeout = self._auto_batching_timeout / 1000.0
+                if self._local_rpc_service_handler is None:
+                    local_service_conf = conf.get("local_service_conf")
+                    _LOGGER.info("local_service_conf: {}".format(
+                        local_service_conf))
+                    model_config = local_service_conf.get("model_config")
+                    _LOGGER.info("model_config: {}".format(model_config))
+                    if model_config is None:
+                        self.with_serving = False
+                    else:
+                        # local rpc service
+                        self.with_serving = True
+                        service_handler = local_rpc_service_handler.LocalRpcServiceHandler(
+                            model_config=model_config,
+                            workdir=local_service_conf["workdir"],
+                            thread_num=local_service_conf["thread_num"],
+                            devices=local_service_conf["devices"],
+                            mem_optim=local_service_conf["mem_optim"],
+                            ir_optim=local_service_conf["ir_optim"])
+                        service_handler.prepare_server()  # get fetch_list
+                        serivce_ports = service_handler.get_port_list()
+                        self._server_endpoints = [
+                            "127.0.0.1:{}".format(p) for p in serivce_ports
+                        ]
+                        if self._client_config is None:
+                            self._client_config = service_handler.get_client_config(
+                            )
+                        if self._fetch_names is None:
+                            self._fetch_names = service_handler.get_fetch_list()
+                        self._local_rpc_service_handler = service_handler
+                else:
+                    self.with_serving = True
+                    self._local_rpc_service_handler.prepare_server(
+                    )  # get fetch_list
+                    serivce_ports = self._local_rpc_service_handler.get_port_list(
+                    )
+                    self._server_endpoints = [
+                        "127.0.0.1:{}".format(p) for p in serivce_ports
+                    ]
+                    if self._client_config is None:
+                        self._client_config = self._local_rpc_service_handler.get_client_config(
+                        )
+                    if self._fetch_names is None:
+                        self._fetch_names = self._local_rpc_service_handler.get_fetch_list(
+                        )
+        else:
+            self.with_serving = True
+
         if not isinstance(self, RequestOp) and not isinstance(self, ResponseOp):
             _LOGGER.info(
                 self._log("\n\tinput_ops: {},"
@@ -98,20 +181,22 @@ class Op(object):
                           "\n\tretry: {},"
                           "\n\tbatch_size: {},"
                           "\n\tauto_batching_timeout(s): {}".format(
-                              ", ".join([op.name for op in input_ops
+                              ", ".join([op.name for op in self._input_ops
                                          ]), self._server_endpoints,
                               self._fetch_names, self._client_config,
                               self.concurrency, self._timeout, self._retry,
                               self._batch_size, self._auto_batching_timeout)))
 
-        self._server_use_profile = False
-        self._tracer = None
-
-        # only for thread op
-        self._for_init_op_lock = threading.Lock()
-        self._for_close_op_lock = threading.Lock()
-        self._succ_init_op = False
-        self._succ_close_op = False
+    def launch_local_rpc_service(self):
+        if self._local_rpc_service_handler is None:
+            _LOGGER.warning(
+                self._log("Failed to launch local rpc"
+                          " service: local_rpc_service_handler is None."))
+            return
+        port = self._local_rpc_service_handler.get_port_list()
+        self._local_rpc_service_handler.start_server()
+        _LOGGER.info("Op({}) use local rpc service at port: {}"
+                     .format(self.name, port))
 
     def use_default_auto_batching_config(self):
         if self._batch_size != 1:
@@ -775,7 +860,9 @@ class RequestOp(Op):
         for idx, key in enumerate(request.key):
             data = request.value[idx]
             try:
-                data = eval(data)
+                evaled_data = eval(data)
+                if isinstance(evaled_data, np.ndarray):
+                    data = evaled_data
             except Exception as e:
                 pass
             dictdata[key] = data

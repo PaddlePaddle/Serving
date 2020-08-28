@@ -11,9 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from . import logger  # this module must be the first to import
-from .operator import Op, RequestOp, ResponseOp
-from .pipeline_server import PipelineServer
-from .pipeline_client import PipelineClient
-from .local_rpc_service_handler import LocalRpcServiceHandler
-from .analyse import Analyst
+from paddle_serving_server_gpu.pipeline import PipelineClient
+import numpy as np
+import requests
+import json
+import cv2
+import base64
+import os
+
+client = PipelineClient()
+client.connect(['127.0.0.1:18080'])
+
+
+def cv2_to_base64(image):
+    return base64.b64encode(image).decode('utf8')
+
+
+test_img_dir = "imgs/"
+for img_file in os.listdir(test_img_dir):
+    with open(os.path.join(test_img_dir, img_file), 'rb') as file:
+        image_data = file.read()
+    image = cv2_to_base64(image_data)
+
+for i in range(4):
+    ret = client.predict(feed_dict={"image": image}, fetch=["res"])
+    print(ret)

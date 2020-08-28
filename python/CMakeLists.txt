@@ -1,7 +1,5 @@
 if (CLIENT)
     file(INSTALL pipeline DESTINATION paddle_serving_client)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} run_codegen.py
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paddle_serving_client/pipeline/proto)
     file(GLOB_RECURSE SERVING_CLIENT_PY_FILES paddle_serving_client/*.py)
     set(PY_FILES ${SERVING_CLIENT_PY_FILES})
     SET(PACKAGE_NAME "serving_client")
@@ -11,13 +9,9 @@ endif()
 if (SERVER)
     if (NOT WITH_GPU)
         file(INSTALL pipeline DESTINATION paddle_serving_server)
-        execute_process(COMMAND ${PYTHON_EXECUTABLE} run_codegen.py
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paddle_serving_server/pipeline/proto)
         file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server/*.py)
     else()
         file(INSTALL pipeline DESTINATION paddle_serving_server_gpu)
-        execute_process(COMMAND ${PYTHON_EXECUTABLE} run_codegen.py
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paddle_serving_server_gpu/pipeline/proto)
         file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server_gpu/*.py)
     endif()
         set(PY_FILES ${SERVING_SERVER_PY_FILES})
@@ -25,6 +19,8 @@ if (SERVER)
         set(SETUP_LOG_FILE "setup.py.server.log")
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/util.py
+    ${CMAKE_CURRENT_BINARY_DIR}/util.py)
 if (CLIENT)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.client.in
     ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
