@@ -114,7 +114,7 @@ int dump_parameter(const char *input_file, const char *output_file) {
     // << std::endl;
     memcpy(value_buf, tensor_buf + offset, value_buf_len);
     seq_file_writer.write(
-        static_cast<int>(&i), sizeof(i), value_buf, value_buf_len);
+        std::to_string(i).c_str(), sizeof(i), value_buf, value_buf_len);
     offset += value_buf_len;
   }
   return 0;
@@ -265,7 +265,7 @@ int compress_parameter_parallel(const char *file1,
   SeqFileWriter seq_file_writer(file2);
   for (int64_t i = 0; i < dict_size; i++) {
     seq_file_writer.write(
-        static_cast<char *>(&i), sizeof(i), result[i], per_line_size);
+        std::to_string(i).c_str(), sizeof(i), result[i], per_line_size);
   }
   return 0;
 }
