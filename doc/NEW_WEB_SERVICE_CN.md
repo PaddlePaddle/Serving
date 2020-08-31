@@ -141,6 +141,7 @@ op:
         batch_size: 1 # auto-batching 中的 batch_size，若设置该字段则 Op 会将多个请求输出合并为一个 batch
         auto_batching_timeout: -1 # auto-batching 超时时间，单位为毫秒。默认为 -1 即不超时
         local_service_conf:
+            model_config: # 对应模型文件的路径，无默认值（None）。若不配置该项则不会加载模型文件。
             workdir: "" # 对应模型的工作目录
             thread_num: 2 # 对应模型用几个线程启动
             devices: "" # 模型启动在哪个设备上，可以指定 gpu 卡号（如 "0,1,2"），默认为 cpu
