@@ -181,7 +181,7 @@ class PipelineServer(object):
     def _start_local_rpc_service(self):
         # only brpc now
         if self._conf["dag"]["client_type"] != "brpc":
-            raise ValueError("Local service version must be brpc type now.")
+            _LOGGER.warning("Local service version must be brpc type now.")
         for op in self._used_op:
             if not isinstance(op, operator.RequestOp):
                 op.launch_local_rpc_service()
