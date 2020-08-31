@@ -23,7 +23,11 @@ def update_info(file_name, feature, info):
     with open(file_name, "r") as f:
         for line in f.readlines():
             if re.match(feature, line):
-                line = feature + " = \"" + info.decode('utf-8').strip() + "\"\n"
+                if isinstance(info, str):
+                    line = feature + " = \"" + info.strip() + "\"\n"
+                else:
+                    line = feature + " = \"" + info.decode('utf-8').strip(
+                    ) + "\"\n"
             new_str = new_str + line
 
     with open(file_name, "w") as f:
