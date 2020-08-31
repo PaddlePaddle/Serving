@@ -214,6 +214,10 @@ class Server(object):
         self.product_name = None
         self.container_id = None
 
+    def get_fetch_list(self):
+        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+        return fetch_names
+
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
 
