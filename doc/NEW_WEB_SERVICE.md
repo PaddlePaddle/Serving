@@ -141,6 +141,7 @@ op:
         batch_size: 1 # If this field is set, Op will merge multiple request outputs into a single batch
         auto_batching_timeout: -1 # auto-batching timeout in milliseconds. The default value is -1, that is, no timeout
         local_service_conf:
+            model_config: # the path of the corresponding model file. There is no default value(None). If this item is not configured, the model file will not be loaded.
             workdir: "" # working directory of corresponding model
             thread_num: 2 # the corresponding model is started with thread_num threads
             devices: "" # on which device does the model launched. You can specify the GPU card number(such as "0,1,2"), which is CPU by default
