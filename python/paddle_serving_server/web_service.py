@@ -118,11 +118,13 @@ class WebService(object):
                 del feed["fetch"]
             if len(feed) == 0:
                 raise ValueError("empty input")
-            fetch_map = self.client.predict(feed=feed, fetch=fetch)
+            fetch_map = self.client.predict(feed=feed, fetch=fetch, batch=True)
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
         except ValueError as err:
+            import traceback
+            print(traceback.format_exc())
             result = {"result": err}
         return result
 

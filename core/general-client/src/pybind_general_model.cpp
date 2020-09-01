@@ -95,32 +95,6 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self) { self.create_predictor(); })
       .def("destroy_predictor",
            [](PredictorClient &self) { self.destroy_predictor(); })
-      .def("batch_predict",
-           [](PredictorClient &self,
-              const std::vector<std::vector<std::vector<float>>>
-                  &float_feed_batch,
-              const std::vector<std::string> &float_feed_name,
-              const std::vector<std::vector<int>> &float_shape,
-              const std::vector<std::vector<std::vector<int64_t>>>
-                  &int_feed_batch,
-              const std::vector<std::string> &int_feed_name,
-              const std::vector<std::vector<int>> &int_shape,
-              const std::vector<std::string> &fetch_name,
-              PredictorRes &predict_res_batch,
-              const int &pid,
-              const uint64_t log_id) {
-             return self.batch_predict(float_feed_batch,
-                                       float_feed_name,
-                                       float_shape,
-                                       int_feed_batch,
-                                       int_feed_name,
-                                       int_shape,
-                                       fetch_name,
-                                       predict_res_batch,
-                                       pid,
-                                       log_id);
-           },
-           py::call_guard<py::gil_scoped_release>())
       .def("numpy_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<py::array_t<float>>>
@@ -131,6 +105,7 @@ PYBIND11_MODULE(serving_client, m) {
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
+              const std::vector<std::vector<int>> &lod_slot_batch,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
               const int &pid,
@@ -141,6 +116,7 @@ PYBIND11_MODULE(serving_client, m) {
                                        int_feed_batch,
                                        int_feed_name,
                                        int_shape,
+                                       lod_slot_batch,
                                        fetch_name,
                                        predict_res_batch,
                                        pid,

@@ -157,7 +157,7 @@ function python_test_fit_a_line() {
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             # test rpc
@@ -225,7 +225,7 @@ function python_test_fit_a_line() {
     esac
     echo "test fit_a_line $TYPE part finished as expected."
     rm -rf image kvdb log uci_housing* work*
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd .. # pwd: /Serving/python/examples
 }
 
@@ -234,7 +234,7 @@ function python_run_criteo_ctr_with_cube() {
     local TYPE=$1
     yum install -y bc >/dev/null
     cd criteo_ctr_with_cube # pwd: /Serving/python/examples/criteo_ctr_with_cube
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -293,7 +293,7 @@ function python_run_criteo_ctr_with_cube() {
             exit 1
             ;;
     esac
-    unset SERVING_BIN
+    #unset SERVING_BIN
     echo "test criteo_ctr_with_cube $TYPE part finished as expected."
     cd .. # pwd: /Serving/python/examples
 }
@@ -301,7 +301,7 @@ function python_run_criteo_ctr_with_cube() {
 function python_test_bert() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
@@ -335,14 +335,14 @@ function python_test_bert() {
             ;;
     esac
     echo "test bert $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_multi_fetch() {
     # pwd: /Serving/python/examples
     local TYPT=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
@@ -371,14 +371,14 @@ function python_test_multi_fetch() {
             ;;
     esac
     echo "test multi fetch $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_multi_process(){
     # pwd: /Serving/python/examples
     local TYPT=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     case $TYPE in
@@ -405,14 +405,14 @@ function python_test_multi_process(){
             ;;
     esac
     echo "test multi process $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_imdb() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd imdb # pwd: /Serving/python/examples/imdb
     case $TYPE in
         CPU)
@@ -452,14 +452,14 @@ function python_test_imdb() {
             ;;
     esac
     echo "test imdb $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_lac() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd lac # pwd: /Serving/python/examples/lac
     case $TYPE in
         CPU)
@@ -504,14 +504,14 @@ function python_test_lac() {
             ;;
     esac
     echo "test lac $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function java_run_test() {
     # pwd: /Serving
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     case $TYPE in
         CPU)
@@ -563,14 +563,14 @@ function java_run_test() {
     esac
     echo "java-sdk $TYPE part finished as expected."
     setproxy
-    unset SERVING_BIN
+    #unset SERVING_BIN
 }
 
 function python_test_grpc_impl() {
     # pwd: /Serving/python/examples
     cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     case $TYPE in
         CPU)
@@ -702,7 +702,7 @@ function python_test_grpc_impl() {
     esac
     echo "test grpc impl $TYPE part finished as expected."
     setproxy
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd .. # pwd: /Serving/python/examples
 }
 
@@ -710,7 +710,7 @@ function python_test_grpc_impl() {
 function python_test_yolov4(){
     #pwd:/ Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd yolov4
     case $TYPE in
         CPU)
@@ -731,14 +731,14 @@ function python_test_yolov4(){
             ;;
     esac
     echo "test yolov4 $TYPE finished as expected."
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_resnet50(){
     #pwd:/ Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd imagenet
     case $TYPE in
         CPU)
@@ -758,14 +758,14 @@ function python_test_resnet50(){
             ;;
     esac
     echo "test resnet $TYPE finished as expected"
-    unset SERVING_BIN
+    #unset SERVING_BIN
     cd ..
 }
 
 function python_test_pipeline(){
     # pwd: /Serving/python/examples
     local TYPE=$1
-    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     cd pipeline # pwd: /Serving/python/examples/pipeline
     case $TYPE in
@@ -915,7 +915,7 @@ EOF
     esac
     cd ..
     setproxy
-    unset SERVING_BIN
+    #unset SERVING_BIN
 }
 
 function python_app_api_test(){
@@ -944,16 +944,16 @@ function python_run_test() {
     local TYPE=$1 # pwd: /Serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
-    python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
-    python_test_bert $TYPE # pwd: /Serving/python/examples
-    python_test_imdb $TYPE # pwd: /Serving/python/examples
-    python_test_lac $TYPE # pwd: /Serving/python/examples
-    python_test_multi_process $TYPE # pwd: /Serving/python/examples
-    python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
-    python_test_yolov4 $TYPE # pwd: /Serving/python/examples
-    python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
-    python_test_resnet50 $TYPE # pwd: /Serving/python/examples
-    python_test_pipeline $TYPE # pwd: /Serving/python/examples
+    #python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
+    #python_test_bert $TYPE # pwd: /Serving/python/examples
+    #python_test_imdb $TYPE # pwd: /Serving/python/examples
+    #python_test_lac $TYPE # pwd: /Serving/python/examples
+    #python_test_multi_process $TYPE # pwd: /Serving/python/examples
+    #python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    #python_test_yolov4 $TYPE # pwd: /Serving/python/examples
+    #python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
+    #python_test_resnet50 $TYPE # pwd: /Serving/python/examples
+    #python_test_pipeline $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
@@ -1092,11 +1092,11 @@ function monitor_test() {
 
 function main() {
     local TYPE=$1 # pwd: /
-    init # pwd: /Serving
-    build_client $TYPE # pwd: /Serving
-    build_server $TYPE # pwd: /Serving
-    build_app $TYPE # pwd: /Serving
-    java_run_test $TYPE # pwd: /Serving
+    #init # pwd: /Serving
+    #build_client $TYPE # pwd: /Serving
+    #build_server $TYPE # pwd: /Serving
+    #build_app $TYPE # pwd: /Serving
+    #java_run_test $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     monitor_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
