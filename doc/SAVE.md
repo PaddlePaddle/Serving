@@ -38,9 +38,9 @@ If you have saved model files using Paddle's `save_inference_model` API, you can
 import paddle_serving_client.io as serving_io
 serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client", model_filename=None, params_filename=None )
 ```
-Or you can use a build-in python module called `paddle_serving_client.io.convert` to convert it.
+Or you can use a build-in python module called `paddle_serving_client.convert` to convert it.
 ```python
-python -m paddle_serving_client.io.convert --dirname ./your_inference_model_dir
+python -m paddle_serving_client.convert --dirname ./your_inference_model_dir
 ```
 Arguments are the same as `inference_model_to_serving` API.
 | Argument | Type | Default | Description |

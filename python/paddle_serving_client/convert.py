@@ -15,10 +15,10 @@
 Usage:
     Convert a paddle inference model into a model file that can be used for Paddle Serving.
     Example:
-        python -m paddle_serving_client.io.convert --dirname ./inference_model
+        python -m paddle_serving_client.convert --dirname ./inference_model
 """
 import argparse
-from . import inference_model_to_serving
+from .io import inference_model_to_serving
 
 
 def parse_args():  # pylint: disable=doc-string-missing
