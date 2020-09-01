@@ -47,3 +47,8 @@ serving_client (str, optional) - The path of configuration files for client. Def
 model_filename (str, optional) - The name of file to load the inference program. If it is None, the default filename `__model__` will be used. Default: None.
 
 paras_filename (str, optional) - The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. Default: None.
+Or you can use a build-in python module called `paddle_serving_client.io.convert` to convert it.
+```python
+python -m paddle_serving_client.io.convert --dirname ./your_inference_model_dir
+```
+Arguments are the same as `inference_model_to_serving` API.
