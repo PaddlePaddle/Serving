@@ -39,9 +39,9 @@ for line in sys.stdin:
 import paddle_serving_client.io as serving_io
 serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client",  model_filename=None, params_filename=None)
 ```
-或者你可以使用Paddle Serving提供的名为`paddle_serving_client.io.convert`的内置模块进行转换。
+或者你可以使用Paddle Serving提供的名为`paddle_serving_client.convert`的内置模块进行转换。
 ```python
-python -m paddle_serving_client.io.convert --dirname ./your_inference_model_dir
+python -m paddle_serving_client.convert --dirname ./your_inference_model_dir
 ```
 模块参数与`inference_model_to_serving`接口参数相同。
 | 参数 | 类型 | 默认值 | 描述 |
