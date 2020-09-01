@@ -232,7 +232,6 @@ class Op(object):
 
     def init_client(self, client_config, server_endpoints,
                     fetch_names):
-        print("init client", fetch_names)
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
                          "run the process function)".format(self.name))
@@ -313,7 +312,6 @@ class Op(object):
         return input_dict
 
     def process(self, feed_batch, typical_logid):
-        print("now we start process")
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -325,7 +323,6 @@ class Op(object):
         else:
             call_result = self.client.predict(
                 feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
-        print("now we end predict")
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
@@ -563,7 +560,6 @@ class Op(object):
                             lod_offset_right = lod_offset[data_offset_right]
                             midped_data_dict[data_id][name] = value[
                                 lod_offset_left:lod_offset_right]
-                            print(lod_offset[data_offset_left:data_offset_right + 1], lod_offset[data_offset_left])
                             midped_data_dict[data_id][lod_offset_name] = \
                                     lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
                     else:
