@@ -27,5 +27,12 @@ test_reader = paddle.batch(
     batch_size=1)
 
 for data in test_reader():
-    fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+    import numpy as np
+    new_data = np.zeros((2, 1, 13)).astype("float32")
+    new_data[0] = data[0][0]
+    new_data[1] = data[0][0]
+    print(new_data)
+    fetch_map = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=True)
     print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    print(fetch_map)

@@ -135,6 +135,8 @@ int GeneralReaderOp::inference() {
       lod_tensor.dtype = paddle::PaddleDType::INT32;
     }
     // implement lod tensor here
+    std::cout << "lod size: " << req->insts(0).tensor_array(i).lod_size()
+              << std::endl;
     if (req->insts(0).tensor_array(i).lod_size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
       lod_tensor.lod.resize(1);
@@ -194,14 +196,13 @@ int GeneralReaderOp::inference() {
         } else {
           sample_len = tensor.shape(0);
         }
-        out->at(i).lod[0].push_back(cur_len + sample_len);
         VLOG(2) << "(logid=" << log_id << ") new len: " << cur_len + sample_len;
       }
       out->at(i).data.Resize(tensor_size * elem_size[i]);
-      out->at(i).shape = {};
-      for (int j = 1; j < req->insts(0).tensor_array(i).shape_size(); ++j) {
-        out->at(i).shape.push_back(req->insts(0).tensor_array(i).shape(j));
-      }
+      // out->at(i).shape = {};
+      // for (int j = 1; j < req->insts(0).tensor_array(i).shape_size(); ++j) {
+      //  out->at(i).shape.push_back(req->insts(0).tensor_array(i).shape(j));
+      //  }
       // if (out->at(i).shape.size() == 1) {
       //  out->at(i).shape.push_back(1);
       //}
@@ -223,6 +224,7 @@ int GeneralReaderOp::inference() {
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).int64_data_size();
+        std::cout << "int elem num: " << elem_num << std::endl;
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).int64_data(k);
         }
@@ -234,6 +236,7 @@ int GeneralReaderOp::inference() {
       int offset = 0;
       for (int j = 0; j < batch_size; ++j) {
         int elem_num = req->insts(j).tensor_array(i).float_data_size();
+        std::cout << "float elem num: " << elem_num << std::endl;
         for (int k = 0; k < elem_num; ++k) {
           dst_ptr[offset + k] = req->insts(j).tensor_array(i).float_data(k);
         }

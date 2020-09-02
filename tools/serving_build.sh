@@ -157,7 +157,7 @@ function python_test_fit_a_line() {
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             # test rpc
@@ -166,25 +166,6 @@ function python_test_fit_a_line() {
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
 
-            # test web
-            unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --name uci --port 9393 --thread 4 --name uci > /dev/null &"
-            sleep 5 # wait for the server to start
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
-            # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
-            # test web batch
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
-            # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
             setproxy # recover proxy state
             kill_server_process
             ;;
@@ -234,7 +215,7 @@ function python_run_criteo_ctr_with_cube() {
     local TYPE=$1
     yum install -y bc >/dev/null
     cd criteo_ctr_with_cube # pwd: /Serving/python/examples/criteo_ctr_with_cube
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     case $TYPE in
         CPU)
             check_cmd "wget https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz"
@@ -301,7 +282,7 @@ function python_run_criteo_ctr_with_cube() {
 function python_test_bert() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
@@ -342,7 +323,7 @@ function python_test_bert() {
 function python_test_multi_fetch() {
     # pwd: /Serving/python/examples
     local TYPT=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd bert # pwd: /Serving/python/examples/bert
     case $TYPE in
         CPU)
@@ -378,7 +359,7 @@ function python_test_multi_fetch() {
 function python_test_multi_process(){
     # pwd: /Serving/python/examples
     local TYPT=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd fit_a_line # pwd: /Serving/python/examples/fit_a_line
     sh get_data.sh
     case $TYPE in
@@ -412,7 +393,7 @@ function python_test_multi_process(){
 function python_test_imdb() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd imdb # pwd: /Serving/python/examples/imdb
     case $TYPE in
         CPU)
@@ -428,19 +409,19 @@ function python_test_imdb() {
             sleep 5
 
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
-            sleep 5
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/imdb/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
+            #check_cmd "python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab &"
+            #sleep 5
+            #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"i am very sad | 0\"}], \"fetch\":[\"prediction\"]}' http://127.0.0.1:9292/imdb/prediction"
+            #http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/imdb/prediction`
+            #if [ ${http_code} -ne 200 ]; then
+            #    echo "HTTP status code -ne 200"
+            #    exit 1
+            #fi
             # test batch predict
-            check_cmd "python benchmark.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
-            setproxy # recover proxy state
-            kill_server_process
-            ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
+            #check_cmd "python benchmark.py --thread 4 --batch_size 8 --model imdb_bow_client_conf/serving_client_conf.prototxt --request http --endpoint 127.0.0.1:9292"
+            #setproxy # recover proxy state
+            #kill_server_process
+            #ps -ef | grep "text_classify_service.py" | grep -v grep | awk '{print $2}' | xargs kill
             echo "imdb CPU HTTP inference pass"
             ;;
         GPU)
@@ -459,7 +440,7 @@ function python_test_imdb() {
 function python_test_lac() {
     # pwd: /Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd lac # pwd: /Serving/python/examples/lac
     case $TYPE in
         CPU)
@@ -472,23 +453,23 @@ function python_test_lac() {
             kill_server_process
 
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python lac_web_service.py lac_model/ lac_workdir 9292 &"
-            sleep 5
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
+            #check_cmd "python lac_web_service.py lac_model/ lac_workdir 9292 &"
+            #sleep 5
+            #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
             # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/lac/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
+            #http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/lac/prediction`
+            #if [ ${http_code} -ne 200 ]; then
+            #    echo "HTTP status code -ne 200"
+            #    exit 1
+            #fi
             # http batch
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}, {\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
+            #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"words\": \"我爱北京天安门\"}, {\"words\": \"我爱北京天安门\"}], \"fetch\":[\"word_seg\"]}' http://127.0.0.1:9292/lac/prediction"
             # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}, {"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/lac/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
+            #http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}, {"words": "我爱北京天安门"}], "fetch":["word_seg"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9292/lac/prediction`
+            #if [ ${http_code} -ne 200 ]; then
+            #    echo "HTTP status code -ne 200"
+            #    exit 1
+            #fi
             setproxy # recover proxy state
             kill_server_process
             ps -ef | grep "lac_web_service" | grep -v grep | awk '{print $2}' | xargs kill
@@ -511,7 +492,7 @@ function python_test_lac() {
 function java_run_test() {
     # pwd: /Serving
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     case $TYPE in
         CPU)
@@ -570,7 +551,7 @@ function python_test_grpc_impl() {
     # pwd: /Serving/python/examples
     cd grpc_impl_example # pwd: /Serving/python/examples/grpc_impl_example
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     case $TYPE in
         CPU)
@@ -710,7 +691,7 @@ function python_test_grpc_impl() {
 function python_test_yolov4(){
     #pwd:/ Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd yolov4
     case $TYPE in
         CPU)
@@ -738,7 +719,7 @@ function python_test_yolov4(){
 function python_test_resnet50(){
     #pwd:/ Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     cd imagenet
     case $TYPE in
         CPU)
@@ -765,7 +746,7 @@ function python_test_resnet50(){
 function python_test_pipeline(){
     # pwd: /Serving/python/examples
     local TYPE=$1
-    #export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    export SERVING_BIN=${SERVING_WORKDIR}/build-server-${TYPE}/core/general-server/serving
     unsetproxy
     cd pipeline # pwd: /Serving/python/examples/pipeline
     case $TYPE in
@@ -945,14 +926,14 @@ function python_run_test() {
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
     #python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
-    #python_test_bert $TYPE # pwd: /Serving/python/examples
+    python_test_bert $TYPE # pwd: /Serving/python/examples
     #python_test_imdb $TYPE # pwd: /Serving/python/examples
-    #python_test_lac $TYPE # pwd: /Serving/python/examples
-    #python_test_multi_process $TYPE # pwd: /Serving/python/examples
-    #python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
-    #python_test_yolov4 $TYPE # pwd: /Serving/python/examples
+    python_test_lac $TYPE # pwd: /Serving/python/examples
+    python_test_multi_process $TYPE # pwd: /Serving/python/examples
+    python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     #python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
-    #python_test_resnet50 $TYPE # pwd: /Serving/python/examples
+    python_test_resnet50 $TYPE # pwd: /Serving/python/examples
     #python_test_pipeline $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
@@ -1092,10 +1073,10 @@ function monitor_test() {
 
 function main() {
     local TYPE=$1 # pwd: /
-    #init # pwd: /Serving
-    #build_client $TYPE # pwd: /Serving
-    #build_server $TYPE # pwd: /Serving
-    #build_app $TYPE # pwd: /Serving
+    init # pwd: /Serving
+    build_client $TYPE # pwd: /Serving
+    build_server $TYPE # pwd: /Serving
+    build_app $TYPE # pwd: /Serving
     #java_run_test $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     monitor_test $TYPE # pwd: /Serving

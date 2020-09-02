@@ -60,8 +60,8 @@ class DAGExecutor(object):
                 self._is_thread_op, tracer_interval_s, server_worker_num)
 
         self._dag = DAG(self.name, response_op, self._server_use_profile,
-                        self._is_thread_op, channel_size,
-                        build_dag_each_worker, self._tracer)
+                        self._is_thread_op, channel_size, build_dag_each_worker,
+                        self._tracer)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
@@ -568,11 +568,9 @@ class DAG(object):
             op.use_profiler(self._use_profile)
             op.set_tracer(self._tracer)
             if self._is_thread_op:
-                self._threads_or_proces.extend(
-                    op.start_with_thread())
+                self._threads_or_proces.extend(op.start_with_thread())
             else:
-                self._threads_or_proces.extend(
-                    op.start_with_process())
+                self._threads_or_proces.extend(op.start_with_process())
         _LOGGER.info("[DAG] start")
 
         # not join yet

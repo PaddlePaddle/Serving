@@ -150,5 +150,6 @@ class Debugger(object):
         for i, name in enumerate(fetch):
             fetch_map[name] = outputs[i]
             if len(output_tensors[i].lod()) > 0:
-                fetch_map[name + ".lod"] = np.array(output_tensors[i].lod()[0]).astype('int32')
+                fetch_map[name + ".lod"] = np.array(output_tensors[i].lod()[
+                    0]).astype('int32')
         return fetch_map

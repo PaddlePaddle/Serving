@@ -143,7 +143,8 @@ class LocalPredictorServiceHandler(LocalRpcServiceHandler):
         else:
             gpu = True
         self.predictor = Debugger()
-        self.predictor.load_model_config(model_path=self._model_config, gpu=gpu, profile=False, cpu_num=1)
+        self.predictor.load_model_config(
+            model_path=self._model_config, gpu=gpu, profile=False, cpu_num=1)
 
     def get_client(self):
         if self.predictor is None:

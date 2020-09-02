@@ -141,10 +141,11 @@ int PredictorClient::numpy_predict(
     const std::vector<std::vector<py::array_t<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
     const std::vector<std::vector<int>> &float_shape,
+    const std::vector<std::vector<int>> &float_lod_slot_batch,
     const std::vector<std::vector<py::array_t<int64_t>>> &int_feed_batch,
     const std::vector<std::string> &int_feed_name,
     const std::vector<std::vector<int>> &int_shape,
-    const std::vector<std::vector<int>> &lod_slot_batch,
+    const std::vector<std::vector<int>> &int_lod_slot_batch,
     const std::vector<std::string> &fetch_name,
     PredictorRes &predict_res_batch,
     const int &pid,
@@ -198,11 +199,13 @@ int PredictorClient::numpy_predict(
               << float_shape[vec_idx].size();
       for (uint32_t j = 0; j < float_shape[vec_idx].size(); ++j) {
         tensor->add_shape(float_shape[vec_idx][j]);
-        std::cout << "shape " << j << " : " << float_shape[vec_idx][j]
+        std::cout << "float shape " << j << " : " << float_shape[vec_idx][j]
                   << std::endl;
       }
-      for (uint32_t j = 0; j < lod_slot_batch[vec_idx].size(); ++j) {
-        tensor->add_lod(lod_slot_batch[vec_idx][j]);
+      for (uint32_t j = 0; j < float_lod_slot_batch[vec_idx].size(); ++j) {
+        tensor->add_lod(float_lod_slot_batch[vec_idx][j]);
+        std::cout << "float lod: " << vec_idx << " " << j
+                  << " value:" << float_lod_slot_batch[vec_idx][j] << std::endl;
       }
       tensor->set_elem_type(1);
       const int float_shape_size = float_shape[vec_idx].size();
@@ -261,6 +264,13 @@ int PredictorClient::numpy_predict(
 
       for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
         tensor->add_shape(int_shape[vec_idx][j]);
+        std::cout << "int shape " << j << " : " << int_shape[vec_idx][j]
+                  << std::endl;
+      }
+      for (uint32_t j = 0; j < int_lod_slot_batch[vec_idx].size(); ++j) {
+        tensor->add_lod(int_lod_slot_batch[vec_idx][j]);
+        std::cout << "int lod: " << vec_idx << " " << j
+                  << " value:" << int_lod_slot_batch[vec_idx][j] << std::endl;
       }
       tensor->set_elem_type(_type[idx]);
 

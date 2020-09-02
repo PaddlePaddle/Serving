@@ -53,8 +53,8 @@ class DetOp(Op):
         det_img = self.det_preprocess(self.im)
         _, self.new_h, self.new_w = det_img.shape
         with open("in.npy", 'wb') as f:
-            np.save(f, det_img[np.newaxis,:])
-        return {"image": det_img[np.newaxis,:].copy()}
+            np.save(f, det_img[np.newaxis, :])
+        return {"image": det_img[np.newaxis, :].copy()}
 
     def postprocess(self, input_dicts, fetch_dict):
         det_out = fetch_dict["concat_1.tmp_0"]

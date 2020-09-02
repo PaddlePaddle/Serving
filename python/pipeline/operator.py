@@ -152,7 +152,8 @@ class Op(object):
                                 self._client_config = service_handler.get_client_config(
                                 )
                             if self._fetch_names is None:
-                                self._fetch_names = service_handler.get_fetch_list()
+                                self._fetch_names = service_handler.get_fetch_list(
+                                )
                         elif self.client_type == "local_predictor":
                             service_handler = local_rpc_service_handler.LocalPredictorServiceHandler(
                                 model_config=model_config,
@@ -165,7 +166,8 @@ class Op(object):
                                 self._client_config = service_handler.get_client_config(
                                 )
                             if self._fetch_names is None:
-                                self._fetch_names = service_handler.get_fetch_list()
+                                self._fetch_names = service_handler.get_fetch_list(
+                                )
                         self._local_rpc_service_handler = service_handler
                 else:
                     self.with_serving = True
@@ -230,8 +232,7 @@ class Op(object):
     def set_tracer(self, tracer):
         self._tracer = tracer
 
-    def init_client(self, client_config, server_endpoints,
-                    fetch_names):
+    def init_client(self, client_config, server_endpoints, fetch_names):
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
                          "run the process function)".format(self.name))
@@ -319,7 +320,10 @@ class Op(object):
                           "preprocess func.".format(err_info)))
             os._exit(-1)
         if self.client_type == "local_predictor":
-            call_result = self.client.predict(feed=feed_batch[0], fetch=self._fetch_names, log_id=typical_logid)
+            call_result = self.client.predict(
+                feed=feed_batch[0],
+                fetch=self._fetch_names,
+                log_id=typical_logid)
         else:
             call_result = self.client.predict(
                 feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
@@ -374,13 +378,12 @@ class Op(object):
         trace_buffer = None
         if self._tracer is not None:
             trace_buffer = self._tracer.data_buffer()
-        process= []
+        process = []
         for concurrency_idx in range(self.concurrency):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), False,
-                      trace_buffer))
+                      self._get_output_channels(), False, trace_buffer))
             p.daemon = True
             p.start()
             process.append(p)
@@ -395,8 +398,7 @@ class Op(object):
             t = threading.Thread(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), True,
-                      trace_buffer))
+                      self._get_output_channels(), True, trace_buffer))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -683,8 +685,7 @@ class Op(object):
         # init op
         profiler = None
         try:
-            profiler = self._initialize(is_thread_op,
-                                        concurrency_idx)
+            profiler = self._initialize(is_thread_op, concurrency_idx)
         except Exception as e:
             _LOGGER.critical(
                 "{} Failed to init op: {}".format(op_info_prefix, e),
@@ -831,9 +832,9 @@ class Op(object):
                     # for the threaded version of Op, each thread cannot get its concurrency_idx
                     self.concurrency_idx = None
                     # init client
-                    self.client = self.init_client(
-                        self._client_config,
-                        self._server_endpoints, self._fetch_names)
+                    self.client = self.init_client(self._client_config,
+                                                   self._server_endpoints,
+                                                   self._fetch_names)
                     # user defined
                     self.init_op()
                     self._succ_init_op = True
@@ -841,9 +842,8 @@ class Op(object):
         else:
             self.concurrency_idx = concurrency_idx
             # init client
-            self.client = self.init_client(self._client_config,
-                                           self._server_endpoints,
-                                           self._fetch_names)
+            self.client = self.init_client(
+                self._client_config, self._server_endpoints, self._fetch_names)
             # user defined
             self.init_op()
 

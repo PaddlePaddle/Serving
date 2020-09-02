@@ -29,6 +29,11 @@ class IMDBService(WebService):
         res_feed = [{
             "words": self.dataset.get_words_only(ins["words"])
         } for ins in feed]
+
+        feed = {
+            "words": np.array(word_ids).reshape(word_len, 1),
+            "words.lod": [0, word_len]
+        }
         return res_feed, fetch
 
 

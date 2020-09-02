@@ -36,4 +36,4 @@ for img_file in os.listdir(test_img_dir):
     print(js)
     break
     if "error_info" in js:
-        print("receive error exit") 
+        print("receive error exit")
