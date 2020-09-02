@@ -44,7 +44,7 @@ RUN yum -y update >/dev/null \
     && echo 'export PATH=/opt/llvm-3.8.0/bin:$PATH' >> /root/.bashrc
 
 RUN yum install -y java \
-    && wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo \
+    && wget --no-check-certificate http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo \
     && yum install -y apache-maven
 
 RUN yum install -y lsof
