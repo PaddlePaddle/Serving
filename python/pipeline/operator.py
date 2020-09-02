@@ -323,10 +323,14 @@ class Op(object):
             call_result = self.client.predict(
                 feed=feed_batch[0],
                 fetch=self._fetch_names,
+                batch=True,
                 log_id=typical_logid)
         else:
             call_result = self.client.predict(
-                feed=feed_batch, fetch=self._fetch_names, log_id=typical_logid)
+                feed=feed_batch,
+                fetch=self._fetch_names,
+                batch=True,
+                log_id=typical_logid)
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
