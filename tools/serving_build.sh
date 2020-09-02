@@ -521,7 +521,7 @@ function python_test_encryption(){
             #sleep 5
             check_cmd "python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model > /dev/null &"
             sleep 5
-            check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt"
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
             kill_server_process
             ;;
         GPU)
@@ -529,7 +529,7 @@ function python_test_encryption(){
             #sleep 5
             check_cmd "python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0"
             sleep 5
-            check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt"
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
             kill_servere_process
             ;;
         *)
