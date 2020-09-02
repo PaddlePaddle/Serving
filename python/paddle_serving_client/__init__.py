@@ -301,9 +301,7 @@ class Client(object):
                         if batch == False:
                             feed_i[key] = feed_i[key][np.newaxis, :]
                         if isinstance(feed_i[key], np.ndarray):
-                            print("feed_i_key shape", feed_i[key].shape)
                             shape_lst.extend(list(feed_i[key].shape))
-                            print("shape list", shape_lst)
                             int_shape.append(shape_lst)
                         else:
                             int_shape.append(self.feed_shapes_[key])
@@ -327,9 +325,7 @@ class Client(object):
                         if batch == False:
                             feed_i[key] = feed_i[key][np.newaxis, :]
                         if isinstance(feed_i[key], np.ndarray):
-                            print("feed_i_key shape", feed_i[key].shape)
                             shape_lst.extend(list(feed_i[key].shape))
-                            print("shape list", shape_lst)
                             float_shape.append(shape_lst)
                         else:
                             float_shape.append(self.feed_shapes_[key])
