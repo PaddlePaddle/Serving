@@ -984,7 +984,7 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
-    python_test_encryption $TYPE # pwd: /Serving/python/examples
+    #python_test_encryption $TYPE # pwd: /Serving/python/examples
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     python_test_resnet50 $TYPE # pwd: /Serving/python/examples
