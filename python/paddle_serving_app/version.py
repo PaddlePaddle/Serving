@@ -13,3 +13,4 @@
 # limitations under the License.
 """ Paddle Serving App version string """
 serving_app_version = "0.1.2"
+commit_id = ""

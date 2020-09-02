@@ -15,3 +15,4 @@
 serving_client_version = "0.3.2"
 serving_server_version = "0.3.2"
 module_proto_version = "0.3.2"
+commit_id = ""
