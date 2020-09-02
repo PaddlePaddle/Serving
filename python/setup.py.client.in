@@ -50,7 +50,7 @@ if '${PACK}' == 'ON':
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio >= 1.28.1',
-    'grpcio-tools >= 1.28.1'
+    'grpcio-tools >= 1.28.1', 'requests'
 ]
 
 if not util.find_package("paddlepaddle") and not util.find_package("paddlepaddle-gpu"):
