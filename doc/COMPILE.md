@@ -61,6 +61,25 @@ pip install -r python/requirements.txt
 
 If Python3 is used, replace `pip` with `pip3`.
 
+## GOPATH Setting
+
+
+## Compile Arguments
+
+The default GOPATH is `$HOME/go`, which you can set to other values.
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+```
+
+## Get go packages
+
+```shell
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/grpc
+```
 
 
 ## Compile Server
@@ -69,7 +88,10 @@ If Python3 is used, replace `pip` with `pip3`.
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON ..
 make -j10
 ```
 
@@ -79,7 +101,11 @@ you can execute `make install` to put targets under directory `./output`, you ne
 
 ``` shell
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON \
+      -DWITH_GPU=ON ..
 make -j10
 ```
 
@@ -93,7 +119,10 @@ execute `make install` to put targets under directory `./output`
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DCLIENT=ON ..
 make -j10
 ```
 
