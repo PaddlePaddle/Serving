@@ -23,7 +23,8 @@ RUN wget https://dl.google.com/go/go1.14.linux-amd64.tar.gz >/dev/null \
 RUN yum -y install python-devel sqlite-devel >/dev/null \
     && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py >/dev/null \
     && python get-pip.py >/dev/null \
-    && rm get-pip.py
+    && rm get-pip.py \
+    && pip install requests  
 
 RUN wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2 \
     && yum -y install bzip2 >/dev/null \
@@ -34,7 +35,8 @@ RUN wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2 
     && cd .. \
     && rm -rf patchelf-0.10*
 
-RUN yum install -y python3 python3-devel
+RUN yum install -y python3 python3-devel \
+    && pip3 install requests
 
 RUN yum -y update >/dev/null \
     && yum -y install dnf >/dev/null \
