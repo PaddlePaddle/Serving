@@ -27,7 +27,7 @@ postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
 
 client.load_client_config(sys.argv[1])
-client.connect(['127.0.0.1:9494'])
+client.connect([':8870'])
 
 im = preprocess(sys.argv[3])
 fetch_map = client.predict(

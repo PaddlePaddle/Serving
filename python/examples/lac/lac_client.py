@@ -22,8 +22,8 @@ import io
 import numpy as np
 
 client = Client()
-client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9292"])
+client.connect([':8868'])
+client.connect([':8868'])
 
 reader = LACReader()
 for line in sys.stdin:

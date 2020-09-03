@@ -14,7 +14,7 @@
 import sys
 from paddle_serving_client import Client
 from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize
-
+import numpy as np
 if len(sys.argv) != 4:
     print("python resnet50_web_service.py model device port")
     sys.exit(-1)
@@ -47,7 +47,7 @@ class ImageService(WebService):
             if "image" not in ins:
                 raise ("feed data error!")
             img = self.seq(ins["image"])
-            feed_batch.append({"image": img})
+            feed_batch.append({"image": img[np.newaxis, :]})
         return feed_batch, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map={}):
