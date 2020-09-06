@@ -76,9 +76,7 @@ class Debugger(object):
         config.switch_use_feed_fetch_ops(False)
         self.predictor = create_paddle_predictor(config)
 
-    def predict(self, feed=None, fetch=None, log_id=0):
-        print("feed", feed)
-        print("fetch", fetch)
+    def predict(self, feed=None, fetch=None, batch=False, log_id=0):
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
         fetch_list = []
