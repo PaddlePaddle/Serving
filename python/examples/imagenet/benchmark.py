@@ -90,6 +90,7 @@ def single_func(idx, resource):
                 image = base64.b64encode(
                     open("./image_data/n01440764/" + file_list[i]).read())
             else:
+                image_path = "./image_data/n01440764/" + file_list[i]
                 image = base64.b64encode(open(image_path, "rb").read()).decode(
                     "utf-8")
             req = json.dumps({"feed": [{"image": image}], "fetch": ["score"]})
