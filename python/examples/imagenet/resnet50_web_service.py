@@ -13,7 +13,7 @@
 # limitations under the License.
 import sys
 from paddle_serving_client import Client
-from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize
+from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize, Base64ToImage
 
 if len(sys.argv) != 4:
     print("python resnet50_web_service.py model device port")
@@ -30,7 +30,7 @@ else:
 class ImageService(WebService):
     def init_imagenet_setting(self):
         self.seq = Sequential([
-            URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose(
+            Base64ToImage(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose(
                 (2, 0, 1)), Div(255), Normalize([0.485, 0.456, 0.406],
                                                 [0.229, 0.224, 0.225], True)
         ])

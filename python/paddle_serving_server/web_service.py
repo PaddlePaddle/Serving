@@ -96,7 +96,7 @@ class WebService(object):
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
         except ValueError as err:
-            result = {"result": err}
+            result = {"result": str(err)}
         return result
 
     def run_rpc_service(self):

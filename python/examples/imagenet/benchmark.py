@@ -90,6 +90,7 @@ def single_func(idx, resource):
                 image = base64.b64encode(
                     open("./image_data/n01440764/" + file_list[i]).read())
             else:
+                image_path = "./image_data/n01440764/" + file_list[i]
                 image = base64.b64encode(open(image_path, "rb").read()).decode(
                     "utf-8")
             req = json.dumps({"feed": [{"image": image}], "fetch": ["score"]})
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     endpoint_list = [
         "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
     ]
-    turns = 100
+    turns = 1
     start = time.time()
     result = multi_thread_runner.run(
         single_func, args.thread, {"endpoint": endpoint_list,
