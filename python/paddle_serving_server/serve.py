@@ -40,15 +40,34 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
-        "--mem_optim", type=bool, default=False, help="Memory optimize")
+        "--mem_optim_off",
+        default=False,
+        action="store_true",
+        help="Memory optimize")
     parser.add_argument(
-        "--ir_optim", type=bool, default=False, help="Graph optimize")
-    parser.add_argument("--use_mkl", type=bool, default=False, help="Use MKL")
+        "--ir_optim", default=False, action="store_true", help="Graph optimize")
+    parser.add_argument(
+        "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
         "--max_body_size",
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -59,10 +78,11 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     port = args.port
     workdir = args.workdir
     device = args.device
-    mem_optim = args.mem_optim
+    mem_optim = args.mem_optim_off is False
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_mkl = args.use_mkl
+    use_multilang = args.use_multilang
 
     if model == "":
         print("You must specify your serving model")
@@ -79,7 +99,11 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     op_seq_maker.add_op(general_infer_op)
     op_seq_maker.add_op(general_response_op)
 
-    server = serving.Server()
+    server = None
+    if use_multilang:
+        server = serving.MultiLangServer()
+    else:
+        server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
@@ -87,6 +111,10 @@ def start_standard_model():  # pylint: disable=doc-string-missing
     server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
+    if args.product_name != None:
+        server.set_product_name(args.product_name)
+    if args.container_id != None:
+        server.set_container_id(args.container_id)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)

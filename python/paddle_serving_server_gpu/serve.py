@@ -34,9 +34,10 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
         port = args.port + index
     thread_num = args.thread
     model = args.model
-    mem_optim = args.mem_optim
+    mem_optim = args.mem_optim_off is False
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
+    use_multilang = args.use_multilang
     workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
@@ -54,12 +55,20 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
     op_seq_maker.add_op(general_infer_op)
     op_seq_maker.add_op(general_response_op)
 
-    server = serving.Server()
+    if use_multilang:
+        server = serving.MultiLangServer()
+    else:
+        server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
+
+    if args.product_name != None:
+        server.set_product_name(args.product_name)
+    if args.container_id != None:
+        server.set_container_id(args.container_id)
 
     server.load_model_config(model)
     server.prepare_server(workdir=workdir, port=port, device=device)
@@ -79,8 +88,8 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
             for ids in gpus:
                 if int(ids) >= len(env_gpus):
                     print(
-                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}.".
-                        format(len(env_gpus)))
+                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}."
+                        .format(len(env_gpus)))
                     exit(-1)
         else:
             env_gpus = []

@@ -27,7 +27,8 @@ preprocess = Sequential(
 
 postprocess = SegPostprocess(2)
 
-im = preprocess("N0060.jpg")
+filename = "N0060.jpg"
+im = preprocess(filename)
 fetch_map = client.predict(feed={"image": im}, fetch=["output"])
 fetch_map["filename"] = filename
 postprocess(fetch_map)

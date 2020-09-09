@@ -280,25 +280,29 @@ class PdsCodeGenerator : public CodeGenerator {
             "  baidu::rpc::ClosureGuard done_guard(done);\n"
             "  baidu::rpc::Controller* cntl = \n"
             "        static_cast<baidu::rpc::Controller*>(cntl_base);\n"
+            "  uint64_t log_id = request->log_id();\n"
+            "  cntl->set_log_id(log_id);\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
             ").item(\"$service$\");\n"
             "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"Not found service: $service$\";\n"
+            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
+            "$service$\";\n"
             "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
             "    return ;\n"
             "  }\n"
-            "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
-            "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"  // NOLINT
-            "  int err_code = svr->inference(request, response);\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") remote_side=\[\" "  // NOLINT
+            "<< cntl->remote_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") local_side=\[\" "  // NOLINT
+            "<< cntl->local_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") service_name=\[\" "  // NOLINT
+            "<< \"$name$\" << \"\]\";\n"
+            "  int err_code = svr->inference(request, response, log_id);\n"
             "  if (err_code != 0) {\n"
             "    LOG(WARNING)\n"
-            "        << \"Failed call inferservice[$name$], name[$service$]\"\n"
+            "        << \"(logid=\" << log_id << \") Failed call "
+            "inferservice[$name$], name[$service$]\"\n"
             "        << \", error_code: \" << err_code;\n"
             "    cntl->SetFailed(err_code, \"InferService inference "
             "failed!\");\n"
@@ -306,7 +310,8 @@ class PdsCodeGenerator : public CodeGenerator {
             "  gettimeofday(&tv, NULL);\n"
             "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
             "  // flush notice log\n"
-            "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n",  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
+            "start) << \"\]\";\n",  // NOLINT
             "name",
             class_name,
             "service",
@@ -317,26 +322,31 @@ class PdsCodeGenerator : public CodeGenerator {
             "  baidu::rpc::ClosureGuard done_guard(done);\n"
             "  baidu::rpc::Controller* cntl = \n"
             "        static_cast<baidu::rpc::Controller*>(cntl_base);\n"
+            "  uint64_t log_id = equest->log_id();\n"
+            "  cntl->set_log_id(log_id);\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
             ").item(\"$service$\");\n"
             "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"Not found service: $service$\";\n"
+            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
+            "$service$\";\n"
             "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
             "    return ;\n"
             "  }\n"
-            "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
-            "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") remote_side=\[\" "  // NOLINT
+            "<< cntl->remote_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") local_side=\[\" "  // NOLINT
+            "<< cntl->local_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") service_name=\[\" "  // NOLINT
+            "<< \"$name$\" << \"\]\";\n"
             "  butil::IOBufBuilder debug_os;\n"
-            "  int err_code = svr->inference(request, response, &debug_os);\n"
+            "  int err_code = svr->inference(request, response, log_id, "
+            "&debug_os);\n"
             "  if (err_code != 0) {\n"
             "    LOG(WARNING)\n"
-            "        << \"Failed call inferservice[$name$], name[$service$]\"\n"
+            "        << \"(logid=\" << log_id << \") Failed call "
+            "inferservice[$name$], name[$service$]\"\n"
             "        << \", error_code: \" << err_code;\n"
             "    cntl->SetFailed(err_code, \"InferService inference "
             "failed!\");\n"
@@ -345,9 +355,11 @@ class PdsCodeGenerator : public CodeGenerator {
             "  gettimeofday(&tv, NULL);\n"
             "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
             "  // flush notice log\n"
-            "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n"  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
+            "start) << \"\]\";\n"
             "  LOG(INFO)\n"
-            "      << \"TC=[\" << (end - start) << \"] Received debug "
+            "      << \"(logid=\" << log_id << \") TC=[\" << (end - start) << "
+            "\"] Received debug "
             "request[log_id=\" << cntl->log_id()\n"
             "      << \"] from \" << cntl->remote_side()\n"
             "      << \" to \" << cntl->local_side();\n",
@@ -1011,25 +1023,31 @@ class PdsCodeGenerator : public CodeGenerator {
             "  brpc::ClosureGuard done_guard(done);\n"
             "  brpc::Controller* cntl = \n"
             "        static_cast<brpc::Controller*>(cntl_base);\n"
+            "  uint64_t log_id = request->log_id();\n"
+            "  cntl->set_log_id(log_id);\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
             ").item(\"$service$\");\n"
             "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"Not found service: $service$\";\n"
+            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
+            "$service$\";\n"
             "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
             "    return ;\n"
             "  }\n"
-            "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << "  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") "
+            "remote_side=\[\" << cntl->remote_side() << "  // NOLINT
             "\"\]\";\n"
-            "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << "  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") "
+            "local_side=\[\" << cntl->local_side() << "  // NOLINT
             "\"\]\";\n"
-            "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
-            "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"  // NOLINT
-            "  int err_code = svr->inference(request, response);\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") "
+            "service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
+            "  int err_code = svr->inference(request, response, log_id);\n"
             "  if (err_code != 0) {\n"
             "    LOG(WARNING)\n"
-            "        << \"Failed call inferservice[$name$], name[$service$]\"\n"
+            "        << \"(logid=\" << log_id << \") Failed call "
+            "inferservice[$name$], name[$service$]\"\n"
             "        << \", error_code: \" << err_code;\n"
             "    cntl->SetFailed(err_code, \"InferService inference "
             "failed!\");\n"
@@ -1037,7 +1055,8 @@ class PdsCodeGenerator : public CodeGenerator {
             "  gettimeofday(&tv, NULL);\n"
             "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
             "  // flush notice log\n"
-            "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n",  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
+            "start) << \"\]\";\n",  // NOLINT
             "name",
             class_name,
             "service",
@@ -1048,26 +1067,31 @@ class PdsCodeGenerator : public CodeGenerator {
             "  brpc::ClosureGuard done_guard(done);\n"
             "  brpc::Controller* cntl = \n"
             "        static_cast<brpc::Controller*>(cntl_base);\n"
+            "  uint64_t log_id = request->log_id();\n"
+            "  cntl->set_log_id(log_id);\n"
             "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
             "       "
             "::baidu::paddle_serving::predictor::InferServiceManager::instance("
             ").item(\"$service$\");\n"
             "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"Not found service: $service$\";\n"
+            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
+            "$service$\";\n"
             "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
             "    return ;\n"
             "  }\n"
-            "  LOG(INFO) << \" remote_side=\[\" << cntl->remote_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" local_side=\[\" << cntl->local_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \" service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
-            "  LOG(INFO) << \" log_id=\[\" << cntl->log_id() << \"\]\";\n"  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") remote_side=\[\" "  // NOLINT
+            " << cntl->remote_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") local_side=\[\" "  // NOLINT
+            "<< cntl->local_side() << \"\]\";\n"
+            "  LOG(INFO) << \"(logid=\" << log_id << \") service_name=\[\" "  // NOLINT
+            "<< \"$name$\" << \"\]\";\n"
             "  butil::IOBufBuilder debug_os;\n"
-            "  int err_code = svr->inference(request, response, &debug_os);\n"
+            "  int err_code = svr->inference(request, response, log_id, "
+            "&debug_os);\n"
             "  if (err_code != 0) {\n"
             "    LOG(WARNING)\n"
-            "        << \"Failed call inferservice[$name$], name[$service$]\"\n"
+            "        << \"(logid=\" << log_id << \") Failed call "
+            "inferservice[$name$], name[$service$]\"\n"
             "        << \", error_code: \" << err_code;\n"
             "    cntl->SetFailed(err_code, \"InferService inference "
             "failed!\");\n"
@@ -1076,9 +1100,11 @@ class PdsCodeGenerator : public CodeGenerator {
             "  gettimeofday(&tv, NULL);\n"
             "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
             "  // flush notice log\n"
-            "  LOG(INFO) << \" tc=\[\" << (end - start) << \"\]\";\n"  // NOLINT
+            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
+            "start) << \"\]\";\n"  // NOLINT
             "  LOG(INFO)\n"
-            "      << \"TC=[\" << (end - start) << \"] Received debug "
+            "      << \"(logid=\" << log_id << \") TC=[\" << (end - start) << "
+            "\"] Received debug "
             "request[log_id=\" << cntl->log_id()\n"
             "      << \"] from \" << cntl->remote_side()\n"
             "      << \" to \" << cntl->local_side();\n",

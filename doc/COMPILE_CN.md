@@ -4,23 +4,33 @@
 
 ## 编译环境设置
 
-- OS: CentOS 7
-- GCC: 4.8.2及以上
-- Golang: 1.9.2及以上
-- Git：2.17.1及以上
-- CMake：3.2.2及以上
-- Python：2.7.2及以上 / 3.6及以上
+|             组件             |             版本要求              |
+| :--------------------------: | :-------------------------------: |
+|              OS              |             CentOS 7              |
+|             gcc              |          4.8.5 and later          |
+|           gcc-c++            |          4.8.5 and later          |
+|             git              |          3.82 and later           |
+|            cmake             |          3.2.0 and later          |
+|            Python            |  2.7.2 and later / 3.6 and later  |
+|              Go              |          1.9.2 and later          |
+|             git              |         2.17.1 and later          |
+|         glibc-static         |               2.17                |
+|        openssl-devel         |              1.0.2k               |
+|         bzip2-devel          |          1.0.6 and later          |
+| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+|         sqlite-devel         |         3.7.17 and later          |
+|           patchelf           |                0.9                |
+|           libXext            |               1.3.3               |
+|            libSM             |               1.2.2               |
+|          libXrender          |              0.9.10               |
 
-推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境：
-
-- CPU: `hub.baidubce.com/paddlepaddle/serving:latest-devel`，dockerfile: [Dockerfile.devel](../tools/Dockerfile.devel)
-- GPU: `hub.baidubce.com/paddlepaddle/serving:latest-gpu-devel`，dockerfile: [Dockerfile.gpu.devel](../tools/Dockerfile.gpu.devel)
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境，详见[该文档](DOCKER_IMAGES_CN.md)。
 
 本文档将以Python2为例介绍如何编译Paddle Serving。如果您想用Python3进行编译，只需要调整cmake的Python相关选项即可：
 
 - 将`DPYTHON_INCLUDE_DIR`设置为`$PYTHONROOT/include/python3.6m/`
 - 将`DPYTHON_LIBRARIES`设置为`$PYTHONROOT/lib64/libpython3.6.so`
-- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3`
+- 将`DPYTHON_EXECUTABLE`设置为`$PYTHONROOT/bin/python3.6`
 
 ## 获取代码
 
@@ -29,6 +39,9 @@ git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
+
+
+
 ## PYTHONROOT设置
 
 ```shell
@@ -36,12 +49,42 @@ cd Serving && git submodule update --init --recursive
 export PYTHONROOT=/usr/
 ```
 
+我们提供默认Centos7的Python路径为`/usr/bin/python`，如果您要使用我们的Centos6镜像，需要将其设置为`export PYTHONROOT=/usr/local/python2.7/`。
+
+
+
+## 安装Python依赖
+
+```shell
+pip install -r python/requirements.txt
+```
+
+如果使用 Python3，请以 `pip3` 替换 `pip`。
+
+## GOPATH 设置
+
+默认 GOPATH 设置为 `$HOME/go`，您也可以设置为其他值。
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+```
+
+## 获取 Go packages
+
+```shell
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/grpc
+```
+
+
 ## 编译Server部分
 
 ### 集成CPU版本Paddle Inference Library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-cpu && cd server-build-cpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
 make -j10
 ```
@@ -51,7 +94,7 @@ make -j10
 ### 集成GPU版本Paddle Inference Library
 
 ``` shell
-mkdir build && cd build
+mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
 make -j10
 ```
@@ -60,31 +103,47 @@ make -j10
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
+
+
 ## 编译Client部分
 
 ``` shell
-mkdir build && cd build
+mkdir client-build && cd client-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
 make -j10
 ```
 
 执行`make install`可以把目标产出放在`./output`目录下。
 
+
+
 ## 编译App部分
 
 ```bash
-mkdir build && cd build
+mkdir app-build && cd app-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
 make
 ```
 
+
+
 ## 安装wheel包
 
-无论是Client端，Server端还是App部分，编译完成后，安装`python/dist/`下的whl包即可。
+无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
+
+
 
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+
+
+
+## 如何验证
+
+请使用 `python/examples` 下的例子进行验证。
+
+
 
 ## CMake选项说明
 

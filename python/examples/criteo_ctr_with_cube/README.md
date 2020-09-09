@@ -27,7 +27,7 @@ mv cube_app/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-Here, the sparse parameter is loaded by cube sparse parameter indexing service Cube，for more details please read [Cube: Sparse Parameter Indexing Service (Local Mode)](../../../doc/CUBE_LOCAL.md)
+Here, the sparse parameter is loaded by cube sparse parameter indexing service Cube.
 
 ### Start RPC Predictor, the number of serving thread is 4（configurable in test_server.py）
 
@@ -45,7 +45,7 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 CPU ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
 
-Model ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
+Model ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/criteo_ctr_with_cube/network_conf.py)
 
 server core/thread num ： 4/8
 

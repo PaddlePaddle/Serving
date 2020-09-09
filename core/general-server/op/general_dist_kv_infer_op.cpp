@@ -50,18 +50,20 @@ int GeneralDistKVInferOp::inference() {
   const std::string pre_name = pre_node_names[0];
 
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
-  VLOG(2) << "Get precedent op name: " << pre_name;
+  uint64_t log_id = input_blob->GetLogId();
+  VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
 
   if (!input_blob) {
-    LOG(ERROR) << "Failed mutable depended argument, op:" << pre_name;
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed mutable depended argument, op:" << pre_name;
     return -1;
   }
 
   const TensorVector *in = &input_blob->tensor_vector;
   TensorVector *out = &output_blob->tensor_vector;
   int batch_size = input_blob->GetBatchSize();
-  VLOG(2) << "input batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
   std::vector<uint64_t> keys;
   std::vector<rec::mcube::CubeValue> values;
   int sparse_count = 0;
@@ -90,16 +92,20 @@ int GeneralDistKVInferOp::inference() {
               keys.begin() + key_idx);
     key_idx += dataptr_size_pairs[i].second;
   }
+  Timer timeline;
+  int64_t cube_start = timeline.TimeStampUS();
+  timeline.Start();
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   std::vector<std::string> table_names = cube->get_table_names();
   if (table_names.size() == 0) {
-    LOG(ERROR) << "cube init error or cube config not given.";
+    LOG(ERROR) << "(logid=" << log_id
+               << ") cube init error or cube config not given.";
     return -1;
   }
   int ret = cube->seek(table_names[0], keys, &values);
-
+  int64_t cube_end = timeline.TimeStampUS();
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
-    LOG(ERROR) << "cube value return null";
+    LOG(ERROR) << "(logid=" << log_id << ") cube value return null";
   }
   size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
   TensorVector sparse_out;
@@ -150,21 +156,23 @@ int GeneralDistKVInferOp::inference() {
   infer_in.insert(infer_in.end(), sparse_out.begin(), sparse_out.end());
 
   output_blob->SetBatchSize(batch_size);
+  output_blob->SetLogId(log_id);
 
-  VLOG(2) << "infer batch size: " << batch_size;
+  VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
-  Timer timeline;
   int64_t start = timeline.TimeStampUS();
-  timeline.Start();
 
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed do infer in fluid model: " << engine_name();
     return -1;
   }
 
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
+  AddBlobInfo(output_blob, cube_start);
+  AddBlobInfo(output_blob, cube_end);
   AddBlobInfo(output_blob, start);
   AddBlobInfo(output_blob, end);
   return 0;
