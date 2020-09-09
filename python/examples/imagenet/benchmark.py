@@ -107,7 +107,7 @@ if __name__ == '__main__':
     endpoint_list = [
         "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
     ]
-    turns = 1
+    turns = 100
     start = time.time()
     result = multi_thread_runner.run(
         single_func, args.thread, {"endpoint": endpoint_list,
