@@ -317,7 +317,7 @@ class RCNNPostprocess(object):
                             self.clip_bbox([xmin, ymin, xmax, ymax])
                         w = xmax - xmin
                         h = ymax - ymin
-                        im_shape = t['im_shape'][0][i].tolist()
+                        im_shape = t['im_shape'].tolist()
                         im_height, im_width = int(im_shape[0]), int(im_shape[1])
                         xmin *= im_width
                         ymin *= im_height
