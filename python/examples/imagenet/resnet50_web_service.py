@@ -30,7 +30,7 @@ else:
 class ImageService(WebService):
     def init_imagenet_setting(self):
         self.seq = Sequential([
-            Base64ToImage(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose(
+            URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose(
                 (2, 0, 1)), Div(255), Normalize([0.485, 0.456, 0.406],
                                                 [0.229, 0.224, 0.225], True)
         ])
