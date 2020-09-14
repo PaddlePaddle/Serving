@@ -420,7 +420,7 @@ class RCNNPostprocess(object):
         for key in image_with_bbox:
             if key == "image":
                 continue
-            if ".lod" in key:
+            if ".lod" in key or "im_shape" in key:
                 continue
             fetch_name = key
         bbox_result = self._get_bbox_result(image_with_bbox, fetch_name,
