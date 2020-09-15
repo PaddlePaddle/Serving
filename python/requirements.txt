@@ -1,5 +1,6 @@
 numpy>=1.12, <=1.16.4 ; python_version<"3.5"
 google>=2.0.3
+opencv-python==4.2.0.32
 protobuf>=3.12.2
 grpcio-tools>=1.28.1
 grpcio>=1.28.1

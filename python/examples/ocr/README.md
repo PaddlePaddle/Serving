@@ -63,7 +63,7 @@ Dataset: RCTW 500 sample images
 | Serving web service          | 8.69         | 13.41                      | 109.97           | 2.82               | 87.76            | 4.29               | 3.98               | 78.51            | 3.66               | 4.12                     | 181.02             | 136.49       | 317.51        |
 | Serving Debugger web service |  8.73        | 16.42                      | 115.27           | 2.93               | 20.63            | 3.97               | 4.48               | 13.84            | 3.60               | 6.91                     | 49.45              | 147.33       | 196.78        |
 
-## Appendix: Det or Rec only
+## Appendix: For Users who want to launch Det or Rec only
 if you are going to detect images not recognize it or directly recognize the words from images. We also provide Det and Rec server for you.
 
 ### Det Server 
