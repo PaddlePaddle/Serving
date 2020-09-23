@@ -29,3 +29,11 @@
 - Q: 执行GPU预测时遇到Error: Failed to find dynamic library: libcublas.so
 
   A: 将cuda的lib64路径添加到LD_LIBRARY_PATH, post9版本的Paddle Serving使用的是cuda 9.0，post10版本使用的cuda 10.0。
+
+- Q: 部署和预测中的日志信息在哪里查看？
+
+- A: server端的日志分为两部分，一部分打印到标准输出，一部分打印到启动服务时的目录下的log/serving.INFO文件中。
+
+    client端的日志直接打印到标准输出。
+
+    通过在部署服务之前 'export  GLOG_v=3'可以输出更为详细的日志信息。
