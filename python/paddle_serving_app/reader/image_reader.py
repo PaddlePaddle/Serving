@@ -255,11 +255,13 @@ class SegPostprocess(object):
             mask = image_with_result[key]
         if mask is None:
             raise ("segment mask should be specified in postprocess")
-        mask = mask.astype("uint8")
-        mask_png = mask.reshape((512, 512, 1))
-        #score_png = mask_png[:, :, np.newaxis]
-        score_png = mask_png
+        mask = mask[0][0].astype("uint8")
+        #mask_png = mask.reshape((512, 512, 1))
+        mask_png = mask
+        score_png = mask_png[:, :, np.newaxis]
+        #score_png = mask_png
         score_png = np.concatenate([score_png] * 3, axis=2)
+
         color_map = generate_colormap(self.class_num)
         for i in range(score_png.shape[0]):
             for j in range(score_png.shape[1]):
