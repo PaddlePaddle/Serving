@@ -252,10 +252,11 @@ class SegPostprocess(object):
         for key in image_with_result:
             if ".lod" in key or "filename" in key:
                 continue
-            mask = image_with_result[key]
+            mask = image_with_result[key][0]
         if mask is None:
             raise ("segment mask should be specified in postprocess")
-        mask = mask[0][0].astype("uint8")
+        mask = np.argmax(mask, axis=0)
+        mask = mask.astype("uint8")
         #mask_png = mask.reshape((512, 512, 1))
         mask_png = mask
         score_png = mask_png[:, :, np.newaxis]
