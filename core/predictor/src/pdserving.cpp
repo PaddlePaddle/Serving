@@ -202,8 +202,6 @@ int main(int argc, char** argv) {
   }
   VLOG(2) << "Succ call pthread worker start function";
 
-#ifndef BCLOUD
-
   if (Resource::instance().general_model_initialize(FLAGS_resource_path,
                                                     FLAGS_resource_file) != 0) {
     LOG(ERROR) << "Failed to initialize general model conf: "
@@ -213,6 +211,7 @@ int main(int argc, char** argv) {
 
   VLOG(2) << "Succ initialize general model";
 
+#ifndef BCLOUD
   // FATAL messages are output to stderr
   FLAGS_stderrthreshold = 3;
 #endif

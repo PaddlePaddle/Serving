@@ -47,9 +47,10 @@ nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/se
 nvidia-docker exec -it test bash
 ```
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server # CPU
-pip install paddle-serving-server-gpu # GPU
+pip install paddle-serving-client==0.3.2
+pip install paddle-serving-server==0.3.2 # CPU
+pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -168,6 +169,11 @@ print(fetch_map)
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
 - [端到端完成从训练到部署全流程](doc/TRAIN_TO_SERVICE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
+
+### AIStudio教程
+- [PaddleServing作业](https://aistudio.baidu.com/aistudio/projectdetail/605819)
+- [PaddleServing图像分割](https://aistudio.baidu.com/aistudio/projectdetail/457715)
+- [PaddleServing情感分析](https://aistudio.baidu.com/aistudio/projectdetail/509014)
 
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)

@@ -12,4 +12,5 @@ RUN yum -y install wget && \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py && rm get-pip.py && \
     localedef -c -i en_US -f UTF-8 en_US.UTF-8 && \
-    echo "export LANG=en_US.utf8" >> /root/.bashrc
+    echo "export LANG=en_US.utf8" >> /root/.bashrc && \
+    echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc

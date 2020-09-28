@@ -17,7 +17,7 @@ import copy
 import re
 import logging
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
 
 
 class Analyst(object):
@@ -69,7 +69,7 @@ class Analyst(object):
         with open(self._profile_file) as f:
             for line in f.readlines():
                 line = line.strip().split("\t")
-                if line[0] == "PROFILE":
+                if line[0] == "PROFILE" and len(line) >= 3:
                     trace_list = self._prase_line(line[1], line[2], counter)
                     counter += 1
                     for trace in trace_list:
@@ -164,7 +164,7 @@ class OpAnalyst(object):
 
     def add(self, name_str, ts_list):
         if self._close:
-            _LOGGER.error("OpAnalyst is closed.")
+            _LOGGER.error("Failed to add item: OpAnalyst is closed.")
             return
         op_name, curr_idx, step = self._parse(name_str)
         if op_name not in self.op_time_list_dict:

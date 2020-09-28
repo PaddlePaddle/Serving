@@ -15,16 +15,8 @@
 #pragma once
 #include <string>
 #include <vector>
-#ifdef BCLOUD
-#ifdef WITH_GPU
-#include "paddle/paddle_inference_api.h"
-#else
-#include "paddle/fluid/inference/api/paddle_inference_api.h"
-#endif
-#else
-#include "paddle_inference_api.h"  // NOLINT
-#endif
 #include "core/general-server/general_model_service.pb.h"
+#include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {

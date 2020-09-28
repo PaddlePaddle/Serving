@@ -17,6 +17,9 @@
 #include <string>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/kv_manager.h"
+#ifdef BCLOUD
+#include "aipe_sec_client.h"  // NOLINT
+#endif
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -108,6 +111,42 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     return -1;
   }
   LOG(WARNING) << "Successfully proc initialized mempool wrapper";
+
+#ifdef WITH_AUTH
+  std::string product_name_str = resource_conf.auth_product_name();
+  std::string container_id_str = resource_conf.auth_container_id();
+
+  char* product_name = new char[product_name_str.size() + 1];
+  snprintf(product_name,
+           product_name_str.size() + 1,
+           "%s",
+           product_name_str.c_str());
+  char* container_id = new char[container_id_str.size() + 1];
+  snprintf(container_id,
+           container_id_str.size() + 1,
+           "%s",
+           container_id_str.c_str());
+
+  aipe_auth_request request;
+  request.product_name = product_name;
+  request.container_id = container_id;
+  request.request_ts = (int64_t)time(NULL);
+
+  LOG(INFO) << "\nEasypack info"
+            << "\nproduct name: " << request.product_name
+            << "\ncontainer_id: " << request.container_id
+            << "\nrequest time stamp: " << request.request_ts;
+
+  aipe_auth_response response;
+  response = check_auth(request);
+
+  if (response.result == 0) {
+    LOG(INFO) << "Authentication succeed.";
+  } else {
+    LOG(ERROR) << "Authentication failed. Error code: " << response.result;
+    return -1;
+  }
+#endif
 
   if (FLAGS_enable_model_toolkit) {
     int err = 0;

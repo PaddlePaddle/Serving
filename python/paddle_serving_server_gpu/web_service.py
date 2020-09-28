@@ -24,17 +24,43 @@ import sys
 import numpy as np
 import paddle_serving_server_gpu as serving
 
+from paddle_serving_server_gpu import pipeline
+from paddle_serving_server_gpu.pipeline import Op
+
 
 class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
-        self.gpus = []
-        self.rpc_service_list = []
+        # pipeline
+        self._server = pipeline.PipelineServer(self.name)
+
+        self.gpus = []  # deprecated
+        self.rpc_service_list = []  # deprecated
+
+    def get_pipeline_response(self, read_op):
+        return None
+
+    def prepare_pipeline_config(self, yaml_file):
+        # build dag
+        read_op = pipeline.RequestOp()
+        last_op = self.get_pipeline_response(read_op)
+        if not isinstance(last_op, Op):
+            raise ValueError("The return value type of `get_pipeline_response` "
+                             "function is not Op type, please check function "
+                             "`get_pipeline_response`.")
+        response_op = pipeline.ResponseOp(input_ops=[last_op])
+        self._server.set_response_op(response_op)
+        self._server.prepare_server(yaml_file)
+
+    def run_service(self):
+        self._server.run_server()
 
     def load_model_config(self, model_config):
+        print("This API will be deprecated later. Please do not use it")
         self.model_config = model_config
 
     def set_gpus(self, gpus):
+        print("This API will be deprecated later. Please do not use it")
         self.gpus = [int(x) for x in gpus.split(",")]
 
     def default_rpc_service(self,
@@ -88,6 +114,7 @@ class WebService(object):
                        gpuid=0,
                        mem_optim=True,
                        ir_optim=False):
+        print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
         self.device = device
@@ -151,10 +178,11 @@ class WebService(object):
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
         except ValueError as err:
-            result = {"result": err}
+            result = {"result": str(err)}
         return result
 
     def run_rpc_service(self):
+        print("This API will be deprecated later. Please do not use it")
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
@@ -183,6 +211,7 @@ class WebService(object):
 
     # TODO: maybe change another API name: maybe run_local_predictor?
     def run_debugger_service(self, gpu=False):
+        print("This API will be deprecated later. Please do not use it")
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
@@ -209,18 +238,21 @@ class WebService(object):
             "{}".format(self.model_config), gpu=gpu, profile=False)
 
     def run_web_service(self):
+        print("This API will be deprecated later. Please do not use it")
         self.app_instance.run(host="0.0.0.0",
                               port=self.port,
                               threaded=False,
-                              processes=1)
+                              processes=4)
 
     def get_app_instance(self):
         return self.app_instance
 
     def preprocess(self, feed=[], fetch=[]):
+        print("This API will be deprecated later. Please do not use it")
         return feed, fetch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
-        for key in fetch_map.iterkeys():
+        print("This API will be deprecated later. Please do not use it")
+        for key in fetch_map:
             fetch_map[key] = fetch_map[key].tolist()
         return fetch_map

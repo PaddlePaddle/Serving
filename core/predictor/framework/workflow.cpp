@@ -32,21 +32,22 @@ int Workflow::init(const configure::Workflow& conf) {
   return 0;
 }
 
-DagView* Workflow::fetch_dag_view(const std::string& service_name) {
+DagView* Workflow::fetch_dag_view(const std::string& service_name,
+                                  const uint64_t log_id) {
   DagView* view = NULL;
   if (_type == "Sequence") {
     view = butil::get_object<DagView>();
   } else if (_type == "Parallel") {
     view = butil::get_object<ParallelDagView>();
   } else {
-    LOG(ERROR) << "Unknown dag type:" << _type << "!";
+    LOG(ERROR) << "(logid=" << log_id << ") Unknown dag type:" << _type << "!";
     return NULL;
   }
   if (view == NULL) {
-    LOG(ERROR) << "create dag view from pool failed!";
+    LOG(ERROR) << "(logid=" << log_id << ") create dag view from pool failed!";
     return NULL;
   }
-  view->init(&_dag, service_name);
+  view->init(&_dag, service_name, log_id);
   return view;
 }
 

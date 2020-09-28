@@ -73,6 +73,16 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use Multi-language-service")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -141,8 +151,8 @@ class OpSeqMaker(object):
             elif len(node.dependencies) == 1:
                 if node.dependencies[0].name != self.workflow.nodes[-1].name:
                     raise Exception(
-                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'.
-                        format(node.dependencies[0].name, self.workflow.nodes[
+                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'
+                        .format(node.dependencies[0].name, self.workflow.nodes[
                             -1].name))
         self.workflow.nodes.extend([node])
 
@@ -196,6 +206,12 @@ class Server(object):
         self.use_local_bin = False
         self.gpuid = 0
         self.model_config_paths = None  # for multi-model in a workflow
+        self.product_name = None
+        self.container_id = None
+
+    def get_fetch_list(self):
+        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+        return fetch_names
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -228,6 +244,16 @@ class Server(object):
 
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
+
+    def set_product_name(self, product_name=None):
+        if product_name == None:
+            raise ValueError("product_name can't be None.")
+        self.product_name = product_name
+
+    def set_container_id(self, container_id):
+        if container_id == None:
+            raise ValueError("container_id can't be None.")
+        self.container_id = container_id
 
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
@@ -302,6 +328,10 @@ class Server(object):
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
             self.resource_conf.general_model_file = self.general_model_config_fn
+            if self.product_name != None:
+                self.resource_conf.auth_product_name = self.product_name
+            if self.container_id != None:
+                self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
@@ -393,8 +423,8 @@ class Server(object):
                 if os.path.exists(tar_name):
                     os.remove(tar_name)
                 raise SystemExit(
-                    'Download failed, please check your network or permission of {}.'.
-                    format(self.module_path))
+                    'Download failed, please check your network or permission of {}.'
+                    .format(self.module_path))
             else:
                 try:
                     print('Decompressing files ..')
@@ -405,8 +435,8 @@ class Server(object):
                     if os.path.exists(exe_path):
                         os.remove(exe_path)
                     raise SystemExit(
-                        'Decompressing failed, please check your permission of {} or disk space left.'.
-                        format(self.module_path))
+                        'Decompressing failed, please check your permission of {} or disk space left.'
+                        .format(self.module_path))
                 finally:
                     os.remove(tar_name)
         #release lock
@@ -552,6 +582,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
+        log_id = request.log_id
         feed_batch = []
         for feed_inst in request.insts:
             feed_dict = {}
@@ -580,7 +611,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
             feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python
+        return feed_batch, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
@@ -633,10 +664,13 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_inference_request(
-            request)
+        feed_dict, fetch_names, is_python, log_id \
+                = self._unpack_inference_request(request)
         ret = self.bclient_.predict(
-            feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
+            feed=feed_dict,
+            fetch=fetch_names,
+            need_variant_tag=True,
+            log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
 
     def GetClientConfig(self, request, context):

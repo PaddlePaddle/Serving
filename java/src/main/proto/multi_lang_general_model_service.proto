@@ -14,6 +14,8 @@
 
 syntax = "proto2";
 
+package baidu.paddle_serving.multi_lang;
+
 option java_multiple_files = true;
 option java_package = "io.paddle.serving.grpc";
 option java_outer_classname = "ServingProto";
@@ -37,6 +39,7 @@ message InferenceRequest {
   repeated string feed_var_names = 2;
   repeated string fetch_var_names = 3;
   required bool is_python = 4 [ default = false ];
+  required uint64 log_id = 5 [ default = 0 ];
 };
 
 message InferenceResponse {
