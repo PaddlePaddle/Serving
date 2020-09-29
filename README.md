@@ -48,7 +48,7 @@ nvidia-docker exec -it test bash
 pip install paddle-serving-client==0.3.2 
 pip install paddle-serving-server==0.3.2 # CPU
 pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
-pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
