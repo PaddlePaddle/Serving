@@ -45,7 +45,7 @@ pybind11::array_t<float> Gpubuffer2Image::operator()(
     std::shared_ptr<OpContext> input) {
   auto result = pybind11::array_t<float>({input->nppi_size().height,
                                           input->nppi_size().width,
-                                          static_cast<int> CHANNEL_SIZE});
+                                          static_cast<int>(CHANNEL_SIZE)});
   pybind11::buffer_info buf = result.request();
   auto ret = cudaMemcpy(static_cast<float*>(buf.ptr),
                         input->p_frame(),

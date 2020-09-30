@@ -16,7 +16,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "core/preprocess/hwvideoframe/src/utils.h"
+#include "core/preprocess/hwvideoframe/include/utils.h"
 
 void verify_npp_ret(const std::string& function_name, NppStatus ret) {
   if (ret != NPP_SUCCESS) {

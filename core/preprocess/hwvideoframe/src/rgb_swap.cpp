@@ -15,7 +15,7 @@
 #include <npp.h>
 
 #include "core/preprocess/hwvideoframe/include/utils.h"
-#include "core/preprocess/hwvideoframe/src/rgb_swap.h"
+#include "core/preprocess/hwvideoframe/include/rgb_swap.h"
 
 const int SwapChannel::_ORDER[CHANNEL_SIZE] = {2, 1, 0};
 

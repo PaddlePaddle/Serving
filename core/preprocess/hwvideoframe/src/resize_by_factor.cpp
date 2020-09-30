@@ -49,8 +49,8 @@ std::shared_ptr<OpContext> ResizeByFactor::operator()(
   } else {
     resized_width = (floor(resized_width / 32) - 1) * _factor;
   }
-  if (tatic_cast<int>(resized_width) <= 0 ||
-      tatic_cast<int>(resized_height) <= 0) {
+  if (static_cast<int>(resized_width) <= 0 ||
+      static_cast<int>(resized_height) <= 0) {
     return NULL;
   }
   auto output = std::make_shared<OpContext>(resized_height, resized_width);

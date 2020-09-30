@@ -40,11 +40,8 @@ max_version, mid_version, min_version = python_version()
 if '${PACK}' == 'ON':
     copy_lib()
 
-os.system('cp ../core/preprocess/nvdec-extractframe/libhwextract.so ./')
-os.system('mv ./libhwextract.so ./paddle_serving_app/reader/hwextract.so')
 os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
 os.system('mkdir ./paddle_serving_app/reader/lib')
-os.system('cp ../core/preprocess/nvdec-extractframe/cuda/libhwgpu.so ./paddle_serving_app/reader/lib')
 os.system('cp ../core/preprocess/hwvideoframe/cuda/libgpu.so ./paddle_serving_app/reader/lib')
 os.system('export LD_LIBRARY_PATH="./paddle_serving_app/reader/lib"')
 
@@ -61,8 +58,7 @@ packages=['paddle_serving_app',
 	  'paddle_serving_app.reader.pddet',
           'paddle_serving_app.reader.lib']
 
-package_data={'paddle_serving_app': ['reader/*.so']}
-              # 'paddle_serving_app.reader': ['lib/*.so']}
+package_data={}
 package_dir={'paddle_serving_app':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app',
 	     'paddle_serving_app.proto':

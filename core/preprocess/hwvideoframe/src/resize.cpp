@@ -34,9 +34,8 @@ std::shared_ptr<OpContext> Resize::operator()(
     if (round(percent * im_max_size) > _max_size) {
       percent = static_cast<float>(_max_size) / static_cast<float>(im_max_size);
     }
-    resized_width = tatic_cast<int>(round(input->nppi_size().width * percent));
-    resized_height =
-        tatic_cast<int>(round(input->nppi_size().height * percent));
+    resized_width = static_cast<int>(round(input->nppi_size().width * percent));
+    resized_height = static_cast<int>(round(input->nppi_size().height * percent));
   }
   auto output = std::make_shared<OpContext>(resized_height, resized_width);
   auto ret = resize_linear(input->p_frame(),

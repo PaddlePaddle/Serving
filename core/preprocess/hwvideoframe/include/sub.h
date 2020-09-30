@@ -23,8 +23,8 @@
 // subtract by some float numbers
 class Sub {
  public:
-  explicit Sub(float subtractor) {}
-  explicit Sub(const std::vector<float> &subtractors) {}
+  explicit Sub(float subtractor);
+  explicit Sub(const std::vector<float> &subtractors);
   std::shared_ptr<OpContext> operator()(std::shared_ptr<OpContext> input);
 
  private:

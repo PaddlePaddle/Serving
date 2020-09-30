@@ -34,8 +34,8 @@ __global__ void resizeCudaKernel(const float* input,
     if (inputChannels == 1) {  // grayscale image
       // TODO(Zelda): support grayscale
     } else if (inputChannels == 3) {  // RGB image
-      double scale_x = static_cast<double> inputWidth / outputWidth;
-      double scale_y = static_cast<double> inputHeight / outputHeight;
+      double scale_x = static_cast<double>(inputWidth / outputWidth);
+      double scale_y = static_cast<double>(inputHeight / outputHeight);
 
       int xmax = outputWidth;
 
@@ -144,8 +144,8 @@ __global__ void resizeCudaKernel_fixpt(const float* input,
     if (inputChannels == 1) {  // grayscale image
       // TODO(Zelda): support grayscale
     } else if (inputChannels == 3) {  // RGB image
-      double scale_x = static_cast<double> inputWidth / outputWidth;
-      double scale_y = static_cast<double> inputHeight / outputHeight;
+      double scale_x = static_cast<double>(inputWidth / outputWidth);
+      double scale_y = static_cast<double>(inputHeight / outputHeight);
 
       int xmax = outputWidth;
 
