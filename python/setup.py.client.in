@@ -30,15 +30,17 @@ py_version = sys.version_info
 def copy_lib():
     if py_version[0] == 2:
         lib_list = ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10'] 
+    elif py_version[1] == 5:
+        lib_list = ['libpython3.5m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
     elif py_version[1] == 6:
         lib_list = ['libpython3.6m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
     elif py_version[1] == 7:
         lib_list = ['libpython3.7m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
     os.popen('mkdir -p paddle_serving_client/lib')
     for lib in lib_list:
-        r = os.popen('whereis {}'.format(lib))
+        r = os.popen('which {}'.format(lib))
         text = r.read()
-        os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip().split(' ')[1]))
+        os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip()))
 
 max_version, mid_version, min_version = util.python_version()
 
