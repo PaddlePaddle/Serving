@@ -74,7 +74,8 @@ def save_model(server_model_folder,
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
-        fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        #fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        fetch_var.is_lod_tensor = 1
         if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
             fetch_var.fetch_type = 0
         if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
