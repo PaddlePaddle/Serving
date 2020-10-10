@@ -158,7 +158,7 @@ int GeneralResponseOp::inference() {
         if (in->at(idx).lod.size() > 0) {
           for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
             fetch_p->mutable_tensor_array(var_idx)->add_lod(
-                  in->at(idx).lod[0][j]);
+                in->at(idx).lod[0][j]);
           }
         }
       }
