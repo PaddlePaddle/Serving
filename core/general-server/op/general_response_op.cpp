@@ -155,9 +155,11 @@ int GeneralResponseOp::inference() {
       }
 
       if (model_config->_is_lod_fetch[idx]) {
-        for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
-          fetch_p->mutable_tensor_array(var_idx)->add_lod(
-              in->at(idx).lod[0][j]);
+        if (in->at(idx).lod.size() > 0) {
+          for (int j = 0; j < in->at(idx).lod[0].size(); ++j) {
+            fetch_p->mutable_tensor_array(var_idx)->add_lod(
+                in->at(idx).lod[0][j]);
+          }
         }
       }
 
