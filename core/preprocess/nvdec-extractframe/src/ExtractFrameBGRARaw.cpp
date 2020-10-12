@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 baidu::xvision::IMGDataList baidu::xvision::ExtractFrameBGRARaw::extract_frame(
-    const std::string &file_path, int n, int count) {
+    const std::string &file_path, int n) {
   FFmpegDemuxer demuxer(file_path.c_str());
   NvDecoder nvdec(
       p_cu_context, true, FFmpeg2NvCodecId(demuxer.GetVideoCodec()));
@@ -110,9 +110,6 @@ baidu::xvision::IMGDataList baidu::xvision::ExtractFrameBGRARaw::extract_frame(
                nvdec.GetWidth(),
                nvdec.GetHeight() + (nvdec.GetChromaHeight() *
          nvdec.GetNumChromaPlanes()));*/
-    }
-    if (result_list.size() >= count) {
-      break;
     }
   } while (n_video_bytes);
   cuMemFree(p_tmp_image);

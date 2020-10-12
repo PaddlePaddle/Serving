@@ -28,6 +28,7 @@ PYBIND11_MODULE(hwextract, m) {
   pybind11::class_<baidu::xvision::ExtractFrameBGRARaw>(m,
                                                         "HwExtractFrameBGRARaw")
       .def(pybind11::init<int>())
+
       .def("init_handler", &baidu::xvision::ExtractFrameBGRARaw::init)
       .def("extract_frame",
            &baidu::xvision::ExtractFrameBGRARaw::extract_frame);
@@ -41,6 +42,10 @@ PYBIND11_MODULE(hwextract, m) {
            &baidu::xvision::FrameResult::free_memory)  // for gcc 4.8.2 , this
                                                        // must be called ,both
                                                        // in cpp or python
+      // .def("__copy__", [](const baidu::xvision::FrameResult &self){return
+      // self.deepcopy();})
+      // .def("__deepcopy__", [](const baidu::xvision::FrameResult &self,
+      // pybind11::dict){return baidu::xvision::FrameResult(self);}, "memo"_a)
       .def_buffer([](baidu::xvision::FrameResult& m) -> pybind11::buffer_info {
         return pybind11::buffer_info(
             m.get_frame(),

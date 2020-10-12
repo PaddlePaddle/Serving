@@ -12,16 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*******************************************
- *
- * Copyright (c) 2020 Baidu.com, Inc. All Rights Reserved
- *
- ******************************************/
-/**
- * @file ExtractFrameBase.h
- * @author chengang06@baidu.com
- * @date 2020-04-15
- **/
 #include <cuda.h>
 
 #include <list>
@@ -29,8 +19,8 @@
 #include <string>
 
 #include "NvDecoder/NvDecoder.h"
-#include "Utils/ColorSpace.h"
 #include "Utils/FFmpegDemuxer.h"
+#include "cuda/ColorSpace.h"
 #ifndef CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEBASE_H_
 #define CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEBASE_H_
 namespace baidu {
@@ -140,8 +130,7 @@ class ExtractFrameBase {
   }
   virtual int init();
   virtual IMGDataList extract_frame(const std::string& file_path,
-                                    int n = 1,
-                                    int count = 200) = 0;
+                                    int n = 1) = 0;
   virtual ~ExtractFrameBase() {
     if (p_cu_context != nullptr) {
       cuCtxDestroy(p_cu_context);

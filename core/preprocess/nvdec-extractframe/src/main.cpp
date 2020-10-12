@@ -12,16 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*******************************************
- *
- * Copyright (c) 2020 Baidu.com, Inc. All Rights Reserved
- *
- ******************************************/
-/**
- * @file ExtractFrameBGRARaw.h
- * @author chengang06@baidu.com
- * @date 2020-04-16
- **/
 #include <cstring>
 #include <iomanip>
 #include <memory>

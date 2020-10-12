@@ -12,23 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*******************************************
- *
- * Copyright (c) 2020 Baidu.com, Inc. All Rights Reserved
- *
- ******************************************/
-/**
- * @file ExtractFrameJpeg.h
- * @author chengang06@baidu.com
- * @date 2020-04-20
- **/
-#ifndef CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEJPEG_H_
-#define CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEJPEG_H_
 #include <nvjpeg.h>
 
 #include <string>
 
 #include "ExtractFrameBase.h"
+#ifndef CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEJPEG_H_
+#define CORE_PREPROCESS_NVDEC_EXTRACTFRAME_INCLUDE_EXTRACTFRAMEJPEG_H_
+
 namespace baidu {
 namespace xvision {
 class ExtractFrameJpeg : public ExtractFrameBase {
@@ -57,9 +48,7 @@ class ExtractFrameJpeg : public ExtractFrameBase {
    * @returns
    *     IMGDataList
    **/
-  IMGDataList extract_frame(const std::string& file_path,
-                            int n = 1,
-                            int count = 200);
+  IMGDataList extract_frame(const std::string& file_path, int n = 1);
 
   int init();
   virtual ~ExtractFrameJpeg() {
