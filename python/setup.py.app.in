@@ -40,9 +40,12 @@ max_version, mid_version, min_version = python_version()
 if '${PACK}' == 'ON':
     copy_lib()
 
-os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
 os.system('mkdir ./paddle_serving_app/reader/lib')
+os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
+os.system('cp ../core/preprocess/nvdec-extractframe/libhwextract.so ./paddle_serving_app/reader')
 os.system('cp ../core/preprocess/hwvideoframe/cuda/libgpu.so ./paddle_serving_app/reader/lib')
+os.system('cp ../core/preprocess/nvdec-extractframe/cuda/libhwgpu.so ./paddle_serving_app/reader/lib')
+os.system('cp -a -i ../../core/preprocess/nvdec-extractframe/lib/* ./paddle_serving_app/reader/lib')
 os.system('export LD_LIBRARY_PATH="./paddle_serving_app/reader/lib"')
 
 REQUIRED_PACKAGES = [

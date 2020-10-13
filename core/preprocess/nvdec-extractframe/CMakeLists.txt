@@ -3,10 +3,9 @@ project(hw-extract)
 include(cuda)
 include(configure)
 
-#execute_process(COMMAND wget https://paddle-serving.bj.bcebos.com/external_code/preprocesslib.zip)
-#execute_process(COMMAND mv preprocesslib.zip ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/)
-#execute_process(COMMAND unzip -oq ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/preprocesslib.zip -d ../core/preprocess/nvdec-extractframe/)
-#execute_process(COMMAND rm -rf ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/__MACOSX)
+execute_process(COMMAND wget http://bjyz-xvision-shield.bjyz.baidu.com:8001/home/work/libpreprocess.tar.gz)
+execute_process(COMMAND mv libpreprocess.tar.gz ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/)
+execute_process(COMMAND tar -xvf ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/libpreprocess.tar.gz -C ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/)
 
 #C flags
 set(CMAKE_C_FLAGS " -g -pipe -W -Wall -fPIC -Wmissing-field-initializers")
