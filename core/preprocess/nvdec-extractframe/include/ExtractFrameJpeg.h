@@ -82,7 +82,7 @@ class ExtractFrameJpeg : public ExtractFrameBase {
   int jpeg_encode(uint8_t* p_image,
                   int width,
                   int height,
-                  const FrameResult& result);
+                  FrameResult &result);
   nvjpegHandle_t _nv_jpeg_handler;
   nvjpegEncoderState_t _nv_enc_state;
   nvjpegEncoderParams_t _nv_enc_params;

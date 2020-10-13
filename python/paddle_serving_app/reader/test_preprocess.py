@@ -16,9 +16,10 @@
 import unittest
 import sys
 import numpy as np
+import cv2
 from paddle_serving_app.reader import Sequential, Resize, File2Image
 import libgpupreprocess as pp
-
+import libhwextract
 
 class TestOperators(unittest.TestCase):
     """
@@ -147,6 +148,29 @@ class TestOperators(unittest.TestCase):
         img_resize_diff = img_vis - img
         self.assertEqual(np.all(img_resize_diff == 0), True)
 
+    def test_extract_frame(self):
+        handler = libhwextract.HwExtractFrameJpeg(0)
+        # 0, gpu card index
+        # if you want BGRA Raw Data, plz use HwExtractBGRARaw
+        handler.init_handler()
+        # init once can decode many videos
+        video_file_name = sys.argv[1]
+        # for now just support h264 codec
+        frame_list = []
+        try:
+            frame_list = handler.extract_frame(video_file_name, 1)
+            # specifiy file name and fps you want to extract, 0 for all frame
+        except Exception as e_frame:
+            print("Failed to cutframe, exception[%s]" % (e_frame))
+            sys.exit(1)
+        for item in frame_list:
+            print "i am a item in frame_list"
+            # do something, for instance
+            jpeg_array = np.array(item, copy=False)
+            img = cv2.imdecode(jpeg_array, cv2.IMREAD_COLOR)
+            cv2.imwrite('1.jpg', img)
+            item.free_memory()
+            # have to release memor
 
 if __name__ == '__main__':
     unittest.main()

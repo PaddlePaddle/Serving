@@ -20,7 +20,7 @@
 simplelogger::Logger* logger =
     simplelogger::LoggerFactory::CreateConsoleLogger();
 
-PYBIND11_MODULE(hwextract, m) {
+PYBIND11_MODULE(libhwextract, m) {
   pybind11::class_<baidu::xvision::ExtractFrameJpeg>(m, "HwExtractFrameJpeg")
       .def(pybind11::init<int>())
       .def("init_handler", &baidu::xvision::ExtractFrameJpeg::init)
