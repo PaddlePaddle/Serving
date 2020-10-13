@@ -1,7 +1,9 @@
 # hwvideoframe
+
 Hwvideoframe is a CV preprocessing library based on cuda. The project uses GPU for image preprocessing operations. It speeds up the processing speed while increasing the utilization rate of the GPU.
 
 ## Preprocess API
+
 Hwvideoframe provides a variety of data preprocessing methods for photo preprocess：
 
 - class Image2Gpubuffer
@@ -31,8 +33,8 @@ Hwvideoframe provides a variety of data preprocessing methods for photo preproce
 - class Normalize
 
   - `__init__(mean,std)`
-    - mean（list）：Length of list must be three.
-    - std（list）：Length of list must be three.
+    - mean（list）：Mean. Length of list must be three.
+    - std（list）：Variance. Length of list must be three.
   - `__call__(img)`
     - img（np.array）：Image data in (C,H,W) channels.
 
@@ -51,7 +53,9 @@ Hwvideoframe provides a variety of data preprocessing methods for photo preproce
     - img（numpy array）：Image data in (C,H,W) channels.
 
 ## Quick start
+
 [After compiling from code](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md)，this project will be stored in reader。
 
 ## How to Test
+
 Test file：Serving/python/paddle_serving_app/reader/test_preprocess.py
