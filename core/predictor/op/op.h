@@ -113,13 +113,14 @@ class Op {
            uint32_t id,
            const std::string& name,
            const std::string& type,
-           void* conf);
+           void* conf,
+           const uint64_t log_id);
 
   int deinit();
 
   int check_time(const char* tag);
 
-  int process(bool debug);
+  int process(const uint64_t log_id, bool debug);
 
   std::string time_info();
 

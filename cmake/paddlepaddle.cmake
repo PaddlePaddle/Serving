@@ -31,7 +31,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "1.8.3")
+SET(PADDLE_VERSION "1.8.4")
 
 if (WITH_GPU)
     if (WITH_TRT)

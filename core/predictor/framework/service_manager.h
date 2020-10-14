@@ -23,17 +23,24 @@ namespace predictor {
 
 #define REGIST_FORMAT_SERVICE(svr_name, svr)                                 \
   do {                                                                       \
+    char err_str[ERROR_STRING_LEN];                                          \
     int ret =                                                                \
         ::baidu::paddle_serving::predictor::FormatServiceManager::instance() \
             .regist_service(svr_name, svr);                                  \
     if (ret != 0) {                                                          \
-      RAW_LOG_ERROR("Failed regist service[%s][%s]",                         \
-                    svr_name.c_str(),                                        \
-                    typeid(svr).name());                                     \
+      snprintf(err_str,                                                      \
+               ERROR_STRING_LEN - 1,                                         \
+               "Failed regist service[%s][%s]",                              \
+               svr_name.c_str(),                                             \
+               typeid(svr).name());                                          \
+      RAW_LOG(ERROR, err_str);                                               \
     } else {                                                                 \
-      RAW_LOG_INFO("Success regist service[%s][%s]",                         \
-                   svr_name.c_str(),                                         \
-                   typeid(svr).name());                                      \
+      snprintf(err_str,                                                      \
+               ERROR_STRING_LEN - 1,                                         \
+               "Success regist service[%s][%s]",                             \
+               svr_name.c_str(),                                             \
+               typeid(svr).name());                                          \
+      RAW_LOG(INFO, err_str);                                                \
     }                                                                        \
   } while (0)
 
@@ -42,31 +49,46 @@ class FormatServiceManager {
   typedef google::protobuf::Service Service;
 
   int regist_service(const std::string& svr_name, Service* svr) {
+    char err_str[ERROR_STRING_LEN];
     if (_service_map.find(svr_name) != _service_map.end()) {
-      RAW_LOG_ERROR("Service[%s][%s] already exist!",
-                    svr_name.c_str(),
-                    typeid(svr).name());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Service[%s][%s] already exist!",
+               svr_name.c_str(),
+               typeid(svr).name());
+      RAW_LOG(ERROR, err_str);
       return -1;
     }
 
     std::pair<boost::unordered_map<std::string, Service*>::iterator, bool> ret;
     ret = _service_map.insert(std::make_pair(svr_name, svr));
     if (ret.second == false) {
-      RAW_LOG_ERROR("Service[%s][%s] insert failed!",
-                    svr_name.c_str(),
-                    typeid(svr).name());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Service[%s][%s] insert failed!",
+               svr_name.c_str(),
+               typeid(svr).name());
+      RAW_LOG(ERROR, err_str);
       return -1;
     }
 
-    RAW_LOG_INFO("Service[%s] insert successfully!", svr_name.c_str());
+    snprintf(err_str,
+             ERROR_STRING_LEN - 1,
+             "Service[%s] insert successfully!",
+             svr_name.c_str());
+    RAW_LOG(INFO, err_str);
     return 0;
   }
 
   Service* get_service(const std::string& svr_name) {
+    char err_str[ERROR_STRING_LEN];
     boost::unordered_map<std::string, Service*>::iterator res;
     if ((res = _service_map.find(svr_name)) == _service_map.end()) {
-      RAW_LOG_WARNING("Service[%s] not found in service manager!",
-                      svr_name.c_str());
+      snprintf(err_str,
+               ERROR_STRING_LEN - 1,
+               "Service[%s] not found in service manager!",
+               svr_name.c_str());
+      RAW_LOG(WARNING, err_str);
       return NULL;
     }
     return (*res).second;

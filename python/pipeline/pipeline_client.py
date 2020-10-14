@@ -18,10 +18,11 @@ import numpy as np
 from numpy import *
 import logging
 import functools
+from .channel import ChannelDataEcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
-_LOGGER = logging.getLogger()
+_LOGGER = logging.getLogger(__name__)
 
 
 class PipelineClient(object):
@@ -41,11 +42,12 @@ class PipelineClient(object):
 
     def _pack_request_package(self, feed_dict, profile):
         req = pipeline_service_pb2.Request()
+        np.set_printoptions(threshold=sys.maxsize)
         for key, value in feed_dict.items():
             req.key.append(key)
             if isinstance(value, np.ndarray):
                 req.value.append(value.__repr__())
-            elif isinstance(value, str):
+            elif isinstance(value, (str, unicode)):
                 req.value.append(value)
             elif isinstance(value, list):
                 req.value.append(np.array(value).__repr__())
@@ -59,7 +61,11 @@ class PipelineClient(object):
 
     def _unpack_response_package(self, resp, fetch):
         if resp.ecode != 0:
-            return {"ecode": resp.ecode, "error_info": resp.error_info}
+            return {
+                "ecode": resp.ecode,
+                "ecode_desc": ChannelDataEcode(resp.ecode),
+                "error_info": resp.error_info,
+            }
         fetch_map = {"ecode": resp.ecode}
         for idx, key in enumerate(resp.key):
             if key == self._profile_key:
@@ -70,7 +76,9 @@ class PipelineClient(object):
                 continue
             data = resp.value[idx]
             try:
-                data = eval(data)
+                evaled_data = eval(data)
+                if isinstance(evaled_data, np.ndarray):
+                    data = evaled_data
             except Exception as e:
                 pass
             fetch_map[key] = data

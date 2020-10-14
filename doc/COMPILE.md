@@ -4,26 +4,25 @@
 
 ## Compilation environment requirements
 
-|            module            |                           version                            |
-| :--------------------------: | :----------------------------------------------------------: |
-|              OS              |                           CentOS 7                           |
-|             gcc              |                       4.8.5 and later                        |
-|           gcc-c++            |                       4.8.5 and later                        |
-|             git              |                        3.82 and later                        |
-|            cmake             |                       3.2.0 and later                        |
-|            Python            |               2.7.2 and later / 3.6 and later                |
-|              Go              |                       1.9.2 and later                        |
-|             git              |                       2.17.1 and later                       |
-|         glibc-static         |                             2.17                             |
-|        openssl-devel         |                            1.0.2k                            |
-|         bzip2-devel          |                       1.0.6 and later                        |
-| python-devel / python3-devel |              2.7.5 and later / 3.6.8 and later               |
-|         sqlite-devel         |                       3.7.17 and later                       |
-|           patchelf           |                        0.9 and later                         |
-|           libXext            |                            1.3.3                             |
-|            libSM             |                            1.2.2                             |
-|          libXrender          |                            0.9.10                            |
-|          python-whl          | numpy>=1.12, <=1.16.4<br/>google>=2.0.3<br/>protobuf>=3.12.2<br/>grpcio-tools>=1.28.1<br/>grpcio>=1.28.1<br/>func-timeout>=4.3.5<br/>pyyaml>=1.3.0<br/>sentencepiece==0.1.92<br>flask>=1.1.2<br>ujson>=2.0.3 |
+|            module            |              version              |
+| :--------------------------: | :-------------------------------: |
+|              OS              |             CentOS 7              |
+|             gcc              |          4.8.5 and later          |
+|           gcc-c++            |          4.8.5 and later          |
+|             git              |          3.82 and later           |
+|            cmake             |          3.2.0 and later          |
+|            Python            |  2.7.2 and later / 3.6 and later  |
+|              Go              |          1.9.2 and later          |
+|             git              |         2.17.1 and later          |
+|         glibc-static         |               2.17                |
+|        openssl-devel         |              1.0.2k               |
+|         bzip2-devel          |          1.0.6 and later          |
+| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+|         sqlite-devel         |         3.7.17 and later          |
+|           patchelf           |           0.9 and later           |
+|           libXext            |               1.3.3               |
+|            libSM             |               1.2.2               |
+|          libXrender          |              0.9.10               |
 
 It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you, see [this document](DOCKER_IMAGES.md).
 
@@ -62,6 +61,25 @@ pip install -r python/requirements.txt
 
 If Python3 is used, replace `pip` with `pip3`.
 
+## GOPATH Setting
+
+
+## Compile Arguments
+
+The default GOPATH is `$HOME/go`, which you can set to other values.
+```shell
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+```
+
+## Get go packages
+
+```shell
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/grpc
+```
 
 
 ## Compile Server
@@ -70,7 +88,10 @@ If Python3 is used, replace `pip` with `pip3`.
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON ..
 make -j10
 ```
 
@@ -80,7 +101,11 @@ you can execute `make install` to put targets under directory `./output`, you ne
 
 ``` shell
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DSERVER=ON \
+      -DWITH_GPU=ON ..
 make -j10
 ```
 
@@ -94,7 +119,10 @@ execute `make install` to put targets under directory `./output`
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+      -DCLIENT=ON ..
 make -j10
 ```
 
@@ -114,13 +142,19 @@ make
 
 ## Install wheel package
 
-Regardless of the client, server or App part, after compiling, install the whl package under `python/dist/`.
+Regardless of the client, server or App part, after compiling, install the whl package in `python/dist/` in the temporary directory(`server-build-cpu`, `server-build-gpu`, `client-build`,`app-build`) of the compilation process.
 
 
 
 ## Note
 
 When running the python server, it will check the `SERVING_BIN` environment variable. If you want to use your own compiled binary file, set the environment variable to the path of the corresponding binary file, usually`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`.
+
+
+
+## Verify
+
+Please use the example under `python/examples` to verify.
 
 
 

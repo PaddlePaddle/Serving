@@ -72,9 +72,10 @@ class Channel {
 
   const std::string& op() { return _op; }
 
-  int share_to_bus(Bus* bus) {
+  int share_to_bus(Bus* bus, const uint64_t log_id) {
     if (bus->regist(_op, this) != 0) {
-      LOG(ERROR) << "Failed regist channel[" << _op << "] to bus!";
+      LOG(ERROR) << "(logid=" << log_id << ") Failed regist channel[" << _op
+                 << "] to bus!";
       return -1;
     }
 

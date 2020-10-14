@@ -50,9 +50,9 @@ class WeightedRandomRender : public EndpointRouterBase {
     Factory<WeightedRandomRender, EndpointRouterBase>* factory =
         new (std::nothrow) Factory<WeightedRandomRender, EndpointRouterBase>();
     if (factory == NULL) {
-      RAW_LOG_ERROR(
-          "Failed regist factory: WeightedRandomRender->EndpointRouterBase in "
-          "macro!");
+      RAW_LOG(ERROR,
+              "Failed regist factory: WeightedRandomRender->EndpointRouterBase "
+              "in macro!");
       return -1;
     }
 
@@ -62,9 +62,9 @@ class WeightedRandomRender : public EndpointRouterBase {
     // together.
     if (FactoryPool<EndpointRouterBase>::instance().register_factory(
             "WeightedRandomRender", factory) != 0) {
-      RAW_LOG_INFO(
-          "Factory has been registed: "
-          "WeightedRandomRender->EndpointRouterBase.");
+      RAW_LOG(INFO,
+              "Factory has been registed: "
+              "WeightedRandomRender->EndpointRouterBase.");
     }
 
     return 0;

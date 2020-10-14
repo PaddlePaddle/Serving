@@ -45,9 +45,10 @@ nvidia-docker exec -it test bash
 ```
 
 ```shell
-pip install paddle-serving-client 
-pip install paddle-serving-server # CPU
-pip install paddle-serving-server-gpu # GPU
+pip install paddle-serving-client==0.3.2 
+pip install paddle-serving-server==0.3.2 # CPU
+pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
@@ -171,6 +172,11 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 - [How to save a servable model?](doc/SAVE.md)
 - [An End-to-end tutorial from training to inference service deployment](doc/TRAIN_TO_SERVICE.md)
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
+
+### Tutorial at AIStudio
+- [Introduction to PaddleServing](https://aistudio.baidu.com/aistudio/projectdetail/605819)
+- [Image Segmentation on Paddle Serving](https://aistudio.baidu.com/aistudio/projectdetail/457715)
+- [Sentimental Analysis](https://aistudio.baidu.com/aistudio/projectdetail/509014)
 
 ### Developers
 - [How to config Serving native operators on server side?](doc/SERVER_DAG.md)

@@ -16,7 +16,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import platform
 import os
 
 from setuptools import setup, Distribution, Extension
@@ -24,26 +23,17 @@ from setuptools import find_packages
 from setuptools import setup
 from paddle_serving_app.version import serving_app_version
 from pkg_resources import DistributionNotFound, get_distribution
+import util
         
-def python_version():
-    return [int(v) for v in platform.python_version().split(".")]
-
-def find_package(pkgname):
-    try:
-        get_distribution(pkgname)
-        return True
-    except DistributionNotFound:
-        return False
-
-max_version, mid_version, min_version = python_version()
+max_version, mid_version, min_version = util.python_version()
 
 if '${PACK}' == 'ON':
     copy_lib()
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece', 'opencv-python', 'pillow',
-    'shapely', 'pyclipper'
+    'six >= 1.10.0', 'sentencepiece', 'opencv-python<=4.2.0.32', 'pillow',
+    'shapely<=1.6.1', 'pyclipper'
 ]
 
 packages=['paddle_serving_app',
