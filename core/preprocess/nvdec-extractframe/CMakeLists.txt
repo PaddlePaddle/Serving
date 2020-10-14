@@ -3,7 +3,7 @@ project(hw-extract)
 include(cuda)
 include(configure)
 
-execute_process(COMMAND wget http://bjyz-xvision-shield.bjyz.baidu.com:8001/home/work/libpreprocess.tar.gz)
+execute_process(COMMAND wget https://paddle-serving.bj.bcebos.com/external_code/libpreprocess.tar.gz)
 execute_process(COMMAND mv libpreprocess.tar.gz ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/)
 execute_process(COMMAND tar -xvf ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/libpreprocess.tar.gz -C ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/)
 
