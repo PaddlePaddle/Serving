@@ -20,4 +20,4 @@ from .lac_reader import LACReader
 from .senta_reader import SentaReader
 from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
 from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor
-from libhwextract import HwExtractFrameJpeg, HwExtractFrameBGRARaw
+from libhwextract import HwExtractFrameJpeg, HwExtractFrameBGRARaw, HwFrameResult
