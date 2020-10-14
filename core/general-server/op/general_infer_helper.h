@@ -15,17 +15,9 @@
 #pragma once
 
 #include <string.h>
-#include <vector>
-#ifdef BCLOUD
-#ifdef WITH_GPU
-#include "paddle/paddle_inference_api.h"
-#else
-#include "paddle/fluid/inference/api/paddle_inference_api.h"
-#endif
-#else
-#include "paddle_inference_api.h"  // NOLINT
-#endif
 #include <string>
+#include <vector>
+#include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
 namespace paddle_serving {
@@ -35,6 +27,7 @@ struct GeneralBlob {
   std::vector<paddle::PaddleTensor> tensor_vector;
   int64_t time_stamp[20];
   int p_size = 0;
+  uint64_t _log_id = -1;  // for logging
 
   int _batch_size;
 
@@ -46,9 +39,11 @@ struct GeneralBlob {
     tensor_vector.clear();
   }
 
-  int SetBatchSize(int batch_size) { _batch_size = batch_size; }
+  void SetBatchSize(int batch_size) { _batch_size = batch_size; }
+  void SetLogId(uint64_t log_id) { _log_id = log_id; }
 
   int GetBatchSize() const { return _batch_size; }
+  uint64_t GetLogId() const { return _log_id; }
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
 

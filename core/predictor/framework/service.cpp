@@ -19,6 +19,7 @@
 #include <butil/time.h>  // butil::Timer
 #endif
 
+#include <inttypes.h>
 #include <list>
 #include <string>
 #include <vector>
@@ -135,50 +136,63 @@ const std::string& InferService::name() const { return _infer_service_format; }
 // ´®ÐÐÖ´ÐÐÃ¿¸öworkflow
 int InferService::inference(const google::protobuf::Message* request,
                             google::protobuf::Message* response,
+                            const uint64_t log_id,
                             butil::IOBufBuilder* debug_os) {
-  TRACEPRINTF("start to inference");
+  TRACEPRINTF("(logid=%" PRIu64 ") start to inference", log_id);
   // when funtion call begins, framework will reset
   // thread local variables&resources automatically.
   if (Resource::instance().thread_clear() != 0) {
-    LOG(ERROR) << "Failed thread clear whole resource";
+    LOG(ERROR) << "(logid=" << log_id << ") Failed thread clear whole resource";
     return ERR_INTERNAL_FAILURE;
   }
 
-  TRACEPRINTF("finish to thread clear");
+  TRACEPRINTF("(logid=%" PRIu64 ") finish to thread clear", log_id);
 
   if (_enable_map_request_to_workflow) {
-    LOG(INFO) << "enable map request == True";
-    std::vector<Workflow*>* workflows = _map_request_to_workflow(request);
+    VLOG(2) << "(logid=" << log_id << ") enable map request == True";
+    std::vector<Workflow*>* workflows =
+        _map_request_to_workflow(request, log_id);
     if (!workflows || workflows->size() == 0) {
-      LOG(ERROR) << "Failed to map request to workflow";
+      LOG(ERROR) << "(logid=" << log_id
+                 << ") Failed to map request to workflow";
       return ERR_INTERNAL_FAILURE;
     }
     size_t fsize = workflows->size();
     for (size_t fi = 0; fi < fsize; ++fi) {
       Workflow* workflow = (*workflows)[fi];
       if (workflow == NULL) {
-        LOG(ERROR) << "Failed to get valid workflow at: " << fi;
+        LOG(ERROR) << "(logid=" << log_id
+                   << ") Failed to get valid workflow at: " << fi;
         return ERR_INTERNAL_FAILURE;
       }
-      TRACEPRINTF("start to execute workflow[%s]", workflow->name().c_str());
-      int errcode = _execute_workflow(workflow, request, response, debug_os);
-      TRACEPRINTF("finish to execute workflow[%s]", workflow->name().c_str());
+      TRACEPRINTF("(logid=%" PRIu64 ") start to execute workflow[%s]",
+                  log_id,
+                  workflow->name().c_str());
+      int errcode =
+          _execute_workflow(workflow, request, response, log_id, debug_os);
+      TRACEPRINTF("(logid=%" PRIu64 ") finish to execute workflow[%s]",
+                  log_id,
+                  workflow->name().c_str());
       if (errcode < 0) {
-        LOG(ERROR) << "Failed execute workflow[" << workflow->name()
-                   << "] in:" << name();
+        LOG(ERROR) << "(logid=" << log_id << ") Failed execute workflow["
+                   << workflow->name() << "] in:" << name();
         return errcode;
       }
     }
   } else {
-    LOG(INFO) << "enable map request == False";
-    TRACEPRINTF("start to execute one workflow");
+    VLOG(2) << "(logid=" << log_id << ") enable map request == False";
+    TRACEPRINTF("(logid=%" PRIu64 ") start to execute one workflow", log_id);
     size_t fsize = _flows.size();
     for (size_t fi = 0; fi < fsize; ++fi) {
-      TRACEPRINTF("start to execute one workflow-%lu", fi);
-      int errcode = execute_one_workflow(fi, request, response, debug_os);
-      TRACEPRINTF("finish to execute one workflow-%lu", fi);
+      TRACEPRINTF(
+          "(logid=%" PRIu64 ") start to execute one workflow-%lu", log_id, fi);
+      int errcode =
+          execute_one_workflow(fi, request, response, log_id, debug_os);
+      TRACEPRINTF(
+          "(logid=%" PRIu64 ") finish to execute one workflow-%lu", log_id, fi);
       if (errcode < 0) {
-        LOG(ERROR) << "Failed execute 0-th workflow in:" << name();
+        LOG(ERROR) << "(logid=" << log_id
+                   << ") Failed execute 0-th workflow in:" << name();
         return errcode;
       }
     }
@@ -188,26 +202,30 @@ int InferService::inference(const google::protobuf::Message* request,
 
 int InferService::debug(const google::protobuf::Message* request,
                         google::protobuf::Message* response,
+                        const uint64_t log_id,
                         butil::IOBufBuilder* debug_os) {
-  return inference(request, response, debug_os);
+  return inference(request, response, log_id, debug_os);
 }
 
 int InferService::execute_one_workflow(uint32_t index,
                                        const google::protobuf::Message* request,
                                        google::protobuf::Message* response,
+                                       const uint64_t log_id,
                                        butil::IOBufBuilder* debug_os) {
   if (index >= _flows.size()) {
-    LOG(ERROR) << "Faield execute workflow, index: " << index
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Faield execute workflow, index: " << index
                << " >= max:" << _flows.size();
     return ERR_OVERFLOW_FAILURE;
   }
   Workflow* workflow = _flows[index];
-  return _execute_workflow(workflow, request, response, debug_os);
+  return _execute_workflow(workflow, request, response, log_id, debug_os);
 }
 
 int InferService::_execute_workflow(Workflow* workflow,
                                     const google::protobuf::Message* request,
                                     google::protobuf::Message* response,
+                                    const uint64_t log_id,
                                     butil::IOBufBuilder* debug_os) {
   butil::Timer workflow_time(butil::Timer::STARTED);
   // create and submit beginer channel
@@ -215,54 +233,62 @@ int InferService::_execute_workflow(Workflow* workflow,
   req_channel.init(0, START_OP_NAME);
   req_channel = request;
 
-  DagView* dv = workflow->fetch_dag_view(full_name());
-  dv->set_request_channel(req_channel);
+  DagView* dv = workflow->fetch_dag_view(full_name(), log_id);
+  dv->set_request_channel(req_channel, log_id);
 
   // call actual inference interface
-  int errcode = dv->execute(debug_os);
+  int errcode = dv->execute(log_id, debug_os);
   if (errcode < 0) {
-    LOG(ERROR) << "Failed execute dag for workflow:" << workflow->name();
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed execute dag for workflow:" << workflow->name();
     return errcode;
   }
 
-  TRACEPRINTF("finish to dv execute");
+  TRACEPRINTF("(logid=%" PRIu64 ") finish to dv execute", log_id);
   // create ender channel and copy
-  const Channel* res_channel = dv->get_response_channel();
-  if (!_merger || !_merger->merge(res_channel->message(), response)) {
-    LOG(ERROR) << "Failed merge channel res to response";
+  const Channel* res_channel = dv->get_response_channel(log_id);
+  if (res_channel == NULL) {
+    LOG(ERROR) << "(logid=" << log_id << ") Failed get response channel";
     return ERR_INTERNAL_FAILURE;
   }
-  TRACEPRINTF("finish to copy from");
+
+  if (!_merger || !_merger->merge(res_channel->message(), response)) {
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed merge channel res to response";
+    return ERR_INTERNAL_FAILURE;
+  }
+  TRACEPRINTF("(logid=%" PRIu64 ") finish to copy from", log_id);
 
   workflow_time.stop();
-  LOG(INFO) << "workflow total time: " << workflow_time.u_elapsed();
+  LOG(INFO) << "(logid=" << log_id
+            << ") workflow total time: " << workflow_time.u_elapsed();
   PredictorMetric::GetInstance()->update_latency_metric(
       WORKFLOW_METRIC_PREFIX + dv->full_name(), workflow_time.u_elapsed());
 
   // return tls data to object pool
   workflow->return_dag_view(dv);
-  TRACEPRINTF("finish to return dag view");
+  TRACEPRINTF("(logid=%" PRIu64 ") finish to return dag view", log_id);
   return ERR_OK;
 }
 
 std::vector<Workflow*>* InferService::_map_request_to_workflow(
-    const google::protobuf::Message* request) {
+    const google::protobuf::Message* request, const uint64_t log_id) {
   const google::protobuf::Descriptor* desc = request->GetDescriptor();
   const google::protobuf::FieldDescriptor* field =
       desc->FindFieldByName(_request_field_key);
   if (field == NULL) {
-    LOG(ERROR) << "No field[" << _request_field_key << "] in ["
-               << desc->full_name() << "].";
+    LOG(ERROR) << "(logid=" << log_id << ") No field[" << _request_field_key
+               << "] in [" << desc->full_name() << "].";
     return NULL;
   }
   if (field->is_repeated()) {
-    LOG(ERROR) << "field[" << desc->full_name() << "." << _request_field_key
-               << "] is repeated.";
+    LOG(ERROR) << "(logid=" << log_id << ") field[" << desc->full_name() << "."
+               << _request_field_key << "] is repeated.";
     return NULL;
   }
   if (field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_STRING) {
-    LOG(ERROR) << "field[" << desc->full_name() << "." << _request_field_key
-               << "] should be string";
+    LOG(ERROR) << "(logid=" << log_id << ") field[" << desc->full_name() << "."
+               << _request_field_key << "] should be string";
     return NULL;
   }
   const std::string& field_value =
@@ -270,7 +296,7 @@ std::vector<Workflow*>* InferService::_map_request_to_workflow(
   std::vector<Workflow*>* p_workflow =
       _request_to_workflow_map.seek(field_value);
   if (p_workflow == NULL) {
-    LOG(ERROR) << "cannot find key[" << field_value
+    LOG(ERROR) << "(logid=" << log_id << ") cannot find key[" << field_value
                << "] in _request_to_workflow_map";
     return NULL;
   }

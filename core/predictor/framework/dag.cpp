@@ -155,13 +155,11 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
   }
 
   if (FLAGS_el_log_level == 16) {
-    LOG(INFO) << "DAG: " << _dag_name;
-    LOG(INFO) << ", Op Num: " << _index_nodes.size();
+    LOG(INFO) << "DAG: " << _dag_name << ", Op Num: " << _index_nodes.size();
     for (uint32_t nid = 0; nid < _index_nodes.size(); nid++) {
       DagNode* node = _index_nodes[nid];
-      LOG(INFO) << ", OP-" << node->id << "-" << node->name << "-"
-                << node->type;
-      LOG(INFO) << " depends: " << node->depends.size();
+      LOG(INFO) << "OP-" << node->id << "-" << node->name << "-" << node->type
+                << " depends: " << node->depends.size();
 
       boost::unordered_map<std::string, EdgeMode>::iterator it;
       for (it = node->depends.begin(); it != node->depends.end(); it++) {
@@ -214,8 +212,8 @@ int Dag::topo_sort() {
     }
   }
   for (int i = 0; i < in_degree.size(); ++i) {
-    LOG(INFO) << "(" << _index_nodes[i]->name << ") in_degree[" << i
-              << "]: " << in_degree[i];
+    VLOG(2) << "(" << _index_nodes[i]->name << ") in_degree[" << i
+            << "]: " << in_degree[i];
   }
   int sorted_num = 0;
   DagStage* stage = new (std::nothrow) DagStage();
