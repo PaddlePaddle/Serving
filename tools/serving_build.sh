@@ -829,8 +829,8 @@ EOF
             kill_process_by_port 18080
             
             # test: process servicer & thread op
-            pip uninstall grpcio -y
-            pip install grpcio --no-binary=grpcio
+            #pip uninstall grpcio -y
+            #pip install grpcio --no-binary=grpcio
             cat << EOF > config.yml
 rpc_port: 18080
 worker_num: 4
