@@ -47,9 +47,6 @@ REQUIRED_PACKAGES = [
     'grpcio-tools >= 1.28.1'
 ]
 
-if not util.find_package("paddlepaddle") and not util.find_package("paddlepaddle-gpu"):
-    REQUIRED_PACKAGES.append("paddlepaddle")
-
 
 packages=['paddle_serving_client',
           'paddle_serving_client.proto',

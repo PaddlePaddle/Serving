@@ -29,7 +29,7 @@ util.gen_pipeline_code("paddle_serving_server")
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'grpcio >= 1.28.1', 'grpcio-tools >= 1.28.1',
-    'paddle_serving_client', 'flask >= 1.1.1', 'paddle_serving_app'
+    'paddle_serving_client', 'flask >= 1.1.1', 'paddle_serving_app', 'func_timeout'
 ]
 
 packages=['paddle_serving_server',
