@@ -25,7 +25,7 @@ import (
   "github.com/grpc-ecosystem/grpc-gateway/runtime"
   "google.golang.org/grpc"
 
-  gw "./proto"
+  gw "serving-gateway/proto"
 )
 
 //export run_proxy_server

@@ -31,6 +31,10 @@ def find_package(pkgname):
 
 
 def gen_pipeline_code(package_name):
+    ret = os.system("cd {}/pipeline/gateway/ && go mod init serving-gateway".
+                    format(package_name))
+    ret = os.system("cd {}/pipeline/gateway/ && go mod vendor && go mod tidy".
+                    format(package_name))
     # pipeline service proto
     protoc.main((
         '',
@@ -44,8 +48,8 @@ def gen_pipeline_code(package_name):
     ret = os.system(
         "cd {}/pipeline/gateway/proto/ && "
         "../../../../../third_party/install/protobuf/bin/protoc -I. "
-        "-I$GOPATH/src "
-        "-I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis "
+        "-I$GOPATH/pkg/mod "
+        "-I$GOPATH/pkg/mod/github.com/grpc-ecosystem/grpc-gateway\@v1.15.2/third_party/googleapis "
         "--go_out=plugins=grpc:. "
         "gateway.proto".format(package_name))
     if ret != 0:
@@ -54,8 +58,8 @@ def gen_pipeline_code(package_name):
     ret = os.system(
         "cd {}/pipeline/gateway/proto/ && "
         "../../../../../third_party/install/protobuf/bin/protoc -I. "
-        "-I$GOPATH/src "
-        "-I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis "
+        "-I$GOPATH/pkg/mod "
+        "-I$GOPATH/pkg/mod/github.com/grpc-ecosystem/grpc-gateway\@v1.15.2/third_party/googleapis "
         "--grpc-gateway_out=logtostderr=true:. "
         "gateway.proto".format(package_name))
     if ret != 0:
