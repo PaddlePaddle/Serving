@@ -31,10 +31,6 @@ def find_package(pkgname):
 
 
 def gen_pipeline_code(package_name):
-    ret = os.system("cd {}/pipeline/gateway/ && go mod init serving-gateway".
-                    format(package_name))
-    ret = os.system("cd {}/pipeline/gateway/ && go mod vendor && go mod tidy".
-                    format(package_name))
     # pipeline service proto
     protoc.main((
         '',
@@ -66,6 +62,10 @@ def gen_pipeline_code(package_name):
         exit(1)
 
     # pipeline grpc-gateway shared-lib
+    ret = os.system("cd {}/pipeline/gateway/ && go mod init serving-gateway".
+                    format(package_name))
+    ret = os.system("cd {}/pipeline/gateway/ && go mod vendor && go mod tidy".
+                    format(package_name))
     ret = os.system(
         "cd {}/pipeline/gateway && "
         "go build -buildmode=c-shared -o libproxy_server.so proxy_server.go".
