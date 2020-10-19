@@ -947,7 +947,7 @@ function python_run_test() {
     local TYPE=$1 # pwd: /Serving
     cd python/examples # pwd: /Serving/python/examples
     python_test_fit_a_line $TYPE # pwd: /Serving/python/examples
-    python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
+    #python_run_criteo_ctr_with_cube $TYPE # pwd: /Serving/python/examples
     python_test_bert $TYPE # pwd: /Serving/python/examples
     python_test_imdb $TYPE # pwd: /Serving/python/examples
     python_test_lac $TYPE # pwd: /Serving/python/examples
