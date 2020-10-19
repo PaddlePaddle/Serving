@@ -72,7 +72,7 @@ export PATH=$PATH:$GOPATH/bin
 ## 获取 Go packages
 
 ```shell
-go env -w GO111MODULE=auto
+go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
