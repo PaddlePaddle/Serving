@@ -18,7 +18,10 @@ function init() {
     export PYTHONROOT=/usr
     cd Serving
     export SERVING_WORKDIR=$PWD
+
     $PYTHONROOT/bin/python -m pip install -r python/requirements.txt
+    $PYTHONROOT/bin/python -m pip install -r paddlepaddle
+
     export GOPATH=$HOME/go
     export PATH=$PATH:$GOPATH/bin
 
