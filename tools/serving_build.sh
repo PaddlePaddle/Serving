@@ -20,7 +20,7 @@ function init() {
     export SERVING_WORKDIR=$PWD
 
     $PYTHONROOT/bin/python -m pip install -r python/requirements.txt
-    $PYTHONROOT/bin/python -m pip install -r paddlepaddle
+    $PYTHONROOT/bin/python -m pip install paddlepaddle
 
     export GOPATH=$HOME/go
     export PATH=$PATH:$GOPATH/bin
@@ -28,10 +28,10 @@ function init() {
     go env -w GO111MODULE=on
     go env -w GOPROXY=https://goproxy.cn,direct
 
-    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-    go get -u github.com/golang/protobuf/protoc-gen-go
-    go get -u google.golang.org/grpc
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
+    go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
+    go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
+    go get -u google.golang.org/grpc@v1.33.0
 }
 
 function check_cmd() {
