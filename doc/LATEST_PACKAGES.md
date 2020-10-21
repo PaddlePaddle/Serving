@@ -36,6 +36,10 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp37-none-a
 ```
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp36-none-any.whl
 ```
+### Python 3.5
+```
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp35-none-any.whl
+```
 ### Python 2.7
 ```
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp27-none-any.whl
