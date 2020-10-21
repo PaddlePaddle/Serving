@@ -74,10 +74,10 @@ export PATH=$PATH:$GOPATH/bin
 ```shell
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-go get -u github.com/golang/protobuf/protoc-gen-go
-go get -u google.golang.org/grpc
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
+go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
+go get -u google.golang.org/grpc@v1.33.0
 ```
 
 
@@ -87,7 +87,10 @@ go get -u google.golang.org/grpc
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DSERVER=ON ..
 make -j10
 ```
 
@@ -97,7 +100,29 @@ make -j10
 
 ``` shell
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DSERVER=ON \
+    -DWITH_GPU=ON ..
+make -j10
+```
+
+### 集成TensorRT版本Paddle Inference Library
+
+```
+mkdir server-build-trt && cd server-build-trt
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DSERVER=ON \
+    -DWITH_GPU=ON \
+    -DWITH_TRT=ON ..
 make -j10
 ```
 
@@ -105,13 +130,14 @@ make -j10
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
-
-
 ## 编译Client部分
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCLIENT=ON ..
 make -j10
 ```
 
@@ -123,7 +149,11 @@ make -j10
 
 ```bash
 mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCMAKE_INSTALL_PREFIX=./output \
+    -DAPP=ON ..
 make
 ```
 
@@ -154,7 +184,10 @@ make
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
 |     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
-|    CUDNN_ROOT    |    Define CuDNN library and header path    |      |
+|     WITH_TRT     |    Compile Paddle Serving with TensorRT    | OFF  |
+|  CUDNN_LIBRARY   |    Define CuDNN library and header path    |      |
+| CUDA_TOOLKIT_ROOT_DIR |       Define CUDA PATH                |      |
+|   TENSORRT_ROOT  |           Define TensorRT PATH             |      |
 |      CLIENT      |       Compile Paddle Serving Client        | OFF  |
 |      SERVER      |       Compile Paddle Serving Server        | OFF  |
 |       APP        |     Compile Paddle Serving App package     | OFF  |
