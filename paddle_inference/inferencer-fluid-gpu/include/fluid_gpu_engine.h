@@ -238,12 +238,12 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.SetTRTDynamicShapeInfo(
         min_input_shape, max_input_shape, opt_input_shape);
 #endif
-    int batch = 8;
+    int max_batch = 256;
     int min_subgraph_size = 3;
     if (params.use_trt()) {
       analysis_config.EnableTensorRtEngine(
-          1 << 30,
-          batch,
+          1 << 20,
+          max_batch,
           min_subgraph_size,
           paddle::AnalysisConfig::Precision::kFloat32,
           true,
