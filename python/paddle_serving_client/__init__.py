@@ -388,8 +388,9 @@ class Client(object):
                                 name))
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
                 elif self.fetch_names_to_type_[name] == float32_type:
                     result_map[name] = result_batch_handle.get_float_by_name(
                         mi, name)
@@ -401,9 +402,9 @@ class Client(object):
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
-
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
                 elif self.fetch_names_to_type_[name] == int32_type:
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int32_by_name(
@@ -416,8 +417,9 @@ class Client(object):
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
             multi_result_map.append(result_map)
         ret = None
         if len(model_engine_names) == 1:

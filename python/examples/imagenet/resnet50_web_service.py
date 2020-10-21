@@ -13,8 +13,9 @@
 # limitations under the License.
 import sys
 from paddle_serving_client import Client
-from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize
-import numpy as np
+
+from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize, Base64ToImage
+
 if len(sys.argv) != 4:
     print("python resnet50_web_service.py model device port")
     sys.exit(-1)
