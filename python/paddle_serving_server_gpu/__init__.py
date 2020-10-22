@@ -403,7 +403,10 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                device_version = "serving-gpu-cuda" + cuda_version + "-"
+                if cuda_version != "trt":
+                    device_version = "serving-gpu-cuda" + cuda_version + "-"
+                else:
+                    device_version = "serving-gpu-" + cuda_version + "-"
 
         folder_name = device_version + serving_server_version
         tar_name = folder_name + ".tar.gz"
