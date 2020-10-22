@@ -563,10 +563,12 @@ class CloneDBReloadableInferEngine
 };
 
 template <typename FluidFamilyCore>
-// class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore>
-// {
+#ifdef WITH_TRT
 class FluidInferEngine : public DBReloadableInferEngine<FluidFamilyCore> {
- public:
+#else
+class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
+#endif
+ public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
 
@@ -622,7 +624,7 @@ class VersionedInferEngine : public InferEngine {
       LOG(ERROR) << "Failed initialize engine, type:" << engine_type;
       return -1;
     }
-    VLOG(2) << "FLGS_logtostderr " << FLAGS_logtostderr;
+    VLOG(2) << "FLAGS_logtostderr " << FLAGS_logtostderr;
     FLAGS_logtostderr = tmp;
 #else
     if (engine->proc_initialize(conf, version) != 0) {

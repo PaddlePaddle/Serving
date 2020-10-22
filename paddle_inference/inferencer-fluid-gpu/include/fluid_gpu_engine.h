@@ -198,7 +198,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
-#if 0
+#if 0  // todo: support flexible shape
 
     int min_seq_len = 1;
     int max_seq_len = 512;
@@ -238,7 +238,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     analysis_config.SetTRTDynamicShapeInfo(
         min_input_shape, max_input_shape, opt_input_shape);
 #endif
-    int max_batch = 256;
+    int max_batch = 32;
     int min_subgraph_size = 3;
     if (params.use_trt()) {
       analysis_config.EnableTensorRtEngine(
@@ -246,8 +246,8 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
           max_batch,
           min_subgraph_size,
           paddle::AnalysisConfig::Precision::kFloat32,
-          true,
-          true);
+          false,
+          false);
       LOG(INFO) << "create TensorRT predictor";
     } else {
       if (params.enable_memory_optimization()) {
