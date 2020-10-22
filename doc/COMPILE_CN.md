@@ -202,7 +202,8 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 - CUDA
 - CuDNN
-- NCCL2
+
+编译TensorRT版本，需要安装TensorRT库。
 
 这里要注意的是：
 
@@ -211,21 +212,12 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 以下是PaddlePaddle发布版本所使用的基础库版本匹配关系，供参考：
 
-|        |  CUDA   |          CuDNN           | NCCL2  |
-| :----: | :-----: | :----------------------: | :----: |
-| CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
-| CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
+|          |  CUDA   |          CuDNN           | TensorRT |
+| :----:   | :-----: | :----------------------: | :----:   |
+| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
+| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
+| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
 
 ### 如何让Paddle Serving编译系统探测到CuDNN库
 
-从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_ROOT`参数，指定CuDNN库所在路径。
-
-### 如何让Paddle Serving编译系统探测到nccl库
-
-从NVIDIA developer官网下载对应版本nccl2库并解压后，增加如下环境变量 (以nccl2.1.4为例)：
-
-```shell
-export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$CPLUS_INCLUDE_PATH
-export LD_LIBRARY_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/lib/:$LD_LIBRARY_PATH
-```
+从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_LIBRARY`参数，指定CuDNN库所在路径。
