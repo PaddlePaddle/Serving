@@ -205,7 +205,8 @@ To compile the Paddle Serving GPU version on bare metal, you need to install the
 
 - CUDA
 - CuDNN
-- NCCL2
+
+To compile the TensorRT version, you need to install the TensorRT library.
 
 Note here:
 
@@ -215,21 +216,12 @@ Note here:
 
 The following is the base library version matching relationship used by the PaddlePaddle release version for reference:
 
-|        |  CUDA   |          CuDNN           | NCCL2  |
-| :----: | :-----: | :----------------------: | :----: |
-| CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
-| CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
+|          |  CUDA   |          CuDNN           | TensorRT |
+| :----:   | :-----: | :----------------------: | :----:   |
+| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
+| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
+| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
 
 ### How to make the compiler detect the CuDNN library
 
 Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
-
-### How to make the compiler detect the nccl library
-
-After downloading the corresponding version of the nccl2 library from the NVIDIA developer official website and decompressing it, add the following environment variables (take nccl2.1.4 as an example):
-
-```shell
-export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$CPLUS_INCLUDE_PATH
-export LD_LIBRARY_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/lib/:$LD_LIBRARY_PATH
-```

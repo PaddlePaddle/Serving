@@ -130,4 +130,9 @@ SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/thir
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash nvinfer nvinfer_plugin)
+    xxhash)
+
+if(WITH_TRT)
+LIST(APPEND paddle_depend_libs
+    nvinfer nvinfer_plugin)
+endif()
