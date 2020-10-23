@@ -31,7 +31,7 @@ logger = logging.getLogger("fluid")
 logger.setLevel(logging.INFO)
 
 
-class Debugger(object):
+class LocalPredictor(object):
     def __init__(self):
         self.feed_names_ = []
         self.fetch_names_ = []

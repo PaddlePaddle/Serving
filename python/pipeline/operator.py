@@ -38,7 +38,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
                       ChannelTimeoutError)
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
-from . import local_rpc_service_handler
+from . import local_service_handler
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -56,7 +56,7 @@ class Op(object):
                  retry=None,
                  batch_size=None,
                  auto_batching_timeout=None,
-                 local_rpc_service_handler=None):
+                 local_service_handler=None):
         # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
@@ -64,7 +64,7 @@ class Op(object):
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
 
-        self._local_rpc_service_handler = local_rpc_service_handler
+        self._local_service_handler = local_service_handler
         self._server_endpoints = server_endpoints
         self._fetch_names = fetch_list
         self._client_config = client_config
@@ -123,7 +123,7 @@ class Op(object):
                 self.with_serving = True
                 self._server_endpoints = server_endpoints
             else:
-                if self._local_rpc_service_handler is None:
+                if self._local_service_handler is None:
                     local_service_conf = conf.get("local_service_conf")
                     _LOGGER.info("local_service_conf: {}".format(
                         local_service_conf))
@@ -136,7 +136,7 @@ class Op(object):
                         # local rpc service
                         self.with_serving = True
                         if self.client_type == "brpc" or self.client_type == "grpc":
-                            service_handler = local_rpc_service_handler.LocalRpcServiceHandler(
+                            service_handler = local_service_handler.LocalRpcServiceHandler(
                                 model_config=model_config,
                                 workdir=local_service_conf["workdir"],
                                 thread_num=local_service_conf["thread_num"],
@@ -155,7 +155,7 @@ class Op(object):
                                 self._fetch_names = service_handler.get_fetch_list(
                                 )
                         elif self.client_type == "local_predictor":
-                            service_handler = local_rpc_service_handler.LocalPredictorServiceHandler(
+                            service_handler = local_service_handler.LocalPredictorServiceHandler(
                                 model_config=model_config,
                                 workdir=local_service_conf["workdir"],
                                 thread_num=local_service_conf["thread_num"],
@@ -168,21 +168,20 @@ class Op(object):
                             if self._fetch_names is None:
                                 self._fetch_names = service_handler.get_fetch_list(
                                 )
-                        self._local_rpc_service_handler = service_handler
+                        self._local_service_handler = service_handler
                 else:
                     self.with_serving = True
-                    self._local_rpc_service_handler.prepare_server(
+                    self._local_service_handler.prepare_server(
                     )  # get fetch_list
-                    serivce_ports = self._local_rpc_service_handler.get_port_list(
-                    )
+                    serivce_ports = self._local_service_handler.get_port_list()
                     self._server_endpoints = [
                         "127.0.0.1:{}".format(p) for p in serivce_ports
                     ]
                     if self._client_config is None:
-                        self._client_config = self._local_rpc_service_handler.get_client_config(
+                        self._client_config = self._local_service_handler.get_client_config(
                         )
                     if self._fetch_names is None:
-                        self._fetch_names = self._local_rpc_service_handler.get_fetch_list(
+                        self._fetch_names = self._local_service_handler.get_fetch_list(
                         )
         else:
             self.with_serving = True
@@ -205,13 +204,13 @@ class Op(object):
                               self._batch_size, self._auto_batching_timeout)))
 
     def launch_local_rpc_service(self):
-        if self._local_rpc_service_handler is None:
+        if self._local_service_handler is None:
             _LOGGER.warning(
                 self._log("Failed to launch local rpc"
-                          " service: local_rpc_service_handler is None."))
+                          " service: local_service_handler is None."))
             return
-        port = self._local_rpc_service_handler.get_port_list()
-        self._local_rpc_service_handler.start_server()
+        port = self._local_service_handler.get_port_list()
+        self._local_service_handler.start_server()
         _LOGGER.info("Op({}) use local rpc service at port: {}"
                      .format(self.name, port))
 
@@ -232,7 +231,7 @@ class Op(object):
     def set_tracer(self, tracer):
         self._tracer = tracer
 
-    def init_client(self, client_config, server_endpoints, fetch_names):
+    def init_client(self, client_config, server_endpoints):
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
                          "run the process function)".format(self.name))
@@ -251,7 +250,6 @@ class Op(object):
                              "type {}".format(self.client_type))
         if self.client_type != "local_predictor":
             client.connect(server_endpoints)
-        self._fetch_names = fetch_names
         return client
 
     def get_input_ops(self):
@@ -312,7 +310,7 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict
 
-    def process(self, feed_batch, typical_logid):
+    def process(self, feed_batch, fetch_names, typical_logid):
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -322,13 +320,13 @@ class Op(object):
         if self.client_type == "local_predictor":
             call_result = self.client.predict(
                 feed=feed_batch[0],
-                fetch=self._fetch_names,
+                fetch=fetch_names,
                 batch=True,
                 log_id=typical_logid)
         else:
             call_result = self.client.predict(
                 feed=feed_batch,
-                fetch=self._fetch_names,
+                fetch=fetch_names,
                 batch=True,
                 log_id=typical_logid)
         if isinstance(self.client, MultiLangClient):

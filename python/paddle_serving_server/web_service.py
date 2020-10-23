@@ -171,8 +171,8 @@ class WebService(object):
         self.app_instance = app_instance
 
     def _launch_local_predictor(self):
-        from paddle_serving_app.local_predict import Debugger
-        self.client = Debugger()
+        from paddle_serving_app.local_predict import LocalPredictor
+        self.client = LocalPredictor()
         self.client.load_model_config(
             "{}".format(self.model_config), gpu=False, profile=False)
 

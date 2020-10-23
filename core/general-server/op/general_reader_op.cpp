@@ -166,50 +166,40 @@ int GeneralReaderOp::inference() {
     lod_tensor.name = model_config->_feed_name[i];
     out->push_back(lod_tensor);
   }
-  int batch_size = 1;
   // specify the memory needed for output tensor_vector
   for (int i = 0; i < var_num; ++i) {
     if (out->at(i).lod.size() == 1) {
       int tensor_size = 0;
-      for (int j = 0; j < batch_size; ++j) {
-        const Tensor &tensor = req->insts(j).tensor_array(i);
-        int data_len = 0;
-        if (tensor.int64_data_size() > 0) {
-          data_len = tensor.int64_data_size();
-        } else if (tensor.float_data_size() > 0) {
-          data_len = tensor.float_data_size();
-        } else if (tensor.int_data_size() > 0) {
-          data_len = tensor.int_data_size();
-        }
-        VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
-                << "]: " << data_len;
-        tensor_size += data_len;
-
-        int cur_len = out->at(i).lod[0].back();
-        VLOG(2) << "(logid=" << log_id << ") current len: " << cur_len;
-
-        int sample_len = 0;
-        if (tensor.shape_size() == 1) {
-          sample_len = data_len;
-        } else {
-          sample_len = tensor.shape(0);
-        }
-        VLOG(2) << "(logid=" << log_id << ") new len: " << cur_len + sample_len;
+      const Tensor &tensor = req->insts(0).tensor_array(i);
+      int data_len = 0;
+      if (tensor.int64_data_size() > 0) {
+        data_len = tensor.int64_data_size();
+      } else if (tensor.float_data_size() > 0) {
+        data_len = tensor.float_data_size();
+      } else if (tensor.int_data_size() > 0) {
+        data_len = tensor.int_data_size();
       }
+      VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
+              << "]: " << data_len;
+      tensor_size += data_len;
+
+      int cur_len = out->at(i).lod[0].back();
+      VLOG(2) << "(logid=" << log_id << ") current len: " << cur_len;
+
+      int sample_len = 0;
+      if (tensor.shape_size() == 1) {
+        sample_len = data_len;
+      } else {
+        sample_len = tensor.shape(0);
+      }
+      VLOG(2) << "(logid=" << log_id << ") new len: " << cur_len + sample_len;
       out->at(i).data.Resize(tensor_size * elem_size[i]);
-      // out->at(i).shape = {};
-      // for (int j = 1; j < req->insts(0).tensor_array(i).shape_size(); ++j) {
-      //  out->at(i).shape.push_back(req->insts(0).tensor_array(i).shape(j));
-      //  }
-      // if (out->at(i).shape.size() == 1) {
-      //  out->at(i).shape.push_back(1);
-      //}
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] is lod_tensor and len=" << out->at(i).lod[0].back();
     } else {
-      out->at(i).data.Resize(batch_size * capacity[i] * elem_size[i]);
+      out->at(i).data.Resize(capacity[i] * elem_size[i]);
       VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] is tensor and capacity=" << batch_size * capacity[i];
+              << "] is tensor and capacity=" << capacity[i];
     }
   }
 
@@ -220,33 +210,27 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int64_data(0);
       int offset = 0;
-      for (int j = 0; j < batch_size; ++j) {
-        int elem_num = req->insts(j).tensor_array(i).int64_data_size();
-        for (int k = 0; k < elem_num; ++k) {
-          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int64_data(k);
-        }
+      int elem_num = req->insts(0).tensor_array(i).int64_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int64_data(k);
       }
     } else if (elem_type[i] == 1) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).float_data(0);
       int offset = 0;
-      for (int j = 0; j < batch_size; ++j) {
-        int elem_num = req->insts(j).tensor_array(i).float_data_size();
-        for (int k = 0; k < elem_num; ++k) {
-          dst_ptr[offset + k] = req->insts(j).tensor_array(i).float_data(k);
-        }
+      int elem_num = req->insts(0).tensor_array(i).float_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).float_data(k);
       }
     } else if (elem_type[i] == 2) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int_data(0);
       int offset = 0;
-      for (int j = 0; j < batch_size; ++j) {
-        int elem_num = req->insts(j).tensor_array(i).int_data_size();
-        for (int k = 0; k < elem_num; ++k) {
-          dst_ptr[offset + k] = req->insts(j).tensor_array(i).int_data(k);
-        }
+      int elem_num = req->insts(0).tensor_array(i).int_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int_data(k);
       }
     }
   }

@@ -1,7 +1,5 @@
 # 如何配置Web Service的Op
 
-
-
 ## ## rpc和local predictor
 
 目前一共支持两种Serving的运行方式，一种是rpc，一种是local predictor，二者各有优劣。
