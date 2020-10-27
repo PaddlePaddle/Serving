@@ -19,11 +19,13 @@ from __future__ import print_function
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving_server_gpu.version import serving_server_version
+from paddle_serving_server_gpu.version import serving_server_version, cuda_version
 import util
 
-max_version, mid_version, min_version = util.python_version()
+if cuda_version != "trt":
+    cuda_version = "post" + cuda_version
 
+max_version, mid_version, min_version = util.python_version()
 # gen pipeline proto code
 util.gen_pipeline_code("paddle_serving_server_gpu")
 
@@ -56,7 +58,7 @@ package_data={'paddle_serving_server_gpu': ['pipeline/gateway/libproxy_server.so
 
 setup(
     name='paddle-serving-server-gpu',
-    version=serving_server_version.replace('-', '') + '.post@CUDA_VERSION_MAJOR@',
+    version=serving_server_version.replace('-', '') + "." + cuda_version,
     description=
     ('Paddle Serving Package for saved model with PaddlePaddle'),
     url='https://github.com/PaddlePaddle/Serving',

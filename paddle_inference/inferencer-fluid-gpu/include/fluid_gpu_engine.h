@@ -190,7 +190,7 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
 
     paddle::AnalysisConfig analysis_config;
     analysis_config.SetModel(data_path);
-    analysis_config.EnableUseGpu(100, FLAGS_gpuid);
+    analysis_config.EnableUseGpu(1500, FLAGS_gpuid);
     analysis_config.SwitchSpecifyInputNames(true);
     analysis_config.SetCpuMathLibraryNumThreads(1);
 
@@ -198,12 +198,68 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
-    if (params.enable_ir_optimization()) {
-      analysis_config.SwitchIrOptim(true);
-    } else {
-      analysis_config.SwitchIrOptim(false);
-    }
+#if 0  // todo: support flexible shape
 
+    int min_seq_len = 1;
+    int max_seq_len = 512;
+    int opt_seq_len = 128;
+    int head_number = 12;
+    int batch = 50;
+
+    std::vector<int> min_in_shape = {batch, min_seq_len, 1};
+    std::vector<int> max_in_shape = {batch, max_seq_len, 1};
+    std::vector<int> opt_in_shape = {batch, opt_seq_len, 1};
+
+    std::string input1_name = "src_text_a_ids";
+    std::string input2_name = "pos_text_a_ids";
+    std::string input3_name = "sent_text_a_ids";
+    std::string input4_name = "stack_0.tmp_0";
+
+    std::map<std::string, std::vector<int>> min_input_shape = {
+        {input1_name, min_in_shape},
+        {input2_name, min_in_shape},
+        {input3_name, min_in_shape},
+        {input4_name, {batch, head_number, min_seq_len, min_seq_len}},
+    };
+
+    std::map<std::string, std::vector<int>> max_input_shape = {
+        {input1_name, max_in_shape},
+        {input2_name, max_in_shape},
+        {input3_name, max_in_shape},
+        {input4_name, {batch, head_number, max_seq_len, max_seq_len}},
+    };
+    std::map<std::string, std::vector<int>> opt_input_shape = {
+        {input1_name, opt_in_shape},
+        {input2_name, opt_in_shape},
+        {input3_name, opt_in_shape},
+        {input4_name, {batch, head_number, opt_seq_len, opt_seq_len}},
+    };
+
+    analysis_config.SetTRTDynamicShapeInfo(
+        min_input_shape, max_input_shape, opt_input_shape);
+#endif
+    int max_batch = 32;
+    int min_subgraph_size = 3;
+    if (params.use_trt()) {
+      analysis_config.EnableTensorRtEngine(
+          1 << 20,
+          max_batch,
+          min_subgraph_size,
+          paddle::AnalysisConfig::Precision::kFloat32,
+          false,
+          false);
+      LOG(INFO) << "create TensorRT predictor";
+    } else {
+      if (params.enable_memory_optimization()) {
+        analysis_config.EnableMemoryOptim();
+      }
+
+      if (params.enable_ir_optimization()) {
+        analysis_config.SwitchIrOptim(true);
+      } else {
+        analysis_config.SwitchIrOptim(false);
+      }
+    }
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);

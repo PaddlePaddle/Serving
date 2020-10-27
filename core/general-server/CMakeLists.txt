@@ -9,7 +9,7 @@ endif()
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../core/predictor
         )
-
+    include_directories(${CUDNN_ROOT}/include/)
 if(WITH_GPU)
     target_link_libraries(serving -Wl,--whole-archive fluid_gpu_engine
             -Wl,--no-whole-archive)
@@ -29,7 +29,11 @@ if(WITH_GPU)
 endif()
 
 if(WITH_MKL OR WITH_GPU)
+    if (WITH_TRT)
+    target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
+    else()
     target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
+endif()
 else()
     target_link_libraries(serving openblas -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 endif()
