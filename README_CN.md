@@ -124,6 +124,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `mem_optim_off` | - | - | Disable memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
+| `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
 我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
 </center>
