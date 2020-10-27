@@ -16,7 +16,7 @@ file(GLOB SOURCE_FILES pybind/*.cpp src/*.cpp)
 
 include_directories("./include")
 include_directories(${CUDA_INCLUDE_DIRS})
-include_directories(${PYTHON_INCLUDE_DIR})
+include_directories(/usr${PYTHON_INCLUDE_DIR})
 
 link_directories("-L${CUDA_TOOLKIT_ROOT_DIR}/lib64 -lcudart -lnppidei_static -lnppial_static -lnpps_static -lnppc_static -lculibos")
 link_directories(${PYTHON_SO})
