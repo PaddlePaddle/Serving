@@ -18,6 +18,8 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server-0.0.0-py2-none-an
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post9-py3-none-any.whl
 #cuda 10.0
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-py3-none-any.whl
+#cuda10.1 with TensorRT 6
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.trt-py3-none-any.whl
 ```
 ### Python 2
 ```
@@ -25,6 +27,8 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post9-py2-none-any.whl
 #cuda 10.0
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-py2-none-any.whl
+##cuda10.1 with TensorRT 6
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.trt-py2-none-any.whl
 ```
 
 ## Client

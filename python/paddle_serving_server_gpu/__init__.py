@@ -74,6 +74,8 @@ def serve_args():
         action="store_true",
         help="Use Multi-language-service")
     parser.add_argument(
+        "--use_trt", default=False, action="store_true", help="Use TensorRT")
+    parser.add_argument(
         "--product_name",
         type=str,
         default=None,
@@ -205,6 +207,7 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.gpuid = 0
+        self.use_trt = False
         self.model_config_paths = None  # for multi-model in a workflow
         self.product_name = None
         self.container_id = None
@@ -271,6 +274,9 @@ class Server(object):
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
 
+    def set_trt(self):
+        self.use_trt = True
+
     def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
@@ -290,6 +296,7 @@ class Server(object):
             engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
+            engine.use_trt = self.use_trt
 
             if device == "cpu":
                 engine.type = "FLUID_CPU_ANALYSIS_DIR"
@@ -396,7 +403,10 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                device_version = "serving-gpu-cuda" + cuda_version + "-"
+                if cuda_version != "trt":
+                    device_version = "serving-gpu-cuda" + cuda_version + "-"
+                else:
+                    device_version = "serving-gpu-" + cuda_version + "-"
 
         folder_name = device_version + serving_server_version
         tar_name = folder_name + ".tar.gz"
