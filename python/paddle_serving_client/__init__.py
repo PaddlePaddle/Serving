@@ -643,7 +643,7 @@ class MultiLangClient(object):
                 self.profile_.print_profile()
                 return ret
             except grpc.RpcError as e:
-                return {"serving_grpc_error": e}
+                return {"serving_status_code": e.code()}
         else:
             req = self._pack_inference_request(
                 feed, fetch, is_python=is_python, log_id=log_id)
