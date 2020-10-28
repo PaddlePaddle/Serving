@@ -26,7 +26,7 @@ if sys.argv[1] == 'gpu':
     from paddle_serving_server_gpu.web_service import WebService
 elif sys.argv[1] == 'cpu':
     from paddle_serving_server.web_service import WebService
-from paddle_serving_app.local_predict import Debugger
+from paddle_serving_app.local_predict import LocalPredictor
 import time
 import re
 import base64
@@ -39,7 +39,7 @@ class OCRService(WebService):
             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                 (2, 0, 1))
         ])
-        self.det_client = Debugger()
+        self.det_client = LocalPredictor()
         if sys.argv[1] == 'gpu':
             self.det_client.load_model_config(
                 det_model_config, gpu=True, profile=False)
