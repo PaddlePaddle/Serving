@@ -19,6 +19,7 @@ from paddle_serving_app.reader import LACReader
 import sys
 import os
 import io
+import numpy as np
 
 client = Client()
 client.load_client_config(sys.argv[1])
@@ -31,7 +32,17 @@ for line in sys.stdin:
     feed_data = reader.process(line)
     if len(feed_data) <= 0:
         continue
-    fetch_map = client.predict(feed={"words": feed_data}, fetch=["crf_decode"])
+    print(feed_data)
+    #fetch_map = client.predict(feed={"words": np.array(feed_data).reshape(len(feed_data), 1), "words.lod": [0, len(feed_data)]}, fetch=["crf_decode"], batch=True)
+    fetch_map = client.predict(
+        feed={
+            "words": np.array(feed_data + feed_data).reshape(
+                len(feed_data) * 2, 1),
+            "words.lod": [0, len(feed_data), 2 * len(feed_data)]
+        },
+        fetch=["crf_decode"],
+        batch=True)
+    print(fetch_map)
     begin = fetch_map['crf_decode.lod'][0]
     end = fetch_map['crf_decode.lod'][1]
     segs = reader.parse_result(line, fetch_map["crf_decode"][begin:end])
