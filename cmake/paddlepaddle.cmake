@@ -31,10 +31,14 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "1.7.2")
+SET(PADDLE_VERSION "1.8.4")
 
 if (WITH_GPU)
-    SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda${CUDA_VERSION_MAJOR}-cudnn7-avx-mkl")
+    if (WITH_TRT)
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7.6-avx-mkl-trt6")
+    else()
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10-cudnn7-avx-mkl")
+    endif()
 else()
     if (WITH_AVX)
         if (WITH_MKLML)
@@ -50,21 +54,38 @@ endif()
 SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
 if (WITH_GPU OR WITH_MKLML)
-ExternalProject_Add(
-    "extern_paddle"
-    ${EXTERNAL_PROJECT_LOG_ARGS}
-    URL                 "${PADDLE_LIB_PATH}"
-    PREFIX              "${PADDLE_SOURCES_DIR}"
-    DOWNLOAD_DIR        "${PADDLE_DOWNLOAD_DIR}"
-    CONFIGURE_COMMAND   ""
-    BUILD_COMMAND       ""
-    UPDATE_COMMAND      ""
-    INSTALL_COMMAND
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
-        ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so 
-)
+    if (WITH_TRT)
+        ExternalProject_Add(
+            "extern_paddle"
+            ${EXTERNAL_PROJECT_LOG_ARGS}
+            URL                 "${PADDLE_LIB_PATH}"
+            PREFIX              "${PADDLE_SOURCES_DIR}"
+            DOWNLOAD_DIR        "${PADDLE_DOWNLOAD_DIR}"
+            CONFIGURE_COMMAND   ""
+            BUILD_COMMAND       ""
+            UPDATE_COMMAND      ""
+            INSTALL_COMMAND
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party
+        )
+    else()
+        ExternalProject_Add(
+            "extern_paddle"
+            ${EXTERNAL_PROJECT_LOG_ARGS}
+            URL                 "${PADDLE_LIB_PATH}"
+            PREFIX              "${PADDLE_SOURCES_DIR}"
+            DOWNLOAD_DIR        "${PADDLE_DOWNLOAD_DIR}"
+            CONFIGURE_COMMAND   ""
+            BUILD_COMMAND       ""
+            UPDATE_COMMAND      ""
+            INSTALL_COMMAND
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
+                ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so 
+        )
+    endif()
 else()
 ExternalProject_Add(
     "extern_paddle"
@@ -92,8 +113,16 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
-ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
+ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
+
+if (WITH_TRT)
+ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer.so)
+
+ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
+SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
+endif()
 
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
@@ -101,4 +130,9 @@ SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/thir
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash)
+    xxhash)
+
+if(WITH_TRT)
+LIST(APPEND paddle_depend_libs
+    nvinfer nvinfer_plugin)
+endif()

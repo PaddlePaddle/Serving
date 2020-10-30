@@ -75,10 +75,12 @@ export PATH=$PATH:$GOPATH/bin
 ## Get go packages
 
 ```shell
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-go get -u github.com/golang/protobuf/protoc-gen-go
-go get -u google.golang.org/grpc
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.cn,direct
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
+go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
+go get -u google.golang.org/grpc@v1.33.0
 ```
 
 
@@ -89,9 +91,9 @@ go get -u google.golang.org/grpc
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-      -DSERVER=ON ..
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DSERVER=ON ..
 make -j10
 ```
 
@@ -102,10 +104,28 @@ you can execute `make install` to put targets under directory `./output`, you ne
 ``` shell
 mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-      -DSERVER=ON \
-      -DWITH_GPU=ON ..
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \  
+    -DSERVER=ON \
+    -DWITH_GPU=ON ..
+make -j10
+```
+
+### Integrated TRT version paddle inference library
+
+```
+mkdir server-build-trt && cd server-build-trt
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DSERVER=ON \
+    -DWITH_GPU=ON \
+    -DWITH_TRT=ON ..
 make -j10
 ```
 
@@ -134,7 +154,10 @@ execute `make install` to put targets under directory `./output`
 
 ```bash
 mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DAPP=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DAPP=ON ..
 make
 ```
 
@@ -165,7 +188,9 @@ Please use the example under `python/examples` to verify.
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
 |     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
-|    CUDNN_ROOT    |    Define CuDNN library and header path    |      |
+|  CUDNN_LIBRARY   |    Define CuDNN library and header path    |      |
+| CUDA_TOOLKIT_ROOT_DIR |       Define CUDA PATH                |      |
+|   TENSORRT_ROOT  |           Define TensorRT PATH             |      |
 |      CLIENT      |       Compile Paddle Serving Client        | OFF  |
 |      SERVER      |       Compile Paddle Serving Server        | OFF  |
 |       APP        |     Compile Paddle Serving App package     | OFF  |
@@ -180,7 +205,8 @@ To compile the Paddle Serving GPU version on bare metal, you need to install the
 
 - CUDA
 - CuDNN
-- NCCL2
+
+To compile the TensorRT version, you need to install the TensorRT library.
 
 Note here:
 
@@ -190,21 +216,12 @@ Note here:
 
 The following is the base library version matching relationship used by the PaddlePaddle release version for reference:
 
-|        |  CUDA   |          CuDNN           | NCCL2  |
-| :----: | :-----: | :----------------------: | :----: |
-| CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
-| CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
+|          |  CUDA   |          CuDNN           | TensorRT |
+| :----:   | :-----: | :----------------------: | :----:   |
+| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
+| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
+| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
 
 ### How to make the compiler detect the CuDNN library
 
 Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
-
-### How to make the compiler detect the nccl library
-
-After downloading the corresponding version of the nccl2 library from the NVIDIA developer official website and decompressing it, add the following environment variables (take nccl2.1.4 as an example):
-
-```shell
-export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$CPLUS_INCLUDE_PATH
-export LD_LIBRARY_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/lib/:$LD_LIBRARY_PATH
-```

@@ -16,6 +16,7 @@ from paddle_serving_client import Client
 from paddle_serving_app.reader import *
 import sys
 import numpy as np
+from paddle_serving_app.reader import BlazeFacePostprocess
 
 preprocess = Sequential([
     File2Image(),

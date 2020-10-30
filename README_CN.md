@@ -47,9 +47,10 @@ nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/se
 nvidia-docker exec -it test bash
 ```
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server # CPU
-pip install paddle-serving-server-gpu # GPU
+pip install paddle-serving-client==0.3.2
+pip install paddle-serving-server==0.3.2 # CPU
+pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -123,6 +124,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `mem_optim_off` | - | - | Disable memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
+| `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
 我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
 </center>
