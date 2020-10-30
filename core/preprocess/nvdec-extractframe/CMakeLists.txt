@@ -32,7 +32,7 @@ include_directories(./ffmpeginclude/include)
 # include_directories(./pybind11/include)
 include_directories(./pythoninclude/python2.7/)
 include_directories(./Utils)
-include_directories(${CUDA_TOOL_KIT_INCLUDE})
+include_directories(${CUDA_TOOLKIT_INCLUDE})
 
 # Preprocessor libs.
 file(GLOB LIB_FILES ${CMAKE_SOURCE_DIR}/core/preprocess/nvdec-extractframe/lib/*.so)
