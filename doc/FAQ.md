@@ -12,7 +12,7 @@
   client.load_client_config(sys.argv[1])
   client.set_rpc_timeout_ms(100000)
   client.connect(["127.0.0.1:9393"])
-   ```
+  ```
 
 - Q: 如何使用自己编译的Paddle Serving进行预测？
 
@@ -58,4 +58,7 @@
   ```
   A: libcuda.so没有链接成功。首先在机器上找到libcuda.so，ldd检查libnvidia版本与nvidia-smi中版本一致（libnvidia-fatbinaryloader.so.418.39，与NVIDIA-SMI 418.39 Driver Version: 418.39）,然后用export导出libcuda.so的路径即可（例如libcuda.so在/usr/lib64/，export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/）
   
- 
+- Q: 遇到 GPU not found, please check your environment or use cpu version by "pip install paddle_serving_server"
+
+    A: 检查环境中是否有N卡：ls /dev/ | grep nvidia
+
