@@ -34,7 +34,4 @@ for line in sys.stdin:
         feed_dict[key] = np.array(feed_dict[key]).reshape((128, 1))
     #print(feed_dict)
     result = client.predict(feed=feed_dict, fetch=fetch)
-    print(result)
-print(result)
-print(result)
 print(result)
