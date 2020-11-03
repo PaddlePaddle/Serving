@@ -835,8 +835,7 @@ class Op(object):
                     self.concurrency_idx = None
                     # init client
                     self.client = self.init_client(self._client_config,
-                                                   self._server_endpoints,
-                                                   self._fetch_names)
+                                                   self._server_endpoints)
                     # user defined
                     self.init_op()
                     self._succ_init_op = True
@@ -845,7 +844,7 @@ class Op(object):
             self.concurrency_idx = concurrency_idx
             # init client
             self.client = self.init_client(
-                self._client_config, self._server_endpoints, self._fetch_names)
+                self._client_config, self._server_endpoints)
             # user defined
             self.init_op()
 

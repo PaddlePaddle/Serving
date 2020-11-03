@@ -10,5 +10,13 @@ op:
         concurrency: 2
         remote_service_conf:
             client_type: brpc
-            model_config: ocr_det_model
+            model_config: imdb_bow_model
             devices: ""
+            rpc_port : 9393 
+    cnn:
+        concurrency: 2
+        remote_service_conf:
+            client_type: brpc
+            model_config: imdb_cnn_model
+            devices: ""
+            rpc_port : 9292
