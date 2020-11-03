@@ -44,7 +44,7 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: 目前Paddle Serving支持哪些镜像环境？
 
-**A:** 目前（0.4.0）仅支持CentOS，具体列表查阅: https://github.com/PaddlePaddle/Serving/blob/develop/doc/DOCKER_IMAGES.md
+**A:** 目前（0.4.0）仅支持CentOS，具体列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/DOCKER_IMAGES.md)
 
 
 
@@ -83,7 +83,7 @@ client.connect(["127.0.0.1:9393"])
 
 #### Q: 如何使用多语言客户端
 
-**A:** 多语言客户端要与多语言服务端配套使用。当前版本下（0.4.0），服务端需要将Server改为MultiLangServer（如果是以命令行启动的话只需要添加--use_multilang参数），Python客户端需要将Client改为MultiLangClient，同时去除load_client_config的过程。Java客户端参考文档: https://github.com/PaddlePaddle/Serving/blob/develop/doc/JAVA_SDK_CN.md
+**A:** 多语言客户端要与多语言服务端配套使用。当前版本下（0.4.0），服务端需要将Server改为MultiLangServer（如果是以命令行启动的话只需要添加--use_multilang参数），Python客户端需要将Client改为MultiLangClient，同时去除load_client_config的过程。[Java客户端参考文档](https://github.com/PaddlePaddle/Serving/blob/develop/doc/JAVA_SDK_CN.md)
 
 #### Q: 如何在Windows下使用Paddle Serving
 
@@ -107,7 +107,7 @@ client端的日志直接打印到标准输出。
 
 #### Q: （GLOG_v=2下）Server端日志一切正常，但Client端始终得不到正确的预测结果
 
-**A: ** 可能是配置文件有问题，检查下配置文件（is_load_tensor，fetch_type等有没有问题）
+**A:** 可能是配置文件有问题，检查下配置文件（is_load_tensor，fetch_type等有没有问题）
 
 #### Q: 如何给Server传递Logid
 
