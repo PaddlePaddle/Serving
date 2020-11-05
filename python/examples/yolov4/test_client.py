@@ -35,6 +35,7 @@ fetch_map = client.predict(
         "image": im,
         "im_size": np.array(list(im.shape[1:])),
     },
-    fetch=["save_infer_model/scale_0.tmp_0"], batch=False)
+    fetch=["save_infer_model/scale_0.tmp_0"],
+    batch=False)
 fetch_map["image"] = sys.argv[1]
 postprocess(fetch_map)
