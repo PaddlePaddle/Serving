@@ -333,7 +333,7 @@ class Op(object):
             call_result.pop("serving_status_code")
         return call_result
 
-    def postprocess(self, input_dict, fetch_dict, logid_dict):
+    def postprocess(self, input_dict, fetch_dict, log_id):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
