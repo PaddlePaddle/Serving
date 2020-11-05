@@ -42,10 +42,13 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
+        _LOGGER.info("inference request name:{} self.name:{}".format(
+            request.name, self._name))
         if request.name != "" and request.name != self._name:
             resp = pipeline_service_pb2.Response()
-            resp.ecode = channel.ChannelDataEcode.NO_SERVICE.value
-            resp.error_info = "Failed to inference: Service name error."
+            resp.err_no = channel.ChannelDataErrcode.NO_SERVICE.value
+            resp.err_msg = "Failed to inference: Service name error."
+            resp.result = ""
             return resp
         resp = self._dag_executor.call(request)
         return resp
@@ -192,7 +195,6 @@ class PipelineServer(object):
                 bind_address = 'localhost:{}'.format(port)
                 workers = []
                 for i in range(self._worker_num):
-                    show_info = (i == 0)
                     worker = multiprocessing.Process(
                         target=self._run_server_func,
                         args=(bind_address, self._response_op, self._conf, i))

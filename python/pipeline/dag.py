@@ -25,10 +25,12 @@ else:
 import os
 import logging
 import collections
+import json
 
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
-                      ChannelDataEcode, ChannelDataType, ChannelStopError)
+                      ChannelDataErrcode, ChannelDataType, ChannelStopError,
+                      ProductErrCode)
 from .profiler import TimeProfiler, PerformanceTracer
 from .util import NameGenerator, ThreadIdGenerator, PipelineProcSyncManager
 from .proto import pipeline_service_pb2
@@ -142,7 +144,7 @@ class DAGExecutor(object):
                 with self._cv_for_cv_pool:
                     for data_id, cv in self._cv_pool.items():
                         closed_errror_data = ChannelData(
-                            ecode=ChannelDataEcode.CLOSED_ERROR.value,
+                            error_code=ChannelDataErrcode.CLOSED_ERROR.value,
                             error_info="dag closed.",
                             data_id=data_id)
                         with cv:
@@ -194,25 +196,36 @@ class DAGExecutor(object):
 
     def _pack_channeldata(self, rpc_request, data_id):
         dictdata = None
+        log_id = None
         try:
-            dictdata = self._unpack_rpc_func(rpc_request)
+            dictdata, log_id, prod_errcode, prod_errinfo = self._unpack_rpc_func(
+                rpc_request)
         except Exception as e:
             _LOGGER.error(
                 "(logid={}) Failed to parse RPC request package: {}"
                 .format(data_id, e),
                 exc_info=True)
             return ChannelData(
-                ecode=ChannelDataEcode.RPC_PACKAGE_ERROR.value,
+                error_code=ChannelDataErrcode.RPC_PACKAGE_ERROR.value,
                 error_info="rpc package error: {}".format(e),
-                data_id=data_id)
+                data_id=data_id,
+                log_id=log_id)
         else:
-            # because unpack_rpc_func is rewritten by user, we need
-            # to look for client_profile_key field in rpc_request
+            # because unpack_rpc_func is rewritten by user, we need to look
+            # for product_errcode in returns, and  client_profile_key field
+            # in rpc_request
+            if prod_errcode is not None:
+                # product errors occured
+                return ChannelData(
+                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                    error_info="",
+                    prod_error_code=prod_errcode,
+                    prod_error_info=prod_errinfo,
+                    data_id=data_id,
+                    log_id=log_id)
+
             profile_value = None
-            for idx, key in enumerate(rpc_request.key):
-                if key == self._client_profile_key:
-                    profile_value = rpc_request.value[idx]
-                    break
+            profile_value = dictdata.get(self._client_profile_key)
             client_need_profile = (profile_value == self._client_profile_value)
             _LOGGER.debug("(logid={}) Need profile in client: {}".format(
                 data_id, client_need_profile))
@@ -220,6 +233,7 @@ class DAGExecutor(object):
                 datatype=ChannelDataType.DICT.value,
                 dictdata=dictdata,
                 data_id=data_id,
+                log_id=log_id,
                 client_need_profile=client_need_profile)
 
     def call(self, rpc_request):
@@ -253,7 +267,7 @@ class DAGExecutor(object):
                     self._cv_pool.pop(data_id)
                 return self._pack_for_rpc_resp(
                     ChannelData(
-                        ecode=ChannelDataEcode.CLOSED_ERROR.value,
+                        error_code=ChannelDataErrcode.CLOSED_ERROR.value,
                         error_info="dag closed.",
                         data_id=data_id))
 
@@ -261,13 +275,13 @@ class DAGExecutor(object):
             resp_channeldata = self._get_channeldata_from_fetch_buffer(data_id,
                                                                        cond_v)
 
-            if resp_channeldata.ecode == ChannelDataEcode.OK.value:
+            if resp_channeldata.error_code == ChannelDataErrcode.OK.value:
                 _LOGGER.info("(logid={}) Succ predict".format(data_id))
                 break
             else:
                 _LOGGER.error("(logid={}) Failed to predict: {}"
                               .format(data_id, resp_channeldata.error_info))
-                if resp_channeldata.ecode != ChannelDataEcode.TIMEOUT.value:
+                if resp_channeldata.error_code != ChannelDataErrcode.TIMEOUT.value:
                     break
 
             if i + 1 < self._retry:
@@ -288,7 +302,8 @@ class DAGExecutor(object):
             trace_buffer.put({
                 "name": "DAG",
                 "id": data_id,
-                "succ": resp_channeldata.ecode == ChannelDataEcode.OK.value,
+                "succ":
+                resp_channeldata.error_code == ChannelDataErrcode.OK.value,
                 "actions": {
                     "call_{}".format(data_id): end_call - start_call,
                 },
@@ -317,8 +332,9 @@ class DAGExecutor(object):
                 .format(channeldata.id, e),
                 exc_info=True)
             resp = pipeline_service_pb2.Response()
-            resp.ecode = ChannelDataEcode.RPC_PACKAGE_ERROR.value
-            resp.error_info = "rpc package error: {}".format(e)
+            resp.err_no = ChannelDataErrcode.RPC_PACKAGE_ERROR.value
+            resp.err_msg = "rpc package error: {}".format(e)
+            resp.result = ""
             return resp
 
 

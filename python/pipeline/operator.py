@@ -24,6 +24,7 @@ import os
 import sys
 import collections
 import numpy as np
+import json
 from numpy import *
 if sys.version_info.major == 2:
     import Queue
@@ -33,9 +34,9 @@ else:
     raise Exception("Error Python version")
 
 from .proto import pipeline_service_pb2
-from .channel import (ThreadChannel, ProcessChannel, ChannelDataEcode,
+from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
                       ChannelData, ChannelDataType, ChannelStopError,
-                      ChannelTimeoutError)
+                      ChannelTimeoutError, ProductErrCode)
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_rpc_service_handler
@@ -279,7 +280,23 @@ class Op(object):
     def _get_output_channels(self):
         return self._outputs
 
-    def preprocess(self, input_dicts):
+    def preprocess(self, input_dicts, data_id, log_id):
+        """
+        In preprocess stage, assembling data for process stage. users can 
+        override this function for model feed features.
+
+        Args:
+            input_dicts: input data to be preprocessed
+            data_id: inner unique id
+            log_id: global unique id for RTT
+
+        Return:
+            input_dict: data for process stage
+            is_skip_process: skip process stage or not, False default
+            prod_errcode: None default, otherwise, product errores occured.
+                          It is handled in the same way as exception. 
+            prod_errinfo: "" default
+        """
         # multiple previous Op
         if len(input_dicts) != 1:
             _LOGGER.critical(
@@ -289,9 +306,19 @@ class Op(object):
             os._exit(-1)
 
         (_, input_dict), = input_dicts.items()
-        return input_dict
+        return input_dict, False, None, ""
 
     def process(self, feed_batch, typical_logid):
+        """
+        In process stage, send requests to the inference server or predict locally.
+        users do not need to inherit this function
+        Args:
+            feed_batch: data to be fed to inference server
+            typical_logid: mark batch predicts 
+
+        Returns:
+            call_result: predict result
+        """
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -306,27 +333,54 @@ class Op(object):
             call_result.pop("serving_status_code")
         return call_result
 
-    def postprocess(self, input_dict, fetch_dict):
-        return fetch_dict
+    def postprocess(self, input_dict, fetch_dict, logid_dict):
+        """
+        In postprocess stage, assemble data for next op or output.
+        Args:
+            input_dict: data returned in preprocess stage.
+            fetch_dict: data returned in process stage.
+            log_id: logid
+
+        Returns: 
+            fetch_dict: return fetch_dict default
+            prod_errcode: None default, otherwise, product errores occured.
+                          It is handled in the same way as exception.
+            prod_errinfo: "" default
+        """
+        return fetch_dict, None, ""
 
     def _parse_channeldata(self, channeldata_dict):
+        """
+        Parse one channeldata 
+        Args:
+            channeldata_dict : channel data to be parsed, dict type
+        
+        Return:
+            data_id: created by dag._id_generator, unique
+            error_channeldata: error channeldata
+            parsed_data: get np/dict data from channeldata
+            client_need_profile: need profile info
+            profile_set: profile info
+            log_id: logid for tracing a request 
+        """
         data_id, error_channeldata = None, None
         client_need_profile, profile_set = False, set()
         parsed_data = {}
 
         key = list(channeldata_dict.keys())[0]
         data_id = channeldata_dict[key].id
+        log_id = channeldata_dict[key].log_id
         client_need_profile = channeldata_dict[key].client_need_profile
 
         for name, data in channeldata_dict.items():
-            if data.ecode != ChannelDataEcode.OK.value:
+            if data.error_code != ChannelDataErrcode.OK.value:
                 error_channeldata = data
                 break
             parsed_data[name] = data.parse()
             if client_need_profile:
                 profile_set |= data.profile_data_set
         return (data_id, error_channeldata, parsed_data, client_need_profile,
-                profile_set)
+                profile_set, log_id)
 
     def _push_to_output_channels(self,
                                  data,
@@ -335,6 +389,20 @@ class Op(object):
                                  profile_str=None,
                                  client_need_profile=False,
                                  profile_set=None):
+        """
+        Push data to output channels, Do not run the later stage(preprocess,
+        process, postprocess)
+        Args:
+            data: channeldata, to be pushed
+            channels: output channels
+            name: op name  
+            profile_str: one profile message
+            client_need_profile: False default
+            profile_set: profile message collections
+
+        Returns:
+            None
+        """
         if name is None:
             name = self.name
 
@@ -384,52 +452,109 @@ class Op(object):
     def init_op(self):
         pass
 
-    def _run_preprocess(self, parsed_data_dict, op_info_prefix):
+    def _run_preprocess(self, parsed_data_dict, op_info_prefix, logid_dict):
+        """
+        Run preprocess stage
+        Args:
+            parsed_data_dict: data to be pre-processed
+            op_info_prefix: input op info
+            logid_dict: logid dict
+
+        Returns:
+            preped_data_dict: data preprocessed, to be processed 
+            err_channeldata_dict: when exceptions occurred, putting errors in it.
+            skip_process_dict: skip process stage or not
+
+        """
         _LOGGER.debug("{} Running preprocess".format(op_info_prefix))
         preped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
+        skip_process_dict = {}
         for data_id, parsed_data in parsed_data_dict.items():
             preped_data, error_channeldata = None, None
+            is_skip_process = False
+            prod_errcode, prod_errinfo = None, None
+            log_id = logid_dict.get(data_id)
             try:
-                preped_data = self.preprocess(parsed_data)
+                preped_data, is_skip_process, prod_errcode, prod_errinfo = self.preprocess(
+                    parsed_data, data_id, logid_dict.get(data_id))
+                # Set skip_process_dict
+                if is_skip_process is True:
+                    skip_process_dict[data_id] = True
             except TypeError as e:
                 # Error type in channeldata.datatype
-                error_info = "(logid={}) {} Failed to preprocess: {}".format(
-                    data_id, op_info_prefix, e)
+                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
+                    data_id, log_id, op_info_prefix, e)
                 _LOGGER.error(error_info, exc_info=True)
                 error_channeldata = ChannelData(
-                    ecode=ChannelDataEcode.TYPE_ERROR.value,
+                    error_code=ChannelDataErrcode.TYPE_ERROR.value,
                     error_info=error_info,
-                    data_id=data_id)
+                    data_id=data_id,
+                    log_id=log_id)
             except Exception as e:
-                error_info = "(logid={}) {} Failed to preprocess: {}".format(
-                    data_id, op_info_prefix, e)
+                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
+                    data_id, log_id, op_info_prefix, e)
                 _LOGGER.error(error_info, exc_info=True)
                 error_channeldata = ChannelData(
-                    ecode=ChannelDataEcode.UNKNOW.value,
+                    error_code=ChannelDataErrcode.UNKNOW.value,
                     error_info=error_info,
-                    data_id=data_id)
+                    data_id=data_id,
+                    log_id=log_id)
+
+            if prod_errcode is not None:
+                # product errors occured
+                error_channeldata = ChannelData(
+                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                    error_info="",
+                    prod_error_code=prod_errcode,
+                    prod_error_info=prod_errinfo,
+                    data_id=data_id,
+                    log_id=log_id)
+
             if error_channeldata is not None:
                 err_channeldata_dict[data_id] = error_channeldata
             else:
                 preped_data_dict[data_id] = preped_data
         _LOGGER.debug("{} Succ preprocess".format(op_info_prefix))
-        return preped_data_dict, err_channeldata_dict
+        return preped_data_dict, err_channeldata_dict, skip_process_dict
 
-    def _run_process(self, preped_data_dict, op_info_prefix):
+    def _run_process(self, preped_data_dict, op_info_prefix, skip_process_dict,
+                     logid_dict):
+        """
+        Run process stage
+        Args:
+            preped_data_dict: feed the data to be predicted by the model.  
+            op_info_prefix: prefix op info
+            skip_process_dict: skip process stage or not
+            logid_dict: logid dict
+
+        Returns:
+            midped_data_dict: data midprocessed, to be post-processed 
+            err_channeldata_dict: when exceptions occurred, putting errors in it 
+        """
         _LOGGER.debug("{} Running process".format(op_info_prefix))
         midped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
-        if self.with_serving:
-            data_ids = preped_data_dict.keys()
+        ### if (batch_num == 1 && skip == True) ,then skip the process stage.
+        is_skip_process = False
+        data_ids = preped_data_dict.keys()
+        if len(data_ids) == 1 and skip_process_dict.get(data_ids[0]) == True:
+            is_skip_process = True
+            _LOGGER.info("(data_id={} log_id={}) skip process stage".format(
+                data_ids[0], logid_dict.get(data_ids[0])))
+
+        if self.with_serving is True and is_skip_process is False:
+            # use typical_logid to mark batch data
             typical_logid = data_ids[0]
             if len(data_ids) != 1:
                 for data_id in data_ids:
                     _LOGGER.info(
-                        "(logid={}) {} During access to PaddleServingService,"
+                        "(data_id={} logid={}) {} During access to PaddleServingService,"
                         " we selected logid={} (from batch: {}) as a "
                         "representative for logging.".format(
-                            data_id, op_info_prefix, typical_logid, data_ids))
+                            data_id,
+                            logid_dict.get(data_id), op_info_prefix,
+                            typical_logid, data_ids))
 
             # combine samples to batch
             one_input = preped_data_dict[data_ids[0]]
@@ -449,64 +574,70 @@ class Op(object):
                     input_offset.append(offset)
             else:
                 _LOGGER.critical(
-                    "{} Failed to process: expect input type is dict(sample"
-                    " input) or list(batch input), but get {}".format(
-                        op_info_prefix, type(one_input)))
+                    "(data_id={} log_id={}){} Failed to process: expect input type is dict(sample"
+                    " input) or list(batch input), but get {}".format(data_ids[
+                        0], typical_logid, op_info_prefix, type(one_input)))
                 os._exit(-1)
 
             midped_batch = None
-            ecode = ChannelDataEcode.OK.value
+            error_code = ChannelDataErrcode.OK.value
             if self._timeout <= 0:
                 try:
                     midped_batch = self.process(feed_batch, typical_logid)
                 except Exception as e:
-                    ecode = ChannelDataEcode.UNKNOW.value
-                    error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
-                        typical_logid, op_info_prefix, data_ids, e)
+                    error_code = ChannelDataErrcode.UNKNOW.value
+                    error_info = "(data_id={} log_id={}) {} Failed to process(batch: {}): {}".format(
+                        data_ids[0], typical_logid, op_info_prefix, data_ids, e)
                     _LOGGER.error(error_info, exc_info=True)
             else:
+                # retry N times configed in yaml files.
                 for i in range(self._retry):
                     try:
+                        # time out for each process
                         midped_batch = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
                     except func_timeout.FunctionTimedOut as e:
                         if i + 1 >= self._retry:
-                            ecode = ChannelDataEcode.TIMEOUT.value
-                            error_info = "(logid={}) {} Failed to process(batch: {}): " \
+                            error_code = ChannelDataErrcode.TIMEOUT.value
+                            error_info = "(log_id={}) {} Failed to process(batch: {}): " \
                                     "exceeded retry count.".format(
                                             typical_logid, op_info_prefix, data_ids)
                             _LOGGER.error(error_info)
                         else:
                             _LOGGER.warning(
-                                "(logid={}) {} Failed to process(batch: {}): timeout,"
+                                "(log_id={}) {} Failed to process(batch: {}): timeout,"
                                 " and retrying({}/{})...".format(
                                     typical_logid, op_info_prefix, data_ids, i +
                                     1, self._retry))
                     except Exception as e:
-                        ecode = ChannelDataEcode.UNKNOW.value
-                        error_info = "(logid={}) {} Failed to process(batch: {}): {}".format(
+                        error_code = ChannelDataErrcode.UNKNOW.value
+                        error_info = "(log_id={}) {} Failed to process(batch: {}): {}".format(
                             typical_logid, op_info_prefix, data_ids, e)
                         _LOGGER.error(error_info, exc_info=True)
                         break
                     else:
                         break
-            if ecode != ChannelDataEcode.OK.value:
+            if error_code != ChannelDataErrcode.OK.value:
                 for data_id in data_ids:
                     err_channeldata_dict[data_id] = ChannelData(
-                        ecode=ecode, error_info=error_info, data_id=data_id)
+                        error_code=error_code,
+                        error_info=error_info,
+                        data_id=data_id,
+                        log_id=logid_dict.get(data_id))
             elif midped_batch is None:
                 # op client return None
-                error_info = "(logid={}) {} Failed to predict, please check if " \
+                error_info = "(log_id={}) {} Failed to predict, please check if " \
                         "PaddleServingService is working properly.".format(
                                 typical_logid, op_info_prefix)
                 _LOGGER.error(error_info)
                 for data_id in data_ids:
                     err_channeldata_dict[data_id] = ChannelData(
-                        ecode=ChannelDataEcode.CLIENT_ERROR.value,
+                        error_code=ChannelDataErrcode.CLIENT_ERROR.value,
                         error_info=error_info,
-                        data_id=data_id)
+                        data_id=data_id,
+                        log_id=logid_dict.get(data_id))
             else:
                 # transform np format to dict format
                 var_names = midped_batch.keys()
@@ -515,7 +646,7 @@ class Op(object):
                 for name in var_names:
                     lod_offset_name = "{}.lod".format(name)
                     if lod_offset_name in var_names:
-                        _LOGGER.debug("(logid={}) {} {} is LodTensor".format(
+                        _LOGGER.debug("(log_id={}) {} {} is LodTensor".format(
                             typical_logid, op_info_prefix, name))
                         lod_var_names.add(name)
                         lod_offset_names.add(lod_offset_name)
@@ -551,38 +682,67 @@ class Op(object):
         return midped_data_dict, err_channeldata_dict
 
     def _run_postprocess(self, parsed_data_dict, midped_data_dict,
-                         op_info_prefix):
+                         op_info_prefix, logid_dict):
+        """
+        Run postprocess stage.
+        Args:
+            parsed_data_dict: data returned in preprocess stage 
+            midped_data_dict: data returned in process stage
+            op_info_prefix: prefix op info
+            logid_dict: logid dict
+
+        Returns:
+            postped_data_dict: data postprocessed 
+            err_channeldata_dict: when exceptions occurred, putting errors in it
+ 
+        """
         _LOGGER.debug("{} Running postprocess".format(op_info_prefix))
         postped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
         for data_id, midped_data in midped_data_dict.items():
+            log_id = logid_dict.get(data_id)
             postped_data, err_channeldata = None, None
+            prod_errcode, prod_errinfo = None, None
             try:
-                postped_data = self.postprocess(parsed_data_dict[data_id],
-                                                midped_data)
+                postped_data, prod_errcode, prod_errinfo = self.postprocess(
+                    parsed_data_dict[data_id], midped_data,
+                    logid_dict.get(data_id))
             except Exception as e:
-                error_info = "(logid={}) {} Failed to postprocess: {}".format(
-                    data_id, op_info_prefix, e)
+                error_info = "(data_id={} log_id={}) {} Failed to postprocess: {}".format(
+                    data_id, log_id, op_info_prefix, e)
                 _LOGGER.error(error_info, exc_info=True)
                 err_channeldata = ChannelData(
-                    ecode=ChannelDataEcode.UNKNOW.value,
+                    error_code=ChannelDataErrcode.UNKNOW.value,
                     error_info=error_info,
-                    data_id=data_id)
+                    data_id=data_id,
+                    log_id=log_id)
+
+            if prod_errcode is not None:
+                # product errors occured
+                err_channeldata = ChannelData(
+                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                    error_info="",
+                    prod_error_code=prod_errcode,
+                    prod_error_info=prod_errinfo,
+                    data_id=data_id,
+                    log_id=log_id)
+
             if err_channeldata is not None:
                 err_channeldata_dict[data_id] = err_channeldata
                 continue
             else:
                 if not isinstance(postped_data, dict):
-                    error_info = "(logid={}) {} Failed to postprocess: " \
+                    error_info = "(log_id={} log_id={}) {} Failed to postprocess: " \
                             "output of postprocess funticon must be " \
                             "dict type, but get {}".format(
-                                data_id, op_info_prefix,
+                                data_id, log_id, op_info_prefix,
                                 type(postped_data))
                     _LOGGER.error(error_info)
                     err_channeldata = ChannelData(
-                        ecode=ChannelDataEcode.UNKNOW.value,
+                        error_code=ChannelDataErrcode.UNKNOW.value,
                         error_info=error_info,
-                        data_id=data_id)
+                        data_id=data_id,
+                        log_id=log_id)
                     err_channeldata_dict[data_id] = err_channeldata
                     continue
 
@@ -592,12 +752,14 @@ class Op(object):
                     output_data = ChannelData(
                         ChannelDataType.CHANNEL_NPDATA.value,
                         npdata=postped_data,
-                        data_id=data_id)
+                        data_id=data_id,
+                        log_id=log_id)
                 else:
                     output_data = ChannelData(
                         ChannelDataType.DICT.value,
                         dictdata=postped_data,
-                        data_id=data_id)
+                        data_id=data_id,
+                        log_id=log_id)
                 postped_data_dict[data_id] = output_data
         _LOGGER.debug("{} Succ postprocess".format(op_info_prefix))
         return postped_data_dict, err_channeldata_dict
@@ -633,24 +795,38 @@ class Op(object):
             yield batch
 
     def _parse_channeldata_batch(self, batch, output_channels):
+        """
+        Parse channeldatas batch
+        Args:
+            batch: auto-batching batch datas
+            output_channels: output channels 
+
+        Returns:
+            parsed_data_dict: parsed from channeldata in batch
+            need_profile_dict: need profile dict in batch 
+            profile_dict: profile info dict in batch
+            logid_dict: trace each request in batch
+        """
         parsed_data_dict = collections.OrderedDict()
         need_profile_dict = {}
         profile_dict = {}
+        logid_dict = {}
         for channeldata_dict in batch:
             (data_id, error_channeldata, parsed_data,
-                    client_need_profile, profile_set) = \
+                    client_need_profile, profile_set, log_id) = \
                             self._parse_channeldata(channeldata_dict)
             if error_channeldata is None:
                 parsed_data_dict[data_id] = parsed_data
                 need_profile_dict[data_id] = client_need_profile
                 profile_dict[data_id] = profile_set
+                logid_dict[data_id] = log_id
             else:
                 # error data in predecessor Op
                 # (error_channeldata with profile info)
                 self._push_to_output_channels(error_channeldata,
                                               output_channels)
 
-        return parsed_data_dict, need_profile_dict, profile_dict
+        return parsed_data_dict, need_profile_dict, profile_dict, logid_dict
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
              is_thread_op, trace_buffer):
@@ -664,7 +840,7 @@ class Op(object):
                                         concurrency_idx)
         except Exception as e:
             _LOGGER.critical(
-                "{} Failed to init op: {}".format(op_info_prefix, e),
+                "{} failed to init op: {}".format(op_info_prefix, e),
                 exc_info=True)
             os._exit(-1)
         _LOGGER.info("{} Succ init".format(op_info_prefix))
@@ -691,7 +867,7 @@ class Op(object):
 
             # parse channeldata batch
             try:
-                parsed_data_dict, need_profile_dict, profile_dict \
+                parsed_data_dict, need_profile_dict, profile_dict, logid_dict\
                         = self._parse_channeldata_batch(
                                 channeldata_dict_batch, output_channels)
             except ChannelStopError:
@@ -704,11 +880,12 @@ class Op(object):
 
             # preprecess
             start = profiler.record("prep#{}_0".format(op_info_prefix))
-            preped_data_dict, err_channeldata_dict \
-                    = self._run_preprocess(parsed_data_dict, op_info_prefix)
+            preped_data_dict, err_channeldata_dict, skip_process_dict \
+                    = self._run_preprocess(parsed_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
             prep_time = end - start
             try:
+                # put error requests into output channel, skip process and postprocess stage
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
                         data=err_channeldata,
@@ -725,7 +902,7 @@ class Op(object):
             # process
             start = profiler.record("midp#{}_0".format(op_info_prefix))
             midped_data_dict, err_channeldata_dict \
-                    = self._run_process(preped_data_dict, op_info_prefix)
+                    = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
             midp_time = end - start
             try:
@@ -745,8 +922,7 @@ class Op(object):
             # postprocess
             start = profiler.record("postp#{}_0".format(op_info_prefix))
             postped_data_dict, err_channeldata_dict \
-                    = self._run_postprocess(
-                            parsed_data_dict, midped_data_dict, op_info_prefix)
+                    = self._run_postprocess(parsed_data_dict, midped_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
             try:
@@ -856,17 +1032,37 @@ class RequestOp(Op):
             os._exit(-1)
 
     def unpack_request_package(self, request):
-        dictdata = {}
-        for idx, key in enumerate(request.key):
-            data = request.value[idx]
-            try:
-                evaled_data = eval(data)
-                if isinstance(evaled_data, np.ndarray):
-                    data = evaled_data
-            except Exception as e:
-                pass
-            dictdata[key] = data
-        return dictdata
+        """
+        Unpack request package by gateway.proto
+        Args:
+            request: HTTP body, JSON format
+
+        Returns:
+            dict_data: json fields in HTTP body
+            log_id: log_id
+            prod_errcode: None or ProductErrCode.SUCC.value default, otherwise,
+                          product errores occured.It is handled in the same way
+                          as exception.
+            prod_errinfo: "" default 
+        """
+        dict_data = {}
+        log_id = None
+        if request is None:
+            _LOGGER.critical("request is None")
+            raise ValueError("request is None")
+        _LOGGER.info("unpack_request_package reqeust:{}".format(request))
+        dict_data["name"] = request.name
+        dict_data["method"] = request.method
+        dict_data["appid"] = request.appid
+        dict_data["format"] = request.format
+        dict_data["from"] = getattr(request, "from")
+        dict_data["cmdid"] = request.cmdid
+        dict_data["clientip"] = request.clientip
+        dict_data["data"] = request.data
+        log_id = request.logid
+        req_data = proto_data.SerializeToString()
+
+        return dict_data, log_id, None, ""
 
 
 class ResponseOp(Op):
@@ -884,40 +1080,62 @@ class ResponseOp(Op):
             os._exit(-1)
 
     def pack_response_package(self, channeldata):
+        """
+        Getting channeldata from the last channel, pack custom results by json 
+        format and serialize by protobuf.  
+        """
         resp = pipeline_service_pb2.Response()
-        resp.ecode = channeldata.ecode
-        if resp.ecode == ChannelDataEcode.OK.value:
+        keys = []
+        values = []
+        error_code = channeldata.error_code
+        error_info = ""
+        if error_code == ChannelDataErrcode.OK.value:
             if channeldata.datatype == ChannelDataType.CHANNEL_NPDATA.value:
                 feed = channeldata.parse()
                 # ndarray to string:
                 # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
                 np.set_printoptions(threshold=sys.maxsize)
                 for name, var in feed.items():
-                    resp.value.append(var.__repr__())
-                    resp.key.append(name)
+                    values.append(var.__repr__())
+                    keys.append(name)
             elif channeldata.datatype == ChannelDataType.DICT.value:
                 feed = channeldata.parse()
                 for name, var in feed.items():
                     if not isinstance(var, str):
-                        resp.ecode = ChannelDataEcode.TYPE_ERROR.value
-                        resp.error_info = self._log(
+                        error_code = ChannelDataErrcode.TYPE_ERROR.value
+                        error_info = self._log(
                             "fetch var type must be str({}).".format(
                                 type(var)))
                         _LOGGER.error("(logid={}) Failed to pack RPC "
                                       "response package: {}".format(
                                           channeldata.id, resp.error_info))
                         break
-                    resp.value.append(var)
-                    resp.key.append(name)
+                    values.append(var)
+                    keys.append(name)
             else:
-                resp.ecode = ChannelDataEcode.TYPE_ERROR.value
-                resp.error_info = self._log(
-                    "error type({}) in datatype.".format(channeldata.datatype))
+                error_code = ChannelDataErrcode.TYPE_ERROR.value
+                error_info = self._log("error type({}) in datatype.".format(
+                    channeldata.datatype))
                 _LOGGER.error("(logid={}) Failed to pack RPC response"
-                              " package: {}".format(channeldata.id,
-                                                    resp.error_info))
+                              " package: {}".format(channeldata.id, error_info))
         else:
-            resp.error_info = channeldata.error_info
+            error_info = channeldata.error_info
+            if error_code == ChannelDataErrcode.PRODUCT_ERROR.value:
+                #rewrite error_code when product errors occured
+                error_code = channeldata.prod_error_code
+                error_info = channeldata.prod_error_info
+
+        # pack results
+        result = {}
+        result["keys"] = keys
+        result["values"] = values
+        if error_code is None:
+            error_code = 0
+        #1.json encode
+        resp.err_no = error_code
+        resp.err_msg = error_info
+        resp.result = base64.b64encode(json.dumps(result))
+
         return resp
 
 

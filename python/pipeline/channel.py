@@ -32,7 +32,10 @@ import copy
 _LOGGER = logging.getLogger(__name__)
 
 
-class ChannelDataEcode(enum.Enum):
+class ChannelDataErrcode(enum.Enum):
+    """
+    ChannelData error code
+    """
     OK = 0
     TIMEOUT = 1
     NOT_IMPLEMENTED = 2
@@ -42,6 +45,15 @@ class ChannelDataEcode(enum.Enum):
     CLOSED_ERROR = 6
     NO_SERVICE = 7
     UNKNOW = 8
+    PRODUCT_ERROR = 9
+
+
+class ProductErrCode(enum.Enum):
+    """
+    ProductErrCode is a base class for recording business error code. 
+    product developers inherit this class and extend more error codes. 
+    """
+    pass
 
 
 class ChannelDataType(enum.Enum):
@@ -56,20 +68,23 @@ class ChannelData(object):
                  npdata=None,
                  dictdata=None,
                  data_id=None,
-                 ecode=None,
+                 log_id=None,
+                 error_code=None,
                  error_info=None,
+                 prod_error_code=None,
+                 prod_error_info=None,
                  client_need_profile=False):
         '''
         There are several ways to use it:
         
-        1. ChannelData(ChannelDataType.CHANNEL_NPDATA.value, npdata, data_id)
-        2. ChannelData(ChannelDataType.DICT.value, dictdata, data_id)
-        3. ChannelData(ecode, error_info, data_id)
+        1. ChannelData(ChannelDataType.CHANNEL_NPDATA.value, npdata, data_id, log_id)
+        2. ChannelData(ChannelDataType.DICT.value, dictdata, data_id, log_id)
+        3. ChannelData(error_code, error_info, prod_error_code, prod_error_info, data_id, log_id)
 
         Protobufs are not pickle-able:
         https://stackoverflow.com/questions/55344376/how-to-import-protobuf-module
         '''
-        if ecode is not None:
+        if error_code is not None or prod_error_code is not None:
             if data_id is None or error_info is None:
                 _LOGGER.critical("Failed to generate ChannelData: data_id"
                                  " and error_info cannot be None")
@@ -77,25 +92,30 @@ class ChannelData(object):
             datatype = ChannelDataType.ERROR.value
         else:
             if datatype == ChannelDataType.CHANNEL_NPDATA.value:
-                ecode, error_info = ChannelData.check_npdata(npdata)
-                if ecode != ChannelDataEcode.OK.value:
+                error_code, error_info = ChannelData.check_npdata(npdata)
+                if error_code != ChannelDataErrcode.OK.value:
                     datatype = ChannelDataType.ERROR.value
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
+                    _LOGGER.error("(data_id={} log_id={}) {}".format(
+                        data_id, log_id, error_info))
             elif datatype == ChannelDataType.DICT.value:
-                ecode, error_info = ChannelData.check_dictdata(dictdata)
-                if ecode != ChannelDataEcode.OK.value:
+                error_code, error_info = ChannelData.check_dictdata(dictdata)
+                if error_code != ChannelDataErrcode.OK.value:
                     datatype = ChannelDataType.ERROR.value
-                    _LOGGER.error("(logid={}) {}".format(data_id, error_info))
+                    _LOGGER.error("(data_id={} log_id={}) {}".format(
+                        data_id, log_id, error_info))
             else:
-                _LOGGER.critical("(logid={}) datatype not match".format(
-                    data_id))
+                _LOGGER.critical("(data_id={} log_id={}) datatype not match".
+                                 format(data_id, log_id))
                 os._exit(-1)
         self.datatype = datatype
         self.npdata = npdata
         self.dictdata = dictdata
         self.id = data_id
-        self.ecode = ecode
+        self.log_id = log_id
+        self.error_code = error_code
         self.error_info = error_info
+        self.prod_error_code = prod_error_code
+        self.prod_error_info = prod_error_info
         self.client_need_profile = client_need_profile
         self.profile_data_set = set()
 
@@ -106,67 +126,67 @@ class ChannelData(object):
 
     @staticmethod
     def check_dictdata(dictdata):
-        ecode = ChannelDataEcode.OK.value
+        error_code = ChannelDataErrcode.OK.value
         error_info = None
         if isinstance(dictdata, list):
             # batch data
             for sample in dictdata:
                 if not isinstance(sample, dict):
-                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_code = ChannelDataErrcode.TYPE_ERROR.value
                     error_info = "Failed to check data: the type of " \
                             "data must be dict, but get {}.".format(type(sample))
                     break
         elif not isinstance(dictdata, dict):
             # batch size = 1
-            ecode = ChannelDataEcode.TYPE_ERROR.value
+            error_code = ChannelDataErrcode.TYPE_ERROR.value
             error_info = "Failed to check data: the type of data must " \
                     "be dict, but get {}.".format(type(dictdata))
-        return ecode, error_info
+        return error_code, error_info
 
     @staticmethod
     def check_batch_npdata(batch):
-        ecode = ChannelDataEcode.OK.value
+        error_code = ChannelDataErrcode.OK.value
         error_info = None
         for npdata in batch:
-            ecode, error_info = ChannelData.check_npdata(npdata)
-            if ecode != ChannelDataEcode.OK.value:
+            error_code, error_info = ChannelData.check_npdata(npdata)
+            if error_code != ChannelDataErrcode.OK.value:
                 break
-        return ecode, error_info
+        return error_code, error_info
 
     @staticmethod
     def check_npdata(npdata):
-        ecode = ChannelDataEcode.OK.value
+        error_code = ChannelDataErrcode.OK.value
         error_info = None
         if isinstance(npdata, list):
             # batch data
             for sample in npdata:
                 if not isinstance(sample, dict):
-                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_code = ChannelDataErrcode.TYPE_ERROR.value
                     error_info = "Failed to check data: the " \
                             "value of data must be dict, but get {}.".format(
                                     type(sample))
                     break
                 for _, value in sample.items():
                     if not isinstance(value, np.ndarray):
-                        ecode = ChannelDataEcode.TYPE_ERROR.value
+                        error_code = ChannelDataErrcode.TYPE_ERROR.value
                         error_info = "Failed to check data: the" \
                                 " value of data must be np.ndarray, but get {}.".format(
                                         type(value))
-                        return ecode, error_info
+                        return error_code, error_info
         elif isinstance(npdata, dict):
             # batch_size = 1
             for _, value in npdata.items():
                 if not isinstance(value, np.ndarray):
-                    ecode = ChannelDataEcode.TYPE_ERROR.value
+                    error_code = ChannelDataErrcode.TYPE_ERROR.value
                     error_info = "Failed to check data: the value " \
                             "of data must be np.ndarray, but get {}.".format(
                                     type(value))
                     break
         else:
-            ecode = ChannelDataEcode.TYPE_ERROR.value
+            error_code = ChannelDataErrcode.TYPE_ERROR.value
             error_info = "Failed to check data: the value of data " \
                     "must be dict, but get {}.".format(type(npdata))
-        return ecode, error_info
+        return error_code, error_info
 
     def parse(self):
         feed = None
@@ -191,8 +211,9 @@ class ChannelData(object):
             return 1
 
     def __str__(self):
-        return "type[{}], ecode[{}], id[{}]".format(
-            ChannelDataType(self.datatype).name, self.ecode, self.id)
+        return "type[{}], error_code[{}], data_id[{}], log_id[{}]".format(
+            ChannelDataType(self.datatype).name, self.error_code, self.id,
+            self.log_id)
 
 
 class ProcessChannel(object):
@@ -289,14 +310,14 @@ class ProcessChannel(object):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("(logid={}) Op({}) Pushing data".format(channeldata.id,
-                                                              op_name)))
+            self._log("(data_id={} log_id={}) Op({}) Pushing data".format(
+                channeldata.id, channeldata.log_id, op_name)))
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(
-                    "(logid={}) Op({}) Failed to push data: expected number"
+                    "(data_id={} log_id={}) Op({}) Failed to push data: expected number"
                     " of producers to be greater than 0, but the it is 0.".
-                    format(channeldata.id, op_name)))
+                    format(channeldata.id, channeldata.log_id, op_name)))
             os._exit(-1)
         elif len(self._producers) == 1:
             with self._cv:
@@ -310,19 +331,21 @@ class ProcessChannel(object):
                     raise ChannelStopError()
                 self._cv.notify_all()
             _LOGGER.debug(
-                self._log("(logid={}) Op({}) Pushed data into internal queue.".
-                          format(channeldata.id, op_name)))
+                self._log(
+                    "(data_id={} log_id={}) Op({}) Pushed data into internal queue.".
+                    format(channeldata.id, channeldata.log_id, op_name)))
             return True
         elif op_name is None:
             _LOGGER.critical(
                 self._log(
-                    "(logid={}) Op({}) Failed to push data: there are multiple "
+                    "(data_id={} log_id={}) Op({}) Failed to push data: there are multiple "
                     "producers, so op_name cannot be None.".format(
-                        channeldata.id, op_name)))
+                        channeldata.id, channeldata.log_id, op_name)))
             os._exit(-1)
 
         producer_num = len(self._producers)
         data_id = channeldata.id
+        log_id = channeldata.log_id
         put_data = None
         with self._cv:
             if data_id not in self._input_buf:
@@ -347,8 +370,8 @@ class ProcessChannel(object):
             if put_data is None:
                 _LOGGER.debug(
                     self._log(
-                        "(logid={}) Op({}) Pushed data into input_buffer.".
-                        format(data_id, op_name)))
+                        "(data_id={} log_id={}) Op({}) Pushed data into input_buffer.".
+                        format(data_id, log_id, op_name)))
             else:
                 while self._stop.value == 0:
                     try:
@@ -361,8 +384,8 @@ class ProcessChannel(object):
 
                 _LOGGER.debug(
                     self._log(
-                        "(logid={}) Op({}) Pushed data into internal_queue.".
-                        format(data_id, op_name)))
+                        "(data_id={} log_id={}) Op({}) Pushed data into internal_queue.".
+                        format(data_id, log_id, op_name)))
             self._cv.notify_all()
         return True
 
@@ -404,8 +427,8 @@ class ProcessChannel(object):
                 if self._stop.value == 1:
                     raise ChannelStopError()
             _LOGGER.debug(
-                self._log("(logid={}) Op({}) Got data".format(resp.values()[0]
-                                                              .id, op_name)))
+                self._log("(data_id={} log_id={}) Op({}) Got data".format(
+                    resp.values()[0].id, resp.values()[0].log_id, op_name)))
             return resp
         elif op_name is None:
             _LOGGER.critical(
@@ -434,8 +457,9 @@ class ProcessChannel(object):
                     self._output_buf.append(channeldata)
                     _LOGGER.debug(
                         self._log(
-                            "(logid={}) Op({}) Pop ready item into output_buffer".
-                            format(channeldata.values()[0].id, op_name)))
+                            "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer".
+                            format(channeldata.values()[0].id,
+                                   channeldata.values()[0].log_id, op_name)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
@@ -487,8 +511,9 @@ class ProcessChannel(object):
             self._cv.notify_all()
 
         _LOGGER.debug(
-            self._log("(logid={}) Op({}) Got data from output_buffer".format(
-                resp.values()[0].id, op_name)))
+            self._log(
+                "(data_id={} log_id={}) Op({}) Got data from output_buffer".
+                format(resp.values()[0].id, resp.values()[0].log_id, op_name)))
         return resp
 
     def stop(self):
@@ -586,14 +611,14 @@ class ThreadChannel(Queue.PriorityQueue):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("(logid={}) Op({}) Pushing data".format(channeldata.id,
-                                                              op_name)))
+            self._log("(data_id={} log_id={}) Op({}) Pushing data".format(
+                channeldata.id, channeldata.log_id, op_name)))
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(
-                    "(logid={}) Op({}) Failed to push data: expected number of "
+                    "(data_id={} log_id={}) Op({}) Failed to push data: expected number of "
                     "producers to be greater than 0, but the it is 0.".format(
-                        channeldata.id, op_name)))
+                        channeldata.id, channeldata.log_id, op_name)))
             os._exit(-1)
         elif len(self._producers) == 1:
             with self._cv:
@@ -607,19 +632,21 @@ class ThreadChannel(Queue.PriorityQueue):
                     raise ChannelStopError()
                 self._cv.notify_all()
             _LOGGER.debug(
-                self._log("(logid={}) Op({}) Pushed data into internal_queue.".
-                          format(channeldata.id, op_name)))
+                self._log(
+                    "(data_id={} log_id={}) Op({}) Pushed data into internal_queue.".
+                    format(channeldata.id, channeldata.log_id, op_name)))
             return True
         elif op_name is None:
             _LOGGER.critical(
                 self._log(
-                    "(logid={}) Op({}) Failed to push data: there are multiple"
+                    "(data_id={} log_id={}) Op({}) Failed to push data: there are multiple"
                     " producers, so op_name cannot be None.".format(
-                        channeldata.id, op_name)))
+                        channeldata.id, channeldata.log_id, op_name)))
             os._exit(-1)
 
         producer_num = len(self._producers)
         data_id = channeldata.id
+        log_id = channeldata.log_id
         put_data = None
         with self._cv:
             if data_id not in self._input_buf:
@@ -639,8 +666,8 @@ class ThreadChannel(Queue.PriorityQueue):
             if put_data is None:
                 _LOGGER.debug(
                     self._log(
-                        "(logid={}) Op({}) Pushed data into input_buffer.".
-                        format(data_id, op_name)))
+                        "(data_id={} log_id={}) Op({}) Pushed data into input_buffer.".
+                        format(data_id, log_id, op_name)))
             else:
                 while self._stop is False:
                     try:
@@ -653,8 +680,8 @@ class ThreadChannel(Queue.PriorityQueue):
 
                 _LOGGER.debug(
                     self._log(
-                        "(logid={}) Op({}) Pushed data into internal_queue.".
-                        format(data_id, op_name)))
+                        "(data_id={} log_id={}) Op({}) Pushed data into internal_queue.".
+                        format(data_id, log_id, op_name)))
             self._cv.notify_all()
         return True
 
@@ -697,8 +724,8 @@ class ThreadChannel(Queue.PriorityQueue):
                 if self._stop:
                     raise ChannelStopError()
             _LOGGER.debug(
-                self._log("(logid={}) Op({}) Got data".format(resp.values()[0]
-                                                              .id, op_name)))
+                self._log("(data_id={} log_id={}) Op({}) Got data".format(
+                    resp.values()[0].id, resp.values()[0].log_id, op_name)))
             return resp
         elif op_name is None:
             _LOGGER.critical(
@@ -727,8 +754,9 @@ class ThreadChannel(Queue.PriorityQueue):
                     self._output_buf.append(channeldata)
                     _LOGGER.debug(
                         self._log(
-                            "(logid={}) Op({}) Pop ready item into output_buffer".
-                            format(channeldata.values()[0].id, op_name)))
+                            "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer".
+                            format(channeldata.values()[0].id,
+                                   channeldata.values()[0].log_id, op_name)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
@@ -780,8 +808,9 @@ class ThreadChannel(Queue.PriorityQueue):
             self._cv.notify_all()
 
         _LOGGER.debug(
-            self._log("(logid={}) Op({}) Got data from output_buffer".format(
-                resp.values()[0].id, op_name)))
+            self._log(
+                "(data_id={} log_id={}) Op({}) Got data from output_buffer".
+                format(resp.values()[0].id, resp.values()[0].log_id, op_name)))
         return resp
 
     def stop(self):

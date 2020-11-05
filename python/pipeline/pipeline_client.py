@@ -18,7 +18,8 @@ import numpy as np
 from numpy import *
 import logging
 import functools
-from .channel import ChannelDataEcode
+import json
+from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 
@@ -42,47 +43,33 @@ class PipelineClient(object):
 
     def _pack_request_package(self, feed_dict, profile):
         req = pipeline_service_pb2.Request()
+        """
         np.set_printoptions(threshold=sys.maxsize)
+        new_dict = {}
         for key, value in feed_dict.items():
-            req.key.append(key)
             if isinstance(value, np.ndarray):
-                req.value.append(value.__repr__())
+                new_dict[key] = value.__repr__()
             elif isinstance(value, (str, unicode)):
-                req.value.append(value)
+                new_dict[key] = value
             elif isinstance(value, list):
-                req.value.append(np.array(value).__repr__())
+                new_dict[key] = np.array(value).__repr__()
             else:
                 raise TypeError("only str and np.ndarray type is supported: {}".
                                 format(type(value)))
         if profile:
-            req.key.append(self._profile_key)
-            req.value.append(self._profile_value)
+            new_dict[self._profile_key] = self._profile_value
+        """
+        req.appid = feed_dict.get("appid")
+        req.logid = feed_dict.get("logid")
+        req.format = feed_dict.get("format")
+        setattr(req, "from", feed_dict.get("from"))
+        req.cmdid = feed_dict.get("cmdid")
+        req.clientip = feed_dict.get("clientip")
+        req.data = feed_dict.get("data")
         return req
 
     def _unpack_response_package(self, resp, fetch):
-        if resp.ecode != 0:
-            return {
-                "ecode": resp.ecode,
-                "ecode_desc": ChannelDataEcode(resp.ecode),
-                "error_info": resp.error_info,
-            }
-        fetch_map = {"ecode": resp.ecode}
-        for idx, key in enumerate(resp.key):
-            if key == self._profile_key:
-                if resp.value[idx] != "":
-                    sys.stderr.write(resp.value[idx])
-                continue
-            if fetch is not None and key not in fetch:
-                continue
-            data = resp.value[idx]
-            try:
-                evaled_data = eval(data)
-                if isinstance(evaled_data, np.ndarray):
-                    data = evaled_data
-            except Exception as e:
-                pass
-            fetch_map[key] = data
-        return fetch_map
+        return resp
 
     def predict(self, feed_dict, fetch=None, asyn=False, profile=False):
         if not isinstance(feed_dict, dict):
