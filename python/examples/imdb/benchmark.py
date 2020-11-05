@@ -48,13 +48,17 @@ def single_func(idx, resource):
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
-                feed = {"words": [], "words.lod":[0]}
+                feed = {"words": [], "words.lod": [0]}
                 for bi in range(args.batch_size):
-                    word_ids, label = imdb_dataset.get_words_and_label(dataset[bi])
-                    feed["words.lod"].append(feed["words.lod"][-1] + len(word_ids))
+                    word_ids, label = imdb_dataset.get_words_and_label(dataset[
+                        bi])
+                    feed["words.lod"].append(feed["words.lod"][-1] + len(
+                        word_ids))
                     feed["words"].extend(word_ids)
-                feed["words"] = np.array(feed["words"]).reshape(len(feed["words"]), 1)
-                result = client.predict(feed=feed, fetch=["prediction"], batch=True)
+                feed["words"] = np.array(feed["words"]).reshape(
+                    len(feed["words"]), 1)
+                result = client.predict(
+                    feed=feed, fetch=["prediction"], batch=True)
                 if result is None:
                     raise ("predict failed.")
             else:

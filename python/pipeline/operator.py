@@ -843,8 +843,8 @@ class Op(object):
         else:
             self.concurrency_idx = concurrency_idx
             # init client
-            self.client = self.init_client(
-                self._client_config, self._server_endpoints)
+            self.client = self.init_client(self._client_config,
+                                           self._server_endpoints)
             # user defined
             self.init_op()
 

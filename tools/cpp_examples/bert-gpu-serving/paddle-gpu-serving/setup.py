@@ -23,7 +23,7 @@ info_content = open(info_py, 'r').readlines()
 version_line = [
     l.strip() for l in info_content if l.startswith('__version__')
 ][0]
-exec (version_line)  # produce __version__
+exec(version_line)  # produce __version__
 
 setuptools.setup(
     name="paddle-gpu-serving",

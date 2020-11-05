@@ -1108,7 +1108,7 @@ function main() {
     build_app $TYPE # pwd: /Serving
     java_run_test $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
-    monitor_test $TYPE # pwd: /Serving
+    #monitor_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
 
