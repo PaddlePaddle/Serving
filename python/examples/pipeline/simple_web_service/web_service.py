@@ -31,7 +31,8 @@ class UciOp(Op):
         x_value = input_dict["x"]
         if isinstance(x_value, (str, unicode)):
             input_dict["x"] = np.array(
-                [float(x.strip()) for x in x_value.split(self.separator)])
+                [float(x.strip())
+                 for x in x_value.split(self.separator)]).reshape(1, 13)
         return input_dict
 
     def postprocess(self, input_dicts, fetch_dict):
