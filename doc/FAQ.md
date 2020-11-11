@@ -44,7 +44,7 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: 目前Paddle Serving支持哪些镜像环境？
 
-**A:** 目前（0.4.0）仅支持CentOS，具体列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/DOCKER_IMAGES.md)
+**A:** 目前（0.4.0）仅支持CentOS，具体列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/DOCKER_IMAGES.md)。
 
 
 
