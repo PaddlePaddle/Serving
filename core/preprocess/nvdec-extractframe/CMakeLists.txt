@@ -30,7 +30,7 @@ include_directories(./include)
 include_directories(./codessdkinclude/include)
 include_directories(./ffmpeginclude/include)
 # include_directories(./pybind11/include)
-include_directories(./pythoninclude/python2.7/)
+include_directories({PYTHON_INCLUDE_DIR})
 include_directories(./Utils)
 include_directories(${CUDA_TOOLKIT_INCLUDE})
 

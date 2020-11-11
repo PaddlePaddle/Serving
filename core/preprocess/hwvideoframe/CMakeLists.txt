@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS " -g -pipe -W -Wall -fPIC")
 set(CMAKE_CXX_FLAGS " -g -pipe -W -Wall -fPIC -std=c++11")
 
 add_subdirectory(cuda)
-set(PYTHON_SO "${CMAKE_SOURCE_DIR}/core/preprocess/hwvideoframe/lib/libpython2.7.so")
+set(PYTHON_SO {PYTHON_LIBRARY})
 set(EXTRA_LIBS ${EXTRA_LIBS} gpu)
 file(GLOB SOURCE_FILES pybind/*.cpp src/*.cpp)
 
