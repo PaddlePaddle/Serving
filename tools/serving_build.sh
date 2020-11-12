@@ -964,7 +964,7 @@ function python_run_test() {
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     python_test_resnet50 $TYPE # pwd: /Serving/python/examples
-    python_test_pipeline $TYPE # pwd: /Serving/python/examples
+    #python_test_pipeline $TYPE # pwd: /Serving/python/examples
     echo "test python $TYPE part finished as expected."
     cd ../.. # pwd: /Serving
 }
@@ -1109,7 +1109,7 @@ function main() {
     build_app $TYPE # pwd: /Serving
     java_run_test $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
-    monitor_test $TYPE # pwd: /Serving
+    #monitor_test $TYPE # pwd: /Serving
     echo "serving $TYPE part finished as expected."
 }
 

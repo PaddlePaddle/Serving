@@ -15,6 +15,7 @@
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 import paddle
+import numpy as np
 
 
 def single_func(idx, resource):
@@ -26,6 +27,7 @@ def single_func(idx, resource):
         0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584,
         0.6283, 0.4919, 0.1856, 0.0795, -0.0332
     ]
+    x = np.array(x)
     for i in range(1000):
         fetch_map = client.predict(feed={"x": x}, fetch=["price"])
         if fetch_map is None:

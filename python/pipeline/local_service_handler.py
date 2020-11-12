@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 _workdir_name_gen = util.NameGenerator("workdir_")
 
 
-class LocalRpcServiceHandler(object):
+class LocalServiceHandler(object):
     def __init__(self,
                  model_config,
                  workdir="",
