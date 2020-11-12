@@ -21,6 +21,7 @@ from paddle_serving_app.reader import Sequential, Resize, File2Image
 import libgpupreprocess as pp
 import libhwextract
 
+
 class TestOperators(unittest.TestCase):
     """
     test all operators, e.g. Div, Normalize
@@ -171,6 +172,7 @@ class TestOperators(unittest.TestCase):
             cv2.imwrite('1.jpg', img)
             item.free_memory()
             # have to release memor
+
 
 if __name__ == '__main__':
     unittest.main()
