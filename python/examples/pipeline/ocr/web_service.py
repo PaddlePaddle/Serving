@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 try:
-    from paddle_serving_server_gpu.web_service import WebService, Op
+    from paddle_serving_server.web_service import WebService, Op
 except ImportError:
     from paddle_serving_server.web_service import WebService, Op
 import logging
@@ -52,7 +52,7 @@ class DetOp(Op):
         self.ori_h, self.ori_w, _ = self.im.shape
         det_img = self.det_preprocess(self.im)
         _, self.new_h, self.new_w = det_img.shape
-        return {"image": det_img}
+        return {"image": det_img[np.newaxis, :]}
 
     def postprocess(self, input_dicts, fetch_dict):
         det_out = fetch_dict["concat_1.tmp_0"]
@@ -62,6 +62,7 @@ class DetOp(Op):
         dt_boxes_list = self.post_func(det_out, [ratio_list])
         dt_boxes = self.filter_func(dt_boxes_list[0], [self.ori_h, self.ori_w])
         out_dict = {"dt_boxes": dt_boxes, "image": self.im}
+        print("out dict", out_dict)
         return out_dict
 
 
@@ -85,11 +86,14 @@ class RecOp(Op):
             h, w = boximg.shape[0:2]
             wh_ratio = w * 1.0 / h
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
-        for img in img_list:
+        _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
+                                                  max_wh_ratio).shape
+        imgs = np.zeros((len(img_list), 3, w, h)).astype('float32')
+        for id, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            feed = {"image": norm_img}
-            feed_list.append(feed)
-        return feed_list
+            imgs[id] = norm_img
+        feed = {"image": imgs.copy()}
+        return feed
 
     def postprocess(self, input_dicts, fetch_dict):
         rec_res = self.ocr_reader.postprocess(fetch_dict, with_score=True)
@@ -108,5 +112,5 @@ class OcrService(WebService):
 
 
 uci_service = OcrService(name="ocr")
-uci_service.prepare_pipeline_config("config.yml")
+uci_service.prepare_pipeline_config("brpc_config.yml")
 uci_service.run_service()
