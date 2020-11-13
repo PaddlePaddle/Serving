@@ -40,7 +40,7 @@ max_version, mid_version, min_version = python_version()
 if '${PACK}' == 'ON':
     copy_lib()
 
-if os.path.exists(../core/preprocess/hwvideoframe/libgpupreprocess.so):
+if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
     os.system('mkdir ./paddle_serving_app/reader/lib')
     os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
     os.system('cp ../core/preprocess/nvdec-extractframe/libhwextract.so ./paddle_serving_app/reader')
