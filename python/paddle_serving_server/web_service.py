@@ -118,12 +118,12 @@ class WebService(object):
                 del feed["fetch"]
             if len(feed) == 0:
                 raise ValueError("empty input")
-            fetch_map = self.client.predict(feed=feed, fetch=fetch)
+            fetch_map = self.client.predict(feed=feed, fetch=fetch, batch=True)
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
         except ValueError as err:
-            result = {"result": err}
+            result = {"result": str(err)}
         return result
 
     def run_rpc_service(self):
@@ -171,8 +171,8 @@ class WebService(object):
         self.app_instance = app_instance
 
     def _launch_local_predictor(self):
-        from paddle_serving_app.local_predict import Debugger
-        self.client = Debugger()
+        from paddle_serving_app.local_predict import LocalPredictor
+        self.client = LocalPredictor()
         self.client.load_model_config(
             "{}".format(self.model_config), gpu=False, profile=False)
 
