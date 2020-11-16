@@ -938,8 +938,6 @@ function python_app_api_test(){
             ;;
         GPU)
             echo "no implement for cpu type"
-            check_cmd "python test_image_reader.py"
-            check_cmd "python test_preprocess.py"
             ;;
         *)
             echo "error type"
