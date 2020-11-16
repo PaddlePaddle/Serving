@@ -46,7 +46,15 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 **A:** 目前（0.4.0）仅支持CentOS，具体列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/DOCKER_IMAGES.md)
 
+#### Q: python编译的GCC版本与serving的版本不匹配
 
+**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md#gpunvidia-docker)解决环境问题
+
+​	   2)修改anaconda的虚拟环境下安装的python的gcc版本[参考](https://www.jianshu.com/p/c498b3d86f77) 
+
+#### Q: paddle-serving是否支持本地离线安装 
+
+**A:** 支持离线部署，需要把一些相关的[依赖包](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md)提前准备安装好
 
 ## 预测问题
 
@@ -105,6 +113,19 @@ client端的日志直接打印到标准输出。
 
 通过在部署服务之前 'export  GLOG_v=3'可以输出更为详细的日志信息。
 
+#### Q: paddle-serving启动成功后，相关的日志在哪里设置
+
+**A:** 1)警告是glog组件打印的，告知glog初始化之前日志打印在STDERR
+
+​	   2)一般采用GLOG_v方式启动服务同时设置日志级别。
+
+例如：
+```
+GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999 
+```
+
+
+
 #### Q: （GLOG_v=2下）Server端日志一切正常，但Client端始终得不到正确的预测结果
 
 **A:** 可能是配置文件有问题，检查下配置文件（is_load_tensor，fetch_type等有没有问题）
@@ -116,3 +137,35 @@ client端的日志直接打印到标准输出。
 
 
 ## 性能优化
+
+
+## 基础知识
+#### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
+
+**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。	paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
+
+#### Q: paddle-serving是否支持Int32支持
+
+**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
+
+​     0-int64
+
+​	  1-float32
+
+​	  2-int32
+
+#### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
+
+**A:** 客户端可以发起多线程访问调用服务端 
+
+#### Q: paddle-serving如何修改消息大小限制
+
+**A:** 在server端和client但通过FLAGS_max_body_size来扩大数据量限制，单位为字节，默认为64MB
+
+#### Q: paddle-serving客户端目前支持哪些语言
+
+**A:** java c++ python 
+
+#### Q: paddle-serving目前支持哪些协议
+
+**A:** http rpc 
