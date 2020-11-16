@@ -51,6 +51,7 @@ class Op(object):
                  server_endpoints=None,
                  fetch_list=None,
                  client_config=None,
+                 client_type=None,
                  concurrency=None,
                  timeout=None,
                  retry=None,
@@ -68,6 +69,7 @@ class Op(object):
         self._server_endpoints = server_endpoints
         self._fetch_names = fetch_list
         self._client_config = client_config
+        self.client_type = client_type
         self._timeout = timeout
         self._retry = max(1, retry)
         self._batch_size = batch_size
@@ -138,6 +140,7 @@ class Op(object):
                         if self.client_type == "brpc" or self.client_type == "grpc":
                             service_handler = local_service_handler.LocalServiceHandler(
                                 model_config=model_config,
+                                client_type=self.client_type,
                                 workdir=local_service_conf["workdir"],
                                 thread_num=local_service_conf["thread_num"],
                                 devices=local_service_conf["devices"],
@@ -155,12 +158,13 @@ class Op(object):
                                 self._fetch_names = service_handler.get_fetch_list(
                                 )
                         elif self.client_type == "local_predictor":
-                            service_handler = local_service_handler.LocalPredictorServiceHandler(
+                            service_handler = local_service_handler.LocalServiceHandler(
                                 model_config=model_config,
+                                client_type=self.client_type,
                                 workdir=local_service_conf["workdir"],
                                 thread_num=local_service_conf["thread_num"],
                                 devices=local_service_conf["devices"])
-                            service_handler.prepare_server()  # get fetch_list
+                            #service_handler.prepare_server()  # get fetch_list
                             self.local_predictor = service_handler.get_client()
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
@@ -210,6 +214,9 @@ class Op(object):
                           " service: local_service_handler is None."))
             return
         port = self._local_service_handler.get_port_list()
+        #if self._local_service_handler.client_type == "local_predictor":
+        #    _LOGGER.info("Op({}) use local predictor.")
+        #    return
         self._local_service_handler.start_server()
         _LOGGER.info("Op({}) use local rpc service at port: {}"
                      .format(self.name, port))
@@ -248,6 +255,9 @@ class Op(object):
         else:
             raise ValueError("Failed to init client: unknow client "
                              "type {}".format(self.client_type))
+        if self._fetch_names is None:
+            self._fetch_names = client.fetch_names_
+            _LOGGER.info("Op({}) has no fetch name set. So fetch all vars")
         if self.client_type != "local_predictor":
             client.connect(server_endpoints)
         return client
@@ -310,7 +320,7 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict
 
-    def process(self, feed_batch, fetch_names, typical_logid):
+    def process(self, feed_batch, typical_logid):
         err, err_info = ChannelData.check_batch_npdata(feed_batch)
         if err != 0:
             _LOGGER.critical(
@@ -320,13 +330,13 @@ class Op(object):
         if self.client_type == "local_predictor":
             call_result = self.client.predict(
                 feed=feed_batch[0],
-                fetch=fetch_names,
+                fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
         else:
             call_result = self.client.predict(
                 feed=feed_batch,
-                fetch=fetch_names,
+                fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
         if isinstance(self.client, MultiLangClient):
