@@ -75,8 +75,7 @@ package_dir={'paddle_serving_app':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/models',
 	     'paddle_serving_app.reader.pddet':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader/pddet',
-             'paddle_serving_app.reader.lib':
-             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader/lib',}
+             }
 
 setup(
     name='paddle-serving-app',
