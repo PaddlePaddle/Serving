@@ -15,6 +15,7 @@
 from paddle_serving_client import Client
 from paddle_serving_app.reader import ChineseBertReader
 import sys
+import numpy as np
 
 client = Client()
 client.load_client_config("./bert_seq32_client/serving_client_conf.prototxt")
@@ -28,12 +29,21 @@ expected_shape = {
     "pooled_output": (4, 768)
 }
 batch_size = 4
-feed_batch = []
+feed_batch = {}
 
+batch_len = 0
 for line in sys.stdin:
     feed = reader.process(line)
+    if batch_len == 0:
+        for key in feed.keys():
+            val_len = len(feed[key])
+            feed_batch[key] = np.array(feed[key]).reshape((1, val_len, 1))
+        continue
     if len(feed_batch) < batch_size:
-        feed_batch.append(feed)
+        for key in feed.keys():
+            np.concatenate([
+                feed_batch[key], np.array(feed[key]).reshape((1, val_len, 1))
+            ])
     else:
         fetch_map = client.predict(feed=feed_batch, fetch=fetch)
         feed_batch = []

@@ -54,6 +54,7 @@ option(SERVER	    "Compile Paddle Serving Server"		    OFF)
 option(APP          "Compile Paddle Serving App package"	    OFF)
 option(WITH_ELASTIC_CTR "Compile ELASITC-CTR solution"              OFF)
 option(PACK         "Compile for whl"                               OFF)
+option(WITH_TRT     "Compile Paddle Serving with TRT"       OFF)
 
 set(WITH_MKLML ${WITH_MKL})
 if (NOT DEFINED WITH_MKLDNN)

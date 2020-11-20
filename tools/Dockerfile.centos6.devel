@@ -41,6 +41,12 @@ RUN yum -y install wget && \
     echo 'export LD_LIBRARY_PATH=/usr/local/python3.6/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
     source /root/.bashrc && \
     cd .. && rm -rf Python-3.6.8* && \
+    wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protobuf-all-3.11.2.tar.gz && \
+    tar zxf protobuf-all-3.11.2.tar.gz && \
+    cd protobuf-3.11.2 && \
+    ./configure && make -j4 && make install && \
+    make clean && \
+    cd .. && rm -rf protobuf-* && \
     yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
     yum clean all && \
     pip install requests && \

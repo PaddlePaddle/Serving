@@ -7,3 +7,4 @@ op:
         local_service_conf:
             model_config: uci_housing_model
             devices: "" # "0,1"
+            client_type: brpc

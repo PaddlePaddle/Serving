@@ -66,6 +66,8 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
+    if args.use_trt:
+        server.set_trt()
 
     if args.product_name != None:
         server.set_product_name(args.product_name)

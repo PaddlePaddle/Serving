@@ -260,7 +260,12 @@ class Client(object):
             #    key))
             pass
 
-    def predict(self, feed=None, fetch=None, need_variant_tag=False, log_id=0):
+    def predict(self,
+                feed=None,
+                fetch=None,
+                batch=False,
+                need_variant_tag=False,
+                log_id=0):
         self.profile_.record('py_prepro_0')
 
         if feed is None or fetch is None:
@@ -287,7 +292,10 @@ class Client(object):
         int_feed_names = []
         float_feed_names = []
         int_shape = []
+        int_lod_slot_batch = []
+        float_lod_slot_batch = []
         float_shape = []
+
         fetch_names = []
         counter = 0
         batch_size = len(feed_batch)
@@ -304,31 +312,56 @@ class Client(object):
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
             float_slot = []
+            int_lod_slot = []
+            float_lod_slot = []
             for key in feed_i:
-                if key not in self.feed_names_:
+                if ".lod" not in key and key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
+                if ".lod" in key:
+                    continue
                 #if not isinstance(feed_i[key], np.ndarray):
                 self.shape_check(feed_i, key)
                 if self.feed_types_[key] in int_type:
                     if i == 0:
                         int_feed_names.append(key)
+                        shape_lst = []
+                        if batch == False:
+                            feed_i[key] = feed_i[key][np.newaxis, :]
                         if isinstance(feed_i[key], np.ndarray):
-                            int_shape.append(list(feed_i[key].shape))
+                            shape_lst.extend(list(feed_i[key].shape))
+                            int_shape.append(shape_lst)
                         else:
                             int_shape.append(self.feed_shapes_[key])
+                        if "{}.lod".format(key) in feed_i:
+                            int_lod_slot_batch.append(feed_i["{}.lod".format(
+                                key)])
+                        else:
+                            int_lod_slot_batch.append([])
+
                     if isinstance(feed_i[key], np.ndarray):
                         int_slot.append(feed_i[key])
                         self.has_numpy_input = True
                     else:
                         int_slot.append(feed_i[key])
                         self.all_numpy_input = False
+
                 elif self.feed_types_[key] in float_type:
                     if i == 0:
                         float_feed_names.append(key)
+                        shape_lst = []
+                        if batch == False:
+                            feed_i[key] = feed_i[key][np.newaxis, :]
                         if isinstance(feed_i[key], np.ndarray):
-                            float_shape.append(list(feed_i[key].shape))
+                            shape_lst.extend(list(feed_i[key].shape))
+                            float_shape.append(shape_lst)
                         else:
                             float_shape.append(self.feed_shapes_[key])
+                        if "{}.lod".format(key) in feed_i:
+                            float_lod_slot_batch.append(feed_i["{}.lod".format(
+                                key)])
+                        else:
+                            float_lod_slot_batch.append([])
+
                     if isinstance(feed_i[key], np.ndarray):
                         float_slot.append(feed_i[key])
                         self.has_numpy_input = True
@@ -337,6 +370,8 @@ class Client(object):
                         self.all_numpy_input = False
             int_slot_batch.append(int_slot)
             float_slot_batch.append(float_slot)
+            int_lod_slot_batch.append(int_lod_slot)
+            float_lod_slot_batch.append(float_lod_slot)
 
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
@@ -344,14 +379,13 @@ class Client(object):
         result_batch_handle = self.predictorres_constructor()
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
-                float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid, log_id)
+                float_slot_batch, float_feed_names, float_shape,
+                float_lod_slot_batch, int_slot_batch, int_feed_names, int_shape,
+                int_lod_slot_batch, fetch_names, result_batch_handle, self.pid,
+                log_id)
         elif self.has_numpy_input == False:
-            res = self.client_handle_.batch_predict(
-                float_slot_batch, float_feed_names, float_shape, int_slot_batch,
-                int_feed_names, int_shape, fetch_names, result_batch_handle,
-                self.pid, log_id)
+            raise ValueError(
+                "Please make sure all of your inputs are numpy array")
         else:
             raise ValueError(
                 "Please make sure the inputs are all in list type or all in numpy.array type"
@@ -381,8 +415,9 @@ class Client(object):
                                 name))
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
                 elif self.fetch_names_to_type_[name] == float32_type:
                     result_map[name] = result_batch_handle.get_float_by_name(
                         mi, name)
@@ -394,9 +429,9 @@ class Client(object):
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
-
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
                 elif self.fetch_names_to_type_[name] == int32_type:
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int32_by_name(
@@ -409,8 +444,9 @@ class Client(object):
                     shape = result_batch_handle.get_shape(mi, name)
                     result_map[name].shape = shape
                     if name in self.lod_tensor_set:
-                        result_map["{}.lod".format(
-                            name)] = result_batch_handle.get_lod(mi, name)
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
             multi_result_map.append(result_map)
         ret = None
         if len(model_engine_names) == 1:

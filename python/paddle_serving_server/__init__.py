@@ -594,7 +594,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
-                if name in self.lod_tensor_set_:
+                if "{}.lod".format(name) in model_result:
                     tensor.lod.extend(model_result["{}.lod".format(name)]
                                       .tolist())
                 inst.tensor_array.append(tensor)

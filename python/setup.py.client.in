@@ -28,17 +28,11 @@ import util
 py_version = sys.version_info
         
 def copy_lib():
-    if py_version[0] == 2:
-        lib_list = ['libpython2.7.so.1.0', 'libssl.so.10', 'libcrypto.so.10'] 
-    elif py_version[1] == 6:
-        lib_list = ['libpython3.6m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
-    elif py_version[1] == 7:
-        lib_list = ['libpython3.7m.so.1.0', 'libssl.so.10', 'libcrypto.so.10']
     os.popen('mkdir -p paddle_serving_client/lib')
+    lib_list = ['${OPENSSL_CRYPTO_LIBRARY}', '${OPENSSL_SSL_LIBRARY}', 
+                '${PYTHON_LIBRARY}']
     for lib in lib_list:
-        r = os.popen('whereis {}'.format(lib))
-        text = r.read()
-        os.popen('cp {} ./paddle_serving_client/lib'.format(text.strip().split(' ')[1]))
+        os.popen('cp {} ./paddle_serving_client/lib'.format(lib))
 
 max_version, mid_version, min_version = util.python_version()
 
@@ -52,9 +46,6 @@ REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio >= 1.28.1',
     'grpcio-tools >= 1.28.1', 'requests'
 ]
-
-if not util.find_package("paddlepaddle") and not util.find_package("paddlepaddle-gpu"):
-    REQUIRED_PACKAGES.append("paddlepaddle")
 
 
 packages=['paddle_serving_client',
