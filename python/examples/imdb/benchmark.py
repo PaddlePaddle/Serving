@@ -17,6 +17,7 @@ import os
 import sys
 import time
 import requests
+import numpy as np
 from paddle_serving_app.reader import IMDBDataset
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
@@ -47,11 +48,17 @@ def single_func(idx, resource):
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
+                feed = {"words": [], "words.lod": [0]}
                 for bi in range(args.batch_size):
                     word_ids, label = imdb_dataset.get_words_and_label(dataset[
                         bi])
-                    feed_batch.append({"words": word_ids})
-                result = client.predict(feed=feed_batch, fetch=["prediction"])
+                    feed["words.lod"].append(feed["words.lod"][-1] + len(
+                        word_ids))
+                    feed["words"].extend(word_ids)
+                feed["words"] = np.array(feed["words"]).reshape(
+                    len(feed["words"]), 1)
+                result = client.predict(
+                    feed=feed, fetch=["prediction"], batch=True)
                 if result is None:
                     raise ("predict failed.")
             else:

@@ -41,7 +41,9 @@ class ImdbRequestOp(RequestOp):
                 continue
             words = request.value[idx]
             word_ids, _ = self.imdb_dataset.get_words_and_label(words)
-            dictdata[key] = np.array(word_ids)
+            word_len = len(word_ids)
+            dictdata[key] = np.array(word_ids).reshape(word_len, 1)
+            dictdata["{}.lod".format(key)] = [0, word_len]
         return dictdata
 
 
@@ -77,16 +79,18 @@ bow_op = Op(name="bow",
             server_endpoints=["127.0.0.1:9393"],
             fetch_list=["prediction"],
             client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
+            client_type='brpc',
             concurrency=1,
             timeout=-1,
             retry=1,
-            batch_size=3,
-            auto_batching_timeout=1000)
+            batch_size=1,
+            auto_batching_timeout=None)
 cnn_op = Op(name="cnn",
             input_ops=[read_op],
             server_endpoints=["127.0.0.1:9292"],
             fetch_list=["prediction"],
             client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
+            client_type='brpc',
             concurrency=1,
             timeout=-1,
             retry=1,
