@@ -133,7 +133,7 @@ class LocalPredictor(object):
             if batch == False:
                 input_tensor.copy_from_cpu(feed[name][np.newaxis, :])
             else:
-                input_tensor.copy_from_cpu(feed[name])
+                input_tensor.copy_from_cpu(feed[name][:, np.newaxis])
         output_tensors = []
         output_names = self.predictor.get_output_names()
         for output_name in output_names:
