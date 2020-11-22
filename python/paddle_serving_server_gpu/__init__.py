@@ -279,8 +279,6 @@ class Server(object):
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
 
-
-
     def set_trt(self):
         self.use_trt = True
 
