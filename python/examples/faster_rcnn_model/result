@@ -1,0 +1,100 @@
+model_name:pddet_serving_model
+batch_size:1
+CPU_UTILIZATION: 0.0
+MAX_GPU_MEMORY: 14525
+GPU_UTILIZATION: 100
+thread_num: 1
+prepro cost: 0.044376s in each thread 
+client_infer cost: 4.227083s in each thread 
+op0 cost: 0.015847s in each thread 
+op1 cost: 3.990032s in each thread 
+op2 cost: 9.7e-05s in each thread 
+postpro cost: 0.000244s in each thread 
+bert_pre cost: 0.304728s in each thread 
+py_prepro cost: 0.000431s in each thread 
+py_client cost: 4.273316s in each thread 
+py_postpro cost: 0.000703s in each thread 
+mean: 494.598486328125ms
+median: 480.2005615234375ms
+80 percent: 486.3544921875ms
+90 percent: 508.5200439453124ms
+99 percent: 624.6452905273438ms
+total cost: 5.024378299713135s
+each thread cost: 4.9460344314575195s. 
+qps: 1.990295993550276samples/s
+
+model_name:pddet_serving_model
+batch_size:1
+CPU_UTILIZATION: 0.0
+MAX_GPU_MEMORY: 14525
+GPU_UTILIZATION: 100
+thread_num: 4
+prepro cost: 0.0502565s in each thread 
+client_infer cost: 14.9771025s in each thread 
+op0 cost: 0.013033s in each thread 
+op1 cost: 14.754957s in each thread 
+op2 cost: 0.00012475s in each thread 
+postpro cost: 0.00036225s in each thread 
+bert_pre cost: 0.306132s in each thread 
+py_prepro cost: 0.000511s in each thread 
+py_client cost: 15.03027975s in each thread 
+py_postpro cost: 0.0009275s in each thread 
+mean: 1569.41435546875ms
+median: 1614.8760986328125ms
+80 percent: 1799.3856445312506ms
+90 percent: 2011.609326171875ms
+99 percent: 2379.27158203125ms
+total cost: 16.35568356513977s
+each thread cost: 15.694196701049805s. 
+qps: 2.4456330327431455samples/s
+
+model_name:pddet_serving_model
+batch_size:1
+CPU_UTILIZATION: 0.1
+MAX_GPU_MEMORY: 14525
+GPU_UTILIZATION: 100
+thread_num: 8
+prepro cost: 0.0546985s in each thread 
+client_infer cost: 31.083384375s in each thread 
+op0 cost: 0.0140595s in each thread 
+op1 cost: 16.07133675s in each thread 
+op2 cost: 0.000132625s in each thread 
+postpro cost: 0.000318375s in each thread 
+bert_pre cost: 0.31432075s in each thread 
+py_prepro cost: 0.00053575s in each thread 
+py_client cost: 31.140613125s in each thread 
+py_postpro cost: 0.000807375s in each thread 
+mean: 3181.2632019042967ms
+median: 3290.6607666015625ms
+80 percent: 3338.09208984375ms
+90 percent: 3686.9481689453123ms
+99 percent: 3735.27556640625ms
+total cost: 33.31558895111084s
+each thread cost: 31.812688767910004s. 
+qps: 2.40127827598655samples/s
+
+model_name:pddet_serving_model
+batch_size:1
+CPU_UTILIZATION: 0.0
+MAX_GPU_MEMORY: 14525
+GPU_UTILIZATION: 100
+thread_num: 16
+prepro cost: 0.0592799375s in each thread 
+client_infer cost: 62.949139375s in each thread 
+op0 cost: 0.0134921875s in each thread 
+op1 cost: 16.5226278125s in each thread 
+op2 cost: 0.00015525s in each thread 
+postpro cost: 0.0003169375s in each thread 
+bert_pre cost: 0.3272226875s in each thread 
+py_prepro cost: 0.000590125s in each thread 
+py_client cost: 63.0108379375s in each thread 
+py_postpro cost: 0.0008313125s in each thread 
+mean: 6370.063188171387ms
+median: 6705.1651611328125ms
+80 percent: 7052.77333984375ms
+90 percent: 7165.431909179687ms
+99 percent: 8213.415532226561ms
+total cost: 67.53448605537415s
+each thread cost: 63.70069542527199s. 
+qps: 2.3691599558307113samples/s
+
