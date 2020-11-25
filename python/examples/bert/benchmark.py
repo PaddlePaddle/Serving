@@ -116,8 +116,10 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = ["127.0.0.1:9292"]
-    turns = 10
+    endpoint_list = [
+        "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
+    ]
+    turns = 100
     start = time.time()
     result = multi_thread_runner.run(
         single_func, args.thread, {"endpoint": endpoint_list,
@@ -130,9 +132,9 @@ if __name__ == '__main__':
         avg_cost += result[0][i]
     avg_cost = avg_cost / args.thread
 
-    print("total cost :{} s".format(total_cost))
-    print("each thread cost :{} s. ".format(avg_cost))
-    print("qps :{} samples/s".format(args.batch_size * args.thread * turns /
-                                     total_cost))
+    print("total cost: {}s".format(total_cost))
+    print("each thread cost: {}s. ".format(avg_cost))
+    print("qps: {}samples/s".format(args.batch_size * args.thread * turns /
+                                    total_cost))
     if os.getenv("FLAGS_serving_latency"):
         show_latency(result[1])

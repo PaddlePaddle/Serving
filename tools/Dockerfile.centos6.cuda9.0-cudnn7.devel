@@ -1,0 +1,53 @@
+FROM nvidia/cuda:9.0-cudnn7-devel-centos6
+
+RUN yum -y install wget && \
+    wget http://people.centos.org/tru/devtools-2/devtools-2.repo -O /etc/yum.repos.d/devtoolset-2.repo && \
+    yum -y install devtoolset-2-gcc devtoolset-2-gcc-c++ devtoolset-2-binutils && \
+    source /opt/rh/devtoolset-2/enable && \
+    echo 'source /opt/rh/devtoolset-2/enable' >> /root/.bashrc && \
+    yum -y install git openssl-devel curl-devel bzip2-devel && \
+    wget https://cmake.org/files/v3.2/cmake-3.2.0-Linux-x86_64.tar.gz && \
+    tar xzf cmake-3.2.0-Linux-x86_64.tar.gz && \
+    mv cmake-3.2.0-Linux-x86_64 /usr/local/cmake3.2.0 && \
+    echo 'export PATH=/usr/local/cmake3.2.0/bin:$PATH' >> /root/.bashrc && \
+    rm cmake-3.2.0-Linux-x86_64.tar.gz && \
+    wget https://dl.google.com/go/go1.14.linux-amd64.tar.gz && \
+    tar xzf go1.14.linux-amd64.tar.gz && \
+    mv go /usr/local/go && \
+    echo 'export GOROOT=/usr/local/go' >> /root/.bashrc && \
+    echo 'export PATH=/usr/local/go/bin:$PATH' >> /root/.bashrc && \
+    rm go1.14.linux-amd64.tar.gz && \
+    yum -y install python-devel sqlite-devel && \
+    wget https://www.python.org/ftp/python/2.7.5/Python-2.7.5.tgz && \
+    tar -zxf Python-2.7.5.tgz && \
+    cd Python-2.7.5 && \
+    ./configure --prefix=/usr/local/python2.7 --enable-shared --enable-unicode=ucs4 && \
+    make all && make install && \
+    make clean && \
+    echo 'export PATH=/usr/local/python2.7/bin:$PATH' >> /root/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/python2.7/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
+    cd .. && rm -rf Python-2.7.5* && \
+    source /root/.bashrc && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py && \
+    wget https://www.python.org/ftp/python/3.6.8/Python-3.6.8.tgz && \
+    tar -zxf Python-3.6.8.tgz && \
+    cd Python-3.6.8 && \
+    ./configure --prefix=/usr/local/python3.6 --enable-shared && \
+    make all && make install && \
+    make clean && \
+    echo 'export PATH=/usr/local/python3.6/bin:$PATH' >> /root/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/python3.6/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
+    source /root/.bashrc && \
+    cd .. && rm -rf Python-3.6.8* && \
+    wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protobuf-all-3.11.2.tar.gz && \
+    tar zxf protobuf-all-3.11.2.tar.gz && \
+    cd protobuf-3.11.2 && \
+    ./configure && make -j4 && make install && \
+    make clean && \
+    cd .. && rm -rf protobuf-* &&\
+    yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
+    yum clean all && \
+    echo "export LANG=en_US.utf8" >> /root/.bashrc && \
+    echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc

@@ -147,10 +147,10 @@ Paddle Serving框架的server预测op使用了Paddle 的预测框架，在部署
 以[fit_a_line预测服务](../examples/fit_a_line)为例，使用以下代码即可执行本地预测。
 
 ```python
-from paddle_serving_app.local_predict import Debugger
+from paddle_serving_app.local_predict import LocalPredictor
 import numpy as np
 
-debugger = Debugger()
+debugger = LocalPredictor()
 debugger.load_model_config("./uci_housing_model", gpu=False)
 data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
         -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]

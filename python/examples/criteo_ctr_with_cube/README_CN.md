@@ -25,7 +25,7 @@ mv cube_app/cube* ./cube/
 sh cube_prepare.sh &
 ```
 
-此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中，关于稀疏参数索引服务Cube的介绍，请阅读[稀疏参数索引服务Cube单机版使用指南](../../../doc/CUBE_LOCAL_CN.md)
+此处，模型当中的稀疏参数会被存放在稀疏参数索引服务Cube当中。
 
 ### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
@@ -43,7 +43,7 @@ python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 设备 ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
 
-模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/ctr_criteo_with_cube/network_conf.py)
+模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/criteo_ctr_with_cube/network_conf.py)
 
 server core/thread num ： 4/8
 

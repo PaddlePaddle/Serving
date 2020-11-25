@@ -13,13 +13,15 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
+import os
 import sys
 import time
 import requests
+import numpy as np
 from paddle_serving_app.reader import IMDBDataset
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
-from paddle_serving_client.utils import benchmark_args
+from paddle_serving_client.utils import MultiThreadRunner, benchmark_args, show_latency
 
 args = benchmark_args()
 
@@ -31,6 +33,13 @@ def single_func(idx, resource):
     with open("./test_data/part-0") as fin:
         for line in fin:
             dataset.append(line.strip())
+    profile_flags = False
+    latency_flags = False
+    if os.getenv("FLAGS_profile_client"):
+        profile_flags = True
+    if os.getenv("FLAGS_serving_latency"):
+        latency_flags = True
+        latency_list = []
     start = time.time()
     if args.request == "rpc":
         client = Client()
@@ -39,11 +48,17 @@ def single_func(idx, resource):
         for i in range(1000):
             if args.batch_size >= 1:
                 feed_batch = []
+                feed = {"words": [], "words.lod": [0]}
                 for bi in range(args.batch_size):
                     word_ids, label = imdb_dataset.get_words_and_label(dataset[
                         bi])
-                    feed_batch.append({"words": word_ids})
-                result = client.predict(feed=feed_batch, fetch=["prediction"])
+                    feed["words.lod"].append(feed["words.lod"][-1] + len(
+                        word_ids))
+                    feed["words"].extend(word_ids)
+                feed["words"] = np.array(feed["words"]).reshape(
+                    len(feed["words"]), 1)
+                result = client.predict(
+                    feed=feed, fetch=["prediction"], batch=True)
                 if result is None:
                     raise ("predict failed.")
             else:
@@ -67,9 +82,26 @@ def single_func(idx, resource):
     return [[end - start]]
 
 
-multi_thread_runner = MultiThreadRunner()
-result = multi_thread_runner.run(single_func, args.thread, {})
-avg_cost = 0
-for cost in result[0]:
-    avg_cost += cost
-print("total cost {} s of each thread".format(avg_cost / args.thread))
+if __name__ == '__main__':
+    multi_thread_runner = MultiThreadRunner()
+    endpoint_list = [
+        "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
+    ]
+    turns = 100
+    start = time.time()
+    result = multi_thread_runner.run(
+        single_func, args.thread, {"endpoint": endpoint_list,
+                                   "turns": turns})
+    end = time.time()
+    total_cost = end - start
+    avg_cost = 0
+    for i in range(args.thread):
+        avg_cost += result[0][i]
+    avg_cost = avg_cost / args.thread
+
+    print("total cost: {}".format(total_cost))
+    print("each thread cost: {}".format(avg_cost))
+    print("qps: {}samples/s".format(args.batch_size * args.thread * turns /
+                                    total_cost))
+    if os.getenv("FLAGS_serving_latency"):
+        show_latency(result[0])

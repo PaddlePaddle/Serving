@@ -95,52 +95,34 @@ PYBIND11_MODULE(serving_client, m) {
            [](PredictorClient &self) { self.create_predictor(); })
       .def("destroy_predictor",
            [](PredictorClient &self) { self.destroy_predictor(); })
-      .def("batch_predict",
-           [](PredictorClient &self,
-              const std::vector<std::vector<std::vector<float>>>
-                  &float_feed_batch,
-              const std::vector<std::string> &float_feed_name,
-              const std::vector<std::vector<int>> &float_shape,
-              const std::vector<std::vector<std::vector<int64_t>>>
-                  &int_feed_batch,
-              const std::vector<std::string> &int_feed_name,
-              const std::vector<std::vector<int>> &int_shape,
-              const std::vector<std::string> &fetch_name,
-              PredictorRes &predict_res_batch,
-              const int &pid) {
-             return self.batch_predict(float_feed_batch,
-                                       float_feed_name,
-                                       float_shape,
-                                       int_feed_batch,
-                                       int_feed_name,
-                                       int_shape,
-                                       fetch_name,
-                                       predict_res_batch,
-                                       pid);
-           },
-           py::call_guard<py::gil_scoped_release>())
       .def("numpy_predict",
            [](PredictorClient &self,
               const std::vector<std::vector<py::array_t<float>>>
                   &float_feed_batch,
               const std::vector<std::string> &float_feed_name,
               const std::vector<std::vector<int>> &float_shape,
+              const std::vector<std::vector<int>> &float_lod_slot_batch,
               const std::vector<std::vector<py::array_t<int64_t>>>
                   &int_feed_batch,
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
+              const std::vector<std::vector<int>> &int_lod_slot_batch,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
-              const int &pid) {
+              const int &pid,
+              const uint64_t log_id) {
              return self.numpy_predict(float_feed_batch,
                                        float_feed_name,
                                        float_shape,
+                                       float_lod_slot_batch,
                                        int_feed_batch,
                                        int_feed_name,
                                        int_shape,
+                                       int_lod_slot_batch,
                                        fetch_name,
                                        predict_res_batch,
-                                       pid);
+                                       pid,
+                                       log_id);
            },
            py::call_guard<py::gil_scoped_release>());
 }

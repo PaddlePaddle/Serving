@@ -26,7 +26,7 @@ from contextlib import closing
 import argparse
 import collections
 import fcntl
-
+import shutil
 import numpy as np
 import grpc
 from .proto import multi_lang_general_model_service_pb2
@@ -41,7 +41,7 @@ from concurrent import futures
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
+        "--thread", type=int, default=2, help="Concurrency of server")
     parser.add_argument(
         "--model", type=str, default="", help="Model for serving")
     parser.add_argument(
@@ -57,7 +57,7 @@ def serve_args():
     parser.add_argument(
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
-        "--mem_optim",
+        "--mem_optim_off",
         default=False,
         action="store_true",
         help="Memory optimize")
@@ -68,6 +68,23 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
+    parser.add_argument(
+        "--use_multilang",
+        default=False,
+        action="store_true",
+        help="Use Multi-language-service")
+    parser.add_argument(
+        "--use_trt", default=False, action="store_true", help="Use TensorRT")
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=None,
+        help="product_name for authentication")
+    parser.add_argument(
+        "--container_id",
+        type=str,
+        default=None,
+        help="container_id for authentication")
     return parser.parse_args()
 
 
@@ -136,8 +153,8 @@ class OpSeqMaker(object):
             elif len(node.dependencies) == 1:
                 if node.dependencies[0].name != self.workflow.nodes[-1].name:
                     raise Exception(
-                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'.
-                        format(node.dependencies[0].name, self.workflow.nodes[
+                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'
+                        .format(node.dependencies[0].name, self.workflow.nodes[
                             -1].name))
         self.workflow.nodes.extend([node])
 
@@ -182,7 +199,7 @@ class Server(object):
         self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
-        self.num_threads = 4
+        self.num_threads = 2
         self.port = 8080
         self.reload_interval_s = 10
         self.max_body_size = 64 * 1024 * 1024
@@ -190,7 +207,14 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.gpuid = 0
+        self.use_trt = False
         self.model_config_paths = None  # for multi-model in a workflow
+        self.product_name = None
+        self.container_id = None
+
+    def get_fetch_list(self):
+        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+        return fetch_names
 
     def set_max_concurrency(self, concurrency):
         self.max_concurrency = concurrency
@@ -224,25 +248,34 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
+    def set_product_name(self, product_name=None):
+        if product_name == None:
+            raise ValueError("product_name can't be None.")
+        self.product_name = product_name
+
+    def set_container_id(self, container_id):
+        if container_id == None:
+            raise ValueError("container_id can't be None.")
+        self.container_id = container_id
+
     def check_local_bin(self):
         if "SERVING_BIN" in os.environ:
             self.use_local_bin = True
             self.bin_path = os.environ["SERVING_BIN"]
 
     def check_cuda(self):
-        cuda_flag = False
-        r = os.popen("ldd {} | grep cudart".format(self.bin_path))
-        r = r.read().split("=")
-        if len(r) >= 2 and "cudart" in r[1] and os.system(
-                "ls /dev/ | grep nvidia > /dev/null") == 0:
-            cuda_flag = True
-        if not cuda_flag:
+        if os.system("ls /dev/ | grep nvidia > /dev/null") == 0:
+            pass
+        else:
             raise SystemExit(
-                "CUDA not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
+                "GPU not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
 
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
+
+    def set_trt(self):
+        self.use_trt = True
 
     def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
@@ -263,6 +296,7 @@ class Server(object):
             engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
+            engine.use_trt = self.use_trt
 
             if device == "cpu":
                 engine.type = "FLUID_CPU_ANALYSIS_DIR"
@@ -280,7 +314,7 @@ class Server(object):
             infer_service.workflows.extend(["workflow1"])
             self.infer_service_conf.services.extend([infer_service])
 
-    def _prepare_resource(self, workdir):
+    def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
             with open("{}/{}".format(workdir, self.general_model_config_fn),
@@ -292,10 +326,19 @@ class Server(object):
                     if "dist_kv" in node.name:
                         self.resource_conf.cube_config_path = workdir
                         self.resource_conf.cube_config_file = self.cube_config_fn
+                        if cube_conf == None:
+                            raise ValueError(
+                                "Please set the path of cube.conf while use dist_kv op."
+                            )
+                        shutil.copy(cube_conf, workdir)
             self.resource_conf.model_toolkit_path = workdir
             self.resource_conf.model_toolkit_file = self.model_toolkit_fn
             self.resource_conf.general_model_path = workdir
             self.resource_conf.general_model_file = self.general_model_config_fn
+            if self.product_name != None:
+                self.resource_conf.auth_product_name = self.product_name
+            if self.container_id != None:
+                self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
@@ -353,7 +396,18 @@ class Server(object):
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
-        device_version = "serving-gpu-"
+
+        #acquire lock
+        version_file = open("{}/version.py".format(self.module_path), "r")
+        import re
+        for line in version_file.readlines():
+            if re.match("cuda_version", line):
+                cuda_version = line.split("\"")[1]
+                if cuda_version != "trt":
+                    device_version = "serving-gpu-cuda" + cuda_version + "-"
+                else:
+                    device_version = "serving-gpu-" + cuda_version + "-"
+
         folder_name = device_version + serving_server_version
         tar_name = folder_name + ".tar.gz"
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
@@ -362,8 +416,6 @@ class Server(object):
         download_flag = "{}/{}.is_download".format(self.module_path,
                                                    folder_name)
 
-        #acquire lock
-        version_file = open("{}/version.py".format(self.module_path), "r")
         fcntl.flock(version_file, fcntl.LOCK_EX)
 
         if os.path.exists(download_flag):
@@ -375,13 +427,14 @@ class Server(object):
             os.system("touch {}/{}.is_download".format(self.module_path,
                                                        folder_name))
             print('Frist time run, downloading PaddleServing components ...')
+
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
             if r != 0:
                 if os.path.exists(tar_name):
                     os.remove(tar_name)
                 raise SystemExit(
-                    'Download failed, please check your network or permission of {}.'.
-                    format(self.module_path))
+                    'Download failed, please check your network or permission of {}.'
+                    .format(self.module_path))
             else:
                 try:
                     print('Decompressing files ..')
@@ -392,8 +445,8 @@ class Server(object):
                     if os.path.exists(exe_path):
                         os.remove(exe_path)
                     raise SystemExit(
-                        'Decompressing failed, please check your permission of {} or disk space left.'.
-                        format(self.module_path))
+                        'Decompressing failed, please check your permission of {} or disk space left.'
+                        .format(self.module_path))
                 finally:
                     os.remove(tar_name)
         #release lock
@@ -401,7 +454,11 @@ class Server(object):
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir {}".format(workdir))
@@ -410,10 +467,10 @@ class Server(object):
         os.system("touch {}/fluid_time_file".format(workdir))
 
         if not self.port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
+            raise SystemExit("Port {} is already used".format(port))
 
         self.set_port(port)
-        self._prepare_resource(workdir)
+        self._prepare_resource(workdir, cube_conf)
         self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
@@ -484,22 +541,29 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerService(
-        multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelService):
-    def __init__(self, model_config_path, endpoints):
+class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
+                                     MultiLangGeneralModelServiceServicer):
+    def __init__(self, model_config_path, is_multi_model, endpoints):
+        self.is_multi_model_ = is_multi_model
+        self.model_config_path_ = model_config_path
+        self.endpoints_ = endpoints
+        with open(self.model_config_path_) as f:
+            self.model_config_str_ = str(f.read())
+        self._parse_model_config(self.model_config_str_)
+        self._init_bclient(self.model_config_path_, self.endpoints_)
+
+    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
         from paddle_serving_client import Client
-        self._parse_model_config(model_config_path)
         self.bclient_ = Client()
-        self.bclient_.load_client_config(
-            "{}/serving_server_conf.prototxt".format(model_config_path))
+        if timeout_ms is not None:
+            self.bclient_.set_rpc_timeout_ms(timeout_ms)
+        self.bclient_.load_client_config(model_config_path)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_path):
+    def _parse_model_config(self, model_config_str):
         model_conf = m_config.GeneralModelConfig()
-        f = open("{}/serving_server_conf.prototxt".format(model_config_path),
-                 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(model_config_str,
+                                                       model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -524,10 +588,11 @@ class MultiLangServerService(
             else:
                 yield item
 
-    def _unpack_request(self, request):
+    def _unpack_inference_request(self, request):
         feed_names = list(request.feed_var_names)
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
+        log_id = request.log_id
         feed_batch = []
         for feed_inst in request.insts:
             feed_dict = {}
@@ -540,6 +605,8 @@ class MultiLangServerService(
                         data = np.frombuffer(var.data, dtype="int64")
                     elif v_type == 1:
                         data = np.frombuffer(var.data, dtype="float32")
+                    elif v_type == 2:
+                        data = np.frombuffer(var.data, dtype="int32")
                     else:
                         raise Exception("error type.")
                 else:
@@ -547,62 +614,146 @@ class MultiLangServerService(
                         data = np.array(list(var.int64_data), dtype="int64")
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
+                    elif v_type == 2:
+                        data = np.array(list(var.int_data), dtype="int32")
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
             feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python
+        return feed_batch, fetch_names, is_python, log_id
 
-    def _pack_resp_package(self, result, fetch_names, is_python, tag):
-        resp = multi_lang_general_model_service_pb2.Response()
-        # Only one model is supported temporarily
-        model_output = multi_lang_general_model_service_pb2.ModelOutput()
-        inst = multi_lang_general_model_service_pb2.FetchInst()
-        for idx, name in enumerate(fetch_names):
-            tensor = multi_lang_general_model_service_pb2.Tensor()
-            v_type = self.fetch_types_[name]
-            if is_python:
-                tensor.data = result[name].tobytes()
-            else:
-                if v_type == 0:  # int64
-                    tensor.int64_data.extend(result[name].reshape(-1).tolist())
-                elif v_type == 1:  # float32
-                    tensor.float_data.extend(result[name].reshape(-1).tolist())
-                else:
-                    raise Exception("error type.")
-            tensor.shape.extend(list(result[name].shape))
-            if name in self.lod_tensor_set_:
-                tensor.lod.extend(result["{}.lod".format(name)].tolist())
-            inst.tensor_array.append(tensor)
-        model_output.insts.append(inst)
-        resp.outputs.append(model_output)
+    def _pack_inference_response(self, ret, fetch_names, is_python):
+        resp = multi_lang_general_model_service_pb2.InferenceResponse()
+        if ret is None:
+            resp.err_code = 1
+            return resp
+        results, tag = ret
         resp.tag = tag
+        resp.err_code = 0
+
+        if not self.is_multi_model_:
+            results = {'general_infer_0': results}
+        for model_name, model_result in results.items():
+            model_output = multi_lang_general_model_service_pb2.ModelOutput()
+            inst = multi_lang_general_model_service_pb2.FetchInst()
+            for idx, name in enumerate(fetch_names):
+                tensor = multi_lang_general_model_service_pb2.Tensor()
+                v_type = self.fetch_types_[name]
+                if is_python:
+                    tensor.data = model_result[name].tobytes()
+                else:
+                    if v_type == 0:  # int64
+                        tensor.int64_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    elif v_type == 1:  # float32
+                        tensor.float_data.extend(model_result[name].reshape(-1)
+                                                 .tolist())
+                    elif v_type == 2:  # int32
+                        tensor.int_data.extend(model_result[name].reshape(-1)
+                                               .tolist())
+                    else:
+                        raise Exception("error type.")
+                tensor.shape.extend(list(model_result[name].shape))
+                if "{}.lod".format(name) in model_result:
+                    tensor.lod.extend(model_result["{}.lod".format(name)]
+                                      .tolist())
+                inst.tensor_array.append(tensor)
+            model_output.insts.append(inst)
+            model_output.engine_name = model_name
+            resp.outputs.append(model_output)
         return resp
 
-    def inference(self, request, context):
-        feed_dict, fetch_names, is_python = self._unpack_request(request)
-        data, tag = self.bclient_.predict(
-            feed=feed_dict, fetch=fetch_names, need_variant_tag=True)
-        return self._pack_resp_package(data, fetch_names, is_python, tag)
+    def SetTimeout(self, request, context):
+        # This porcess and Inference process cannot be operate at the same time.
+        # For performance reasons, do not add thread lock temporarily.
+        timeout_ms = request.timeout_ms
+        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
+        resp = multi_lang_general_model_service_pb2.SimpleResponse()
+        resp.err_code = 0
+        return resp
+
+    def Inference(self, request, context):
+        feed_dict, fetch_names, is_python, log_id \
+                = self._unpack_inference_request(request)
+        ret = self.bclient_.predict(
+            feed=feed_dict,
+            fetch=fetch_names,
+            need_variant_tag=True,
+            log_id=log_id)
+        return self._pack_inference_response(ret, fetch_names, is_python)
+
+    def GetClientConfig(self, request, context):
+        resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
+        resp.client_config_str = self.model_config_str_
+        return resp
 
 
 class MultiLangServer(object):
-    def __init__(self, worker_num=2):
+    def __init__(self):
         self.bserver_ = Server()
-        self.worker_num_ = worker_num
+        self.worker_num_ = 4
+        self.body_size_ = 64 * 1024 * 1024
+        self.concurrency_ = 100000
+        self.is_multi_model_ = False  # for model ensemble
+
+    def set_max_concurrency(self, concurrency):
+        self.concurrency_ = concurrency
+        self.bserver_.set_max_concurrency(concurrency)
+
+    def set_num_threads(self, threads):
+        self.worker_num_ = threads
+        self.bserver_.set_num_threads(threads)
+
+    def set_max_body_size(self, body_size):
+        self.bserver_.set_max_body_size(body_size)
+        if body_size >= self.body_size_:
+            self.body_size_ = body_size
+        else:
+            print(
+                "max_body_size is less than default value, will use default value in service."
+            )
+
+    def set_port(self, port):
+        self.gport_ = port
+
+    def set_reload_interval(self, interval):
+        self.bserver_.set_reload_interval(interval)
 
     def set_op_sequence(self, op_seq):
         self.bserver_.set_op_sequence(op_seq)
 
-    def load_model_config(self, model_config_path):
-        if not isinstance(model_config_path, str):
-            raise Exception(
-                "MultiLangServer only supports multi-model temporarily")
-        self.bserver_.load_model_config(model_config_path)
-        self.model_config_path_ = model_config_path
+    def set_op_graph(self, op_graph):
+        self.bserver_.set_op_graph(op_graph)
 
-    def prepare_server(self, workdir=None, port=9292, device="cpu"):
+    def set_memory_optimize(self, flag=False):
+        self.bserver_.set_memory_optimize(flag)
+
+    def set_ir_optimize(self, flag=False):
+        self.bserver_.set_ir_optimize(flag)
+
+    def set_gpuid(self, gpuid=0):
+        self.bserver_.set_gpuid(gpuid)
+
+    def load_model_config(self, server_config_paths, client_config_path=None):
+        self.bserver_.load_model_config(server_config_paths)
+        if client_config_path is None:
+            if isinstance(server_config_paths, dict):
+                self.is_multi_model_ = True
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    list(server_config_paths.items())[0][1])
+            else:
+                client_config_path = '{}/serving_server_conf.prototxt'.format(
+                    server_config_paths)
+        self.bclient_config_path_ = client_config_path
+
+    def prepare_server(self,
+                       workdir=None,
+                       port=9292,
+                       device="cpu",
+                       cube_conf=None):
+        if not self._port_is_available(port):
+            raise SystemExit("Prot {} is already used".format(port))
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):
@@ -611,8 +762,11 @@ class MultiLangServer(object):
                 self.port_list_.append(default_port + i)
                 break
         self.bserver_.prepare_server(
-            workdir=workdir, port=self.port_list_[0], device=device)
-        self.gport_ = port
+            workdir=workdir,
+            port=self.port_list_[0],
+            device=device,
+            cube_conf=cube_conf)
+        self.set_port(port)
 
     def _launch_brpc_service(self, bserver):
         bserver.run_server()
@@ -627,12 +781,16 @@ class MultiLangServer(object):
         p_bserver = Process(
             target=self._launch_brpc_service, args=(self.bserver_, ))
         p_bserver.start()
+        options = [('grpc.max_send_message_length', self.body_size_),
+                   ('grpc.max_receive_message_length', self.body_size_)]
         server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self.worker_num_))
+            futures.ThreadPoolExecutor(max_workers=self.worker_num_),
+            options=options,
+            maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerService(self.model_config_path_,
-                                   ["0.0.0.0:{}".format(self.port_list_[0])]),
-            server)
+            MultiLangServerServiceServicer(
+                self.bclient_config_path_, self.is_multi_model_,
+                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
         p_bserver.join()

@@ -7,6 +7,7 @@
 <p>
 
 
+
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
@@ -31,7 +32,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">安装</h2>
 
-**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](doc/DOCKER_IMAGES_CN.md)。
 
 ```
 # 启动 CPU Docker
@@ -41,21 +42,26 @@ docker exec -it test bash
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
 nvidia-docker exec -it test bash
 ```
 ```shell
-pip install paddle-serving-client
-pip install paddle-serving-server # CPU
-pip install paddle-serving-server-gpu # GPU
+pip install paddle-serving-client==0.3.2
+pip install paddle-serving-server==0.3.2 # CPU
+pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
 如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。
 
-Paddle Serving安装包支持Centos 6/7和Ubuntu 16/18，或者您可以使用HTTP服务，这种情况下不需要安装客户端。
+paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7和Ubuntu 16/18。
+
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6。
+
+推荐安装1.8.2及以上版本的paddle
 
 <h2 align="center"> Paddle Serving预装的服务 </h2>
 
@@ -76,7 +82,7 @@ Paddle Serving安装包支持Centos 6/7和Ubuntu 16/18，或者您可以使用HT
 <img src='https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg' width = "200" height = "200">
     <br>
 <p>
-    
+
 ``` shell
 > python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 > tar -xzf resnet_v2_50_imagenet.tar.gz
@@ -115,9 +121,10 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `port` | int | `9292` | Exposed port of current service to users|
 | `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim` | - | - | Enable memory optimization |
+| `mem_optim_off` | - | - | Disable memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
+| `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
 我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
 </center>
@@ -163,6 +170,11 @@ print(fetch_map)
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
 - [端到端完成从训练到部署全流程](doc/TRAIN_TO_SERVICE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
+
+### AIStudio教程
+- [PaddleServing作业](https://aistudio.baidu.com/aistudio/projectdetail/605819)
+- [PaddleServing图像分割](https://aistudio.baidu.com/aistudio/projectdetail/457715)
+- [PaddleServing情感分析](https://aistudio.baidu.com/aistudio/projectdetail/509014)
 
 ### 开发者教程
 - [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)

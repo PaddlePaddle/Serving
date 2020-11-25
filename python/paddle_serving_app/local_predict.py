@@ -31,7 +31,7 @@ logger = logging.getLogger("fluid")
 logger.setLevel(logging.INFO)
 
 
-class Debugger(object):
+class LocalPredictor(object):
     def __init__(self):
         self.feed_names_ = []
         self.fetch_names_ = []
@@ -70,12 +70,13 @@ class Debugger(object):
             config.enable_use_gpu(100, 0)
         if profile:
             config.enable_profile()
+        config.delete_pass("conv_transpose_eltwiseadd_bn_fuse_pass")
         config.set_cpu_math_library_num_threads(cpu_num)
         config.switch_ir_optim(False)
-
+        config.switch_use_feed_fetch_ops(False)
         self.predictor = create_paddle_predictor(config)
 
-    def predict(self, feed=None, fetch=None):
+    def predict(self, feed=None, fetch=None, batch=False, log_id=0):
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
         fetch_list = []
@@ -113,20 +114,40 @@ class Debugger(object):
                 "Fetch names should not be empty or out of saved fetch list.")
             return {}
 
-        inputs = []
-        for name in self.feed_names_:
+        input_names = self.predictor.get_input_names()
+        for name in input_names:
             if isinstance(feed[name], list):
                 feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
                     name])
-                if self.feed_types_[name] == 0:
-                    feed[name] = feed[name].astype("int64")
-                else:
-                    feed[name] = feed[name].astype("float32")
-            inputs.append(PaddleTensor(feed[name][np.newaxis, :]))
-
-        outputs = self.predictor.run(inputs)
+            if self.feed_types_[name] == 0:
+                feed[name] = feed[name].astype("int64")
+            elif self.feed_types_[name] == 1:
+                feed[name] = feed[name].astype("float32")
+            elif self.feed_types_[name] == 2:
+                feed[name] = feed[name].astype("int32")
+            else:
+                raise ValueError("local predictor receives wrong data type")
+            input_tensor = self.predictor.get_input_tensor(name)
+            if "{}.lod".format(name) in feed:
+                input_tensor.set_lod([feed["{}.lod".format(name)]])
+            if batch == False:
+                input_tensor.copy_from_cpu(feed[name][np.newaxis, :])
+            else:
+                input_tensor.copy_from_cpu(feed[name])
+        output_tensors = []
+        output_names = self.predictor.get_output_names()
+        for output_name in output_names:
+            output_tensor = self.predictor.get_output_tensor(output_name)
+            output_tensors.append(output_tensor)
+        outputs = []
+        self.predictor.zero_copy_run()
+        for output_tensor in output_tensors:
+            output = output_tensor.copy_to_cpu()
+            outputs.append(output)
         fetch_map = {}
-        for name in fetch:
-            fetch_map[name] = outputs[self.fetch_names_to_idx_[
-                name]].as_ndarray()
+        for i, name in enumerate(fetch):
+            fetch_map[name] = outputs[i]
+            if len(output_tensors[i].lod()) > 0:
+                fetch_map[name + ".lod"] = np.array(output_tensors[i].lod()[
+                    0]).astype('int32')
         return fetch_map

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .chinese_bert_reader import ChineseBertReader
-from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize
+from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
 from .image_reader import CenterCrop, Resize, Transpose, Div, RGB2BGR, BGR2RGB, ResizeByFactor
-from .image_reader import RCNNPostprocess, SegPostprocess, PadStride
-from .image_reader import DBPostProcess, FilterBoxes
+from .image_reader import RCNNPostprocess, SegPostprocess, PadStride, BlazeFacePostprocess
+from .image_reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 from .lac_reader import LACReader
 from .senta_reader import SentaReader
 from .imdb_reader import IMDBDataset

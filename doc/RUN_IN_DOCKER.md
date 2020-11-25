@@ -12,21 +12,12 @@ This document takes Python2 as an example to show how to run Paddle Serving in d
 
 ### Get docker image
 
-You can get images in two ways:
+Refer to [this document](DOCKER_IMAGES.md) for a docker image:
 
-1. Pull image directly
+```shell
+docker pull hub.baidubce.com/paddlepaddle/serving:latest
+```
 
-   ```bash
-   docker pull hub.baidubce.com/paddlepaddle/serving:latest
-   ```
-
-2. Building image based on dockerfile
-
-   Create a new folder and copy [Dockerfile](../tools/Dockerfile) to this folder, and run the following command:
-
-   ```bash
-   docker build -t hub.baidubce.com/paddlepaddle/serving:latest .
-   ```
 
 ### Create container
 
@@ -104,26 +95,16 @@ The GPU version is basically the same as the CPU version, with only some differe
 
 ### Get docker image
 
-You can also get images in two ways:
+Refer to [this document](DOCKER_IMAGES.md) for a docker image, the following is an example of an `cuda9.0-cudnn7` image:
 
-1. Pull image directly
-
-   ```bash
-   nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-gpu
-   ```
-
-2. Building image based on dockerfile
-
-   Create a new folder and copy [Dockerfile.gpu](../tools/Dockerfile.gpu) to this folder, and run the following command:
-
-   ```bash
-   nvidia-docker build -t hub.baidubce.com/paddlepaddle/serving:latest-gpu .
-   ```
+```shell
+nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-gpu
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
 nvidia-docker exec -it test bash
 ```
 
@@ -200,4 +181,4 @@ tar -xzf uci_housing.tar.gz
 
 ## Attention
 
-The images provided by this document are all runtime images, which do not support compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
+Runtime images cannot be used for compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).

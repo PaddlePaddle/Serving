@@ -44,6 +44,7 @@ message EngineDesc {
   optional bool static_optimization = 14;
   optional bool force_update_static_cache = 15;
   optional bool enable_ir_optimization = 16;
+  optional bool use_trt = 17;
 };
 
 // model_toolkit conf
@@ -58,6 +59,8 @@ message ResourceConf {
   optional string cube_config_path = 5;
   optional string cube_config_file = 6;
   optional int32 cube_quant_bits = 7; // set 0 if no quant.
+  optional string auth_product_name = 8;
+  optional string auth_container_id = 9;
 };
 
 // DAG node depency info
