@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# pylint: disable=doc-string-missing
 from .chinese_bert_reader import ChineseBertReader
 from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
 from .image_reader import CenterCrop, Resize, Transpose, Div, RGB2BGR, BGR2RGB, ResizeByFactor
@@ -22,4 +23,3 @@ from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader
 from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
 from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor
-from libhwextract import HwExtractFrameJpeg, HwExtractFrameBGRARaw, HwFrameResult

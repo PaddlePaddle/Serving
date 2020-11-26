@@ -9,5 +9,4 @@ if (${CUDA_VERSION} LESS 10.0)
     return()
 elseif (${CUDA_VERSION} LESS 10.1) # CUDA 10.0
    add_subdirectory(hwvideoframe)
-   add_subdirectory(nvdec-extractframe) 
 endif()
