@@ -16,21 +16,19 @@ syntax = "proto2";
 package baidu.paddle_serving.pipeline_serving;
 
 message Request {
-  optional string name = 1;
-  optional string methond = 2;
-  optional string appid = 3;
-  optional int64 logid = 4;
-  optional string format = 5;
-  optional string from = 6;
-  optional string cmdid = 7;
-  optional string clientip = 8;
-  optional string data = 9;
+  repeated string key = 1;
+  repeated string value = 2;
+  optional string name = 3;
+  optional string method = 4;
+  optional int64 logid = 5;
+  optional string clientip = 6;
 };
 
 message Response {
   optional int32 err_no = 1;
   optional string err_msg = 2;
-  optional string result = 3;
+  repeated string key = 3;
+  repeated string value = 4;
 };
 
 service PipelineService {

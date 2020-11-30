@@ -57,6 +57,9 @@ class ProductErrCode(enum.Enum):
 
 
 class ChannelDataType(enum.Enum):
+    """
+    Channel data type
+    """
     DICT = 0
     CHANNEL_NPDATA = 1
     ERROR = 2
@@ -211,9 +214,9 @@ class ChannelData(object):
             return 1
 
     def __str__(self):
-        return "type[{}], error_code[{}], data_id[{}], log_id[{}]".format(
+        return "type[{}], error_code[{}], data_id[{}], log_id[{}], dict_data[{}]".format(
             ChannelDataType(self.datatype).name, self.error_code, self.id,
-            self.log_id)
+            self.log_id, str(self.dictdata))
 
 
 class ProcessChannel(object):
@@ -310,8 +313,8 @@ class ProcessChannel(object):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("(data_id={} log_id={}) Op({}) Pushing data".format(
-                channeldata.id, channeldata.log_id, op_name)))
+            self._log("(data_id={} log_id={}) Op({}) Enter channel::push".
+                      format(channeldata.id, channeldata.log_id, op_name)))
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(

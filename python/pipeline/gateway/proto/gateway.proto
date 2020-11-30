@@ -21,19 +21,17 @@ import "google/api/annotations.proto";
 message Response {
   int32 err_no = 1;
   string err_msg = 2;
-  string result = 3;
+  repeated string key = 3;
+  repeated string value = 4;
 };
 
 message Request {
-  string name = 1;
-  string method = 2;
-  string appid = 3;
-  int64 logid = 4;
-  string format = 5;
-  string from = 6;
-  string cmdid = 7;
-  string clientip = 8;
-  string data = 9;
+  repeated string key = 1;
+  repeated string value = 2;
+  string name = 3;
+  string method = 4;
+  int64 logid = 5;
+  string clientip = 6;
 };
 
 service PipelineService {

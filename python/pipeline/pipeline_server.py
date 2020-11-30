@@ -32,6 +32,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
+    """
+    Pipeline Servicer entrance.
+    """
+
     def __init__(self, name, response_op, dag_conf, worker_idx=-1):
         super(PipelineServicer, self).__init__()
         self._name = name
@@ -42,9 +46,12 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
-        _LOGGER.info("inference request name:{} self.name:{}".format(
-            request.name, self._name))
+        _LOGGER.info("(log_id={}) inference request name:{} self.name:{}".
+                     format(request.logid, request.name, self._name))
         if request.name != "" and request.name != self._name:
+            _LOGGER.error("(log_id={}) name dismatch error. request.name:{},"
+                          "server.name={}".format(request.logid, request.name,
+                                                  self._name))
             resp = pipeline_service_pb2.Response()
             resp.err_no = channel.ChannelDataErrcode.NO_SERVICE.value
             resp.err_msg = "Failed to inference: Service name error."
@@ -56,7 +63,9 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
 
 @contextlib.contextmanager
 def _reserve_port(port):
-    """Find and reserve a port for all subprocesses to use."""
+    """
+    Find and reserve a port for all subprocesses to use.
+    """
     sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     if sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT) == 0:
@@ -69,6 +78,10 @@ def _reserve_port(port):
 
 
 class PipelineServer(object):
+    """
+    Pipeline Server : grpc gateway + grpc server.
+    """
+
     def __init__(self, name=None):
         self._name = name  # for grpc-gateway path
         self._rpc_port = None
@@ -77,6 +90,16 @@ class PipelineServer(object):
         self._proxy_server = None
 
     def _grpc_gateway(self, grpc_port, http_port):
+        """
+        Running a gateway server, linking libproxy_server.so
+
+        Args:
+            grpc_port: GRPC port
+            http_port: HTTP port
+
+        Returns:
+            None
+        """
         import os
         from ctypes import cdll
         from . import gateway
@@ -86,6 +109,17 @@ class PipelineServer(object):
         proxy_server.run_proxy_server(grpc_port, http_port)
 
     def _run_grpc_gateway(self, grpc_port, http_port):
+        """
+        Starting the GRPC gateway in a new process. Exposing one 
+        available HTTP port outside, and reflecting the data to RPC port.
+
+        Args:
+            grpc_port: GRPC port
+            http_port: HTTP port
+
+        Returns:
+            None
+        """
         if http_port <= 0:
             _LOGGER.info("Ignore grpc_gateway configuration.")
             return
@@ -102,6 +136,15 @@ class PipelineServer(object):
         self._proxy_server.start()
 
     def set_response_op(self, response_op):
+        """
+        Set the response OP.
+
+        Args:
+            response_op: ResponseOp or its subclass object
+
+        Returns:
+            None
+        """
         if not isinstance(response_op, operator.ResponseOp):
             raise Exception("Failed to set response_op: response_op "
                             "must be ResponseOp type.")
@@ -112,6 +155,17 @@ class PipelineServer(object):
         self._used_op, _ = dag.DAG.get_use_ops(self._response_op)
 
     def prepare_server(self, yml_file=None, yml_dict=None):
+        """
+        Reading configures from the yml file(config.yaml), and launching
+        local services.
+
+        Args:
+            yml_file: Reading configures from yaml files
+            yml_dict: Reading configures from yaml dict.
+   
+        Returns:
+            None 
+        """
         conf = ServerYamlConfChecker.load_server_yaml_conf(
             yml_file=yml_file, yml_dict=yml_dict)
 
@@ -161,6 +215,15 @@ class PipelineServer(object):
         self._start_local_rpc_service()
 
     def _init_ops(self, op_conf):
+        """
+        Initializing all OPs from dicetory.
+
+        Args:
+            op_conf: the op configures in yaml dict.
+
+        Returns:
+            None.
+        """
         default_conf = {
             "concurrency": 1,
             "timeout": -1,
@@ -190,6 +253,17 @@ class PipelineServer(object):
                 op.launch_local_rpc_service()
 
     def run_server(self):
+        """
+        If _build_dag_each_worker is True, Starting _worker_num processes and 
+        running one GRPC server in each process. Otherwise, Staring one GRPC
+        server.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self._build_dag_each_worker:
             with _reserve_port(self._rpc_port) as port:
                 bind_address = 'localhost:{}'.format(port)
@@ -222,6 +296,15 @@ class PipelineServer(object):
             server.wait_for_termination()
 
     def _run_server_func(self, bind_address, response_op, dag_conf, worker_idx):
+        """
+        Running one GRPC server with PipelineServicer.
+
+        Args:
+            bind_address: binding IP/Port
+            response_op: ResponseOp or its subclass object
+            dag_conf: DAG config
+            worker_idx: Process index.
+        """
         options = [('grpc.so_reuseport', 1),
                    ('grpc.max_send_message_length', 256 * 1024 * 1024),
                    ('grpc.max_send_message_length', 256 * 1024 * 1024)]
@@ -237,6 +320,10 @@ class PipelineServer(object):
 
 
 class ServerYamlConfChecker(object):
+    """
+    Checking validities of server yaml files.
+    """
+
     def __init__(self):
         pass
 

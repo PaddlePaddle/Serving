@@ -19,6 +19,7 @@ from numpy import *
 import logging
 import functools
 import json
+import socket
 from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
@@ -27,6 +28,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PipelineClient(object):
+    """
+    PipelineClient provides the basic capabilities of the pipeline SDK
+    """
+
     def __init__(self):
         self._channel = None
         self._profile_key = "pipeline.profile"
@@ -43,29 +48,38 @@ class PipelineClient(object):
 
     def _pack_request_package(self, feed_dict, profile):
         req = pipeline_service_pb2.Request()
-        """
+
+        logid = feed_dict.get("logid")
+        if logid is None:
+            req.logid = 0
+        else:
+            req.logid = long(logid)
+            feed_dict.pop("logid")
+
+        clientip = feed_dict.get("clientip")
+        if clientip is None:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            req.clientip = ip
+        else:
+            req.clientip = clientip
+            feed_dict.pop("clientip")
+
         np.set_printoptions(threshold=sys.maxsize)
-        new_dict = {}
         for key, value in feed_dict.items():
+            req.key.append(key)
             if isinstance(value, np.ndarray):
-                new_dict[key] = value.__repr__()
+                req.value.append(value.__repr__())
             elif isinstance(value, (str, unicode)):
-                new_dict[key] = value
+                req.value.append(value)
             elif isinstance(value, list):
-                new_dict[key] = np.array(value).__repr__()
+                req.value.append(np.array(value).__repr__())
             else:
                 raise TypeError("only str and np.ndarray type is supported: {}".
                                 format(type(value)))
         if profile:
-            new_dict[self._profile_key] = self._profile_value
-        """
-        req.appid = feed_dict.get("appid")
-        req.logid = feed_dict.get("logid")
-        req.format = feed_dict.get("format")
-        setattr(req, "from", feed_dict.get("from"))
-        req.cmdid = feed_dict.get("cmdid")
-        req.clientip = feed_dict.get("clientip")
-        req.data = feed_dict.get("data")
+            req.key.append(self._profile_key)
+            req.value.append(self._profile_value)
         return req
 
     def _unpack_response_package(self, resp, fetch):

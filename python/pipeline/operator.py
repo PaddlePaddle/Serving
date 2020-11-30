@@ -89,6 +89,18 @@ class Op(object):
         self._succ_close_op = False
 
     def init_from_dict(self, conf):
+        """
+        Initializing one Op from config.yaml. If server_endpoints exist,
+        which is remote RPC mode, otherwise it is local RPC mode. There
+        are three types of predictios in local RPC mode, brpc, grpc and
+        local_predictor.
+
+        Args:
+            conf: config.yaml
+
+        Returns:
+            None
+        """
         # init op
         if self.concurrency is None:
             self.concurrency = conf["concurrency"]
@@ -119,34 +131,46 @@ class Op(object):
         else:
             self._auto_batching_timeout = self._auto_batching_timeout / 1000.0
 
+        self.model_config = None
+        self.workdir = None
+        self.thread_num = self.concurrency
+        self.devices = ""
+        self.mem_optim = False
+        self.ir_optim = False
         if self._server_endpoints is None:
             server_endpoints = conf.get("server_endpoints", [])
             if len(server_endpoints) != 0:
                 # remote service
                 self.with_serving = True
                 self._server_endpoints = server_endpoints
+                self.client_type = conf["client_type"]
             else:
                 if self._local_service_handler is None:
                     local_service_conf = conf.get("local_service_conf")
                     _LOGGER.info("local_service_conf: {}".format(
                         local_service_conf))
-                    model_config = local_service_conf.get("model_config")
+                    self.model_config = local_service_conf.get("model_config")
                     self.client_type = local_service_conf.get("client_type")
-                    _LOGGER.info("model_config: {}".format(model_config))
-                    if model_config is None:
+                    self.workdir = local_service_conf.get("workdir")
+                    self.thread_num = local_service_conf.get("thread_num")
+                    self.devices = local_service_conf.get("devices")
+                    self.mem_optim = local_service_conf.get("mem_optim")
+                    self.ir_optim = local_service_conf.get("ir_optim")
+                    self._fetch_names = local_service_conf.get("fetch_list")
+                    if self.model_config is None:
                         self.with_serving = False
                     else:
                         # local rpc service
                         self.with_serving = True
                         if self.client_type == "brpc" or self.client_type == "grpc":
                             service_handler = local_service_handler.LocalServiceHandler(
-                                model_config=model_config,
+                                model_config=self.model_config,
                                 client_type=self.client_type,
-                                workdir=local_service_conf["workdir"],
-                                thread_num=local_service_conf["thread_num"],
-                                devices=local_service_conf["devices"],
-                                mem_optim=local_service_conf["mem_optim"],
-                                ir_optim=local_service_conf["ir_optim"])
+                                workdir=self.workdir,
+                                thread_num=self.thread_num,
+                                devices=self.devices,
+                                mem_optim=self.mem_optim,
+                                ir_optim=self.ir_optim)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -160,18 +184,14 @@ class Op(object):
                                 )
                         elif self.client_type == "local_predictor":
                             service_handler = local_service_handler.LocalServiceHandler(
-                                model_config=model_config,
+                                model_config=self.model_config,
                                 client_type=self.client_type,
-                                workdir=local_service_conf["workdir"],
-                                thread_num=local_service_conf["thread_num"],
-                                devices=local_service_conf["devices"])
-                            #service_handler.prepare_server()  # get fetch_list
-                            self.local_predictor = service_handler.get_client()
+                                workdir=self.workdir,
+                                thread_num=self.thread_num,
+                                devices=self.devices,
+                                fetch_names=self._fetch_names)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
-                                )
-                            if self._fetch_names is None:
-                                self._fetch_names = service_handler.get_fetch_list(
                                 )
                         self._local_service_handler = service_handler
                 else:
@@ -209,6 +229,15 @@ class Op(object):
                               self._batch_size, self._auto_batching_timeout)))
 
     def launch_local_rpc_service(self):
+        """
+        Launching multiple local rpc servers.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self._local_service_handler is None:
             _LOGGER.warning(
                 self._log("Failed to launch local rpc"
@@ -223,6 +252,15 @@ class Op(object):
                      .format(self.name, port))
 
     def use_default_auto_batching_config(self):
+        """
+        Set the auto batching config default.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self._batch_size != 1:
             _LOGGER.warning("Op({}) reset batch_size=1 (original: {})"
                             .format(self.name, self._batch_size))
@@ -240,6 +278,18 @@ class Op(object):
         self._tracer = tracer
 
     def init_client(self, client_config, server_endpoints):
+        """
+        Initialize the client object. There are three types of clients, brpc,
+        grpc and local_predictor. In grpc or brpc mode, the client connects 
+        endpoints.
+
+        Args:
+            client_config: client config info
+            server_endpoints: server IP/Port list.
+
+        Returns:
+            client: client object.
+        """
         if self.with_serving == False:
             _LOGGER.info("Op({}) has no client (and it also do not "
                          "run the process function)".format(self.name))
@@ -267,6 +317,16 @@ class Op(object):
         return self._input_ops
 
     def set_input_ops(self, ops):
+        """
+        Set input ops.Each op have many input ops, but only one input
+        channel.
+
+        Args:
+            ops: op list
+
+        Returns:
+            None.
+        """
         if not isinstance(ops, list):
             ops = [] if ops is None else [ops]
         self._input_ops = []
@@ -279,6 +339,10 @@ class Op(object):
             self._input_ops.append(op)
 
     def add_input_channel(self, channel):
+        """
+        Adding one input channel to the Op. Each op have many front op,
+        but, only one input channel.
+        """
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             _LOGGER.critical(
                 self._log("Failed to set input_channel: input "
@@ -295,6 +359,16 @@ class Op(object):
         return self._input
 
     def add_output_channel(self, channel):
+        """
+        Adding one output channel to the Op. Each op have many output channels,
+        But only one front channel.
+
+        Args:
+            channel: an output channel object.
+
+        Returns:
+            None
+        """
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             _LOGGER.critical(
                 self._log("Failed to add output_channel: output channel "
@@ -309,15 +383,15 @@ class Op(object):
     def _get_output_channels(self):
         return self._outputs
 
-    def preprocess(self, input_dicts, data_id, log_id):
+    def preprocess(self, input_dicts, data_id=0, log_id=0):
         """
         In preprocess stage, assembling data for process stage. users can 
         override this function for model feed features.
 
         Args:
             input_dicts: input data to be preprocessed
-            data_id: inner unique id
-            log_id: global unique id for RTT
+            data_id: inner unique id, 0 default
+            log_id: global unique id for RTT, 0 default
 
         Return:
             input_dict: data for process stage
@@ -337,13 +411,14 @@ class Op(object):
         (_, input_dict), = input_dicts.items()
         return input_dict, False, None, ""
 
-    def process(self, feed_batch, typical_logid):
+    def process(self, feed_batch, typical_logid=0):
         """
         In process stage, send requests to the inference server or predict locally.
         users do not need to inherit this function
         Args:
             feed_batch: data to be fed to inference server
-            typical_logid: mark batch predicts 
+            typical_logid: mark batch predicts, usually the first logid in batch,
+                0 default.
 
         Returns:
             call_result: predict result
@@ -372,13 +447,13 @@ class Op(object):
             call_result.pop("serving_status_code")
         return call_result
 
-    def postprocess(self, input_dict, fetch_dict, log_id):
+    def postprocess(self, input_dict, fetch_dict, log_id=0):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
             input_dict: data returned in preprocess stage.
             fetch_dict: data returned in process stage.
-            log_id: logid
+            log_id: logid, 0 default
 
         Returns: 
             fetch_dict: return fetch_dict default
@@ -455,6 +530,16 @@ class Op(object):
             channel.push(data, name)
 
     def start_with_process(self):
+        """
+        Each OP creates a process to run the main loop, initializes the CUDA
+        environment in each individual process.
+
+        Args:
+            None
+
+        Returns:
+            process array
+        """
         trace_buffer = None
         if self._tracer is not None:
             trace_buffer = self._tracer.data_buffer()
@@ -463,22 +548,42 @@ class Op(object):
             p = multiprocessing.Process(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), False, trace_buffer))
+                      self._get_output_channels(), False, trace_buffer,
+                      self.model_config, self.workdir, self.thread_num,
+                      self.devices, self.mem_optim, self.ir_optim))
             p.daemon = True
             p.start()
             process.append(p)
         return process
 
     def start_with_thread(self):
+        """
+        Each OP creates a thread to run the main loop, initializes the CUDA 
+        environment in the main thread.
+
+        Args:
+            None
+ 
+        Returns:
+            thread array
+        """
         trace_buffer = None
         if self._tracer is not None:
             trace_buffer = self._tracer.data_buffer()
+
+        #Init cuda env in main thread
+        if self.client_type == "local_predictor":
+            _LOGGER.info("Init cuda env in main thread")
+            self.local_predictor = self._local_service_handler.get_client()
+
         threads = []
         for concurrency_idx in range(self.concurrency):
             t = threading.Thread(
                 target=self._run,
                 args=(concurrency_idx, self._get_input_channel(),
-                      self._get_output_channels(), True, trace_buffer))
+                      self._get_output_channels(), True, trace_buffer,
+                      self.model_config, self.workdir, self.thread_num,
+                      self.devices, self.mem_optim, self.ir_optim))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -803,6 +908,22 @@ class Op(object):
 
     def _auto_batching_generator(self, input_channel, op_name, batch_size,
                                  timeout, op_info_prefix):
+        """
+        Merge batch_size requests for one prediction.Taking one piece of data 
+        from the input channel each time until equals batch_size, or the waiting 
+        time exceeds auto_batching_timeout.
+
+        Args:
+            input_channel: the input channel of Op
+            op_name: op name
+            batch_size: batch size, Less than worker_num
+            timeout: batch timeout, seconds, If timeout is None, and the quantity 
+                taken from the front is less than batch_size, blocking occured.
+            op_info_prefix: op link info.
+
+        Returns:
+            None
+        """
         while True:
             batch = []
             while len(batch) == 0:
@@ -823,6 +944,9 @@ class Op(object):
                         else:
                             channeldata_dict = input_channel.front(op_name)
                         batch.append(channeldata_dict)
+                        _LOGGER.debug(
+                            "_auto_batching_generator get {} channeldata from op:{} into batch, batch_size:{}".
+                            format(idx, op_name, batch_size))
                     except ChannelTimeoutError:
                         _LOGGER.debug("{} Failed to generate batch: "
                                       "timeout".format(op_info_prefix))
@@ -866,14 +990,54 @@ class Op(object):
         return parsed_data_dict, need_profile_dict, profile_dict, logid_dict
 
     def _run(self, concurrency_idx, input_channel, output_channels,
-             is_thread_op, trace_buffer):
+             is_thread_op, trace_buffer, model_config, workdir, thread_num,
+             devices, mem_optim, ir_optim):
+        """
+        _run() is the entry function of OP process / thread model.When client 
+        type is local_predictor in process mode, the CUDA environment needs to 
+        be initialized by LocalServiceHandler[child process], otherwise, Cuda
+        error(3), initialization error is occured. Preprocess, process and 
+        postprocess are executed in the main loop. The preprocess and postprocess
+        function is usually rewrited by users. Trace data is recorded by trace_que.
+
+        Args:
+            concurrency_idx: thread/process index
+            input_channel: input channel, take the data to be processed
+            output_channels: output channel, store processed data
+            is_thread_op: False, It's process op; True, It's thread op
+            trace_buffer: store trace infomations
+            model_config: model config path
+            workdir: work directory
+            thread_num: number of threads, concurrent quantity
+            devices: gpu id list[gpu], "" default[cpu]
+            mem_optim: use memory/graphics memory optimization, True default.
+            ir_optim: use calculation chart optimization, False default. 
+
+        Returns:
+            None
+        """
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         tid = threading.current_thread().ident
 
-        # init op
+        # init ops
         profiler = None
         try:
+            if is_thread_op == False and self.client_type == "local_predictor":
+                self.service_handler = local_service_handler.LocalServiceHandler(
+                    model_config=model_config,
+                    client_type="local_predictor",
+                    workdir=workdir,
+                    thread_num=thread_num,
+                    devices=devices,
+                    mem_optim=mem_optim,
+                    ir_optim=ir_optim)
+
+                _LOGGER.info("Init cuda env in process {}".format(
+                    concurrency_idx))
+                self.local_predictor = self.service_handler.get_client()
+            # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
+
         except Exception as e:
             _LOGGER.critical(
                 "{} failed to init op: {}".format(op_info_prefix, e),
@@ -1014,6 +1178,19 @@ class Op(object):
                         break
 
     def _initialize(self, is_thread_op, concurrency_idx):
+        """
+        Initialize one OP object in the target function of a thread or porcess.
+        Initialize the client object with _client_config and _server_endpoints.
+        Create a TimeProfiler per thread or process for recording profiler info.
+
+        Args:
+            is_thread_op: True, one op runs in one thread; False, one op runs
+                in one process.
+            concurrency_idx: process id, Thread mode does not use this param.
+
+        Returns:
+            TimeProfiler
+        """
         if is_thread_op:
             with self._for_init_op_lock:
                 if not self._succ_init_op:
@@ -1053,9 +1230,17 @@ class Op(object):
 
 
 class RequestOp(Op):
-    """ RequestOp do not run preprocess, process, postprocess. """
+    """
+    RequestOp is a special Op, for unpacking one request package. If the
+    request needs one special unpackaging method, you need to inherit class
+    RequestOp and rewrite function unpack_request_package.Notice!!! Class
+    RequestOp does not run preprocess, process, postprocess.
+    """
 
     def __init__(self):
+        """
+        Initialize the RequestOp
+        """
         # PipelineService.name = "@DAGExecutor"
         super(RequestOp, self).__init__(name="@DAGExecutor", input_ops=[])
         # init op
@@ -1084,25 +1269,36 @@ class RequestOp(Op):
         if request is None:
             _LOGGER.critical("request is None")
             raise ValueError("request is None")
-        _LOGGER.info("unpack_request_package reqeust:{}".format(request))
-        dict_data["name"] = request.name
-        dict_data["method"] = request.method
-        dict_data["appid"] = request.appid
-        dict_data["format"] = request.format
-        dict_data["from"] = getattr(request, "from")
-        dict_data["cmdid"] = request.cmdid
-        dict_data["clientip"] = request.clientip
-        dict_data["data"] = request.data
+
+        for idx, key in enumerate(request.key):
+            data = request.value[idx]
+            try:
+                evaled_data = eval(data)
+                if isinstance(evaled_data, np.ndarray):
+                    data = evaled_data
+            except Exception as e:
+                pass
+            dict_data[key] = data
         log_id = request.logid
-        req_data = proto_data.SerializeToString()
+        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+            name:{}, method:{}".format(log_id, request.clientip, request.name,
+                                       request.method))
 
         return dict_data, log_id, None, ""
 
 
 class ResponseOp(Op):
-    """ ResponseOp do not run preprocess, process, postprocess. """
+    """ 
+    ResponseOp is a special Op, for packing one response package. If the channeldata 
+    needs a special packaging method, you need to inherit class ReponseOp and rewrite
+    pack_response_package function. Notice!!! Class ResponseOp does not run preprocess,
+    process, postprocess.
+    """
 
     def __init__(self, input_ops):
+        """
+        Initialize the ResponseOp
+        """
         super(ResponseOp, self).__init__(
             name="@DAGExecutor", input_ops=input_ops)
         # init op
@@ -1115,23 +1311,28 @@ class ResponseOp(Op):
 
     def pack_response_package(self, channeldata):
         """
-        Getting channeldata from the last channel, pack custom results by json 
-        format and serialize by protobuf.  
+        Getting channeldata from the last channel, packting the response 
+        package serialized by protobuf.  
+
+        Args:
+            channeldata: Type ChannelData
+
+        Returns:
+            resp: pipeline_service_pb2.Response()
         """
         resp = pipeline_service_pb2.Response()
-        keys = []
-        values = []
         error_code = channeldata.error_code
         error_info = ""
         if error_code == ChannelDataErrcode.OK.value:
+            # Framework level errors
             if channeldata.datatype == ChannelDataType.CHANNEL_NPDATA.value:
                 feed = channeldata.parse()
                 # ndarray to string:
                 # https://stackoverflow.com/questions/30167538/convert-a-numpy-ndarray-to-stringor-bytes-and-convert-it-back-to-numpy-ndarray
                 np.set_printoptions(threshold=sys.maxsize)
                 for name, var in feed.items():
-                    values.append(var.__repr__())
-                    keys.append(name)
+                    resp.value.append(var.__repr__())
+                    resp.key.append(name)
             elif channeldata.datatype == ChannelDataType.DICT.value:
                 feed = channeldata.parse()
                 for name, var in feed.items():
@@ -1144,8 +1345,8 @@ class ResponseOp(Op):
                                       "response package: {}".format(
                                           channeldata.id, resp.error_info))
                         break
-                    values.append(var)
-                    keys.append(name)
+                    resp.value.append(var)
+                    resp.key.append(name)
             else:
                 error_code = ChannelDataErrcode.TYPE_ERROR.value
                 error_info = self._log("error type({}) in datatype.".format(
@@ -1153,6 +1354,7 @@ class ResponseOp(Op):
                 _LOGGER.error("(logid={}) Failed to pack RPC response"
                               " package: {}".format(channeldata.id, error_info))
         else:
+            # Product level errors
             error_info = channeldata.error_info
             if error_code == ChannelDataErrcode.PRODUCT_ERROR.value:
                 #rewrite error_code when product errors occured
@@ -1160,21 +1362,32 @@ class ResponseOp(Op):
                 error_info = channeldata.prod_error_info
 
         # pack results
-        result = {}
-        result["keys"] = keys
-        result["values"] = values
         if error_code is None:
             error_code = 0
-        #1.json encode
         resp.err_no = error_code
         resp.err_msg = error_info
-        resp.result = base64.b64encode(json.dumps(result))
 
         return resp
 
 
 class VirtualOp(Op):
-    ''' For connecting two channels. '''
+    """ 
+    To connect 2 ops across levels in dag view, we create virtual ops
+    between non-virtual ops, and transfer data only. For examples, 
+    the pred ops of F are D & E.In the process of building DAG, we will
+    create channels layer by layer according to dag views.Op F is not 
+    in the next layer view of [B, E], so we will create a virtual OP 
+    'V1' whose pred OP is E. And so on, we create two virtual op 'V2'
+    and 'V3', Finally, we find the non-virtual op F. we create 4 channels
+    among E, V1, V2, V3 and F, the producer of V1, V2, V3 and F is E.
+    
+        DAG: [A -> B -> C -> D -> F]
+               \-> E ----------/
+
+        DAG view: [[A], [B, E], [C], [D], [F]]
+        BUILD DAG: [A -> B -> C -> D -> E -> F]
+                     \-> E -> V1-> V2-> V3/
+    """
 
     def __init__(self, name, concurrency=1):
         super(VirtualOp, self).__init__(
@@ -1182,9 +1395,27 @@ class VirtualOp(Op):
         self._virtual_pred_ops = []
 
     def add_virtual_pred_op(self, op):
+        """
+        Add the front op of current vritual op.
+        
+        Args:
+            op: one op object, may be a virtual op or not.
+
+        Returns:
+            None
+        """
         self._virtual_pred_ops.append(op)
 
     def _actual_pred_op_names(self, op):
+        """
+        Recursively find the front op which is a non-virtual op.
+   
+        Args:
+            op: one op object
+            
+        Returns:
+            names: the name of non-virtual pred ops.
+        """
         # can use disjoint-set, but it's not necessary
         if not isinstance(op, VirtualOp):
             return [op.name]
@@ -1194,6 +1425,15 @@ class VirtualOp(Op):
         return names
 
     def add_output_channel(self, channel):
+        """
+        Adding the output channel of non-virtual pred ops.
+
+        Args:
+            channel: one channel.
+          
+        Returns:
+            None.
+        """
         if not isinstance(channel, (ThreadChannel, ProcessChannel)):
             _LOGGER.critical(
                 self._log("Failed to add output_channel: output_channel"
@@ -1207,6 +1447,20 @@ class VirtualOp(Op):
 
     def _run(self, concurrency_idx, input_channel, output_channels, client_type,
              is_thread_op):
+        """
+        The target function _run() only transfers data between OPs in one thread
+        or process.
+
+        Args:
+            concurrency_idx: process id, not avaliable in thread mode.
+            input_channel: input channel
+            output_channels: output channels
+            client_type: no use
+            is_thread_op: True, thread mode; False, process mode
+
+        Returns:
+            None
+        """
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
         log = get_log_func(op_info_prefix)
         tid = threading.current_thread().ident
