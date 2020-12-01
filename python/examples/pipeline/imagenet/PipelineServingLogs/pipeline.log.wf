@@ -1,0 +1,545 @@
+WARNING 2020-12-01 15:54:05,442 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 15:54:05,443 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 15:54:05,444 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 15:54:05,444 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 15:54:05,444 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 15:54:05,444 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+WARNING 2020-12-01 15:58:15,579 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 15:58:15,580 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 15:58:15,581 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 15:58:15,581 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 15:58:30,878 [operator.py:639] (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: global name 'base64' is not defined
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 622, in _run_preprocess
+    parsed_data, data_id, logid_dict.get(data_id))
+  File "resnet50_web_service.py", line 40, in preprocess
+    data = base64.b64decode(input_dict["image"].encode('utf8'))
+NameError: global name 'base64' is not defined
+ERROR 2020-12-01 15:58:30,881 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: global name 'base64' is not defined
+WARNING 2020-12-01 15:59:32,755 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 15:59:32,756 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 15:59:32,757 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 15:59:32,757 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 15:59:38,249 [operator.py:639] (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 622, in _run_preprocess
+    parsed_data, data_id, logid_dict.get(data_id))
+  File "resnet50_web_service.py", line 44, in preprocess
+    img = self.seq(im)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 486, in __call__
+    img = t(img)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 562, in __call__
+    resp = urllib.urlopen(img_url)
+  File "/usr/lib64/python2.7/urllib.py", line 87, in urlopen
+    return opener.open(url)
+  File "/usr/lib64/python2.7/urllib.py", line 180, in open
+    fullurl = unwrap(toBytes(fullurl))
+  File "/usr/lib64/python2.7/urllib.py", line 1059, in unwrap
+    url = url.strip()
+AttributeError: 'numpy.ndarray' object has no attribute 'strip'
+ERROR 2020-12-01 15:59:38,253 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+WARNING 2020-12-01 16:00:43,240 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:00:43,241 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:00:43,242 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:00:43,242 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:00:47,475 [operator.py:639] (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 622, in _run_preprocess
+    parsed_data, data_id, logid_dict.get(data_id))
+  File "resnet50_web_service.py", line 45, in preprocess
+    img = self.seq(im)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 486, in __call__
+    img = t(img)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 562, in __call__
+    resp = urllib.urlopen(img_url)
+  File "/usr/lib64/python2.7/urllib.py", line 87, in urlopen
+    return opener.open(url)
+  File "/usr/lib64/python2.7/urllib.py", line 180, in open
+    fullurl = unwrap(toBytes(fullurl))
+  File "/usr/lib64/python2.7/urllib.py", line 1059, in unwrap
+    url = url.strip()
+AttributeError: 'numpy.ndarray' object has no attribute 'strip'
+ERROR 2020-12-01 16:00:47,479 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:02:33,547 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:02:33,548 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:02:33,549 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:02:37,168 [operator.py:639] (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 622, in _run_preprocess
+    parsed_data, data_id, logid_dict.get(data_id))
+  File "resnet50_web_service.py", line 44, in preprocess
+    img = self.seq(im)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 486, in __call__
+    img = t(img)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 562, in __call__
+    resp = urllib.urlopen(img_url)
+  File "/usr/lib64/python2.7/urllib.py", line 87, in urlopen
+    return opener.open(url)
+  File "/usr/lib64/python2.7/urllib.py", line 180, in open
+    fullurl = unwrap(toBytes(fullurl))
+  File "/usr/lib64/python2.7/urllib.py", line 1059, in unwrap
+    url = url.strip()
+AttributeError: 'numpy.ndarray' object has no attribute 'strip'
+ERROR 2020-12-01 16:02:37,172 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:03:27,535 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:03:27,536 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:03:27,537 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:03:29,961 [operator.py:639] (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 622, in _run_preprocess
+    parsed_data, data_id, logid_dict.get(data_id))
+  File "resnet50_web_service.py", line 45, in preprocess
+    img = self.seq(im)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 486, in __call__
+    img = t(img)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 562, in __call__
+    resp = urllib.urlopen(img_url)
+  File "/usr/lib64/python2.7/urllib.py", line 87, in urlopen
+    return opener.open(url)
+  File "/usr/lib64/python2.7/urllib.py", line 180, in open
+    fullurl = unwrap(toBytes(fullurl))
+  File "/usr/lib64/python2.7/urllib.py", line 1059, in unwrap
+    url = url.strip()
+AttributeError: 'numpy.ndarray' object has no attribute 'strip'
+ERROR 2020-12-01 16:03:29,966 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to preprocess: 'numpy.ndarray' object has no attribute 'strip'
+WARNING 2020-12-01 16:04:03,863 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:04:03,863 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:04:03,863 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:04:03,863 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:04:03,864 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:04:03,865 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:04:03,865 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:04:07,776 [operator.py:733] (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): Fetch names should not be empty or out of saved fetch list.
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 728, in _run_process
+    midped_batch = self.process(feed_batch, typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 437, in process
+    log_id=typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/local_predict.py", line 172, in predict
+    "Fetch names should not be empty or out of saved fetch list.")
+ValueError: Fetch names should not be empty or out of saved fetch list.
+ERROR 2020-12-01 16:04:07,779 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): Fetch names should not be empty or out of saved fetch list.
+WARNING 2020-12-01 16:12:29,513 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:12:29,513 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:12:29,513 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:12:29,513 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:12:29,514 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:12:29,515 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:12:34,307 [operator.py:733] (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): Fetch names should not be empty or out of saved fetch list.
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 728, in _run_process
+    midped_batch = self.process(feed_batch, typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 437, in process
+    log_id=typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/local_predict.py", line 172, in predict
+    "Fetch names should not be empty or out of saved fetch list.")
+ValueError: Fetch names should not be empty or out of saved fetch list.
+ERROR 2020-12-01 16:12:34,310 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): Fetch names should not be empty or out of saved fetch list.
+WARNING 2020-12-01 16:15:08,961 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:15:08,962 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:15:08,963 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:15:08,963 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:15:08,963 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:15:08,963 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:15:08,963 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:15:14,846 [operator.py:733] (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): In user code:
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/framework.py", line 2488, in append_op
+    attrs=kwargs.get("attrs", None))
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layer_helper.py", line 43, in append_op
+    return self.main_program.current_block().append_op(*args, **kwargs)
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layers/nn.py", line 2803, in conv2d
+    "data_format": data_format,
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 146, in conv_bn_layer
+    bias_attr=False)
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 67, in net
+    name='conv1_1')
+
+    File "infer.py", line 99, in infer
+    out = model.net(input=image, class_dim=args.class_dim)
+
+    File "infer.py", line 211, in main
+    infer(args)
+
+    File "infer.py", line 215, in <module>
+    main()
+
+
+    InvalidArgumentError: The input of Op(Conv) should be a 4-D or 5-D Tensor. But received: input's dimension is 3, input's shape is [3, 224, 224].
+      [Hint: Expected in_dims.size() == 4 || in_dims.size() == 5 == true, but received in_dims.size() == 4 || in_dims.size() == 5:0 != true:1.] (at /paddle/paddle/fluid/operators/conv_op.cc:61)
+      [Hint: If you need C++ stacktraces for debugging, please set `FLAGS_call_stack_level=2`.]
+      [operator < conv2d > error]
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 728, in _run_process
+    midped_batch = self.process(feed_batch, typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 437, in process
+    log_id=typical_logid)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_app/local_predict.py", line 201, in predict
+    self.predictor.zero_copy_run()
+ValueError: In user code:
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/framework.py", line 2488, in append_op
+    attrs=kwargs.get("attrs", None))
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layer_helper.py", line 43, in append_op
+    return self.main_program.current_block().append_op(*args, **kwargs)
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layers/nn.py", line 2803, in conv2d
+    "data_format": data_format,
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 146, in conv_bn_layer
+    bias_attr=False)
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 67, in net
+    name='conv1_1')
+
+    File "infer.py", line 99, in infer
+    out = model.net(input=image, class_dim=args.class_dim)
+
+    File "infer.py", line 211, in main
+    infer(args)
+
+    File "infer.py", line 215, in <module>
+    main()
+
+
+    InvalidArgumentError: The input of Op(Conv) should be a 4-D or 5-D Tensor. But received: input's dimension is 3, input's shape is [3, 224, 224].
+      [Hint: Expected in_dims.size() == 4 || in_dims.size() == 5 == true, but received in_dims.size() == 4 || in_dims.size() == 5:0 != true:1.] (at /paddle/paddle/fluid/operators/conv_op.cc:61)
+      [Hint: If you need C++ stacktraces for debugging, please set `FLAGS_call_stack_level=2`.]
+      [operator < conv2d > error]
+ERROR 2020-12-01 16:15:14,850 [dag.py:409] (data_id=0 log_id=0) Failed to predict: (data_id=0 log_id=0) [imagenet|0] Failed to process(batch: [0]): In user code:
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/framework.py", line 2488, in append_op
+    attrs=kwargs.get("attrs", None))
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layer_helper.py", line 43, in append_op
+    return self.main_program.current_block().append_op(*args, **kwargs)
+
+    File "/home/xulongteng/python/lib/python2.7/site-packages/paddle/fluid/layers/nn.py", line 2803, in conv2d
+    "data_format": data_format,
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 146, in conv_bn_layer
+    bias_attr=False)
+
+    File "/home/xulongteng/github/models/PaddleCV/image_classification/models/resnet_vd.py", line 67, in net
+    name='conv1_1')
+
+    File "infer.py", line 99, in infer
+    out = model.net(input=image, class_dim=args.class_dim)
+
+    File "infer.py", line 211, in main
+    infer(args)
+
+    File "infer.py", line 215, in <module>
+    main()
+
+
+    InvalidArgumentError: The input of Op(Conv) should be a 4-D or 5-D Tensor. But received: input's dimension is 3, input's shape is [3, 224, 224].
+      [Hint: Expected in_dims.size() == 4 || in_dims.size() == 5 == true, but received in_dims.size() == 4 || in_dims.size() == 5:0 != true:1.] (at /paddle/paddle/fluid/operators/conv_op.cc:61)
+      [Hint: If you need C++ stacktraces for debugging, please set `FLAGS_call_stack_level=2`.]
+      [operator < conv2d > error]
+WARNING 2020-12-01 16:15:47,171 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:15:47,172 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:15:47,173 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:15:47,173 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:15:47,173 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:15:47,173 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:15:47,173 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:15:47,173 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:15:53,143 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:19:18,214 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:19:18,214 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:19:18,214 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:19:18,214 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:19:18,214 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:19:18,215 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:19:18,216 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:19:25,421 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:20:03,562 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:20:03,563 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:20:03,564 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:20:11,522 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:20:46,067 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:20:46,068 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:20:46,069 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:20:46,069 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:20:52,155 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:21:40,004 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:21:40,005 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:21:40,006 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:21:40,006 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:21:40,006 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:21:40,006 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:21:40,006 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:21:45,848 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:23:23,425 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:23:23,426 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:23:23,427 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:23:23,427 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:23:35,616 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:24:04,157 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:24:04,157 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:24:04,158 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:24:04,159 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:24:04,159 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:24:04,159 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:24:04,159 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:24:10,402 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] build_dag_each_worker not set, use default: False
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] channel_size not set, use default: 0
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] use_profile not set, use default: False
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] client_type not set, use default: brpc
+WARNING 2020-12-01 16:25:12,508 [pipeline_server.py:479] [CONF] tracer not set, use default: {}
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] interval_s not set, use default: -1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] retry not set, use default: 1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] concurrency not set, use default: 1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] batch_size not set, use default: 1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] timeout not set, use default: -1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] auto_batching_timeout not set, use default: -1
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] ir_optim not set, use default: False
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] mem_optim not set, use default: True
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] workdir not set, use default: 
+WARNING 2020-12-01 16:25:12,509 [pipeline_server.py:479] [CONF] thread_num not set, use default: 2
+WARNING 2020-12-01 16:25:12,510 [operator.py:128] imagenet Because auto_batching_timeout <= 0 or batch_size == 1, set auto_batching_timeout to None.
+ERROR 2020-12-01 16:25:23,003 [dag.py:470] (logid=0) Failed to pack RPC response package: error_info
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/dag.py", line 465, in _pack_for_rpc_resp
+    return self._pack_rpc_func(channeldata)
+  File "/usr/lib/python2.7/site-packages/paddle_serving_server_gpu/pipeline/operator.py", line 1346, in pack_response_package
+    channeldata.id, resp.error_info))
+AttributeError: error_info
