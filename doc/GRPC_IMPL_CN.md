@@ -92,6 +92,7 @@ python test_server.py uci_housing_model/
 ```shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_multilang
 ```
+注：--use_multilang参数用来启用多语言客户端
 
 ### 客户端预测
 
