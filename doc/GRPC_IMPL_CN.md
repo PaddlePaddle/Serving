@@ -1,12 +1,5 @@
 # gRPC接口使用介绍
 
-* [1.与bRPC接口对比](#1.与bRPC接口对比)
-    [1.与bRPC接口对比](#与bRPC接口对比)
-
-[2.示例：线性回归预测服务](#示例：线性回归预测服务)
-
-[3. 更多示例](#更多示例)
-
 gRPC 接口实现形式类似 Web Service：
 
 ![](https://github.com/PaddlePaddle/Serving/blob/develop/doc/grpc_impl.png)
