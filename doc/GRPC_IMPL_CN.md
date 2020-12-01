@@ -1,7 +1,6 @@
 # gRPC接口使用介绍
 
-
-[TOC]
+{:toc}
 
 gRPC 接口实现形式类似 Web Service：
 
