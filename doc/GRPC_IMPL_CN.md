@@ -1,6 +1,6 @@
 # gRPC接口使用介绍
 
-[1. 与bRPC接口对比](#与bRPC接口对比)
+[1. 与bRPC接口对比](#1. 与bRPC接口对比)
 
 gRPC 接口实现形式类似 Web Service：
 
