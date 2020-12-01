@@ -19,7 +19,7 @@ from .image_reader import RCNNPostprocess, SegPostprocess, PadStride, BlazeFaceP
 from .image_reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 from .lac_reader import LACReader
 from .senta_reader import SentaReader
-from .imdb_reader import IMDBDataset
+#from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader
 from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
 from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor

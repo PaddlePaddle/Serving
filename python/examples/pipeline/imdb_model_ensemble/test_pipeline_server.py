@@ -15,10 +15,14 @@
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
 from paddle_serving_server.pipeline import PipelineServer
 from paddle_serving_server.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server.pipeline.channel import ChannelDataEcode
+from paddle_serving_server.pipeline.channel import ChannelDataErrcode
 import numpy as np
-from paddle_serving_app.reader import IMDBDataset
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
 import logging
+try:
+    from paddle_serving_server.web_service import WebService
+except ImportError:
+    from paddle_serving_server_gpu.web_service import WebService
 
 _LOGGER = logging.getLogger()
 user_handler = logging.StreamHandler()
@@ -43,76 +47,66 @@ class ImdbRequestOp(RequestOp):
             word_ids, _ = self.imdb_dataset.get_words_and_label(words)
             word_len = len(word_ids)
             dictdata[key] = np.array(word_ids).reshape(word_len, 1)
-            dictdata["{}.lod".format(key)] = [0, word_len]
-        return dictdata
+            dictdata["{}.lod".format(key)] = np.array([0, word_len])
+
+        log_id = None
+        if request.logid is not None:
+            log_id = request.logid
+        return dictdata, log_id, None, ""
 
 
 class CombineOp(Op):
-    def preprocess(self, input_data):
+    def preprocess(self, input_data, data_id, log_id):
+        #_LOGGER.info("Enter CombineOp::preprocess")
         combined_prediction = 0
         for op_name, data in input_data.items():
             _LOGGER.info("{}: {}".format(op_name, data["prediction"]))
             combined_prediction += data["prediction"]
         data = {"prediction": combined_prediction / 2}
-        return data
+        return data, False, None, ""
 
 
 class ImdbResponseOp(ResponseOp):
     # Here ImdbResponseOp is consistent with the default ResponseOp implementation
     def pack_response_package(self, channeldata):
         resp = pipeline_service_pb2.Response()
-        resp.ecode = channeldata.ecode
-        if resp.ecode == ChannelDataEcode.OK.value:
+        resp.err_no = channeldata.error_code
+        if resp.err_no == ChannelDataErrcode.OK.value:
             feed = channeldata.parse()
             # ndarray to string
             for name, var in feed.items():
                 resp.value.append(var.__repr__())
                 resp.key.append(name)
         else:
-            resp.error_info = channeldata.error_info
+            resp.err_msg = channeldata.error_info
         return resp
 
 
 read_op = ImdbRequestOp()
-bow_op = Op(name="bow",
-            input_ops=[read_op],
-            server_endpoints=["127.0.0.1:9393"],
-            fetch_list=["prediction"],
-            client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-            client_type='brpc',
-            concurrency=1,
-            timeout=-1,
-            retry=1,
-            batch_size=1,
-            auto_batching_timeout=None)
-cnn_op = Op(name="cnn",
-            input_ops=[read_op],
-            server_endpoints=["127.0.0.1:9292"],
-            fetch_list=["prediction"],
-            client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
-            client_type='brpc',
-            concurrency=1,
-            timeout=-1,
-            retry=1,
-            batch_size=1,
-            auto_batching_timeout=None)
-combine_op = CombineOp(
-    name="combine",
-    input_ops=[bow_op, cnn_op],
-    concurrency=1,
-    timeout=-1,
-    retry=1,
-    batch_size=2,
-    auto_batching_timeout=None)
+
+
+class BowOp(Op):
+    def init_op(self):
+        pass
+
+
+class CnnOp(Op):
+    def init_op(self):
+        pass
+
+
+bow_op = BowOp("bow", input_ops=[read_op])
+cnn_op = CnnOp("cnn", input_ops=[read_op])
+combine_op = CombineOp("combine", input_ops=[bow_op, cnn_op])
 
 # fetch output of bow_op
-# response_op = ImdbResponseOp(input_ops=[bow_op])
+#response_op = ImdbResponseOp(input_ops=[bow_op])
 
 # fetch output of combine_op
 response_op = ImdbResponseOp(input_ops=[combine_op])
 
 # use default ResponseOp implementation
-# response_op = ResponseOp(input_ops=[combine_op])
+#response_op = ResponseOp(input_ops=[combine_op])
 
 server = PipelineServer()
 server.set_response_op(response_op)

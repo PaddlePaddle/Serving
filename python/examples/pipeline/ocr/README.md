@@ -28,30 +28,8 @@ python web_service.py &>log.txt &
 python pipeline_http_client.py
 ```
 
-
-
 <!--
 ## More (PipelineServing)
-
-You can choose one of the following versions to start Service.
-
-### Remote Service Version
-```
-python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 12000 --gpu_id 0 &> det.log &
-python -m paddle_serving_server_gpu.serve --model ocr_rec_model --port 12001 --gpu_id 0 &> rec.log &
-python remote_service_pipeline_server.py &>pipeline.log &
-```
-
-### Local Service Version
-```
-python local_service_pipeline_server.py &>pipeline.log &
-```
-
-### Hybrid Service Version
-```
-python -m paddle_serving_server_gpu.serve --model ocr_rec_model --port 12001 --gpu_id 0 &> rec.log &
-python hybrid_service_pipeline_server.py &>pipeline.log &
-```
 
 ## Client Prediction
 
