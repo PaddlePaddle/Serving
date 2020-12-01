@@ -41,6 +41,10 @@
 
 **A:** 通过pip命令安装自己编译出的whl包，并设置SERVING_BIN环境变量为编译出的serving二进制文件路径。
 
+#### Q: 使用Java客户端，mvn compile过程出现"No compiler is provided in this environment. Perhaps you are running on a JRE rather than a JDK?"错误
+
+**A:** 没有安装JDK，或者JAVA_HOME路径配置错误（正确配置是JDK路径，常见错误配置成JRE路径，例如正确路径参考JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/"）。Java JDK安装参考https://segmentfault.com/a/1190000015389941
+
 
 
 ## 部署问题
