@@ -18,5 +18,5 @@ from .image_reader import RCNNPostprocess, SegPostprocess, PadStride, BlazeFaceP
 from .image_reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 from .lac_reader import LACReader
 from .senta_reader import SentaReader
-from .imdb_reader import IMDBDataset
+#from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader

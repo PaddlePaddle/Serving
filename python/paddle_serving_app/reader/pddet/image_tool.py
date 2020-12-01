@@ -22,18 +22,17 @@ import yaml
 import copy
 import argparse
 import logging
-import paddle.fluid as fluid
 import json
 
 FORMAT = '%(asctime)s-%(levelname)s: %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
-precision_map = {
-    'trt_int8': fluid.core.AnalysisConfig.Precision.Int8,
-    'trt_fp32': fluid.core.AnalysisConfig.Precision.Float32,
-    'trt_fp16': fluid.core.AnalysisConfig.Precision.Half
-}
+#precision_map = {
+#    'trt_int8': fluid.core.AnalysisConfig.Precision.Int8,
+#    'trt_fp32': fluid.core.AnalysisConfig.Precision.Float32,
+#    'trt_fp16': fluid.core.AnalysisConfig.Precision.Half
+#}
 
 
 class Resize(object):
