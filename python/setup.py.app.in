@@ -41,7 +41,6 @@ if '${PACK}' == 'ON':
     copy_lib()
 
 if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
-    print("新建目录")
     os.system('mkdir -p ./paddle_serving_app/reader/lib')
     os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
     os.system('cp ../core/preprocess/hwvideoframe/cuda/libgpu.so ./paddle_serving_app/reader/lib')

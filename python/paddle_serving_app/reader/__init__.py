@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
+import os
+
 from .chinese_bert_reader import ChineseBertReader
-from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
-from .image_reader import CenterCrop, Resize, Transpose, Div, RGB2BGR, BGR2RGB, ResizeByFactor
 from .image_reader import RCNNPostprocess, SegPostprocess, PadStride, BlazeFacePostprocess
 from .image_reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 from .lac_reader import LACReader
 from .senta_reader import SentaReader
 from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader
-from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
-from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor
+
+if os.path.exists('libgpupreprocess.so'):
+    from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
+    from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor
+else:
+    from .image_reader import ImageReader, File2Image, URL2Image
+    from .image_reader import Sequential, Normalize, Base64ToImage
+    from .image_reader import CenterCrop, Resize, Transpose, Div
+    from .image_reader import RGB2BGR, BGR2RGB, ResizeByFactor
