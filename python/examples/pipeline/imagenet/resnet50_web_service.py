@@ -21,12 +21,13 @@ import logging
 import numpy as np
 import base64, cv2
 
+
 class ImagenetOp(Op):
     def init_op(self):
         self.seq = Sequential([
-            Resize(256), CenterCrop(224), RGB2BGR(), Transpose(
-                (2, 0, 1)), Div(255), Normalize([0.485, 0.456, 0.406],
-                                                [0.229, 0.224, 0.225], True)
+            Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+            Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225],
+                                True)
         ])
         self.label_dict = {}
         label_idx = 0
@@ -42,8 +43,7 @@ class ImagenetOp(Op):
         # Note: class variables(self.var) can only be used in process op mode
         im = cv2.imdecode(data, cv2.IMREAD_COLOR)
         img = self.seq(im)
-        return {"image": img[np.newaxis,:].copy()}, False, None, ""
-        
+        return {"image": img[np.newaxis, :].copy()}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
         print(fetch_dict)
@@ -53,11 +53,10 @@ class ImagenetOp(Op):
             score = score.tolist()
             max_score = max(score)
             #result["label"].append(self.label_dict[score.index(max_score)]
-                                   #.strip().replace(",", ""))
-            #result["prob"].append(max_score)
+        #.strip().replace(",", ""))
+        #result["prob"].append(max_score)
         #print(result)
         return result, None, ""
-
 
 
 class ImageService(WebService):
