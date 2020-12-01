@@ -16,7 +16,7 @@
       - [List 输入](#list-输入)
   - [3.更多示例](#3更多示例)
   
-使用gRPC接口，Client端可以在Win/Linux/MacOS平台上用不同语言调用。gRPC 接口实现形式类似 Web Service：
+使用gRPC接口，Client端可以在Win/Linux/MacOS平台上调用不同语言。gRPC 接口实现结构如下：
 
 ![](https://github.com/PaddlePaddle/Serving/blob/develop/doc/grpc_impl.png)
 
