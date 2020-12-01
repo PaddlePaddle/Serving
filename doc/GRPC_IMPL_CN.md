@@ -15,9 +15,7 @@
       - [预测超时](#预测超时)
       - [List 输入](#list-输入)
   - [3.更多示例](#3更多示例)
-
-[3.更多示例](#3.更多示例)
-
+  
 gRPC 接口实现形式类似 Web Service：
 
 ![](https://github.com/PaddlePaddle/Serving/blob/develop/doc/grpc_impl.png)
