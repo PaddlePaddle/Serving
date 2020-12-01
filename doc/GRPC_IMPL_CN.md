@@ -1,6 +1,10 @@
 # gRPC接口使用介绍
 
-[1. 与bRPC接口对比](#1. 与bRPC接口对比)
+[1.与bRPC接口对比](#1.与bRPC接口对比)
+
+[2.示例：线性回归预测服务](#2.示例：线性回归预测服务)
+
+[3. 更多示例](#3.更多示例)
 
 gRPC 接口实现形式类似 Web Service：
 
@@ -8,33 +12,36 @@ gRPC 接口实现形式类似 Web Service：
 
 ## 1. 与bRPC接口对比
 
+
+
 #### 1.1 服务端对比
 
 * gRPC Server 端 `load_model_config` 函数添加 `client_config_path` 参数：
 
-   ```
-   def load_model_config(self, server_config_paths, client_config_path=None)
-   ```
-    在一些例子中 bRPC Server 端与 bRPC Client 端的配置文件可能不同（如 在cube local 中，Client 端的数据先交给 cube，经过 cube 处理后再交给预测库），此时 gRPC Server 端需要手动设置 gRPC Client 端的配置`client_config_path`。
-    **`client_config_path` 默认为 `<server_config_path>/serving_server_conf.prototxt`。**
+  ```
+  def load_model_config(self, server_config_paths, client_config_path=None)
+  ```
+
+   在一些例子中 bRPC Server 端与 bRPC Client 端的配置文件可能不同（如 在cube local 中，Client 端的数据先交给 cube，经过 cube 处理后再交给预测库），此时 gRPC Server 端需要手动设置 gRPC Client 端的配置`client_config_path`。
+   **`client_config_path` 默认为 `<server_config_path>/serving_server_conf.prototxt`。**
 
 #### 1.2 客服端对比
 
 * gRPC Client 端取消 `load_client_config` 步骤：
 
-   在 `connect` 步骤通过 RPC 获取相应的 prototxt（从任意一个 endpoint 获取即可）。
+  在 `connect` 步骤通过 RPC 获取相应的 prototxt（从任意一个 endpoint 获取即可）。
 
 * gRPC Client 需要通过 RPC 方式设置 timeout 时间（调用形式与 bRPC Client保持一致）
 
-   因为 bRPC Client 在 `connect` 后无法更改 timeout 时间，所以当 gRPC Server 收到变更 timeout 的调用请求时会重新创建 bRPC Client 实例以变更 bRPC Client timeout时间，同时 gRPC Client 会设置 gRPC 的 deadline 时间。
+  因为 bRPC Client 在 `connect` 后无法更改 timeout 时间，所以当 gRPC Server 收到变更 timeout 的调用请求时会重新创建 bRPC Client 实例以变更 bRPC Client timeout时间，同时 gRPC Client 会设置 gRPC 的 deadline 时间。
 
-   **注意，设置 timeout 接口和 Inference 接口不能同时调用（非线程安全），出于性能考虑暂时不加锁。**
+  **注意，设置 timeout 接口和 Inference 接口不能同时调用（非线程安全），出于性能考虑暂时不加锁。**
 
 * gRPC Client 端 `predict` 函数添加 `asyn` 和 `is_python` 参数：
 
-   ```
-   def predict(self, feed, fetch, need_variant_tag=False, asyn=False, is_python=True)
-   ```
+  ```
+  def predict(self, feed, fetch, need_variant_tag=False, asyn=False, is_python=True)
+  ```
 
 1.    `asyn` 为异步调用选项。当 `asyn=True` 时为异步调用，返回 `MultiLangPredictFuture` 对象，通过 `MultiLangPredictFuture.result()` 阻塞获取预测值；当 `asyn=Fasle` 为同步调用。
 
@@ -47,19 +54,23 @@ gRPC 接口实现形式类似 Web Service：
 * 由于 gRPC 只支持 pick_first 和 round_robin 负载均衡策略，ABTEST 特性还未打齐。
 
 * 系统兼容性：
-    * [x]  CentOS
-    * [x]  macOS
-    * [x]  Windows
+
+  * [x] CentOS
+  * [x] macOS
+  * [x] Windows
 
 * 已经支持的客户端语言：
 
-   -  Python
-   -  Java
-   -  Go
-   
-   
-## 2.示例：线性回归预测服务 
+  -  Python
+  -  Java
+  -  Go
+
+  
+
+## 2.示例：线性回归预测服务
+
 以下是采用gRPC实现的关于线性回归预测的一个示例，具体代码详见此[链接](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/grpc_impl_example/fit_a_line)
+
 #### 获取数据
 
 ```shell
@@ -115,7 +126,7 @@ python test_timeout_client.py
 ``` shell
 python test_list_input_client.py
 ```
- 
+
 ## 3. 更多示例
 
 详见[`python/examples/grpc_impl_example`](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/grpc_impl_example)下的示例文件。
