@@ -10,7 +10,7 @@ gRPC 接口实现形式类似 Web Service：
 
 ![](https://github.com/PaddlePaddle/Serving/blob/develop/doc/grpc_impl.png)
 
-## 1. 与bRPC接口对比
+## 1.与bRPC接口对比
 
 
 
@@ -127,6 +127,6 @@ python test_timeout_client.py
 python test_list_input_client.py
 ```
 
-## 3. 更多示例
+## 3.更多示例
 
 详见[`python/examples/grpc_impl_example`](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/grpc_impl_example)下的示例文件。
