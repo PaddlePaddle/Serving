@@ -18,7 +18,7 @@ import sys
 import time
 import requests
 import numpy as np
-from paddle_serving_app.reader import IMDBDataset
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import MultiThreadRunner, benchmark_args, show_latency
