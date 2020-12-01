@@ -4,6 +4,35 @@
 
 ## 基础知识
 
+#### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
+
+**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。	paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
+
+#### Q: paddle-serving是否支持Int32支持
+
+**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
+
+​     0-int64
+
+​	  1-float32
+
+​	  2-int32
+
+#### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
+
+**A:** 客户端可以发起多线程访问调用服务端 
+
+#### Q: paddle-serving如何修改消息大小限制
+
+**A:** 在server端和client但通过FLAGS_max_body_size来扩大数据量限制，单位为字节，默认为64MB
+
+#### Q: paddle-serving客户端目前支持哪些语言
+
+**A:** java c++ python 
+
+#### Q: paddle-serving目前支持哪些协议
+
+**A:** http rpc 
 
 
 ## 编译问题
@@ -137,35 +166,3 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 
 
 ## 性能优化
-
-
-## 基础知识
-#### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
-
-**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。	paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
-
-#### Q: paddle-serving是否支持Int32支持
-
-**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
-
-​     0-int64
-
-​	  1-float32
-
-​	  2-int32
-
-#### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
-
-**A:** 客户端可以发起多线程访问调用服务端 
-
-#### Q: paddle-serving如何修改消息大小限制
-
-**A:** 在server端和client但通过FLAGS_max_body_size来扩大数据量限制，单位为字节，默认为64MB
-
-#### Q: paddle-serving客户端目前支持哪些语言
-
-**A:** java c++ python 
-
-#### Q: paddle-serving目前支持哪些协议
-
-**A:** http rpc 

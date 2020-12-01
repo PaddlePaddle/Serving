@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server_gpu.pipeline import PipelineServer
-from paddle_serving_server_gpu.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server_gpu.pipeline.channel import ChannelDataEcode
-from paddle_serving_server_gpu.pipeline import LocalRpcServiceHandler
+from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
+from paddle_serving_server.pipeline import PipelineServer
+from paddle_serving_server.pipeline.proto import pipeline_service_pb2
+from paddle_serving_server.pipeline.channel import ChannelDataEcode
+from paddle_serving_server.pipeline import LocalServiceHandler
 import numpy as np
 import cv2
 import time
@@ -56,9 +56,11 @@ class DetOp(Op):
         data = np.fromstring(data, np.uint8)
         # Note: class variables(self.var) can only be used in process op mode
         self.im = cv2.imdecode(data, cv2.IMREAD_COLOR)
+        print(self.im)
         self.ori_h, self.ori_w, _ = self.im.shape
         det_img = self.det_preprocess(self.im)
         _, self.new_h, self.new_w = det_img.shape
+        print("image", det_img)
         return {"image": det_img}
 
     def postprocess(self, input_dicts, fetch_dict):
@@ -111,11 +113,11 @@ read_op = RequestOp()
 det_op = DetOp(
     name="det",
     input_ops=[read_op],
-    local_rpc_service_handler=LocalRpcServiceHandler(
+    client_type="local_predictor",
+    local_service_handler=LocalServiceHandler(
         model_config="ocr_det_model",
         workdir="det_workdir",  # defalut: "workdir"
         thread_num=2,  # defalut: 2
-        devices="0",  # gpu0. defalut: "" (cpu)
         mem_optim=True,  # defalut: True
         ir_optim=False,  # defalut: False
         available_port_generator=None),  # defalut: None
@@ -123,8 +125,8 @@ det_op = DetOp(
 rec_op = RecOp(
     name="rec",
     input_ops=[det_op],
-    local_rpc_service_handler=LocalRpcServiceHandler(
-        model_config="ocr_rec_model"),
+    client_type="local_predictor",
+    local_service_handler=LocalServiceHandler(model_config="ocr_rec_model"),
     concurrency=1)
 response_op = ResponseOp(input_ops=[rec_op])
 

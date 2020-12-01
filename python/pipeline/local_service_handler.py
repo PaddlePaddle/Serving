@@ -22,6 +22,7 @@ except ImportError:
     from paddle_serving_server import OpMaker, OpSeqMaker, Server
     PACKAGE_VERSION = "CPU"
 from . import util
+from paddle_serving_app.local_predict import LocalPredictor
 
 _LOGGER = logging.getLogger(__name__)
 _workdir_name_gen = util.NameGenerator("workdir_")
@@ -30,6 +31,7 @@ _workdir_name_gen = util.NameGenerator("workdir_")
 class LocalServiceHandler(object):
     def __init__(self,
                  model_config,
+                 client_type='local_predictor',
                  workdir="",
                  thread_num=2,
                  devices="",
@@ -58,12 +60,13 @@ class LocalServiceHandler(object):
                 self._port_list.append(available_port_generator.next())
             _LOGGER.info("Model({}) will be launch in gpu device: {}. Port({})"
                          .format(model_config, devices, self._port_list))
+        self.client_type = client_type
         self._workdir = workdir
         self._devices = devices
         self._thread_num = thread_num
         self._mem_optim = mem_optim
         self._ir_optim = ir_optim
-
+        self.local_predictor_client = None
         self._rpc_service_list = []
         self._server_pros = []
         self._fetch_vars = None
@@ -73,6 +76,13 @@ class LocalServiceHandler(object):
 
     def get_port_list(self):
         return self._port_list
+
+    def get_client(self):  # for local_predictor_only
+        if self.local_predictor_client is None:
+            self.local_predictor_client = LocalPredictor()
+            self.local_predictor_client.load_model_config(
+                "{}".format(self._model_config), gpu=False, profile=False)
+        return self.local_predictor_client
 
     def get_client_config(self):
         return os.path.join(self._model_config, "serving_server_conf.prototxt")
