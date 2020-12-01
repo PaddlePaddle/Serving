@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from paddle_serving_server.pipeline import PipelineClient
+from paddle_serving_server_gpu.pipeline import PipelineClient
 import numpy as np
 import requests
 import json
@@ -20,7 +20,7 @@ import base64
 import os
 
 client = PipelineClient()
-client.connect(['127.0.0.1:18080'])
+client.connect(['127.0.0.1:18090'])
 
 
 def cv2_to_base64(image):
