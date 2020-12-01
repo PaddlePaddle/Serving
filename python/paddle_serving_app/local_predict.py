@@ -32,6 +32,12 @@ logger.setLevel(logging.INFO)
 
 
 class LocalPredictor(object):
+    """
+    Prediction in the current process of the local environment, in process
+    call, Compared with RPC/HTTP, LocalPredictor has better performance, 
+    because of no network and packaging load.
+    """
+
     def __init__(self):
         self.feed_names_ = []
         self.fetch_names_ = []
@@ -42,13 +48,41 @@ class LocalPredictor(object):
         self.fetch_names_to_idx_ = {}
         self.fetch_names_to_type_ = {}
 
-    def load_model_config(self, model_path, gpu=False, profile=True, cpu_num=1):
+    def load_model_config(self,
+                          model_path,
+                          use_gpu=False,
+                          gpu_id=0,
+                          use_profile=False,
+                          thread_num=1,
+                          mem_optim=True,
+                          ir_optim=False,
+                          use_trt=False,
+                          use_feed_fetch_ops=False):
+        """
+        Load model config and set the engine config for the paddle predictor
+   
+        Args:
+            model_path: model config path.
+            use_gpu: calculating with gpu, False default.
+            gpu_id: gpu id, 0 default.
+            use_profile: use predictor profiles, False default.
+            thread_num: thread nums, default 1. 
+            mem_optim: memory optimization, True default.
+            ir_optim: open calculation chart optimization, False default.
+            use_trt: use nvidia TensorRT optimization, False default
+            use_feed_fetch_ops: use feed/fetch ops, False default.
+        """
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
         model_conf = m_config.GeneralModelConfig()
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
         config = AnalysisConfig(model_path)
+        logger.info("load_model_config params: model_path:{}, use_gpu:{},\
+            gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{},\
+            use_trt:{}, use_feed_fetch_ops:{}".format(
+            model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
+            ir_optim, use_trt, use_feed_fetch_ops))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -64,19 +98,43 @@ class LocalPredictor(object):
             self.fetch_names_to_idx_[var.alias_name] = i
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
 
-        if not gpu:
+        if use_profile:
+            config.enable_profile()
+        if mem_optim:
+            config.enable_memory_optim()
+        config.switch_ir_optim(ir_optim)
+        config.set_cpu_math_library_num_threads(thread_num)
+        config.switch_use_feed_fetch_ops(use_feed_fetch_ops)
+        config.delete_pass("conv_transpose_eltwiseadd_bn_fuse_pass")
+
+        if not use_gpu:
             config.disable_gpu()
         else:
-            config.enable_use_gpu(100, 0)
-        if profile:
-            config.enable_profile()
-        config.delete_pass("conv_transpose_eltwiseadd_bn_fuse_pass")
-        config.set_cpu_math_library_num_threads(cpu_num)
-        config.switch_ir_optim(False)
-        config.switch_use_feed_fetch_ops(False)
+            config.enable_use_gpu(100, gpu_id)
+            if use_trt:
+                config.enable_tensorrt_engine(
+                    workspace_size=1 << 20,
+                    max_batch_size=32,
+                    min_subgraph_size=3,
+                    use_static=False,
+                    use_calib_mode=False)
+
         self.predictor = create_paddle_predictor(config)
 
     def predict(self, feed=None, fetch=None, batch=False, log_id=0):
+        """
+        Predict locally
+
+        Args:
+            feed: feed var
+            fetch: fetch var
+            batch: batch data or not, False default.If batch is False, a new
+                   dimension is added to header of the shape[np.newaxis].
+            log_id: for logging
+
+        Returns:
+            fetch_map: dict 
+        """
         if feed is None or fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
         fetch_list = []
