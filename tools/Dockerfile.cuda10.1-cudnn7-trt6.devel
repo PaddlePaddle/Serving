@@ -57,4 +57,4 @@ RUN wget https://paddle-serving.bj.bcebos.com/tools/TensorRT-6.0.1.5.CentOS-7.6.
     && tar -xzf TensorRT-6.0.1.5.CentOS-7.6.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz \
     && mv TensorRT-6.0.1.5 /usr/local/ \
     && rm TensorRT-6.0.1.5.CentOS-7.6.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz \
-    && echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/TensorRT-6.0.1.5/lib/' > /root/.bashrc
+    && echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/TensorRT-6.0.1.5/lib/' >> /root/.bashrc
