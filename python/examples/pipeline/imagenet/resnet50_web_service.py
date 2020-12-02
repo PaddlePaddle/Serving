@@ -52,10 +52,11 @@ class ImagenetOp(Op):
         for score in score_list:
             score = score.tolist()
             max_score = max(score)
-            #result["label"].append(self.label_dict[score.index(max_score)]
-        #.strip().replace(",", ""))
-        #result["prob"].append(max_score)
-        #print(result)
+            result["label"].append(self.label_dict[score.index(max_score)]
+                                   .strip().replace(",", ""))
+            result["prob"].append(max_score)
+        result["label"] = str(result["label"])
+        result["prob"] = str(result["prob"])
         return result, None, ""
 
 
