@@ -29,13 +29,14 @@ class BertService(WebService):
 
     def preprocess(self, feed=[], fetch=[]):
         feed_res = []
+        is_batch = True
         for ins in feed:
             feed_dict = self.reader.process(ins["words"].encode("utf-8"))
             for key in feed_dict.keys():
                 feed_dict[key] = np.array(feed_dict[key]).reshape(
-                    (1, len(feed_dict[key]), 1))
+                    (len(feed_dict[key]), 1))
             feed_res.append(feed_dict)
-        return feed_res, fetch
+        return feed_res, fetch, is_batch
 
 
 bert_service = BertService(name="bert")

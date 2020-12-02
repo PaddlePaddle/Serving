@@ -122,13 +122,14 @@ class WebService(object):
         if "fetch" not in request.json:
             abort(400)
         try:
-            feed, fetch = self.preprocess(request.json["feed"],
-                                          request.json["fetch"])
+            feed, fetch, is_batch = self.preprocess(request.json["feed"],
+                                                    request.json["fetch"])
             if isinstance(feed, dict) and "fetch" in feed:
                 del feed["fetch"]
             if len(feed) == 0:
                 raise ValueError("empty input")
-            fetch_map = self.client.predict(feed=feed, fetch=fetch, batch=True)
+            fetch_map = self.client.predict(
+                feed=feed, fetch=fetch, batch=is_batch)
             result = self.postprocess(
                 feed=request.json["feed"], fetch=fetch, fetch_map=fetch_map)
             result = {"result": result}
@@ -198,7 +199,8 @@ class WebService(object):
 
     def preprocess(self, feed=[], fetch=[]):
         print("This API will be deprecated later. Please do not use it")
-        return feed, fetch
+        is_batch = True
+        return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
         print("This API will be deprecated later. Please do not use it")

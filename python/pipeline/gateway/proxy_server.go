@@ -38,7 +38,8 @@ func run_proxy_server(grpc_port int, http_port int) error {
   ctx, cancel := context.WithCancel(ctx)
   defer cancel()
 
-  mux := runtime.NewServeMux()
+  //EmitDefaults=true, does not filter out the default inputs 
+  mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: true, EmitDefaults: true}))
   opts := []grpc.DialOption{grpc.WithInsecure()}
   err := gw.RegisterPipelineServiceHandlerFromEndpoint(ctx, mux, *pipelineEndpoint, opts)
   if err != nil {

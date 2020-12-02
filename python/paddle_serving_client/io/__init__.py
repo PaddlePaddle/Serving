@@ -113,9 +113,12 @@ def save_model(server_model_folder,
             fetch_var.shape.extend(tmp_shape)
         config.fetch_var.extend([fetch_var])
 
-    cmd = "mkdir -p {}".format(client_config_folder)
-
-    os.system(cmd)
+    try:
+        save_dirname = os.path.normpath(client_config_folder)
+        os.makedirs(save_dirname)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     with open("{}/serving_client_conf.prototxt".format(client_config_folder),
               "w") as fout:
         fout.write(str(config))
