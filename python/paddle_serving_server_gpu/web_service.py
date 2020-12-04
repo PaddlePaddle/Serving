@@ -62,7 +62,8 @@ class WebService(object):
         from .proto import general_model_config_pb2 as m_config
         import google.protobuf.text_format
         if os.path.isdir(model_config):
-            client_config = "{}/serving_server_conf.prototxt".format(model_config)
+            client_config = "{}/serving_server_conf.prototxt".format(
+                model_config)
         elif os.path.isfile(path):
             client_config = model_config
         model_conf = m_config.GeneralModelConfig()
@@ -253,9 +254,7 @@ class WebService(object):
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")
-        self.app_instance.run(host="0.0.0.0",
-                              port=self.port,
-                              threaded=True)
+        self.app_instance.run(host="0.0.0.0", port=self.port, threaded=True)
 
     def get_app_instance(self):
         return self.app_instance
