@@ -1343,7 +1343,7 @@ class ResponseOp(Op):
                                 type(var)))
                         _LOGGER.error("(logid={}) Failed to pack RPC "
                                       "response package: {}".format(
-                                          channeldata.id, resp.error_info))
+                                          channeldata.id, resp.err_msg))
                         break
                     resp.value.append(var)
                     resp.key.append(name)
