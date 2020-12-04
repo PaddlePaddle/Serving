@@ -13,8 +13,9 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 from paddle_serving_client import Client
-from paddle_serving_app.reader import IMDBDataset
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
 import sys
+import numpy as np
 
 client = Client()
 client.load_client_config(sys.argv[1])
@@ -28,7 +29,12 @@ imdb_dataset.load_resource(sys.argv[2])
 
 for line in sys.stdin:
     word_ids, label = imdb_dataset.get_words_and_label(line)
-    feed = {"words": word_ids}
+    word_len = len(word_ids)
+    feed = {
+        "words": np.array(word_ids).reshape(word_len, 1),
+        "words.lod": [0, word_len]
+    }
+    #print(feed)
     fetch = ["prediction"]
-    fetch_map = client.predict(feed=feed, fetch=fetch)
+    fetch_map = client.predict(feed=feed, fetch=fetch, batch=True)
     print("{} {}".format(fetch_map["prediction"][0], label[0]))

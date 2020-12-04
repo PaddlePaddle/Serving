@@ -30,12 +30,12 @@ client.load_client_config("yolov4_client/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9393'])
 
 im = preprocess(sys.argv[1])
-print(im.shape)
 fetch_map = client.predict(
     feed={
         "image": im,
         "im_size": np.array(list(im.shape[1:])),
     },
-    fetch=["save_infer_model/scale_0.tmp_0"])
+    fetch=["save_infer_model/scale_0.tmp_0"],
+    batch=False)
 fetch_map["image"] = sys.argv[1]
 postprocess(fetch_map)
