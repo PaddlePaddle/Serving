@@ -20,7 +20,7 @@ import os
 import time
 import criteo_reader as criteo
 from paddle_serving_client.metric import auc
-
+import numpy as np
 import sys
 
 py_version = sys.version_info[0]
@@ -49,7 +49,8 @@ for ei in range(1000):
         data = reader().__next__()
     feed_dict = {}
     for i in range(1, 27):
-        feed_dict["sparse_{}".format(i - 1)] = data[0][i]
+        feed_dict["sparse_{}".format(i - 1)] = np.array(data[0][i]).reshape(-1)
+        feed_dict["sparse_{}.lod".format(i - 1)] = [0, len(data[0][i])]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
 end = time.time()
 print(end - start)

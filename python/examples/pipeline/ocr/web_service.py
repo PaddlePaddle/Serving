@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 try:
-    from paddle_serving_server_gpu.web_service import WebService, Op
-except ImportError:
     from paddle_serving_server.web_service import WebService, Op
+except ImportError:
+    from paddle_serving_server_gpu.web_service import WebService, Op
 import logging
 import numpy as np
 import cv2
@@ -43,7 +43,7 @@ class DetOp(Op):
             "min_size": 3
         })
 
-    def preprocess(self, input_dicts):
+    def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         data = base64.b64decode(input_dict["image"].encode('utf8'))
         data = np.fromstring(data, np.uint8)
@@ -52,9 +52,9 @@ class DetOp(Op):
         self.ori_h, self.ori_w, _ = self.im.shape
         det_img = self.det_preprocess(self.im)
         _, self.new_h, self.new_w = det_img.shape
-        return {"image": det_img}
+        return {"image": det_img[np.newaxis, :].copy()}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict):
+    def postprocess(self, input_dicts, fetch_dict, log_id):
         det_out = fetch_dict["concat_1.tmp_0"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
@@ -62,7 +62,8 @@ class DetOp(Op):
         dt_boxes_list = self.post_func(det_out, [ratio_list])
         dt_boxes = self.filter_func(dt_boxes_list[0], [self.ori_h, self.ori_w])
         out_dict = {"dt_boxes": dt_boxes, "image": self.im}
-        return out_dict
+        print("out dict", out_dict)
+        return out_dict, None, ""
 
 
 class RecOp(Op):
@@ -71,7 +72,7 @@ class RecOp(Op):
         self.get_rotate_crop_image = GetRotateCropImage()
         self.sorted_boxes = SortedBoxes()
 
-    def preprocess(self, input_dicts):
+    def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         im = input_dict["image"]
         dt_boxes = input_dict["dt_boxes"]
@@ -85,19 +86,22 @@ class RecOp(Op):
             h, w = boximg.shape[0:2]
             wh_ratio = w * 1.0 / h
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
-        for img in img_list:
+        _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
+                                                  max_wh_ratio).shape
+        imgs = np.zeros((len(img_list), 3, w, h)).astype('float32')
+        for id, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            feed = {"image": norm_img}
-            feed_list.append(feed)
-        return feed_list
+            imgs[id] = norm_img
+        feed = {"image": imgs.copy()}
+        return feed, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict):
+    def postprocess(self, input_dicts, fetch_dict, log_id):
         rec_res = self.ocr_reader.postprocess(fetch_dict, with_score=True)
         res_lst = []
         for res in rec_res:
             res_lst.append(res[0])
         res = {"res": str(res_lst)}
-        return res
+        return res, None, ""
 
 
 class OcrService(WebService):
