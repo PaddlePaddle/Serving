@@ -15,6 +15,7 @@
 from paddle_serving_server.web_service import WebService
 import sys
 from paddle_serving_app.reader import LACReader
+import numpy as np
 
 
 class LACService(WebService):
@@ -23,13 +24,21 @@ class LACService(WebService):
 
     def preprocess(self, feed={}, fetch=[]):
         feed_batch = []
+        fetch = ["crf_decode"]
+        lod_info = [0]
+        is_batch = True
         for ins in feed:
             if "words" not in ins:
                 raise ("feed data error!")
             feed_data = self.reader.process(ins["words"])
-            feed_batch.append({"words": feed_data})
-        fetch = ["crf_decode"]
-        return feed_batch, fetch
+            feed_batch.append(np.array(feed_data).reshape(len(feed_data), 1))
+            lod_info.append(lod_info[-1] + len(feed_data))
+        feed_dict = {
+            "words": np.concatenate(
+                feed_batch, axis=0),
+            "words.lod": lod_info
+        }
+        return feed_dict, fetch, is_batch
 
     def postprocess(self, feed={}, fetch=[], fetch_map={}):
         batch_ret = []
