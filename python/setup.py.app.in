@@ -32,8 +32,8 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece', 'opencv-python<=4.2.0.32', 'pillow',
-    'shapely<=1.6.1', 'pyclipper'
+    'six >= 1.10.0', 'sentencepiece<=0.1.92', 'opencv-python<=4.2.0.32', 'pillow',
+    'pyclipper'
 ]
 
 packages=['paddle_serving_app',

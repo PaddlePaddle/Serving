@@ -37,6 +37,7 @@ class SentaService(WebService):
     #定义senta模型预测服务的预处理，调用顺序：lac reader->lac模型预测->预测结果后处理->senta reader
     def preprocess(self, feed=[], fetch=[]):
         feed_batch = []
+        is_batch = True
         words_lod = [0]
         for ins in feed:
             if "words" not in ins:
@@ -64,14 +65,13 @@ class SentaService(WebService):
         return {
             "words": np.concatenate(feed_batch),
             "words.lod": words_lod
-        }, fetch
+        }, fetch, is_batch
 
 
 senta_service = SentaService(name="senta")
 senta_service.load_model_config("senta_bilstm_model")
 senta_service.prepare_server(workdir="workdir")
 senta_service.init_lac_client(
-    lac_port=9300,
-    lac_client_config="lac/lac_model/serving_server_conf.prototxt")
+    lac_port=9300, lac_client_config="lac_model/serving_server_conf.prototxt")
 senta_service.run_rpc_service()
 senta_service.run_web_service()
