@@ -14,8 +14,9 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_server.web_service import WebService
-from paddle_serving_app.reader import IMDBDataset
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
 import sys
+import numpy as np
 
 
 class IMDBService(WebService):
@@ -26,10 +27,16 @@ class IMDBService(WebService):
         self.dataset.load_resource(args["dict_file_path"])
 
     def preprocess(self, feed={}, fetch=[]):
-        res_feed = [{
-            "words": self.dataset.get_words_only(ins["words"])
-        } for ins in feed]
-        return res_feed, fetch
+        feed_batch = []
+        words_lod = [0]
+        is_batch = True
+        for ins in feed:
+            words = self.dataset.get_words_only(ins["words"])
+            words = np.array(words).reshape(len(words), 1)
+            words_lod.append(words_lod[-1] + len(words))
+            feed_batch.append(words)
+        feed = {"words": np.concatenate(feed_batch), "words.lod": words_lod}
+        return feed, fetch, is_batch
 
 
 imdb_service = IMDBService(name="imdb")

@@ -23,13 +23,13 @@ import paddle_serving_server as paddle_serving_server
 from .version import serving_server_version
 from contextlib import closing
 import collections
-import fcntl
-
 import shutil
 import numpy as np
 import grpc
 from .proto import multi_lang_general_model_service_pb2
 import sys
+if sys.platform.startswith('win') is False:
+    import fcntl
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
@@ -584,7 +584,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     else:
                         raise Exception("error type.")
                 tensor.shape.extend(list(model_result[name].shape))
-                if name in self.lod_tensor_set_:
+                if "{}.lod".format(name) in model_result:
                     tensor.lod.extend(model_result["{}.lod".format(name)]
                                       .tolist())
                 inst.tensor_array.append(tensor)
