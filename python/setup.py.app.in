@@ -47,8 +47,8 @@ if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
     os.system('export LD_LIBRARY_PATH="./paddle_serving_app/reader/lib"')
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece', 'opencv-python<=4.2.0.32', 'pillow',
-    'shapely', 'pyclipper'
+    'six >= 1.10.0', 'sentencepiece<=0.1.92', 'opencv-python<=4.2.0.32', 'pillow',
+    'pyclipper'
 ]
 
 packages=['paddle_serving_app',
