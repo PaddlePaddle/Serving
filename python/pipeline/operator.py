@@ -574,7 +574,7 @@ class Op(object):
         #Init cuda env in main thread
         if self.client_type == "local_predictor":
             _LOGGER.info("Init cuda env in main thread")
-            self.local_predictor = self._local_service_handler.get_client()
+            self.local_predictor = self._local_service_handler.get_client(0)
 
         threads = []
         for concurrency_idx in range(self.concurrency):
@@ -1034,7 +1034,8 @@ class Op(object):
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))
-                self.local_predictor = self.service_handler.get_client()
+                self.local_predictor = self.service_handler.get_client(
+                    concurrency_idx)
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
 
