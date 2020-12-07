@@ -23,7 +23,7 @@ import socket
 from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
-
+import six
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -53,7 +53,10 @@ class PipelineClient(object):
         if logid is None:
             req.logid = 0
         else:
-            req.logid = long(logid)
+            if six.PY2:
+                req.logid = long(logid)
+            elif six.PY3:
+                req.logid = int(log_id)
             feed_dict.pop("logid")
 
         clientip = feed_dict.get("clientip")
