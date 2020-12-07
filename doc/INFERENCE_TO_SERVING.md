@@ -24,13 +24,13 @@ inference_model_dir = "your_inference_model"
 serving_client_dir = "serving_client_dir"
 serving_server_dir = "serving_server_dir"
 feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_client_dir, serving_server_dir)
+		inference_model_dir, serving_server_dir, serving_client_dir)
 ```
 
 if your model file and params file are both standalone, please use the following api.
 
 ```
 feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_client_dir, serving_server_dir,
+		inference_model_dir, serving_server_dir, serving_client_dir,
 		model_filename="model", params_filename="params")
 ```
