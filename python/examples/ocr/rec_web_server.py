@@ -51,10 +51,17 @@ class OCRService(WebService):
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
         for img in img_list:
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            feed = {"image": norm_img}
-            feed_list.append(feed)
+            #feed = {"image": norm_img}
+            feed_list.append(norm_img)
+        if len(feed_list) == 1:
+            feed_batch = {
+                "image": np.concatenate(
+                    feed_list, axis=0)[np.newaxis, :]
+            }
+        else:
+            feed_batch = {"image": np.concatenate(feed_list, axis=0)}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed_list, fetch
+        return feed_batch, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
