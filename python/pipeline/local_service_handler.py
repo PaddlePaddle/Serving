@@ -125,13 +125,15 @@ class LocalServiceHandler(object):
                           format(self._devices))
             raise ValueError("The number of self._devices error")
 
-        if concurrency_idx <= 0:
+        if concurrency_idx < 0:
             _LOGGER.error("concurrency_idx({}) must be one positive number".
                           format(concurrency_idx))
             concurrency_idx = 0
         elif concurrency_idx >= device_num:
             concurrency_idx = concurrency_idx % device_num
 
+        _LOGGER.info("GET_CLIENT : concurrency_idx={}, device_num={}".format(
+            concurrency_idx, device_num))
         from paddle_serving_app.local_predict import LocalPredictor
         if self._local_predictor_client is None:
             self._local_predictor_client = LocalPredictor()

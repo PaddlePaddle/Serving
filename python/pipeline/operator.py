@@ -55,7 +55,7 @@ class Op(object):
                  client_type=None,
                  concurrency=None,
                  timeout=None,
-                 retry=None,
+                 retry=0,
                  batch_size=None,
                  auto_batching_timeout=None,
                  local_service_handler=None):
@@ -679,7 +679,7 @@ class Op(object):
         err_channeldata_dict = collections.OrderedDict()
         ### if (batch_num == 1 && skip == True) ,then skip the process stage.
         is_skip_process = False
-        data_ids = preped_data_dict.keys()
+        data_ids = list(preped_data_dict.keys())
         if len(data_ids) == 1 and skip_process_dict.get(data_ids[0]) == True:
             is_skip_process = True
             _LOGGER.info("(data_id={} log_id={}) skip process stage".format(
