@@ -15,21 +15,22 @@ from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 
 client = PipelineClient()
-client.connect(['127.0.0.1:18080'])
+client.connect(['127.0.0.1:18070'])
 
 words = 'i am very sad | 0'
 
 futures = []
-for i in range(4):
+for i in range(100):
     futures.append(
         client.predict(
-            feed_dict={"words": words},
+            feed_dict={"words": words,
+                       "logid": 10000 + i},
             fetch=["prediction"],
             asyn=True,
             profile=False))
 
 for f in futures:
     res = f.result()
-    if res["ecode"] != 0:
+    if res.err_no != 0:
         print("predict failed: {}".format(res))
     print(res)
