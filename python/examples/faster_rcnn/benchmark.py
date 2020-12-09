@@ -29,13 +29,11 @@ from paddle_serving_app.reader import ChineseBertReader
 from paddle_serving_app.reader import *
 import numpy as np
 
-
-
 args = benchmark_args()
 
 
 def single_func(idx, resource):
-    img="./000000570688.jpg"
+    img = "./000000570688.jpg"
     profile_flags = False
     latency_flags = False
     if os.getenv("FLAGS_profile_client"):
@@ -67,10 +65,12 @@ def single_func(idx, resource):
                 for bi in range(args.batch_size):
                     print("1111batch")
                     print(bi)
-                    feed_batch.append({"image": im,
+                    feed_batch.append({
+                        "image": im,
                         "im_info": np.array(list(im.shape[1:]) + [1.0]),
-                        "im_shape": np.array(list(im.shape[1:]) + [1.0])})
-               # im = preprocess(img)
+                        "im_shape": np.array(list(im.shape[1:]) + [1.0])
+                    })
+            # im = preprocess(img)
                 b_end = time.time()
 
                 if profile_flags:
@@ -81,8 +81,7 @@ def single_func(idx, resource):
                             int(round(b_end * 1000000))))
                 #result = client.predict(feed=feed_batch, fetch=fetch)
                 fetch_map = client.predict(
-                    feed=feed_batch,
-                    fetch=["multiclass_nms"])
+                    feed=feed_batch, fetch=["multiclass_nms"])
                 fetch_map["image"] = img
                 postprocess(fetch_map)
 
@@ -102,13 +101,12 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = [
-        "127.0.0.1:7777"
-    ]
+    endpoint_list = ["127.0.0.1:7777"]
     turns = 10
     start = time.time()
     result = multi_thread_runner.run(
-        single_func, args.thread, {"endpoint": endpoint_list,"turns": turns})
+        single_func, args.thread, {"endpoint": endpoint_list,
+                                   "turns": turns})
     end = time.time()
     total_cost = end - start
 
