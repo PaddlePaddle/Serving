@@ -50,7 +50,7 @@ class OCRService(WebService):
         ori_h, ori_w, _ = im.shape
         det_img = self.det_preprocess(im)
         det_out = self.det_client.predict(
-            feed={"image": det_img}, fetch=["concat_1.tmp_0"])
+            feed={"image": det_img}, fetch=["concat_1.tmp_0"], batch=False)
         _, new_h, new_w = det_img.shape
         filter_func = FilterBoxes(10, 10)
         post_func = DBPostProcess({
@@ -77,10 +77,10 @@ class OCRService(WebService):
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
         for img in img_list:
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            feed = {"image": norm_img}
-            feed_list.append(feed)
+            feed_list.append(norm_img[np.newaxis, :])
+        feed_batch = {"image": np.concatenate(feed_list, axis=0)}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed_list, fetch
+        return feed_batch, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)

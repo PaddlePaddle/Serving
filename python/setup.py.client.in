@@ -43,8 +43,8 @@ if '${PACK}' == 'ON':
     copy_lib()
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio >= 1.28.1',
-    'grpcio-tools >= 1.28.1'
+    'six >= 1.10.0', 'protobuf >= 3.11.0', 'numpy >= 1.12', 'grpcio <= 1.33.2',
+    'grpcio-tools <= 1.33.2'
 ]
 
 
