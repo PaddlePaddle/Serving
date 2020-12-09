@@ -17,6 +17,7 @@ except ImportError:
     from paddle_serving_server.web_service import WebService, Op
 import logging
 import numpy as np
+import sys
 
 _LOGGER = logging.getLogger()
 
@@ -31,11 +32,18 @@ class UciOp(Op):
             log_id, input_dict))
         x_value = input_dict["x"]
         proc_dict = {}
-        if isinstance(x_value, (str, unicode)):
-            input_dict["x"] = np.array(
-                [float(x.strip())
-                 for x in x_value.split(self.separator)]).reshape(1, 13)
-            _LOGGER.error("input_dict:{}".format(input_dict))
+        if sys.version_info.major == 2:
+            if isinstance(x_value, (str, unicode)):
+                input_dict["x"] = np.array(
+                    [float(x.strip())
+                     for x in x_value.split(self.separator)]).reshape(1, 13)
+                _LOGGER.error("input_dict:{}".format(input_dict))
+        else:
+            if isinstance(x_value, str):
+                input_dict["x"] = np.array(
+                    [float(x.strip())
+                     for x in x_value.split(self.separator)]).reshape(1, 13)
+                _LOGGER.error("input_dict:{}".format(input_dict))
 
         return input_dict, False, None, ""
 
