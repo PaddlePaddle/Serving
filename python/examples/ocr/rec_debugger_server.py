@@ -52,7 +52,7 @@ class OCRService(WebService):
             imgs[i] = norm_img
         feed = {"image": imgs.copy()}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed, fetch
+        return feed, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
