@@ -53,7 +53,9 @@ class OCRService(WebService):
         self.ori_h, self.ori_w, _ = im.shape
         det_img = self.det_preprocess(im)
         _, self.new_h, self.new_w = det_img.shape
-        return {"image": det_img[np.newaxis, :].copy()}, ["concat_1.tmp_0"]
+        return {
+            "image": det_img[np.newaxis, :].copy()
+        }, ["concat_1.tmp_0"], True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         det_out = fetch_map["concat_1.tmp_0"]
