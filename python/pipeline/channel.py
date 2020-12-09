@@ -429,9 +429,12 @@ class ProcessChannel(object):
                             self._cv.wait()
                 if self._stop.value == 1:
                     raise ChannelStopError()
-            _LOGGER.debug(
-                self._log("(data_id={} log_id={}) Op({}) Got data".format(
-                    resp.values()[0].id, resp.values()[0].log_id, op_name)))
+
+            if resp is not None:
+                list_values = list(resp.values())
+                _LOGGER.debug(
+                    self._log("(data_id={} log_id={}) Op({}) Got data".format(
+                        list_values[0].id, list_values[0].log_id, op_name)))
             return resp
         elif op_name is None:
             _LOGGER.critical(
@@ -458,11 +461,12 @@ class ProcessChannel(object):
                 try:
                     channeldata = self._que.get(timeout=0)
                     self._output_buf.append(channeldata)
+                    list_values = list(channeldata.values())
                     _LOGGER.debug(
                         self._log(
                             "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer".
-                            format(channeldata.values()[0].id,
-                                   channeldata.values()[0].log_id, op_name)))
+                            format(list_values[0].id, list_values[0].log_id,
+                                   op_name)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
@@ -513,10 +517,12 @@ class ProcessChannel(object):
 
             self._cv.notify_all()
 
-        _LOGGER.debug(
-            self._log(
-                "(data_id={} log_id={}) Op({}) Got data from output_buffer".
-                format(resp.values()[0].id, resp.values()[0].log_id, op_name)))
+        if resp is not None:
+            list_values = list(resp.values())
+            _LOGGER.debug(
+                self._log(
+                    "(data_id={} log_id={}) Op({}) Got data from output_buffer".
+                    format(list_values[0].id, list_values[0].log_id, op_name)))
         return resp
 
     def stop(self):
@@ -726,9 +732,11 @@ class ThreadChannel(Queue.PriorityQueue):
                             self._cv.wait()
                 if self._stop:
                     raise ChannelStopError()
-            _LOGGER.debug(
-                self._log("(data_id={} log_id={}) Op({}) Got data".format(
-                    resp.values()[0].id, resp.values()[0].log_id, op_name)))
+            if resp is not None:
+                list_values = list(resp.values())
+                _LOGGER.debug(
+                    self._log("(data_id={} log_id={}) Op({}) Got data".format(
+                        list_values[0].id, list_values[0].log_id, op_name)))
             return resp
         elif op_name is None:
             _LOGGER.critical(
@@ -755,11 +763,12 @@ class ThreadChannel(Queue.PriorityQueue):
                 try:
                     channeldata = self.get(timeout=0)
                     self._output_buf.append(channeldata)
+                    list_values = list(channeldata.values())
                     _LOGGER.debug(
                         self._log(
                             "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer".
-                            format(channeldata.values()[0].id,
-                                   channeldata.values()[0].log_id, op_name)))
+                            format(list_values[0].id, list_values[0].log_id,
+                                   op_name)))
                     break
                 except Queue.Empty:
                     if timeout is not None:
@@ -810,10 +819,12 @@ class ThreadChannel(Queue.PriorityQueue):
 
             self._cv.notify_all()
 
-        _LOGGER.debug(
-            self._log(
-                "(data_id={} log_id={}) Op({}) Got data from output_buffer".
-                format(resp.values()[0].id, resp.values()[0].log_id, op_name)))
+        if resp is not None:
+            list_values = list(resp.values())
+            _LOGGER.debug(
+                self._log(
+                    "(data_id={} log_id={}) Op({}) Got data from output_buffer".
+                    format(list_values[0].id, list_values[0].log_id, op_name)))
         return resp
 
     def stop(self):
