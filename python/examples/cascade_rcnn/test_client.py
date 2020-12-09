@@ -33,7 +33,7 @@ fetch_map = client.predict(
         "im_shape": np.array(list(im.shape[1:]) + [1.0])
     },
     fetch=["multiclass_nms_0.tmp_0"],
-    batch=True)
+    batch=False)
 fetch_map["image"] = '000000570688.jpg'
 print(fetch_map)
 postprocess(fetch_map)
