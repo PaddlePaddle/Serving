@@ -213,6 +213,10 @@ To connect with other users and contributors, welcome to join our [Slack channel
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
 
+Special Thanks to @BeyondYourself in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
+Special Thanks to @mcl-stone in updating faster_rcnn benchmark
+Special Thanks to @cg82616424 in updating the unet benchmark and modifying resize comment error
+
 ### Feedback
 
 For any feedback or to report a bug, please propose a [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues).
