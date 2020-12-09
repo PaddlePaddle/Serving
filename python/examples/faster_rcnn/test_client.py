@@ -37,6 +37,6 @@ fetch_map = client.predict(
         "im_shape": np.array(list(im.shape[1:]) + [1.0])
     },
     fetch=["multiclass_nms"],
-    batch=True)
+    batch=False)
 fetch_map["image"] = sys.argv[3]
 postprocess(fetch_map)
