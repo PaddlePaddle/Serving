@@ -312,7 +312,7 @@ class OpAnalyst(object):
 
         # reduce op times
         op_times = {
-            op_name: sum(step_times.values())
+            op_name: sum(list(step_times.values()))
             for op_name, step_times in op_times.items()
         }
 
