@@ -6,7 +6,7 @@
 
 本文档指导用户如何在Windows平台手把手搭建Paddle Serving服务。由于受限第三方库的支持，Windows平台目前只支持用web service的方式搭建local predictor预测服务。如果想要体验全部的服务，需要使用Docker for Windows，来模拟Linux的运行环境。
 
-### 原生系统运行Paddle Serving
+### 原生Windows系统运行Paddle Serving
 
 **配置Python环境变量到PATH**：首先需要将Python的可执行程序所在目录加入到PATH当中。通常在**系统属性/我的电脑属性**-**高级**-**环境变量** ，点选Path，并在开头加上路径。例如`C:\Users\$USER\AppData\Local\Programs\Python\Python36`，最后连续点击**确定** 。在Powershell上如果输入python可以进入python交互界面，说明环境变量配置成功。
 
@@ -109,7 +109,7 @@ python your_client.py
 
 ### Docker for Windows 使用指南
 
-以上内容用于原生的Windows，如果用户想要体验完整的功能，需要使用Docker工具，来模型Linux系统。
+以上内容用于原生的Windows，如果用户想要体验完整的功能，需要使用Docker工具，来模拟Linux系统。
 
 安装Docker请参考[Docker Desktop](https://www.docker.com/products/docker-desktop)
 
