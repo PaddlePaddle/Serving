@@ -14,7 +14,7 @@ This document guides users how to build Paddle Serving service on the Windows pl
 
 **Install Git Tools**: For details, see [Git official website](https://git-scm.com/downloads)
 
-**Install the necessary C++ library (optional)**: Some users may encounter the problem that the dll cannot be linked during the `import paddle` stage. It is recommended to [Install Visual Studio Community Edition](`https://visualstudio.microsoft. com/`), and install the relevant components of C++.
+**Install the necessary C++ library (optional)**: Some users may encounter the problem that the dll cannot be linked during the `import paddle` stage. It is recommended to [Install Visual Studio Community Edition](https://visualstudio.microsoft.com/), and install the relevant components of C++.
 
 **Install Paddle and Serving**: In Powershell, execute
 
