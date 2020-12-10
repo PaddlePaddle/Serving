@@ -54,6 +54,12 @@ REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::InferEngine,
     "FLUID_GPU_NATIVE_DIR_SIGMOID");
 
+REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
+    ::baidu::paddle_serving::predictor::FluidInferEngine<
+        FluidGpuAnalysisEncryptCore>,
+    ::baidu::paddle_serving::predictor::InferEngine,
+    "FLUID_GPU_ANALYSIS_ENCRPT")
+
 }  // namespace fluid_gpu
 }  // namespace paddle_serving
 }  // namespace baidu
