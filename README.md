@@ -55,11 +55,13 @@ You may need to use a domestic mirror source (in China, you can use the Tsinghua
 
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
-Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7 and Ubuntu 16/18.
+Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 
 Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.6/3.7.
 
-Recommended to install paddle >= 1.8.2.
+Recommended to install paddle >= 1.8.4.
+
+For **Windows Users**, please read the document [Paddle Serving for Windows Users](./doc/WINDOWS_TUTORIAL.md)
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
