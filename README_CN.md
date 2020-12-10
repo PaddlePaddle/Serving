@@ -57,11 +57,13 @@ pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
 
 如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。
 
-paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7和Ubuntu 16/18。
+paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
 paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6。
 
-推荐安装1.8.2及以上版本的paddle
+推荐安装1.8.4及以上版本的paddle
+
+对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](./doc/WINDOWS_TUTORIAL_CN.md)。
 
 <h2 align="center"> Paddle Serving预装的服务 </h2>
 
