@@ -13,16 +13,19 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-import paddle_serving_client
 import os
-from .proto import sdk_configure_pb2 as sdk
-from .proto import general_model_config_pb2 as m_config
-import google.protobuf.text_format
-import numpy as np
 import time
 import sys
+import requests
+import json
+import base64
+import numpy as np
+import paddle_serving_client
+import google.protobuf.text_format
 
 import grpc
+from .proto import sdk_configure_pb2 as sdk
+from .proto import general_model_config_pb2 as m_config
 from .proto import multi_lang_general_model_service_pb2
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
@@ -161,6 +164,7 @@ class Client(object):
         self.fetch_names_to_idx_ = {}
         self.lod_tensor_set = set()
         self.feed_tensor_len = {}
+        self.key = None
 
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
@@ -193,7 +197,28 @@ class Client(object):
         else:
             self.rpc_timeout_ms = rpc_timeout
 
-    def connect(self, endpoints=None):
+    def use_key(self, key_filename):
+        with open(key_filename, "r") as f:
+            self.key = f.read()
+
+    def get_serving_port(self, endpoints):
+        if self.key is not None:
+            req = json.dumps({"key": base64.b64encode(self.key)})
+        else:
+            req = json.dumps({})
+        r = requests.post("http://" + endpoints[0], req)
+        result = r.json()
+        print(result)
+        if "endpoint_list" not in result:
+            raise ValueError("server not ready")
+        else:
+            endpoints = [
+                endpoints[0].split(":")[0] + ":" +
+                str(result["endpoint_list"][0])
+            ]
+            return endpoints
+
+    def connect(self, endpoints=None, encryption=False):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
@@ -203,6 +228,8 @@ class Client(object):
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
+            if encryption:
+                endpoints = self.get_serving_port(endpoints)
             if self.predictor_sdk_ is None:
                 self.add_variant('default_tag_{}'.format(id(self)), endpoints,
                                  100)
