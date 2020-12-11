@@ -28,6 +28,7 @@ You can get images in two ways:
 ## Image description
 
 Runtime images cannot be used for compilation.
+If you need secondary development based on source code, use the version with the suffix - devel.
 
 |                         Description                          |   OS    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
