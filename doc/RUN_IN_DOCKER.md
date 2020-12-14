@@ -2,6 +2,8 @@
 
 ([简体中文](RUN_IN_DOCKER_CN.md)|English)
 
+One of the biggest benefits of Docker is portability, which can be deployed on multiple operating systems and mainstream cloud computing platforms. The Paddle Serving Docker image can be deployed on Linux, Mac and Windows platforms.
+
 ## Requirements
 
 Docker (GPU version requires nvidia-docker to be installed on the GPU machine)
