@@ -97,14 +97,20 @@ make -j10
 可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
 
 ### 集成GPU版本Paddle Inference Library
-
+### CUDA_PATH是cuda的安装路径，可以使用命令行whereis cuda命令确认你的cuda安装路径，通常应该是/usr/local/cuda
+### CUDNN_LIBRARY CUDA_CUDART_LIBRARY 是cuda库文件的路径，通常应该是/usr/local/cuda/lib64/
 ``` shell
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
     -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j10
@@ -113,6 +119,10 @@ make -j10
 ### 集成TensorRT版本Paddle Inference Library
 
 ```
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 mkdir server-build-trt && cd server-build-trt
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
@@ -120,6 +130,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
     -DSERVER=ON \
     -DWITH_GPU=ON \
     -DWITH_TRT=ON ..
@@ -162,12 +173,16 @@ make
 ## 安装wheel包
 
 无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
+例如：cd server-build-cpu/python/dist && pip install -U xxxxx.whl
+
 
 
 
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+其中BUILD_DIR为server-build-cpu或server-build-gpu的绝对路径。
+可以cd server-build-cpu路径下，执行export SERVING_BIN=${PWD}/core/general-server/serving
 
 
 
