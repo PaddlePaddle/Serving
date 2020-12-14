@@ -13,24 +13,22 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-import os
-import sys
-from paddle_serving_server import OpMaker
-from paddle_serving_server import OpSeqMaker
-from paddle_serving_server import Server
+from paddle_serving_server.web_service import WebService
+import numpy as np
 
-op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
-response_op = op_maker.create('general_response')
-
-op_seq_maker = OpSeqMaker()
-op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(general_infer_op)
-op_seq_maker.add_op(response_op)
-
-server = Server()
-server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.load_model_config(sys.argv[1])
-server.prepare_server(workdir="work_dir1", port=9393, device="cpu")
-server.run_server()
+class UciService(WebService):
+    def preprocess(self, feed=[], fetch=[]):
+        feed_batch = []
+        is_batch = True
+        new_data = np.zeros((len(feed), 1, 13)).astype("float32")
+        for i, ins in enumerate(feed):
+            nums = np.array(ins["x"]).reshape(1, 1, 13)
+            new_data[i] = nums
+        feed = {"x": new_data}
+        return feed, fetch, is_batch 
+        
+uci_service = UciService(name="uci")
+uci_service.load_model_config("uci_housing_model")
+uci_service.prepare_server(workdir="workdir", port=9292)
+uci_service.run_rpc_service()
+uci_service.run_web_service()
