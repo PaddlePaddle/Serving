@@ -2,6 +2,8 @@
 
 (简体中文|[English](RUN_IN_DOCKER.md))
 
+Docker最大的好处之一就是可移植性，可在多种操作系统和主流的云计算平台部署。使用Paddle Serving Docker镜像可在Linux、Mac和Windows平台部署。
+
 ## 环境要求
 
 Docker（GPU版本需要在GPU机器上安装nvidia-docker）
