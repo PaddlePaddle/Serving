@@ -16,7 +16,7 @@ The Server side is built based on <b>RPC Service</b> and <b>graph execution engi
 </center>
 
 
-### 1. PRC Service
+### 1. RPC Service
 
 In order to meet the needs of different users, the RPC service starts one Web server and one RPC server at the same time, and can process 2 types of requests, RESTful API and gRPC.The gPRC gateway receives RESTful API requests and forwards requests to the gRPC server through the reverse proxy server; gRPC requests are received by the gRPC server, so the two types of requests are processed by the gRPC Service in a unified manner to ensure that the processing logic is consistent.
 
@@ -522,7 +522,7 @@ op:
         # Batch query timeout, ms
         auto_batching_timeout: 2000
 
-### Start PipelineServer
+### 3. Start PipelineServer
 
 Run the following code
 
@@ -593,7 +593,7 @@ server.prepare_server('config.yml')
 server.run_server()
 ```
 
-### Perform prediction through PipelineClient
+### 4. Perform prediction through PipelineClient
 
 ```python
 from paddle_serving_client.pipeline import PipelineClient
@@ -619,13 +619,16 @@ for f in futures:
         exit(1)
 ```
 
+***
+
+## ★ Performance analysis
 
 
-## How to optimize with the timeline tool
+### 1. How to optimize with the timeline tool
 
 In order to better optimize the performance, PipelineServing provides a timeline tool to monitor the time of each stage of the whole service.
 
-### Output profile information on server side
+### 2. Output profile information on server side
 
 The server is controlled by the `use_profile` field in yaml:
 
@@ -652,8 +655,29 @@ if __name__ == "__main__":
 
 Specific operation: open Chrome browser, input in the address bar `chrome://tracing/` , jump to the tracing page, click the load button, open the saved `trace` file, and then visualize the time information of each stage of the prediction service.
 
-### Output profile information on client side
+### 3. Output profile information on client side
 
 The profile function can be enabled by setting `profile=True` in the `predict` interface on the client side.
 
 After the function is enabled, the client will print the log information corresponding to the prediction to the standard output during the prediction process, and the subsequent analysis and processing are the same as that of the server.
+
+### 4. Analytical methods
+```
+cost of one single OP：
+op_cost = process(pre + mid + post) 
+
+OP Concurrency: 
+op_concurrency = op_cost(s) * qps_expected
+
+Service throughput：
+service_throughput = 1 / slowest_op_cost * op_concurrency
+
+Service average cost：
+service_avg_cost = ∑op_concurrency in critical Path
+
+Channel accumulations：
+channel_acc_size = QPS(down - up) * time
+
+Average cost of batch predictor：
+avg_batch_cost = (N * pre + mid + post) / N 
+```
