@@ -16,6 +16,7 @@
 from paddle_serving_server.web_service import WebService
 import numpy as np
 
+
 class UciService(WebService):
     def preprocess(self, feed=[], fetch=[]):
         feed_batch = []
@@ -25,8 +26,9 @@ class UciService(WebService):
             nums = np.array(ins["x"]).reshape(1, 1, 13)
             new_data[i] = nums
         feed = {"x": new_data}
-        return feed, fetch, is_batch 
-        
+        return feed, fetch, is_batch
+
+
 uci_service = UciService(name="uci")
 uci_service.load_model_config("uci_housing_model")
 uci_service.prepare_server(workdir="workdir", port=9292)
