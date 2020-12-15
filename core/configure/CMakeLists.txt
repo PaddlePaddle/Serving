@@ -45,19 +45,19 @@ add_custom_target(sdk_configure_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E to
 add_dependencies(sdk_configure_py_proto sdk_configure_py_proto_init)
 add_custom_command(TARGET sdk_configure_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
-		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
+		COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
 		COMMENT "Copy generated python proto into directory paddle_serving_client/proto."
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_command(TARGET general_model_config_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
-                COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
+                COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
                 COMMENT "Copy generated general_model_config proto file into directory paddle_serving_client/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_command(TARGET multi_lang_general_model_service_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
-                COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
+                COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
                 COMMENT "Copy generated multi_lang_general_model_service proto file into directory paddle_serving_client/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
@@ -65,7 +65,7 @@ endif()
 if (APP)
 add_custom_command(TARGET general_model_config_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/proto
-                COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/proto
+                COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/proto
                 COMMENT "Copy generated general_model_config proto file into directory paddle_serving_app/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
@@ -77,26 +77,26 @@ add_dependencies(server_config_py_proto server_config_py_proto_init)
 if (NOT WITH_GPU)
 add_custom_command(TARGET server_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
-		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
+		COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMENT "Copy generated python proto into directory paddle_serving_server/proto."
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINRARY_DIR})
 
 add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
-		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
+		COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMENT "Copy generated general_model_config proto file into directory paddle_serving_server/proto."
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_command(TARGET multi_lang_general_model_service_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
-                COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
+                COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
                 COMMENT "Copy generated multi_lang_general_model_service proto file into directory paddle_serving_server/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 else()
 add_custom_command(TARGET server_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
-		COMMAND cp *.py
+		COMMAND cp -f *.py
         ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
 		COMMENT "Copy generated python proto into directory
         paddle_serving_server_gpu/proto."
@@ -105,7 +105,7 @@ add_custom_command(TARGET server_config_py_proto POST_BUILD
 add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory
         ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
-		COMMAND cp *.py
+		COMMAND cp -f *.py
         ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
 		COMMENT "Copy generated general_model_config proto file into directory
         paddle_serving_server_gpu/proto."
@@ -113,7 +113,7 @@ add_custom_command(TARGET general_model_config_py_proto POST_BUILD
 
 add_custom_command(TARGET multi_lang_general_model_service_py_proto POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
-                COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
+                COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server_gpu/proto
                 COMMENT "Copy generated multi_lang_general_model_service proto file into directory paddle_serving_server_gpu/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
