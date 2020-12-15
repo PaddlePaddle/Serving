@@ -32,6 +32,7 @@ python -m pip install -U paddle_serving_server_gpu paddle_serving_client paddle_
 
 ```
 git clone https://github.com/paddlepaddle/Serving
+pip install -r python/requirements_win.txt
 ```
 
 **Run OCR example**:
