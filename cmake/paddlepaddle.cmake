@@ -114,7 +114,7 @@ ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
 ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
 
 if (WITH_TRT)
 ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
@@ -127,17 +127,12 @@ endif()
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
-ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
-
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash cryptopp)
-
+    xxhash)
 
 if(WITH_TRT)
 LIST(APPEND paddle_depend_libs
     nvinfer nvinfer_plugin)
 endif()
-

@@ -23,8 +23,7 @@ RUN wget https://dl.google.com/go/go1.14.linux-amd64.tar.gz >/dev/null \
 RUN yum -y install python-devel sqlite-devel >/dev/null \
     && curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py >/dev/null \
     && python get-pip.py >/dev/null \
-    && rm get-pip.py \
-    && pip install requests  
+    && rm get-pip.py
 
 RUN wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2 \
     && yum -y install bzip2 >/dev/null \
@@ -35,15 +34,14 @@ RUN wget http://nixos.org/releases/patchelf/patchelf-0.10/patchelf-0.10.tar.bz2 
     && cd .. \
     && rm -rf patchelf-0.10*
 
-RUN yum install -y python3 python3-devel \
-    && pip3 install requests
-
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protobuf-all-3.11.2.tar.gz && \
     tar zxf protobuf-all-3.11.2.tar.gz && \
     cd protobuf-3.11.2 && \
     ./configure && make -j4 && make install && \
     make clean && \
     cd .. && rm -rf protobuf-*
+
+RUN yum install -y python3 python3-devel
 
 RUN yum -y update >/dev/null \
     && yum -y install dnf >/dev/null \
