@@ -49,8 +49,6 @@ RUN yum -y install wget && \
     cd .. && rm -rf protobuf-* && \
     yum -y install epel-release && yum -y install patchelf libXext libSM libXrender && \
     yum clean all && \
-    pip install requests && \
-    pip3 install requests && \
     localedef -c -i en_US -f UTF-8 en_US.UTF-8 && \
     echo "export LANG=en_US.utf8" >> /root/.bashrc && \
     echo "export LANGUAGE=en_US.utf8" >> /root/.bashrc
