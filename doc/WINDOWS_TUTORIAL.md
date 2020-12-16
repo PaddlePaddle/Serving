@@ -42,7 +42,7 @@ python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
-python ocr_debugger_server.py &
+python ocr_debugger_server.py cpu &
 python ocr_web_client.py
 ```
 
