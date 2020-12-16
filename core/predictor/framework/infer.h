@@ -39,6 +39,10 @@ class InferEngineCreationParams {
     _static_optimization = false;
     _force_update_static_cache = false;
     _use_trt = false;
+    _use_lite = false;
+    _use_xpu = false;
+  }
+  }
   }
 
   void set_path(const std::string& path) { _path = path; }
@@ -53,6 +57,10 @@ class InferEngineCreationParams {
 
   void set_use_trt(bool use_trt) { _use_trt = use_trt; }
 
+  void set_use_lite(bool use_lite) { _use_lite = use_lite; }
+
+  void set_use_xpu(bool use_xpu) { _use_xpu = use_xpu; }
+
   bool enable_memory_optimization() const {
     return _enable_memory_optimization;
   }
@@ -60,6 +68,10 @@ class InferEngineCreationParams {
   bool enable_ir_optimization() const { return _enable_ir_optimization; }
 
   bool use_trt() const { return _use_trt; }
+
+  bool use_lite() const { return _use_lite; }
+
+  bool use_xpu() const { return _use_xpu; }
 
   void set_static_optimization(bool static_optimization = false) {
     _static_optimization = static_optimization;
@@ -80,6 +92,9 @@ class InferEngineCreationParams {
               << "model_path = " << _path << ", "
               << "enable_memory_optimization = " << _enable_memory_optimization
               << ", "
+              << "enable_tensorrt = " << _enable_tensorrt << ", "
+              << "enable_lite = " << _enable_lite << ", "
+              << "enable_xpu = " << _enable_xpu << ", "
               << "enable_ir_optimization = " << _enable_ir_optimization << ", "
               << "static_optimization = " << _static_optimization << ", "
               << "force_update_static_cache = " << _force_update_static_cache;
@@ -92,6 +107,8 @@ class InferEngineCreationParams {
   bool _static_optimization;
   bool _force_update_static_cache;
   bool _use_trt;
+  bool _use_lite;
+  bool _use_xpu;
 };
 
 class InferEngine {
@@ -180,6 +197,14 @@ class ReloadableInferEngine : public InferEngine {
 
     if (conf.has_use_trt()) {
       _infer_engine_params.set_use_trt(conf.use_trt());
+    }
+
+    if (conf.has_use_lite()) {
+      _infer_engine_params.set_use_lite(conf.use_lite());
+    }
+
+    if (conf.has_use_trt()) {
+      _infer_engine_params.set_use_xpu(conf.use_xpu());
     }
 
     if (!check_need_reload() || load(_infer_engine_params) != 0) {

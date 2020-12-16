@@ -45,6 +45,10 @@ message EngineDesc {
   optional bool force_update_static_cache = 15;
   optional bool enable_ir_optimization = 16;
   optional bool use_trt = 17;
+  optional bool use_lite = 18;
+  optional bool use_xpu = 19;
+};
+};
 };
 
 // model_toolkit conf
