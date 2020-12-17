@@ -14,12 +14,6 @@ sh get_data.sh
 
 ### Start server
 
-``` shell
-python test_server.py uci_housing_model/
-```
-
-You can also start the default RPC service with the following line of code:
-
 ```shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
@@ -40,7 +34,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 
 Start a web service with default web service hosting modules:
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --name uci
+python test_server.py
 ```
 
 ### Client prediction
