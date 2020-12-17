@@ -8,7 +8,7 @@
 
 ### 原生Windows系统运行Paddle Serving
 
-**配置Python环境变量到PATH**：首先需要将Python的可执行程序所在目录加入到PATH当中。通常在**系统属性/我的电脑属性**-**高级**-**环境变量** ，点选Path，并在开头加上路径。例如`C:\Users\$USER\AppData\Local\Programs\Python\Python36`，最后连续点击**确定** 。在Powershell上如果输入python可以进入python交互界面，说明环境变量配置成功。
+**配置Python环境变量到PATH**：**目前原生Windows仅支持Python 3.5或更高版本**。首先需要将Python的可执行程序所在目录加入到PATH当中。通常在**系统属性/我的电脑属性**-**高级**-**环境变量** ，点选Path，并在开头加上路径。例如`C:\Users\$USER\AppData\Local\Programs\Python\Python36`，最后连续点击**确定** 。在Powershell上如果输入python可以进入python交互界面，说明环境变量配置成功。
 
 **安装wget工具**：由于教程当中所有的下载，以及`paddle_serving_app`当中内嵌的模型下载功能，都是用到wget工具，在链接[下载wget](http://gnuwin32.sourceforge.net/packages/wget.htm)，解压后复制到`C:\Windows\System32`下，如有安全提示需要通过。
 
@@ -32,6 +32,7 @@ python -m pip install -U paddle_serving_server_gpu paddle_serving_client paddle_
 
 ```
 git clone https://github.com/paddlepaddle/Serving
+pip install -r python/requirements_win.txt
 ```
 
 **运行OCR示例**：
@@ -42,7 +43,7 @@ python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
-python ocr_debugger_server.py &
+python ocr_debugger_server.py cpu &
 python ocr_web_client.py
 ```
 

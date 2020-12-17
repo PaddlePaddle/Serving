@@ -100,14 +100,21 @@ make -j10
 you can execute `make install` to put targets under directory `./output`, you need to add`-DCMAKE_INSTALL_PREFIX=./output`to specify output path to cmake command shown above.
 
 ### Integrated GPU version paddle inference library
-
+### CUDA_PATH is the cuda install path,use the command(whereis cuda) to check,it should be /usr/local/cuda.
+### CUDNN_LIBRARY && CUDA_CUDART_LIBRARY is the lib path, it should be /usr/local/cuda/lib64/
+ 
 ``` shell
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 mkdir server-build-gpu && cd server-build-gpu
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
     -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
-    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \  
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \  
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j10
@@ -116,6 +123,10 @@ make -j10
 ### Integrated TRT version paddle inference library
 
 ```
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 mkdir server-build-trt && cd server-build-trt
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
@@ -123,6 +134,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
     -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
     -DSERVER=ON \
     -DWITH_GPU=ON \
     -DWITH_TRT=ON ..
@@ -166,12 +178,14 @@ make
 ## Install wheel package
 
 Regardless of the client, server or App part, after compiling, install the whl package in `python/dist/` in the temporary directory(`server-build-cpu`, `server-build-gpu`, `client-build`,`app-build`) of the compilation process.
-
+for example：cd server-build-cpu/python/dist && pip install -U xxxxx.whl
 
 
 ## Note
 
 When running the python server, it will check the `SERVING_BIN` environment variable. If you want to use your own compiled binary file, set the environment variable to the path of the corresponding binary file, usually`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`.
+BUILD_DIR is the absolute path of server build CPU or server build GPU。
+for example: cd server-build-cpu && export SERVING_BIN=${PWD}/core/general-server/serving
 
 
 

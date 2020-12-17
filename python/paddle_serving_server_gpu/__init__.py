@@ -25,7 +25,9 @@ from .version import serving_server_version
 from contextlib import closing
 import argparse
 import collections
-import fcntl
+import sys
+if sys.platform.startswith('win') is False:
+    import fcntl
 import shutil
 import numpy as np
 import grpc
