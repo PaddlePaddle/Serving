@@ -8,7 +8,7 @@ This document guides users how to build Paddle Serving service on the Windows pl
 
 ### Running Paddle Serving on Native Windows System
 
-**Configure Python environment variables to PATH**: First, you need to add the directory where the Python executable program is located to the PATH. Usually in **System Properties/My Computer Properties**-**Advanced**-**Environment Variables**, click Path and add the path at the beginning. For example, `C:\Users\$USER\AppData\Local\Programs\Python\Python36`, and finally click **OK** continuously. If you enter python on Powershell, you can enter the python interactive interface, indicating that the environment variable configuration is successful.
+**Configure Python environment variables to PATH**: **We only support Python 3.5+ on Native Windows System.**. First, you need to add the directory where the Python executable program is located to the PATH. Usually in **System Properties/My Computer Properties**-**Advanced**-**Environment Variables**, click Path and add the path at the beginning. For example, `C:\Users\$USER\AppData\Local\Programs\Python\Python36`, and finally click **OK** continuously. If you enter python on Powershell, you can enter the python interactive interface, indicating that the environment variable configuration is successful.
 
 **Install wget**: Because all the downloads in the tutorial and the built-in model download function in `paddle_serving_app` all use the wget tool, download the binary package at the [link](http://gnuwin32.sourceforge.net/packages/wget.htm), unzip and copy it to `C:\Windows\System32`, if there is a security prompt, you need to pass it.
 
