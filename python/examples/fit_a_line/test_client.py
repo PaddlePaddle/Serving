@@ -15,6 +15,7 @@
 
 from paddle_serving_client import Client
 import sys
+import numpy as np
 
 client = Client()
 client.load_client_config(sys.argv[1])
@@ -27,7 +28,6 @@ test_reader = paddle.batch(
     batch_size=1)
 
 for data in test_reader():
-    import numpy as np
     new_data = np.zeros((1, 1, 13)).astype("float32")
     new_data[0] = data[0][0]
     fetch_map = client.predict(
