@@ -7,14 +7,46 @@ Paddle Serving is usually used for the deployment of single model, but the end-t
 
 Paddle Serving provides a user-friendly programming framework for multi-model composite services, Pipeline Serving, which aims to reduce the threshold of programming, improve resource utilization (especially GPU), and improve the prediction efficiency.
 
-## Architecture Design
+## ★ Architecture Design
 
-The Server side is built based on gRPC and graph execution engine. The relationship between them is shown in the following figure.
+The Server side is built based on <b>RPC Service</b> and <b>graph execution engine</b>. The relationship between them is shown in the following figure.
 
 <center>
 <img src='pipeline_serving-image1.png' height = "250" align="middle"/>
 </center>
-### Graph Execution Engine
+
+
+### 1. RPC Service
+
+In order to meet the needs of different users, the RPC service starts one Web server and one RPC server at the same time, and can process 2 types of requests, RESTful API and gRPC.The gPRC gateway receives RESTful API requests and forwards requests to the gRPC server through the reverse proxy server; gRPC requests are received by the gRPC server, so the two types of requests are processed by the gRPC Service in a unified manner to ensure that the processing logic is consistent.
+
+#### <b>1.1 Request and Respose of proto
+
+gRPC service and gRPC gateway service are generated with service.proto.
+
+```proto
+message Request {
+  repeated string key = 1;  
+  repeated string value = 2;
+  optional string name = 3;
+  optional string method = 4;
+  optional int64 logid = 5;
+  optional string clientip = 6;
+};
+
+message Response {
+  optional int32 err_no = 1;
+  optional string err_msg = 2;
+  repeated string key = 3;
+  repeated string value = 4;
+};
+```
+
+The `key` and `value` in the Request are paired string arrays. The `name` and `method` correspond to the URL of the RESTful API://{ip}:{port}/{name}/{method}.The `logid` and `clientip` are convenient for users to connect service-level requests and customize strategies.
+
+In Response, `err_no` and `err_msg` express the correctness and error information of the processing result, and `key` and `value` are the returned results.
+
+### 2. Graph Execution Engine
 
 The graph execution engine consists of OPs and Channels, and the connected OPs share one Channel.
 
@@ -28,7 +60,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 </center>
 
 
-### OP Design
+#### <b>2.1 OP Design</b>
 
 - The default function of a single OP is to access a single Paddle Serving Service based on the input Channel data and put the result into the output Channel.
 - OP supports user customization, including preprocess, process, postprocess functions that can be inherited and implemented by the user.
@@ -36,7 +68,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - OP can obtain data from multiple different RPC requests for Auto-Batching.
 - OP can be started by a thread or process.
 
-### Channel Design
+#### <b>2.2 Channel Design</b>
 
 - Channel is the data structure for sharing data between OPs, responsible for sharing data or sharing data status information.
 - Outputs from multiple OPs can be stored in the same Channel, and data from the same Channel can be used by multiple OPs.
@@ -47,8 +79,17 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 </center>
 
 
+#### <b>2.3 client type design</b>
 
-### Extreme Case Consideration
+- Prediction type (client_type) of Op has 3 types, brpc, grpc and local_predictor
+- brpc: Using bRPC Client to interact with remote Serving by network, performance is better than grpc.
+  - grpc: Using gRPC Client to interact with remote Serving by network, cross-platform deployment supported.
+  - local_predictor: Load the model and predict in the local service without interacting with the network. Support multi-card deployment, and TensorRT prediction.
+  - Selection: 
+    - Time cost(lower is better): local_predict < brpc <= grpc
+    - Microservice: Split the brpc or grpc model into independent services, simplify development and deployment complexity, and improve resource utilization
+
+#### <b>2.4 Extreme Case Consideration</b>
 
 - Request timeout
 
@@ -65,9 +106,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
   - For output buffer, you can use a similar process as input buffer, which adjusts the concurrency of OP3 and OP4 to control the buffer length of output buffer. (The length of the output buffer depends on the speed at which downstream OPs obtain data from the output buffer)
   - The amount of data in the Channel will not exceed `worker_num` of gRPC, that is, it will not exceed the thread pool size.
 
-## Detailed Design
-
-### User Interface Design
+## ★ Detailed Design
 
 #### 1. General OP Definition
 
@@ -79,11 +118,13 @@ def __init__(name=None,
              server_endpoints=[],
              fetch_list=[],
              client_config=None,
+             client_type=None,
              concurrency=1,
              timeout=-1,
              retry=1,
              batch_size=1,
-             auto_batching_timeout=None)
+             auto_batching_timeout=None,
+             local_service_handler=None)
 ```
 
 The meaning of each parameter is as follows:
@@ -92,14 +133,16 @@ The meaning of each parameter is as follows:
 | :-------------------: | :----------------------------------------------------------: |
 |         name          | (str) String used to identify the OP type, which must be globally unique. |
 |       input_ops       |     (list) A list of all previous OPs of the current Op.     |
-|   server_endpoints    | (list) List of endpoints for remote Paddle Serving Service. If this parameter is not set, the OP will not access the remote Paddle Serving Service, that is, the process operation will not be performed. |
+|   server_endpoints    | (list) List of endpoints for remote Paddle Serving Service. If this parameter is not set,it is considered as local_precditor mode, and the configuration is read from local_service_conf |
 |      fetch_list       | (list) List of fetch variable names for remote Paddle Serving Service. |
 |     client_config     | (str) The path of the client configuration file corresponding to the Paddle Serving Service. |
+|     client_type       | （str)brpc, grpc or local_predictor. local_predictor does not start the Serving service, in-process prediction|
 |      concurrency      |             (int) The number of concurrent OPs.              |
 |        timeout        | (int) The timeout time of the process operation, in ms. If the value is less than zero, no timeout is considered. |
 |         retry         | (int) Timeout number of retries. When the value is 1, no retries are made. |
 |      batch_size       | (int) The expected batch_size of Auto-Batching, since building batches may time out, the actual batch_size may be less than the set value. |
-| auto_batching_timeout | (float) Timeout for building batches of Auto-Batching (the unit is ms). |
+| auto_batching_timeout | (float) Timeout for building batches of Auto-Batching (the unit is ms). When batch_size> 1, auto_batching_timeout should be set, otherwise the waiting will be blocked when the number of requests is insufficient for batch_size|
+| local_service_handler | (object) local predictor handler，assigned by Op init() input parameters or created in Op init()|
 
 
 #### 2. General OP Secondary Development Interface
@@ -156,7 +199,7 @@ def init_op(self):
 
 It should be **noted** that in the threaded version of OP, each OP will only call this function once, so the loaded resources must be thread safe.
 
-#### 3. RequestOp Definition
+#### 3. RequestOp Definition and Secondary Development Interface
 
 RequestOp is used to process RPC data received by Pipeline Server, and the processed data will be added to the graph execution engine. Its constructor is as follows:
 
@@ -164,7 +207,7 @@ RequestOp is used to process RPC data received by Pipeline Server, and the proce
 def __init__(self)
 ```
 
-#### 4. RequestOp Secondary Development Interface
+When the default RequestOp cannot meet the parameter parsing requirements, you can customize the request parameter parsing method by rewriting the following two interfaces.
 
 |           Interface or Variable           |                           Explain                            |
 | :---------------------------------------: | :----------------------------------------------------------: |
@@ -188,7 +231,7 @@ def unpack_request_package(self, request):
 
 The return value is required to be a dictionary type.
 
-#### 5. ResponseOp Definition
+#### 4. ResponseOp Definition and Secondary Development Interface
 
 ResponseOp is used to process the prediction results of the graph execution engine. The processed data will be used as the RPC return value of Pipeline Server. Its constructor is as follows:
 
@@ -198,7 +241,7 @@ def __init__(self, input_ops)
 
 `input_ops` is the last OP of graph execution engine. Users can construct different DAGs by setting different `input_ops` without modifying the topology of OPs.
 
-#### 6. ResponseOp Secondary Development Interface
+When the default ResponseOp cannot meet the requirements of the result return format, you can customize the return package packaging method by rewriting the following two interfaces.
 
 |            Interface or Variable             |                           Explain                            |
 | :------------------------------------------: | :----------------------------------------------------------: |
@@ -237,7 +280,7 @@ def pack_response_package(self, channeldata):
   return resp
 ```
 
-#### 7. PipelineServer Definition
+#### 5. PipelineServer Definition
 
 The definition of PipelineServer is relatively simple, as follows:
 
@@ -251,22 +294,137 @@ server.run_server()
 Where `response_op` is the responseop mentioned above, PipelineServer will initialize Channels according to the topology relationship of each OP and build the calculation graph. `config_yml_path` is the configuration file of PipelineServer. The example file is as follows:
 
 ```yaml
-rpc_port: 18080  # gRPC port
-worker_num: 1  # gRPC thread pool size (the number of processes in the process version servicer). The default is 1
-build_dag_each_worker: false  # Whether to use process server or not. The default is false
-http_port: 0 # HTTP service port. Do not start HTTP service when the value is less or equals 0. The default value is 0.
+# gRPC port
+rpc_port: 18080  
+
+# http port, do not start HTTP service when the value is less or equals 0. The default value is 0.
+http_port: 18071 
+
+# gRPC thread pool size (the number of processes in the process version servicer). The default is 1
+worker_num: 1  
+
+ # Whether to use process server or not. The default is false
+build_dag_each_worker: false 
+
 dag:
-    is_thread_op: true  # Whether to use the thread version of OP. The default is true
-    client_type: brpc  # Use brpc or grpc client. The default is brpc
-    retry: 1  # The number of times DAG executor retries after failure. The default value is 1, that is, no retrying
-    use_profile: false  # Whether to print the log on the server side. The default is false
+    # Whether to use the thread version of OP. The default is true
+    is_thread_op: true  
+
+    # The number of times DAG executor retries after failure. The default value is 1, that is, no retrying
+    retry: 1 
+
+    # Whether to print the log on the server side. The default is false
+    use_profile: false  
+
+    # Monitoring time interval of Tracer (in seconds). Do not start monitoring when the value is less than 1. The default value is -1
     tracer:
-        interval_s: 600 # Monitoring time interval of Tracer (in seconds). Do not start monitoring when the value is less than 1. The default value is -1
+        interval_s: 600 
+
+op:
+    bow:
+        # Concurrency, when is_thread_op=True, it's thread concurrency; otherwise, it's process concurrency
+        concurrency: 1
+
+        # Client types, brpc, grpc and local_predictor
+        client_type: brpc
+
+        # Retry times, no retry by default
+        retry: 1
+
+        # Prediction timeout, ms
+        timeout: 3000
+
+        # Serving IPs
+        server_endpoints: ["127.0.0.1:9393"]
+
+        # Client config of bow model
+        client_config: "imdb_bow_client_conf/serving_client_conf.prototxt"
+
+        # Fetch list
+        fetch_list: ["prediction"]    
+        
+        # Batch size, default 1
+        batch_size: 1
+
+        # Batch query timeout
+        auto_batching_timeout: 2000
 ```
 
+### 6. Special usages
 
+#### 6.1 <b>Business custom error type</b>
 
-## Example
+Users can customize the error code according to the business, inherit ProductErrCode, and return it in the return list in Op's preprocess or postprocess. The next stage of processing will skip the post OP processing based on the custom error code.
+
+```python
+class ProductErrCode(enum.Enum):
+    """
+    ProductErrCode is a base class for recording business error code. 
+    product developers inherit this class and extend more error codes. 
+    """
+    pass
+```
+
+#### <b>6.2 Skip process stage</b>
+
+The 2rd result of the result list returned by preprocess is `is_skip_process=True`, indicating whether to skip the process stage of the current OP and directly enter the postprocess processing
+
+```python
+def preprocess(self, input_dicts, data_id, log_id):
+        """
+        In preprocess stage, assembling data for process stage. users can 
+        override this function for model feed features.
+        Args:
+            input_dicts: input data to be preprocessed
+            data_id: inner unique id
+            log_id: global unique id for RTT
+        Return:
+            input_dict: data for process stage
+            is_skip_process: skip process stage or not, False default
+            prod_errcode: None default, otherwise, product errores occured.
+                          It is handled in the same way as exception. 
+            prod_errinfo: "" default
+        """
+        # multiple previous Op
+        if len(input_dicts) != 1:
+            _LOGGER.critical(
+                self._log(
+                    "Failed to run preprocess: this Op has multiple previous "
+                    "inputs. Please override this func."))
+            os._exit(-1)
+        (_, input_dict), = input_dicts.items()
+        return input_dict, False, None, ""
+
+```
+
+#### <b>6.3 Custom proto Request and Response</b>
+
+When the default proto structure does not meet the business requirements, at the same time, the Request and Response message structures of the proto in the following two files remain the same.
+
+> pipeline/gateway/proto/gateway.proto 
+
+> pipeline/proto/pipeline_service.proto
+
+Recompile Serving Server again.
+
+#### <b>6.4 Custom URL</b>
+
+The grpc gateway processes post requests. The default `method` is `prediction`, for example: 127.0.0.1:8080/ocr/prediction. Users can customize the name and method, and can seamlessly switch services with existing URLs.
+
+```proto
+service PipelineService {
+  rpc inference(Request) returns (Response) {
+    option (google.api.http) = {
+      post : "/{name=*}/{method=*}"
+      body : "*"
+    };
+  }
+};
+```
+
+***
+
+## ★ Classic examples
 
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 
@@ -277,7 +435,7 @@ Here, we build a simple imdb model enable example to show how to use Pipeline Se
 </center>
 
 
-### Get the model file and start the Paddle Serving Service
+### 1. Get the model file and start the Paddle Serving Service
 
 ```shell
 cd python/examples/pipeline/imdb_model_ensemble
@@ -288,7 +446,83 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 
 PipelineServing also supports local automatic startup of PaddleServingService. Please refer to the example `python/examples/pipeline/ocr`.
 
-### Start PipelineServer
+### 2. Create config.yaml
+
+Because there is a lot of configuration information in config.yaml,, only part of the OP configuration is shown here. For full information, please refer to `python/examples/pipeline/imdb_model_ensemble/config.yaml`
+
+```yaml
+op:
+    bow:
+        # Concurrency, when is_thread_op=True, it's thread concurrency; otherwise, it's process concurrency
+        concurrency: 1
+
+        # Client types, brpc, grpc and local_predictor
+        client_type: brpc
+
+        # Retry times, no retry by default
+        retry: 1
+
+        # Predcition timeout, ms
+        timeout: 3000
+
+        # Serving IPs
+        server_endpoints: ["127.0.0.1:9393"]
+
+        # Client config of bow model
+        client_config: "imdb_bow_client_conf/serving_client_conf.prototxt"
+
+        # Fetch list
+        fetch_list: ["prediction"]    
+        
+        # Batch request size, default 1
+        batch_size: 1
+
+        # Batch query timeout
+        auto_batching_timeout: 2000
+    cnn:
+        # Concurrency
+        concurrency: 1
+
+        # Client types, brpc, grpc and local_predictor
+        client_type: brpc
+
+        # Retry times, no retry by default
+        retry: 1
+
+        # Predcition timeout, ms
+        timeout: 3000
+
+        # Serving IPs
+        server_endpoints: ["127.0.0.1:9292"]
+
+        # Client config of cnn model
+        client_config: "imdb_cnn_client_conf/serving_client_conf.prototxt"
+
+        # Fetch list
+        fetch_list: ["prediction"]
+        
+        # Batch request size, default 1
+        batch_size: 1
+
+        # Batch query timeout
+        auto_batching_timeout: 2000
+    combine:
+        # Concurrency
+        concurrency: 1
+
+        #R etry times, no retry by default
+        retry: 1
+
+        # Predcition timeout, ms
+        timeout: 3000
+
+        # Batch request size, default 1
+        batch_size: 1
+
+        # Batch query timeout, ms
+        auto_batching_timeout: 2000
+
+### 3. Start PipelineServer
 
 Run the following code
 
@@ -359,7 +593,7 @@ server.prepare_server('config.yml')
 server.run_server()
 ```
 
-### Perform prediction through PipelineClient
+### 4. Perform prediction through PipelineClient
 
 ```python
 from paddle_serving_client.pipeline import PipelineClient
@@ -385,13 +619,16 @@ for f in futures:
         exit(1)
 ```
 
+***
+
+## ★ Performance analysis
 
 
-## How to optimize with the timeline tool
+### 1. How to optimize with the timeline tool
 
 In order to better optimize the performance, PipelineServing provides a timeline tool to monitor the time of each stage of the whole service.
 
-### Output profile information on server side
+### 2. Output profile information on server side
 
 The server is controlled by the `use_profile` field in yaml:
 
@@ -418,8 +655,29 @@ if __name__ == "__main__":
 
 Specific operation: open Chrome browser, input in the address bar `chrome://tracing/` , jump to the tracing page, click the load button, open the saved `trace` file, and then visualize the time information of each stage of the prediction service.
 
-### Output profile information on client side
+### 3. Output profile information on client side
 
 The profile function can be enabled by setting `profile=True` in the `predict` interface on the client side.
 
 After the function is enabled, the client will print the log information corresponding to the prediction to the standard output during the prediction process, and the subsequent analysis and processing are the same as that of the server.
+
+### 4. Analytical methods
+```
+cost of one single OP：
+op_cost = process(pre + mid + post) 
+
+OP Concurrency: 
+op_concurrency = op_cost(s) * qps_expected
+
+Service throughput：
+service_throughput = 1 / slowest_op_cost * op_concurrency
+
+Service average cost：
+service_avg_cost = ∑op_concurrency in critical Path
+
+Channel accumulations：
+channel_acc_size = QPS(down - up) * time
+
+Average cost of batch predictor：
+avg_batch_cost = (N * pre + mid + post) / N 
+```
