@@ -66,15 +66,6 @@ For **Windows Users**, please read the document [Paddle Serving for Windows User
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
 
-<h3 align="center">Latest release</h4>
-<p align="center">
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/ocr">Optical Character Recognition</a>
-    <br>
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/faster_rcnn_model">Object Detection</a>
-    <br>
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/deeplabv3">Image Segmentation</a>
-<p>
-
 <h3 align="center">Chinese Word Segmentation</h4>
 
 ``` shell
@@ -133,7 +124,8 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
 </center>
-``` python
+
+```python
 # A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
 import numpy as np
