@@ -133,7 +133,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
 </center>
+
 ``` python
+
 # A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
 import numpy as np
@@ -144,6 +146,7 @@ data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
         -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]
 fetch_map = client.predict(feed={"x": np.array(data).reshape(1,13,1)}, fetch=["price"])
 print(fetch_map)
+
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
 
