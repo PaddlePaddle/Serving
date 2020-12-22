@@ -52,6 +52,20 @@ class WebService(object):
     def load_model_config(self, model_config):
         print("This API will be deprecated later. Please do not use it")
         self.model_config = model_config
+        import os
+        from .proto import general_model_config_pb2 as m_config
+        import google.protobuf.text_format
+        if os.path.isdir(model_config):
+            client_config = "{}/serving_server_conf.prototxt".format(
+                model_config)
+        elif os.path.isfile(model_config):
+            client_config = model_config
+        model_conf = m_config.GeneralModelConfig()
+        f = open(client_config, 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
+        self.feed_names = [var.alias_name for var in model_conf.feed_var]
+        self.fetch_names = [var.alias_name for var in model_conf.fetch_var]
 
     def _launch_rpc_service(self):
         op_maker = OpMaker()
@@ -175,14 +189,11 @@ class WebService(object):
         from paddle_serving_app.local_predict import LocalPredictor
         self.client = LocalPredictor()
         self.client.load_model_config(
-            "{}".format(self.model_config), gpu=False, profile=False)
+            "{}".format(self.model_config), use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")
-        self.app_instance.run(host="0.0.0.0",
-                              port=self.port,
-                              threaded=False,
-                              processes=1)
+        self.app_instance.run(host="0.0.0.0", port=self.port, threaded=True)
 
     def get_app_instance(self):
         return self.app_instance

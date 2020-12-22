@@ -23,7 +23,7 @@ import socket
 from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
-
+import six
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -53,7 +53,10 @@ class PipelineClient(object):
         if logid is None:
             req.logid = 0
         else:
-            req.logid = long(logid)
+            if sys.version_info.major == 2:
+                req.logid = long(logid)
+            elif sys.version_info.major == 3:
+                req.logid = int(logid)
             feed_dict.pop("logid")
 
         clientip = feed_dict.get("clientip")
@@ -68,10 +71,15 @@ class PipelineClient(object):
         np.set_printoptions(threshold=sys.maxsize)
         for key, value in feed_dict.items():
             req.key.append(key)
+
+            if (sys.version_info.major == 2 and isinstance(value,
+                                                           (str, unicode)) or
+                ((sys.version_info.major == 3) and isinstance(value, str))):
+                req.value.append(value)
+                continue
+
             if isinstance(value, np.ndarray):
                 req.value.append(value.__repr__())
-            elif isinstance(value, (str, unicode)):
-                req.value.append(value)
             elif isinstance(value, list):
                 req.value.append(np.array(value).__repr__())
             else:

@@ -55,7 +55,7 @@ class Op(object):
                  client_type=None,
                  concurrency=None,
                  timeout=None,
-                 retry=None,
+                 retry=0,
                  batch_size=None,
                  auto_batching_timeout=None,
                  local_service_handler=None):
@@ -574,7 +574,7 @@ class Op(object):
         #Init cuda env in main thread
         if self.client_type == "local_predictor":
             _LOGGER.info("Init cuda env in main thread")
-            self.local_predictor = self._local_service_handler.get_client()
+            self.local_predictor = self._local_service_handler.get_client(0)
 
         threads = []
         for concurrency_idx in range(self.concurrency):
@@ -679,7 +679,7 @@ class Op(object):
         err_channeldata_dict = collections.OrderedDict()
         ### if (batch_num == 1 && skip == True) ,then skip the process stage.
         is_skip_process = False
-        data_ids = preped_data_dict.keys()
+        data_ids = list(preped_data_dict.keys())
         if len(data_ids) == 1 and skip_process_dict.get(data_ids[0]) == True:
             is_skip_process = True
             _LOGGER.info("(data_id={} log_id={}) skip process stage".format(
@@ -1034,7 +1034,8 @@ class Op(object):
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))
-                self.local_predictor = self.service_handler.get_client()
+                self.local_predictor = self.service_handler.get_client(
+                    concurrency_idx)
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
 
@@ -1343,7 +1344,7 @@ class ResponseOp(Op):
                                 type(var)))
                         _LOGGER.error("(logid={}) Failed to pack RPC "
                                       "response package: {}".format(
-                                          channeldata.id, resp.error_info))
+                                          channeldata.id, resp.err_msg))
                         break
                     resp.value.append(var)
                     resp.key.append(name)
