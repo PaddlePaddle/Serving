@@ -139,13 +139,6 @@ print(fetch_map)
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
 
-<h2 align="center">Some Key Features of Paddle Serving</h2>
-
-- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
-- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers supported.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
 
 ### WEB service
 
@@ -180,6 +173,14 @@ the response is
 ```
 {"result":{"price":[[18.901151657104492]]}}
 ```
+
+<h2 align="center">Some Key Features of Paddle Serving</h2>
+
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
+- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
+- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
 
 <h2 align="center">Document</h2>
 
