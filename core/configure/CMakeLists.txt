@@ -31,6 +31,8 @@ install(FILES ${inc}
         DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/include/configure)
 endif()
 
+if (WITH_PYTHON)
+
 py_proto_compile(general_model_config_py_proto SRCS proto/general_model_config.proto)
 add_custom_target(general_model_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(general_model_config_py_proto general_model_config_py_proto_init)
@@ -117,4 +119,6 @@ add_custom_command(TARGET multi_lang_general_model_service_py_proto POST_BUILD
                 COMMENT "Copy generated multi_lang_general_model_service proto file into directory paddle_serving_server_gpu/proto."
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+endif()
+
 endif()

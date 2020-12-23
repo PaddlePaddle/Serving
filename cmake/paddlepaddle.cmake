@@ -51,7 +51,12 @@ else()
     endif()
 endif()
 
-SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
+if(WITH_LITE)
+    SET(PADDLE_LIB_PATH "/home/phytium/houjue/serving_tmp/build_paddle/fluid_inference.tgz")
+else()
+    SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
+endif()
+
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
 if (WITH_GPU OR WITH_MKLML)
     if (WITH_TRT)
@@ -124,6 +129,19 @@ ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
 SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
 endif()
 
+if (WITH_LITE)
+ADD_LIBRARY(paddle_api_full_bundled STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET paddle_api_full_bundled PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_api_full_bundled.a)
+
+if (WITH_XPU)
+    ADD_LIBRARY(xpuapi SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET xpuapi PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpuapi.so)
+
+    ADD_LIBRARY(xpurt SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET xpurt PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpurt.so)
+endif()
+endif()
+
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
@@ -131,6 +149,13 @@ LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
     xxhash)
+
+if(WITH_LITE)
+LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
+if(WITH_XPU)
+    LIST(APPEND paddle_depend_libs xpuapi xpurt)
+endif()
+endif()
 
 if(WITH_TRT)
 LIST(APPEND paddle_depend_libs

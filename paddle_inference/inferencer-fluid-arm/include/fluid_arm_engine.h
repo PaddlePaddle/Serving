@@ -129,11 +129,11 @@ class FluidArmAnalysisCore : public FluidFamilyCore {
       analysis_config.EnableMemoryOptim();
     }
 
-    if (params.enable_lite()) {
+    if (params.use_lite()) {
       analysis_config.EnableLiteEngine(paddle::AnalysisConfig::Precision::kFloat32, true);
     }
 
-    if (params.enable_xpu()) {
+    if (params.use_xpu()) {
       analysis_config.EnableXpu(100);
     }
 
@@ -146,7 +146,8 @@ class FluidArmAnalysisCore : public FluidFamilyCore {
       return -1;
     }
 
-    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "[FluidArmAnalysisCore] create paddle predictor sucess, path: " << data_path;
+    params.dump();
     return 0;
   }
 };
@@ -177,7 +178,8 @@ class FluidArmNativeCore : public FluidFamilyCore {
       return -1;
     }
 
-    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "[FluidArmNativeCore] create paddle predictor sucess, path: " << data_path;
+    params.dump();
     return 0;
   }
 };
@@ -208,6 +210,14 @@ class FluidArmAnalysisDirCore : public FluidFamilyCore {
       analysis_config.SwitchIrOptim(false);
     }
 
+    if (params.use_lite()) {
+      analysis_config.EnableLiteEngine(paddle::AnalysisConfig::Precision::kFloat32, true);
+    }
+
+    if (params.use_xpu()) {
+      analysis_config.EnableXpu(100);
+    }
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core =
         paddle::CreatePaddlePredictor<paddle::AnalysisConfig>(analysis_config);
@@ -216,7 +226,8 @@ class FluidArmAnalysisDirCore : public FluidFamilyCore {
       return -1;
     }
 
-    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "[FluidArmAnalysisDirCore] create paddle predictor sucess, path: " << data_path;
+    params.dump();
     return 0;
   }
 };
@@ -235,7 +246,7 @@ class FluidArmNativeDirCore : public FluidFamilyCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = false;
     native_config.device = 0;
-    native_config.fraction_of_arm_memory = 0;
+    native_config.fraction_of_gpu_memory = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = paddle::CreatePaddlePredictor<paddle::NativeConfig,
                                           paddle::PaddleEngineKind::kNative>(
@@ -490,7 +501,7 @@ class FluidArmNativeDirWithSigmoidCore : public FluidArmWithSigmoidCore {
     native_config.model_dir = data_path;
     native_config.use_gpu = false;
     native_config.device = 0;
-    native_config.fraction_of_arm_memory = 0;
+    native_config.fraction_of_gpu_memory = 0;
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core->_fluid_core =
         paddle::CreatePaddlePredictor<paddle::NativeConfig,

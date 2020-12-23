@@ -48,8 +48,6 @@ message EngineDesc {
   optional bool use_lite = 18;
   optional bool use_xpu = 19;
 };
-};
-};
 
 // model_toolkit conf
 message ModelToolkitConf { repeated EngineDesc engines = 1; };

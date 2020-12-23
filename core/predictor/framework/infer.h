@@ -42,8 +42,6 @@ class InferEngineCreationParams {
     _use_lite = false;
     _use_xpu = false;
   }
-  }
-  }
 
   void set_path(const std::string& path) { _path = path; }
 
@@ -92,9 +90,9 @@ class InferEngineCreationParams {
               << "model_path = " << _path << ", "
               << "enable_memory_optimization = " << _enable_memory_optimization
               << ", "
-              << "enable_tensorrt = " << _enable_tensorrt << ", "
-              << "enable_lite = " << _enable_lite << ", "
-              << "enable_xpu = " << _enable_xpu << ", "
+              << "enable_tensorrt = " << _use_trt << ", "
+              << "enable_lite = " << _use_lite << ", "
+              << "enable_xpu = " << _use_xpu << ", "
               << "enable_ir_optimization = " << _enable_ir_optimization << ", "
               << "static_optimization = " << _static_optimization << ", "
               << "force_update_static_cache = " << _force_update_static_cache;
@@ -203,7 +201,7 @@ class ReloadableInferEngine : public InferEngine {
       _infer_engine_params.set_use_lite(conf.use_lite());
     }
 
-    if (conf.has_use_trt()) {
+    if (conf.has_use_xpu()) {
       _infer_engine_params.set_use_xpu(conf.use_xpu());
     }
 
