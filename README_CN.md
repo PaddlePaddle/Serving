@@ -148,7 +148,7 @@ print(fetch_map)
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
 <h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录``python/examples/fit_a_line``
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
 
 ```python
 from paddle_serving_server.web_service import WebService
