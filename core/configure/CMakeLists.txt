@@ -76,7 +76,7 @@ if (SERVER)
 py_proto_compile(server_config_py_proto SRCS proto/server_configure.proto)
 add_custom_target(server_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
 add_dependencies(server_config_py_proto server_config_py_proto_init)
-if (NOT WITH_GPU)
+if (NOT WITH_GPU AND NOT WITH_LITE)
 add_custom_command(TARGET server_config_py_proto POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
 		COMMAND cp *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
