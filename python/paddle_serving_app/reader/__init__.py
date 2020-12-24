@@ -21,12 +21,3 @@ from .lac_reader import LACReader
 from .senta_reader import SentaReader
 #from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader
-
-if os.path.exists('libgpupreprocess.so'):
-    from libgpupreprocess import Image2Gpubuffer, Gpubuffer2Image, RGB2BGR, BGR2RGB
-    from libgpupreprocess import Div, Sub, Normalize, CenterCrop, Resize, ResizeByFactor
-else:
-    from .image_reader import ImageReader, File2Image, URL2Image
-    from .image_reader import Sequential, Normalize, Base64ToImage
-    from .image_reader import CenterCrop, Resize, Transpose, Div
-    from .image_reader import RGB2BGR, BGR2RGB, ResizeByFactor

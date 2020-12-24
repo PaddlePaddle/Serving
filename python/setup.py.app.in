@@ -40,12 +40,6 @@ max_version, mid_version, min_version = python_version()
 if '${PACK}' == 'ON':
     copy_lib()
 
-if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
-    os.system('mkdir -p ./paddle_serving_app/reader/lib')
-    os.system('cp ../core/preprocess/hwvideoframe/libgpupreprocess.so ./paddle_serving_app/reader')
-    os.system('cp ../core/preprocess/hwvideoframe/cuda/libgpu.so ./paddle_serving_app/reader/lib')
-    os.system('export LD_LIBRARY_PATH="./paddle_serving_app/reader/lib"')
-
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'sentencepiece<=0.1.92', 'opencv-python<=4.2.0.32', 'pillow',
     'pyclipper'
@@ -59,7 +53,11 @@ packages=['paddle_serving_app',
 	  'paddle_serving_app.reader.pddet',
           'paddle_serving_app.reader.lib']
 
-package_data={}
+if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
+    package_data={'paddle_serving_app': ['../core/preprocess/hwvideoframe/libgpupreprocess.so'],}
+else:
+    package_data={}
+    
 package_dir={'paddle_serving_app':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app',
 	     'paddle_serving_app.proto':
