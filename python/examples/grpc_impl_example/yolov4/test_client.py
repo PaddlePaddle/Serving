@@ -27,7 +27,7 @@ preprocess = Sequential([
 postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
 client = Client()
 client.connect(['127.0.0.1:9393'])
-# client.set_rpc_timeout_ms(10000)
+client.set_rpc_timeout_ms(15000)
 
 im = preprocess(sys.argv[1])
 fetch_map = client.predict(
@@ -35,7 +35,8 @@ fetch_map = client.predict(
         "image": im,
         "im_size": np.array(list(im.shape[1:])),
     },
-    fetch=["save_infer_model/scale_0.tmp_0"])
+    fetch=["save_infer_model/scale_0.tmp_0"], batch=False)
+print(fetch_map)
 fetch_map.pop("serving_status_code")
 fetch_map["image"] = sys.argv[1]
 postprocess(fetch_map)

@@ -38,20 +38,9 @@ python test_asyn_client.py
 python test_batch_client.py
 ```
 
-### 通用 pb 预测
-
-``` shell
-python test_general_pb_client.py
-```
-
 ### 预测超时
 
 ``` shell
 python test_timeout_client.py
 ```
 
-### List 输入
-
-``` shell
-python test_list_input_client.py
-```
