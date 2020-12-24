@@ -26,7 +26,7 @@ if sys.argv[1] == 'gpu':
     from paddle_serving_server_gpu.web_service import WebService
 elif sys.argv[1] == 'cpu':
     from paddle_serving_server.web_service import WebService
-from paddle_serving_app.local_predict import Debugger
+from paddle_serving_app.local_predict import LocalPredictor
 import time
 import re
 import base64
@@ -39,13 +39,12 @@ class OCRService(WebService):
             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                 (2, 0, 1))
         ])
-        self.det_client = Debugger()
+        self.det_client = LocalPredictor()
         if sys.argv[1] == 'gpu':
             self.det_client.load_model_config(
-                det_model_config, gpu=True, profile=False)
+                det_model_config, use_gpu=True, gpu_id=1)
         elif sys.argv[1] == 'cpu':
-            self.det_client.load_model_config(
-                det_model_config, gpu=False, profile=False)
+            self.det_client.load_model_config(det_model_config)
         self.ocr_reader = OCRReader()
 
     def preprocess(self, feed=[], fetch=[]):
@@ -58,7 +57,7 @@ class OCRService(WebService):
         det_img = det_img[np.newaxis, :]
         det_img = det_img.copy()
         det_out = self.det_client.predict(
-            feed={"image": det_img}, fetch=["concat_1.tmp_0"])
+            feed={"image": det_img}, fetch=["concat_1.tmp_0"], batch=True)
         filter_func = FilterBoxes(10, 10)
         post_func = DBPostProcess({
             "thresh": 0.3,
@@ -91,7 +90,7 @@ class OCRService(WebService):
             imgs[id] = norm_img
         feed = {"image": imgs.copy()}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed, fetch
+        return feed, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
@@ -107,7 +106,8 @@ ocr_service.load_model_config("ocr_rec_model")
 ocr_service.prepare_server(workdir="workdir", port=9292)
 ocr_service.init_det_debugger(det_model_config="ocr_det_model")
 if sys.argv[1] == 'gpu':
-    ocr_service.run_debugger_service(gpu=True)
+    ocr_service.set_gpus("2")
+    ocr_service.run_debugger_service()
 elif sys.argv[1] == 'cpu':
     ocr_service.run_debugger_service()
 ocr_service.run_web_service()

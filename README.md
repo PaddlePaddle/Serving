@@ -45,32 +45,26 @@ nvidia-docker exec -it test bash
 ```
 
 ```shell
-pip install paddle-serving-client==0.3.2 
-pip install paddle-serving-server==0.3.2 # CPU
-pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
-pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA9.0
+pip install paddle-serving-client==0.4.0 
+pip install paddle-serving-server==0.4.0 # CPU
+pip install paddle-serving-server-gpu==0.4.0.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.4.0.post10 # GPU with CUDA10.0
+pip install paddle-serving-server-gpu==0.4.0.trt # GPU with CUDA10.1+TensorRT
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
 
 If you need install modules compiled with develop branch, please download packages from [latest packages list](./doc/LATEST_PACKAGES.md) and install with `pip install` command.
 
-Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7 and Ubuntu 16/18.
+Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 
-Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.6/3.7.
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.5/3.6/3.7.
 
-Recommended to install paddle >= 1.8.2.
+Recommended to install paddle >= 1.8.4.
+
+For **Windows Users**, please read the document [Paddle Serving for Windows Users](./doc/WINDOWS_TUTORIAL.md)
 
 <h2 align="center"> Pre-built services with Paddle Serving</h2>
-
-<h3 align="center">Latest release</h4>
-<p align="center">
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/ocr">Optical Character Recognition</a>
-    <br>
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/faster_rcnn_model">Object Detection</a>
-    <br>
-    <a href="https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/deeplabv3">Image Segmentation</a>
-<p>
 
 <h3 align="center">Chinese Word Segmentation</h4>
 
@@ -111,11 +105,11 @@ tar -xzf uci_housing.tar.gz
 
 Paddle Serving provides HTTP and RPC based service for users to access
 
-### HTTP service
+### RPC service
 
-Paddle Serving provides a built-in python module called `paddle_serving_server.serve` that can start a RPC service or a http service with one-line command. If we specify the argument `--name uci`, it means that we will have a HTTP service with a url of `$IP:$PORT/uci/prediction`
+A user can also start a RPC service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 <center>
 
@@ -123,40 +117,62 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 |--------------|------|-----------|--------------------------------|
 | `thread` | int | `4` | Concurrency of current service |
 | `port` | int | `9292` | Exposed port of current service to users|
-| `name` | str | `""` | Service name, can be used to generate HTTP request url |
 | `model` | str | `""` | Path of paddle model directory to be served |
 | `mem_optim_off` | - | - | Disable memory / graphic memory optimization |
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
+| `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
-Here, we use `curl` to send a HTTP POST request to the service we just started. Users can use any python library to send HTTP POST as well, e.g, [requests](https://requests.readthedocs.io/en/master/).
 </center>
 
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
-```
-
-### RPC service
-
-A user can also start a RPC service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
-``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
-```
-
-``` python
+```python
 # A user can visit rpc service through paddle_serving_client API
 from paddle_serving_client import Client
-
+import numpy as np
 client = Client()
 client.load_client_config("uci_housing_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9292"])
 data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
         -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]
-fetch_map = client.predict(feed={"x": data}, fetch=["price"])
+fetch_map = client.predict(feed={"x": np.array(data).reshape(1,13,1)}, fetch=["price"])
 print(fetch_map)
-
 ```
 Here, `client.predict` function has two arguments. `feed` is a `python dict` with model input variable alias name and values. `fetch` assigns the prediction variables to be returned from servers. In the example, the name of `"x"` and `"price"` are assigned when the servable model is saved during training.
+
+
+### WEB service
+
+Users can also put the data format processing logic on the server side, so that they can directly use curl to access the service, refer to the following case whose path is `python/examples/fit_a_line`
+
+```python
+from paddle_serving_server.web_service import WebService
+import numpy as np
+
+class UciService(WebService):
+    def preprocess(self, feed=[], fetch=[]):
+        feed_batch = []
+        is_batch = True
+        new_data = np.zeros((len(feed), 1, 13)).astype("float32")
+        for i, ins in enumerate(feed):
+            nums = np.array(ins["x"]).reshape(1, 1, 13)
+            new_data[i] = nums
+        feed = {"x": new_data}
+        return feed, fetch, is_batch
+
+uci_service = UciService(name="uci")
+uci_service.load_model_config("uci_housing_model")
+uci_service.prepare_server(workdir="workdir", port=9292)
+uci_service.run_rpc_service()
+uci_service.run_web_service()
+```
+for client side,
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+```
+the response is
+```
+{"result":{"price":[[18.901151657104492]]}}
+```
 
 <h2 align="center">Some Key Features of Paddle Serving</h2>
 
@@ -211,6 +227,10 @@ To connect with other users and contributors, welcome to join our [Slack channel
 ### Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
+
+- Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
+- Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
+- Special Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark and modifying resize comment error
 
 ### Feedback
 

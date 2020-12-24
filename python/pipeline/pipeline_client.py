@@ -18,14 +18,20 @@ import numpy as np
 from numpy import *
 import logging
 import functools
-from .channel import ChannelDataEcode
+import json
+import socket
+from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
-
+import six
 _LOGGER = logging.getLogger(__name__)
 
 
 class PipelineClient(object):
+    """
+    PipelineClient provides the basic capabilities of the pipeline SDK
+    """
+
     def __init__(self):
         self._channel = None
         self._profile_key = "pipeline.profile"
@@ -42,13 +48,38 @@ class PipelineClient(object):
 
     def _pack_request_package(self, feed_dict, profile):
         req = pipeline_service_pb2.Request()
+
+        logid = feed_dict.get("logid")
+        if logid is None:
+            req.logid = 0
+        else:
+            if sys.version_info.major == 2:
+                req.logid = long(logid)
+            elif sys.version_info.major == 3:
+                req.logid = int(logid)
+            feed_dict.pop("logid")
+
+        clientip = feed_dict.get("clientip")
+        if clientip is None:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            req.clientip = ip
+        else:
+            req.clientip = clientip
+            feed_dict.pop("clientip")
+
         np.set_printoptions(threshold=sys.maxsize)
         for key, value in feed_dict.items():
             req.key.append(key)
+
+            if (sys.version_info.major == 2 and isinstance(value,
+                                                           (str, unicode)) or
+                ((sys.version_info.major == 3) and isinstance(value, str))):
+                req.value.append(value)
+                continue
+
             if isinstance(value, np.ndarray):
                 req.value.append(value.__repr__())
-            elif isinstance(value, (str, unicode)):
-                req.value.append(value)
             elif isinstance(value, list):
                 req.value.append(np.array(value).__repr__())
             else:
@@ -60,29 +91,7 @@ class PipelineClient(object):
         return req
 
     def _unpack_response_package(self, resp, fetch):
-        if resp.ecode != 0:
-            return {
-                "ecode": resp.ecode,
-                "ecode_desc": ChannelDataEcode(resp.ecode),
-                "error_info": resp.error_info,
-            }
-        fetch_map = {"ecode": resp.ecode}
-        for idx, key in enumerate(resp.key):
-            if key == self._profile_key:
-                if resp.value[idx] != "":
-                    sys.stderr.write(resp.value[idx])
-                continue
-            if fetch is not None and key not in fetch:
-                continue
-            data = resp.value[idx]
-            try:
-                evaled_data = eval(data)
-                if isinstance(evaled_data, np.ndarray):
-                    data = evaled_data
-            except Exception as e:
-                pass
-            fetch_map[key] = data
-        return fetch_map
+        return resp
 
     def predict(self, feed_dict, fetch=None, asyn=False, profile=False):
         if not isinstance(feed_dict, dict):

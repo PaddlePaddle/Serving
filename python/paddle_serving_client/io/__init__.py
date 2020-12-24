@@ -74,7 +74,8 @@ def save_model(server_model_folder,
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
-        fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        #fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        fetch_var.is_lod_tensor = 1
         if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
             fetch_var.fetch_type = 0
         if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
@@ -91,9 +92,12 @@ def save_model(server_model_folder,
             fetch_var.shape.extend(tmp_shape)
         config.fetch_var.extend([fetch_var])
 
-    cmd = "mkdir -p {}".format(client_config_folder)
-
-    os.system(cmd)
+    try:
+        save_dirname = os.path.normpath(client_config_folder)
+        os.makedirs(save_dirname)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     with open("{}/serving_client_conf.prototxt".format(client_config_folder),
               "w") as fout:
         fout.write(str(config))

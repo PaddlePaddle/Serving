@@ -13,7 +13,9 @@ set_source_files_properties(
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
 add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure)
-
+if (WITH_TRT)
+    add_definitions(-DWITH_TRT)
+endif()
 target_link_libraries(pdserving
         brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz)
 

@@ -72,10 +72,12 @@ export PATH=$PATH:$GOPATH/bin
 ## 获取 Go packages
 
 ```shell
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-go get -u github.com/golang/protobuf/protoc-gen-go
-go get -u google.golang.org/grpc
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.cn,direct
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
+go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
+go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
+go get -u google.golang.org/grpc@v1.33.0
 ```
 
 
@@ -85,17 +87,53 @@ go get -u google.golang.org/grpc
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DSERVER=ON ..
 make -j10
 ```
 
 可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
 
 ### 集成GPU版本Paddle Inference Library
-
+### CUDA_PATH是cuda的安装路径，可以使用命令行whereis cuda命令确认你的cuda安装路径，通常应该是/usr/local/cuda
+### CUDNN_LIBRARY CUDA_CUDART_LIBRARY 是cuda库文件的路径，通常应该是/usr/local/cuda/lib64/
 ``` shell
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DSERVER=ON -DWITH_GPU=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
+    -DSERVER=ON \
+    -DWITH_GPU=ON ..
+make -j10
+```
+
+### 集成TensorRT版本Paddle Inference Library
+
+```
+export CUDA_PATH='/usr/local'
+export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
+mkdir server-build-trt && cd server-build-trt
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
+    -DSERVER=ON \
+    -DWITH_GPU=ON \
+    -DWITH_TRT=ON ..
 make -j10
 ```
 
@@ -103,13 +141,14 @@ make -j10
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
-
-
 ## 编译Client部分
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCLIENT=ON ..
 make -j10
 ```
 
@@ -121,7 +160,11 @@ make -j10
 
 ```bash
 mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
+    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
+    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+    -DCMAKE_INSTALL_PREFIX=./output \
+    -DAPP=ON ..
 make
 ```
 
@@ -130,12 +173,16 @@ make
 ## 安装wheel包
 
 无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
+例如：cd server-build-cpu/python/dist && pip install -U xxxxx.whl
+
 
 
 
 ## 注意事项
 
 运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+其中BUILD_DIR为server-build-cpu或server-build-gpu的绝对路径。
+可以cd server-build-cpu路径下，执行export SERVING_BIN=${PWD}/core/general-server/serving
 
 
 
@@ -152,7 +199,10 @@ make
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
 |     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
-|    CUDNN_ROOT    |    Define CuDNN library and header path    |      |
+|     WITH_TRT     |    Compile Paddle Serving with TensorRT    | OFF  |
+|  CUDNN_LIBRARY   |    Define CuDNN library and header path    |      |
+| CUDA_TOOLKIT_ROOT_DIR |       Define CUDA PATH                |      |
+|   TENSORRT_ROOT  |           Define TensorRT PATH             |      |
 |      CLIENT      |       Compile Paddle Serving Client        | OFF  |
 |      SERVER      |       Compile Paddle Serving Server        | OFF  |
 |       APP        |     Compile Paddle Serving App package     | OFF  |
@@ -167,7 +217,8 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 - CUDA
 - CuDNN
-- NCCL2
+
+编译TensorRT版本，需要安装TensorRT库。
 
 这里要注意的是：
 
@@ -176,21 +227,12 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 以下是PaddlePaddle发布版本所使用的基础库版本匹配关系，供参考：
 
-|        |  CUDA   |          CuDNN           | NCCL2  |
-| :----: | :-----: | :----------------------: | :----: |
-| CUDA 8 | 8.0.61  | CuDNN 7.1.2 for CUDA 8.0 | 2.1.4  |
-| CUDA 9 | 9.0.176 | CuDNN 7.3.1 for CUDA 9.0 | 2.2.12 |
+|          |  CUDA   |          CuDNN           | TensorRT |
+| :----:   | :-----: | :----------------------: | :----:   |
+| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
+| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
+| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
 
 ### 如何让Paddle Serving编译系统探测到CuDNN库
 
-从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_ROOT`参数，指定CuDNN库所在路径。
-
-### 如何让Paddle Serving编译系统探测到nccl库
-
-从NVIDIA developer官网下载对应版本nccl2库并解压后，增加如下环境变量 (以nccl2.1.4为例)：
-
-```shell
-export C_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/include:$CPLUS_INCLUDE_PATH
-export LD_LIBRARY_PATH=/path/to/nccl2/cuda8/nccl_2.1.4-1+cuda8.0_x86_64/lib/:$LD_LIBRARY_PATH
-```
+从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_LIBRARY`参数，指定CuDNN库所在路径。
