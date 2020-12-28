@@ -51,7 +51,7 @@ pip install paddle-serving-client==0.4.0
 pip install paddle-serving-server==0.4.0 # CPU
 pip install paddle-serving-server-gpu==0.4.0.post9 # GPU with CUDA9.0
 pip install paddle-serving-server-gpu==0.4.0.post10 # GPU with CUDA10.0
-pip install paddle-serving-server-gpu==0.4.0.trt # GPU with CUDA10.1+TensorRT
+pip install paddle-serving-server-gpu==0.4.0.100 # GPU with CUDA10.1+TensorRT
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
