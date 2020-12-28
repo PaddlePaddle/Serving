@@ -25,7 +25,9 @@ from .version import serving_server_version
 from contextlib import closing
 import argparse
 import collections
-import fcntl
+import sys
+if sys.platform.startswith('win') is False:
+    import fcntl
 import shutil
 import numpy as np
 import grpc
@@ -68,11 +70,6 @@ def serve_args():
         type=int,
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
-    parser.add_argument(
-        "--use_encryption_model",
-        default=False,
-        action="store_true",
-        help="Use encryption model")
     parser.add_argument(
         "--use_multilang",
         default=False,
@@ -282,8 +279,7 @@ class Server(object):
     def set_trt(self):
         self.use_trt = True
 
-    def _prepare_engine(self, model_config_paths, device, use_encryption_model):
-
+    def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
@@ -305,15 +301,9 @@ class Server(object):
             engine.use_trt = self.use_trt
 
             if device == "cpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                engine.type = "FLUID_CPU_ANALYSIS_DIR"
             elif device == "gpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                engine.type = "FLUID_GPU_ANALYSIS_DIR"
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -470,7 +460,6 @@ class Server(object):
                        workdir=None,
                        port=9292,
                        device="cpu",
-                       use_encryption_model=False,
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
@@ -484,8 +473,7 @@ class Server(object):
 
         self.set_port(port)
         self._prepare_resource(workdir, cube_conf)
-        self._prepare_engine(self.model_config_paths, device,
-                             use_encryption_model)
+        self._prepare_engine(self.model_config_paths, device)
         self._prepare_infer_service(port)
         self.workdir = workdir
 
