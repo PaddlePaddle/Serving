@@ -36,6 +36,19 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
+  VLOG(2) << "Going to run inference";
+  const std::vector<std::string> pre_node_names = pre_names();
+  if (pre_node_names.size() != 1) {
+    LOG(ERROR) << "This op(" << op_name()
+               << ") can only have one predecessor op, but received "
+               << pre_node_names.size();
+    return -1;
+  }
+  if (InferManager::instance().infer(
+          engine_name().c_str())) {
+    return -1;
+  }
+  std::cout << "Infer Success" << std::endl;
   return 0;
 }
 DEFINE_OP(GeneralInferOp);

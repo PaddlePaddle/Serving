@@ -64,10 +64,18 @@ using paddle_infer::CreatePredictor;
 class FluidFamilyCore {
  public:
   virtual ~FluidFamilyCore() {}
+  virtual std::vector<std::string> GetInputNames() {
+    return _core->GetInputNames();
+  }
+
   virtual std::unique_ptr<Tensor> GetInputHandle(const std::string& name) {
       return _core->GetInputHandle(name);
   }
- 
+
+  virtual std::vector<std::string> GetOutputNames() {
+    return _core->GetOutputNames();
+  }
+
   virtual std::unique_ptr<Tensor> GetOutputHandle(const std::string& name) {
       return _core->GetOutputHandle(name);
   }
