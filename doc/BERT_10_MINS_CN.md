@@ -52,18 +52,23 @@ pip install paddle_serving_app
 ``` python
 import sys
 from paddle_serving_client import Client
+from paddle_serving_client.utils import benchmark_args
 from paddle_serving_app.reader import ChineseBertReader
+import numpy as np
+args = benchmark_args()
 
-reader = ChineseBertReader()
+reader = ChineseBertReader({"max_seq_len": 128})
 fetch = ["pooled_output"]
-endpoint_list = ["127.0.0.1:9292"]
+endpoint_list = ['127.0.0.1:9292']
 client = Client()
-client.load_client_config("bert_seq20_client/serving_client_conf.prototxt")
+client.load_client_config(args.model)
 client.connect(endpoint_list)
 
 for line in sys.stdin:
     feed_dict = reader.process(line)
-    result = client.predict(feed=feed_dict, fetch=fetch)
+    for key in feed_dict.keys():
+        feed_dict[key] = np.array(feed_dict[key]).reshape((128, 1))
+    result = client.predict(feed=feed_dict, fetch=fetch, batch=False)
 ```
 
 执行

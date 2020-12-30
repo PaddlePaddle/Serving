@@ -47,10 +47,11 @@ nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/se
 nvidia-docker exec -it test bash
 ```
 ```shell
-pip install paddle-serving-client==0.3.2
-pip install paddle-serving-server==0.3.2 # CPU
-pip install paddle-serving-server-gpu==0.3.2.post9 # GPU with CUDA9.0
-pip install paddle-serving-server-gpu==0.3.2.post10 # GPU with CUDA10.0
+pip install paddle-serving-client==0.4.0
+pip install paddle-serving-server==0.4.0 # CPU
+pip install paddle-serving-server-gpu==0.4.0.post9 # GPU with CUDA9.0
+pip install paddle-serving-server-gpu==0.4.0.post10 # GPU with CUDA10.0
+pip install paddle-serving-server-gpu==0.4.0.trt # GPU with CUDA10.1+TensorRT
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -107,13 +108,12 @@ tar -xzf uci_housing.tar.gz
 
 Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
 
+<h3 align="center">RPC服务</h3>
 
-<h3 align="center">HTTP服务</h3>
-
-Paddle Serving提供了一个名为`paddle_serving_server.serve`的内置python模块，可以使用单行命令启动RPC服务或HTTP服务。如果我们指定参数`--name uci`，则意味着我们将拥有一个HTTP服务，其URL为$IP:$PORT/uci/prediction`。
+用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 <center>
 
@@ -128,20 +128,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 | `use_trt` (Only for trt version) | - | - | Run inference with TensorRT  |
 
-我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文档 [requests](https://requests.readthedocs.io/en/master/)。
+我们使用 `curl` 命令来发送HTTP POST请求给刚刚启动的服务。用户也可以调用python库来发送HTTP POST请求，请参考英文文
+档 [requests](https://requests.readthedocs.io/en/master/)。
 </center>
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
-```
-
-<h3 align="center">RPC服务</h3>
-
-用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
-
-``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
-```
 
 ``` python
 # A user can visit rpc service through paddle_serving_client API
@@ -152,11 +141,44 @@ client.load_client_config("uci_housing_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9292"])
 data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
         -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]
-fetch_map = client.predict(feed={"x": data}, fetch=["price"])
+fetch_map = client.predict(feed={"x": np.array(data).reshape(1,13,1)}, fetch=["price"])
 print(fetch_map)
 
 ```
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
+
+<h3 align="center">HTTP服务</h3>
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
+
+```python
+from paddle_serving_server.web_service import WebService
+import numpy as np
+
+class UciService(WebService):
+    def preprocess(self, feed=[], fetch=[]):
+        feed_batch = []
+        is_batch = True
+        new_data = np.zeros((len(feed), 1, 13)).astype("float32")
+        for i, ins in enumerate(feed):
+            nums = np.array(ins["x"]).reshape(1, 1, 13)
+            new_data[i] = nums
+        feed = {"x": new_data}
+        return feed, fetch, is_batch
+
+uci_service = UciService(name="uci")
+uci_service.load_model_config("uci_housing_model")
+uci_service.prepare_server(workdir="workdir", port=9292)
+uci_service.run_rpc_service()
+uci_service.run_web_service()
+```
+客户端输入
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+```
+返回结果
+```
+{"result":{"price":[[18.901151657104492]]}}
+```
 
 <h2 align="center">Paddle Serving的核心功能</h2>
 
@@ -209,6 +231,10 @@ print(fetch_map)
 ### 贡献代码
 
 如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/CONTRIBUTE.md)
+
+- 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
+- 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
+- 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
 
 ### 反馈
 

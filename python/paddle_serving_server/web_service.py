@@ -58,7 +58,7 @@ class WebService(object):
         if os.path.isdir(model_config):
             client_config = "{}/serving_server_conf.prototxt".format(
                 model_config)
-        elif os.path.isfile(path):
+        elif os.path.isfile(model_config):
             client_config = model_config
         model_conf = m_config.GeneralModelConfig()
         f = open(client_config, 'r')
