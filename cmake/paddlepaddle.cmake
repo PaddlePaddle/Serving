@@ -122,24 +122,24 @@ ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
 
 if (WITH_TRT)
-ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer.so)
-
-ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
+    ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer.so)
+    
+    ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
 endif()
 
 if (WITH_LITE)
-ADD_LIBRARY(paddle_api_full_bundled STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_api_full_bundled PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_api_full_bundled.a)
-
-if (WITH_XPU)
-    ADD_LIBRARY(xpuapi SHARED IMPORTED GLOBAL)
-    SET_PROPERTY(TARGET xpuapi PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpuapi.so)
-
-    ADD_LIBRARY(xpurt SHARED IMPORTED GLOBAL)
-    SET_PROPERTY(TARGET xpurt PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpurt.so)
-endif()
+    ADD_LIBRARY(paddle_api_full_bundled STATIC IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET paddle_api_full_bundled PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_api_full_bundled.a)
+    
+    if (WITH_XPU)
+        ADD_LIBRARY(xpuapi SHARED IMPORTED GLOBAL)
+        SET_PROPERTY(TARGET xpuapi PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpuapi.so)
+    
+        ADD_LIBRARY(xpurt SHARED IMPORTED GLOBAL)
+        SET_PROPERTY(TARGET xpurt PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpurt.so)
+    endif()
 endif()
 
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
@@ -151,13 +151,13 @@ LIST(APPEND paddle_depend_libs
     xxhash)
 
 if(WITH_LITE)
-LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
-if(WITH_XPU)
-    LIST(APPEND paddle_depend_libs xpuapi xpurt)
-endif()
+    LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
+    if(WITH_XPU)
+        LIST(APPEND paddle_depend_libs xpuapi xpurt)
+    endif()
 endif()
 
 if(WITH_TRT)
-LIST(APPEND paddle_depend_libs
-    nvinfer nvinfer_plugin)
+    LIST(APPEND paddle_depend_libs
+        nvinfer nvinfer_plugin)
 endif()
