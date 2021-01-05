@@ -12,7 +12,7 @@ set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure paddle_fluid)
+add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure extern_paddle paddle_fluid)
 if (WITH_TRT)
     add_definitions(-DWITH_TRT)
 endif()
