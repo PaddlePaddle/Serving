@@ -91,10 +91,9 @@ int GeneralReaderOp::inference() {
   capacity.resize(var_num);
   for (int i = 0; i < var_num; ++i) {
     std::string tensor_name = model_config->_feed_name[i];
-    std::cout << "START Tensor Name: " << tensor_name << std::endl;
+    VLOG(2) <<  "(logid=" << log_id << ") get tensor name: " << tensor_name;
     auto lod_tensor = InferManager::instance().GetInputHandle(
         engine_name.c_str(), tensor_name.c_str());
-    std::cout << "PICK lod tensor. " << std::endl;
     std::vector<std::vector<size_t>> lod;
     std::vector<int> shape;
     // get lod info here
@@ -127,8 +126,6 @@ int GeneralReaderOp::inference() {
     }
     lod_tensor->SetLoD(lod);
     lod_tensor->Reshape(shape);
-    std::cout << "FINI Set Lod and Reshape, and elem type: " << elem_type[i]
-              << std::endl;
     // insert data here
     if (req->insts(0).tensor_array(i).elem_type() == 0) {
       // TODO: Copy twice here, can optimize
@@ -156,7 +153,6 @@ int GeneralReaderOp::inference() {
       }
       lod_tensor->CopyFromCpu(dst_ptr);
     }
-    std::cout << "FINISH Tensor Name: " << tensor_name << std::endl;
   }
   return 0;
 }

@@ -47,7 +47,6 @@ int GeneralInferOp::inference() {
   if (InferManager::instance().infer(engine_name().c_str())) {
     return -1;
   }
-  std::cout << "Infer Success" << std::endl;
   return 0;
 }
 DEFINE_OP(GeneralInferOp);
