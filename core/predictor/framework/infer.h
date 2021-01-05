@@ -104,9 +104,7 @@ class InferEngine {
   virtual int thrd_initialize() { return thrd_initialize_impl(); }
   virtual int thrd_clear() { return thrd_clear_impl(); }
   virtual int thrd_finalize() { return thrd_finalize_impl(); }
-  virtual int infer() {
-    return infer_impl();
-  }
+  virtual int infer() { return infer_impl(); }
 
   virtual int reload() = 0;
 
@@ -121,8 +119,10 @@ class InferEngine {
   virtual int proc_finalize_impl() = 0;
   virtual std::vector<std::string> GetInputNames() = 0;
   virtual std::vector<std::string> GetOutputNames() = 0;
-  virtual std::unique_ptr<paddle_infer::Tensor> GetInputHandle(const std::string& name) = 0;
-  virtual std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(const std::string& name) = 0;
+  virtual std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      const std::string& name) = 0;
+  virtual std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      const std::string& name) = 0;
   virtual int infer_impl() = 0;
   // end: framework inner call
 };
@@ -201,9 +201,7 @@ class ReloadableInferEngine : public InferEngine {
     return 0;
   }
 
-  int infer() {
-      return infer_impl();
-  }
+  int infer() { return infer_impl(); }
 
   int thrd_initialize() {
     if (_infer_thread_num > 0) {
@@ -489,7 +487,6 @@ class CloneDBReloadableInferEngine
   }
 
   virtual int thrd_initialize_impl() {
-
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _pd->cores[_pd->current_idx]) != 0) {
       LOG(ERROR) << "Failed clone thread data, origin_core["
@@ -517,7 +514,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   FluidInferEngine() {}
   ~FluidInferEngine() {}
   std::vector<std::string> GetInputNames() {
-    FluidFamilyCore* core = DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    FluidFamilyCore* core =
+        DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
@@ -525,23 +523,28 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   }
 
   std::vector<std::string> GetOutputNames() {
-    FluidFamilyCore* core = DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    FluidFamilyCore* core =
+        DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
     return core->GetOutputNames();
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(const std::string& name) {
-    FluidFamilyCore* core = DBReloadableInferEngine<FluidFamilyCore>::get_core();
+  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      const std::string& name) {
+    FluidFamilyCore* core =
+        DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
     return core->GetInputHandle(name);
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(const std::string& name) {
-    FluidFamilyCore* core = DBReloadableInferEngine<FluidFamilyCore>::get_core();
+  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      const std::string& name) {
+    FluidFamilyCore* core =
+        DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetOutputHandle()";
     }
@@ -549,7 +552,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   }
 
   int infer_impl() {
-    FluidFamilyCore* core = DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    FluidFamilyCore* core =
+        DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
@@ -709,7 +713,8 @@ class VersionedInferEngine : public InferEngine {
     }
     return engine->GetOutputNames();
   }
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      const std::string& name) {
     InferEngine* engine = default_engine();
     if (!engine) {
       LOG(WARNING) << "fail to get default engine";
@@ -717,7 +722,8 @@ class VersionedInferEngine : public InferEngine {
     return engine->GetInputHandle(name);
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      const std::string& name) {
     InferEngine* engine = default_engine();
     if (!engine) {
       LOG(WARNING) << "fail to get default engine";
@@ -754,7 +760,7 @@ class VersionedInferEngine : public InferEngine {
     auto iter = _versions.find(version);
     if (iter == _versions.end()) {
       LOG(ERROR) << "Not found version engine: " << version;
-    } 
+    }
     return iter->second->GetInputNames();
   }
 
@@ -766,7 +772,8 @@ class VersionedInferEngine : public InferEngine {
     return iter->second->GetOutputNames();
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(uint64_t version, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      uint64_t version, const std::string& name) {
     auto iter = _versions.find(version);
     if (iter == _versions.end()) {
       LOG(ERROR) << "Not found version engine: " << version;
@@ -774,7 +781,8 @@ class VersionedInferEngine : public InferEngine {
     return iter->second->GetInputHandle(name);
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(uint64_t version, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      uint64_t version, const std::string& name) {
     auto iter = _versions.find(version);
     if (iter == _versions.end()) {
       LOG(ERROR) << "Not found version engine: " << version;
@@ -806,9 +814,7 @@ class VersionedInferEngine : public InferEngine {
   int thrd_finalize_impl() { return -1; }
   int thrd_clear_impl() { return -1; }
   int proc_finalize_impl() { return -1; }
-  int infer_impl() {
-    return -1;
-  }
+  int infer_impl() { return -1; }
 
  private:
   boost::unordered_map<uint64_t, InferEngine*> _versions;
@@ -929,14 +935,16 @@ class InferManager {
     }
     return it->second->GetOutputNames();
   }
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(const char* model_name, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      const char* model_name, const std::string& name) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
     }
     return it->second->GetInputHandle(name);
   }
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(const char* model_name, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      const char* model_name, const std::string& name) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
@@ -961,8 +969,7 @@ class InferManager {
   }
 
   // Versioned inference interface
-  int infer(const char* model_name,
-            uint64_t version) {
+  int infer(const char* model_name, uint64_t version) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
@@ -970,7 +977,8 @@ class InferManager {
     }
     return it->second->infer(version);
   }
-  std::vector<std::string> GetInputNames(const char* model_name, uint64_t version) {
+  std::vector<std::string> GetInputNames(const char* model_name,
+                                         uint64_t version) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
@@ -978,7 +986,8 @@ class InferManager {
     return it->second->GetInputNames(version);
   }
 
-  std::vector<std::string> GetOutputNames(const char* model_name, uint64_t version) {
+  std::vector<std::string> GetOutputNames(const char* model_name,
+                                          uint64_t version) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
@@ -986,14 +995,16 @@ class InferManager {
     return it->second->GetOutputNames(version);
   }
 
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(const char* model_name, uint64_t version, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
+      const char* model_name, uint64_t version, const std::string& name) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
     }
     return it->second->GetInputHandle(version, name);
   }
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(const char* model_name, uint64_t version, const std::string& name) {
+  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
+      const char* model_name, uint64_t version, const std::string& name) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;

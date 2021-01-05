@@ -69,7 +69,7 @@ class FluidFamilyCore {
   }
 
   virtual std::unique_ptr<Tensor> GetInputHandle(const std::string& name) {
-      return _core->GetInputHandle(name);
+    return _core->GetInputHandle(name);
   }
 
   virtual std::vector<std::string> GetOutputNames() {
@@ -77,7 +77,7 @@ class FluidFamilyCore {
   }
 
   virtual std::unique_ptr<Tensor> GetOutputHandle(const std::string& name) {
-      return _core->GetOutputHandle(name);
+    return _core->GetOutputHandle(name);
   }
 
   virtual bool Run() {
@@ -95,8 +95,7 @@ class FluidFamilyCore {
       LOG(ERROR) << "origin paddle Predictor is null.";
       return -1;
     }
-    Predictor* p_predictor =
-        (Predictor*)origin_core;
+    Predictor* p_predictor = (Predictor*)origin_core;
     _core = p_predictor->Clone();
     if (_core.get() == NULL) {
       LOG(ERROR) << "fail to clone paddle predictor: " << origin_core;

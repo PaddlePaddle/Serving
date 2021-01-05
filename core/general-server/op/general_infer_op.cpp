@@ -44,8 +44,7 @@ int GeneralInferOp::inference() {
                << pre_node_names.size();
     return -1;
   }
-  if (InferManager::instance().infer(
-          engine_name().c_str())) {
+  if (InferManager::instance().infer(engine_name().c_str())) {
     return -1;
   }
   std::cout << "Infer Success" << std::endl;

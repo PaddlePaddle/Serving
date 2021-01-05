@@ -52,34 +52,39 @@ int GeneralResponseOp::inference() {
   ModelOutput *output = res->add_outputs();
   FetchInst *fetch_inst = output->add_insts();
   FetchInst *fetch_p = output->mutable_insts(0);
-  std::vector<std::string> outs = InferManager::instance().GetOutputNames(engine_name.c_str());
+  std::vector<std::string> outs =
+      InferManager::instance().GetOutputNames(engine_name.c_str());
   for (int i = 0; i < req->fetch_var_names_size(); ++i) {
     Tensor *tensor = fetch_inst->add_tensor_array();
     std::string tensor_name = outs[i];
-    auto lod_tensor = InferManager::instance().GetOutputHandle(engine_name.c_str(), tensor_name.c_str());
+    auto lod_tensor = InferManager::instance().GetOutputHandle(
+        engine_name.c_str(), tensor_name.c_str());
     std::vector<int> shape = lod_tensor->shape();
-    for (int k = 0; k < shape.size(); ++k) { 
+    for (int k = 0; k < shape.size(); ++k) {
       capacity[i] *= shape[k];
       tensor->add_shape(shape[k]);
     }
     auto dtype = lod_tensor->type();
     if (dtype == paddle::PaddleDType::INT64) {
       std::vector<int64_t> datas(capacity[i]);
-      int64_t* data_ptr = datas.data();
+      int64_t *data_ptr = datas.data();
       lod_tensor->CopyToCpu(data_ptr);
-      google::protobuf::RepeatedField<int64_t> tmp_data(data_ptr, data_ptr + capacity[i]);
+      google::protobuf::RepeatedField<int64_t> tmp_data(data_ptr,
+                                                        data_ptr + capacity[i]);
       tensor->mutable_int64_data()->Swap(&tmp_data);
     } else if (dtype == paddle::PaddleDType::FLOAT32) {
       std::vector<float> datas(capacity[i]);
-      float* data_ptr = datas.data();
+      float *data_ptr = datas.data();
       lod_tensor->CopyToCpu(data_ptr);
-      google::protobuf::RepeatedField<float> tmp_data(data_ptr, data_ptr + capacity[i]);
+      google::protobuf::RepeatedField<float> tmp_data(data_ptr,
+                                                      data_ptr + capacity[i]);
       tensor->mutable_float_data()->Swap(&tmp_data);
     } else if (dtype == paddle::PaddleDType::INT32) {
       std::vector<int32_t> datas(capacity[i]);
-      int32_t* data_ptr = datas.data();
+      int32_t *data_ptr = datas.data();
       lod_tensor->CopyToCpu(data_ptr);
-      google::protobuf::RepeatedField<int32_t> tmp_data(data_ptr, data_ptr + capacity[i]);
+      google::protobuf::RepeatedField<int32_t> tmp_data(data_ptr,
+                                                        data_ptr + capacity[i]);
       tensor->mutable_int_data()->Swap(&tmp_data);
     }
     std::vector<std::vector<size_t>> lod = lod_tensor->lod();

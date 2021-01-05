@@ -71,5 +71,3 @@ The second is to deploy GPU Serving and Java Client separately. If they are on t
 **It should be noted that in the example, all models need to use `--use_multilang` to start GRPC multi-programming language support, and the port number is 9393. If you need another port, you need to modify it in the java file**
 
 **Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). The next version (0.4.1) of the Pipeline Serving Client for Java will be released. **
-
-

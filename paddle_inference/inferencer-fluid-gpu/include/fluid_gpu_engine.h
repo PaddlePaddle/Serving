@@ -75,7 +75,7 @@ class FluidFamilyCore {
   }
 
   virtual std::unique_ptr<Tensor> GetInputHandle(const std::string& name) {
-      return _core->GetInputHandle(name);
+    return _core->GetInputHandle(name);
   }
 
   virtual std::vector<std::string> GetOutputNames() {
@@ -83,7 +83,7 @@ class FluidFamilyCore {
   }
 
   virtual std::unique_ptr<Tensor> GetOutputHandle(const std::string& name) {
-      return _core->GetOutputHandle(name);
+    return _core->GetOutputHandle(name);
   }
 
   virtual bool Run() {
@@ -101,8 +101,7 @@ class FluidFamilyCore {
       LOG(ERROR) << "origin paddle Predictor is null.";
       return -1;
     }
-    Predictor* p_predictor =
-        (Predictor*)origin_core;
+    Predictor* p_predictor = (Predictor*)origin_core;
     _core = p_predictor->Clone();
     if (_core.get() == NULL) {
       LOG(ERROR) << "fail to clone paddle predictor: " << origin_core;
@@ -173,13 +172,12 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     int max_batch = 32;
     int min_subgraph_size = 3;
     if (params.use_trt()) {
-      config.EnableTensorRtEngine(
-          1 << 20,
-          max_batch,
-          min_subgraph_size,
-          Config::Precision::kFloat32,
-          false,
-          false);
+      config.EnableTensorRtEngine(1 << 20,
+                                  max_batch,
+                                  min_subgraph_size,
+                                  Config::Precision::kFloat32,
+                                  false,
+                                  false);
       LOG(INFO) << "create TensorRT predictor";
     } else {
       if (params.enable_memory_optimization()) {
@@ -203,7 +201,6 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
     return 0;
   }
 };
-
 
 class Parameter {
  public:

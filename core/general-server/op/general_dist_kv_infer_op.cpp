@@ -38,9 +38,7 @@ using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
-int GeneralDistKVInferOp::inference() {
-  return 0;
-}
+int GeneralDistKVInferOp::inference() { return 0; }
 DEFINE_OP(GeneralDistKVInferOp);
 
 }  // namespace serving
