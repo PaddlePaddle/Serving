@@ -15,17 +15,18 @@
 
 from paddle_serving_client import MultiLangClient as Client
 import grpc
-
+import numpy as np
 client = Client()
 client.connect(["127.0.0.1:9393"])
-client.set_rpc_timeout_ms(1)
+client.set_rpc_timeout_ms(40)
 
 x = [
     0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
     0.4919, 0.1856, 0.0795, -0.0332
 ]
 for i in range(3):
-    fetch_map = client.predict(feed={"x": x}, fetch=["price"])
+    new_data = np.array(x).astype("float32").reshape((1,13))
+    fetch_map = client.predict(feed={"x": new_data}, fetch=["price"], batch=False)
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     elif fetch_map["serving_status_code"] == grpc.StatusCode.DEADLINE_EXCEEDED:
