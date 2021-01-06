@@ -57,6 +57,8 @@ class LocalPredictor(object):
                           mem_optim=True,
                           ir_optim=False,
                           use_trt=False,
+                          use_lite=False,
+                          use_xpu=False,
                           use_feed_fetch_ops=False):
         """
         Load model config and set the engine config for the paddle predictor
@@ -70,6 +72,8 @@ class LocalPredictor(object):
             mem_optim: memory optimization, True default.
             ir_optim: open calculation chart optimization, False default.
             use_trt: use nvidia TensorRT optimization, False default
+            use_lite: use Paddle-Lite Engint, False default
+            use_xpu: run predict on Baidu Kunlun, False default
             use_feed_fetch_ops: use feed/fetch ops, False default.
         """
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -80,9 +84,9 @@ class LocalPredictor(object):
         config = AnalysisConfig(model_path)
         logger.info("load_model_config params: model_path:{}, use_gpu:{},\
             gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{},\
-            use_trt:{}, use_feed_fetch_ops:{}".format(
+            use_trt:{}, use_lite:{}, use_xpu: {}, use_feed_fetch_ops:{}".format(
             model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
-            ir_optim, use_trt, use_feed_fetch_ops))
+            ir_optim, use_trt, use_lite, use_xpu, use_feed_fetch_ops))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -118,6 +122,17 @@ class LocalPredictor(object):
                     min_subgraph_size=3,
                     use_static=False,
                     use_calib_mode=False)
+
+        if use_lite:
+            config.enable_lite_engine(
+                precision_mode = PrecisionType.Float32,
+                zero_copy = True,
+                passes_filter = [],
+                ops_filter = []
+            )
+
+        if use_xpu:
+            config.enable_xpu(100 * 1024 * 1024)
 
         self.predictor = create_paddle_predictor(config)
 

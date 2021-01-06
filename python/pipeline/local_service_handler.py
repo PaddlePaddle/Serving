@@ -44,6 +44,8 @@ class LocalServiceHandler(object):
                  ir_optim=False,
                  available_port_generator=None,
                  use_trt=False,
+                 use_lite=False,
+                 use_xpu=False,
                  use_profile=False):
         """
         Initialization of localservicehandler
@@ -60,6 +62,8 @@ class LocalServiceHandler(object):
            ir_optim: use calculation chart optimization, False default.
            available_port_generator: generate available ports
            use_trt: use nvidia tensorRt engine, False default.
+           use_lite: use Paddle-Lite engine, False default.
+           use_xpu: run predict on Baidu Kunlun, False default.
            use_profile: use profiling, False default.
 
         Returns:
@@ -74,10 +78,16 @@ class LocalServiceHandler(object):
         if devices == "":
             # cpu
             devices = [-1]
-            self._device_type = "cpu"
-            self._port_list.append(available_port_generator.next())
-            _LOGGER.info("Model({}) will be launch in cpu device. Port({})"
-                         .format(model_config, self._port_list))
+            if use_lite:
+                self._device_type = "arm"
+                self._port_list.append(available_port_generator.next())
+                _LOGGER.info("Model({}) will be launch in arm device. Port({})"
+                             .format(model_config, self._port_list))
+            else:
+                self._device_type = "cpu"
+                self._port_list.append(available_port_generator.next())
+                _LOGGER.info("Model({}) will be launch in cpu device. Port({})"
+                             .format(model_config, self._port_list))
         else:
             # gpu
             self._device_type = "gpu"
@@ -96,6 +106,8 @@ class LocalServiceHandler(object):
         self._rpc_service_list = []
         self._server_pros = []
         self._use_trt = use_trt
+        self._use_lite = use_lite
+        self._use_xpu = use_xpu
         self._use_profile = use_profile
         self.fetch_names_ = fetch_names
 
@@ -138,8 +150,11 @@ class LocalServiceHandler(object):
         if self._local_predictor_client is None:
             self._local_predictor_client = LocalPredictor()
             use_gpu = False
+            use_lite = False
             if self._device_type == "gpu":
                 use_gpu = True
+            elif self._device_type == "arm":
+                use_lite = True
             self._local_predictor_client.load_model_config(
                 model_path=self._model_config,
                 use_gpu=use_gpu,
@@ -148,7 +163,9 @@ class LocalServiceHandler(object):
                 thread_num=self._thread_num,
                 mem_optim=self._mem_optim,
                 ir_optim=self._ir_optim,
-                use_trt=self._use_trt)
+                use_trt=self._use_trt,
+                use_lite=use_lite,
+                use_xpu=self._use_xpu)
         return self._local_predictor_client
 
     def get_client_config(self):
@@ -185,7 +202,7 @@ class LocalServiceHandler(object):
 
             server = Server()
         else:
-            #gpu
+            #gpu or arm
             from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
             op_maker = OpMaker()
             read_op = op_maker.create('general_reader')
