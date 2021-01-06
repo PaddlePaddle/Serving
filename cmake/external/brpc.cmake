@@ -43,8 +43,8 @@ ExternalProject_Add(
     extern_brpc
     ${EXTERNAL_PROJECT_LOG_ARGS}
     # TODO(gongwb): change to de newst repo when they changed.
-    GIT_REPOSITORY  "https://github.com/apache/incubator-brpc"
-    GIT_TAG         "master"
+    GIT_REPOSITORY  "https://github.com/wangjiawei04/brpc"
+    GIT_TAG         "serving-0.4.1"
     PREFIX          ${BRPC_SOURCES_DIR}
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
