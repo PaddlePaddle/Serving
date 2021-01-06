@@ -527,35 +527,26 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
         log_id = request.log_id
-        feed_batch = []
-        for feed_inst in request.insts:
-            feed_dict = {}
-            for idx, name in enumerate(feed_names):
-                var = feed_inst.tensor_array[idx]
-                v_type = self.feed_types_[name]
-                data = None
-                if is_python:
-                    if v_type == 0:  # int64
-                        data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.frombuffer(var.data, dtype="int32")
-                    else:
-                        raise Exception("error type.")
+        feed_dict = {}
+        feed_inst = request.insts[0]
+        for idx, name in enumerate(feed_names):
+            var = feed_inst.tensor_array[idx]
+            v_type = self.feed_types_[name]
+            data = None
+            if is_python:
+                if v_type == 0:  # int64
+                    data = np.frombuffer(var.data, dtype="int64")
+                elif v_type == 1:  # float32
+                    data = np.frombuffer(var.data, dtype="float32")
+                elif v_type == 2:  # int32
+                    data = np.frombuffer(var.data, dtype="int32")
                 else:
-                    if v_type == 0:  # int64
-                        data = np.array(list(var.int64_data), dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.array(list(var.int_data), dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                data.shape = list(feed_inst.tensor_array[idx].shape)
-                feed_dict[name] = data
-            feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python, log_id
+                    raise Exception("error type.")
+            data.shape = list(feed_inst.tensor_array[idx].shape)
+            feed_dict[name] = data
+            if len(var.lod) > 0:
+                feed_dict["{}.lod".format()] = var.lod
+        return feed_dict, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
@@ -612,6 +603,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         ret = self.bclient_.predict(
             feed=feed_dict,
             fetch=fetch_names,
+            batch=True,
             need_variant_tag=True,
             log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
