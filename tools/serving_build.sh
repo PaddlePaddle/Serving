@@ -589,8 +589,6 @@ function python_test_grpc_impl() {
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
@@ -600,8 +598,6 @@ function python_test_grpc_impl() {
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
@@ -651,8 +647,6 @@ COMMENT
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
@@ -662,8 +656,6 @@ COMMENT
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
             check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
