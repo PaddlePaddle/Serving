@@ -91,7 +91,7 @@ as for input data type = INDArray，take uci_housing_model as an example，the s
 ```
 cd ../../python/examples/pipeline/simple_web_service
 sh get_data.sh
-python web_service_forJava.py &>log.txt &
+python web_service_java.py &>log.txt &
 ```
 
 Client prediction(Synchronous)
