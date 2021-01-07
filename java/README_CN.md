@@ -93,7 +93,7 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 ```
 cd ../../python/examples/pipeline/simple_web_service
 sh get_data.sh
-python web_service_forJava.py &>log.txt &
+python web_service_java.py &>log.txt &
 ```
 
 客户端预测(同步)

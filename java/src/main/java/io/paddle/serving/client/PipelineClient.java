@@ -19,6 +19,11 @@ import org.nd4j.linalg.factory.Nd4j;
 import io.paddle.serving.pipelineproto.*;
 import io.paddle.serving.pipelineclient.PipelineFuture;
 
+
+/**
+* PipelineClient class defination
+* @author HexToString
+*/
 public class PipelineClient {
     private ManagedChannel channel_;
     private PipelineServiceGrpc.PipelineServiceBlockingStub blockingStub_;
@@ -38,6 +43,11 @@ public class PipelineClient {
         _profile_key = "pipeline.profile";
     }
     
+    /**
+   * This method returns the sign of connect status.
+   * @param target String type(The server ipv4 and port) such as "192.168.10.10:8891".
+   * @return boolean (the sign of connect status).
+   */
     public boolean connect(String target) {
         try {
             String[] temp = target.split(":");
@@ -56,6 +66,13 @@ public class PipelineClient {
         return true;
     }
 
+    /**
+   * This method returns the Packaged Request.
+   * @param feed_dict HashMap<String, String>(input data).
+   * @param profile boolean(profile sign).
+   * @param logid int
+   * @return Request (the grpc protobuf Request).
+   */
     private Request _packInferenceRequest(
             HashMap<String, String> feed_dict,
             boolean profile,
@@ -80,11 +97,20 @@ public class PipelineClient {
         return req_builder.build();
     }
 
-
+    /**
+   * This method returns the HashMap which is unpackaged from Response.
+   * @param resp Response(the grpc protobuf Response).
+   * @return HashMap<String,String> (the output).
+   */
     private HashMap<String,String> _unpackResponse(Response resp) throws IllegalArgumentException{
         return PipelineClient._staitcUnpackResponse(resp);
     }
 
+    /**
+   * This static method returns the HashMap which is unpackaged from Response.
+   * @param resp Response(the grpc protobuf Response).
+   * @return HashMap<String,String> (the output).
+   */
     private static HashMap<String,String> _staitcUnpackResponse(Response resp) {
         HashMap<String,String> ret_Map = new HashMap<String,String>();
         int err_no  = resp.getErrNo();
@@ -99,6 +125,14 @@ public class PipelineClient {
         return ret_Map;
     }
 
+    /**
+   * The synchronous prediction method.
+   * @param feed_batch HashMap<String, String>(input data).
+   * @param fetch Iterable<String>(the output key list).
+   * @param profile boolean(profile sign).
+   * @param logid int
+   * @return HashMap<String,String> (the output).
+   */
     public HashMap<String,String> predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
@@ -115,12 +149,18 @@ public class PipelineClient {
         }
     }
 
+    /**
+   * The synchronous prediction overload function.
+   */
     public HashMap<String,String> predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch) {
                 return predict(feed_batch,fetch,false,0);
     }
 
+    /**
+   * The synchronous prediction overload function.
+   */
     public HashMap<String,String> predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
@@ -128,6 +168,9 @@ public class PipelineClient {
                 return predict(feed_batch,fetch,profile,0);
     }
 
+    /**
+   * The synchronous prediction overload function.
+   */
     public HashMap<String,String> predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
@@ -135,6 +178,14 @@ public class PipelineClient {
                 return predict(feed_batch,fetch,false,logid);
     }
 
+    /**
+   * The asynchronous prediction method.use future.get() to get the result.
+   * @param feed_batch HashMap<String, String>(input data).
+   * @param fetch Iterable<String>(the output key list).
+   * @param profile boolean(profile sign).
+   * @param logid int
+   * @return PipelineFuture(the output future). 
+   */
     public PipelineFuture asyn_predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
@@ -151,12 +202,18 @@ public class PipelineClient {
         return predict_future;
     }
 
+    /**
+   * The asynchronous prediction overload function.
+   */
     public PipelineFuture asyn_predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch) {
                 return asyn_predict(feed_batch,fetch,false,0);
     }
 
+    /**
+   * The asynchronous prediction overload function.
+   */
     public PipelineFuture asyn_predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
@@ -164,6 +221,9 @@ public class PipelineClient {
                 return asyn_predict(feed_batch,fetch,profile,0);
     }
 
+    /**
+   * The asynchronous prediction overload function.
+   */
     public PipelineFuture asyn_predict(
             HashMap<String, String> feed_batch,
             Iterable<String> fetch,
