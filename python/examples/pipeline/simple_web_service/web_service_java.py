@@ -28,6 +28,11 @@ class UciOp(Op):
         self.separator = ","
 
     def preprocess(self, input_dicts, data_id, log_id):
+        """
+        diff with web_server.py
+	javaclient input type is INDArray, restful request input is list.
+	this function simply reshape input to the Specified shape.
+        """
         (_, input_dict), = input_dicts.items()
         _LOGGER.error("UciOp::preprocess >>> log_id:{}, input:{}".format(
             log_id, input_dict))
