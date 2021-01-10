@@ -1064,9 +1064,9 @@ function monitor_test() {
 function main() {
     local TYPE=$1 # pwd: /
     init # pwd: /Serving
-    #build_client $TYPE # pwd: /Serving
-    #build_server $TYPE # pwd: /Serving
-    #build_app $TYPE # pwd: /Serving
+    build_client $TYPE # pwd: /Serving
+    build_server $TYPE # pwd: /Serving
+    build_app $TYPE # pwd: /Serving
     java_run_test $TYPE # pwd: /Serving
     python_run_test $TYPE # pwd: /Serving
     #monitor_test $TYPE # pwd: /Serving
