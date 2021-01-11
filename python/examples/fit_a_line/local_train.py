@@ -16,7 +16,7 @@
 import sys
 import paddle
 import paddle.fluid as fluid
-
+paddle.enable_static()
 train_reader = paddle.batch(
     paddle.reader.shuffle(
         paddle.dataset.uci_housing.train(), buf_size=500),

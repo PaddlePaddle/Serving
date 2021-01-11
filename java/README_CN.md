@@ -71,5 +71,3 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Paddle
 **需要注意的是，在示例中，所有模型都需要使用`--use_multilang`来启动GRPC多编程语言支持，以及端口号都是9393，如果需要别的端口，需要在java文件里修改**
 
 **目前Serving已推出Pipeline模式（详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），下个版本（0.4.1）面向Java的Pipeline Serving Client将会发布，敬请期待。**
-
-
