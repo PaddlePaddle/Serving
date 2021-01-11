@@ -83,10 +83,15 @@ class WebService(object):
                             gpuid=0,
                             thread_num=2,
                             mem_optim=True,
+                            use_lite=False,
+                            use_xpu=False,
                             ir_optim=False):
         device = "gpu"
         if gpuid == -1:
-            device = "cpu"
+            if use_lite:
+                device = "arm"
+            else:
+                device = "cpu"
         op_maker = serving.OpMaker()
         read_op = op_maker.create('general_reader')
         general_infer_op = op_maker.create('general_infer')
@@ -102,6 +107,11 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+
+        if use_lite:
+            server.set_lite()
+        if use_xpu:
+            server.set_xpu()
 
         server.load_model_config(self.model_config)
         if gpuid >= 0:
@@ -125,9 +135,11 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       use_lite=False,
+                       use_xpu=False,
+                       ir_optim=False,
                        gpuid=0,
-                       mem_optim=True,
-                       ir_optim=False):
+                       mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
@@ -150,6 +162,8 @@ class WebService(object):
                     -1,
                     thread_num=2,
                     mem_optim=mem_optim,
+                    use_lite=use_lite,
+                    use_xpu=use_xpu,
                     ir_optim=ir_optim))
         else:
             for i, gpuid in enumerate(self.gpus):
@@ -160,6 +174,8 @@ class WebService(object):
                         gpuid,
                         thread_num=2,
                         mem_optim=mem_optim,
+                        use_lite=use_lite,
+                        use_xpu=use_xpu,
                         ir_optim=ir_optim))
 
     def _launch_web_service(self):

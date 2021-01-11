@@ -19,6 +19,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace fluid_arm {
 
+DEFINE_int32(gpuid, 0, "device id to use");
+
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmAnalysisCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
