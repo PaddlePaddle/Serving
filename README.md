@@ -47,6 +47,7 @@ nvidia-docker exec -it test bash
 ```shell
 pip install paddle-serving-client==0.4.0 
 pip install paddle-serving-server==0.4.0 # CPU
+pip install paddle-serving-app==0.2.0
 pip install paddle-serving-server-gpu==0.4.0.post9 # GPU with CUDA9.0
 pip install paddle-serving-server-gpu==0.4.0.post10 # GPU with CUDA10.0
 pip install paddle-serving-server-gpu==0.4.0.100 # GPU with CUDA10.1+TensorRT
