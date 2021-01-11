@@ -230,11 +230,15 @@ class Server(object):
             engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
+            if os.path.exists('{}/__params__'.format(model_config_path)):
+                suffix = ""
+            else:
+                suffix = "_DIR" 
 
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                engine.type = "FLUID_GPU_ANALYSIS" + suffix
 
             self.model_toolkit_conf.engines.extend([engine])
 
