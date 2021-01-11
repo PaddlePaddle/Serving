@@ -31,11 +31,11 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "1.8.4")
+SET(PADDLE_VERSION "2.0.0-rc1")
 
 if (WITH_GPU)
     if (WITH_TRT)
-        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7.6-avx-mkl-trt6")
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7-avx-mkl-trt6")
     else()
         SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10-cudnn7-avx-mkl")
     endif()
@@ -60,7 +60,7 @@ endif()
 if(WITH_LITE)
     SET(PADDLE_LIB_PATH "http://paddle-serving.bj.bcebos.com/inferlib/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
 else()
-    SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
+    SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/paddle_inference.tgz")
 endif()
 
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")

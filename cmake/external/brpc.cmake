@@ -13,6 +13,9 @@
 # limitations under the License.
 
 INCLUDE(ExternalProject)
+set(BRPC_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-narrowing")
+set(BRPC_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")
+set(BRPC_CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -Wno-narrowing")
 
 find_package(OpenSSL REQUIRED) 
 
@@ -54,8 +57,9 @@ ExternalProject_Add(
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-                    -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                    -DCMAKE_CXX_FLAGS=${BRPC_CMAKE_CXX_FLAGS}
+                    -DCMAKE_C_FLAGS=${BRPC_CMAKE_C_FLAGS}
+                    -DCMAKE_CPP_FLAGS=${BRPC_CMAKE_CPP_FLAGS}
                     -DCMAKE_INSTALL_PREFIX=${BRPC_INSTALL_DIR}
                     -DCMAKE_INSTALL_LIBDIR=${BRPC_INSTALL_DIR}/lib
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
