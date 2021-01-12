@@ -19,8 +19,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace fluid_arm {
 
-DEFINE_int32(gpuid, 0, "device id to use");
-
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmAnalysisCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
@@ -31,28 +29,6 @@ REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
         FluidArmAnalysisDirCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
     "FLUID_ARM_ANALYSIS_DIR");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidArmAnalysisDirWithSigmoidCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_ANALYSIS_DIR_SIGMOID");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmNativeCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_NATIVE");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmNativeDirCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_NATIVE_DIR");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidArmNativeDirWithSigmoidCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_NATIVE_DIR_SIGMOID");
 
 }  // namespace fluid_arm
 }  // namespace paddle_serving
