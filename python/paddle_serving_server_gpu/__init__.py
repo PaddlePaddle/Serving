@@ -427,7 +427,7 @@ class Server(object):
                     device_version = "serving-gpu-" + cuda_version + "-"
                 elif cuda_version == "arm":
                     device_version = "serving-" + cuda_version + "-"
-                elif:
+                else:
                     device_version = "serving-gpu-cuda" + cuda_version + "-"
 
         folder_name = device_version + serving_server_version
