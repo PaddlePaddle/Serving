@@ -188,21 +188,6 @@ int GeneralDistKVQuantInferOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
-  Timer timeline;
-  int64_t start = timeline.TimeStampUS();
-  timeline.Start();
-
-  if (InferManager::instance().infer(
-          engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "(logid=" << log_id
-               << ") Failed do infer in fluid model: " << engine_name();
-    return -1;
-  }
-
-  int64_t end = timeline.TimeStampUS();
-  CopyBlobInfo(input_blob, output_blob);
-  AddBlobInfo(output_blob, start);
-  AddBlobInfo(output_blob, end);
   return 0;
 }
 DEFINE_OP(GeneralDistKVQuantInferOp);
