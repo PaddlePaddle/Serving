@@ -78,6 +78,10 @@ def serve_args():
     parser.add_argument(
         "--use_trt", default=False, action="store_true", help="Use TensorRT")
     parser.add_argument(
+        "--use_lite", default=False, action="store_true", help="Use PaddleLite")
+    parser.add_argument(
+        "--use_xpu", default=False, action="store_true", help="Use XPU")
+    parser.add_argument(
         "--product_name",
         type=str,
         default=None,
@@ -210,6 +214,8 @@ class Server(object):
         self.use_local_bin = False
         self.gpuid = 0
         self.use_trt = False
+        self.use_lite = False
+        self.use_xpu = False
         self.model_config_paths = None  # for multi-model in a workflow
         self.product_name = None
         self.container_id = None
@@ -279,6 +285,12 @@ class Server(object):
     def set_trt(self):
         self.use_trt = True
 
+    def set_lite(self):
+        self.use_lite = True
+
+    def set_xpu(self):
+        self.use_xpu = True
+
     def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
@@ -299,11 +311,17 @@ class Server(object):
             engine.static_optimization = False
             engine.force_update_static_cache = False
             engine.use_trt = self.use_trt
+            engine.use_lite = self.use_lite
+            engine.use_xpu = self.use_xpu
+
+
 
             if device == "cpu":
                 engine.type = "FLUID_CPU_ANALYSIS_DIR"
             elif device == "gpu":
                 engine.type = "FLUID_GPU_ANALYSIS_DIR"
+            elif device == "arm":
+                engine.type = "FLUID_ARM_ANALYSIS_DIR"
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -405,10 +423,12 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                if cuda_version != "trt":
-                    device_version = "serving-gpu-cuda" + cuda_version + "-"
-                else:
+                if cuda_version == "trt":
                     device_version = "serving-gpu-" + cuda_version + "-"
+                elif cuda_version == "arm":
+                    device_version = "serving-" + cuda_version + "-"
+                else:
+                    device_version = "serving-gpu-cuda" + cuda_version + "-"
 
         folder_name = device_version + serving_server_version
         tar_name = folder_name + ".tar.gz"
@@ -507,36 +527,65 @@ class Server(object):
                 time.sleep(1)
         else:
             print("Use local bin : {}".format(self.bin_path))
-        self.check_cuda()
-        command = "{} " \
-                  "-enable_model_toolkit " \
-                  "-inferservice_path {} " \
-                  "-inferservice_file {} " \
-                  "-max_concurrency {} " \
-                  "-num_threads {} " \
-                  "-port {} " \
-                  "-reload_interval_s {} " \
-                  "-resource_path {} " \
-                  "-resource_file {} " \
-                  "-workflow_path {} " \
-                  "-workflow_file {} " \
-                  "-bthread_concurrency {} " \
-                  "-gpuid {} " \
-                  "-max_body_size {} ".format(
-                      self.bin_path,
-                      self.workdir,
-                      self.infer_service_fn,
-                      self.max_concurrency,
-                      self.num_threads,
-                      self.port,
-                      self.reload_interval_s,
-                      self.workdir,
-                      self.resource_fn,
-                      self.workdir,
-                      self.workflow_fn,
-                      self.num_threads,
-                      self.gpuid,
-                      self.max_body_size)
+        #self.check_cuda()
+        if self.use_lite:
+            command = "{} " \
+                      "-enable_model_toolkit " \
+                      "-inferservice_path {} " \
+                      "-inferservice_file {} " \
+                      "-max_concurrency {} " \
+                      "-num_threads {} " \
+                      "-port {} " \
+                      "-reload_interval_s {} " \
+                      "-resource_path {} " \
+                      "-resource_file {} " \
+                      "-workflow_path {} " \
+                      "-workflow_file {} " \
+                      "-bthread_concurrency {} " \
+                      "-max_body_size {} ".format(
+                          self.bin_path,
+                          self.workdir,
+                          self.infer_service_fn,
+                          self.max_concurrency,
+                          self.num_threads,
+                          self.port,
+                          self.reload_interval_s,
+                          self.workdir,
+                          self.resource_fn,
+                          self.workdir,
+                          self.workflow_fn,
+                          self.num_threads,
+                          self.max_body_size)
+        else:
+            command = "{} " \
+                      "-enable_model_toolkit " \
+                      "-inferservice_path {} " \
+                      "-inferservice_file {} " \
+                      "-max_concurrency {} " \
+                      "-num_threads {} " \
+                      "-port {} " \
+                      "-reload_interval_s {} " \
+                      "-resource_path {} " \
+                      "-resource_file {} " \
+                      "-workflow_path {} " \
+                      "-workflow_file {} " \
+                      "-bthread_concurrency {} " \
+                      "-gpuid {} " \
+                      "-max_body_size {} ".format(
+                          self.bin_path,
+                          self.workdir,
+                          self.infer_service_fn,
+                          self.max_concurrency,
+                          self.num_threads,
+                          self.port,
+                          self.reload_interval_s,
+                          self.workdir,
+                          self.resource_fn,
+                          self.workdir,
+                          self.workflow_fn,
+                          self.num_threads,
+                          self.gpuid,
+                          self.max_body_size)
         print("Going to Run Comand")
         print(command)
 
