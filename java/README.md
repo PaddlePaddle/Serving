@@ -117,4 +117,3 @@ The second is to deploy GPU Serving and Java Client separately. If they are on t
 **It should be noted that in the example, Java Pipeline Client code is in path /Java/Examples and /Java/src/main, and the Pipeline server code is in path /python/examples/pipeline/**
 
 
-

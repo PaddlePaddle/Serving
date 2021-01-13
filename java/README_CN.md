@@ -118,4 +118,4 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 **需要注意的是，Java Pipeline Client相关示例在/Java/Examples和/Java/src/main中，对应的Pipeline server在/python/examples/pipeline/中**
 
 
-
+**目前Serving已推出Pipeline模式（详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），下个版本（0.4.1）面向Java的Pipeline Serving Client将会发布，敬请期待。**
