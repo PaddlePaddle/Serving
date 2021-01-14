@@ -38,13 +38,21 @@ INCLUDE_DIRECTORIES(${BRPC_INCLUDE_DIR})
 # Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
 
+if(WITH_LITE)
+    set(BRPC_REPO "https://github.com/zhangjun/incubator-brpc.git")
+    set(BRPC_TAG "master")
+else()
+    set(BRPC_REPO "https://github.com/wangjiawei04/brpc")
+    set(BRPC_TAG "6d79e0b17f25107c35b705ea58d888083f59ff47")
+endif()
+
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
 ExternalProject_Add(
     extern_brpc
     ${EXTERNAL_PROJECT_LOG_ARGS}
     # TODO(gongwb): change to de newst repo when they changed.
-    GIT_REPOSITORY  "https://github.com/wangjiawei04/brpc"
-    GIT_TAG         "serving-0.4.1"
+    GIT_REPOSITORY  ${BRPC_REPO}
+    GIT_TAG         ${BRPC_TAG}
     PREFIX          ${BRPC_SOURCES_DIR}
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
