@@ -174,19 +174,11 @@ function python_test_fit_a_line() {
 
             # test web
             unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            check_cmd "python -m paddle_serving_server.serve --model uci_housing_model --name uci --port 9393 --thread 4 --name uci > /dev/null &"
+            check_cmd "python test_server.py > /dev/null &"
             sleep 5 # wait for the server to start
             check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
             # check http code
             http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            if [ ${http_code} -ne 200 ]; then
-                echo "HTTP status code -ne 200"
-                exit 1
-            fi
-            # test web batch
-            check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
-            # check http code
-            http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
             if [ ${http_code} -ne 200 ]; then
                 echo "HTTP status code -ne 200"
                 exit 1
@@ -202,27 +194,6 @@ function python_test_fit_a_line() {
             check_cmd "python test_client.py uci_housing_client/serving_client_conf.prototxt > /dev/null"
             kill_server_process
 
-            # test web
-            #unsetproxy # maybe the proxy is used on iPipe, which makes web-test failed.
-            #check_cmd "python -m paddle_serving_server_gpu.serve --model uci_housing_model --port 9393 --thread 2 --gpu_ids 0 --name uci > /dev/null &"
-            #sleep 5 # wait for the server to start
-            #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
-            # check http code
-            #http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            #if [ ${http_code} -ne 200 ]; then
-            #    echo "HTTP status code -ne 200"
-            #    exit 1
-            #fi
-            # test web batch
-            #check_cmd "curl -H \"Content-Type:application/json\" -X POST -d '{\"feed\":[{\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {\"x\": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], \"fetch\":[\"price\"]}' http://127.0.0.1:9393/uci/prediction"
-            # check http code
-            #http_code=`curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}, {"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' -s -w "%{http_code}" -o /dev/null http://127.0.0.1:9393/uci/prediction`
-            #if [ ${http_code} -ne 200 ]; then
-            #    echo "HTTP status code -ne 200"
-            #    exit 1
-            #fi
-            #setproxy # recover proxy state
-            #kill_server_process
             ;;
         *)
             echo "error type"
@@ -514,6 +485,42 @@ function python_test_lac() {
     cd ..
 }
 
+
+function python_test_encryption(){
+    #pwd: /Serving/python/examples
+    cd encryption
+    sh get_data.sh
+    local TYPE=$1
+    export SERVING_BIN=${SERIVNG_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    case $TYPE in
+        CPU)
+            #check_cmd "python encrypt.py"
+            #sleep 5
+            check_cmd "python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model > /dev/null &"
+            sleep 5
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
+            kill_server_process
+            ;;
+        GPU)
+            #check_cmd "python encrypt.py"
+            #sleep 5
+            check_cmd "python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0"
+            sleep 5
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
+            kill_servere_process
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "encryption $TYPE test finished as expected"
+    setproxy
+    unset SERVING_BIN
+    cd ..
+}
+
+
 function java_run_test() {
     # pwd: /Serving
     local TYPE=$1
@@ -589,9 +596,6 @@ function python_test_grpc_impl() {
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
-            check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
             kill_process_by_port 9393
@@ -600,9 +604,6 @@ function python_test_grpc_impl() {
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
-            check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
             kill_process_by_port 9393
@@ -651,9 +652,7 @@ COMMENT
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
-            check_cmd "python test_batch_client.py > /dev/null"
+            #check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
             kill_process_by_port 9393
@@ -662,9 +661,7 @@ COMMENT
             sleep 5 # wait for the server to start
             check_cmd "python test_sync_client.py > /dev/null"
             check_cmd "python test_asyn_client.py > /dev/null"
-            check_cmd "python test_general_pb_client.py > /dev/null"
-            check_cmd "python test_numpy_input_client.py > /dev/null"
-            check_cmd "python test_batch_client.py > /dev/null"
+            #check_cmd "python test_batch_client.py > /dev/null"
             check_cmd "python test_timeout_client.py > /dev/null"
             kill_server_process
             kill_process_by_port 9393
@@ -960,6 +957,7 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_encryption $TYPE # pwd: /Serving/python/examples
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     python_test_resnet50 $TYPE # pwd: /Serving/python/examples

@@ -19,6 +19,9 @@ from .proto import sdk_configure_pb2 as sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
 import numpy as np
+import requests
+import json
+import base64
 import time
 import sys
 
@@ -161,6 +164,7 @@ class Client(object):
         self.fetch_names_to_idx_ = {}
         self.lod_tensor_set = set()
         self.feed_tensor_len = {}
+        self.key = None
 
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
@@ -193,7 +197,28 @@ class Client(object):
         else:
             self.rpc_timeout_ms = rpc_timeout
 
-    def connect(self, endpoints=None):
+    def use_key(self, key_filename):
+        with open(key_filename, "r") as f:
+            self.key = f.read()
+
+    def get_serving_port(self, endpoints):
+        if self.key is not None:
+            req = json.dumps({"key": base64.b64encode(self.key)})
+        else:
+            req = json.dumps({})
+        r = requests.post("http://" + endpoints[0], req)
+        result = r.json()
+        print(result)
+        if "endpoint_list" not in result:
+            raise ValueError("server not ready")
+        else:
+            endpoints = [
+                endpoints[0].split(":")[0] + ":" +
+                str(result["endpoint_list"][0])
+            ]
+            return endpoints
+
+    def connect(self, endpoints=None, encryption=False):
         # check whether current endpoint is available
         # init from client config
         # create predictor here
@@ -203,6 +228,8 @@ class Client(object):
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
+	    if encryption:
+                endpoints = self.get_serving_port(endpoints)
             if self.predictor_sdk_ is None:
                 self.add_variant('default_tag_{}'.format(id(self)), endpoints,
                                  100)
@@ -522,78 +549,48 @@ class MultiLangClient(object):
         req.fetch_var_names.extend(fetch)
         req.is_python = is_python
         req.log_id = log_id
-        feed_batch = None
-        if isinstance(feed, dict):
-            feed_batch = [feed]
-        elif isinstance(feed, list):
-            feed_batch = feed
-        else:
-            raise Exception("{} not support".format(type(feed)))
-        req.feed_var_names.extend(feed_batch[0].keys())
-        init_feed_names = False
-        for feed_data in feed_batch:
-            inst = multi_lang_general_model_service_pb2.FeedInst()
-            for name in req.feed_var_names:
-                tensor = multi_lang_general_model_service_pb2.Tensor()
-                var = feed_data[name]
-                v_type = self.feed_types_[name]
-                if is_python:
-                    data = None
-                    if isinstance(var, list):
-                        if v_type == 0:  # int64
-                            data = np.array(var, dtype="int64")
-                        elif v_type == 1:  # float32
-                            data = np.array(var, dtype="float32")
-                        elif v_type == 2:  # int32
-                            data = np.array(var, dtype="int32")
-                        else:
-                            raise Exception("error tensor value type.")
-                    elif isinstance(var, np.ndarray):
-                        data = var
-                        if v_type == 0:
-                            if data.dtype != 'int64':
-                                data = data.astype("int64")
-                        elif v_type == 1:
-                            if data.dtype != 'float32':
-                                data = data.astype("float32")
-                        elif v_type == 2:
-                            if data.dtype != 'int32':
-                                data = data.astype("int32")
-                        else:
-                            raise Exception("error tensor value type.")
+        feed_var_names = []
+        for key in feed.keys():
+            if '.lod' not in key:
+                feed_var_names.append(key)
+        req.feed_var_names.extend(feed_var_names)
+        inst = multi_lang_general_model_service_pb2.FeedInst()
+        for name in req.feed_var_names:
+            tensor = multi_lang_general_model_service_pb2.Tensor()
+            var = feed[name]
+            v_type = self.feed_types_[name]
+            if is_python:
+                data = None
+                if isinstance(var, list):
+                    if v_type == 0:  # int64
+                        data = np.array(var, dtype="int64")
+                    elif v_type == 1:  # float32
+                        data = np.array(var, dtype="float32")
+                    elif v_type == 2:  # int32
+                        data = np.array(var, dtype="int32")
                     else:
-                        raise Exception("var must be list or ndarray.")
-                    tensor.data = data.tobytes()
-                else:
-                    if isinstance(var, np.ndarray):
-                        if v_type == 0:  # int64
-                            tensor.int64_data.extend(
-                                var.reshape(-1).astype("int64").tolist())
-                        elif v_type == 1:
-                            tensor.float_data.extend(
-                                var.reshape(-1).astype('float32').tolist())
-                        elif v_type == 2:
-                            tensor.int_data.extend(
-                                var.reshape(-1).astype('int32').tolist())
-                        else:
-                            raise Exception("error tensor value type.")
-                    elif isinstance(var, list):
-                        if v_type == 0:
-                            tensor.int64_data.extend(self._flatten_list(var))
-                        elif v_type == 1:
-                            tensor.float_data.extend(self._flatten_list(var))
-                        elif v_type == 2:
-                            tensor.int_data.extend(self._flatten_list(var))
-                        else:
-                            raise Exception("error tensor value type.")
+                        raise Exception("error tensor value type.")
+                elif isinstance(var, np.ndarray):
+                    data = var
+                    if v_type == 0:
+                        if data.dtype != 'int64':
+                            data = data.astype("int64")
+                    elif v_type == 1:
+                        if data.dtype != 'float32':
+                            data = data.astype("float32")
+                    elif v_type == 2:
+                        if data.dtype != 'int32':
+                            data = data.astype("int32")
                     else:
-                        raise Exception("var must be list or ndarray.")
-                if isinstance(var, np.ndarray):
-                    tensor.shape.extend(list(var.shape))
+                        raise Exception("error tensor value type.")
                 else:
-                    tensor.shape.extend(self.feed_shapes_[name])
-                inst.tensor_array.append(tensor)
-            req.insts.append(inst)
+                    raise Exception("var must be list or ndarray.")
+                tensor.data = data.tobytes()
+            tensor.shape.extend(list(var.shape))
+            if "{}.lod".format(name) in feed.keys():
+                tensor.lod.extend(feed["{}.lod".format(name)])
+            inst.tensor_array.append(tensor)
+        req.insts.append(inst)
         return req
 
     def _unpack_inference_response(self, resp, fetch, is_python,
@@ -652,10 +649,17 @@ class MultiLangClient(object):
     def predict(self,
                 feed,
                 fetch,
+                batch=True,
                 need_variant_tag=False,
                 asyn=False,
                 is_python=True,
                 log_id=0):
+        if isinstance(feed, dict) is False:
+            raise ValueError("Type Error. grpc feed must be dict.")
+        if batch is False:
+            for key in feed:
+                if ".lod" not in key:
+                    feed[key] = feed[key][np.newaxis, :]
         if not asyn:
             try:
                 self.profile_.record('py_prepro_0')

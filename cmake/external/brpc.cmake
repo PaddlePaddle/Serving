@@ -13,6 +13,9 @@
 # limitations under the License.
 
 INCLUDE(ExternalProject)
+set(BRPC_CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-narrowing")
+set(BRPC_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")
+set(BRPC_CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -Wno-narrowing")
 
 find_package(OpenSSL REQUIRED) 
 
@@ -35,19 +38,28 @@ INCLUDE_DIRECTORIES(${BRPC_INCLUDE_DIR})
 # Reference https://stackoverflow.com/questions/45414507/pass-a-list-of-prefix-paths-to-externalproject-add-in-cmake-args
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
 
+if(WITH_LITE)
+    set(BRPC_REPO "https://github.com/zhangjun/incubator-brpc.git")
+    set(BRPC_TAG "master")
+else()
+    set(BRPC_REPO "https://github.com/wangjiawei04/brpc")
+    set(BRPC_TAG "6d79e0b17f25107c35b705ea58d888083f59ff47")
+endif()
+
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
 ExternalProject_Add(
     extern_brpc
     ${EXTERNAL_PROJECT_LOG_ARGS}
     # TODO(gongwb): change to de newst repo when they changed.
-    GIT_REPOSITORY  "https://github.com/wangjiawei04/brpc"
-    GIT_TAG         "6d79e0b17f25107c35b705ea58d888083f59ff47"
+    GIT_REPOSITORY  ${BRPC_REPO}
+    GIT_TAG         ${BRPC_TAG}
     PREFIX          ${BRPC_SOURCES_DIR}
     UPDATE_COMMAND  ""
     CMAKE_ARGS      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-                    -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                    -DCMAKE_CXX_FLAGS=${BRPC_CMAKE_CXX_FLAGS}
+                    -DCMAKE_C_FLAGS=${BRPC_CMAKE_C_FLAGS}
+                    -DCMAKE_CPP_FLAGS=${BRPC_CMAKE_CPP_FLAGS}
                     -DCMAKE_INSTALL_PREFIX=${BRPC_INSTALL_DIR}
                     -DCMAKE_INSTALL_LIBDIR=${BRPC_INSTALL_DIR}/lib
                     -DCMAKE_POSITION_INDEPENDENT_CODE=ON

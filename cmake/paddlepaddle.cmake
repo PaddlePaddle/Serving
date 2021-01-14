@@ -31,13 +31,19 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "1.8.4")
-
+#SET(PADDLE_VERSION "2.0.0-rc1")
+SET(PADDLE_VERSION "latest")
 if (WITH_GPU)
     if (WITH_TRT)
-        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7.6-avx-mkl-trt6")
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7-avx-mkl-trt6")
     else()
         SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10-cudnn7-avx-mkl")
+    endif()
+elseif (WITH_LITE)
+    if (WITH_XPU)
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-arm-xpu")
+    else()
+        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-arm")
     endif()
 else()
     if (WITH_AVX)
@@ -51,7 +57,12 @@ else()
     endif()
 endif()
 
-SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/fluid_inference.tgz")
+if(WITH_LITE)
+    SET(PADDLE_LIB_PATH "http://paddle-serving.bj.bcebos.com/inferlib/${PADDLE_LIB_VERSION}/paddle_inference.tgz")
+else()
+    SET(PADDLE_LIB_PATH "http://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/paddle_inference.tgz")
+endif()
+
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
 if (WITH_GPU OR WITH_MKLML)
     if (WITH_TRT)
@@ -114,25 +125,48 @@ ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
 ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
 
 if (WITH_TRT)
-ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer.so)
+    ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET nvinfer PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer.so)
+    
+    ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
+endif()
 
-ADD_LIBRARY(nvinfer_plugin SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET nvinfer_plugin PROPERTY IMPORTED_LOCATION ${TENSORRT_ROOT}/lib/libnvinfer_plugin.so)
+if (WITH_LITE)
+    ADD_LIBRARY(paddle_api_full_bundled STATIC IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET paddle_api_full_bundled PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_api_full_bundled.a)
+    
+    if (WITH_XPU)
+        ADD_LIBRARY(xpuapi SHARED IMPORTED GLOBAL)
+        SET_PROPERTY(TARGET xpuapi PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpuapi.so)
+    
+        ADD_LIBRARY(xpurt SHARED IMPORTED GLOBAL)
+        SET_PROPERTY(TARGET xpurt PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xpu/lib/libxpurt.so)
+    endif()
 endif()
 
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
+ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
+
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-    xxhash)
+        xxhash cryptopp)
+
+if(WITH_LITE)
+    LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
+    if(WITH_XPU)
+        LIST(APPEND paddle_depend_libs xpuapi xpurt)
+    endif()
+endif()
 
 if(WITH_TRT)
-LIST(APPEND paddle_depend_libs
-    nvinfer nvinfer_plugin)
+    LIST(APPEND paddle_depend_libs
+        nvinfer nvinfer_plugin)
 endif()

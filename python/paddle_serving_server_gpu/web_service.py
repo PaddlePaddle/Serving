@@ -28,6 +28,16 @@ from paddle_serving_server_gpu import pipeline
 from paddle_serving_server_gpu.pipeline import Op
 
 
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
+
+
 class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
@@ -83,10 +93,15 @@ class WebService(object):
                             gpuid=0,
                             thread_num=2,
                             mem_optim=True,
+                            use_lite=False,
+                            use_xpu=False,
                             ir_optim=False):
         device = "gpu"
         if gpuid == -1:
-            device = "cpu"
+            if use_lite:
+                device = "arm"
+            else:
+                device = "cpu"
         op_maker = serving.OpMaker()
         read_op = op_maker.create('general_reader')
         general_infer_op = op_maker.create('general_infer')
@@ -102,6 +117,11 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+
+        if use_lite:
+            server.set_lite()
+        if use_xpu:
+            server.set_xpu()
 
         server.load_model_config(self.model_config)
         if gpuid >= 0:
@@ -125,9 +145,11 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       use_lite=False,
+                       use_xpu=False,
+                       ir_optim=False,
                        gpuid=0,
-                       mem_optim=True,
-                       ir_optim=False):
+                       mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
@@ -136,7 +158,7 @@ class WebService(object):
         self.port_list = []
         default_port = 12000
         for i in range(1000):
-            if self.port_is_available(default_port + i):
+	    if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
             if len(self.port_list) > len(self.gpus):
                 break
@@ -150,6 +172,8 @@ class WebService(object):
                     -1,
                     thread_num=2,
                     mem_optim=mem_optim,
+                    use_lite=use_lite,
+                    use_xpu=use_xpu,
                     ir_optim=ir_optim))
         else:
             for i, gpuid in enumerate(self.gpus):
@@ -160,6 +184,8 @@ class WebService(object):
                         gpuid,
                         thread_num=2,
                         mem_optim=mem_optim,
+                        use_lite=use_lite,
+                        use_xpu=use_xpu,
                         ir_optim=ir_optim))
 
     def _launch_web_service(self):

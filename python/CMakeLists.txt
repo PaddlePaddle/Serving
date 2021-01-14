@@ -7,7 +7,7 @@ if (CLIENT)
 endif()
 
 if (SERVER)
-    if (NOT WITH_GPU)
+    if (NOT WITH_GPU AND NOT WITH_LITE)
         file(INSTALL pipeline DESTINATION paddle_serving_server)
         file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server/*.py)
     else()
@@ -34,7 +34,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.app.in
 endif()
 
 if (SERVER)
-    if (NOT WITH_GPU)
+    if (NOT WITH_GPU AND NOT WITH_LITE)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.server.in
             ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
     else()
@@ -72,7 +72,7 @@ add_custom_target(paddle_python ALL DEPENDS serving_client ${PADDLE_SERVING_BINA
 endif()
 
 if (SERVER)
-    if(NOT WITH_GPU)
+    if(NOT WITH_GPU AND NOT WITH_LITE)
         add_custom_command(
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
             COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server/ ${PADDLE_SERVING_BINARY_DIR}/python/
@@ -87,6 +87,16 @@ if (SERVER)
             ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
             "server_gpu" trt
+            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+            DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
+        add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+    elseif(WITH_LITE)
+        add_custom_command(
+            OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
+            COMMAND cp -r
+            ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
+            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
+            "server_gpu" arm 
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)

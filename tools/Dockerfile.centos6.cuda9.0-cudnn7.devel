@@ -39,6 +39,8 @@ RUN yum -y install wget && \
     make clean && \
     echo 'export PATH=/usr/local/python3.6/bin:$PATH' >> /root/.bashrc && \
     echo 'export LD_LIBRARY_PATH=/usr/local/python3.6/lib:$LD_LIBRARY_PATH' >> /root/.bashrc && \
+    pip install requests && \
+    pip3 install requests && \
     source /root/.bashrc && \
     cd .. && rm -rf Python-3.6.8* && \
     wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protobuf-all-3.11.2.tar.gz && \
