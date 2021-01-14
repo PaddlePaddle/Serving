@@ -28,6 +28,16 @@ from paddle_serving_server_gpu import pipeline
 from paddle_serving_server_gpu.pipeline import Op
 
 
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
+
+
 class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
@@ -136,7 +146,7 @@ class WebService(object):
         self.port_list = []
         default_port = 12000
         for i in range(1000):
-            if self.port_is_available(default_port + i):
+	    if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
             if len(self.port_list) > len(self.gpus):
                 break

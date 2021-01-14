@@ -31,8 +31,8 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.0.0-rc1")
-
+#SET(PADDLE_VERSION "2.0.0-rc1")
+SET(PADDLE_VERSION "latest")
 if (WITH_GPU)
     if (WITH_TRT)
         SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7-avx-mkl-trt6")
@@ -114,7 +114,7 @@ ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
 ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
 
 if (WITH_TRT)
 ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
@@ -127,10 +127,13 @@ endif()
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
+ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
+
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-    xxhash)
+        xxhash cryptopp)
 
 if(WITH_TRT)
 LIST(APPEND paddle_depend_libs

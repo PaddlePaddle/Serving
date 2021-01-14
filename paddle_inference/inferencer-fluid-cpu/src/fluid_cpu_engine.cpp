@@ -30,6 +30,13 @@ REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::InferEngine,
     "FLUID_CPU_ANALYSIS_DIR");
 
+#if 1
+REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
+    ::baidu::paddle_serving::predictor::FluidInferEngine<
+        FluidCpuAnalysisEncryptCore>,
+    ::baidu::paddle_serving::predictor::InferEngine,
+    "FLUID_CPU_ANALYSIS_ENCRYPT");
+#endif
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu
