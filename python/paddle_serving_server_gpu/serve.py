@@ -40,7 +40,9 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     ir_optim = args.ir_optim
     max_body_size = args.max_body_size
     use_multilang = args.use_multilang
-    workdir = "{}_{}".format(args.workdir, gpuid)
+    workdir = args.workdir
+    if gpuid >= 0:
+        workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
         print("You must specify your serving model")
@@ -68,6 +70,13 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     server.set_max_body_size(max_body_size)
     if args.use_trt:
         server.set_trt()
+
+    if args.use_lite:
+        server.set_lite()
+        device = "arm"
+
+    if args.use_xpu:
+        server.set_xpu()
 
     if args.product_name != None:
         server.set_product_name(args.product_name)
@@ -102,7 +111,10 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
                     exit(-1)
         else:
             env_gpus = []
-    if len(gpus) <= 0:
+    if args.use_lite:
+        print("run arm server.")
+        start_gpu_card_model(-1, -1, args)
+    elif len(gpus) <= 0:
         print("gpu_ids not set, going to run cpu service.")
         start_gpu_card_model(-1, -1, serving_port, args)
     else:
@@ -215,7 +227,8 @@ if __name__ == "__main__":
         if len(gpu_ids) > 0:
             web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
-            workdir=args.workdir, port=args.port, device=args.device)
+            workdir=args.workdir, port=args.port, device=args.device,
+            use_lite=args.use_lite, use_xpu=args.use_xpu, ir_optim=args.ir_optim)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
