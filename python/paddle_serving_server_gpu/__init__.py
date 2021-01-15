@@ -311,8 +311,9 @@ class Server(object):
             engine.static_optimization = False
             engine.force_update_static_cache = False
             engine.use_trt = self.use_trt
-            engine.use_lite = self.use_lite
-            engine.use_xpu = self.use_xpu
+            if device == "arm":
+                engine.use_lite = self.use_lite
+                engine.use_xpu = self.use_xpu
 
 
 
@@ -425,7 +426,7 @@ class Server(object):
                 cuda_version = line.split("\"")[1]
                 if cuda_version == "trt":
                     device_version = "serving-gpu-" + cuda_version + "-"
-                elif cuda_version == "arm":
+                elif cuda_version == "arm" or cuda_version == "arm-xpu":
                     device_version = "serving-" + cuda_version + "-"
                 else:
                     device_version = "serving-gpu-cuda" + cuda_version + "-"
