@@ -21,6 +21,7 @@ import argparse
 import os
 import json
 import base64
+import time
 from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 from flask import Flask, request
@@ -93,6 +94,7 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
         server.set_gpuid(gpuid)
     server.run_server()
 
+
 def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
     gpus = ""
     if serving_port == None:
@@ -121,17 +123,18 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
             p = Process(
-		target=start_gpu_card_model,
+                target=start_gpu_card_model,
                 args=(
                     i,
                     gpu_id,
-		    serving_port,
+                    serving_port,
                     args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
             p.start()
         for p in gpu_processes:
             p.join()
+
 
 class MainService(BaseHTTPRequestHandler):
     def get_available_port(self):
@@ -227,8 +230,12 @@ if __name__ == "__main__":
         if len(gpu_ids) > 0:
             web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
-            workdir=args.workdir, port=args.port, device=args.device,
-            use_lite=args.use_lite, use_xpu=args.use_xpu, ir_optim=args.ir_optim)
+            workdir=args.workdir,
+            port=args.port,
+            device=args.device,
+            use_lite=args.use_lite,
+            use_xpu=args.use_xpu,
+            ir_optim=args.ir_optim)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
