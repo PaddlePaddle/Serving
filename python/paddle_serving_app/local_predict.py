@@ -132,7 +132,8 @@ class LocalPredictor(object):
             )
 
         if use_xpu:
-            config.enable_xpu(100 * 1024 * 1024)
+            # 2MB l3 cache
+            config.enable_xpu(2 * 1024 * 1024)
 
         self.predictor = create_paddle_predictor(config)
 

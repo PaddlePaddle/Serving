@@ -212,6 +212,7 @@ class Server(object):
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.use_local_bin = False
+        self.device = "cpu"
         self.gpuid = 0
         self.use_trt = False
         self.use_lite = False
@@ -278,6 +279,9 @@ class Server(object):
             raise SystemExit(
                 "GPU not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
+
+    def set_device(self, device="cpu"):
+        self.device = device
 
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
@@ -529,7 +533,8 @@ class Server(object):
         else:
             print("Use local bin : {}".format(self.bin_path))
         #self.check_cuda()
-        if self.use_lite:
+        # Todo: merge CPU and GPU code, remove device to model_toolkit
+        if self.device == "cpu" or self.device == "arm":
             command = "{} " \
                       "-enable_model_toolkit " \
                       "-inferservice_path {} " \

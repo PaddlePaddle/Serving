@@ -107,6 +107,7 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+        server.set_device(device)
 
         if use_lite:
             server.set_lite()

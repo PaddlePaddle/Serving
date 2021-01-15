@@ -141,7 +141,7 @@ class FluidArmAnalysisCore : public FluidFamilyCore {
     }
 
     if (params.use_xpu()) {
-      config.EnableXpu(100);
+      config.EnableXpu(2 * 1024 * 1024);
     }
 
     config.SwitchSpecifyInputNames(true);
@@ -188,7 +188,7 @@ class FluidArmAnalysisDirCore : public FluidFamilyCore {
     }
 
     if (params.use_xpu()) {
-      config.EnableXpu(100);
+      config.EnableXpu(1 * 1024 * 1024);
     }
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());
