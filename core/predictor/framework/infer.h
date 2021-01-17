@@ -528,7 +528,7 @@ class CloneDBReloadableInferEngine
 };
 
 template <typename FluidFamilyCore>
-#ifdef WITH_TRT
+#ifdef WITH_TRT | WITH_XPU
 class FluidInferEngine : public DBReloadableInferEngine<FluidFamilyCore> {
 #else
 class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
