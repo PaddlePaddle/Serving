@@ -20,6 +20,7 @@ import google.protobuf.text_format
 import numpy as np
 import argparse
 import paddle.fluid as fluid
+import paddle.inference as inference
 from .proto import general_model_config_pb2 as m_config
 from paddle.fluid.core import PaddleTensor
 from paddle.fluid.core import AnalysisConfig
@@ -125,11 +126,10 @@ class LocalPredictor(object):
 
         if use_lite:
             config.enable_lite_engine(
-                precision_mode = PrecisionType.Float32,
-                zero_copy = True,
-                passes_filter = [],
-                ops_filter = []
-            )
+                precision_mode=inference.PrecisionType.Float32,
+                zero_copy=True,
+                passes_filter=[],
+                ops_filter=[])
 
         if use_xpu:
             config.enable_xpu(100 * 1024 * 1024)
