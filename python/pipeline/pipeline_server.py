@@ -234,6 +234,7 @@ class PipelineServer(object):
             "local_service_conf": {
                 "workdir": "",
                 "thread_num": 2,
+                "device_type": -1,
                 "devices": "",
                 "mem_optim": True,
                 "ir_optim": False,
@@ -389,6 +390,7 @@ class ServerYamlConfChecker(object):
         default_conf = {
             "workdir": "",
             "thread_num": 2,
+            "device_type": -1,
             "devices": "",
             "mem_optim": True,
             "ir_optim": False,
@@ -397,6 +399,7 @@ class ServerYamlConfChecker(object):
             "model_config": str,
             "workdir": str,
             "thread_num": int,
+            "device_type": int,
             "devices": str,
             "mem_optim": bool,
             "ir_optim": bool,
