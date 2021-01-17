@@ -122,6 +122,7 @@ make -j10
 export CUDA_PATH='/usr/local'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/"
 
 mkdir server-build-trt && cd server-build-trt
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \

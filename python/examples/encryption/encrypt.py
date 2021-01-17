@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import random
+from paddle_serving_client.io import inference_model_to_serving
 
-with open("key", "w") as f:
-    for i in range(1000000):
-        f.write("{}\n".format(random.randint(0, 999999)))
+
+def serving_encryption():
+    inference_model_to_serving(
+        dirname="./uci_housing_model",
+        serving_server="encrypt_server",
+        serving_client="encrypt_client",
+        encryption=True)
+
+
+if __name__ == "__main__":
+    serving_encryption()

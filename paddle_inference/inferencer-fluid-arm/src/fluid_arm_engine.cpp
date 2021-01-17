@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "paddle_inference/inferencer-fluid-cpu/include/fluid_cpu_engine.h"
+#include "paddle_inference/inferencer-fluid-arm/include/fluid_arm_engine.h"
 #include "core/predictor/framework/factory.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace fluid_cpu {
+namespace fluid_arm {
 
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidCpuAnalysisCore>,
+    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmAnalysisCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_ANALYSIS");
+    "FLUID_ARM_ANALYSIS");
 
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidCpuAnalysisDirCore>,
+        FluidArmAnalysisDirCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_ANALYSIS_DIR");
+    "FLUID_ARM_ANALYSIS_DIR");
 
-}  // namespace fluid_cpu
+}  // namespace fluid_arm
 }  // namespace paddle_serving
 }  // namespace baidu

@@ -6,12 +6,22 @@ add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid cube-
 if (WITH_GPU)
     add_dependencies(serving fluid_gpu_engine)
 endif()
+
+if (WITH_LITE)
+    add_dependencies(serving fluid_arm_engine)
+endif()
+
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../core/predictor
         )
     include_directories(${CUDNN_ROOT}/include/)
 if(WITH_GPU)
     target_link_libraries(serving -Wl,--whole-archive fluid_gpu_engine
+            -Wl,--no-whole-archive)
+endif()
+
+if(WITH_LITE)
+    target_link_libraries(serving -Wl,--whole-archive fluid_arm_engine
             -Wl,--no-whole-archive)
 endif()
 

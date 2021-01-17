@@ -21,6 +21,7 @@ import contextlib
 from contextlib import closing
 import multiprocessing
 import yaml
+import io
 
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
@@ -333,7 +334,7 @@ class ServerYamlConfChecker(object):
             raise SystemExit("Failed to prepare_server: only one of yml_file"
                              " or yml_dict can be selected as the parameter.")
         if yml_file is not None:
-            with open(yml_file) as f:
+            with io.open(yml_file, encoding='utf-8') as f:
                 conf = yaml.load(f.read())
         elif yml_dict is not None:
             conf = yml_dict

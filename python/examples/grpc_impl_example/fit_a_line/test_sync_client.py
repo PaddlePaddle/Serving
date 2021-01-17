@@ -14,16 +14,27 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import MultiLangClient as Client
-
+import numpy as np
 client = Client()
 client.connect(["127.0.0.1:9393"])
+
+"""
+for data in test_reader():
+    new_data = np.zeros((1, 1, 13)).astype("float32")
+    new_data[0] = data[0][0]
+    fetch_map = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=True)
+    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+    print(fetch_map)
+"""
 
 x = [
     0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
     0.4919, 0.1856, 0.0795, -0.0332
 ]
 for i in range(3):
-    fetch_map = client.predict(feed={"x": x}, fetch=["price"])
+    new_data = np.array(x).astype("float32").reshape((1,13))
+    fetch_map = client.predict(feed={"x": new_data}, fetch=["price"], batch=False)
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     else:
