@@ -7,6 +7,7 @@ PROTOBUF_GENERATE_CPP(pdcodegen_proto_srcs pdcodegen_proto_hdrs
 LIST(APPEND pdcodegen_srcs ${pdcodegen_proto_srcs})
 
 add_executable(pdcodegen ${pdcodegen_srcs})
+add_dependencies(pdcodegen boost)
 target_link_libraries(pdcodegen protobuf ${PROTOBUF_PROTOC_LIBRARY})
 
 # install
