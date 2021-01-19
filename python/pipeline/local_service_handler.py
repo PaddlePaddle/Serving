@@ -233,7 +233,6 @@ class LocalServiceHandler(object):
             op_seq_maker.add_op(general_response_op)
 
             server = Server()
-            server.set_device(self._device_type)
         else:
             #gpu or arm
             from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
@@ -251,7 +250,7 @@ class LocalServiceHandler(object):
             if gpuid >= 0:
                 server.set_gpuid(gpuid)
             # TODO: support arm or arm + xpu later
-            server.set_device("gpu")
+            server.set_device(self._device_name)
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
