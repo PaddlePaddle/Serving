@@ -62,7 +62,7 @@ public class PipelineClientExample {
                 return false;
             }
         }
-        PipelineFuture future = StaticPipelineClient.client.asyn_pr::qedict(feed_data, fetch,false,0);
+        PipelineFuture future = StaticPipelineClient.client.asyn_predict(feed_data, fetch,false,0);
         HashMap<String,String> result = future.get();
         if (result == null) {
             return false;
