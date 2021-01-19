@@ -37,7 +37,7 @@ public class StaticPipelineClient {
             System.out.println("already connect.");
             return true;
         }
-        succ = clieint.connect(target);
+        succ = client.connect(target);
         if (succ != true) {
             System.out.println("connect failed.");
             return false;
