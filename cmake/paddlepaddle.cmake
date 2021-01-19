@@ -157,7 +157,7 @@ LIST(APPEND paddle_depend_libs
     xxhash)
 
 if(WITH_LITE)
-    LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
+    LIST(APPEND paddle_depend_libs paddle_full_api_shared)
     if(WITH_XPU)
         LIST(APPEND paddle_depend_libs xpuapi xpurt)
     endif()
