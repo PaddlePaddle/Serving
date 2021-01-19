@@ -134,6 +134,7 @@ class Op(object):
         self.model_config = None
         self.workdir = None
         self.thread_num = self.concurrency
+        self.device_type = -1
         self.devices = ""
         self.mem_optim = False
         self.ir_optim = False
@@ -153,6 +154,7 @@ class Op(object):
                     self.client_type = local_service_conf.get("client_type")
                     self.workdir = local_service_conf.get("workdir")
                     self.thread_num = local_service_conf.get("thread_num")
+                    self.device_type = local_service_conf.get("device_type")
                     self.devices = local_service_conf.get("devices")
                     self.mem_optim = local_service_conf.get("mem_optim")
                     self.ir_optim = local_service_conf.get("ir_optim")
@@ -168,6 +170,7 @@ class Op(object):
                                 client_type=self.client_type,
                                 workdir=self.workdir,
                                 thread_num=self.thread_num,
+                                device_type=self.device_type,
                                 devices=self.devices,
                                 mem_optim=self.mem_optim,
                                 ir_optim=self.ir_optim)
@@ -188,8 +191,11 @@ class Op(object):
                                 client_type=self.client_type,
                                 workdir=self.workdir,
                                 thread_num=self.thread_num,
+                                device_type=self.device_type,
                                 devices=self.devices,
-                                fetch_names=self._fetch_names)
+                                fetch_names=self._fetch_names,
+                                mem_optim=self.mem_optim,
+                                ir_optim=self.ir_optim)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -550,7 +556,8 @@ class Op(object):
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), False, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
-                      self.devices, self.mem_optim, self.ir_optim))
+                      self.device_type, self.devices, self.mem_optim,
+                      self.ir_optim))
             p.daemon = True
             p.start()
             process.append(p)
@@ -583,7 +590,8 @@ class Op(object):
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), True, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
-                      self.devices, self.mem_optim, self.ir_optim))
+                      self.device_type, self.devices, self.mem_optim,
+                      self.ir_optim))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -991,7 +999,7 @@ class Op(object):
 
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
-             devices, mem_optim, ir_optim):
+             device_type, devices, mem_optim, ir_optim):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1009,6 +1017,7 @@ class Op(object):
             model_config: model config path
             workdir: work directory
             thread_num: number of threads, concurrent quantity
+            device_type: support multiple devices
             devices: gpu id list[gpu], "" default[cpu]
             mem_optim: use memory/graphics memory optimization, True default.
             ir_optim: use calculation chart optimization, False default. 
@@ -1017,7 +1026,6 @@ class Op(object):
             None
         """
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
-        tid = threading.current_thread().ident
 
         # init ops
         profiler = None
@@ -1028,6 +1036,7 @@ class Op(object):
                     client_type="local_predictor",
                     workdir=workdir,
                     thread_num=thread_num,
+                    device_type=device_type,
                     devices=devices,
                     mem_optim=mem_optim,
                     ir_optim=ir_optim)

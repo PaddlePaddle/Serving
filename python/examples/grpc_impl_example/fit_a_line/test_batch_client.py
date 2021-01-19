@@ -13,7 +13,7 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 from paddle_serving_client import MultiLangClient as Client
-
+import numpy as np
 client = Client()
 client.connect(["127.0.0.1:9393"])
 
@@ -24,8 +24,11 @@ x = [
 ]
 
 for i in range(3):
-    batch_feed = [{"x": x} for j in range(batch_size)]
-    fetch_map = client.predict(feed=batch_feed, fetch=["price"])
+    new_data = np.array(x).astype("float32").reshape((1, 1, 13))
+    batch_data = np.concatenate([new_data, new_data, new_data], axis=0)
+    print(batch_data.shape)
+    fetch_map = client.predict(feed={"x":batch_data}, fetch=["price"], batch=True)
+
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     else:

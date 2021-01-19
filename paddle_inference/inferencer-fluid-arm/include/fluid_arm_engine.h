@@ -17,22 +17,16 @@
 #include <pthread.h>
 #include <fstream>
 #include <map>
-#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
 #include "core/predictor/framework/infer.h"
 #include "paddle_inference_api.h"  // NOLINT
 
-DECLARE_int32(gpuid);
-
 namespace baidu {
 namespace paddle_serving {
-namespace fluid_gpu {
-
-using configure::SigmoidConf;
+namespace fluid_arm {
 
 class AutoLock {
  public:
@@ -64,6 +58,7 @@ class GlobalPaddleCreateMutex {
 using paddle_infer::Config;
 using paddle_infer::Predictor;
 using paddle_infer::Tensor;
+using paddle_infer::PrecisionType;
 using paddle_infer::CreatePredictor;
 
 // data interface
@@ -117,7 +112,7 @@ class FluidFamilyCore {
 };
 
 // infer interface
-class FluidGpuAnalysisCore : public FluidFamilyCore {
+class FluidArmAnalysisCore : public FluidFamilyCore {
  public:
   int create(const predictor::InferEngineCreationParams& params) {
     std::string data_path = params.get_path();
@@ -130,11 +125,23 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
     Config config;
     config.SetParamsFile(data_path + "/__params__");
     config.SetProgFile(data_path + "/__model__");
-    config.EnableUseGpu(100, FLAGS_gpuid);
+    config.DisableGpu();
     config.SetCpuMathLibraryNumThreads(1);
 
     if (params.enable_memory_optimization()) {
       config.EnableMemoryOptim();
+    }
+
+    if (params.enable_memory_optimization()) {
+      config.EnableMemoryOptim();
+    }
+
+    if (params.use_lite()) {
+      config.EnableLiteEngine(PrecisionType::kFloat32, true);
+    }
+
+    if (params.use_xpu()) {
+      config.EnableXpu(100);
     }
 
     config.SwitchSpecifyInputNames(true);
@@ -150,7 +157,7 @@ class FluidGpuAnalysisCore : public FluidFamilyCore {
   }
 };
 
-class FluidGpuAnalysisDirCore : public FluidFamilyCore {
+class FluidArmAnalysisDirCore : public FluidFamilyCore {
  public:
   int create(const predictor::InferEngineCreationParams& params) {
     std::string data_path = params.get_path();
@@ -162,34 +169,28 @@ class FluidGpuAnalysisDirCore : public FluidFamilyCore {
 
     Config config;
     config.SetModel(data_path);
-    config.EnableUseGpu(1500, FLAGS_gpuid);
+    config.DisableGpu();
     config.SwitchSpecifyInputNames(true);
     config.SetCpuMathLibraryNumThreads(1);
 
     if (params.enable_memory_optimization()) {
       config.EnableMemoryOptim();
     }
-    int max_batch = 32;
-    int min_subgraph_size = 3;
-    if (params.use_trt()) {
-      config.EnableTensorRtEngine(1 << 20,
-                                  max_batch,
-                                  min_subgraph_size,
-                                  Config::Precision::kFloat32,
-                                  false,
-                                  false);
-      LOG(INFO) << "create TensorRT predictor";
-    } else {
-      if (params.enable_memory_optimization()) {
-        config.EnableMemoryOptim();
-      }
 
-      if (params.enable_ir_optimization()) {
-        config.SwitchIrOptim(true);
-      } else {
-        config.SwitchIrOptim(false);
-      }
+    if (params.enable_ir_optimization()) {
+      config.SwitchIrOptim(true);
+    } else {
+      config.SwitchIrOptim(false);
     }
+
+    if (params.use_lite()) {
+      config.EnableLiteEngine(PrecisionType::kFloat32, true);
+    }
+
+    if (params.use_xpu()) {
+      config.EnableXpu(100);
+    }
+
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     _core = CreatePredictor(config);
     if (NULL == _core.get()) {
@@ -206,7 +207,7 @@ class Parameter {
  public:
   Parameter() : _row(0), _col(0), _params(NULL) {}
   ~Parameter() {
-    LOG(INFO) << "before destroy Parameter, file_name[" << _file_name << "]";
+    VLOG(2) << "before destroy Parameter, file_name[" << _file_name << "]";
     destroy();
   }
 
@@ -262,7 +263,7 @@ class Parameter {
         fclose(fs);
         fs = NULL;
       }
-      LOG(INFO) << "load " << _file_name << " read ok.";
+      VLOG(2) << "load " << _file_name << " read ok.";
       return 0;
     } else {
       LOG(ERROR) << "load " << _file_name << " read error.";
@@ -283,6 +284,6 @@ class Parameter {
   float* _params;
 };
 
-}  // namespace fluid_gpu
+}  // namespace fluid_arm
 }  // namespace paddle_serving
 }  // namespace baidu
