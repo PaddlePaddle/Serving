@@ -313,16 +313,16 @@ class Server(object):
             engine.use_trt = self.use_trt
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
-
-
-
+            if os.path.exists('{}/__params__'.format(model_config_path)):
+                suffix = ""
+            else:
+                suffix = "_DIR" 
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                engine.type = "FLUID_GPU_ANALYSIS" + suffix
             elif device == "arm":
-                engine.type = "FLUID_ARM_ANALYSIS_DIR"
-
+                engine.type = "FLUID_ARM_ANALYSIS" + suffix
             self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
