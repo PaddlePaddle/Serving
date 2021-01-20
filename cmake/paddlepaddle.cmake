@@ -136,8 +136,8 @@ if (WITH_TRT)
 endif()
 
 if (WITH_LITE)
-    ADD_LIBRARY(paddle_api_full_bundled STATIC IMPORTED GLOBAL)
-    SET_PROPERTY(TARGET paddle_api_full_bundled PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_api_full_bundled.a)
+    ADD_LIBRARY(paddle_full_api_shared STATIC IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET paddle_full_api_shared PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/lite/cxx/lib/libpaddle_full_api_shared.so)
     
     if (WITH_XPU)
         ADD_LIBRARY(xpuapi SHARED IMPORTED GLOBAL)
@@ -157,7 +157,7 @@ LIST(APPEND paddle_depend_libs
     xxhash)
 
 if(WITH_LITE)
-    LIST(APPEND paddle_depend_libs paddle_api_full_bundled)
+    LIST(APPEND paddle_depend_libs paddle_full_api_shared)
     if(WITH_XPU)
         LIST(APPEND paddle_depend_libs xpuapi xpurt)
     endif()
