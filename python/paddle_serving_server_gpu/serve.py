@@ -73,6 +73,7 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
         server.set_lite()
         device = "arm"
 
+    server.set_device(device)
     if args.use_xpu:
         server.set_xpu()
 
