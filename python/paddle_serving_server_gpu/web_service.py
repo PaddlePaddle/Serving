@@ -70,8 +70,8 @@ class WebService(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        self.feed_names = [var.alias_name for var in model_conf.feed_var]
-        self.fetch_names = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_vars = {var.name: var for var in model_conf.feed_var}
+        self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
@@ -107,6 +107,7 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+        server.set_device(device)
 
         if use_lite:
             server.set_lite()
@@ -278,6 +279,15 @@ class WebService(object):
     def preprocess(self, feed=[], fetch=[]):
         print("This API will be deprecated later. Please do not use it")
         is_batch = True
+        feed_dict = {}
+        for var_name in self.feed_vars.keys():
+            feed_dict[var_name] = []
+        for feed_ins in feed:
+            for key in feed_ins:
+                feed_dict[key].append(np.array(feed_ins[key]).reshape(list(self.feed_vars[key].shape))[np.newaxis,:])
+        feed = {}
+        for key in feed_dict:
+            feed[key] = np.concatenate(feed_dict[key], axis=0)
         return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):
