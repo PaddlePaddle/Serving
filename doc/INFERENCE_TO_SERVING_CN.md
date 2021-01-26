@@ -2,32 +2,15 @@
 
 ([English](./INFERENCE_TO_SERVING.md)|简体中文)
 
-## 示例
-
-在下列代码中，我们需要知道以下信息。
-
-**模型文件夹**：这个文件夹就是Paddle的inference_model所在的文件夹
-
-**serving_client_dir**: 这个文件夹是inference_model转换成Serving模型后，服务端配置的保存路径
-
-**serving_client_dir**: 这个文件夹是inference_model转换成Serving模型后，客户端配置的保存路径
-
-**模型描述文件**: 模型描述文件也就是`model_filename`默认值为`__model__`,是一个pb2文本文件，如果是别的文件名需要显式指定
-
-**模型参数文件**: 在`save_inference_model`阶段，默认方式是每一个Variable保存一个二进制文件，如果是这种情况就不需要做指定。如果所有参数用压缩成一个文件的形式保存，则需要显式指定`params_filename`
-
-
-``` python
-from paddle_serving_client.io import inference_model_to_serving
-inference_model_dir = "your_inference_model"
-serving_client_dir = "serving_client_dir"
-serving_server_dir = "serving_server_dir"
-feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_server_dir, serving_client_dir)
+你可以使用Paddle Serving提供的名为`paddle_serving_client.convert`的内置模块进行转换。
+```python
+python -m paddle_serving_client.convert --dirname ./your_inference_model_dir
 ```
-如果模型中有模型描述文件`model_filename` 和 模型参数文件`params_filename`，那么请用
-```
-feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_server_dir, serving_client_dir,
-		 model_filename="model", params_filename="params")
-```
+模块参数与`inference_model_to_serving`接口参数相同。
+| 参数 | 类型 | 默认值 | 描述 |
+|--------------|------|-----------|--------------------------------|
+| `dirname` | str | - | 需要转换的模型文件存储路径，Program结构文件和参数文件均保存在此目录。|
+| `serving_server` | str | `"serving_server"` | 转换后的模型文件和配置文件的存储路径。默认值为serving_server |
+| `serving_client` | str | `"serving_client"` | 转换后的客户端配置文件存储路径。默认值为serving_client |
+| `model_filename` | str | None | 存储需要转换的模型Inference Program结构的文件名称。如果设置为None，则使用 `__model__` 作为默认的文件名 |
+| `params_filename` | str | None | 存储需要转换的模型所有参数的文件名称。当且仅当所有模型参数被保存在一个单独的>二进制文件中，它才需要被指定。如果模型参数是存储在各自分离的文件中，设置它的值为None |
