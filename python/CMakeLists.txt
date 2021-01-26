@@ -81,25 +81,45 @@ if (SERVER)
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
     elseif(WITH_TRT)
+        if(CUDA_VERSION EQUAL 10.1)
+            set(SUFFIX 101)
+        elseif(CUDA_VERSION EQUAL 10.2)
+            set(SUFFIX 102)
+        elseif(CUDA_VERSION EQUAL 11.0)
+            set(SUFFIX 110)
+
+        endif()
         add_custom_command(
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
             COMMAND cp -r
             ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
-            "server_gpu" trt
+            "server_gpu"  ${SUFFIX}
             COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
             DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
         add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
     elseif(WITH_LITE)
-        add_custom_command(
-            OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
-            COMMAND cp -r
-            ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
-            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
-            "server_gpu" arm 
-            COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-            DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
-        add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+        if(WITH_XPU)
+            add_custom_command(
+                OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
+                COMMAND cp -r
+                ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
+                COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
+                "server_gpu" arm-xpu 
+                COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+                DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
+            add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+        else()
+            add_custom_command(
+                OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
+                COMMAND cp -r
+                ${CMAKE_CURRENT_SOURCE_DIR}/paddle_serving_server_gpu/ ${PADDLE_SERVING_BINARY_DIR}/python/
+                COMMAND env ${py_env} ${PYTHON_EXECUTABLE} gen_version.py
+                "server_gpu" arm 
+                COMMAND env ${py_env} ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+                DEPENDS ${SERVING_SERVER_CORE} server_config_py_proto ${PY_FILES})
+            add_custom_target(paddle_python ALL DEPENDS ${PADDLE_SERVING_BINARY_DIR}/.timestamp)
+        endif()
     else()
         add_custom_command(
             OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp

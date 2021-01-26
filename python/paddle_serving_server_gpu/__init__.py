@@ -217,6 +217,7 @@ class Server(object):
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.use_local_bin = False
+        self.device = "cpu"
         self.gpuid = 0
         self.use_trt = False
         self.use_lite = False
@@ -284,6 +285,9 @@ class Server(object):
                 "GPU not found, please check your environment or use cpu version by \"pip install paddle_serving_server\""
             )
 
+    def set_device(self, device="cpu"):
+        self.device = device
+
     def set_gpuid(self, gpuid=0):
         self.gpuid = gpuid
 
@@ -316,24 +320,25 @@ class Server(object):
             engine.static_optimization = False
             engine.force_update_static_cache = False
             engine.use_trt = self.use_trt
-            engine.use_lite = self.use_lite
-            engine.use_xpu = self.use_xpu
-
-
-
+            if os.path.exists('{}/__params__'.format(model_config_path)):
+                suffix = ""
+            else:
+                suffix = "_DIR" 
+            if device == "arm":
+                engine.use_lite = self.use_lite
+                engine.use_xpu = self.use_xpu
             if device == "cpu":
 		if use_encryption_model:
                     engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
                 else:
-                    engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                    engine.type = "FLUID_CPU_ANALYSIS"+suffix
             elif device == "gpu":
 		if use_encryption_model:
                     engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
                 else:
-                    engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                    engine.type = "FLUID_GPU_ANALYSIS"+suffix
             elif device == "arm":
-                engine.type = "FLUID_ARM_ANALYSIS_DIR"
-
+                engine.type = "FLUID_ARM_ANALYSIS" + suffix
             self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
@@ -434,9 +439,9 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                if cuda_version == "trt":
+                if cuda_version == "101" or cuda_version == "102" or cuda_version == "110":
                     device_version = "serving-gpu-" + cuda_version + "-"
-                elif cuda_version == "arm":
+                elif cuda_version == "arm" or cuda_version == "arm-xpu":
                     device_version = "serving-" + cuda_version + "-"
                 else:
                     device_version = "serving-gpu-cuda" + cuda_version + "-"
@@ -541,7 +546,8 @@ class Server(object):
         else:
             print("Use local bin : {}".format(self.bin_path))
         #self.check_cuda()
-        if self.use_lite:
+        # Todo: merge CPU and GPU code, remove device to model_toolkit
+        if self.device == "cpu" or self.device == "arm":
             command = "{} " \
                       "-enable_model_toolkit " \
                       "-inferservice_path {} " \
