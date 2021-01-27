@@ -38,12 +38,12 @@ class LocalServiceHandler(object):
                  client_type='local_predictor',
                  workdir="",
                  thread_num=2,
+                 device_type=-1,
                  devices="",
                  fetch_names=None,
                  mem_optim=True,
                  ir_optim=False,
                  available_port_generator=None,
-                 use_trt=False,
                  use_profile=False):
         """
         Initialization of localservicehandler
@@ -53,13 +53,14 @@ class LocalServiceHandler(object):
            client_type: brpc, grpc and local_predictor[default]
            workdir: work directory
            thread_num: number of threads, concurrent quantity.
+           device_type: support multiple devices. -1=Not set, determined by
+               `devices`. 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
            devices: gpu id list[gpu], "" default[cpu]
            fetch_names: get fetch names out of LocalServiceHandler in 
                local_predictor mode. fetch_names_ is compatible for Client().
            mem_optim: use memory/graphics memory optimization, True default.
            ir_optim: use calculation chart optimization, False default.
            available_port_generator: generate available ports
-           use_trt: use nvidia tensorRt engine, False default.
            use_profile: use profiling, False default.
 
         Returns:
@@ -70,22 +71,61 @@ class LocalServiceHandler(object):
 
         self._model_config = model_config
         self._port_list = []
-        self._device_type = "cpu"
-        if devices == "":
-            # cpu
+        self._device_name = "cpu"
+        self._use_gpu = False
+        self._use_trt = False
+        self._use_lite = False
+        self._use_xpu = False
+
+        if device_type == -1:
+            # device_type is not set, determined by `devices`, 
+            if devices == "":
+                # CPU
+                self._device_name = "cpu"
+                devices = [-1]
+            else:
+                # GPU
+                self._device_name = "gpu"
+                self._use_gpu = True
+                devices = [int(x) for x in devices.split(",")]
+
+        elif device_type == 0:
+            # CPU
+            self._device_name = "cpu"
             devices = [-1]
-            self._device_type = "cpu"
-            self._port_list.append(available_port_generator.next())
-            _LOGGER.info("Model({}) will be launch in cpu device. Port({})"
-                         .format(model_config, self._port_list))
-        else:
-            # gpu
-            self._device_type = "gpu"
+        elif device_type == 1:
+            # GPU
+            self._device_name = "gpu"
+            self._use_gpu = True
             devices = [int(x) for x in devices.split(",")]
+        elif device_type == 2:
+            # Nvidia Tensor RT
+            self._device_name = "gpu"
+            self._use_gpu = True
+            devices = [int(x) for x in devices.split(",")]
+            self._use_trt = True
+        elif device_type == 3:
+            # ARM CPU
+            self._device_name = "arm"
+            devices = [-1]
+            self._use_lite = True
+        elif device_type == 4:
+            # Kunlun XPU
+            self._device_name = "arm"
+            devices = [int(x) for x in devices.split(",")]
+            self._use_lite = True
+            self._use_xpu = True
+        else:
+            _LOGGER.error(
+                "LocalServiceHandler initialization fail. device_type={}"
+                .format(device_type))
+
+        if client_type == "brpc" or client_type == "grpc":
             for _ in devices:
                 self._port_list.append(available_port_generator.next())
-            _LOGGER.info("Model({}) will be launch in gpu device: {}. Port({})"
-                         .format(model_config, devices, self._port_list))
+            _LOGGER.info("Create ports for devices:{}. Port:{}"
+                         .format(devices, self._port_list))
+
         self._client_type = client_type
         self._workdir = workdir
         self._devices = devices
@@ -95,12 +135,21 @@ class LocalServiceHandler(object):
         self._local_predictor_client = None
         self._rpc_service_list = []
         self._server_pros = []
-        self._use_trt = use_trt
         self._use_profile = use_profile
-        self.fetch_names_ = fetch_names
+        self._fetch_names = fetch_names
+
+        _LOGGER.info(
+            "Models({}) will be launched by device {}. use_gpu:{}, "
+            "use_trt:{}, use_lite:{}, use_xpu:{}, device_type:{}, devices:{}, "
+            "mem_optim:{}, ir_optim:{}, use_profile:{}, thread_num:{}, "
+            "client_type:{}, fetch_names:{}".format(
+                model_config, self._device_name, self._use_gpu, self._use_trt,
+                self._use_lite, self._use_xpu, device_type, self._devices,
+                self._mem_optim, self._ir_optim, self._use_profile,
+                self._thread_num, self._client_type, self._fetch_names))
 
     def get_fetch_list(self):
-        return self.fetch_names_
+        return self._fetch_names
 
     def get_port_list(self):
         return self._port_list
@@ -137,18 +186,18 @@ class LocalServiceHandler(object):
         from paddle_serving_app.local_predict import LocalPredictor
         if self._local_predictor_client is None:
             self._local_predictor_client = LocalPredictor()
-            use_gpu = False
-            if self._device_type == "gpu":
-                use_gpu = True
+
             self._local_predictor_client.load_model_config(
                 model_path=self._model_config,
-                use_gpu=use_gpu,
+                use_gpu=self._use_gpu,
                 gpu_id=self._devices[concurrency_idx],
                 use_profile=self._use_profile,
                 thread_num=self._thread_num,
                 mem_optim=self._mem_optim,
                 ir_optim=self._ir_optim,
-                use_trt=self._use_trt)
+                use_trt=self._use_trt,
+                use_lite=self._use_lite,
+                use_xpu=self._use_xpu)
         return self._local_predictor_client
 
     def get_client_config(self):
@@ -157,7 +206,7 @@ class LocalServiceHandler(object):
     def _prepare_one_server(self, workdir, port, gpuid, thread_num, mem_optim,
                             ir_optim):
         """
-        According to _device_type, generating one CpuServer or GpuServer, and
+        According to self._device_name, generating one Cpu/Gpu/Arm Server, and
         setting the model config amd startup params.
 
         Args:
@@ -171,7 +220,7 @@ class LocalServiceHandler(object):
         Returns:
             server: CpuServer/GpuServer
         """
-        if self._device_type == "cpu":
+        if self._device_name == "cpu":
             from paddle_serving_server import OpMaker, OpSeqMaker, Server
             op_maker = OpMaker()
             read_op = op_maker.create('general_reader')
@@ -185,7 +234,7 @@ class LocalServiceHandler(object):
 
             server = Server()
         else:
-            #gpu
+            #gpu or arm
             from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
             op_maker = OpMaker()
             read_op = op_maker.create('general_reader')
@@ -200,6 +249,8 @@ class LocalServiceHandler(object):
             server = Server()
             if gpuid >= 0:
                 server.set_gpuid(gpuid)
+            # TODO: support arm or arm + xpu later
+            server.set_device(self._device_name)
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
@@ -208,9 +259,9 @@ class LocalServiceHandler(object):
 
         server.load_model_config(self._model_config)
         server.prepare_server(
-            workdir=workdir, port=port, device=self._device_type)
-        if self.fetch_names_ is None:
-            self.fetch_names_ = server.get_fetch_list()
+            workdir=workdir, port=port, device=self._device_name)
+        if self._fetch_names is None:
+            self._fetch_names = server.get_fetch_list()
         return server
 
     def _start_one_server(self, service_idx):
@@ -247,7 +298,7 @@ class LocalServiceHandler(object):
         """
         Start multiple processes and start one server in each process
         """
-        for i, service in enumerate(self._rpc_service_list):
+        for i, _ in enumerate(self._rpc_service_list):
             p = multiprocessing.Process(
                 target=self._start_one_server, args=(i, ))
             p.daemon = True

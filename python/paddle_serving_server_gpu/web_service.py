@@ -70,8 +70,8 @@ class WebService(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        self.feed_names = [var.alias_name for var in model_conf.feed_var]
-        self.fetch_names = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_vars = {var.name: var for var in model_conf.feed_var}
+        self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
@@ -83,10 +83,15 @@ class WebService(object):
                             gpuid=0,
                             thread_num=2,
                             mem_optim=True,
+                            use_lite=False,
+                            use_xpu=False,
                             ir_optim=False):
         device = "gpu"
         if gpuid == -1:
-            device = "cpu"
+            if use_lite:
+                device = "arm"
+            else:
+                device = "cpu"
         op_maker = serving.OpMaker()
         read_op = op_maker.create('general_reader')
         general_infer_op = op_maker.create('general_infer')
@@ -102,6 +107,12 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+        server.set_device(device)
+
+        if use_lite:
+            server.set_lite()
+        if use_xpu:
+            server.set_xpu()
 
         server.load_model_config(self.model_config)
         if gpuid >= 0:
@@ -125,9 +136,11 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       use_lite=False,
+                       use_xpu=False,
+                       ir_optim=False,
                        gpuid=0,
-                       mem_optim=True,
-                       ir_optim=False):
+                       mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
@@ -150,6 +163,8 @@ class WebService(object):
                     -1,
                     thread_num=2,
                     mem_optim=mem_optim,
+                    use_lite=use_lite,
+                    use_xpu=use_xpu,
                     ir_optim=ir_optim))
         else:
             for i, gpuid in enumerate(self.gpus):
@@ -160,6 +175,8 @@ class WebService(object):
                         gpuid,
                         thread_num=2,
                         mem_optim=mem_optim,
+                        use_lite=use_lite,
+                        use_xpu=use_xpu,
                         ir_optim=ir_optim))
 
     def _launch_web_service(self):
@@ -262,6 +279,15 @@ class WebService(object):
     def preprocess(self, feed=[], fetch=[]):
         print("This API will be deprecated later. Please do not use it")
         is_batch = True
+        feed_dict = {}
+        for var_name in self.feed_vars.keys():
+            feed_dict[var_name] = []
+        for feed_ins in feed:
+            for key in feed_ins:
+                feed_dict[key].append(np.array(feed_ins[key]).reshape(list(self.feed_vars[key].shape))[np.newaxis,:])
+        feed = {}
+        for key in feed_dict:
+            feed[key] = np.concatenate(feed_dict[key], axis=0)
         return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):

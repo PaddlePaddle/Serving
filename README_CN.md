@@ -49,9 +49,10 @@ nvidia-docker exec -it test bash
 ```shell
 pip install paddle-serving-client==0.4.0
 pip install paddle-serving-server==0.4.0 # CPU
+pip install paddle-serving-app==0.2.0
 pip install paddle-serving-server-gpu==0.4.0.post9 # GPU with CUDA9.0
 pip install paddle-serving-server-gpu==0.4.0.post10 # GPU with CUDA10.0
-pip install paddle-serving-server-gpu==0.4.0.trt # GPU with CUDA10.1+TensorRT
+pip install paddle-serving-server-gpu==0.4.0.100 # GPU with CUDA10.1+TensorRT
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -148,7 +149,7 @@ print(fetch_map)
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
 <h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录``python/examples/fit_a_line``
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
 
 ```python
 from paddle_serving_server.web_service import WebService

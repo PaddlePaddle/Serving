@@ -34,7 +34,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 
 Start a web service with default web service hosting modules:
 ``` shell
-python test_server.py
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --name uci
 ```
 
 ### Client prediction

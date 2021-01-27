@@ -41,7 +41,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 通过下面的一行代码开启默认web服务：
 
 ``` shell
-python test_server.py
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --name uci
 ```
 
 ### 客户端预测
