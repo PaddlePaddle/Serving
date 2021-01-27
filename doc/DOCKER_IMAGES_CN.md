@@ -42,6 +42,15 @@
 | GPU (cuda9.0-cudnn7) 开发镜像 (用于编译 Ubuntu 包) | CentOS6  | <无>                         | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
 
 
+**Java镜像：**
+```
+hub.baidubce.com/paddlepaddle/serving:latest-java
+```
+
+**XPU镜像：**
+```
+hub.baidubce.com/paddlepaddle/serving:xpu-beta
+```
 
 ## 运行CUDA容器的要求
 
