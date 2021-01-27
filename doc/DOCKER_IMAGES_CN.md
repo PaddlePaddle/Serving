@@ -30,17 +30,20 @@
 运行时镜像不能用于开发编译。
 若需要基于源代码二次开发编译，请使用后缀为-devel的版本。
 
-| 镜像说明                                           | 操作系统 | TAG                          | Dockerfile                                                   |
-| -------------------------------------------------- | -------- | ---------------------------- | ------------------------------------------------------------ |
-| CPU 运行镜像                                       | CentOS7  | latest                       | [Dockerfile](../tools/Dockerfile)                            |
-| CPU 开发镜像                                       | CentOS7  | latest-devel                 | [Dockerfile.devel](../tools/Dockerfile.devel)                |
-| GPU (cuda9.0-cudnn7) 运行镜像                      | CentOS7  | latest-cuda9.0-cudnn7        | [Dockerfile.cuda9.0-cudnn7](../tools/Dockerfile.cuda9.0-cudnn7) |
-| GPU (cuda9.0-cudnn7) 开发镜像                      | CentOS7  | latest-cuda9.0-cudnn7-devel  | [Dockerfile.cuda9.0-cudnn7.devel](../tools/Dockerfile.cuda9.0-cudnn7.devel) |
-| GPU (cuda10.0-cudnn7) 运行镜像                     | CentOS7  | latest-cuda10.0-cudnn7       | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
-| GPU (cuda10.0-cudnn7) 开发镜像                     | CentOS7  | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
-| CPU 开发镜像 (用于编译 Ubuntu 包)                  | CentOS6  | <无>                         | [Dockerfile.centos6.devel](../tools/Dockerfile.centos6.devel) |
-| GPU (cuda9.0-cudnn7) 开发镜像 (用于编译 Ubuntu 包) | CentOS6  | <无>                         | [Dockerfile.centos6.cuda9.0-cudnn7.devel](../tools/Dockerfile.centos6.cuda9.0-cudnn7.devel) |
-
+|                         镜像选择                         |   操作系统    |             TAG              |                          Dockerfile                          |
+| :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
+|                         CPU 运行镜像                          | CentOS7 |            latest            |              [Dockerfile](../tools/Dockerfile)               |
+|                       CPU 开发镜像                        | CentOS7 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
+|                 GPU (cuda9.0-cudnn7) 运行镜像                 | CentOS7 |    latest-cuda9.0-cudnn7     | [Dockerfile.cuda9.0-cudnn7](../tools/Dockerfile.cuda9.0-cudnn7) |
+|               GPU (cuda9.0-cudnn7) 开发镜像          | CentOS7 | latest-cuda9.0-cudnn7-devel  | [Dockerfile.cuda9.0-cudnn7.devel](../tools/Dockerfile.cuda9.0-cudnn7.devel) |
+|                GPU (cuda10.0-cudnn7) 运行镜像                 | CentOS7 |    latest-cuda10.0-cudnn7    | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
+|              GPU (cuda10.0-cudnn7) 开发镜像               | CentOS7 | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
+|                GPU (cuda10.1-cudnn7-tensorRT6) 运行镜像                 | Ubuntu16 |    latest-cuda10.1-cudnn7    | [Dockerfile.cuda10.1-cudnn7](../tools/Dockerfile.cuda10.1-cudnn7) |
+|              GPU (cuda10.1-cudnn7-tensorRT6) 开发镜像               | Ubuntu16 | latest-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
+|                GPU (cuda10.2-cudnn8-tensorRT7) 运行镜像                 | Ubuntu16|    latest-cuda10.2-cudnn8   | [Dockerfile.cuda10.2-cudnn8](../tools/Dockerfile.cuda10.2-cudnn8) |
+|              GPU (cuda10.2-cudnn8-tensorRT7) 开发镜像               | Ubuntu16 | latest-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
+|                GPU (cuda11-cudnn8-tensorRT7) 运行镜像                 | Ubuntu18|    latest-cuda11-cudnn8   | [Dockerfile.cuda11-cudnn8](../tools/Dockerfile.cuda11-cudnn8) |
+|              GPU (cuda11-cudnn8-tensorRT7) 开发镜像               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
 
 **Java镜像：**
 ```
