@@ -65,7 +65,7 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_app-0.0.0-py2-none-any.w
 ```
 
 ## ARM user
-for ARM user who uses [PaddleLite](https://github.com/PaddlePaddle/PaddleLite) can download the wheel packages as follows. 
+for ARM user who uses [PaddleLite](https://github.com/PaddlePaddle/PaddleLite) can download the wheel packages as follows. And ARM user should use the xpu-beta docker [DOCKER IMAGES](./DOCKER_IMAGES.md) 
 **We only support Python 3.6 for Arm Users.**
 
 ### Wheel Package Links
