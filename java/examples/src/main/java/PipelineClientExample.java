@@ -32,7 +32,7 @@ public class PipelineClientExample {
         System.out.println(fetch);
         
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("172.17.0.2","18070")){
+            if(!StaticPipelineClient.initClient("127.0.0.1","18070")){
                 System.out.println("connect failed.");
                 return false;
             }
@@ -57,12 +57,12 @@ public class PipelineClientExample {
         List<String> fetch = Arrays.asList("prediction");
         System.out.println(fetch);
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("172.17.0.2","18070")){
+            if(!StaticPipelineClient.initClient("127.0.0.1","18070")){
                 System.out.println("connect failed.");
                 return false;
             }
         }
-        PipelineFuture future = StaticPipelineClient.client.asyn_pr::qedict(feed_data, fetch,false,0);
+        PipelineFuture future = StaticPipelineClient.client.asyn_predict(feed_data, fetch,false,0);
         HashMap<String,String> result = future.get();
         if (result == null) {
             return false;
@@ -86,7 +86,7 @@ public class PipelineClientExample {
             }};
         List<String> fetch = Arrays.asList("prediction");
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("172.17.0.2","9998")){
+            if(!StaticPipelineClient.initClient("127.0.0.1","9998")){
                 System.out.println("connect failed.");
                 return false;
             }

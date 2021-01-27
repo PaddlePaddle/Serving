@@ -249,6 +249,8 @@ class LocalServiceHandler(object):
             server = Server()
             if gpuid >= 0:
                 server.set_gpuid(gpuid)
+            # TODO: support arm or arm + xpu later
+            server.set_device(self._device_name)
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)

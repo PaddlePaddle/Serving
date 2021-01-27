@@ -128,20 +128,22 @@ class FluidArmAnalysisCore : public FluidFamilyCore {
     config.DisableGpu();
     config.SetCpuMathLibraryNumThreads(1);
 
-    if (params.enable_memory_optimization()) {
-      config.EnableMemoryOptim();
-    }
-
-    if (params.enable_memory_optimization()) {
-      config.EnableMemoryOptim();
-    }
-
     if (params.use_lite()) {
       config.EnableLiteEngine(PrecisionType::kFloat32, true);
     }
 
     if (params.use_xpu()) {
-      config.EnableXpu(100);
+      config.EnableXpu(2 * 1024 * 1024);
+    }
+
+    if (params.enable_memory_optimization()) {
+      config.EnableMemoryOptim();
+    }
+
+    if (params.enable_ir_optimization()) {
+      config.SwitchIrOptim(true);
+    } else {
+      config.SwitchIrOptim(false);
     }
 
     config.SwitchSpecifyInputNames(true);
@@ -173,6 +175,14 @@ class FluidArmAnalysisDirCore : public FluidFamilyCore {
     config.SwitchSpecifyInputNames(true);
     config.SetCpuMathLibraryNumThreads(1);
 
+    if (params.use_lite()) {
+      config.EnableLiteEngine(PrecisionType::kFloat32, true);
+    }
+
+    if (params.use_xpu()) {
+      config.EnableXpu(2 * 1024 * 1024);
+    }
+
     if (params.enable_memory_optimization()) {
       config.EnableMemoryOptim();
     }
@@ -181,14 +191,6 @@ class FluidArmAnalysisDirCore : public FluidFamilyCore {
       config.SwitchIrOptim(true);
     } else {
       config.SwitchIrOptim(false);
-    }
-
-    if (params.use_lite()) {
-      config.EnableLiteEngine(PrecisionType::kFloat32, true);
-    }
-
-    if (params.use_xpu()) {
-      config.EnableXpu(100);
     }
 
     AutoLock lock(GlobalPaddleCreateMutex::instance());

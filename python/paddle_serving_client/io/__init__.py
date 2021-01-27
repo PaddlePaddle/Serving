@@ -202,6 +202,7 @@ def inference_model_to_serving(dirname,
                                serving_client="serving_client",
                                model_filename=None,
                                params_filename=None):
+    paddle.enable_static()
     place = fluid.CPUPlace()
     exe = fluid.Executor(place)
     inference_program, feed_target_names, fetch_targets = \
