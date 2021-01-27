@@ -45,6 +45,15 @@
 |                GPU (cuda11-cudnn8-tensorRT7) 运行镜像                 | Ubuntu18|    latest-cuda11-cudnn8   | [Dockerfile.cuda11-cudnn8](../tools/Dockerfile.cuda11-cudnn8) |
 |              GPU (cuda11-cudnn8-tensorRT7) 开发镜像               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
 
+**Java镜像：**
+```
+hub.baidubce.com/paddlepaddle/serving:latest-java
+```
+
+**XPU镜像：**
+```
+hub.baidubce.com/paddlepaddle/serving:xpu-beta
+```
 
 ## 运行CUDA容器的要求
 
