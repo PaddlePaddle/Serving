@@ -77,4 +77,3 @@ https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_client-0.0.0-cp36-no
 # App
 https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_app-0.0.0-py3-none-any.whl 
 ```
-

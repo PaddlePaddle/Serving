@@ -133,6 +133,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     server.prepare_server(workdir=workdir, port=port, device=device)
     server.run_server()
 
+
 class MainService(BaseHTTPRequestHandler):
     def get_available_port(self):
         default_port = 12000
@@ -199,6 +200,7 @@ class MainService(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(response))
+
 
 if __name__ == "__main__":
 

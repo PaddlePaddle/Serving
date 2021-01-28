@@ -283,7 +283,6 @@ class Parameter {
   float* _params;
 };
 
-
 class FluidGpuAnalysisEncryptCore : public FluidFamilyCore {
  public:
   void ReadBinaryFile(const std::string& filename, std::string* contents) {
@@ -328,8 +327,7 @@ class FluidGpuAnalysisEncryptCore : public FluidFamilyCore {
     analysis_config.SwitchSpecifyInputNames(true);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     VLOG(2) << "decrypt model file sucess";
-    _core =
-        CreatePredictor(analysis_config);
+    _core = CreatePredictor(analysis_config);
     if (NULL == _core.get()) {
       LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
       return -1;
@@ -338,7 +336,6 @@ class FluidGpuAnalysisEncryptCore : public FluidFamilyCore {
     return 0;
   }
 };
-
 
 }  // namespace fluid_gpu
 }  // namespace paddle_serving

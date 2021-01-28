@@ -228,7 +228,7 @@ class Client(object):
                     "You must set the endpoints parameter or use add_variant function to create a variant."
                 )
         else:
-	    if encryption:
+            if encryption:
                 endpoints = self.get_serving_port(endpoints)
             if self.predictor_sdk_ is None:
                 self.add_variant('default_tag_{}'.format(id(self)), endpoints,
