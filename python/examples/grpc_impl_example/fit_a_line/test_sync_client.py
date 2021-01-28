@@ -17,7 +17,6 @@ from paddle_serving_client import MultiLangClient as Client
 import numpy as np
 client = Client()
 client.connect(["127.0.0.1:9393"])
-
 """
 for data in test_reader():
     new_data = np.zeros((1, 1, 13)).astype("float32")
@@ -33,8 +32,9 @@ x = [
     0.4919, 0.1856, 0.0795, -0.0332
 ]
 for i in range(3):
-    new_data = np.array(x).astype("float32").reshape((1,13))
-    fetch_map = client.predict(feed={"x": new_data}, fetch=["price"], batch=False)
+    new_data = np.array(x).astype("float32").reshape((1, 13))
+    fetch_map = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=False)
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     else:

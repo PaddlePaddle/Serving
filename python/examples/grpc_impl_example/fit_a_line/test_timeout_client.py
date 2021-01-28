@@ -25,8 +25,9 @@ x = [
     0.4919, 0.1856, 0.0795, -0.0332
 ]
 for i in range(3):
-    new_data = np.array(x).astype("float32").reshape((1,13))
-    fetch_map = client.predict(feed={"x": new_data}, fetch=["price"], batch=False)
+    new_data = np.array(x).astype("float32").reshape((1, 13))
+    fetch_map = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=False)
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)
     elif fetch_map["serving_status_code"] == grpc.StatusCode.DEADLINE_EXCEEDED:

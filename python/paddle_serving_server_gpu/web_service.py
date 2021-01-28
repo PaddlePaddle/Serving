@@ -295,7 +295,9 @@ class WebService(object):
             feed_dict[var_name] = []
         for feed_ins in feed:
             for key in feed_ins:
-                feed_dict[key].append(np.array(feed_ins[key]).reshape(list(self.feed_vars[key].shape))[np.newaxis,:])
+                feed_dict[key].append(
+                    np.array(feed_ins[key]).reshape(
+                        list(self.feed_vars[key].shape))[np.newaxis, :])
         feed = {}
         for key in feed_dict:
             feed[key] = np.concatenate(feed_dict[key], axis=0)

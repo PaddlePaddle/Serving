@@ -158,7 +158,7 @@ class Server(object):
         self.use_local_bin = False
         self.mkl_flag = False
         self.encryption_model = False
-	self.product_name = None
+        self.product_name = None
         self.container_id = None
         self.model_config_paths = None  # for multi-model in a workflow
 
@@ -197,6 +197,7 @@ class Server(object):
 
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
+
     def use_encryption_model(self, flag=False):
         self.encryption_model = flag
 
@@ -236,15 +237,15 @@ class Server(object):
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 suffix = ""
             else:
-                suffix = "_DIR" 
+                suffix = "_DIR"
 
             if device == "cpu":
-		if self.encryption_model:
+                if self.encryption_model:
                     engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
                 else:
                     engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-		if self.encryption_model:
+                if self.encryption_model:
                     engine.type = "FLUID_GPU_ANALYSIS_ENCRYPT"
                 else:
                     engine.type = "FLUID_GPU_ANALYSIS" + suffix

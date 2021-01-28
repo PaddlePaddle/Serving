@@ -323,20 +323,20 @@ class Server(object):
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 suffix = ""
             else:
-                suffix = "_DIR" 
+                suffix = "_DIR"
             if device == "arm":
                 engine.use_lite = self.use_lite
                 engine.use_xpu = self.use_xpu
             if device == "cpu":
-		if use_encryption_model:
+                if use_encryption_model:
                     engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
                 else:
-                    engine.type = "FLUID_CPU_ANALYSIS"+suffix
+                    engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-		if use_encryption_model:
+                if use_encryption_model:
                     engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
                 else:
-                    engine.type = "FLUID_GPU_ANALYSIS"+suffix
+                    engine.type = "FLUID_GPU_ANALYSIS" + suffix
             elif device == "arm":
                 engine.type = "FLUID_ARM_ANALYSIS" + suffix
             self.model_toolkit_conf.engines.extend([engine])
@@ -496,7 +496,7 @@ class Server(object):
                        workdir=None,
                        port=9292,
                        device="cpu",
-		       use_encryption_model=False,
+                       use_encryption_model=False,
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
