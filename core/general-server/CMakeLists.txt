@@ -29,7 +29,8 @@ target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive)
 
 target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
-
+target_link_libraries(serving brpc)
+target_link_libraries(serving protobuf)
 target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)

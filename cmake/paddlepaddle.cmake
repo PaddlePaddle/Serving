@@ -32,6 +32,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # latest: latest develop build
 # version number like 1.5.2
 SET(PADDLE_VERSION "2.0.0")
+
 if (WITH_GPU)
     if (WITH_TRT)
         SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7-avx-mkl-trt6")
