@@ -295,7 +295,7 @@ class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
     std::string real_params_buffer = cipher->Decrypt(params_buffer, key_buffer);
 
     Config analysis_config;
-    //paddle::AnalysisConfig analysis_config;
+    // paddle::AnalysisConfig analysis_config;
     analysis_config.SetModelBuffer(&real_model_buffer[0],
                                    real_model_buffer.size(),
                                    &real_params_buffer[0],
@@ -308,8 +308,7 @@ class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
     analysis_config.SwitchSpecifyInputNames(true);
     AutoLock lock(GlobalPaddleCreateMutex::instance());
     VLOG(2) << "decrypt model file sucess";
-    _core =
-        CreatePredictor(analysis_config);
+    _core = CreatePredictor(analysis_config);
     if (NULL == _core.get()) {
       LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
       return -1;

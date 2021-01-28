@@ -31,20 +31,24 @@ import paddle.nn.functional as F
 import errno
 from paddle.jit import to_static
 
+
 def save_dygraph_model(serving_model_folder, client_config_folder, model):
     paddle.jit.save(model, "serving_tmp")
-    loaded_layer = paddle.jit.load(path=".", model_filename="serving_tmp.pdmodel", params_filename="serving_tmp.pdiparams")
+    loaded_layer = paddle.jit.load(
+        path=".",
+        model_filename="serving_tmp.pdmodel",
+        params_filename="serving_tmp.pdiparams")
     feed_target_names = [x.name for x in loaded_layer._input_spec()]
     fetch_target_names = [x.name for x in loaded_layer._output_spec()]
 
     inference_program = loaded_layer.program()
     feed_var_dict = {
-           x: inference_program.global_block().var(x)
-           for x in feed_target_names
+        x: inference_program.global_block().var(x)
+        for x in feed_target_names
     }
     fetch_var_dict = {
-           x: inference_program.global_block().var(x)
-           for x in fetch_target_names
+        x: inference_program.global_block().var(x)
+        for x in fetch_target_names
     }
     config = model_conf.GeneralModelConfig()
 
@@ -93,9 +97,11 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
     os.system(cmd)
     cmd = "mkdir -p {}".format(serving_model_folder)
     os.system(cmd)
-    cmd = "mv {} {}/__model__".format("serving_tmp.pdmodel", serving_model_folder)
+    cmd = "mv {} {}/__model__".format("serving_tmp.pdmodel",
+                                      serving_model_folder)
     os.system(cmd)
-    cmd = "mv {} {}/__params__".format("serving_tmp.pdiparams", serving_model_folder)
+    cmd = "mv {} {}/__params__".format("serving_tmp.pdiparams",
+                                       serving_model_folder)
     os.system(cmd)
     cmd = "rm -rf serving_tmp.pd*"
     os.system(cmd)
@@ -112,11 +118,12 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
             serving_model_folder), "wb") as fout:
         fout.write(config.SerializeToString())
 
+
 def save_model(server_model_folder,
                client_config_folder,
                feed_var_dict,
                fetch_var_dict,
-	       main_program=None,
+               main_program=None,
                encryption=False,
                key_len=128,
                encrypt_conf=None):
@@ -130,7 +137,7 @@ def save_model(server_model_folder,
         target_var_names.append(key)
 
     if not encryption:
-	save_inference_model(
+        save_inference_model(
             server_model_folder,
             feed_var_names,
             target_vars,
