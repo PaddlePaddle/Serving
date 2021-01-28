@@ -115,5 +115,3 @@ The second is to deploy GPU Serving and Java Client separately. If they are on t
 **Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). Pipeline Serving Client for Java is released.**
 
 **It should be noted that in the example, Java Pipeline Client code is in path /Java/Examples and /Java/src/main, and the Pipeline server code is in path /python/examples/pipeline/    The Client IP and Port(which is configured in java/examples/src/main/java/PipelineClientExample.java) should be corresponding to the Pipeline Server IP and Port(which is configured in config.yaml) **
-
-
