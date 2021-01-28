@@ -263,6 +263,62 @@ class Parameter {
   float* _params;
 };
 
+class FluidCpuAnalysisEncryptCore : public FluidFamilyCore {
+ public:
+  void ReadBinaryFile(const std::string& filename, std::string* contents) {
+    std::ifstream fin(filename, std::ios::in | std::ios::binary);
+    fin.seekg(0, std::ios::end);
+    contents->clear();
+    contents->resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read(&(contents->at(0)), contents->size());
+    fin.close();
+  }
+
+  int create(const predictor::InferEngineCreationParams& params) {
+    std::string data_path = params.get_path();
+    if (access(data_path.c_str(), F_OK) == -1) {
+      LOG(ERROR) << "create paddle predictor failed, path note exits: "
+                 << data_path;
+      return -1;
+    }
+
+    std::string model_buffer, params_buffer, key_buffer;
+    ReadBinaryFile(data_path + "encrypt_model", &model_buffer);
+    ReadBinaryFile(data_path + "encrypt_params", &params_buffer);
+    ReadBinaryFile(data_path + "key", &key_buffer);
+
+    VLOG(2) << "prepare for encryption model";
+
+    auto cipher = paddle::MakeCipher("");
+    std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
+    std::string real_params_buffer = cipher->Decrypt(params_buffer, key_buffer);
+
+    Config analysis_config;
+    //paddle::AnalysisConfig analysis_config;
+    analysis_config.SetModelBuffer(&real_model_buffer[0],
+                                   real_model_buffer.size(),
+                                   &real_params_buffer[0],
+                                   real_params_buffer.size());
+    analysis_config.DisableGpu();
+    analysis_config.SetCpuMathLibraryNumThreads(1);
+    if (params.enable_memory_optimization()) {
+      analysis_config.EnableMemoryOptim();
+    }
+    analysis_config.SwitchSpecifyInputNames(true);
+    AutoLock lock(GlobalPaddleCreateMutex::instance());
+    VLOG(2) << "decrypt model file sucess";
+    _core =
+        CreatePredictor(analysis_config);
+    if (NULL == _core.get()) {
+      LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
+      return -1;
+    }
+    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    return 0;
+  }
+};
+
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu
