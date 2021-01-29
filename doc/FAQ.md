@@ -71,6 +71,21 @@ Collecting opencv-python
 ```
 **A:** 指定opencv-python版本安装，pip install opencv-python==4.2.0.32，再安装whl包
 
+#### Q: pip3 install whl包过程报错信息如下：
+```
+    Complete output from command python setup.py egg_info:
+    Found cython-generated files...
+    error in grpcio setup command: 'install_requires' must be a string or list of strings containing valid project/version requirement specifiers; Expected ',' or end-of-list in futures>=2.2.0; python_version<'3.2' at ; python_version<'3.2'
+
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-taoxz02y/grpcio/
+```
+**A:** 需要升级pip3，再重新执行安装命令。
+```
+pip3 install --upgrade pip
+pip3 install --upgrade setuptools
+```
+
 ## 编译问题
 
 #### Q: 如何使用自己编译的Paddle Serving进行预测？
