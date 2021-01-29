@@ -25,6 +25,16 @@ from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 
 
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
+
+
 class WebService(object):
     def __init__(self, name="default_service"):
         self.name = name
@@ -110,7 +120,7 @@ class WebService(object):
         self.mem_optim = mem_optim
         self.ir_optim = ir_optim
         for i in range(1000):
-            if self.port_is_available(default_port + i):
+            if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
                 break
 
@@ -206,10 +216,12 @@ class WebService(object):
             feed_dict[var_name] = []
         for feed_ins in feed:
             for key in feed_ins:
-                feed_dict[key].append(np.array(feed_ins[key]).reshape(list(self.feed_vars[key].shape))[np.newaxis,:])
+                feed_dict[key].append(
+                    np.array(feed_ins[key]).reshape(
+                        list(self.feed_vars[key].shape))[np.newaxis, :])
         feed = {}
         for key in feed_dict:
-            feed[key] = np.concatenate(feed_dict[key], axis=0) 
+            feed[key] = np.concatenate(feed_dict[key], axis=0)
         return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):

@@ -19,19 +19,25 @@ Usage:
 """
 import argparse
 import os
+import json
+import base64
+import time
 from multiprocessing import Pool, Process
 from paddle_serving_server_gpu import serve_args
 from flask import Flask, request
+if sys.version_info.major == 2:
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+elif sys.version_info.major == 3:
+    from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
-def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-missing
+def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-string-missing
     gpuid = int(gpuid)
     device = "gpu"
-    port = args.port
     if gpuid == -1:
         device = "cpu"
     elif gpuid >= 0:
-        port = args.port + index
+        port = port + index
     thread_num = args.thread
     model = args.model
     mem_optim = args.mem_optim_off is False
@@ -83,14 +89,20 @@ def start_gpu_card_model(index, gpuid, args):  # pylint: disable=doc-string-miss
         server.set_container_id(args.container_id)
 
     server.load_model_config(model)
-    server.prepare_server(workdir=workdir, port=port, device=device)
+    server.prepare_server(
+        workdir=workdir,
+        port=port,
+        device=device,
+        use_encryption_model=args.use_encryption_model)
     if gpuid >= 0:
         server.set_gpuid(gpuid)
     server.run_server()
 
 
-def start_multi_card(args):  # pylint: disable=doc-string-missing
+def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
     gpus = ""
+    if serving_port == None:
+        serving_port = args.port
     if args.gpu_ids == "":
         gpus = []
     else:
@@ -110,14 +122,16 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
         start_gpu_card_model(-1, -1, args)
     elif len(gpus) <= 0:
         print("gpu_ids not set, going to run cpu service.")
-        start_gpu_card_model(-1, -1, args)
+        start_gpu_card_model(-1, -1, serving_port, args)
     else:
         gpu_processes = []
         for i, gpu_id in enumerate(gpus):
             p = Process(
-                target=start_gpu_card_model, args=(
+                target=start_gpu_card_model,
+                args=(
                     i,
                     gpu_id,
+                    serving_port,
                     args, ))
             gpu_processes.append(p)
         for p in gpu_processes:
@@ -126,10 +140,89 @@ def start_multi_card(args):  # pylint: disable=doc-string-missing
             p.join()
 
 
+class MainService(BaseHTTPRequestHandler):
+    def get_available_port(self):
+        default_port = 12000
+        for i in range(1000):
+            if port_is_available(default_port + i):
+                return default_port + i
+
+    def start_serving(self):
+        start_multi_card(args, serving_port)
+
+    def get_key(self, post_data):
+        if "key" not in post_data:
+            return False
+        else:
+            key = base64.b64decode(post_data["key"])
+            with open(args.model + "/key", "w") as f:
+                f.write(key)
+            return True
+
+    def check_key(self, post_data):
+        if "key" not in post_data:
+            return False
+        else:
+            key = base64.b64decode(post_data["key"])
+            with open(args.model + "/key", "r") as f:
+                cur_key = f.read()
+            return (key == cur_key)
+
+    def start(self, post_data):
+        post_data = json.loads(post_data)
+        global p_flag
+        if not p_flag:
+            if args.use_encryption_model:
+                print("waiting key for model")
+                if not self.get_key(post_data):
+                    print("not found key in request")
+                    return False
+            global serving_port
+            global p
+            serving_port = self.get_available_port()
+            p = Process(target=self.start_serving)
+            p.start()
+            time.sleep(3)
+            if p.is_alive():
+                p_flag = True
+            else:
+                return False
+        else:
+            if p.is_alive():
+                if not self.check_key(post_data):
+                    return False
+            else:
+                return False
+        return True
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        if self.start(post_data):
+            response = {"endpoint_list": [serving_port]}
+        else:
+            response = {"message": "start serving failed"}
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(response))
+
+
 if __name__ == "__main__":
     args = serve_args()
     if args.name == "None":
-        start_multi_card(args)
+        from .web_service import port_is_available
+        if args.use_encryption_model:
+            p_flag = False
+            p = None
+            serving_port = 0
+            server = HTTPServer(('localhost', int(args.port)), MainService)
+            print(
+                'Starting encryption server, waiting for key from client, use <Ctrl-C> to stop'
+            )
+            server.serve_forever()
+        else:
+            start_multi_card(args)
     else:
         from .web_service import WebService
         web_service = WebService(name=args.name)
@@ -141,8 +234,12 @@ if __name__ == "__main__":
         if len(gpu_ids) > 0:
             web_service.set_gpus(gpu_ids)
         web_service.prepare_server(
-            workdir=args.workdir, port=args.port, device=args.device,
-            use_lite=args.use_lite, use_xpu=args.use_xpu, ir_optim=args.ir_optim)
+            workdir=args.workdir,
+            port=args.port,
+            device=args.device,
+            use_lite=args.use_lite,
+            use_xpu=args.use_xpu,
+            ir_optim=args.ir_optim)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
