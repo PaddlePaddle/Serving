@@ -23,9 +23,12 @@ import json
 import base64
 import time
 from multiprocessing import Process
-from web_service import WebService, port_is_available
+from .web_service import WebService, port_is_available
 from flask import Flask, request
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+if sys.version_info.major == 2:
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+elif sys.version_info.major == 3:
+    from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 def parse_args():  # pylint: disable=doc-string-missing
