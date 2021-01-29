@@ -485,6 +485,42 @@ function python_test_lac() {
     cd ..
 }
 
+
+function python_test_encryption(){
+    #pwd: /Serving/python/examples
+    cd encryption
+    sh get_data.sh
+    local TYPE=$1
+    export SERVING_BIN=${SERIVNG_WORKDIR}/build-server-${TYPE}/core/general-server/serving
+    case $TYPE in
+        CPU)
+            #check_cmd "python encrypt.py"
+            #sleep 5
+            check_cmd "python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model > /dev/null &"
+            sleep 5
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
+            kill_server_process
+            ;;
+        GPU)
+            #check_cmd "python encrypt.py"
+            #sleep 5
+            check_cmd "python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0"
+            sleep 5
+            check_cmd "python test_client.py encrypt_client/serving_client_conf.prototxt"
+            kill_servere_process
+            ;;
+        *)
+            echo "error type"
+            exit 1
+            ;;
+    esac
+    echo "encryption $TYPE test finished as expected"
+    setproxy
+    unset SERVING_BIN
+    cd ..
+}
+
+
 function java_run_test() {
     # pwd: /Serving
     local TYPE=$1
@@ -921,6 +957,7 @@ function python_run_test() {
     python_test_lac $TYPE # pwd: /Serving/python/examples
     python_test_multi_process $TYPE # pwd: /Serving/python/examples
     python_test_multi_fetch $TYPE # pwd: /Serving/python/examples
+    python_test_encryption $TYPE # pwd: /Serving/python/examples
     python_test_yolov4 $TYPE # pwd: /Serving/python/examples
     python_test_grpc_impl $TYPE # pwd: /Serving/python/examples
     python_test_resnet50 $TYPE # pwd: /Serving/python/examples

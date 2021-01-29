@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#!flask/bin/python
 # pylint: disable=doc-string-missing
 
 from flask import Flask, request, abort
@@ -26,6 +27,16 @@ import paddle_serving_server_gpu as serving
 
 from paddle_serving_server_gpu import pipeline
 from paddle_serving_server_gpu.pipeline import Op
+
+
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
 
 
 class WebService(object):
@@ -70,8 +81,8 @@ class WebService(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        self.feed_names = [var.alias_name for var in model_conf.feed_var]
-        self.fetch_names = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_vars = {var.name: var for var in model_conf.feed_var}
+        self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
@@ -107,6 +118,7 @@ class WebService(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+        server.set_device(device)
 
         if use_lite:
             server.set_lite()
@@ -148,7 +160,7 @@ class WebService(object):
         self.port_list = []
         default_port = 12000
         for i in range(1000):
-            if self.port_is_available(default_port + i):
+            if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
             if len(self.port_list) > len(self.gpus):
                 break
@@ -278,6 +290,17 @@ class WebService(object):
     def preprocess(self, feed=[], fetch=[]):
         print("This API will be deprecated later. Please do not use it")
         is_batch = True
+        feed_dict = {}
+        for var_name in self.feed_vars.keys():
+            feed_dict[var_name] = []
+        for feed_ins in feed:
+            for key in feed_ins:
+                feed_dict[key].append(
+                    np.array(feed_ins[key]).reshape(
+                        list(self.feed_vars[key].shape))[np.newaxis, :])
+        feed = {}
+        for key in feed_dict:
+            feed[key] = np.concatenate(feed_dict[key], axis=0)
         return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):

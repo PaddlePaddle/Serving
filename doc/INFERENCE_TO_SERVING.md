@@ -2,35 +2,15 @@
 
 ([简体中文](./INFERENCE_TO_SERVING_CN.md)|English)
 
-We should know something before converting to serving model
-
-**inference_model_dir**：the directory of Paddle inference model
-
-**serving_client_dir**: the directory of server side configuration
-
-**serving_client_dir**: the directory of client side configuration
-
-**model_filename**: this is model description file whose default value is `__model__`, if it's not default name, set `model_filename` explicitly
-
-**params_filename**: during `save_inference_model` every Variable will be save as a single file. If we have the inference model whose params are compressed into one file, please set `params_filename` explicitly
-
-
-
-## Example
-
-``` python
-from paddle_serving_client.io import inference_model_to_serving
-inference_model_dir = "your_inference_model"
-serving_client_dir = "serving_client_dir"
-serving_server_dir = "serving_server_dir"
-feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_server_dir, serving_client_dir)
+you can use a build-in python module called `paddle_serving_client.convert` to convert it.
+```python
+python -m paddle_serving_client.convert --dirname ./your_inference_model_dir
 ```
-
-if your model file and params file are both standalone, please use the following api.
-
-```
-feed_var_names, fetch_var_names = inference_model_to_serving(
-		inference_model_dir, serving_server_dir, serving_client_dir,
-		model_filename="model", params_filename="params")
-```
+Arguments are the same as `inference_model_to_serving` API.
+| Argument | Type | Default | Description |
+|--------------|------|-----------|--------------------------------|
+| `dirname` | str | - | Path of saved model files. Program file and parameter files are saved in this directory. |
+| `serving_server` | str | `"serving_server"` | The path of model files and configuration files for server. |
+| `serving_client` | str | `"serving_client"` | The path of configuration files for client. |
+| `model_filename` | str | None | The name of file to load the inference program. If it is None, the default filename `__model__` will be used. |
+| `params_filename` | str | None | The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. |

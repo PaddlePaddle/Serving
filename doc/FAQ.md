@@ -34,6 +34,57 @@
 
 **A:** http rpc 
 
+## 安装问题
+
+#### Q: pip install安装whl包过程，报错信息如下：
+```
+Collecting opencv-python
+  Using cached opencv-python-4.3.0.38.tar.gz (88.0 MB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... error
+  ERROR: Command errored out with exit status 1:
+   command: /home/work/Python-2.7.17/build/bin/python /home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py get_requires_for_build_wheel /tmp/tmpLiweA9
+       cwd: /tmp/pip-install-_w6AUI/opencv-python
+  Complete output (22 lines):
+  Traceback (most recent call last):
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 280, in <module>
+      main()
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 263, in main
+      json_out['return_val'] = hook(**hook_input['kwargs'])
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 114, in get_requires_for_build_wheel
+      return hook(config_settings)
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 146, in get_requires_for_build_wheel
+      return self._get_build_requires(config_settings, requirements=['wheel'])
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 127, in _get_build_requires
+      self.run_setup()
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 243, in run_setup
+      self).run_setup(setup_script=setup_script)
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 142, in run_setup
+      exec(compile(code, __file__, 'exec'), locals())
+    File "setup.py", line 448, in <module>
+      main()
+    File "setup.py", line 99, in main
+      % {"ext": re.escape(sysconfig.get_config_var("EXT_SUFFIX"))}
+    File "/home/work/Python-2.7.17/build/lib/python2.7/re.py", line 210, in escape
+      s = list(pattern)
+  TypeError: 'NoneType' object is not iterable
+```
+**A:** 指定opencv-python版本安装，pip install opencv-python==4.2.0.32，再安装whl包
+
+#### Q: pip3 install whl包过程报错信息如下：
+```
+    Complete output from command python setup.py egg_info:
+    Found cython-generated files...
+    error in grpcio setup command: 'install_requires' must be a string or list of strings containing valid project/version requirement specifiers; Expected ',' or end-of-list in futures>=2.2.0; python_version<'3.2' at ; python_version<'3.2'
+
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-taoxz02y/grpcio/
+```
+**A:** 需要升级pip3，再重新执行安装命令。
+```
+pip3 install --upgrade pip
+pip3 install --upgrade setuptools
+```
 
 ## 编译问题
 
