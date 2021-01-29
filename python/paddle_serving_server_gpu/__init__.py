@@ -771,6 +771,9 @@ class MultiLangServer(object):
         self.concurrency_ = concurrency
         self.bserver_.set_max_concurrency(concurrency)
 
+    def set_device(self, device="cpu"):
+        self.device = device
+
     def set_num_threads(self, threads):
         self.worker_num_ = threads
         self.bserver_.set_num_threads(threads)

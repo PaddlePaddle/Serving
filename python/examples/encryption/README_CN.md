@@ -11,7 +11,7 @@ sh get_data.sh
 ```
 
 ## 模型加密
-
+本示例中使用了`paddlepaddle`包中的模块，需要进行下载（`pip install paddlepaddle`）。
 ```
 python encrypt.py
 ```
