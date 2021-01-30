@@ -41,7 +41,7 @@ endif()
 
 if(WITH_MKL OR WITH_GPU)
     if (WITH_TRT)
-    target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
+    target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2 -ldnnl)
     else()
     target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 endif()
@@ -62,6 +62,7 @@ install(FILES
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libmklml_intel.so
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libiomp5.so
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.0
+        ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libdnnl.so.1
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
