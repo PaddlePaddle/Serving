@@ -4,7 +4,7 @@
 
 ## 获取模型
 ```
-sh get_data.sh
+sh get_model.sh
 ```
 
 ## 启动服务
