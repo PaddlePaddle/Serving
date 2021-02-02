@@ -676,7 +676,7 @@ service_throughput = 1 / 最慢OP的耗时 * 并发数
 service_avg_cost = ∑op_concurrency 【关键路径】
 
 Channel堆积：
-channel_acc_size = QPS(down - up) * time
+channel_acc_size = QPS(down - up) * time
 
 批量预测平均耗时：
 avg_batch_cost = (N * pre + mid + post) / N 

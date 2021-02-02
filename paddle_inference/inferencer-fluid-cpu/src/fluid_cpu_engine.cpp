@@ -30,28 +30,13 @@ REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::InferEngine,
     "FLUID_CPU_ANALYSIS_DIR");
 
+#if 1
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidCpuAnalysisDirWithSigmoidCore>,
+        FluidCpuAnalysisEncryptCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_ANALYSIS_DIR_SIGMOID");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidCpuNativeCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_NATIVE");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidCpuNativeDirCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_NATIVE_DIR");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidCpuNativeDirWithSigmoidCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_CPU_NATIVE_DIR_SIGMOID");
-
+    "FLUID_CPU_ANALYSIS_ENCRYPT");
+#endif
 }  // namespace fluid_cpu
 }  // namespace paddle_serving
 }  // namespace baidu

@@ -157,6 +157,7 @@ class Server(object):
         self.cur_path = os.getcwd()
         self.use_local_bin = False
         self.mkl_flag = False
+        self.encryption_model = False
         self.product_name = None
         self.container_id = None
         self.model_config_paths = None  # for multi-model in a workflow
@@ -197,6 +198,9 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
+
     def set_product_name(self, product_name=None):
         if product_name == None:
             raise ValueError("product_name can't be None.")
@@ -230,11 +234,21 @@ class Server(object):
             engine.enable_ir_optimization = self.ir_optimization
             engine.static_optimization = False
             engine.force_update_static_cache = False
+            if os.path.exists('{}/__params__'.format(model_config_path)):
+                suffix = ""
+            else:
+                suffix = "_DIR"
 
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS_DIR"
+                if self.encryption_model:
+                    engine.type = "FLUID_CPU_ANALYSIS_ENCRYPT"
+                else:
+                    engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS_DIR"
+                if self.encryption_model:
+                    engine.type = "FLUID_GPU_ANALYSIS_ENCRYPT"
+                else:
+                    engine.type = "FLUID_GPU_ANALYSIS" + suffix
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -523,35 +537,26 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
         log_id = request.log_id
-        feed_batch = []
-        for feed_inst in request.insts:
-            feed_dict = {}
-            for idx, name in enumerate(feed_names):
-                var = feed_inst.tensor_array[idx]
-                v_type = self.feed_types_[name]
-                data = None
-                if is_python:
-                    if v_type == 0:  # int64
-                        data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.frombuffer(var.data, dtype="int32")
-                    else:
-                        raise Exception("error type.")
+        feed_dict = {}
+        feed_inst = request.insts[0]
+        for idx, name in enumerate(feed_names):
+            var = feed_inst.tensor_array[idx]
+            v_type = self.feed_types_[name]
+            data = None
+            if is_python:
+                if v_type == 0:  # int64
+                    data = np.frombuffer(var.data, dtype="int64")
+                elif v_type == 1:  # float32
+                    data = np.frombuffer(var.data, dtype="float32")
+                elif v_type == 2:  # int32
+                    data = np.frombuffer(var.data, dtype="int32")
                 else:
-                    if v_type == 0:  # int64
-                        data = np.array(list(var.int64_data), dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.array(list(var.int_data), dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                data.shape = list(feed_inst.tensor_array[idx].shape)
-                feed_dict[name] = data
-            feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python, log_id
+                    raise Exception("error type.")
+            data.shape = list(feed_inst.tensor_array[idx].shape)
+            feed_dict[name] = data
+            if len(var.lod) > 0:
+                feed_dict["{}.lod".format()] = var.lod
+        return feed_dict, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
@@ -608,6 +613,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         ret = self.bclient_.predict(
             feed=feed_dict,
             fetch=fetch_names,
+            batch=True,
             need_variant_tag=True,
             log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)

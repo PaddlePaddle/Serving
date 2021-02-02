@@ -31,28 +31,11 @@ REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
         FluidGpuAnalysisDirCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
     "FLUID_GPU_ANALYSIS_DIR");
-
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidGpuAnalysisDirWithSigmoidCore>,
+        FluidGpuAnalysisEncryptCore>,
     ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_GPU_ANALYSIS_DIR_SIGMOID");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidGpuNativeCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_GPU_NATIVE");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidGpuNativeDirCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_GPU_NATIVE_DIR");
-
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidGpuNativeDirWithSigmoidCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_GPU_NATIVE_DIR_SIGMOID");
+    "FLUID_GPU_ANALYSIS_ENCRPT")
 
 }  // namespace fluid_gpu
 }  // namespace paddle_serving

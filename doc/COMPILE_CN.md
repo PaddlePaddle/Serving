@@ -100,7 +100,7 @@ make -j10
 ### CUDA_PATH是cuda的安装路径，可以使用命令行whereis cuda命令确认你的cuda安装路径，通常应该是/usr/local/cuda
 ### CUDNN_LIBRARY CUDA_CUDART_LIBRARY 是cuda库文件的路径，通常应该是/usr/local/cuda/lib64/
 ``` shell
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
 
@@ -119,9 +119,10 @@ make -j10
 ### 集成TensorRT版本Paddle Inference Library
 
 ```
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/"
 
 mkdir server-build-trt && cd server-build-trt
 cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \

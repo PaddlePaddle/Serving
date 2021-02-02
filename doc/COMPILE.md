@@ -104,7 +104,7 @@ you can execute `make install` to put targets under directory `./output`, you ne
 ### CUDNN_LIBRARY && CUDA_CUDART_LIBRARY is the lib path, it should be /usr/local/cuda/lib64/
  
 ``` shell
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
 
@@ -123,7 +123,7 @@ make -j10
 ### Integrated TRT version paddle inference library
 
 ```
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
 

@@ -6,6 +6,11 @@ add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid cube-
 if (WITH_GPU)
     add_dependencies(serving fluid_gpu_engine)
 endif()
+
+if (WITH_LITE)
+    add_dependencies(serving fluid_arm_engine)
+endif()
+
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../core/predictor
         )
@@ -15,11 +20,17 @@ if(WITH_GPU)
             -Wl,--no-whole-archive)
 endif()
 
+if(WITH_LITE)
+    target_link_libraries(serving -Wl,--whole-archive fluid_arm_engine
+            -Wl,--no-whole-archive)
+endif()
+
 target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive)
 
 target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
-
+target_link_libraries(serving brpc)
+target_link_libraries(serving protobuf)
 target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
@@ -30,7 +41,7 @@ endif()
 
 if(WITH_MKL OR WITH_GPU)
     if (WITH_TRT)
-    target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
+    target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2 -ldnnl)
     else()
     target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
 endif()
@@ -51,6 +62,7 @@ install(FILES
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libmklml_intel.so
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mklml/lib/libiomp5.so
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libmkldnn.so.0
+        ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libdnnl.so.1
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()

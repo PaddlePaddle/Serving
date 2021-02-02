@@ -27,7 +27,7 @@ mvn compile
 mvn install
 ```
 
-### Start the server
+### Start the server(not pipeline)
 
 Take the fit_a_line model as an example, the server starts
 
@@ -59,6 +59,48 @@ Client prediction
 java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 ../../../python/examples/yolov4/000000570688.jpg
 # The case of yolov4 needs to specify a picture as input
 ```
+### Start the server(pipeline)
+
+as for input data type = string，take IMDB model ensemble as an example，the server starts
+
+```
+cd ../../python/examples/pipeline/imdb_model_ensemble
+sh get_data.sh
+python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
+python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
+python test_pipeline_server.py &>pipeline.log &
+```
+
+Client prediction(Synchronous)
+
+```
+cd ../../../java/examples/target
+java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PipelineClientExample string_imdb_predict
+```
+
+Client prediction(Asynchronous)
+
+```
+cd ../../../java/examples/target
+java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PipelineClientExample asyn_predict
+```
+
+
+as for input data type = INDArray，take uci_housing_model as an example，the server starts
+
+```
+cd ../../python/examples/pipeline/simple_web_service
+sh get_data.sh
+python web_service_java.py &>log.txt &
+```
+
+Client prediction(Synchronous)
+
+```
+cd ../../../java/examples/target
+java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PipelineClientExample indarray_predict
+```
+
 
 ### Customization guidance
 
@@ -68,8 +110,8 @@ The first is that GPU Serving and Java Client are in the same image. After start
 
 The second is to deploy GPU Serving and Java Client separately. If they are on the same host, you can learn the IP address of the corresponding container through ifconfig, and then when you connect to client.connect in `examples/src/main/java/PaddleServingClientExample.java` Make changes to the endpoint, and then compile it again. Or select `--net=host` to bind the network device of docker and host when docker starts, so that it can run directly without customizing java code.
 
-**It should be noted that in the example, all models need to use `--use_multilang` to start GRPC multi-programming language support, and the port number is 9393. If you need another port, you need to modify it in the java file**
+**It should be noted that in the example, all models(not pipeline) need to use `--use_multilang` to start GRPC multi-programming language support, and the port number is 9393. If you need another port, you need to modify it in the java file**
 
-**Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). The next version (0.4.1) of the Pipeline Serving Client for Java will be released. **
+**Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). Pipeline Serving Client for Java is released.**
 
-
+**It should be noted that in the example, Java Pipeline Client code is in path /Java/Examples and /Java/src/main, and the Pipeline server code is in path /python/examples/pipeline/    The Client IP and Port(which is configured in java/examples/src/main/java/PipelineClientExample.java) should be corresponding to the Pipeline Server IP and Port(which is configured in config.yaml) **
