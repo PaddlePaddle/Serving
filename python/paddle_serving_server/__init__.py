@@ -537,26 +537,37 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         fetch_names = list(request.fetch_var_names)
         is_python = request.is_python
         log_id = request.log_id
-        feed_dict = {}
-        feed_inst = request.insts[0]
-        for idx, name in enumerate(feed_names):
-            var = feed_inst.tensor_array[idx]
-            v_type = self.feed_types_[name]
-            data = None
-            if is_python:
-                if v_type == 0:  # int64
-                    data = np.frombuffer(var.data, dtype="int64")
-                elif v_type == 1:  # float32
-                    data = np.frombuffer(var.data, dtype="float32")
-                elif v_type == 2:  # int32
-                    data = np.frombuffer(var.data, dtype="int32")
+        feed_batch = []
+        for feed_inst in request.insts:
+            feed_dict = {}
+            for idx, name in enumerate(feed_names):
+                var = feed_inst.tensor_array[idx]
+                v_type = self.feed_types_[name]
+                data = None
+                if is_python:
+                    if v_type == 0:  # int64
+                        data = np.frombuffer(var.data, dtype="int64")
+                    elif v_type == 1:  # float32
+                        data = np.frombuffer(var.data, dtype="float32")
+                    elif v_type == 2:  # int32
+                        data = np.frombuffer(var.data, dtype="int32")
+                    else:
+                        raise Exception("error type.")
                 else:
-                    raise Exception("error type.")
-            data.shape = list(feed_inst.tensor_array[idx].shape)
-            feed_dict[name] = data
-            if len(var.lod) > 0:
-                feed_dict["{}.lod".format()] = var.lod
-        return feed_dict, fetch_names, is_python, log_id
+                    if v_type == 0:  # int64
+                        data = np.array(list(var.int64_data), dtype="int64")
+                    elif v_type == 1:  # float32
+                        data = np.array(list(var.float_data), dtype="float32")
+                    elif v_type == 2:  # int32
+                        data = np.array(list(var.int_data), dtype="int32")
+                    else:
+                        raise Exception("error type.")
+                data.shape = list(feed_inst.tensor_array[idx].shape)
+                feed_dict[name] = data
+                if len(var.lod) > 0:
+                    feed_dict["{}.lod".format(name)] = var.lod
+            feed_batch.append(feed_dict)
+        return feed_batch, fetch_names, is_python, log_id
 
     def _pack_inference_response(self, ret, fetch_names, is_python):
         resp = multi_lang_general_model_service_pb2.InferenceResponse()
@@ -608,10 +619,10 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python, log_id = \
+        feed_batch, fetch_names, is_python, log_id = \
                 self._unpack_inference_request(request)
         ret = self.bclient_.predict(
-            feed=feed_dict,
+            feed=feed_batch,
             fetch=fetch_names,
             batch=True,
             need_variant_tag=True,
@@ -648,6 +659,9 @@ class MultiLangServer(object):
             print(
                 "max_body_size is less than default value, will use default value in service."
             )
+
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
 
     def set_port(self, port):
         self.gport_ = port

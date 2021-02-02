@@ -244,6 +244,9 @@ class Server(object):
                 "max_body_size is less than default value, will use default value in service."
             )
 
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
+
     def set_port(self, port):
         self.port = port
 
@@ -690,6 +693,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
+                if len(var.lod) > 0:
+                    feed_dict["{}.lod".format(name)] = var.lod
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python, log_id
 
@@ -744,10 +749,10 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python, log_id \
+        feed_batch, fetch_names, is_python, log_id \
                 = self._unpack_inference_request(request)
         ret = self.bclient_.predict(
-            feed=feed_dict,
+            feed=feed_batch,
             fetch=fetch_names,
             need_variant_tag=True,
             log_id=log_id)
@@ -786,6 +791,9 @@ class MultiLangServer(object):
             print(
                 "max_body_size is less than default value, will use default value in service."
             )
+
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
 
     def set_port(self, port):
         self.gport_ = port
