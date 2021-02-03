@@ -754,6 +754,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         ret = self.bclient_.predict(
             feed=feed_batch,
             fetch=fetch_names,
+            batch=True,
             need_variant_tag=True,
             log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
