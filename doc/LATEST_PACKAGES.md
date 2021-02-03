@@ -22,6 +22,8 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post101-py3-none-any.whl
 #cuda10.2 with TensorRT 7
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl
+#cuda11.0 with TensorRT 7 (beta)
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post11-py3-none-any.whl
 ```
 ### Python 2
 ```
@@ -33,16 +35,23 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post101-py2-none-any.whl
 #cuda10.2 with TensorRT 7
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post102-py2-none-any.whl
+#cuda11.0 with TensorRT 7 (beta)
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post11-py2-none-any.whl
 ```
 
 ## Client
-### Python 3.7
-```
-https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp37-none-any.whl
-```
+
 ### Python 3.6
 ```
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp36-none-any.whl
+```
+### Python 3.8
+```
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp38-none-any.whl
+```
+### Python 3.7
+```
+https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp37-none-any.whl
 ```
 ### Python 3.5
 ```
@@ -52,6 +61,7 @@ https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp35-none-a
 ```
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_client-0.0.0-cp27-none-any.whl
 ```
+
 
 ## App
 ### Python 3
