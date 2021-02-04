@@ -12,7 +12,7 @@ We use symmetric encryption algorithm to encrypt the model. Symmetric encryption
 
 Normal model and parameters can be understood as a string, by using the encryption algorithm (parameter is your key) on them, the normal model and parameters become an encrypted one.
 
-We provide a simple demo to encrypt the model. See the [document](../python/examples/encryption/)。
+We provide a simple demo to encrypt the model. See the [python/examples/encryption/encrypt.py](../python/examples/encryption/encrypt.py)。
 
 
 ### Start Encryption Service
