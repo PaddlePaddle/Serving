@@ -1,6 +1,6 @@
 # Paddle Serving Client Java SDK
 
-(简体中文|[English](JAVA_SDK.md))
+(简体中文|[English](ENCRYPTION.md))
 
 Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测，本文档说明了如何使用 Java SDK。
 
