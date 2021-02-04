@@ -75,7 +75,7 @@
    
 ## 2.示例：线性回归预测服务
 
-以下是采用gRPC实现的关于线性回归预测的一个示例，具体代码详见此[链接](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/grpc_impl_example/fit_a_line)
+以下是采用gRPC实现的关于线性回归预测的一个示例，具体代码详见此[链接](../python/examples/grpc_impl_example/fit_a_line)
 #### 获取数据
 
 ```shell
@@ -135,4 +135,4 @@ python test_list_input_client.py
 
 ## 3.更多示例
 
-详见[`python/examples/grpc_impl_example`](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/grpc_impl_example)下的示例文件。
+详见[`python/examples/grpc_impl_example`](../python/examples/grpc_impl_example)下的示例文件。
