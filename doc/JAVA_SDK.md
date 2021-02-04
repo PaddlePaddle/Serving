@@ -40,9 +40,8 @@ mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId
  </dependency>
 ```
 
-2、Use it after compiling from the source code. See the file:
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+2、Use it after compiling from the source code. See the [document](../java/README.md)
 
-3、examples for using the java client, see the file：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+
+3、examples for using the java client, see the See the [document](../java/README.md)
 
