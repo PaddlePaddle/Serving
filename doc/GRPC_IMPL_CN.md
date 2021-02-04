@@ -24,13 +24,12 @@
 
 #### 1.1 服务端对比
 
-* gRPC Server 端 `load_model_config` 函数添加 `client_config_path` 参数：
+* 由于gRPC Server 端实际包含了brpc-Client端的，因此brpc-Client的初始化过程是在gRPC Server 端实现的，所以gRPC Server 端 `load_model_config` 函数添加 `client_config_path` 参数，用于指定brpc-Client初始化过程中的传输数据格式配置文件路径（`client_config_path` 参数未指定时默认为None,此时`client_config_path` 在`load_model_config` 函数中被默认为 `<server_config_path>/serving_server_conf.prototxt`，此时brpc-Client与brpc-Server的传输数据格式配置文件相同）
 
    ```
    def load_model_config(self, server_config_paths, client_config_path=None)
    ```
     在一些例子中 bRPC Server 端与 bRPC Client 端的配置文件可能不同（如 在cube local 中，Client 端的数据先交给 cube，经过 cube 处理后再交给预测库），此时 gRPC Server 端需要手动设置 gRPC Client 端的配置`client_config_path`。
-    **`client_config_path` 默认为 `<server_config_path>/serving_server_conf.prototxt`。**
 
 #### 1.2 客服端对比
 
@@ -47,12 +46,14 @@
 * gRPC Client 端 `predict` 函数添加 `asyn` 和 `is_python` 参数：
 
    ```
-   def predict(self, feed, fetch, need_variant_tag=False, asyn=False, is_python=True)
+   def predict(self, feed, fetch, batch=True, need_variant_tag=False, asyn=False, is_python=True,log_id=0)
    ```
 
 1.    `asyn` 为异步调用选项。当 `asyn=True` 时为异步调用，返回 `MultiLangPredictFuture` 对象，通过 `MultiLangPredictFuture.result()` 阻塞获取预测值；当 `asyn=Fasle` 为同步调用。
 
 2.    `is_python` 为 proto 格式选项。当 `is_python=True` 时，基于 numpy bytes 格式进行数据传输，目前只适用于 Python；当 `is_python=False` 时，以普通数据格式传输，更加通用。使用 numpy bytes 格式传输耗时比普通数据格式小很多（详见 [#654](https://github.com/PaddlePaddle/Serving/pull/654)）。
+
+3.     `batch`为数据是否需要进行增维处理的选项。当`batch=True`时，feed数据不需要额外的处理，维持原有维度；当`batch=False`时,会对数据进行增维度处理。例如：feed.shape原始为为[2,2]，当`batch=False`时,会将feed.reshape为[1,2,2]。
 
 #### 1.3 其他
 
