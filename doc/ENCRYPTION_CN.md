@@ -12,7 +12,7 @@ Padle Serving提供了模型加密预测功能，本文档显示了详细信息�
 
 普通的模型和参数可以理解为一个字符串，通过对其使用加密算法（参数是您的密钥），普通模型和参数就变成了一个加密的模型和参数。
 
-我们提供了一个简单的演示来加密模型。请参阅相关[文档](../python/examples/encryption/)。
+我们提供了一个简单的演示来加密模型。请参阅[`python/examples/encryption/encrypt.py`](../python/examples/encryption/encrypt.py)。
 
 
 ### 启动加密服务
