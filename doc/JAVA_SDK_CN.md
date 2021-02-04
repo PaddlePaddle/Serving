@@ -19,7 +19,7 @@ Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测
 | :---------------------------: | :--------------: |
 |             0.3.2             |      0.0.1       |
 
-1、直接使用提供的Java SDK作为Client进行预测
+1.    直接使用提供的Java SDK作为Client进行预测
 ### 安装
 
 您可以直接下载 jar，安装到本地 Maven 库：
@@ -39,9 +39,7 @@ mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId
  </dependency>
 ```
 
-2、从源码进行编译后使用，详细步骤见：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+2.    从源码进行编译后使用，详细步骤见[文档](../java/README.md).
 
-3、相关使用示例见：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+3.    相关使用示例见[文档](../java/README.md).
 
