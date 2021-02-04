@@ -1,47 +1,52 @@
-# Paddle Serving Client Java SDK
+# 加密模型预测
 
-(简体中文|[English](ENCRYPTION.md))
+([简体中文](ENCRYPTION_CN.md)|English)
 
-Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测，本文档说明了如何使用 Java SDK。
+Padle Serving提供了模型加密预测功能，本文档显示了详细信息。
 
-## 快速开始
+## 原理
 
-### 环境要求
+采用对称加密算法对模型进行加密。对称加密算法采用同一密钥进行加解密，它计算量小，速度快，是最常用的加密方法。
 
+### 获得加密模型
+
+普通的模型和参数可以理解为一个字符串，通过对其使用加密算法（参数是您的密钥），普通模型和参数就变成了一个加密的模型和参数。
+
+我们提供了一个简单的演示来加密模型。请参阅相关[文档](../python/examples/encryption/)。
+
+
+### 启动加密服务
+
+假设您已经有一个已经加密的模型（在`encrypt_server/`路径下）,您可以通过添加一个额外的命令行参数 `--use_encryption_model`来启动加密模型服务。
+
+CPU Service
 ```
-- Java 8 or higher
-- Apache Maven
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
 ```
-
-下表显示了 Paddle Serving Server 和 Java SDK 之间的兼容性
-
-| Paddle Serving Server version | Java SDK version |
-| :---------------------------: | :--------------: |
-|             0.3.2             |      0.0.1       |
-
-1、直接使用提供的Java SDK作为Client进行预测
-### 安装
-
-您可以直接下载 jar，安装到本地 Maven 库：
-
-```shell
-wget https://paddle-serving.bj.bcebos.com/jar/paddle-serving-sdk-java-0.0.1.jar
-mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId=io.paddle.serving.client -DartifactId=paddle-serving-sdk-java -Dversion=0.0.1 -Dpackaging=jar
+GPU Service
 ```
-
-### Maven 配置
-
-```text
- <dependency>
-     <groupId>io.paddle.serving.client</groupId>
-     <artifactId>paddle-serving-sdk-java</artifactId>
-     <version>0.0.1</version>
- </dependency>
+python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
 ```
 
-2、从源码进行编译后使用，详细步骤见：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+此时，服务器不会真正启动，而是等待密钥。
 
-3、相关使用示例见：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+### Client Encryption Inference
+
+首先，您必须拥有模型加密过程中使用的密钥。
+
+然后你可以用这个密钥配置你的客户端，当你连接服务器时，这个密钥会发送到服务器，服务器会保留它。
+
+一旦服务器获得密钥，它就使用该密钥解析模型并启动模型预测服务。
+
+
+### 模型加密推理示例
+模型加密推理示例, 请参见[`/python/examples/encryption/`](../python/examples/encryption/)。
+
+
+### 其他详细信息
+飞桨官方网站加密方法接口
+
+[Python加密方法接口](https://github.com/HexToString/Serving/blob/develop/python/paddle_serving_app/local_predict.py)
+
+[C++加密方法接口](https://www.paddlepaddle.org.cn/documentation/docs/zh/advanced_guide/inference_deployment/inference/python_infer_cn.html#analysispre)
 
