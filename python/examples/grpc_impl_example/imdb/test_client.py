@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
+from paddle_serving_client import MultiLangClient as Client
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
+import sys
+import numpy as np
 
-from paddle_serving_client import MultiLangClient
-from imdb_reader import IMDBDataset
-
-client = MultiLangClient()
-# If you have more than one model, make sure that the input
-# and output of more than one model are the same.
+client = Client()
 client.connect(["127.0.0.1:9393"])
 
 # you can define any english sentence or dataset here
@@ -27,13 +26,17 @@ client.connect(["127.0.0.1:9393"])
 imdb_dataset = IMDBDataset()
 imdb_dataset.load_resource('imdb.vocab')
 
-for i in range(3):
-    line = 'i am very sad | 0'
+for line in sys.stdin:
     word_ids, label = imdb_dataset.get_words_and_label(line)
-    feed = {"words": word_ids}
+    word_len = len(word_ids)
+    feed = {
+        "words": np.array(word_ids).reshape(word_len, 1),
+        "words.lod": [0, word_len]
+    }
     fetch = ["prediction"]
-    fetch_maps = client.predict(feed=feed, fetch=fetch)
-    for model, fetch_map in fetch_maps.items():
-        if model == "serving_status_code":
-            continue
-        print("step: {}, model: {}, res: {}".format(i, model, fetch_map))
+    fetch_map = client.predict(feed=feed, fetch=fetch, batch=True)
+    if fetch_map["serving_status_code"] == 0:
+        print(fetch_map)
+    else:
+        print(fetch_map["serving_status_code"])
+    #print("{} {}".format(fetch_map["prediction"][0], label[0]))
