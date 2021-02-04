@@ -53,7 +53,7 @@
 
 2.    `is_python` 为 proto 格式选项。当 `is_python=True` 时，基于 numpy bytes 格式进行数据传输，目前只适用于 Python；当 `is_python=False` 时，以普通数据格式传输，更加通用。使用 numpy bytes 格式传输耗时比普通数据格式小很多（详见 [#654](https://github.com/PaddlePaddle/Serving/pull/654)）。
 
-3.    `batch`为数据是否需要进行增维处理的选项。当`batch=True`时，feed数据不需要额外的处理，维持原有维度；当`batch=False`时,会对数据进行增维度处理。例如：feed.shape原始为为[2,2]，当`batch=False`时,会将feed.reshape为[1,2,2]。
+3.    `batch`为数据是否需要进行增维处理的选项。当`batch=True`时，feed数据不需要额外的处理，维持原有维度；当`batch=False`时,会对数据进行增维度处理。例如：feed.shape原始为[2,2]，当`batch=False`时,会将feed.reshape为[1,2,2]。
 
 #### 1.3 其他
 
