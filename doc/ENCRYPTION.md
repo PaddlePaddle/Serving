@@ -8,48 +8,45 @@ Paddle Serving provides model encryption inference, This document shows the deta
 
 We use symmetric encryption algorithm to encrypt the model. Symmetric encryption algorithm uses the same key for encryption and decryption, it has small amount of calculation, fast speed, is the most commonly used encryption method.
 
-### Got an encrypted model
-
-First of all, you got have a key for encryption.
+### Got an Encrypted Model
 
 Normal model and parameters can be understood as a string, by using the encryption algorithm (parameter is your key) on them, the normal model and parameters become an encrypted one.
 
-We provide a simple demo to encrypt the model. See the file 
-https://github.com/HexToString/Serving/blob/develop/python/examples/encryption/README.md
+We provide a simple demo to encrypt the model. See the [document](../python/examples/encryption/)。
+
+
+### Start Encryption Service
+
+Suppose you already have an encrypted model（in the `encrypt_server/`）,you can start the encryption model service by adding an additional command line parameter `--use_encryption_model`
+
+CPU Service
 ```
-- Java 8 or higher
-- Apache Maven
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
 ```
-
-The following table shows compatibilities between Paddle Serving Server and Java SDK.
-
-| Paddle Serving Server version | Java SDK version |
-| :---------------------------: | :--------------: |
-|             0.3.2             |      0.0.1       |
-
-1、Directly use the provided Java SDK as the client for prediction
-### Install Java SDK
-
-You can download jar and install it to the local Maven repository:
-
-```shell
-wget https://paddle-serving.bj.bcebos.com/jar/paddle-serving-sdk-java-0.0.1.jar
-mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId=io.paddle.serving.client -DartifactId=paddle-serving-sdk-java -Dversion=0.0.1 -Dpackaging=jar
+GPU Service
+```
+python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
 ```
 
-### Maven configure
+At this point, the server does not really start, but waits for the key。
 
-```text
- <dependency>
-     <groupId>io.paddle.serving.client</groupId>
-     <artifactId>paddle-serving-sdk-java</artifactId>
-     <version>0.0.1</version>
- </dependency>
-```
+### Client Encryption Inference
 
-2、Use it after compiling from the source code. See the file:
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+First of all, you got have the key which is used in the process of model encryption.
 
-3、examples for using the java client, see the file：
-https://github.com/PaddlePaddle/Serving/blob/develop/java/README_CN.md
+Then you can configure your client with the key, when you connect the server, this key will send to the server and the server will keep it.
+
+Once the server gets the key, it uses the key to parse the model and starts the model prediction service.
+
+
+### Example of Model Encryption Inference
+Example of model encryption inference, See the [`/python/examples/encryption/`](../python/examples/encryption/)。
+
+
+### Other Details
+Interface of encryption method in paddlepaddle official website:
+
+[Python encryption method](https://github.com/HexToString/Serving/blob/develop/python/paddle_serving_app/local_predict.py)
+
+[C++ encryption method](https://www.paddlepaddle.org.cn/documentation/docs/zh/advanced_guide/inference_deployment/inference/python_infer_cn.html#analysispre)
 
