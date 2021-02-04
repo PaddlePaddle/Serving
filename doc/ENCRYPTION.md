@@ -1,14 +1,21 @@
-# Paddle Serving Client Java SDK
+# MOEDL ENCRYPTION INFERENCE
 
-([简体中文](JAVA_SDK_CN.md)|English)
+([简体中文](ENCRYPTION_CN.md)|English)
 
-Paddle Serving provides Java SDK，which supports predict on the Client side with Java language. This document shows how to use the Java SDK.
+Paddle Serving provides model encryption inference, This document shows the details.
 
-## Getting started
+## Principle
 
+We use symmetric encryption algorithm to encrypt the model. Symmetric encryption algorithm uses the same key for encryption and decryption, it has small amount of calculation, fast speed, is the most commonly used encryption method.
 
-### Prerequisites
+### Got an encrypted model
 
+First of all, you got have a key for encryption.
+
+Normal model and parameters can be understood as a string, by using the encryption algorithm (parameter is your key) on them, the normal model and parameters become an encrypted one.
+
+We provide a simple demo to encrypt the model. See the file 
+https://github.com/HexToString/Serving/blob/develop/python/examples/encryption/README.md
 ```
 - Java 8 or higher
 - Apache Maven
