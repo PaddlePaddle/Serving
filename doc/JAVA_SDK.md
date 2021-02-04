@@ -20,7 +20,7 @@ The following table shows compatibilities between Paddle Serving Server and Java
 | :---------------------------: | :--------------: |
 |             0.3.2             |      0.0.1       |
 
-1、Directly use the provided Java SDK as the client for prediction
+1.    Directly use the provided Java SDK as the client for prediction
 ### Install Java SDK
 
 You can download jar and install it to the local Maven repository:
@@ -40,8 +40,8 @@ mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId
  </dependency>
 ```
 
-2、Use it after compiling from the source code. See the [document](../java/README.md)
+2.    Use it after compiling from the source code. See the [document](../java/README.md).
 
 
-3、examples for using the java client, see the See the [document](../java/README.md)
+3.    examples for using the java client, see the See the [document](../java/README.md).
 
