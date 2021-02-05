@@ -833,6 +833,7 @@ class MultiLangServer(object):
                        workdir=None,
                        port=9292,
                        device="cpu",
+                       use_encryption_model=False,
                        cube_conf=None):
         if not self._port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
@@ -847,6 +848,7 @@ class MultiLangServer(object):
             workdir=workdir,
             port=self.port_list_[0],
             device=device,
+            use_encryption_model=use_encryption_model,
             cube_conf=cube_conf)
         self.set_port(port)
 
