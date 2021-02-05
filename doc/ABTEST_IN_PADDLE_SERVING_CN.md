@@ -17,11 +17,15 @@ sh get_data.sh
 
 ### 处理数据
 由于处理数据需要用到相关库，请使用pip进行安装
-`pip install paddlepaddle`
-`pip install paddle-serving-app`
-`pip install Shapely`
-您可以直接运行
-python [abtest_get_data.py](../python/examples/imdb/abtest_get_data.py)
+``` shell
+pip install paddlepaddle
+pip install paddle-serving-app
+pip install Shapely
+````
+您可以直接运行下面的命令来处理数据。
+
+[python abtest_get_data.py](../python/examples/imdb/abtest_get_data.py)
+
 文件中的Python代码将处理`test_data/part-0`的数据，并将处理后的数据生成并写入`processed.data`文件中。
 
 ### 启动Server端
@@ -51,9 +55,14 @@ exit
 ```
 
 ### 启动Client端
-为了模拟ABTEST工况，您可以在宿主机运行下面Python代码启动Client端，但需确保宿主机具备相关环境，您也可以在docker环境下运行，运行前使用`pip install paddle-serving-client`安装paddle-serving-client包。
+为了模拟ABTEST工况，您可以在宿主机运行下面Python代码启动Client端，但需确保宿主机具备相关环境，您也可以在docker环境下运行.
+
+运行前使用`pip install paddle-serving-client`安装paddle-serving-client包。
+
+
 您可以直接使用下面的命令，进行ABTEST预测。
-python [abtest_client.py](../python/examples/imdb/abtest_client.py)
+
+[python abtest_client.py](../python/examples/imdb/abtest_client.py)
 
 ```python
 from paddle_serving_client import Client
