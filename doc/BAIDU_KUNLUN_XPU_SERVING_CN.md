@@ -1,8 +1,10 @@
 # Paddle Serving使用百度昆仑芯片部署
+(简体中文|[English](./BAIDU_KUNLUN_XPU_SERVING.md))
+
 Paddle Serving支持使用百度昆仑芯片进行预测部署。目前试验性支持在百度昆仑芯片和arm服务器（如飞腾 FT-2000+/64）上进行部署，后续完善对其他异构硬件服务器部署能力。
 
 # 编译、安装
-基本环境配置可参考[该文档](COMPILE_CN.md）进行配置。
+基本环境配置可参考[该文档](COMPILE_CN.md)进行配置。
 ## 编译
 * 编译server部分
 ```
@@ -57,7 +59,7 @@ make -j10
 |:--|:--|:--|
 |use_lite|使用Paddle-Lite Engine|使用Paddle-Lite cpu预测能力|
 |use_xpu|使用Baidu Kunlun进行预测|该选项需要与use_lite配合使用|
-|ir_optim|开启Paddle-Lite计算图优化|详细见[Paddle-Lite](https://github.com/PaddlePaddle/Paddle-Lite)|
+|ir_optim|开启Paddle-Lite计算子图优化|详细见[Paddle-Lite](https://github.com/PaddlePaddle/Paddle-Lite)|
 # 部署使用示例
 ## 下载模型
 ```
@@ -99,5 +101,5 @@ print(fetch_map)
 以下提供部分样例，其他模型可参照进行修改。
 |示例名称|示例链接|
 |:-----|:--|
-|fit_a_line|http://github.com|
-|resnet|http://github.com|
+|fit_a_line|[fit_a_line_xpu](../python/examples/xpu/fit_a_line_xpu)|
+|resnet|[resnet_v2_50_xpu](../python/examples/xpu/resnet_v2_50_xpu)|
