@@ -86,6 +86,26 @@ pip3 install --upgrade pip
 pip3 install --upgrade setuptools
 ```
 
+#### Q: 运行过程中报错，信息如下：
+```
+Traceback (most recent call last):
+  File "../../deploy/serving/test_client.py", line 18, in <module>
+    from paddle_serving_app.reader import *
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/__init__.py", line 15, in <module>
+    from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 24, in <module>
+    from shapely.geometry import Polygon
+ImportError: No module named shapely.geometry
+```
+**A:** 有2种方法，第一种通过pip/pip3安装shapely，第二种通过pip/pip3安装所有依赖组件。
+```
+方法1：
+pip install shapely==1.7.0
+
+方法2：
+pip install -r python/requirements.txt
+```
+
 ## 编译问题
 
 #### Q: 如何使用自己编译的Paddle Serving进行预测？
