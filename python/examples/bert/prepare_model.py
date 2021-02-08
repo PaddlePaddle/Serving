@@ -16,7 +16,9 @@ import paddlehub as hub
 import paddle.fluid as fluid
 import sys
 import paddle_serving_client.io as serving_io
+import paddle
 
+paddle.enable_static()
 model_name = "bert_chinese_L-12_H-768_A-12"
 module = hub.Module(model_name)
 inputs, outputs, program = module.context(
