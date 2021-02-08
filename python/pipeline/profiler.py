@@ -120,7 +120,7 @@ class PerformanceTracer(object):
                                                          tot_cost))
 
             if "DAG" in op_cost:
-                calls = op_cost["DAG"].values()
+                calls = list(op_cost["DAG"].values())
                 calls.sort()
                 tot = len(calls)
                 qps = 1.0 * tot / self._interval_s
