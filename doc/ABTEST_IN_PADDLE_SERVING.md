@@ -16,32 +16,30 @@ sh get_data.sh
 ```
 
 ### Processing Data
+Data processing needs to use the relevant library, please use pip to install
+``` shell
+pip install paddlepaddle
+pip install paddle-serving-app
+pip install Shapely
+````
 
-The following Python code will process the data `test_data/part-0` and write to the `processed.data` file.
+You can directly run the following command to process the data.
 
-[//file]:#process.py
-``` python
-from paddle_serving_app.reader import IMDBDataset
-imdb_dataset = IMDBDataset()
-imdb_dataset.load_resource('imdb.vocab')
+[python abtest_get_data.py](../python/examples/imdb/abtest_get_data.py)
 
-with open('test_data/part-0') as fin:
-    with open('processed.data', 'w') as fout:
-        for line in fin:
-            word_ids, label = imdb_dataset.get_words_and_label(line)
-            fout.write("{};{}\n".format(','.join([str(x) for x in word_ids]), label[0]))
-```
+The Python code in the file will process the data `test_data/part-0` and write to the `processed.data` file.
 
 ### Start Server
 
-Here, we [use docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md) to start the server-side service. 
+Here, we [use docker](RUN_IN_DOCKER.md) to start the server-side service. 
 
 First, start the BOW server, which enables the `8000` port:
 
 ``` shell
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest
-docker exec -it bow-server bash
-pip install paddle-serving-server
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker exec -it bow-server /bin/bash
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 8000 >std.log 2>err.log &
 exit
 ```
@@ -49,18 +47,25 @@ exit
 Similarly, start the LSTM server, which enables the `9000` port:
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest
-docker exec -it lstm-server bash
-pip install paddle-serving-server
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker exec -it lstm-server /bin/bash
+pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
 python -m paddle_serving_server.serve --model model --port 9000 >std.log 2>err.log &
 exit
 ```
 
 ### Start Client
 
-Run the following Python code on the host computer to start client. Make sure that the host computer is installed with the `paddle-serving-client` package.
+In order to simulate abtest condition, you can run the following Python code on the host to start the client, but you need to ensure that the host has the relevant environment, you can also run in the docker environment.
 
-[//file]:#ab_client.py
+Before running, use `pip install paddle-serving-client` to install the paddle-serving-client package.
+
+You can directly use the following command to make abtest prediction.
+
+[python abtest_client.py](../python/examples/imdb/abtest_client.py)
+
+[//file]:#abtest_client.py
 ``` python
 from paddle_serving_client import Client
 
@@ -91,7 +96,7 @@ In the code, the function `client.add_variant(tag, clusters, variant_weight)` is
 When making prediction on the client side, if the parameter `need_variant_tag=True` is specified, the response will contain the variant tag corresponding to the distribution flow.
 
 ### Expected Results
-
+Due to different network conditions, the results of each prediction may be slightly different.
 ``` python
 [lstm](total: 1867) acc: 0.490091055169
 [bow](total: 217) acc: 0.73732718894
