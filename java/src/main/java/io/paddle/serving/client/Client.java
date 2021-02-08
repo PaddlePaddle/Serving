@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.stream.Collectors;
+import java.util.List;
+import java.util.ArrayList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -238,7 +241,11 @@ public class Client {
                 } else {
                     throw new IllegalArgumentException("error tensor value type.");
                 }
-                tensor_builder.addAllShape(feedShapes_.get(name));
+                long[] longArray = variable.shape();
+                int[] intArray = Arrays.stream(longArray).mapToInt(i -> (int) i).toArray();
+                List<Integer> indarrayShapeList = Arrays.stream(intArray).boxed().collect(Collectors.toList());
+                //tensor_builder.addAllShape(feedShapes_.get(name));
+                tensor_builder.addAllShape(indarrayShapeList);
                 inst_builder.addTensorArray(tensor_builder.build());
             }
             req_builder.addInsts(inst_builder.build());
