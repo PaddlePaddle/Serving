@@ -7,8 +7,8 @@
 In order to facilitate users to use java for development, we provide the compiled Serving project to be placed in the java mirror. The way to get the mirror and enter the development environment is
 
 ```
-docker pull hub.baidubce.com/paddlepaddle/serving:0.4.0-java
-docker run --rm -dit --name java_serving hub.baidubce.com/paddlepaddle/serving:0.4.0-java
+docker pull hub.baidubce.com/paddlepaddle/serving:0.4.1-java
+docker run --rm -dit --name java_serving hub.baidubce.com/paddlepaddle/serving:0.4.1-java
 docker exec -it java_serving bash
 cd Serving/java
 ```

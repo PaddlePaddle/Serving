@@ -7,8 +7,8 @@
 为了方便用户使用java进行开发，我们提供了编译好的Serving工程放置在java镜像当中，获取镜像并进入开发环境的方式是
 
 ```
-docker pull hub.baidubce.com/paddlepaddle/serving:0.4.0-java
-docker run --rm -dit --name java_serving hub.baidubce.com/paddlepaddle/serving:0.4.0-java
+docker pull hub.baidubce.com/paddlepaddle/serving:0.4.1-java
+docker run --rm -dit --name java_serving hub.baidubce.com/paddlepaddle/serving:0.4.1-java
 docker exec -it java_serving bash
 cd Serving/java
 ```
