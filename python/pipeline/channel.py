@@ -767,7 +767,7 @@ class ThreadChannel(Queue.PriorityQueue):
             while self._stop is False and self._consumer_cursors[
                     op_name] - self._base_cursor >= len(self._output_buf):
                 try:
-                    channeldata = self.get(timeout=0)
+                    channeldata = self.get(timeout=0)[1]
                     self._output_buf.append(channeldata)
                     list_values = list(channeldata.values())
                     _LOGGER.debug(
