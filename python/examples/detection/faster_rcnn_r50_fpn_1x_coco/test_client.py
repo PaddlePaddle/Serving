@@ -23,19 +23,21 @@ preprocess = Sequential([
     Resize(640, 640), Transpose((2, 0, 1))
 ])
 
-postprocess = RCNNPostprocess("yolo_list.txt", "output")
+postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
 
-client.load_client_config(sys.argv[1])
+client.load_client_config("serving_client/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9494'])
 
-im = preprocess(sys.argv[3])
+im = preprocess(sys.argv[1])
 fetch_map = client.predict(
     feed={
         "image": im,
-        "im_info": np.array(list(im.shape[1:]) + [1.0]),
-        "im_shape": np.array(list(im.shape[1:]) + [1.0])
+        "im_shape": np.array(list(im.shape[1:])).reshape(-1),
+        "scale_factor": np.array([1.0, 1.0]).reshape(-1),
     },
-    fetch=["save_infer_model/scale_2.tmp_1", "save_infer_model/scale_3.tmp_1"],
+    fetch=["save_infer_model/scale_0.tmp_1"],
     batch=False)
 print(fetch_map)
+fetch_map["image"] = sys.argv[1]
+postprocess(fetch_map)

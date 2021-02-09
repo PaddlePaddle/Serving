@@ -4,20 +4,18 @@
 
 ### Get The Faster RCNN Model
 ```
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn.tar.gz
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/infer_cfg.yml
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn_r50_fpn_1x_coco.tar
 ```
-If you want to have more detection models, please refer to [Paddle Detection Model Zoo](https://github.com/PaddlePaddle/PaddleDetection/blob/release/0.2/docs/MODEL_ZOO_cn.md)
 
 ### Start the service
 ```
-tar xf faster_rcnn.tar.gz
-GLOG_v=2 python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0
+tar xf faster_rcnn_r50_fpn_1x_coco.tar
+python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0
 ```
 
 ### Perform prediction
 ```
-python test_client.py serving_client/serving_client_conf.prototxt infer_cfg.yml 000000570688.jpg
+python test_client.py 000000570688.jpg
 ```
 
 ## 3. Result analysis
