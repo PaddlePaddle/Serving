@@ -198,12 +198,12 @@ class Client(object):
             self.rpc_timeout_ms = rpc_timeout
 
     def use_key(self, key_filename):
-        with open(key_filename, "r") as f:
+        with open(key_filename, "rb") as f:
             self.key = f.read()
 
     def get_serving_port(self, endpoints):
         if self.key is not None:
-            req = json.dumps({"key": base64.b64encode(self.key)})
+            req = json.dumps({"key": base64.b64encode(self.key).decode()})
         else:
             req = json.dumps({})
         r = requests.post("http://" + endpoints[0], req)
