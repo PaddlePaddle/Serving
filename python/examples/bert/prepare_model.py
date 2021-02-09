@@ -20,7 +20,7 @@ import paddle
 
 paddle.enable_static()
 model_name = "bert_chinese_L-12_H-768_A-12"
-module = hub.Module(model_name)
+module = hub.Module(name=model_name)
 inputs, outputs, program = module.context(
     trainable=True, max_seq_len=int(sys.argv[1]))
 place = fluid.core_avx.CPUPlace()
