@@ -18,25 +18,23 @@ import sys
 import numpy as np
 
 preprocess = Sequential([
-    File2Image(), BGR2RGB(), Div(255.0),
-    Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], False),
-    Resize(640, 640), Transpose((2, 0, 1))
+    File2Image(), BGR2RGB(), 
+    Normalize([123.675, 116.28, 103.53], [58.395, 57.12, 57.375], False),
+    Resize((512, 512)), Transpose((2, 0, 1))
 ])
 
 postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
 
-client.load_client_config(sys.argv[1])
+client.load_client_config("serving_client/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9494'])
 
-im = preprocess(sys.argv[3])
+im = preprocess(sys.argv[1])
 fetch_map = client.predict(
     feed={
         "image": im,
-        "im_info": np.array(list(im.shape[1:]) + [1.0]),
-        "im_shape": np.array(list(im.shape[1:]) + [1.0])
+        "scale_factor": np.array([1.0, 1.0]).reshape(-1),
     },
-    fetch=["multiclass_nms"],
+    fetch=["save_infer_model/scale_0.tmp_1"],
     batch=False)
-fetch_map["image"] = sys.argv[3]
-postprocess(fetch_map)
+print(fetch_map)

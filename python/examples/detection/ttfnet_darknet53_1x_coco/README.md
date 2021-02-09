@@ -1,0 +1,20 @@
+# TTF-Net model on Paddle Serving
+
+([简体中文](./README_CN.md)|English)
+
+### Get Model
+```
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/ttfnet_darknet53_1x_coco.tar
+```
+
+### Start the service
+```
+tar xf ttfnet_darknet53_1x_coco.tar
+python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0
+```
+
+### Perform prediction
+```
+python test_client.py 000000570688.jpg
+```
+
