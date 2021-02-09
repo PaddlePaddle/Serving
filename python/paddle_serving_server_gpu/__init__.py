@@ -442,7 +442,7 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                if cuda_version == "101" or cuda_version == "102" or cuda_version == "110":
+                if cuda_version == "101" or cuda_version == "102":
                     device_version = "serving-gpu-" + cuda_version + "-"
                 elif cuda_version == "arm" or cuda_version == "arm-xpu":
                     device_version = "serving-" + cuda_version + "-"
