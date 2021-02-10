@@ -10,11 +10,11 @@
 示例中采用[Paddlehub](https://github.com/PaddlePaddle/PaddleHub)中的[BERT中文模型](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel)。
 请先安装paddlehub
 ```
-pip install paddlehub
+pip3 install paddlehub
 ```
 执行
 ```
-python prepare_model.py 128
+python3 prepare_model.py 128
 ```
 参数128表示BERT模型中的max_seq_len，即预处理后的样本长度。
 生成server端配置文件与模型文件，存放在bert_seq128_model文件夹。
@@ -25,9 +25,9 @@ python prepare_model.py 128
 ```shell
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
 tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
+mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
+mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
 ```
-若使用bert_chinese_L-12_H-768_A-12_model模型，将下面命令中的bert_seq128_model字段替换为bert_chinese_L-12_H-768_A-12_model，bert_seq128_client字段替换为bert_chinese_L-12_H-768_A-12_client.
-
 
 
 ### 获取词典和样例数据
