@@ -26,6 +26,6 @@ python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292
 ### 执行预测
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/
+python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
 ```
 预测完毕会输出预测过程的耗时。
