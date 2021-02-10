@@ -14,6 +14,8 @@ tar xf yolov3_darknet53_270e_coco.tar
 python -m paddle_serving_server_gpu.serve --model pddet_serving_model --port 9494 --gpu_ids 0
 ```
 
+该模型支持TensorRT，如果想要更快的预测速度，可以开启`--use_trt`选项。
+
 ### 执行预测
 ```
 python test_client.py 000000570688.jpg
