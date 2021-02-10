@@ -64,7 +64,7 @@ the client reads data from data-c.txt and send prediction request, the predictio
 ### HTTP Inference Service
 start cpu HTTP inference service,Run
 ```
- python bert_web_service.py bert_seq128_model/ 9292 #launch gpu inference service
+ python bert_web_service.py bert_seq128_model/ 9292 #launch cpu inference service
 ```
 
 Or,start gpu HTTP inference service,Run
