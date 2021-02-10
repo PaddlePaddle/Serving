@@ -11,13 +11,15 @@ This example use model [BERT Chinese Model](https://www.paddlepaddle.org.cn/hubd
 
 Install paddlehub first
 ```
-pip install paddlehub
+pip3 install paddlehub
 ```
 
 run 
 ```
-python prepare_model.py 128
+python3 prepare_model.py 128
 ```
+
+**PaddleHub only support Python 3.5+**
 
 the 128 in the command above means max_seq_len in BERT model, which is the length of sample after preprocessing.
 the config file and model file for server side are saved in the folder bert_seq128_model.
