@@ -7,27 +7,27 @@
 Paddle Serving是一个PaddlePaddle开源的在线服务框架，长期目标就是围绕着人工智能落地的最后一公里提供越来越专业、可靠、易用的服务。
 
 - 工业级：为了达到工业级深度学习模型在线部署的要求，
-Paddle Serving提供很多大规模场景需要的部署功能：1）模型管理、模型热加载、模型加解密。2）支持跨平台、多种硬件部署和推理。3）分布式稀疏参数索引功能。4）在线A/B流量测试
+Paddle Serving提供很多大规模场景需要的部署功能：1）模型管理、模型热加载、模型加解密；2）支持跨平台、多种硬件部署；3）分布式稀疏参数索引功能；4）在线A/B流量测试
 
-- 高性能：从低延时和高吞吐2个维度思考提升模型推理的性能。1）集成Paddle Inference高性能预测引擎；2）支持Nvidia Tensor RT高性能推理引擎；3）高性能网络框架；4）异步Pipeline模式大幅提升吞吐量
+- 高性能：从低延时和高吞吐2个维度思考提升模型推理的性能。1）集成Paddle Inference高性能预测引擎；2）支持Nvidia Tensor RT高性能推理引擎；3）集成高性能网络框架brpc；4）异步Pipeline模式大幅提升吞吐量
 
 - 简单易用：为了让使用Paddle的用户能够以极低的成本部署模型，PaddleServing设计了一套与Paddle训练框架无缝打通的预测部署API，普通模型可以使用一行命令进行服务部署。20多种常见模型案例和文档。
 
-- 功能扩展：当前，Paddle Serving支持C++、Python、Golang、Java 4种语言客户端，能力上也会持续加强。在Paddle Serving的框架设计方面，尽管当前Paddle Serving以支持Paddle模型的部署为核心功能，
+- 功能扩展：当前，Paddle Serving支持C++、Python、Golang、Java 4种语言客户端，未来会支持更多语。在Paddle Serving的框架设计方面，尽管当前Paddle Serving以支持Paddle模型的部署为核心功能，
 用户可以很容易嵌入其他的机器学习库部署在线预测。
 
 ----
-## 2. 整体设计
+## 2. 概要设计
 
-任何优秀产品一定从用户需求出发，具有清晰的定位和良好的设计。Paddle Serving也不例外，Paddle Serving目标围绕着人工智能落地的最后一公里提供越来越专业、可靠、易用的服务。通过调研大量用户的使用场景，并将这些场景抽象归纳，例如在线服务侧重高并发，低平响；离线服务侧重批量高吞吐，高资源利用率；算法开发同学擅长使用Python做模型训练和推理等。
+任何优秀软件产品一定从用户需求出发，具有清晰的定位和良好的概要设计。Paddle Serving也不例外，Paddle Serving目标围绕着人工智能落地的最后一公里提供越来越专业、可靠、易用的服务。通过调研大量用户的使用场景，并将这些场景抽象归纳，例如在线服务侧重高并发，低平响；离线服务侧重批量高吞吐，高资源利用率；算法开发者擅长使用Python做模型训练和推理等。
 
 
 ### 2.1 设计选型
 为了满足不同场景的用户需求，Paddle Serving的产品定位采用更低维度特征，如响应时间、吞吐、开发效率等，实现目标的选型和技术选型。
 
-| 响应时间 | 吞吐 | 开发效率 | 资源利用率 | 选型 | 类似场景|
+| 响应时间 | 吞吐 | 开发效率 | 资源利用率 | 选型 | 应用场景|
 |-----|------|-----|-----|------|------|
-| 低 | 高 | 低 | 高 |C++ Serving | 高性能场景，大型在线推荐系统召回、排序服务。支持批量推理|
+| 低 | 高 | 低 | 高 |C++ Serving | 高性能场景，大型在线推荐系统召回、排序服务|
 | 高 | 高 | 较高 |高|Python Pipeline Serving| 兼顾吞吐和效率，单算子多模型组合场景，异步模式|
 | 高 | 低 | 高| 低 |Python webserver| 高迭代效率场景，小型服务或需要快速迭代，模型效果验证|
 
@@ -55,19 +55,19 @@ Paddle Serving从做顶层设计时考虑到不同团队在工业级场景中会
 > 跨平台运行
 
 跨平台是不依赖于操作系统，也不依赖硬件环境。一个操作系统下开发的应用，放到另一个操作系统下依然可以运行。因此，设计上既要考虑开发语言、组件是跨平台的，同时也要考虑不同系统上编译器的解释差异。
-Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](DOCKER_IMAGES_CN.md)》，根据用户的使用场景选择。为方便用户使用Docker镜像，我们提供了帮助文档《[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)》。目前，Python webserver模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](WINDOWS_TUTORIAL_CN.md)》
+Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](DOCKER_IMAGES_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)》。目前，Python webserver模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](WINDOWS_TUTORIAL_CN.md)》
 
 > 支持多种开发语言SDK
 
-为了方便不同场景使用Serving，Paddle Serving提供了4种开发语言SDK，包括Python、C++、Java、Golang。Golang SDK在持续建设中，有兴趣的开源开发者可以提交PR。
-+ Python 参考python/examples下client示例 或 4.2 web服务示例
-+ C++使用文档 《[从零开始写一个预测服务](deprecated/CREATING.md)》
-+ Java使用文档 《[Paddle Serving Client Java SDK](JAVA_SDK_CN.md)》
-+ Golang示例文档 《[如何在Paddle Serving使用Go Client](IMDB_GO_CLIENT_CN.md)》
+Paddle Serving提供了4种开发语言SDK，包括Python、C++、Java、Golang。Golang SDK在建设中，有兴趣的开源开发者可以提交PR。
++ Python，参考python/examples下client示例 或 4.2 web服务示例
++ C++，参考《[从零开始写一个预测服务](deprecated/CREATING.md)》
++ Java，参考《[Paddle Serving Client Java SDK](JAVA_SDK_CN.md)》
++ Golang，参考《[如何在Paddle Serving使用Go Client](deprecated/IMDB_GO_CLIENT_CN.md)》
 
 > 支持多种硬件设备
 
-主流深度学习平台的推理框架仅支持X86平台的CPU和GPU推理，随着AI算法复杂度高速增长，推动芯片算力不断提升，推动物联网应用加速落地，在多种硬件环境的推理场景越来越多。Paddle Serving集成高性能Paddle Inference和Paddle Lite，提供在多种硬件设备上推理服务。目前，除了X86 CPU、GPU外，Paddle Serving已实现ARM CPU和昆仑 XPU上部署推理服务，未来会有更多的硬件加入Paddle Serving。
+知名的深度学习平台的推理框架仅支持X86平台的CPU和GPU推理。随着AI算法复杂度高速增长，芯片算力大幅提升，推动物联网应用加速落地，在多种硬件上部署。Paddle Serving集成高性能推理引擎Paddle Inference和移动端推理引擎Paddle Lite，在多种硬件设备上提供推理服务。目前，除了X86 CPU、GPU外，Paddle Serving已实现ARM CPU和昆仑 XPU上部署推理服务，未来会有更多的硬件加入Paddle Serving。
 
 
 > 跨深度学习平台模型转换
@@ -105,15 +105,11 @@ fetch_var {
 分布式稀疏参数索引通常在广告推荐中出现，并与分布式训练配合形成完整的离线-在线一体化部署。下图解释了其中的流程，产品的在线服务接受用户请求后将请求发送给预估服务，同时系统会记录用户的请求以进行相应的训练日志处理和拼接。离线分布式训练系统会针对流式产出的训练日志进行模型增量训练，而增量产生的模型会配送至分布式稀疏参数索引服务，同时对应的稠密的模型参数也会配送至在线的预估服务。在线服务由两部分组成，一部分是针对用户的请求提取特征后，将需要进行模型的稀疏参数索引的特征发送请求给分布式稀疏参数索引服务，针对分布式稀疏参数索引服务返回的稀疏参数再进行后续深度学习模型的计算流程，从而完成预估。
 
 
-> 云上部署
-
-云端部署能力正在建设中，待开放
-
 ----
 ## 3. C++ Serving设计
-C++ Serving目标实现高并发、低延时的高性能推理服务。其网络框架和核心执行引擎均是基于C/C++编写，并且提供一定的工业级应用能力，包括模型管理、模型安全、A/B Testing
+C++ Serving目标实现高并发、低延时的高性能推理服务。其网络框架和核心执行引擎均是基于C/C++编写，并且提供强大的工业级应用能力，包括模型管理、模型安全、A/B Testing
 
-### 3.1 网络框架
+### 3.1 通信机制
 
 C++ Serving采用[better-rpc](https://github.com/apache/incubator-brpc)进行底层的通信。better-rpc是百度开源的一款PRC通信库，具有高并发、低延时等特点，已经支持了包括百度在内上百万在线预估实例、上千个在线预估服务，稳定可靠。与gRPC网络框架相比，具有更低的延时，更高的并发性能；缺点是跨操作系统平台、跨语言能力不足。
 
@@ -128,7 +124,7 @@ C++ Serving的核心执行引擎是一个有向无环图，图中的每个节点
 
 ### 3.3 模型管理与热加载
 
-addle Serving的C++引擎支持模型管理功能，支持多种模型和模型不同版本的管理。为了保证在模型更换期间推理服务的可用性，需要在服务不中断的情况下对模型进行热加载。Paddle Serving对该特性进行了支持，并提供了一个监控产出模型更新本地模型的工具，具体例子请参考《[Paddle Serving中的模型热加载](HOT_LOADING_IN_SERVING_CN.md)》。
+Paddle Serving的C++引擎支持模型管理功能，支持多种模型和模型不同版本的管理。为了保证在模型更换期间推理服务的可用性，需要在服务不中断的情况下对模型进行热加载。Paddle Serving对该特性进行了支持，并提供了一个监控产出模型更新本地模型的工具，具体例子请参考《[Paddle Serving中的模型热加载](HOT_LOADING_IN_SERVING_CN.md)》。
 
 ### 3.4 模型加解密
 
@@ -210,3 +206,6 @@ Pipeline Serving核心设计是图执行引擎，基本处理单元是OP和Chann
 
 ### 6.2 向量检索、树结构检索
 在推荐与广告场景的召回系统中，通常需要采用基于向量的快速检索或者基于树结构的快速检索，Paddle Serving会对这方面的检索引擎进行集成或扩展。
+
+### 6.3 服务监控
+集成普罗米修斯监控，一套开源的监控&报警&时间序列数据库的组合，适合k8s和docker的监控系统。
