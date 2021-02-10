@@ -14,7 +14,7 @@ tar xf criteo_ctr_demo_model.tar.gz
 mv models/ctr_client_conf .
 mv models/ctr_serving_model .
 ```
-the directories like serving_server_model and serving_client_config will appear.
+the directories like `ctr_serving_model` and `ctr_client_conf` will appear.
 
 ### Start RPC Inference Service
 

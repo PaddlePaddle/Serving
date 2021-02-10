@@ -67,7 +67,7 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 ### 启动HTTP预测服务
 启动cpu HTTP预测服务，执行
 ```
-python bert_web_service.py bert_seq128_model/ 9292 #启动gpu预测服务
+python bert_web_service.py bert_seq128_model/ 9292 #启动CPU预测服务
 
 ```
 
