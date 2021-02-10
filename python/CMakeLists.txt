@@ -86,7 +86,7 @@ if (SERVER)
         elseif(CUDA_VERSION EQUAL 10.2)
             set(SUFFIX 102)
         elseif(CUDA_VERSION EQUAL 11.0)
-            set(SUFFIX 110)
+            set(SUFFIX 11)
 
         endif()
         add_custom_command(
