@@ -26,6 +26,6 @@ python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292
 ### RPC Infer
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/
+python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
 ```
 the latency will display in the end.
