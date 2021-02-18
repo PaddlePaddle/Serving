@@ -16,8 +16,10 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 
 参考[该文档](DOCKER_IMAGES_CN.md)获取镜像：
 
+以CPU编译镜像为例
+
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
 ```
 
 ### 创建容器并进入
@@ -40,12 +42,12 @@ docker exec -it test bash
 ### 创建容器并进入
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 ```
 或者
 ```bash
-docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 docker exec -it test bash
 ```
 
