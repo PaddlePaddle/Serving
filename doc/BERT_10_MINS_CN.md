@@ -82,7 +82,6 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 ```
 启动client读取data-c.txt中的数据进行预测，预测结果为文本的向量表示（由于数据较多，脚本中没有将输出进行打印），server端的地址在脚本中修改。
 
-从data.txt文件中读取样例，并将结果打印到标准输出。
 
 #### 方法2：通过HTTP方式执行预测
 该方式分为两步
