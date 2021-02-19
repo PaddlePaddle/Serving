@@ -74,7 +74,7 @@ pip install paddle_serving_app
 
 ### Step5：客户端访问
 
-#### 方法1：直接客户端执行预测
+#### 方法1：通过RPC方式执行预测
 执行
 ```
 head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
