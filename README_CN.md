@@ -115,7 +115,7 @@ pip install paddlepaddle==2.0.0
 pip install paddlepaddle-gpu==2.0.0
 ```
 
-如果是其他GPU环境，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
+**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
 
 选择相应的GPU环境的url链接并进行安装，例如Cuda 9.0的Python2.7用户，请选择表格当中的`cp27-cp27mu`和`cuda9.0_cudnn7-mkl`对应的url，复制下来并执行
 ```
