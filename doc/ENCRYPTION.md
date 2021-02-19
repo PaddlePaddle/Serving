@@ -42,11 +42,3 @@ Once the server gets the key, it uses the key to parse the model and starts the 
 ### Example of Model Encryption Inference
 Example of model encryption inference, See the [`/python/examples/encryption/`](../python/examples/encryption/)。
 
-
-### Other Details
-Interface of encryption method in paddlepaddle official website:
-
-[Python encryption method](https://github.com/HexToString/Serving/blob/develop/python/paddle_serving_app/local_predict.py)
-
-[C++ encryption method](https://www.paddlepaddle.org.cn/documentation/docs/zh/advanced_guide/inference_deployment/inference/python_infer_cn.html#analysispre)
-
