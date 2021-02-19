@@ -5,7 +5,7 @@
 Bert-As-Service的目标是给定一个句子，服务可以将句子表示成一个语义向量返回给用户。[Bert模型](https://arxiv.org/abs/1810.04805)是目前NLP领域的热门模型，在多种公开的NLP任务上都取得了很好的效果，使用Bert模型计算出的语义向量来做其他NLP模型的输入对提升模型的表现也有很大的帮助。Bert-As-Service可以让用户很方便地获取文本的语义向量表示并应用到自己的任务中。为了实现这个目标，我们通过以下几个步骤说明使用Paddle Serving在十分钟内就可以搭建一个这样的服务。示例中所有的代码和文件均可以在Paddle Serving的[示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)中找到。
 
 ### Step1：获取模型
-方法1：
+#### 方法1：
 示例中采用[Paddlehub](https://github.com/PaddlePaddle/PaddleHub)中的[BERT中文模型](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel)。
 请先安装paddlehub
 ```
@@ -19,7 +19,7 @@ python3 prepare_model.py 128
 生成server端配置文件与模型文件，存放在bert_seq128_model文件夹。
 生成client端配置文件，存放在bert_seq128_client文件夹。
 
-方法2：
+#### 方法2：
 您也可以从bos上直接下载上述模型（max_seq_len=128），解压后server端配置文件与模型文件存放在bert_chinese_L-12_H-768_A-12_model文件夹，client端配置文件存放在bert_chinese_L-12_H-768_A-12_client文件夹：
 ```shell
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -37,7 +37,7 @@ sh get_data.sh
 脚本将下载中文词典vocab.txt和中文样例数据data-c.txt
 
 
-#### Step3：启动服务
+### Step3：启动服务
 
 启动cpu预测服务，执行
 ```
@@ -58,7 +58,7 @@ python -m paddle_serving_server_gpu.serve --model bert_seq128_model/ --port 9292
 | gpu_ids | GPU索引号                  |
 
 
-#### Step4：客户端数据预处理逻辑
+### Step4：客户端数据预处理逻辑
 
 Paddle Serving内建了很多经典典型对应的数据预处理逻辑，对于中文Bert语义表示的计算，我们采用paddle_serving_app下的ChineseBertReader类进行数据预处理，开发者可以很容易获得一个原始的中文句子对应的多个模型输入字段。
 
@@ -68,9 +68,9 @@ Paddle Serving内建了很多经典典型对应的数据预处理逻辑，对于
 pip install paddle_serving_app
 ```
 
-#### Step5：客户端访问
+### Step5：客户端访问
 
-方法1：直接客户端执行预测
+#### 方法1：直接客户端执行预测
 执行
 ```
 head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
@@ -80,7 +80,7 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 
 从data.txt文件中读取样例，并将结果打印到标准输出。
 
-方法2：通过HTTP方式执行预测
+#### 方法2：通过HTTP方式执行预测
 该方式分为两步
 1、启动一个HTTP预测服务端。
 启动cpu HTTP预测服务，执行
