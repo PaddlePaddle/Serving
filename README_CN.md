@@ -37,6 +37,31 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
     <img src="doc/demo.gif" width="700">
 </p>
 
+<h2 align="center">教程</h2>
+
+Paddle Serving开发者为您提供了简单易用的[AIStudio教程](https://aistudio.baidu.com/aistudio/projectdetail/1553883)
+
+教程提供了如下内容
+
+<ul>
+<li>Paddle Serving环境安装</li>
+  <ul>
+    <li>Docker镜像启动方式
+    <li>pip安装Paddle Serving
+  </ul>
+<li>快速体验部署在线推理服务</li>
+<li>部署在线推理服务进阶流程</li>
+  <ul>
+    <li>获取可用于部署在线服务的模型</li>
+    <li>启动推理服务</li>
+  </ul>
+</li>其它应用实例</li>
+  <ul>
+    <li>使用Paddle Serving部署图像检测服务</li>
+    <li>使用Paddle Serving部署OCR Pipeline在线服务</li>
+  </ul>
+<li>Pipeline 客户端和 RPC客户端的异同</li>
+</ul>
 
 
 <h2 align="center">安装</h2>
@@ -179,19 +204,11 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 
 ### 新手教程
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
-- [端到端完成从训练到部署全流程](doc/TRAIN_TO_SERVICE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 
-### AIStudio教程
-- [PaddleServing作业](https://aistudio.baidu.com/aistudio/projectdetail/605819)
-- [PaddleServing图像分割](https://aistudio.baidu.com/aistudio/projectdetail/457715)
-- [PaddleServing情感分析](https://aistudio.baidu.com/aistudio/projectdetail/509014)
 
 ### 开发者教程
-- [如何配置Server端的计算图?](doc/SERVER_DAG_CN.md)
-- [如何开发一个新的General Op?](doc/NEW_OPERATOR_CN.md)
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
-- [如何在Paddle Serving使用Go Client?](doc/IMDB_GO_CLIENT_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)

@@ -6,7 +6,7 @@
 
 |             组件             |             版本要求              |
 | :--------------------------: | :-------------------------------: |
-|              OS              |          Ubuntu16/CentOS 7        |
+|              OS              |     Ubuntu16 and 18/CentOS 7      |
 |             gcc              | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
 |           gcc-c++            | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
 |            cmake             |          3.2.0 and later          |

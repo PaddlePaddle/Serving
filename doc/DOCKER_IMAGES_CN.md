@@ -70,34 +70,35 @@ hub.baidubce.com/paddlepaddle/serving:xpu-beta
 
 编译镜像：
 
-| Env      | Version | Docker images tag            | OS        |
-|----------|---------|------------------------------|-----------|
-|    CPU   | 0.5.0   | 0.5.0-devel                 | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  |
-|  Cuda9.0 | 0.5.0 | 0.5.0-cuda9.0-cudnn7-devel    | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7-devel   | CentOS 7  |
-| Cuda10.0 | 0.5.0 | 0.5.0-cuda10.0-cudnn7-devel | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7-devel  | CentOS 7  |
-| Cuda10.1 | 0.5.0 | 0.5.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  |
-| Cuda10.2 | 0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |
-|          | <=0.4.0 | Nan                          | Nan       |
-| Cuda11.0 | 0.5.0 | 0.5.0-cuda11.0-cudnn8-devel | Ubuntu 18 |
-|          | <=0.4.0 | Nan                          | Nan       |
+| Env      | Version | Docker images tag            | OS        | Gcc Version |
+|----------|---------|------------------------------|-----------|-------------|
+|    CPU   | 0.5.0   | 0.5.0-devel                 | Ubuntu 16 |  8.2.0       |
+|          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
+|  Cuda9.0 | 0.5.0 | 0.5.0-cuda9.0-cudnn7-devel    | Ubuntu 16 |  4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7-devel   | CentOS 7  | 4.8.5       |
+| Cuda10.0 | 0.5.0 | 0.5.0-cuda10.0-cudnn7-devel | Ubuntu 16 |    4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7-devel  | CentOS 7  | 4.8.5       |
+| Cuda10.1 | 0.5.0 | 0.5.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
+| Cuda10.2 | 0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+|          | <=0.4.0 | Nan                          | Nan       | Nan         |
+| Cuda11.0 | 0.5.0 | 0.5.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
+|          | <=0.4.0 | Nan                          | Nan       | Nan         |
 
 运行镜像:
 
-| Env      | Version | Docker images tag     | OS        |
-|----------|---------|-----------------------|-----------|
-|    CPU   | 0.5.0   | 0.5.0                 | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0                 | CentOS 7  |
-|  Cuda9.0 | 0.5.0   | 0.5.0-cuda9.0-cudnn7   | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7  | CentOS 7  |
-| Cuda10.0 | 0.5.0   | 0.5.0-cuda10.0-cudnn7 | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7 | CentOS 7  |
-| Cuda10.1 | 0.5.0   | 0.5.0-cuda10.1-cudnn7 | Ubuntu 16 |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7 | CentOS 7  |
-| Cuda10.2 | 0.5.0   | 0.5.0-cuda10.2-cudnn8 | Ubuntu 16 |
-|          | <=0.4.0 | Nan                   | Nan       |
-| Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 |
-|          | <=0.4.0 | Nan                   | Nan       |
+| Env      | Version | Docker images tag     | OS        | Gcc Version |
+|----------|---------|-----------------------|-----------|-------------|
+|    CPU   | 0.5.0   | 0.5.0                 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | 0.4.0                 | CentOS 7  | 4.8.5       |
+|  Cuda9.0 | 0.5.0   | 0.5.0-cuda9.0-cudnn7   | Ubuntu 16 | 4.8.5      |
+|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7  | CentOS 7  | 4.8.5       |
+| Cuda10.0 | 0.5.0   | 0.5.0-cuda10.0-cudnn7 | Ubuntu 16 | 4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7 | CentOS 7  | 4.8.5       |
+| Cuda10.1 | 0.5.0   | 0.5.0-cuda10.1-cudnn7 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7 | CentOS 7  | 4.8.5       |
+| Cuda10.2 | 0.5.0   | 0.5.0-cuda10.2-cudnn8 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | Nan                   | Nan       | Nan         |
+| Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
+|          | <=0.4.0 | Nan                   | Nan       | Nan         |
+
