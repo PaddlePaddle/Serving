@@ -5,7 +5,7 @@
 例如：
 
 ```shell
-python -m paddle_serving_server_gpu.serve --model bert_seq20_model --port 9292 --gpu_ids 0
+python -m paddle_serving_server_gpu.serve --model bert_seq128_model --port 9292 --gpu_ids 0
 python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9393 --gpu_ids 0
 ```
 
