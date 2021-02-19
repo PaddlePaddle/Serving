@@ -4,16 +4,20 @@
 
 Bert-As-Service的目标是给定一个句子，服务可以将句子表示成一个语义向量返回给用户。[Bert模型](https://arxiv.org/abs/1810.04805)是目前NLP领域的热门模型，在多种公开的NLP任务上都取得了很好的效果，使用Bert模型计算出的语义向量来做其他NLP模型的输入对提升模型的表现也有很大的帮助。Bert-As-Service可以让用户很方便地获取文本的语义向量表示并应用到自己的任务中。为了实现这个目标，我们通过以下几个步骤说明使用Paddle Serving在十分钟内就可以搭建一个这样的服务。示例中所有的代码和文件均可以在Paddle Serving的[示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)中找到。
 
+
+若使用python的版本为3.X, 将以下命令中的pip 替换为pip3, python替换为python3.
+
+
 ### Step1：获取模型
 #### 方法1：
 示例中采用[Paddlehub](https://github.com/PaddlePaddle/PaddleHub)中的[BERT中文模型](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel)。
 请先安装paddlehub
 ```
-pip3 install paddlehub
+pip install paddlehub
 ```
 执行
 ```
-python3 prepare_model.py 128
+python prepare_model.py 128
 ```
 参数128表示BERT模型中的max_seq_len，即预处理后的样本长度。
 生成server端配置文件与模型文件，存放在bert_seq128_model文件夹。
@@ -83,6 +87,7 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 #### 方法2：通过HTTP方式执行预测
 该方式分为两步
 1、启动一个HTTP预测服务端。
+
 启动cpu HTTP预测服务，执行
 ```
 python bert_web_service.py bert_seq128_model/ 9292 #启动CPU预测服务
