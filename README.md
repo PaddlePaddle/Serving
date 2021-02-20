@@ -21,7 +21,7 @@
 <p>
 
 - [Motivation](./README.md#motivation)
-- [AIStudio Tutorial](./README.md#aistuio-tutorial)
+- [AIStudio Tutorial](./README.md#aistudio-tutorial)
 - [Installation](./README.md#installation)
 - [Quick Start Example](./README.md#quick-start-example)
 - [Document](README.md#document)
