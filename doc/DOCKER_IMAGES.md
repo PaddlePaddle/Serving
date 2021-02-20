@@ -46,12 +46,12 @@ If you want to customize your Serving based on source code, use the version with
 
 **Java Client:**
 ```
-hub.baidubce.com/paddlepaddle/serving:latest-java
+registry.baidubce.com/paddlepaddle/serving:latest-java
 ```
 
 **XPU:**
 ```
-hub.baidubce.com/paddlepaddle/serving:xpu-beta
+registry.baidubce.com/paddlepaddle/serving:xpu-beta
 ```
 
 ## Requirements for running CUDA containers

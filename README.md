@@ -21,7 +21,7 @@
 <p>
 
 - [Motivation](./README.md#motivation)
-- [AIStudio Tutorial](./README.md#aistudio-tutorial)
+- [AIStudio Tutorial](./README.md#aistuio-tutorial)
 - [Installation](./README.md#installation)
 - [Quick Start Example](./README.md#quick-start-example)
 - [Document](README.md#document)
@@ -42,7 +42,7 @@ We consider deploying deep learning inference service online to be a user-facing
 </p>
 
 
-<h2 align="center">AIStudio Tutorial</h2>
+<h2 align="center">AIStudio Turorial</h2>
 
 Here we provide tutorial on AIStudio(Chinese Version) [AIStudio教程-Paddle Serving服务化部署框架](https://aistudio.baidu.com/aistudio/projectdetail/1550674)
 
@@ -75,15 +75,15 @@ We **highly recommend** you to **run Paddle Serving in Docker**, please visit [R
 
 ```
 # Run CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
