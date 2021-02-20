@@ -52,7 +52,7 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
     <li>获取可用于部署在线服务的模型</li>
     <li>启动推理服务</li>
   </ul>
-</li>Paddle Serving在线部署实例</li>
+<li>Paddle Serving在线部署实例</li>
   <ul>
     <li>使用Paddle Serving部署图像检测服务</li>
     <li>使用Paddle Serving部署OCR Pipeline在线服务</li>
