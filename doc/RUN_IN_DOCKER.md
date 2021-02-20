@@ -17,14 +17,14 @@ This document takes Python2 as an example to show how to run Paddle Serving in d
 Refer to [this document](DOCKER_IMAGES.md) for a docker image:
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 ```
 
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it test bash
 ```
 
@@ -46,20 +46,20 @@ The GPU version is basically the same as the CPU version, with only some differe
 Refer to [this document](DOCKER_IMAGES.md) for a docker image, the following is an example of an `cuda9.0-cudnn7` image:
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 ```
 
 or
 
 ```bash
-docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+docker run --gpus all -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 docker exec -it test bash
 ```
 

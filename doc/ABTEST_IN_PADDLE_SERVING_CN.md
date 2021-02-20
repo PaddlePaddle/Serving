@@ -35,7 +35,7 @@ pip install Shapely
 首先启动BOW Server，该服务启用`8000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server registry.baidubce.com/paddlepaddle/serving:latest /bin/bash
 docker exec -it bow-server /bin/bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -46,7 +46,7 @@ exit
 同理启动LSTM Server，该服务启用`9000`端口：
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server registry.baidubce.com/paddlepaddle/serving:latest /bin/bash
 docker exec -it lstm-server /bin/bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
