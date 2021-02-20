@@ -239,7 +239,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 
 想要同开发者和其他用户沟通吗？欢迎加入我们的 [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
-## 贡献代码
+### 贡献代码
 
 如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/CONTRIBUTE.md)
 
