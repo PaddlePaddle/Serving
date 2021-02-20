@@ -163,6 +163,8 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 | `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
 | `use_trt` (Only for Cuda>=10.1 version) | - | - | Run inference with TensorRT  |
+| `use_lite` (Only for ARM) | - | - | Run PaddleLite inference |
+| `use_xpu` (Only for ARM+XPU) | - | - | Run PaddleLite XPU inference |
 
 </center>
 
@@ -184,7 +186,7 @@ print(fetch_map)
 <h3 align="center">HTTP服务</h3>
 用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
 
-```python
+```
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 客户端输入
@@ -209,11 +211,12 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 ### 新手教程
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
-
+- [Paddle Serving示例合辑](python/examples)
 
 ### 开发者教程
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
+- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
 
