@@ -20,18 +20,15 @@
     <br>
 <p>
 
-<h2 align="center">0.5.0版本新特性</h2>
-
-- 支持PaddlePaddle 2.0版本和动态图模式
-- 支持Pipeline模式的多模型部署
-- 支持ARM和XPU架构的预测服务
-- 支持模型加密
-- 新增Cuda 10.2/11的支持，新增Python 3.8支持
-
 
 <h2 align="center">动机</h2>
 
 Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
+
+- 任何经过[PaddlePaddle](https://github.com/paddlepaddle/paddle)训练的模型，都可以经过直接保存或是[模型转换接口](./doc/SAVE_CN.md)，用于Paddle Serving在线部署。
+- 支持[多模型串联服务部署](./doc/PIPELINE_SERVING_CN.md), 同时提供Rest接口和RPC接口以满足您的需求。
+- 支持Paddle生态的各大模型库, 例如[PaddleDetection](./python/examples/detection).
+- 提供丰富多彩的前后处理，方便用户在训练、部署等各阶段复用相关代码，弥合AI开发者和应用开发者之间的鸿沟。
 
 <p align="center">
     <img src="doc/demo.gif" width="700">
@@ -55,12 +52,11 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
     <li>获取可用于部署在线服务的模型</li>
     <li>启动推理服务</li>
   </ul>
-</li>其它应用实例</li>
+</li>Paddle Serving在线部署实例</li>
   <ul>
     <li>使用Paddle Serving部署图像检测服务</li>
     <li>使用Paddle Serving部署OCR Pipeline在线服务</li>
   </ul>
-<li>Pipeline 客户端和 RPC客户端的异同</li>
 </ul>
 
 
