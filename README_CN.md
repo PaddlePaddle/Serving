@@ -95,7 +95,7 @@ pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + Tensor
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。
+如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./doc/COMPILE_CN.md)
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
@@ -111,7 +111,7 @@ pip install paddlepaddle==2.0.0
 pip install paddlepaddle-gpu==2.0.0
 ```
 
-如果是其他GPU环境，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
+**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
 
 选择相应的GPU环境的url链接并进行安装，例如Cuda 9.0的Python2.7用户，请选择表格当中的`cp27-cp27mu`和`cuda9.0_cudnn7-mkl`对应的url，复制下来并执行
 ```
