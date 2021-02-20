@@ -216,15 +216,13 @@ the response is
 - [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
 - [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
 
-### FAQ
-- [FAQ(Chinese)](doc/FAQ.md)
-
-
 ### Design
 - [Design Doc](doc/DESIGN_DOC.md)
 
-<h2 align="center">Community</h2>
+### FAQ
+- [FAQ(Chinese)](doc/FAQ.md)
 
+<h2 align="center">Community</h2>
 
 ### Slack
 
