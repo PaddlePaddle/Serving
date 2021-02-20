@@ -25,7 +25,7 @@ docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
 ### 创建容器并进入
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it test bash
 ```
 
@@ -38,6 +38,10 @@ docker exec -it test bash
 如果需要更换版本，请参照首页的指导，下载对应版本的pip包。
 
 ## GPU 版本
+
+```shell
+docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+```
 
 ### 创建容器并进入
 
@@ -57,7 +61,7 @@ docker exec -it test bash
 
 镜像里自带对应镜像tag版本的`paddle_serving_server_gpu`，`paddle_serving_client`，`paddle_serving_app`，如果用户不需要更改版本，可以直接使用，适用于没有外网服务的环境。
 
-如果需要更换版本，请参照首页的指导，下载对应版本的pip包。[最新安装包合集](https://github.com/wangjiawei04/Serving/blob/docs_0.5.0/doc/LATEST_PACKAGES.md)
+如果需要更换版本，请参照首页的指导，下载对应版本的pip包。[最新安装包合集](LATEST_PACKAGES.md)
 
 ## 注意事项
 

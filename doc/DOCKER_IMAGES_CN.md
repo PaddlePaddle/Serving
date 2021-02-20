@@ -8,10 +8,10 @@
 
 您可以通过两种方式获取镜像。
 
-1. 通过 TAG 直接从 `hub.baidubce.com ` 或 拉取镜像，具体TAG请参见下文的**镜像说明**章节的表格。
+1. 通过 TAG 直接从 `registry.baidubce.com ` 或 拉取镜像，具体TAG请参见下文的**镜像说明**章节的表格。
 
    ```shell
-   docker pull registry.baidubce.com/paddlepaddle/serving:<TAG> # hub.baidubce.com
+   docker pull registry.baidubce.com/paddlepaddle/serving:<TAG> # registry.baidubce.com
    ```
 
 2. 基于 Dockerfile 构建镜像
