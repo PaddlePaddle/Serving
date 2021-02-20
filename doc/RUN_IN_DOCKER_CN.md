@@ -19,13 +19,13 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 以CPU编译镜像为例
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 ```
 
 ### 创建容器并进入
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it test bash
 ```
 
@@ -40,18 +40,18 @@ docker exec -it test bash
 ## GPU 版本
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 ```
 
 ### 创建容器并进入
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 ```
 或者
 ```bash
-docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+docker run --gpus all -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 docker exec -it test bash
 ```
 
