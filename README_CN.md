@@ -27,7 +27,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 - 任何经过[PaddlePaddle](https://github.com/paddlepaddle/paddle)训练的模型，都可以经过直接保存或是[模型转换接口](./doc/SAVE_CN.md)，用于Paddle Serving在线部署。
 - 支持[多模型串联服务部署](./doc/PIPELINE_SERVING_CN.md), 同时提供Rest接口和RPC接口以满足您的需求。
-- 支持Paddle生态的各大模型库, 例如[PaddleDetection](./python/examples/detection).
+- 支持Paddle生态的各大模型库, 例如[PaddleDetection](./python/examples/detection)，[PaddleOCR](./python/examples/ocr)。
 - 提供丰富多彩的前后处理，方便用户在训练、部署等各阶段复用相关代码，弥合AI开发者和应用开发者之间的鸿沟。[模型示例](./python/examples/)
 
 <p align="center">
