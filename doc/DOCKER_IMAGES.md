@@ -8,11 +8,10 @@ This document maintains a list of docker images provided by Paddle Serving.
 
 You can get images in two ways:
 
-1. Pull image directly from `hub.baidubce.com ` or `docker.io` through TAG:
+1. Pull image directly from `registry.baidubce.com ` through TAG:
 
    ```shell
-   docker pull hub.baidubce.com/paddlepaddle/serving:<TAG> # hub.baidubce.com
-   docker pull paddlepaddle/serving:<TAG> # hub.docker.com
+   docker pull registry.baidubce.com/paddlepaddle/serving:<TAG> # registry.baidubce.com
    ```
 
 2. Building image based on dockerfile
@@ -20,7 +19,7 @@ You can get images in two ways:
    Create a new folder and copy Dockerfile to this folder, and run the following command:
 
    ```shell
-   docker build -t <image-name>:<images-tag> .
+   docker build -f ${DOCKERFILE} -t <image-name>:<images-tag> .
    ```
 
 
@@ -59,6 +58,42 @@ hub.baidubce.com/paddlepaddle/serving:xpu-beta
 
 Running a CUDA container requires a machine with at least one CUDA-capable GPU and a driver compatible with the CUDA toolkit version you are using. 
 
-The machine running the CUDA container **only requires the NVIDIA driver**, the CUDA toolkit doesn't have to be installed.
+The machine running the CUDA container **only requires the NVIDIA driver**, the CUDA toolkit does not have to be installed.
 
 For the relationship between CUDA toolkit version, Driver version and GPU architecture, please refer to [nvidia-docker wiki](https://github.com/NVIDIA/nvidia-docker/wiki/CUDA).
+
+# (Attachment) The List of All the Docker images
+
+Develop Images:
+
+| Env      | Version | Docker images tag            | OS        | Gcc Version |
+|----------|---------|------------------------------|-----------|-------------|
+|    CPU   | 0.5.0   | 0.5.0-devel                 | Ubuntu 16 |  8.2.0       |
+|          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
+|  Cuda9.0 | 0.5.0 | 0.5.0-cuda9.0-cudnn7-devel    | Ubuntu 16 |  4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7-devel   | CentOS 7  | 4.8.5       |
+| Cuda10.0 | 0.5.0 | 0.5.0-cuda10.0-cudnn7-devel | Ubuntu 16 |    4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7-devel  | CentOS 7  | 4.8.5       |
+| Cuda10.1 | 0.5.0 | 0.5.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
+| Cuda10.2 | 0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+|          | <=0.4.0 | Nan                          | Nan       | Nan         |
+| Cuda11.0 | 0.5.0 | 0.5.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
+|          | <=0.4.0 | Nan                          | Nan       | Nan         |
+
+Running Images:
+
+| Env      | Version | Docker images tag     | OS        | Gcc Version |
+|----------|---------|-----------------------|-----------|-------------|
+|    CPU   | 0.5.0   | 0.5.0                 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | 0.4.0                 | CentOS 7  | 4.8.5       |
+|  Cuda9.0 | 0.5.0   | 0.5.0-cuda9.0-cudnn7   | Ubuntu 16 | 4.8.5      |
+|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7  | CentOS 7  | 4.8.5       |
+| Cuda10.0 | 0.5.0   | 0.5.0-cuda10.0-cudnn7 | Ubuntu 16 | 4.8.5       |
+|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7 | CentOS 7  | 4.8.5       |
+| Cuda10.1 | 0.5.0   | 0.5.0-cuda10.1-cudnn7 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7 | CentOS 7  | 4.8.5       |
+| Cuda10.2 | 0.5.0   | 0.5.0-cuda10.2-cudnn8 | Ubuntu 16 | 8.2.0       |
+|          | <=0.4.0 | Nan                   | Nan       | Nan         |
+| Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
+|          | <=0.4.0 | Nan                   | Nan       | Nan         |

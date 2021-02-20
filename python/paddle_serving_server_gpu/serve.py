@@ -155,8 +155,8 @@ class MainService(BaseHTTPRequestHandler):
         if "key" not in post_data:
             return False
         else:
-            key = base64.b64decode(post_data["key"])
-            with open(args.model + "/key", "w") as f:
+            key = base64.b64decode(post_data["key"].encode())
+            with open(args.model + "/key", "wb") as f:
                 f.write(key)
             return True
 
@@ -164,8 +164,8 @@ class MainService(BaseHTTPRequestHandler):
         if "key" not in post_data:
             return False
         else:
-            key = base64.b64decode(post_data["key"])
-            with open(args.model + "/key", "r") as f:
+            key = base64.b64decode(post_data["key"].encode())
+            with open(args.model + "/key", "rb") as f:
                 cur_key = f.read()
             return (key == cur_key)
 
@@ -206,7 +206,7 @@ class MainService(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(response))
+        self.wfile.write(json.dumps(response).encode())
 
 
 if __name__ == "__main__":
