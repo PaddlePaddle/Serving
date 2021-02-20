@@ -75,15 +75,15 @@ We **highly recommend** you to **run Paddle Serving in Docker**, please visit [R
 
 ```
 # Run CPU Docker
-docker pull hub.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull hub.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```

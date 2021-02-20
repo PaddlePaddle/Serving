@@ -49,12 +49,12 @@
 
 **Java镜像：**
 ```
-hub.baidubce.com/paddlepaddle/serving:latest-java
+registry.baidubce.com/paddlepaddle/serving:latest-java
 ```
 
 **XPU镜像：**
 ```
-hub.baidubce.com/paddlepaddle/serving:xpu-beta
+registry.baidubce.com/paddlepaddle/serving:xpu-beta
 ```
 
 
