@@ -2,35 +2,57 @@
 
 ([简体中文](./BERT_10_MINS_CN.md)|English)
 
-The goal of Bert-As-Service is to give a sentence, and the service can represent the sentence as a semantic vector and return it to the user. [Bert model](https://arxiv.org/abs/1810.04805) is a popular model in the current NLP field. It has achieved good results on a variety of public NLP tasks. The semantic vector calculated by the Bert model is used as input to other NLP models, which will also greatly improve the performance of the model. Bert-As-Service allows users to easily obtain the semantic vector representation of text and apply it to their own tasks. In order to achieve this goal, we have shown in four steps that using Paddle Serving can build such a service in ten minutes. All the code and files in the example can be found in [Example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) of Paddle Serving.
+The goal of Bert-As-Service is to give a sentence, and the service can represent the sentence as a semantic vector and return it to the user. [Bert model](https://arxiv.org/abs/1810.04805) is a popular model in the current NLP field. It has achieved good results on a variety of public NLP tasks. The semantic vector calculated by the Bert model is used as input to other NLP models, which will also greatly improve the performance of the model. Bert-As-Service allows users to easily obtain the semantic vector representation of text and apply it to their own tasks. In order to achieve this goal, we have shown in five steps that using Paddle Serving can build such a service in ten minutes. All the code and files in the example can be found in [Example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) of Paddle Serving.
 
-#### Step1: Save the serviceable model
+If your python version is 3.X, replace the 'pip' field in the following command with 'pip3',replace 'python' with 'python3'.
 
-Paddle Serving supports various models trained based on Paddle, and saves the serviceable model by specifying the input and output variables of the model. For convenience, we can load a trained bert Chinese model from paddlehub and save a deployable service with two lines of code. The server and client configurations are placed in the `bert_seq20_model` and` bert_seq20_client` folders, respectively.
+### Step1: Getting Model
 
-[//file]:#bert_10.py
-``` python
-import paddlehub as hub
-model_name = "bert_chinese_L-12_H-768_A-12"
-module = hub.Module(model_name)
-inputs, outputs, program = module.context(
-    trainable=True, max_seq_len=20)
-feed_keys = ["input_ids", "position_ids", "segment_ids",
-             "input_mask"]
-fetch_keys = ["pooled_output", "sequence_output"]
-feed_dict = dict(zip(feed_keys, [inputs[x] for x in feed_keys]))
-fetch_dict = dict(zip(fetch_keys, [outputs[x] for x in fetch_keys]))
+#### method 1:
+This example use model [BERT Chinese Model](https://www.paddlepaddle.org.cn/hubdetail?name=bert_chinese_L-12_H-768_A-12&en_category=SemanticModel) from [Paddlehub](https://github.com/PaddlePaddle/PaddleHub).
 
-import paddle_serving_client.io as serving_io
-serving_io.save_model("bert_seq20_model", "bert_seq20_client",
-                      feed_dict, fetch_dict, program)
+Install paddlehub first
+```
+pip install paddlehub
 ```
 
-#### Step2: Launch Service
+run 
+```
+python prepare_model.py 128
+```
 
-[//file]:#server.sh
-``` shell
-python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 --port 9292 --gpu_ids 0
+**PaddleHub only support Python 3.5+**
+
+the 128 in the command above means max_seq_len in BERT model, which is the length of sample after preprocessing.
+the config file and model file for server side are saved in the folder bert_seq128_model.
+the config file generated for client side is saved in the folder bert_seq128_client.
+
+#### method 2:
+You can also download the above model from BOS(max_seq_len=128). After decompression, the config file and model file for server side are stored in the bert_chinese_L-12_H-768_A-12_model folder, and the config file generated for client side is stored in the bert_chinese_L-12_H-768_A-12_client folder:
+```shell
+wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
+tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
+mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
+mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
+```
+
+### Step2: Getting Dict and Sample Dataset
+
+```
+sh get_data.sh
+```
+this script will download Chinese Dictionary File vocab.txt and Chinese Sample Data data-c.txt
+
+
+### Step3: Launch Service
+
+start cpu inference service,Run
+```
+python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #cpu inference service
+```
+Or,start gpu inference service,Run
+```
+python -m paddle_serving_server_gpu.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
 ```
 | Parameters | Meaning                                  |
 | ---------- | ---------------------------------------- |
@@ -39,52 +61,55 @@ python -m paddle_serving_server_gpu.serve --model bert_seq20_model --thread 10 -
 | port       | server port number                       |
 | gpu_ids    | GPU index number                         |
 
-#### Step3: data preprocessing logic on Client Side
+### Step4: data preprocessing logic on Client Side
 
 Paddle Serving has many built-in corresponding data preprocessing logics. For the calculation of Chinese Bert semantic representation, we use the ChineseBertReader class under paddle_serving_app for data preprocessing. Model input fields  of multiple models corresponding to a raw Chinese sentence can be easily fetched by developers
 
 Install paddle_serving_app
 
-[//file]:#pip_app.sh
 ```shell
 pip install paddle_serving_app
 ```
 
-#### Step4: Client Visit Serving
+### Step5: Client Visit Serving
 
-the script of client side bert_client.py is as follow:
 
-[//file]:#bert_client.py
-``` python
-import sys
-from paddle_serving_client import Client
-from paddle_serving_client.utils import benchmark_args
-from paddle_serving_app.reader import ChineseBertReader
-import numpy as np
-args = benchmark_args()
+#### method 1: RPC Inference
 
-reader = ChineseBertReader({"max_seq_len": 128})
-fetch = ["pooled_output"]
-endpoint_list = ['127.0.0.1:9292']
-client = Client()
-client.load_client_config(args.model)
-client.connect(endpoint_list)
-
-for line in sys.stdin:
-    feed_dict = reader.process(line)
-    for key in feed_dict.keys():
-        feed_dict[key] = np.array(feed_dict[key]).reshape((128, 1))
-    result = client.predict(feed=feed_dict, fetch=fetch, batch=False)
+Run
+```
+head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
 ```
 
-run
+the client reads data from data-c.txt and send prediction request, the prediction is given by word vector. (Due to massive data in the word vector, we do not print it).
 
-[//file]:#bert_10_cli.sh
-```shell
-cat data.txt | python bert_client.py
+
+#### method 2: HTTP Inference
+
+This method is divided into two steps: 
+
+1. Start an HTTP prediction server.
+
+start cpu HTTP inference service,Run
+```
+ python bert_web_service.py bert_seq128_model/ 9292 #launch cpu inference service
 ```
 
-read samples from data.txt, print results at the standard output.
+Or,start gpu HTTP inference service,Run
+```
+ export CUDA_VISIBLE_DEVICES=0,1
+```
+set environmental variable to specify which gpus are used, the command above means gpu 0 and gpu 1 is used.
+```
+ python bert_web_service_gpu.py bert_seq128_model/ 9292 #launch gpu inference service
+```
+
+2. Prediction via HTTP request
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
+```
+
+
 
 ### Benchmark
 
