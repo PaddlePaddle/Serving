@@ -20,12 +20,12 @@
     <br>
 <p>
 
-- [Motivation](./README_CN.md#动机)
-- [教程](./README_CN.md#教程)
-- [安装](./README_CN.md#安装)
-- [快速开始示例](./README_CN.md#快速开始示例)
-- [文档](README_CN.md#文档)
-- [社区](README_CN.md#社区)
+- [Motivation](./README.md#motivation)
+- [AIStudio Tutorial](./README.md#aistuio-tutorial)
+- [Installation](./README.md#installation)
+- [Quick Start Example](./README.md#quick-start-example)
+- [Document](README.md#document)
+- [Community](README.md#community)
 
 <h2 align="center">Motivation</h2>
 
