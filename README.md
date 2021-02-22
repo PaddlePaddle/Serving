@@ -33,7 +33,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 - Any model trained by [PaddlePaddle](https://github.com/paddlepaddle/paddle) can be directly used or [Model Conversion Interface](./doc/SAVE_CN.md) for online deployment of Paddle Serving.
 - Support [Multi-model Pipeline Deployment](./doc/PIPELINE_SERVING.md), and provide the requirements of the REST interface and RPC interface itself, [Pipeline example](./python/examples/pipeline).
-- Support the major model libraries of the Paddle ecosystem, such as [PaddleDetection](./python/examples/detection), [PaddleOCR](./python/examples/ocr), [PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender).
+- Support the model zoos from the Paddle ecosystem, such as [PaddleDetection](./python/examples/detection), [PaddleOCR](./python/examples/ocr), [PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender).
 - Provide a variety of pre-processing and post-processing to facilitate users in training, deployment and other stages of related code, bridging the gap between AI developers and application developers, please refer to
 [Serving Examples](./python/examples/).
 
@@ -117,6 +117,16 @@ pip install paddlepaddle==2.0.0
 # GPU Cuda10.2 please run
 pip install paddlepaddle-gpu==2.0.0
 ```
+
+**Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle official documentation-multi-version whl package list
+](https://www.paddlepaddle.org.cn/documentation/docs/en/install/Tables_en.html#multi-version-whl-package-list-release)
+
+Select the url link of the corresponding GPU environment and install it. For example, for Python2.7 users of Cuda 9.0, please select `cp27-cp27mu` and
+The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
+```
+pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
+```
+If it is other environment and Python version, please find the corresponding link in the table and install it with pip.
 
 For **Windows Users**, please read the document [Paddle Serving for Windows Users](./doc/WINDOWS_TUTORIAL.md)
 

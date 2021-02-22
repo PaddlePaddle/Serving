@@ -70,7 +70,7 @@ The inference framework of the well-known deep learning platform only supports C
 
 > Model conversion across deep learning platforms
 
-Models trained on other deep learning platforms can be passed《[PaddlePaddle/X2Paddle工具](https://github.com/PaddlePaddle/X2Paddle)》.We convert multiple mainstream CV models to Paddle models. TensorFlow, Caffe, ONNX, PyTorch model conversion is tested.《[An End-to-end Tutorial from Training to Inference Service Deployment](TRAIN_TO_SERVICE.md)
+Models trained on other deep learning platforms can be passed《[PaddlePaddle/X2Paddle工具](https://github.com/PaddlePaddle/X2Paddle)》.We convert multiple mainstream CV models to Paddle models. TensorFlow, Caffe, ONNX, PyTorch model conversion is tested.《[An End-to-end Tutorial from Training to Inference Service Deployment](TRAIN_TO_SERVICE.md)》
 
 Because it is impossible to directly view the feed and fetch parameter information in the model file, it is not convenient for users to assemble the parameters. Therefore, Paddle Serving developed a tool to convert the Paddle model into Serving format and generate a prototxt file containing feed and fetch parameter information. The following figure is the generated prototxt file of the uci_housing example. For more conversion methods, refer to the document《[How to save a servable model of Paddle Serving?](SAVE.md)》.
 ```
