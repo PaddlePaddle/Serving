@@ -119,7 +119,7 @@ pip install paddlepaddle-gpu==2.0.0
 ```
 
 **Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle official documentation-multi-version whl package list
-](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
+](https://www.paddlepaddle.org.cn/documentation/docs/en/install/Tables_en.html#multi-version-whl-package-list-release)
 
 Select the url link of the corresponding GPU environment and install it. For example, for Python2.7 users of Cuda 9.0, please select `cp27-cp27mu` and
 The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
