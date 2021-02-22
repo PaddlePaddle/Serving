@@ -117,6 +117,6 @@ Because the docker image of Java does not contain the compilation and developmen
 The first is that when GPU serving and Java client are running in the same GPU image, the user needs to copy the files compiled in the java image (path:/serving /Java) to the path /serving/Java of the GPU image.
 
 
-The second is that GPU serving and Java client are deployed in their respective docker images (or different hosts with compilation and development environment). At this time, you only need to pay attention to the IP and port correspondence between the Java client and GPU serving. See item 3 of the above precautions for details.
+The second is that GPU serving and Java client are deployed in their respective docker images (or different hosts with compilation and development environment). At this time, you only need to pay attention to the `ip` and`port` correspondence between the Java client and GPU serving. See item 3 of the above precautions for details.
 
 
