@@ -1,4 +1,4 @@
-# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+#   Copyright (c) 2018 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
-#! /bin/bash
 
-mkdir -p cube_model
-mkdir -p cube/data
-./seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature 8  
-./cube/cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=${PWD}/cube/data -shard_num=1  -only_build=false
-mv ./cube/data/0_0/test_dict_part0/* ./cube/data/
-cd cube && ./cube 
+# Utility script to print the python tag + the abi tag for a Python
+# See PEP 425 for exactly what these are, but an example would be:
+#   cp27-cp27mu
+
+from wheel.pep425tags import get_abbr_impl, get_impl_ver, get_abi_tag
+
+print("{0}{1}-{2}".format(get_abbr_impl(), get_impl_ver(), get_abi_tag()))
