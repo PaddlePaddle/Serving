@@ -87,3 +87,34 @@ https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_client-0.0.0-cp36-no
 # App
 https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_app-0.0.0-py3-none-any.whl 
 ```
+
+
+### Binary Package
+for most users, we do not need to read this section. But if you deploy your Paddle Serving on a machine without network, you will encounter a problem that the binary executable tar file cannot be downloaded. Therefore, here we give you all the download links for various environment.
+
+#### Bin links
+```
+# CPU AVX MKL
+https://paddle-serving.bj.bcebos.com/bin/serving-cpu-avx-mkl-0.0.0.tar.gz
+# CPU AVX OPENBLAS
+https://paddle-serving.bj.bcebos.com/bin/serving-cpu-avx-openblas-0.0.0.tar.gz
+# CPU NOAVX OPENBLAS
+https://paddle-serving.bj.bcebos.com/bin/serving-cpu-noavx-openblas-0.0.0.tar.gz
+# Cuda 9
+https://paddle-serving.bj.bcebos.com/bin/serving-gpu-cuda9-0.0.0.tar.gz
+# Cuda 10
+https://paddle-serving.bj.bcebos.com/bin/serving-gpu-cuda10-0.0.0.tar.gz
+# Cuda 10.1
+https://paddle-serving.bj.bcebos.com/bin/serving-gpu-101-0.0.0.tar.gz
+# Cuda 10.2
+https://paddle-serving.bj.bcebos.com/bin/serving-gpu-102-0.0.0.tar.gz
+# Cuda 11
+https://paddle-serving.bj.bcebos.com/bin/serving-gpu-cuda11-0.0.0.tar.gz
+```
+
+#### How to setup SERVING_BIN offline?
+
+- download the serving server whl package and bin package, and make sure they are for the same environment
+- download the serving client whl and serving app whl, pay attention to the Python version.
+- `pip install ` the serving and `tar xf ` the binary package, then `export SERVING_BIN=$PWD/serving-gpu-cuda10-0.0.0/serving` (take Cuda 10.0 as the example)
+

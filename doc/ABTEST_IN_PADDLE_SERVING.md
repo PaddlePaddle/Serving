@@ -36,7 +36,7 @@ Here, we [use docker](RUN_IN_DOCKER.md) to start the server-side service.
 First, start the BOW server, which enables the `8000` port:
 
 ``` shell
-docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker run -dit -v $PWD/imdb_bow_model:/model -p 8000:8000 --name bow-server registry.baidubce.com/paddlepaddle/serving:latest /bin/bash
 docker exec -it bow-server /bin/bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -47,7 +47,7 @@ exit
 Similarly, start the LSTM server, which enables the `9000` port:
 
 ```bash
-docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server hub.baidubce.com/paddlepaddle/serving:latest /bin/bash
+docker run -dit -v $PWD/imdb_lstm_model:/model -p 9000:9000 --name lstm-server registry.baidubce.com/paddlepaddle/serving:latest /bin/bash
 docker exec -it lstm-server /bin/bash
 pip install paddle-serving-server -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install paddle-serving-client -i https://pypi.tuna.tsinghua.edu.cn/simple
