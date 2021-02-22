@@ -31,6 +31,15 @@
 
 We consider deploying deep learning inference service online to be a user-facing application in the future. **The goal of this project**: When you have trained a deep neural net with [Paddle](https://github.com/PaddlePaddle/Paddle), you are also capable to deploy the model online easily. A demo of Paddle Serving is as follows:
 
+<h3 align="center">Some Key Features of Paddle Serving</h3>
+
+- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
+- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
+- **Highly concurrent and efficient communication** between clients and servers supported.
+- **Multiple programming languages** supported on client side, such as C++, python and Java.
+
+***
+
 - Any model trained by [PaddlePaddle](https://github.com/paddlepaddle/paddle) can be directly used or [Model Conversion Interface](./doc/SAVE_CN.md) for online deployment of Paddle Serving.
 - Support [Multi-model Pipeline Deployment](./doc/PIPELINE_SERVING.md), and provide the requirements of the REST interface and RPC interface itself, [Pipeline example](./python/examples/pipeline).
 - Support the model zoos from the Paddle ecosystem, such as [PaddleDetection](./python/examples/detection), [PaddleOCR](./python/examples/ocr), [PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender).
@@ -196,14 +205,6 @@ the response is
 ```
 {"result":{"price":[[18.901151657104492]]}}
 ```
-
-<h2 align="center">Some Key Features of Paddle Serving</h2>
-
-- Integrate with Paddle training pipeline seamlessly, most paddle models can be deployed **with one line command**.
-- **Industrial serving features** supported, such as models management, online loading, online A/B testing etc.
-- **Distributed Key-Value indexing** supported which is especially useful for large scale sparse features as model inputs.
-- **Highly concurrent and efficient communication** between clients and servers supported.
-- **Multiple programming languages** supported on client side, such as Golang, C++ and python.
 
 <h2 align="center">Document</h2>
 
