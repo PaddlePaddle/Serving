@@ -38,6 +38,8 @@ We consider deploying deep learning inference service online to be a user-facing
 - **Highly concurrent and efficient communication** between clients and servers supported.
 - **Multiple programming languages** supported on client side, such as C++, python and Java.
 
+***
+
 - Any model trained by [PaddlePaddle](https://github.com/paddlepaddle/paddle) can be directly used or [Model Conversion Interface](./doc/SAVE_CN.md) for online deployment of Paddle Serving.
 - Support [Multi-model Pipeline Deployment](./doc/PIPELINE_SERVING.md), and provide the requirements of the REST interface and RPC interface itself, [Pipeline example](./python/examples/pipeline).
 - Support the model zoos from the Paddle ecosystem, such as [PaddleDetection](./python/examples/detection), [PaddleOCR](./python/examples/ocr), [PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender).
