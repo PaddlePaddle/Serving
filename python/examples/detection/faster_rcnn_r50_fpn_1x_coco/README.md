@@ -13,6 +13,9 @@ tar xf faster_rcnn_r50_fpn_1x_coco.tar
 python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0
 ```
 
+This model support TensorRT, if you want a faster inference, please use `--use_trt`. 
+
+
 ### Perform prediction
 ```
 python test_client.py 000000570688.jpg

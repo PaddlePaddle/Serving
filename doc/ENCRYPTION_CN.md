@@ -42,11 +42,3 @@ python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --
 ### 模型加密推理示例
 模型加密推理示例, 请参见[`/python/examples/encryption/`](../python/examples/encryption/)。
 
-
-### 其他详细信息
-飞桨官方网站加密方法接口
-
-[Python加密方法接口](https://github.com/HexToString/Serving/blob/develop/python/paddle_serving_app/local_predict.py)
-
-[C++加密方法接口](https://www.paddlepaddle.org.cn/documentation/docs/zh/advanced_guide/inference_deployment/inference/python_infer_cn.html#analysispre)
-

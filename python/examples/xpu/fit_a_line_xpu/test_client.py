@@ -12,11 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-#! /bin/bash
 
-mkdir -p cube_model
-mkdir -p cube/data
-./seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature  
-./cube/cube-builder -dict_name=test_dict -job_mode=base -last_version=0 -cur_version=0 -depend_version=0 -input_path=./cube_model -output_path=${PWD}/cube/data -shard_num=1  -only_build=false
-mv ./cube/data/0_0/test_dict_part0/* ./cube/data/
-cd cube && ./cube 
+from paddle_serving_client import Client
+import sys
+import numpy as np
+
+client = Client()
+client.load_client_config(sys.argv[1])
+client.connect(["127.0.0.1:9393"])
+
+import paddle
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=1)
+
+for data in test_reader():
+    new_data = np.zeros((1, 1, 13)).astype("float32")
+    new_data[0] = data[0][0]
+    fetch_map = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=True)
+    print(fetch_map)

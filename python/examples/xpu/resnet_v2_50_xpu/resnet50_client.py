@@ -11,23 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-import numpy as np
-import sys
+from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
+from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
 
 client = Client()
-client.load_client_config(sys.argv[1])
+client.load_client_config(
+    "resnet_v2_50_imagenet_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9393"])
 
-import paddle
-test_reader = paddle.batch(
-    paddle.reader.shuffle(
-        paddle.dataset.uci_housing.test(), buf_size=500),
-    batch_size=1)
+seq = Sequential([
+    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
+])
 
-for data in test_reader():
-    fetch_map = client.predict(
-        feed={"x": np.array(data[0][0])}, fetch=["price"])
-    print("{} {}".format(fetch_map["price"][0][0], data[0][1][0]))
+image_file = "daisy.jpg"
+img = seq(image_file)
+fetch_map = client.predict(feed={"image": img}, fetch=["score"])
+print(fetch_map["score"].reshape(-1))

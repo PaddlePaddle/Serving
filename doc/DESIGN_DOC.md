@@ -4,188 +4,37 @@
 
 ## 1. Design Objectives
 
-- Long Term Vision: Online deployment of deep learning models will be a user-facing application in the future. Any AI developer will face the problem of deploying an online service for his or her trained model.
-Paddle Serving is the official open source online deployment framework. The long term goal of Paddle Serving is to provide professional, reliable and easy-to-use online service to the last mile of AI application.
+Paddle Serving is the official open source online deployment framework. The long term goal of Paddle Serving is to provide professional, reliable and easy-to-use online service to the last mile of AI application. Online deployment of deep learning models will be a user-facing application in the future. Any AI developer will face the problem of deploying an online service for his or her trained model.
 
-- Easy-To-Use: For algorithmic developers to quickly deploy their models online, Paddle Serving designs APIs that can be used with Paddle's training process seamlessly, most Paddle models can be deployed as a service with one line command.
+- Industrial Oriented: To meet industrial deployment requirements, Paddle Serving supports lots of large-scale deployment functions: 1) Model management, model hot loading, model encryption and decryption. 2）Support cross-platform, multiple hardware deployment. 3) Distributed Sparse Embedding Indexing. 4) online A/B test
+  
+- High Performance: Thinking about improving the performance of model inference from the two dimensions of low latency and high throughput. 1) High-performance prediction engine Paddle Inference  is integrated. 2) Nvidia Tensor RT is supported. 3) High-performance network framework brpc is Integrated. 4) Asynchronous Pipeline mode greatly improves throughput.
 
-- Industrial Oriented: To meet industrial deployment requirements, Paddle Serving supports lots of large-scale deployment functions: 1) Distributed Sparse Embedding Indexing. 2) Highly concurrent underlying communications. 3) Model Management, online A/B test, model online loading.
+- Easy-To-Use: For algorithmic developers to quickly deploy their models online, Paddle Serving designs APIs that can be used with Paddle's training process seamlessly, most Paddle models can be deployed as a service with one line command. More than 20 common model cases and documents.
 
-- Extensibility: Paddle Serving supports C++, Python and Golang client, and will support more clients with different languages. It is very easy to extend Paddle Serving to support other machine learning inference library, although currently Paddle inference library is the only official supported inference backend.
+- Extensibility: Paddle Serving supports C++, Python, Golang, Java four client SDK, and will support more clients with different languages. It is very easy to extend Paddle Serving to support other machine learning inference library, although currently Paddle inference library is the only official supported inference backend.
 
+----
 
-## 2. Module design and implementation
+## 2. Preliminary Design
+Any excellent software product must start from user needs, have clear positioning and good preliminary designs. Same goes for Paddle Serving, which aims to provide professional, reliable and easy-to-use online service to the last mile of AI application. By investigating the usage scenarios of a large number of users, and abstracting these scenarios, for example, online services focus on high concurrency and low response time; offline services focus on high batch throughput and high resource utilization; Algorithm developers are good at using Python for model training and inference.
 
-### 2.1 Python API interface design
+### 2.1 Design selection
 
-#### 2.1.1 save a servable model
-The inference phase of Paddle model focuses on 1) input variables of the model. 2) output variables of the model. 3) model structure and model parameters. Paddle Serving Python API provides a `save_model` interface for trained model, and save necessary information for Paddle Serving to use during deployment phase. An example is as follows:
+In order to meet the needs of users in different scenarios, Paddle Serving's product positioning adopts lower-dimensional features, such as response time, throughput, development efficiency, etc., to achieve target selection and technology selection.
 
-``` python
-import paddle_serving_client.io as serving_io
-serving_io.save_model("serving_model", "client_conf",
-                      {"words": data}, {"prediction": prediction},
-                      fluid.default_main_program())
-```
-In the example, `{"words": data}` and `{"prediction": prediction}` assign the inputs and outputs of a model. `"words"` and `"prediction"` are alias names of inputs and outputs. The design of alias name is to help developers to memorize model inputs and model outputs. `data` and `prediction` are Paddle `[Variable](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Variable_cn.html#variable)` in training phase that often represents ([Tensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/api_cn/fluid_cn/Tensor_cn.html#tensor)) or ([LodTensor](https://www.paddlepaddle.org.cn/documentation/docs/zh/beginners_guide/basic_concept/lod_tensor.html#lodtensor)). When the `save_model` API is called, two directories called `"serving_model"` and `"client_conf"` will be generated. The content of the saved model is as follows:
+| Response time | throughput | development efficiency | Resource utilization | selection | Applications|
+|-----|------|-----|-----|------|------|
+| LOW | HIGH | LOW | HIGH |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
+| HIGH | HIGH | HIGH | HIGH |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
+| HIGH | LOW | HIGH| LOW |Python webserver| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
 
-``` shell
-.
-├── client_conf
-│   ├── serving_client_conf.prototxt
-│   └── serving_client_conf.stream.prototxt
-└── serving_model
-    ├── embedding_0.w_0
-    ├── fc_0.b_0
-    ├── fc_0.w_0
-    ├── fc_1.b_0
-    ├── fc_1.w_0
-    ├── fc_2.b_0
-    ├── fc_2.w_0
-    ├── lstm_0.b_0
-    ├── lstm_0.w_0
-    ├── __model__
-    ├── serving_server_conf.prototxt
-    └── serving_server_conf.stream.prototxt
-```
-`"serving_client_conf.prototxt"` and `"serving_server_conf.prototxt"` are the client side and the server side configurations of Paddle Serving, and `"serving_client_conf.stream.prototxt"` and `"serving_server_conf.stream.prototxt"` are the corresponding parts. Other contents saved in the directory are the same as Paddle saved inference model. We are considering to support `save_model` interface in Paddle training framework so that a user is not aware of the servable configurations. 
+Performance index description：
+1. Response time (ms): Average response time of a single request, calculate the response time of 50, 90, 95, 99 quantiles, the lower the better.
+2. Throughput(QPS/TPS): The efficiency of service processing requests, the number of requests processed per unit time, the higher the better.
+3. Development efficiency: Using different development languages ​​to complete the same work takes different time, including the efficiency of development, debugging, and maintenance, the higher the better.
+4. Resource utilization: Deploy a service to resource utilization (CPU/GPU), low resource utilization is a waste of resources, the higher the better.
 
-#### 2.1.2 Model loading on the server side
-
-Prediction logics on the server side can be defined through Paddle Serving Server API with a few lines of code, an example is as follows:
-``` python
-import paddle_serving_server as serving
-op_maker = serving.OpMaker()
-read_op = op_maker.create('general_reader')
-dist_kv_op = op_maker.create('general_dist_kv')
-general_infer_op = op_maker.create('general_infer')
-general_response_op = op_maker.create('general_response')
-
-op_seq_maker = serving.OpSeqMaker()
-op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(dist_kv_op)
-op_seq_maker.add_op(general_infer_op)
-op_seq_maker.add_op(general_response_op)
-```
-Current Paddle Serving supports operator list on the server side as follows:
-
-<center>
-
-| Op Name | Description |
-|--------------|------|
-| `general_reader` | General Data Reading Operator |
-| `genreal_infer` | General Data Inference with Paddle Operator |
-| `general_response` | General Data Response Operator |
-| `general_dist_kv` | Distributed Sparse Embedding Indexing |
-
-</center>
-
-Paddle Serving supports inference engine on multiple devices. Current supports are CPU and GPU engine. Docker Images of CPU and GPU are provided officially. User can use one line command to start an inference service either on CPU or on GPU. 
-
-``` shell
-python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292
-```
-``` shell
-python -m paddle_serving_server_gpu.serve --model your_servable_model --thread 10 --port 9292
-```
-
-Options of startup command are listed below: 
-<center>
-
-| Arguments | Types | Defaults | Descriptions |
-|--------------|------|-----------|--------------------------------|
-| `thread` | int | `4` | Concurrency on server side, usually equal to the number of CPU core |
-| `port` | int | `9292` | Port exposed to users |
-| `name` | str | `""` | Service name that if a user specifies, the name of HTTP service is allocated |
-| `model` | str | `""` | Servable models for Paddle Serving |
-| `gpu_ids` | str | `""` | Supported only in paddle_serving_server_gpu, similar to the usage of CUDA_VISIBLE_DEVICES |
-
-</center>
-
-For example, `python -m paddle_serving_server.serve --model your_servable_model --thread 10 --port 9292` is the same as the following code as user can define: 
-``` python
-from paddle_serving_server import OpMaker, OpSeqMaker, Server
-
-op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
-general_response_op = op_maker.create('general_response')
-op_seq_maker = OpSeqMaker()
-op_seq_maker.add_op(read_op)
-op_seq_maker.add_op(general_infer_op)
-op_seq_maker.add_op(general_response_op)
-server = Server()
-server.set_op_sequence(op_seq_maker.get_op_sequence())
-server.set_num_threads(10)
-server.load_model_config(”your_servable_model“)
-server.prepare_server(port=9292, device="cpu")
-server.run_server()
-```
-
-#### 2.1.3 Paddle Serving Client API
-Paddle Serving supports remote service access through RPC(remote procedure call) and HTTP. RPC access of remote service can be called through Client API of Paddle Serving. A user can define data preprocess function before calling Paddle Serving's client API. The example below explains how to define the input data of Paddle Serving Client. The servable model has two inputs with alias name of `sparse` and `dense`. `sparse` corresponds to sparse sequence ids such as `[1, 1001, 100001]` and `dense` corresponds to dense vector such as `[0.2, 0.5, 0.1, 0.4, 0.11, 0.22]`. For sparse sequence data, current design supports `lod_level=0` and `lod_level=1` of Paddle, that corresponds to `Tensor` and `LodTensor`. For dense vector, current design supports any `N-D Tensor`. Users do not need to assign the shape of inference model input. The Paddle Serving Client API will check the input data's shape with servable configurations.
-
-``` python
-feed_dict["sparse"] = [1, 1001, 100001]
-feed_dict["dense"] = [0.2, 0.5, 0.1, 0.4, 0.11, 0.22]
-fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
-```
-
-The following code sample shows that Paddle Serving Client API connects to Server API with endpoint of the servers. To use the data parallelism ability during prediction, Paddle Serving Client allows users to define multiple server endpoints.
-``` python
-client = Client()
-client.load_client_config('servable_client_configs')
-client.connect(["127.0.0.1:9292"])
-```
-
-### 2.2 Underlying Communication Mechanism
-Paddle Serving adopts [baidu-rpc](https://github.com/apache/incubator-brpc) as underlying communication layer. baidu-rpc is an open-source RPC communication library with high concurrency and low latency advantages compared with other open source RPC library. Millions of instances and thousands of services are using baidu-rpc within Baidu.
-
-### 2.3 Core Execution Engine
-The core execution engine of Paddle Serving is a Directed acyclic graph(DAG). In the DAG, each node represents a phase of inference service, such as paddle inference prediction, data preprocessing and data postprocessing. DAG can fully parallelize the computation efficiency and can fully utilize the computation resources. For example, when a user has input data that needs to be feed into two models, and combine the scores of the two models, the computation of model scoring is parallelized through DAG.
-
-<p align="center">
-    <br>
-<img src='design_doc.png'">
-    <br>
-<p>
-
-### 2.4 Micro service plugin
-The underlying communication of Paddle Serving is implemented with C++ as well as the core framework, it is hard for users who do not familiar with C++ to implement new Paddle Serving Server Operators. Another approach is to use the light-weighted Web Service in Paddle Serving Server that can be viewed as a plugin. A user can implement complex data preprocessing and postprocessing logics to build a complex AI service. If access of the AI service has a large volumn, it is worth to implement the service with high performance Paddle Serving Server operators. The relationship between Web Service and RPC Service can be referenced in `User Type`.
-
-## 3. Industrial Features
-
-### 3.1 Distributed Sparse Parameter Indexing
-
-Distributed Sparse Parameter Indexing is commonly seen in advertising and recommendation scenarios, and is often used coupled with distributed training. The figure below explains a commonly seen architecture for online recommendation. When the recommendation service receives a request from a user, the system will automatically collects training log for the offline distributed online training. Mean while, the request is sent to Paddle Serving Server. For sparse features, distributed sparse parameter index service is called so that sparse parameters can be looked up. The dense input features together with the looked up sparse model parameters are fed into the Paddle Inference Node of the DAG in Paddle Serving Server. Then the score can be responsed through RPC to product service for item ranking.
-
-<p align="center">
-    <br>
-<img src='cube_eng.png' width = "450" height = "230">
-    <br>
-<p>
-Why do we need to support distributed sparse parameter indexing in Paddle Serving? 1) In some recommendation scenarios, the number of features can be up to hundreds of billions that a single node can not hold the parameters within random access memory. 2) Paddle Serving supports distributed sparse parameter indexing that can couple with paddle inference. Users do not need to do extra work to have a low latency inference engine with hundreds of billions of parameters.
-
-### 3.2 Online A/B test
-
-After sufficient offline evaluation of the model, online A/B test is usually needed to decide whether to enable the service on a large scale. The following figure shows the basic structure of A/B test with Paddle Serving. After the client is configured with the corresponding configuration, the traffic will be automatically distributed to different servers to achieve A/B test. Please refer to [ABTEST in Paddle Serving](ABTEST_IN_PADDLE_SERVING.md) for specific examples.
-
-<p align="center">
-    <br>
-<img src='abtest.png' width = "345" height = "230">
-    <br>
-<p>
-
-
-### 3.3 Model Online Reloading     
-
-In order to ensure the availability of services, the model needs to be hot loaded without service interruption. Paddle Serving supports this feature and provides a tool for monitoring output models to update local models. Please refer to [Hot loading in Paddle Serving](HOT_LOADING_IN_SERVING.md) for specific examples.
-
-### 3.4 Model Management
-
-Paddle Serving's C++ engine supports model management. Currently, python API is not released yet, please wait for the next release.
-
-## 4. User Types
 Paddle Serving provides RPC and HTTP protocol for users. For HTTP service, we recommend users with median or small traffic services to use, and the latency is not a strict requirement. For RPC protocol, we recommend high traffic services and low latency required services to use. For users who use distributed sparse parameter indexing built-in service, it is not necessary to care about the underlying details of communication. The following figure gives out several scenarios that user may want to use Paddle Serving. 
 
 <p align="center">
@@ -196,9 +45,110 @@ Paddle Serving provides RPC and HTTP protocol for users. For HTTP service, we re
 
 For servable models saved from Paddle Serving IO API, users do not need to do extra coding work to startup a service, but may need some coding work on the client side. For development of Web Service plugin, a user needs to provide implementation of Web Service's preprocessing and postprocessing work if needed to get a HTTP service.
 
-### 4.1 Web Service Development
+### 2.2 Industrial Features
 
-Web Service has lots of open sourced framework. Currently Paddle Serving uses Flask as built-in service framework, and users are not aware of this. More efficient web service will be integrated in the furture if needed.
+Paddle Serving takes into account a series of issues such as different operating systems, different development languages, multiple hardware devices, cross-deep learning platform model conversion, distributed sparse parameter indexing, and cloud deployment by different teams in industrial-level scenarios.
+
+> Cross-platform operation
+
+Cross-platform is not dependent on the operating system, nor on the hardware environment. Applications developed under one operating system can still run under another operating system. Therefore, the design should consider not only the development language and the cross-platform components, but also the interpretation differences of the compilers on different systems.
+
+Docker is an open source application container engine that allows developers to package their applications and dependencies into a portable container, and then publish it to any popular Linux machine or Windows machine. We have packaged a variety of Docker images for the Paddle Serving framework. Refer to the image list《[Docker Images](DOCKER_IMAGES.md)》, Select mirrors according to user's usage. We provide Docker usage documentation《[How to run PaddleServing in Docker](RUN_IN_DOCKER.md)》.Currently, the Python webserver mode can be deployed and run on the native Linux and Windows dual systems.《[Paddle Serving for Windows Users](WINDOWS_TUTORIAL.md)》
+
+> Support multiple development languages client ​​SDKs
+
+Paddle Serving provides 4 development language client SDKs, including Python, C++, Java, and Golang. Golang SDK is under construction, We hope that interested open source developers can help submit PR.
+
++ Python, Refer to the client example under python/examples or 4.2 web service example.
++ C++, Refer to《[从零开始写一个预测服务](deprecated/CREATING.md)》
++ Java, Refer to《[Paddle Serving Client Java SDK](JAVA_SDK.md)》
++ Golang, Refer to《[How to use Go Client of Paddle Serving](deprecated/IMDB_GO_CLIENT.md)》
+
+> Support multiple hardware devices
+
+The inference framework of the well-known deep learning platform only supports CPU and GPU inference on the X86 platform. With the rapid increase in the complexity of AI algorithms, the computing power of chips has greatly increased, which has promoted the accelerated implementation of IoT applications and deployment on a variety of hardware.Paddle Serving integrates high-performance inference engine Paddle Inference and mobile terminal inference engine Paddle Lite, Provide inference services on multiple hardware devices. At present, in addition to X86 CPU and GPU, Paddle Serving has implemented the deployment of inference services on ARM CPU and Kunlun XPU. In the future, more hardware will be added to Paddle Serving.
+
+> Model conversion across deep learning platforms
+
+Models trained on other deep learning platforms can be passed《[PaddlePaddle/X2Paddle工具](https://github.com/PaddlePaddle/X2Paddle)》.We convert multiple mainstream CV models to Paddle models. TensorFlow, Caffe, ONNX, PyTorch model conversion is tested.《[An End-to-end Tutorial from Training to Inference Service Deployment](TRAIN_TO_SERVICE.md)》
+
+Because it is impossible to directly view the feed and fetch parameter information in the model file, it is not convenient for users to assemble the parameters. Therefore, Paddle Serving developed a tool to convert the Paddle model into Serving format and generate a prototxt file containing feed and fetch parameter information. The following figure is the generated prototxt file of the uci_housing example. For more conversion methods, refer to the document《[How to save a servable model of Paddle Serving?](SAVE.md)》.
+```
+feed_var {
+  name: "x"
+  alias_name: "x"
+  is_lod_tensor: false
+  feed_type: 1
+  shape: 13
+}
+fetch_var {
+  name: "fc_0.tmp_1"
+  alias_name: "price"
+  is_lod_tensor: false
+  fetch_type: 1
+  shape: 1
+}
+```
+
+> Distributed Sparse Parameter Indexing
+
+Distributed Sparse Parameter Indexing is commonly seen in advertising and recommendation scenarios, and is often used coupled with distributed training. The figure below explains a commonly seen architecture for online recommendation. When the recommendation service receives a request from a user, the system will automatically collects training log for the offline distributed online training. Mean while, the request is sent to Paddle Serving Server. For sparse features, distributed sparse parameter index service is called so that sparse parameters can be looked up. The dense input features together with the looked up sparse model parameters are fed into the Paddle Inference Node of the DAG in Paddle Serving Server. Then the score can be responsed through RPC to product service for item ranking.
+
+<p align="center">
+    <br>
+<img src='cube_eng.png' width = "450" height = "230">
+    <br>
+<p>
+
+Why do we need to support distributed sparse parameter indexing in Paddle Serving? 1) In some recommendation scenarios, the number of features can be up to hundreds of billions that a single node can not hold the parameters within random access memory. 2) Paddle Serving supports distributed sparse parameter indexing that can couple with paddle inference. Users do not need to do extra work to have a low latency inference engine with hundreds of billions of parameters.
+
+----
+
+## 3. C++ Serving design
+
+C++ Serving aims to achieve high-performance reasoning services with high concurrency and low latency. Its network framework and core execution engine are written based on C/C++, and provide powerful industrial-grade application capabilities, including model management, model security, and A/B Testing
+
+### 3.1 Network Communication Mechanism
+Paddle Serving adopts [brpc](https://github.com/apache/incubator-brpc) as underlying communication layer. brpc is an open-source RPC communication library with high concurrency and low latency advantages compared with other open source RPC library. Millions of instances and thousands of services are using brpc within Baidu.
+
+### 3.2 Core Execution Engine
+The core execution engine of Paddle Serving is a Directed acyclic graph(DAG). In the DAG, each node represents a phase of inference service, such as paddle inference prediction, data preprocessing and data postprocessing. DAG can fully parallelize the computation efficiency and can fully utilize the computation resources. For example, when a user has input data that needs to be feed into two models, and combine the scores of the two models, the computation of model scoring is parallelized through DAG.
+
+<p align="center">
+    <br>
+<img src='design_doc.png'">
+    <br>
+<p>
+
+### 3.3  Model Management and Hot Reloading     
+C++ Serving supports model management functions, including management of multiple models and multiple model versions.In order to ensure the availability of services, the model needs to be hot loaded without service interruption. Paddle Serving supports this feature and provides a tool for monitoring output models to update local models. Please refer to [Hot loading in Paddle Serving](HOT_LOADING_IN_SERVING.md) for specific examples.
+
+### 3.4 MOEDL ENCRYPTION INFERENCE
+Paddle Serving uses a symmetric encryption algorithm to encrypt the model, and decrypts it in memory during the service loading model. At present, providing basic model security capabilities does not guarantee absolute model security. Users can improve them according to our design to achieve a higher level of security. Documentation reference《[MOEDL ENCRYPTION INFERENCE](ENCRYPTION.md)》
+
+### 3.5 A/B Test
+
+After sufficient offline evaluation of the model, online A/B test is usually needed to decide whether to enable the service on a large scale. The following figure shows the basic structure of A/B test with Paddle Serving. After the client is configured with the corresponding configuration, the traffic will be automatically distributed to different servers to achieve A/B test. Please refer to [ABTEST in Paddle Serving](ABTEST_IN_PADDLE_SERVING.md) for specific examples.
+
+<p align="center">
+    <br>
+<img src='abtest.png' width = "345" height = "230">
+    <br>
+<p>
+
+### 3.6 Micro service plugin
+The underlying communication of Paddle Serving is implemented with C++ as well as the core framework, it is hard for users who do not familiar with C++ to implement new Paddle Serving Server Operators. Another approach is to use the light-weighted Web Service in Paddle Serving Server that can be viewed as a plugin. A user can implement complex data preprocessing and postprocessing logics to build a complex AI service. If access of the AI service has a large volumn, it is worth to implement the service with high performance Paddle Serving Server operators. The relationship between Web Service and RPC Service can be referenced in `User Type`.
+
+----
+
+## 4. Python Webserver Design
+
+### 4.1 Network Communication Mechanism
+There are many open source frameworks for web services. Paddle Serving currently integrates the Flask framework, but this part is not visible to users. In the future, a better-performing web framework may be provided as the underlying HTTP service integration engine.
+
+### 4.2 Web Service Development
+
+`WebService` is a Base Class, providing inheritable interfaces such `preprocess` and `postprocess` for users to implement. In the inherited class of `WebService` class, users can define any functions they want and the startup function interface is the same as RPC service.
 
 ``` python
 from paddle_serving_server.web_service import WebService
@@ -229,15 +179,36 @@ imdb_service.prepare_dict({"dict_file_path": sys.argv[4]})
 imdb_service.run_server()
 ```
 
-`WebService` is a Base Class, providing inheritable interfaces such `preprocess` and `postprocess` for users to implement. In the inherited class of `WebService` class, users can define any functions they want and the startup function interface is the same as RPC service.
+----
 
-## 5. Future Plan
+## 5. Python Pipeline Serving Design
+The end-to-end deep learning model is currently unable to solve all problems. The use of multiple deep learning models together is still a conventional means to solve real-world problems.
+the end-to-end deep learning model can not solve all the problems at present. Usually, it is necessary to use multiple deep learning models to solve practical problems.
 
-### 5.1 Open DAG definition API
-Current version of Paddle Serving Server supports sequential type of execution flow. DAG definition API can be more helpful to users on complex tasks.
+### 5.1 Network Communication Mechanism
+The network framework of Pipeline Serving uses gRPC and gPRC gateway. The gRPC service receives the RPC request, and the gPRC gateway receives the RESTful API request and forwards the request to the gRPC Service through the reverse proxy server. Therefore, the network layer of Pipeline Serving receives both RPC and RESTful API.
+<center>
+<img src='pipeline_serving-image1.png' height = "250" align="middle"/>
+</center>
 
-### 5.2 Auto Deployment on Cloud
+### 5.2 Core Design And Use Cases
+
+The core design of Pipeline Serving is a graph execution engine, and the basic processing units are OP and Channel. A set of directed acyclic graphs can be realized through combination. Reference for design and use documents《[Pipeline Serving](PIPELINE_SERVING.md)》
+
+<center>
+<img src='pipeline_serving-image2.png' height = "300" align="middle"/>
+</center>
+
+----
+
+
+## 6. Future Plan
+
+### 5.1 Auto Deployment on Cloud
 In order to make deployment more easily on public cloud, Paddle Serving considers to provides Operators on Kubernetes in submitting a service job.
 
-### 5.3 Vector Indexing and Tree based Indexing
+### 6.2 Vector Indexing and Tree based Indexing
 In recommendation and advertisement systems, it is commonly seen to use vector based index or tree based indexing service to do candidate retrievals. These retrieval tasks will be built-in services of Paddle Serving.
+
+### 6.3 Service Monitoring
+Paddle Serving will integrate Prometheus monitoring, which is a set of open source monitoring & alarm & time series database combination, suitable for k8s and docker monitoring systems.

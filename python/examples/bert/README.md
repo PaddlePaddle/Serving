@@ -11,13 +11,15 @@ This example use model [BERT Chinese Model](https://www.paddlepaddle.org.cn/hubd
 
 Install paddlehub first
 ```
-pip install paddlehub
+pip3 install paddlehub
 ```
 
 run 
 ```
-python prepare_model.py 128
+python3 prepare_model.py 128
 ```
+
+**PaddleHub only support Python 3.5+**
 
 the 128 in the command above means max_seq_len in BERT model, which is the length of sample after preprocessing.
 the config file and model file for server side are saved in the folder bert_seq128_model.
@@ -28,8 +30,9 @@ You can also download the above model from BOS(max_seq_len=128). After decompres
 ```shell
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
 tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
+mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
+mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
 ```
-if your model is bert_chinese_L-12_H-768_A-12_model, replace the 'bert_seq128_model' field in the following command with 'bert_chinese_L-12_H-768_A-12_model',replace 'bert_seq128_client' with 'bert_chinese_L-12_H-768_A-12_client'.
 
 ### Getting Dict and Sample Dataset
 
@@ -64,7 +67,7 @@ the client reads data from data-c.txt and send prediction request, the predictio
 ### HTTP Inference Service
 start cpu HTTP inference service,Run
 ```
- python bert_web_service.py bert_seq128_model/ 9292 #launch gpu inference service
+ python bert_web_service.py bert_seq128_model/ 9292 #launch cpu inference service
 ```
 
 Or,start gpu HTTP inference service,Run
