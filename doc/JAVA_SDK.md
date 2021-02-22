@@ -18,7 +18,7 @@ The following table shows compatibilities between Paddle Serving Server and Java
 
 | Paddle Serving Server version | Java SDK version |
 | :---------------------------: | :--------------: |
-|             0.3.2             |      0.0.1       |
+|             0.5.0             |      0.0.1       |
 
 1.    Directly use the provided Java SDK as the client for prediction
 ### Install Java SDK
