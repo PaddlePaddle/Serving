@@ -110,7 +110,11 @@ The first is that GPU Serving and Java Client are in the same image. After start
 
 The second is to deploy GPU Serving and Java Client separately. If they are on the same host, you can learn the IP address of the corresponding container through ifconfig, and then when you connect to client.connect in `examples/src/main/java/PaddleServingClientExample.java` Make changes to the endpoint, and then compile it again. Or select `--net=host` to bind the network device of docker and host when docker starts, so that it can run directly without customizing java code.
 
+<<<<<<< HEAD
 **It should be noted that in the example, all models(not pipeline) need to use `--use_multilang` to start GRPC multi-programming language support, and the port number is 9393. If you need another port, you need to modify it in the java file**
+=======
+The second is that GPU serving and Java client are deployed in their respective docker images (or different hosts with compilation and development environment). At this time, you only need to pay attention to the `ip` and`port` correspondence between the Java client and GPU serving. See item 3 of the above precautions for details.
+>>>>>>> 0cf4a09... 111
 
 **Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). Pipeline Serving Client for Java is released.**
 
