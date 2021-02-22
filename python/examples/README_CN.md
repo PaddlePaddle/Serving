@@ -6,4 +6,4 @@
 
 - imagenet ResNet50/ResNet101
 - detection faster_rcnn/yolov3/pp-yolo/ttf-net
-i
+
