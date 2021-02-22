@@ -105,11 +105,11 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 ### 注意事项
 
-1.    在示例中，所有非Pipeline模型都需要使用`--use_multilang`来启动GRPC多编程语言支持，以及端口号都是9393，如果需要别的端口，需要在java文件里修改。
+1.在示例中，所有非Pipeline模型都需要使用`--use_multilang`来启动GRPC多编程语言支持，以及端口号都是9393，如果需要别的端口，需要在java文件里修改。
 
-2.    目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
+2.目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
 
-3.    注意PipelineClientExample.java中的ip和port（位于java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与对应Pipeline server的config.yaml文件中配置的ip和port相对应。（以IMDB model ensemble模型为例，位于python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）
+3.注意PipelineClientExample.java中的ip和port（位于java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与对应Pipeline server的config.yaml文件中配置的ip和port相对应。（以IMDB model ensemble模型为例，位于python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）
 
 ### 开发部署指导
 
