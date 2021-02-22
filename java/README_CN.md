@@ -109,7 +109,7 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 2.    目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
 
-3.    注意PipelineClientExample.java中的ip和port（位于java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与对应Pipeline server（以IMDB model ensemble模型为例）的config.yaml文件（位于python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）中配置的ip和port相对应。
+3.    注意PipelineClientExample.java中的ip和port（位于java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与对应Pipeline server（以IMDB model ensemble模型为例）的config.yaml文件中配置的ip和port相对应。（位于python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）
 
 ### 开发部署指导
 
