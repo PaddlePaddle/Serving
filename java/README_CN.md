@@ -105,18 +105,18 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 ### 注意事项
 
-1.在示例中，所有非Pipeline模型都需要使用`--use_multilang`来启动GRPC多编程语言支持，以及端口号都是9393，如果需要别的端口，需要在java文件里修改
+1.    在示例中，所有非Pipeline模型都需要使用`--use_multilang`来启动GRPC多编程语言支持，以及端口号都是9393，如果需要别的端口，需要在java文件里修改。
 
-2.目前Serving已推出Pipeline模式（详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
+2.    目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
 
-3.注意java/examples/src/main/java/PipelineClientExample.java中的ip和port，需要与/python/examples/pipeline/中对应Pipeline server的config.yaml文件中配置的ip和port相对应。
+3.    注意java/examples/src/main/java/PipelineClientExample.java中的ip和port（详见[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与/python/examples/pipeline/中对应Pipeline server的config.yaml文件（以IMDB model ensemble模型的[config.yaml]为例(../python/examples/pipeline/imdb_model_ensemble/config.yml)）中配置的ip和port相对应。
 
 ### 开发部署指导
 
-由于Java的docker镜像中不含有Serving需要的编译开发环境，Serving的常规docker镜像中也不包含Java所需要的编译开发环境，故下面以GPU模式为例，讲解开发部署的两种形式。
+由于Java的docker镜像中不含有Serving需要的编译开发环境，Serving的常规docker镜像中也不包含Java所需要的编译开发环境，对GPU Serving端和Java Client端的二次编译开发需要在各自的docker镜像下完成，下面以GPU模式为例，讲解开发部署的两种形式。
 
-第一种是GPU Serving和Java Client在运行在同一个GPU对应的镜像中，需要用户在启动对应的GPU镜像后，把在java镜像中编译完成后的文件(位于/Serving/java目录下)拷贝到GPU镜像中。
+第一种是GPU Serving和Java Client在运行在同一个GPU镜像中，需要用户在启动GPU镜像后，把在java镜像中编译完成后的文件(位于/Serving/java目录下)拷贝到GPU镜像中的/Serving/java目录下。
 
-第二种是GPU Serving和Java Client分别在对应的docker镜像中(或具备编译开发环境的不同主机上)部署，此时仅需注意在`examples/src/main/java/PaddleServingClientExample.java`当中对client.connect时的endpoint做修改，于对应的server的config.yaml文件中配置的ip和port相对应即可。
+第二种是GPU Serving和Java Client分别在各自的docker镜像中(或具备编译开发环境的不同主机上)部署，此时仅需注意Java Client端与GPU Serving端的ip和port需要对应，详见上述注意事项中的第3项。
 
 
