@@ -91,7 +91,7 @@ git clone https://github.com/PaddlePaddle/Serving
 ```shell
 pip install paddle-serving-client==0.5.0
 pip install paddle-serving-server==0.5.0 # CPU
-pip install paddle-serving-app==0.2.0
+pip install paddle-serving-app==0.3.0
 pip install paddle-serving-server-gpu==0.5.0.post102 #GPU with CUDA10.2 + TensorRT7
 # DO NOT RUN ALL COMMANDS! check your GPU env and select the right one
 pip install paddle-serving-server-gpu==0.5.0.post9 # GPU with CUDA9.0
