@@ -3,41 +3,44 @@
 ## CPU server
 ### Python 3
 ```
+# Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server-0.0.0-py3-none-any.whl
 ```
 
 ### Python 2
 ```
+# Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server-0.0.0-py2-none-any.whl
 ```
 
 ## GPU server
 ### Python 3
 ```
-#cuda 9.0
+#cuda 9.0, Compile by gcc4.8
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post9-py3-none-any.whl
-#cuda 10.0
+#cuda 10.0, Compile by gcc4.8
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-py3-none-any.whl
-#cuda10.1 with TensorRT 6
+#cuda10.1 with TensorRT 6, Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post101-py3-none-any.whl
-#cuda10.2 with TensorRT 7
+#cuda10.2 with TensorRT 7, Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl
-#cuda11.0 with TensorRT 7 (beta)
+#cuda11.0 with TensorRT 7 (beta), Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post11-py3-none-any.whl
 ```
 ### Python 2
 ```
-#cuda 9.0
+#cuda 9.0, Compile by gcc4.8
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post9-py2-none-any.whl
-#cuda 10.0
+#cuda 10.0, Compile by gcc4.8
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post10-py2-none-any.whl
-#cuda10.1 with TensorRT 6
+#cuda10.1 with TensorRT 6, Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post101-py2-none-any.whl
-#cuda10.2 with TensorRT 7
+#cuda10.2 with TensorRT 7, Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post102-py2-none-any.whl
-#cuda11.0 with TensorRT 7 (beta)
+#cuda11.0 with TensorRT 7 (beta), Compile by gcc8.2
 https://paddle-serving.bj.bcebos.com/whl/paddle_serving_server_gpu-0.0.0.post11-py2-none-any.whl
 ```
+**Tips:**  If you want to use CPU server and GPU server at the same time, you should check the gcc version,  only Cuda10.1/10.2/11 can run with CPU server owing to the same gcc version(8.2).
 
 ## Client
 

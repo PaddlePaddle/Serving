@@ -65,4 +65,5 @@ docker exec -it test bash
 
 ## 注意事项
 
-运行时镜像不能用于开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。
+- 运行时镜像不能用于开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。
+- 由于Cuda10和Cuda9的环境受限于GCC版本，无法同时运行CPU版本的`paddle_serving_server`，因此如果想要在GPU环境中同时使用CPU版本的`paddle_serving_server`，请选择Cuda10.1，Cuda10.2和Cuda11版本的镜像。
