@@ -33,6 +33,15 @@
 
 Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
 
+<h3 align="center">Paddle Serving的核心功能</h3>
+
+- 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
+- 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
+- 支持客户端和服务端之间 **高并发和高效通信**.
+- 支持 **多种编程语言** 开发客户端，例如C++, Python和Java.
+
+***
+
 - 任何经过[PaddlePaddle](https://github.com/paddlepaddle/paddle)训练的模型，都可以经过直接保存或是[模型转换接口](./doc/SAVE_CN.md)，用于Paddle Serving在线部署。
 - 支持[多模型串联服务部署](./doc/PIPELINE_SERVING_CN.md), 同时提供Rest接口和RPC接口以满足您的需求，[Pipeline示例](./python/examples/pipeline)。
 - 支持Paddle生态的各大模型库, 例如[PaddleDetection](./python/examples/detection)，[PaddleOCR](./python/examples/ocr)，[PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender)。
@@ -197,14 +206,6 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 ```
 {"result":{"price":[[18.901151657104492]]}}
 ```
-
-<h2 align="center">Paddle Serving的核心功能</h2>
-
-- 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
-- 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
-- 支持 **分布式键值对索引** 助力于大规模稀疏特征作为模型输入.
-- 支持客户端和服务端之间 **高并发和高效通信**.
-- 支持 **多种编程语言** 开发客户端，例如Golang，C++和Python.
 
 <h2 align="center">文档</h2>
 
