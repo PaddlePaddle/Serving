@@ -40,7 +40,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 ***
 
-- Any model trained by [PaddlePaddle](https://github.com/paddlepaddle/paddle) can be directly used or [Model Conversion Interface](./doc/SAVE_CN.md) for online deployment of Paddle Serving.
+- Any model trained by [PaddlePaddle](https://github.com/paddlepaddle/paddle) can be directly used or [Model Conversion Interface](./doc/SAVE.md) for online deployment of Paddle Serving.
 - Support [Multi-model Pipeline Deployment](./doc/PIPELINE_SERVING.md), and provide the requirements of the REST interface and RPC interface itself, [Pipeline example](./python/examples/pipeline).
 - Support the model zoos from the Paddle ecosystem, such as [PaddleDetection](./python/examples/detection), [PaddleOCR](./python/examples/ocr), [PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/tools/recserving/movie_recommender).
 - Provide a variety of pre-processing and post-processing to facilitate users in training, deployment and other stages of related code, bridging the gap between AI developers and application developers, please refer to
