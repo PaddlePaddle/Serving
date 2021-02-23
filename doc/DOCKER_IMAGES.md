@@ -97,3 +97,5 @@ Running Images:
 |          | <=0.4.0 | Nan                   | Nan       | Nan         |
 | Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
 |          | <=0.4.0 | Nan                   | Nan       | Nan         |
+
+**Tips:**  If you want to use CPU server and GPU server (version>=0.5.0) at the same time, you should check the gcc version,  only Cuda10.1/10.2/11 can run with CPU server owing to the same gcc version(8.2).
