@@ -102,3 +102,4 @@ registry.baidubce.com/paddlepaddle/serving:xpu-beta
 | Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
 |          | <=0.4.0 | Nan                   | Nan       | Nan         |
 
+**注意事项：** 如果您在0.5.0及以上版本需要在一个容器当中同时运行CPU server和GPU server，需要选择Cuda10.1/10.2/11的镜像，因为他们和CPU环境有着相同版本的gcc。
