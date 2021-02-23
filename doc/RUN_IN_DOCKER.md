@@ -73,4 +73,5 @@ If you need to change the version, please refer to the instructions on the homep
 
 ## Precautious
 
-Runtime images cannot be used for compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
+- Runtime images cannot be used for compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
+- If you use Cuda9 and Cuda10 docker images, you cannot use `paddle_serving_server` CPU version at the same time, due to the limitation of gcc version. If you want to use both in one docker image, please choose images of Cuda10.1, Cuda10.2 and Cuda11.
