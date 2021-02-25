@@ -14,7 +14,7 @@ Paddle Detection provides a large number of [Model Zoo](https://github.com/Paddl
 Several examples of PaddleDetection models used in Serving are given in this folder
 All examples support TensorRT.
 
--[Faster RCNN](./faster_rcnn_r50_fpn_1x_coco)
--[PPYOLO](./ppyolo_r50vd_dcn_1x_coco)
--[TTFNet](./ttfnet_darknet53_1x_coco)
--[YOLOv3](./yolov3_darknet53_270e_coco)
+- [Faster RCNN](./faster_rcnn_r50_fpn_1x_coco)
+- [PPYOLO](./ppyolo_r50vd_dcn_1x_coco)
+- [TTFNet](./ttfnet_darknet53_1x_coco)
+- [YOLOv3](./yolov3_darknet53_270e_coco)
