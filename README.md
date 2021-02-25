@@ -136,7 +136,7 @@ The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
 pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
 ```
 
-the default `paddlepaddle-gpu==2.0.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`。
+the default `paddlepaddle-gpu==2.0.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`. More info please check [Paddle Serving uses TensorRT](./doc/TENSOR_RT.md)
 
 If it is other environment and Python version, please find the corresponding link in the table and install it with pip.
 
@@ -223,6 +223,7 @@ the response is
 - [Develop Pipeline Serving](doc/PIPELINE_SERVING.md)
 - [Deploy Web Service with uWSGI](doc/UWSGI_DEPLOY.md)
 - [Hot loading for model file](doc/HOT_LOADING_IN_SERVING.md)
+- [Paddle Serving uses TensorRT](doc/TENSOR_RT.md)
 
 ### About Efficiency
 - [How to profile Paddle Serving latency?](python/examples/util)

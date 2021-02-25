@@ -112,7 +112,7 @@ pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + Tensor
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./doc/COMPILE_CN.md)
+如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./doc/COMPILE_CN.md)。
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
@@ -134,7 +134,7 @@ pip install paddlepaddle-gpu==2.0.0
 ```
 pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
 ```
-由于默认的`paddlepaddle-gpu==2.0.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。
+由于默认的`paddlepaddle-gpu==2.0.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
 
 如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
 
@@ -222,6 +222,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
+- [如何使用TensorRT?](doc/TENSOR_RT_CN.md)
 
 ### 关于Paddle Serving性能
 - [如何测试Paddle Serving性能？](python/examples/util/)

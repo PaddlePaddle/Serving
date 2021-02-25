@@ -1,6 +1,6 @@
 ## Paddle Serving uses TensorRT
 
-(English|[Simplified Chinese]((./TENSOR_RT_CN.md)))
+(English|[简体中文]((./TENSOR_RT_CN.md)))
 
 ### Background
 
