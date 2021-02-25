@@ -124,7 +124,7 @@ Recommended to install paddle >= 2.0.0
 pip install paddlepaddle==2.0.0
 
 # GPU Cuda10.2 please run
-pip install paddlepaddle-gpu==2.0.0
+pip install paddlepaddle-gpu==2.0.0 
 ```
 
 **Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle official documentation-multi-version whl package list
@@ -135,7 +135,11 @@ The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
 ```
 pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
 ```
+
+the default `paddlepaddle-gpu==2.0.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`。
+
 If it is other environment and Python version, please find the corresponding link in the table and install it with pip.
+
 
 For **Windows Users**, please read the document [Paddle Serving for Windows Users](./doc/WINDOWS_TUTORIAL.md)
 

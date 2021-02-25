@@ -134,6 +134,8 @@ pip install paddlepaddle-gpu==2.0.0
 ```
 pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
 ```
+由于默认的`paddlepaddle-gpu==2.0.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。
+
 如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
 
 对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](./doc/WINDOWS_TUTORIAL_CN.md)。
