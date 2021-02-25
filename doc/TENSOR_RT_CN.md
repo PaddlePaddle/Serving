@@ -1,6 +1,6 @@
 ## Paddle Serving 使用 TensorRT
 
-([English](./TENSOR)|)
+([English](./TENSOR_RT.md)|简体中文)
 
 ### 背景
 
@@ -44,7 +44,7 @@ pip install paddle-server-server==${VERSION}.post11
 
 #### RPC模式
 
-在[Serving模型示例](../python/examples)当中，我们有给出可以使用TensorRT加速的模型，例如detection下的[faster_rcnn模型](python/examples/detection/faster_rcnn_r50_fpn_1x_coco)
+在[Serving模型示例](../python/examples)当中，我们有给出可以使用TensorRT加速的模型，例如detection下的[Faster_RCNN模型](../python/examples/detection/faster_rcnn_r50_fpn_1x_coco)
 
 我们只需
 ```
@@ -57,7 +57,7 @@ TensorRT版本的faster_rcnn模型服务端就启动了
 
 #### Local Predictor模式
 
-在 [local_predicotr 实现当中](../python/paddle_serving_app/local_predict.py#L52)当中，用户可以显式制定`use_trt=True`传入到`load_model_config`当中。
+在 [local_predictor](../python/paddle_serving_app/local_predict.py#L52)当中，用户可以显式制定`use_trt=True`传入到`load_model_config`当中。
 其他方式和其他Local Predictor使用方法没有区别，需要注意模型对TensorRT的兼容性。
 
 #### Pipeline模式
