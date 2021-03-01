@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -106,6 +107,33 @@ class InferEngineCreationParams {
   bool _use_trt;
   bool _use_lite;
   bool _use_xpu;
+};
+
+class AutoLock {
+ public:
+  explicit AutoLock(pthread_mutex_t& mutex) : _mut(mutex) {
+    pthread_mutex_lock(&mutex);
+  }
+
+  ~AutoLock() { pthread_mutex_unlock(&_mut); }
+
+ private:
+  pthread_mutex_t& _mut;
+};
+
+class GlobalPaddleCreateMutex {
+ public:
+  pthread_mutex_t& mutex() { return _mut; }
+
+  static pthread_mutex_t& instance() {
+    static GlobalPaddleCreateMutex gmutex;
+    return gmutex.mutex();
+  }
+
+ private:
+  GlobalPaddleCreateMutex() { pthread_mutex_init(&_mut, NULL); }
+
+  pthread_mutex_t _mut;
 };
 
 class InferEngine {
