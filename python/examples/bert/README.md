@@ -33,6 +33,7 @@ tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
 mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
 mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
 ```
+if your model is bert_chinese_L-12_H-768_A-12_model, replace the 'bert_seq128_model' field in the following command with 'bert_chinese_L-12_H-768_A-12_model',replace 'bert_seq128_client' with 'bert_chinese_L-12_H-768_A-12_client'.
 
 ### Getting Dict and Sample Dataset
 
