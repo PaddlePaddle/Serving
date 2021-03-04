@@ -27,7 +27,8 @@ for i in range(3):
     new_data = np.array(x).astype("float32").reshape((1, 1, 13))
     batch_data = np.concatenate([new_data, new_data, new_data], axis=0)
     print(batch_data.shape)
-    fetch_map = client.predict(feed={"x":batch_data}, fetch=["price"], batch=True)
+    fetch_map = client.predict(
+        feed={"x": batch_data}, fetch=["price"], batch=True)
 
     if fetch_map["serving_status_code"] == 0:
         print(fetch_map)

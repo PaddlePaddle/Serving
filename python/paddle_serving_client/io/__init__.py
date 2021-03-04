@@ -21,26 +21,34 @@ from paddle.fluid.framework import Program
 from paddle.fluid import CPUPlace
 from paddle.fluid.io import save_inference_model
 import paddle.fluid as fluid
+from paddle.fluid.core import CipherUtils
+from paddle.fluid.core import CipherFactory
+from paddle.fluid.core import Cipher
 from ..proto import general_model_config_pb2 as model_conf
 import os
 import paddle
 import paddle.nn.functional as F
+import errno
 from paddle.jit import to_static
+
 
 def save_dygraph_model(serving_model_folder, client_config_folder, model):
     paddle.jit.save(model, "serving_tmp")
-    loaded_layer = paddle.jit.load(path=".", model_filename="serving_tmp.pdmodel", params_filename="serving_tmp.pdiparams")
+    loaded_layer = paddle.jit.load(
+        path=".",
+        model_filename="serving_tmp.pdmodel",
+        params_filename="serving_tmp.pdiparams")
     feed_target_names = [x.name for x in loaded_layer._input_spec()]
     fetch_target_names = [x.name for x in loaded_layer._output_spec()]
 
     inference_program = loaded_layer.program()
     feed_var_dict = {
-           x: inference_program.global_block().var(x)
-           for x in feed_target_names
+        x: inference_program.global_block().var(x)
+        for x in feed_target_names
     }
     fetch_var_dict = {
-           x: inference_program.global_block().var(x)
-           for x in fetch_target_names
+        x: inference_program.global_block().var(x)
+        for x in fetch_target_names
     }
     config = model_conf.GeneralModelConfig()
 
@@ -89,9 +97,11 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
     os.system(cmd)
     cmd = "mkdir -p {}".format(serving_model_folder)
     os.system(cmd)
-    cmd = "mv {} {}/__model__".format("serving_tmp.pdmodel", serving_model_folder)
+    cmd = "mv {} {}/__model__".format("serving_tmp.pdmodel",
+                                      serving_model_folder)
     os.system(cmd)
-    cmd = "mv {} {}/__params__".format("serving_tmp.pdiparams", serving_model_folder)
+    cmd = "mv {} {}/__params__".format("serving_tmp.pdiparams",
+                                       serving_model_folder)
     os.system(cmd)
     cmd = "rm -rf serving_tmp.pd*"
     os.system(cmd)
@@ -108,11 +118,15 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
             serving_model_folder), "wb") as fout:
         fout.write(config.SerializeToString())
 
+
 def save_model(server_model_folder,
                client_config_folder,
                feed_var_dict,
                fetch_var_dict,
-               main_program=None):
+               main_program=None,
+               encryption=False,
+               key_len=128,
+               encrypt_conf=None):
     executor = Executor(place=CPUPlace())
 
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
@@ -122,14 +136,31 @@ def save_model(server_model_folder,
         target_vars.append(fetch_var_dict[key])
         target_var_names.append(key)
 
-    save_inference_model(
-        server_model_folder,
-        feed_var_names,
-        target_vars,
-        executor,
-        model_filename="__model__",
-        params_filename="__params__",
-        main_program=main_program)
+    if not encryption:
+        save_inference_model(
+            server_model_folder,
+            feed_var_names,
+            target_vars,
+            executor,
+            model_filename="__model__",
+            params_filename="__params__",
+            main_program=main_program)
+    else:
+        if encrypt_conf == None:
+            aes_cipher = CipherFactory.create_cipher()
+        else:
+            #todo: more encryption algorithms
+            pass
+        key = CipherUtils.gen_key_to_file(128, "key")
+        params = fluid.io.save_persistables(
+            executor=executor, dirname=None, main_program=main_program)
+        model = main_program.desc.serialize_to_string()
+        if not os.path.exists(server_model_folder):
+            os.makedirs(server_model_folder)
+        os.chdir(server_model_folder)
+        aes_cipher.encrypt_to_file(params, key, "encrypt_params")
+        aes_cipher.encrypt_to_file(model, key, "encrypt_model")
+        os.chdir("..")
 
     config = model_conf.GeneralModelConfig()
 
@@ -201,7 +232,10 @@ def inference_model_to_serving(dirname,
                                serving_server="serving_server",
                                serving_client="serving_client",
                                model_filename=None,
-                               params_filename=None):
+                               params_filename=None,
+                               encryption=False,
+                               key_len=128,
+                               encrypt_conf=None):
     paddle.enable_static()
     place = fluid.CPUPlace()
     exe = fluid.Executor(place)
@@ -213,7 +247,7 @@ def inference_model_to_serving(dirname,
     }
     fetch_dict = {x.name: x for x in fetch_targets}
     save_model(serving_server, serving_client, feed_dict, fetch_dict,
-               inference_program)
+               inference_program, encryption, key_len, encrypt_conf)
     feed_names = feed_dict.keys()
     fetch_names = fetch_dict.keys()
     return feed_names, fetch_names

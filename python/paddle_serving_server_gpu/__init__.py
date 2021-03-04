@@ -71,6 +71,11 @@ def serve_args():
         default=512 * 1024 * 1024,
         help="Limit sizes of messages")
     parser.add_argument(
+        "--use_encryption_model",
+        default=False,
+        action="store_true",
+        help="Use encryption model")
+    parser.add_argument(
         "--use_multilang",
         default=False,
         action="store_true",
@@ -239,6 +244,9 @@ class Server(object):
                 "max_body_size is less than default value, will use default value in service."
             )
 
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
+
     def set_port(self, port):
         self.port = port
 
@@ -295,7 +303,7 @@ class Server(object):
     def set_xpu(self):
         self.use_xpu = True
 
-    def _prepare_engine(self, model_config_paths, device):
+    def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
@@ -318,14 +326,20 @@ class Server(object):
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 suffix = ""
             else:
-                suffix = "_DIR" 
+                suffix = "_DIR"
             if device == "arm":
                 engine.use_lite = self.use_lite
                 engine.use_xpu = self.use_xpu
             if device == "cpu":
-                engine.type = "FLUID_CPU_ANALYSIS" + suffix
+                if use_encryption_model:
+                    engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
+                else:
+                    engine.type = "FLUID_CPU_ANALYSIS" + suffix
             elif device == "gpu":
-                engine.type = "FLUID_GPU_ANALYSIS" + suffix
+                if use_encryption_model:
+                    engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
+                else:
+                    engine.type = "FLUID_GPU_ANALYSIS" + suffix
             elif device == "arm":
                 engine.type = "FLUID_ARM_ANALYSIS" + suffix
             self.model_toolkit_conf.engines.extend([engine])
@@ -428,7 +442,7 @@ class Server(object):
         for line in version_file.readlines():
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
-                if cuda_version == "101" or cuda_version == "102" or cuda_version == "110":
+                if cuda_version == "101" or cuda_version == "102":
                     device_version = "serving-gpu-" + cuda_version + "-"
                 elif cuda_version == "arm" or cuda_version == "arm-xpu":
                     device_version = "serving-" + cuda_version + "-"
@@ -485,6 +499,7 @@ class Server(object):
                        workdir=None,
                        port=9292,
                        device="cpu",
+                       use_encryption_model=False,
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
@@ -498,7 +513,8 @@ class Server(object):
 
         self.set_port(port)
         self._prepare_resource(workdir, cube_conf)
-        self._prepare_engine(self.model_config_paths, device)
+        self._prepare_engine(self.model_config_paths, device,
+                             use_encryption_model)
         self._prepare_infer_service(port)
         self.workdir = workdir
 
@@ -677,6 +693,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
                 feed_dict[name] = data
+                if len(var.lod) > 0:
+                    feed_dict["{}.lod".format(name)] = var.lod
             feed_batch.append(feed_dict)
         return feed_batch, fetch_names, is_python, log_id
 
@@ -731,11 +749,12 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return resp
 
     def Inference(self, request, context):
-        feed_dict, fetch_names, is_python, log_id \
+        feed_batch, fetch_names, is_python, log_id \
                 = self._unpack_inference_request(request)
         ret = self.bclient_.predict(
-            feed=feed_dict,
+            feed=feed_batch,
             fetch=fetch_names,
+            batch=True,
             need_variant_tag=True,
             log_id=log_id)
         return self._pack_inference_response(ret, fetch_names, is_python)
@@ -758,6 +777,9 @@ class MultiLangServer(object):
         self.concurrency_ = concurrency
         self.bserver_.set_max_concurrency(concurrency)
 
+    def set_device(self, device="cpu"):
+        self.device = device
+
     def set_num_threads(self, threads):
         self.worker_num_ = threads
         self.bserver_.set_num_threads(threads)
@@ -770,6 +792,9 @@ class MultiLangServer(object):
             print(
                 "max_body_size is less than default value, will use default value in service."
             )
+
+    def use_encryption_model(self, flag=False):
+        self.encryption_model = flag
 
     def set_port(self, port):
         self.gport_ = port
@@ -808,6 +833,7 @@ class MultiLangServer(object):
                        workdir=None,
                        port=9292,
                        device="cpu",
+                       use_encryption_model=False,
                        cube_conf=None):
         if not self._port_is_available(port):
             raise SystemExit("Prot {} is already used".format(port))
@@ -822,6 +848,7 @@ class MultiLangServer(object):
             workdir=workdir,
             port=self.port_list_[0],
             device=device,
+            use_encryption_model=use_encryption_model,
             cube_conf=cube_conf)
         self.set_port(port)
 

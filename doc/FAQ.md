@@ -71,6 +71,41 @@ Collecting opencv-python
 ```
 **A:** 指定opencv-python版本安装，pip install opencv-python==4.2.0.32，再安装whl包
 
+#### Q: pip3 install whl包过程报错信息如下：
+```
+    Complete output from command python setup.py egg_info:
+    Found cython-generated files...
+    error in grpcio setup command: 'install_requires' must be a string or list of strings containing valid project/version requirement specifiers; Expected ',' or end-of-list in futures>=2.2.0; python_version<'3.2' at ; python_version<'3.2'
+
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-taoxz02y/grpcio/
+```
+**A:** 需要升级pip3，再重新执行安装命令。
+```
+pip3 install --upgrade pip
+pip3 install --upgrade setuptools
+```
+
+#### Q: 运行过程中报错，信息如下：
+```
+Traceback (most recent call last):
+  File "../../deploy/serving/test_client.py", line 18, in <module>
+    from paddle_serving_app.reader import *
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/__init__.py", line 15, in <module>
+    from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 24, in <module>
+    from shapely.geometry import Polygon
+ImportError: No module named shapely.geometry
+```
+**A:** 有2种方法，第一种通过pip/pip3安装shapely，第二种通过pip/pip3安装所有依赖组件。
+```
+方法1：
+pip install shapely==1.7.0
+
+方法2：
+pip install -r python/requirements.txt
+```
+
 ## 编译问题
 
 #### Q: 如何使用自己编译的Paddle Serving进行预测？

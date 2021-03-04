@@ -2,7 +2,7 @@
 include(src/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_library(sdk-cpp ${sdk_cpp_srcs})
-add_dependencies(sdk-cpp pdcodegen configure)
+add_dependencies(sdk-cpp pdcodegen configure protobuf brpc leveldb)
 target_link_libraries(sdk-cpp brpc configure protobuf leveldb)
 
 # install

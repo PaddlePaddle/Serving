@@ -12,6 +12,7 @@ sh get_data.sh
 
 ## Encrypt Model
 
+The `paddlepaddle` package is used in this example, you may need to download the corresponding package(`pip install paddlepaddle`).
 ```
 python encrypt.py
 ```

@@ -31,14 +31,28 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.0.0-rc1")
+SET(PADDLE_VERSION "2.0.0")
+if (WITH_GPU)
+    if(CUDA_VERSION EQUAL 11.0)
+        set(CUDA_SUFFIX "cuda11-cudnn8-avx-mkl")
+        set(WITH_TRT ON)
+    elseif(CUDA_VERSION EQUAL 10.2)
+        set(CUDA_SUFFIX "cuda10.2-cudnn8-avx-mkl")
+        set(WITH_TRT ON)
+    elseif(CUDA_VERSION EQUAL 10.1)
+        set(CUDA_SUFFIX "cuda10.1-cudnn7-avx-mkl")
+        set(WITH_TRT ON)
+    elseif(CUDA_VERSION EQUAL 10.0)
+        set(CUDA_SUFFIX "cuda10-cudnn7-avx-mkl")
+    elseif(CUDA_VERSION EQUAL 9.0)
+        set(CUDA_SUFFIX "cuda9-cudnn7-avx-mkl")
+    endif()
+else()
+    set(WITH_TRT OFF)
+endif()  
 
 if (WITH_GPU)
-    if (WITH_TRT)
-        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10.1-cudnn7-avx-mkl-trt6")
-    else()
-        SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-cuda10-cudnn7-avx-mkl")
-    endif()
+    SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-gpu-${CUDA_SUFFIX}")
 elseif (WITH_LITE)
     if (WITH_XPU)
         SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}-arm-xpu")
@@ -78,7 +92,8 @@ if (WITH_GPU OR WITH_MKLML)
             INSTALL_COMMAND
                 ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
                 ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
-                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party
+                ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
+                ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libdnnl.so.1 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libdnnl.so
         )
     else()
         ExternalProject_Add(
@@ -124,8 +139,8 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
-ADD_LIBRARY(paddle_fluid SHARED IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.so)
+ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
 
 if (WITH_TRT)
     ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
@@ -151,10 +166,13 @@ endif()
 ADD_LIBRARY(xxhash STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/xxhash/lib/libxxhash.a)
 
+ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
+
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-    xxhash)
+        xxhash cryptopp)
 
 if(WITH_LITE)
     LIST(APPEND paddle_depend_libs paddle_full_api_shared)

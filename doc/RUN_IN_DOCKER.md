@@ -17,14 +17,14 @@ This document takes Python2 as an example to show how to run Paddle Serving in d
 Refer to [this document](DOCKER_IMAGES.md) for a docker image:
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 ```
 
 
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it test bash
 ```
 
@@ -46,20 +46,20 @@ The GPU version is basically the same as the CPU version, with only some differe
 Refer to [this document](DOCKER_IMAGES.md) for a docker image, the following is an example of an `cuda9.0-cudnn7` image:
 
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 ```
 
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 ```
 
 or
 
 ```bash
-docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+docker run --gpus all -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 docker exec -it test bash
 ```
 
@@ -69,8 +69,9 @@ The `-p` option is to map the `9292` port of the container to the `9292` port of
 
 The mirror comes with `paddle_serving_server_gpu`, `paddle_serving_client`, and `paddle_serving_app` corresponding to the mirror tag version. If users don’t need to change the version, they can use it directly, which is suitable for environments without extranet services.
 
-If you need to change the version, please refer to the instructions on the homepage to download the pip package of the corresponding version.
+If you need to change the version, please refer to the instructions on the homepage to download the pip package of the corresponding version. [LATEST_PACKAGES](./LATEST_PACKAGES.md)
 
 ## Precautious
 
-Runtime images cannot be used for compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
+- Runtime images cannot be used for compilation. If you want to compile from source, refer to [COMPILE](COMPILE.md).
+- If you use Cuda9 and Cuda10 docker images, you cannot use `paddle_serving_server` CPU version at the same time, due to the limitation of gcc version. If you want to use both in one docker image, please choose images of Cuda10.1, Cuda10.2 and Cuda11.

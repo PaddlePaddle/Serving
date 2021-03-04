@@ -326,7 +326,10 @@ class ProcessChannel(object):
             with self._cv:
                 while self._stop.value == 0:
                     try:
-                        self._que.put({op_name: channeldata}, timeout=0)
+                        self._que.put((channeldata.id, {
+                            op_name: channeldata
+                        }),
+                                      timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
@@ -378,7 +381,7 @@ class ProcessChannel(object):
             else:
                 while self._stop.value == 0:
                     try:
-                        self._que.put(put_data, timeout=0)
+                        self._que.put((data_id, put_data), timeout=0)
                         break
                     except Queue.Empty:
                         self._cv.wait()
@@ -414,7 +417,7 @@ class ProcessChannel(object):
             with self._cv:
                 while self._stop.value == 0 and resp is None:
                     try:
-                        resp = self._que.get(timeout=0)
+                        resp = self._que.get(timeout=0)[1]
                         break
                     except Queue.Empty:
                         if timeout is not None:
@@ -459,7 +462,7 @@ class ProcessChannel(object):
             while self._stop.value == 0 and self._consumer_cursors[
                     op_name] - self._base_cursor.value >= len(self._output_buf):
                 try:
-                    channeldata = self._que.get(timeout=0)
+                    channeldata = self._que.get(timeout=0)[1]
                     self._output_buf.append(channeldata)
                     list_values = list(channeldata.values())
                     _LOGGER.debug(
@@ -633,7 +636,10 @@ class ThreadChannel(Queue.PriorityQueue):
             with self._cv:
                 while self._stop is False:
                     try:
-                        self.put({op_name: channeldata}, timeout=0)
+                        self.put((channeldata.id, {
+                            op_name: channeldata
+                        }),
+                                 timeout=0)
                         break
                     except Queue.Full:
                         self._cv.wait()
@@ -680,7 +686,7 @@ class ThreadChannel(Queue.PriorityQueue):
             else:
                 while self._stop is False:
                     try:
-                        self.put(put_data, timeout=0)
+                        self.put((data_id, put_data), timeout=0)
                         break
                     except Queue.Empty:
                         self._cv.wait()
@@ -716,7 +722,7 @@ class ThreadChannel(Queue.PriorityQueue):
             with self._cv:
                 while self._stop is False and resp is None:
                     try:
-                        resp = self.get(timeout=0)
+                        resp = self.get(timeout=0)[1]
                         break
                     except Queue.Empty:
                         if timeout is not None:
@@ -761,7 +767,7 @@ class ThreadChannel(Queue.PriorityQueue):
             while self._stop is False and self._consumer_cursors[
                     op_name] - self._base_cursor >= len(self._output_buf):
                 try:
-                    channeldata = self.get(timeout=0)
+                    channeldata = self.get(timeout=0)[1]
                     self._output_buf.append(channeldata)
                     list_values = list(channeldata.values())
                     _LOGGER.debug(
