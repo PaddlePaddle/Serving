@@ -77,7 +77,7 @@ export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
 ## Install Python dependencies
 
 ```shell
-pip install -r python/requirements.txt
+pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
 ```
 
 If you use other Python version, please use the right `pip` accordingly.
