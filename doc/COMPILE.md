@@ -124,8 +124,7 @@ Compared with CPU environment, GPU environment needs to refer to the following t
 
 | cmake environment variable | meaning | GPU environment considerations | whether Docker environment is needed |
 |-----------------------|-------------------------------------|-------------------------------|--------------------|
-| CUDA_TOOLKIT_ROOT_DIR | cuda installation path, usually /usr/local/cuda | Required for all environments | No
-(/usr/local/cuda) |
+| CUDA_TOOLKIT_ROOT_DIR | cuda installation path, usually /usr/local/cuda | Required for all environments | No (/usr/local/cuda) |
 | CUDNN_LIBRARY | The directory where libcudnn.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
 | CUDA_CUDART_LIBRARY | The directory where libcudart.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
 | TENSORRT_ROOT | The upper level directory of the directory where libnvinfer.so.* is located, depends on the TensorRT installation directory | Cuda 9.0/10.0 does not need, other needs | No (/usr) |
