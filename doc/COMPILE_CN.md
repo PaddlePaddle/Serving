@@ -76,7 +76,7 @@ export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
 ## 安装Python依赖
 
 ```shell
-pip install -r python/requirements.txt
+pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
 ```
 
 如果使用其他Python版本，请使用对应版本的`pip`。
