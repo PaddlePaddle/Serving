@@ -28,6 +28,9 @@ tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
 mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
 mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
 ```
+若使用bert_chinese_L-12_H-768_A-12_model模型，将下面命令中的bert_seq128_model字段替换为bert_chinese_L-12_H-768_A-12_model，bert_seq128_client字段替换为bert_chinese_L-12_H-768_A-12_client.
+
+
 
 
 ### 获取词典和样例数据

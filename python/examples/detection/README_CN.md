@@ -19,4 +19,6 @@ Paddle Detection提供了大量的[模型库](https://github.com/PaddlePaddle/Pa
 - [PPYOLO](./ppyolo_r50vd_dcn_1x_coco)
 - [TTFNet](./ttfnet_darknet53_1x_coco)
 - [YOLOv3](./yolov3_darknet53_270e_coco)
-
+- [HRNet](./faster_rcnn_hrnetv2p_w18_1x)
+- [Fcos](./fcos_dcn_r50_fpn_1x_coco)
+- [SSD](./ssd_vgg16_300_240e_voc/)
