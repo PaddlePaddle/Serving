@@ -123,14 +123,14 @@ Compared with CPU environment, GPU environment needs to refer to the following t
 **It should be noted that the following table is used as a reference for non-Docker compilation environment. The Docker compilation environment has been configured with relevant parameters and does not need to be specified in cmake process. **
 
 | cmake environment variable | meaning | GPU environment considerations | whether Docker environment is needed |
-|-----------------------|------------------------- ------------|-------------------------------|----- ---------------|
+|-----------------------|-------------------------------------|-------------------------------|--------------------|
 | CUDA_TOOLKIT_ROOT_DIR | cuda installation path, usually /usr/local/cuda | Required for all environments | No
 (/usr/local/cuda) |
 | CUDNN_LIBRARY | The directory where libcudnn.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
 | CUDA_CUDART_LIBRARY | The directory where libcudart.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
 | TENSORRT_ROOT | The upper level directory of the directory where libnvinfer.so.* is located, depends on the TensorRT installation directory | Cuda 9.0/10.0 does not need, other needs | No (/usr) |
 
-If not in Docker environment, users can refer to the following execution methods. The specific path is subject to the current environment, and the code is only for reference.
+If not in Docker environment, users can refer to the following execution methods. The specific path is subject to the current environment, and the code is only for reference.TENSORRT_LIBRARY_PATH is related to the TensorRT version and should be set according to the actual situation。For example, in the cuda10.1 environment, the TensorRT version is 6.0 (/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/)，In the cuda10.2 environment, the TensorRT version is 7.1 (/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/).
 
 ``` shell
 export CUDA_PATH='/usr/local/cuda'
