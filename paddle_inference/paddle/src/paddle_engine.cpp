@@ -19,6 +19,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace inference {
 
+DEFINE_int32(gpuid, 0, "GPU device id to use");
+
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<PaddleInferenceEngine>,
     ::baidu::paddle_serving::predictor::InferEngine,

@@ -104,7 +104,7 @@ class ReloadableInferEngine : public InferEngine {
   int proc_initialize_impl(const configure::EngineDesc& conf, bool version) {
     _reload_tag_file = conf.reloadable_meta();
     _reload_mode_tag = conf.reloadable_type();
-    _model_data_path = conf.model_data_path();
+    _model_data_path = conf.model_dir();
     _infer_thread_num = conf.runtime_thread_num();
     _infer_batch_size = conf.batch_infer_size();
     _infer_batch_align = conf.enable_batch_align();
@@ -162,7 +162,7 @@ class ReloadableInferEngine : public InferEngine {
   int reload() {
     if (check_need_reload()) {
       LOG(WARNING) << "begin reload model[" << _model_data_path << "].";
-      return load(_infer_engine_params);
+      return load(_conf);
     }
     return 0;
   }
@@ -310,7 +310,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _conf) != 0) {
       LOG(ERROR) << "Failed create thread data from "
-                 << _infer_engine_params.model_dir();
+                 << _conf.model_dir();
       return -1;
     }
 
@@ -370,7 +370,7 @@ class CloneDBReloadableInferEngine
     // 加载进程级模型数据
     if (!_pd ||
         DBReloadableInferEngine<EngineCore>::load_data(_pd, conf) != 0) {
-      LOG(ERROR) << "Failed to create common model from [" << params.model_dir()
+      LOG(ERROR) << "Failed to create common model from [" << conf.model_dir()
                  << "].";
       return -1;
     }

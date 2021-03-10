@@ -22,6 +22,7 @@
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
 #include "core/predictor/framework/infer.h"
+#include "core/predictor/common/utils.h"
 #include "paddle_inference_api.h"  // NOLINT
 
 namespace baidu {
@@ -29,12 +30,16 @@ namespace paddle_serving {
 namespace inference {
 
 using paddle_infer::Config;
+using paddle_infer::PrecisionType;
 using paddle_infer::Predictor;
 using paddle_infer::Tensor;
 using paddle_infer::CreatePredictor;
 
+DECLARE_int32(gpuid);
+
 const static int max_batch = 32;
 const static int min_subgraph_size = 3;
+
 // Engine Base
 class PaddleEngineBase {
  public:
@@ -100,7 +105,7 @@ class PaddleInferenceEngine : public PaddleEngineBase {
     // todo, auto config(zhangjun)
     if(engine_conf.has_combined_model()) {
       if(!engine_conf.combined_model()) {
-        config.SetModel(model_path)
+        config.SetModel(model_path);
       } else {
         config.SetParamsFile(model_path + "/__params__");
         config.SetProgFile(model_path + "/__model__");
@@ -127,11 +132,11 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       LOG(INFO) << "create TensorRT predictor";
     }
 
-    if (engine_conf.has_lite() && engine_conf.use_lite()) {
+    if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
       config.EnableLiteEngine(PrecisionType::kFloat32, true);
     }
 
-    if (engine_conf.has_xpu() && engine_conf.use_xpu()) {
+    if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
     }
@@ -150,14 +155,14 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       //analysis_config.SetModelBuffer();
     }
 
-    AutoLock lock(GlobalPaddleCreateMutex::instance());
+    predictor::AutoLock lock(predictor::GlobalCreateMutex::instance());
     _predictor = CreatePredictor(config);
     if (NULL == _predictor.get()) {
-      LOG(ERROR) << "create paddle predictor failed, path: " << data_path;
+      LOG(ERROR) << "create paddle predictor failed, path: " << model_path;
       return -1;
     }
 
-    VLOG(2) << "create paddle predictor sucess, path: " << data_path;
+    VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;
   }
 };

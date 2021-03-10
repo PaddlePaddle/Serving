@@ -2,13 +2,14 @@ include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../../)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid cube-api utils)
+add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_fluid cube-api utils)
+
 if (WITH_GPU)
-    add_dependencies(serving fluid_gpu_engine)
+    add_dependencies(serving paddle_inference_engine)
 endif()
 
 if (WITH_LITE)
-    add_dependencies(serving fluid_arm_engine)
+    add_dependencies(serving paddle_inference_engine)
 endif()
 
 target_include_directories(serving PUBLIC
@@ -16,16 +17,16 @@ target_include_directories(serving PUBLIC
         )
     include_directories(${CUDNN_ROOT}/include/)
 if(WITH_GPU)
-    target_link_libraries(serving -Wl,--whole-archive fluid_gpu_engine
+    target_link_libraries(serving -Wl,--whole-archive paddle_infence_engine
             -Wl,--no-whole-archive)
 endif()
 
 if(WITH_LITE)
-    target_link_libraries(serving -Wl,--whole-archive fluid_arm_engine
+    target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
             -Wl,--no-whole-archive)
 endif()
 
-target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
+target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
         -Wl,--no-whole-archive)
 
 target_link_libraries(serving paddle_fluid ${paddle_depend_libs})

@@ -14,6 +14,7 @@
 
 #pragma once
 #include <string>
+#include <fstream>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/common/macros.h"
 
@@ -148,7 +149,7 @@ class IsDerivedFrom {
   }
 };
 
-void ReadBinaryFile(const std::string& filename, std::string* contents) {
+static void ReadBinaryFile(const std::string& filename, std::string* contents) {
   std::ifstream fin(filename, std::ios::in | std::ios::binary);
   fin.seekg(0, std::ios::end);
   contents->clear();
