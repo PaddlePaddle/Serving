@@ -76,7 +76,7 @@ export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
 ## 安装Python依赖
 
 ```shell
-pip install -r python/requirements.txt
+pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
 ```
 
 如果使用其他Python版本，请使用对应版本的`pip`。
@@ -128,7 +128,7 @@ make -j10
 | CUDA_CUDART_LIBRARY   | libcudart.so.*所在目录，通常为/usr/local/cuda/lib64/ | 全部环境都需要                | 否(/usr/local/cuda/lib64/)                 |
 | TENSORRT_ROOT         | libnvinfer.so.*所在目录的上一级目录，取决于TensorRT安装目录 | Cuda 9.0/10.0不需要，其他需要 | 否(/usr)                 |
 
-非Docker环境下，用户可以参考如下执行方式，具体的路径以当时环境为准，代码仅作为参考。
+非Docker环境下，用户可以参考如下执行方式，具体的路径以当时环境为准，代码仅作为参考。TENSORRT_LIBRARY_PATH和TensorRT版本有关，要根据实际情况设置。例如在cuda10.1环境下TensorRT版本是6.0(/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/)，在cuda10.2环境下TensorRT版本是7.1（/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/）。
 
 ``` shell
 export CUDA_PATH='/usr/local/cuda'
@@ -143,7 +143,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
     -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
-    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH}
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j10
@@ -159,7 +159,7 @@ make -j10
 mkdir client-build && cd client-build
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \    
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DCLIENT=ON ..
 make -j10
 ```

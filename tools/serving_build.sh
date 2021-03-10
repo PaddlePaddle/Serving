@@ -932,7 +932,6 @@ function python_app_api_test(){
     cd imagenet
     case $TYPE in
         CPU)
-            check_cmd "python test_image_reader.py"
             ;;
         GPU)
             echo "no implement for cpu type"

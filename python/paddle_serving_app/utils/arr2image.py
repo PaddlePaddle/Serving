@@ -13,4 +13,21 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from .arr2image import Arr2Image
+import cv2
+import yaml
+
+
+class Arr2Image(object):
+    """
+    from numpy array image(jpeg) to cv::Mat image
+    """
+
+    def __init__(self):
+        pass
+
+    def __call__(self, img_arr):
+        img = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
