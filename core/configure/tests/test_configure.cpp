@@ -69,8 +69,6 @@ int test_write_conf() {
   engine->set_sparse_param_service_type(EngineDesc::LOCAL);
   engine->set_sparse_param_service_table_name("local_kv");
   engine->set_enable_memory_optimization(true);
-  engine->set_static_optimization(false);
-  engine->set_force_update_static_cache(false);
 
   int ret = baidu::paddle_serving::configure::write_proto_conf(
       &model_toolkit_conf, output_dir, model_toolkit_conf_file);

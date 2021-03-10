@@ -148,6 +148,16 @@ class IsDerivedFrom {
   }
 };
 
+void ReadBinaryFile(const std::string& filename, std::string* contents) {
+  std::ifstream fin(filename, std::ios::in | std::ios::binary);
+  fin.seekg(0, std::ios::end);
+  contents->clear();
+  contents->resize(fin.tellg());
+  fin.seekg(0, std::ios::beg);
+  fin.read(&(contents->at(0)), contents->size());
+  fin.close();
+}
+
 }  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu
