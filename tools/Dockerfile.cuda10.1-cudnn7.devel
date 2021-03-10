@@ -13,7 +13,7 @@ ENV WITH_AVX=${WITH_AVX:-ON}
 
 ENV HOME /root
 # Add bash enhancements
-COPY tools/dockerfile/scripts/root/ /root/
+COPY tools/dockerfile/build_scripts/ /root/
 
 # Prepare packages for Python
 RUN apt-get update && \
