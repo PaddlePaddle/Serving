@@ -20,9 +20,10 @@
 #include <utility>
 #include <vector>
 #include "core/predictor/common/inner_common.h"
+#include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
-#include "paddle_inference_api.h"  // NOLINT
+//#include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -119,7 +120,7 @@ class InferEngine {
   virtual int thrd_initialize() { return thrd_initialize_impl(); }
   virtual int thrd_clear() { return thrd_clear_impl(); }
   virtual int thrd_finalize() { return thrd_finalize_impl(); }
-  virtual int infer() { return infer_impl(); }
+  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) { return infer_impl1(in, out, batch_size); }
 
   virtual int reload() = 0;
 
@@ -132,13 +133,12 @@ class InferEngine {
   virtual int thrd_finalize_impl() = 0;
   virtual int thrd_clear_impl() = 0;
   virtual int proc_finalize_impl() = 0;
-  virtual std::vector<std::string> GetInputNames() = 0;
-  virtual std::vector<std::string> GetOutputNames() = 0;
-  virtual std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      const std::string& name) = 0;
-  virtual std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      const std::string& name) = 0;
-  virtual int infer_impl() = 0;
+  virtual int infer_impl1(const void* in,
+                          void* out,
+                          uint32_t batch_size = -1) = 0;
+  virtual int infer_impl2(const BatchTensor& in,
+                          BatchTensor& out) = 0;  // NOLINT
+
   // end: framework inner call
 };
 
@@ -151,6 +151,8 @@ class ReloadableInferEngine : public InferEngine {
     uint64_t last_md5sum;
     uint64_t last_revision;
   };
+
+  typedef im::bsf::Task<Tensor, Tensor> TaskT;
 
   virtual int load(const InferEngineCreationParams& params) = 0;
 
@@ -221,10 +223,45 @@ class ReloadableInferEngine : public InferEngine {
       LOG(ERROR) << "Failed proc initialize impl";
       return -1;
     }
+
+    // init bsf framework
+    if (_infer_thread_num <= 0) {
+      return 0;
+    }
+
+    // init bsf framework
+    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_init_fn(
+        boost::bind(&InferEngine::thrd_initialize_impl, this));
+    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_reset_fn(
+        boost::bind(&InferEngine::thrd_clear_impl, this));
+    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_callback_fn(
+        boost::bind(&InferEngine::infer_impl2, this, _1, _2));
+    im::bsf::TaskExecutor<TaskT>::instance()->set_batch_size(_infer_batch_size);
+    im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(
+        _infer_batch_align);
+    if (im::bsf::TaskExecutor<TaskT>::instance()->start(_infer_thread_num) !=
+        0) {
+      LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
+      return -1;
+    }
+
+    LOG(WARNING) << "Enable batch schedule framework, thread_num:"
+                 << _infer_thread_num << ", batch_size:" << _infer_batch_size
+                 << ", enable_batch_align:" << _infer_batch_align;
     return 0;
   }
 
-  int infer() { return infer_impl(); }
+  int infer(const void* in, void* out, uint32_t batch_size = -1) {
+    if (_infer_thread_num <= 0) {
+      return infer_impl1(in, out, batch_size);
+    }
+
+    im::bsf::TaskManager<Tensor, Tensor> task_manager;
+    task_manager.schedule(*(reinterpret_cast<const BatchTensor*>(in)),
+                          *(reinterpret_cast<BatchTensor*>(out)));
+    task_manager.wait();
+    return 0;
+  }
 
   int thrd_initialize() {
     if (_infer_thread_num > 0) {
@@ -248,6 +285,9 @@ class ReloadableInferEngine : public InferEngine {
       return -1;
     }
 
+    if (_infer_thread_num > 0) {
+      im::bsf::TaskExecutor<TaskT>::instance()->stop();
+    }
     return 0;
   }
 
@@ -398,6 +438,10 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 
   virtual int thrd_initialize_impl() {
     // memory pool to be inited in non-serving-threads
+    if (MempoolWrapper::instance().thread_initialize() != 0) {
+      LOG(ERROR) << "Failed thread initialize mempool";
+      return -1;
+    }
 
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _infer_engine_params) != 0) {
@@ -407,12 +451,17 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     }
 
     THREAD_SETSPECIFIC(_skey, md);
+    im::bsf::AutoMutex lock(_mutex);
     _reload_vec.push_back(md);
     return 0;
   }
 
   int thrd_clear_impl() {
     // for non-serving-threads
+    if (MempoolWrapper::instance().thread_clear() != 0) {
+      LOG(ERROR) << "Failed thread clear mempool";
+      return -1;
+    }
     return 0;
   }
 
@@ -510,6 +559,12 @@ class CloneDBReloadableInferEngine
   }
 
   virtual int thrd_initialize_impl() {
+    // memory pool to be inited in non-serving-threads
+    if (MempoolWrapper::instance().thread_initialize() != 0) {
+      LOG(ERROR) << "Failed thread initialize mempool";
+      return -1;
+    }
+
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _pd->cores[_pd->current_idx]) != 0) {
       LOG(ERROR) << "Failed clone thread data, origin_core["
@@ -518,6 +573,7 @@ class CloneDBReloadableInferEngine
     }
 
     THREAD_SETSPECIFIC(DBReloadableInferEngine<EngineCore>::_skey, md);
+    im::bsf::AutoMutex lock(DBReloadableInferEngine<EngineCore>::_mutex);
     DBReloadableInferEngine<EngineCore>::_reload_vec.push_back(md);
     return 0;
   }
@@ -536,58 +592,86 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
  public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
-  std::vector<std::string> GetInputNames() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
-    if (!core || !core->get()) {
-      LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
-    }
-    return core->GetInputNames();
-  }
 
-  std::vector<std::string> GetOutputNames() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
-    if (!core || !core->get()) {
-      LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
-    }
-    return core->GetOutputNames();
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      const std::string& name) {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
-    if (!core || !core->get()) {
-      LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
-    }
-    return core->GetInputHandle(name);
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      const std::string& name) {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
-    if (!core || !core->get()) {
-      LOG(ERROR) << "Failed get fluid core in GetOutputHandle()";
-    }
-    return core->GetOutputHandle(name);
-  }
-
-  int infer_impl() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+  int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
+    FluidFamilyCore* core =DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
     }
 
+    //set inputHandle
+    BatchTensor* batchTensor_pointer_in = reinterpret_cast<const BatchTensor*>(in);
+    for(int i =0; i< batchTensor_pointer_in->count();++i){
+      Tensor tensor_in_batchTensor = (*batchTensor_pointer_in)[i];
+      auto lod_tensor_in = core.GetInputHandle(tensor_in_batchTensor.name);
+      lod_tensor_in->SetLoD(tensor_in_batchTensor.lod);
+      lod_tensor_in->Reshape(tensor_in_batchTensor.shape);
+      void* origin_data = tensor_in_batchTensor.data().data();
+      if(tensor_in_batchTensor.type == FLOAT32){
+        float* data = reinterpret_cast<float*>(origin_data);
+        lod_tensor_in->CopyFromCpu(data);
+      }else if(tensor_in_batchTensor.type == INT64){
+        int64_t* data = reinterpret_cast<int64_t*>(origin_data);
+        lod_tensor_in->CopyFromCpu(data);
+      }else if(tensor_in_batchTensor.type == INT32){
+        int32_t* data = reinterpret_cast<int32_t*>(origin_data);
+        lod_tensor_in->CopyFromCpu(data);
+      }
+    }
     if (!core->Run()) {
-      LOG(ERROR) << "Failed run fluid family core";
-      return -1;
+        LOG(ERROR) << "Failed run fluid family core";
+        return -1;
+    }
+
+    //get out and copy to void* out
+    BatchTensor* batchTensor_pointer_out = reinterpret_cast<BatchTensor*>(out);
+    std::vector<std::string> outnames = core.GetOutputNames();
+    for (int i = 0; i < outnames.size(); ++i){
+      auto lod_tensor_out = core.GetOutputHandle(outnames[i]);
+      std::vector<int> output_shape = lod_tensor_out->shape();
+      int out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
+      int dataType = lod_tensor_out->type();
+      void* databuf_data = NULL;
+      size_t databuf_size = 0;
+      if(dataType == FLOAT32){
+        float* data_out = new float[out_num];
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_data = reinterpret_cast<void*>(data_out);
+        databuf_size = sizeof(float);
+      }else if (dataType == INT64){
+        int64_t* data_out = new int64_t[out_num];
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_data = reinterpret_cast<void*>(data_out);
+        databuf_size = sizeof(int64_t);
+      }else if (dataType == INT32){
+        int32_t* data_out = new int32_t[out_num];
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_data = reinterpret_cast<void*>(data_out);
+        databuf_size = sizeof(int32_t);
+      }
+      Tensor tensor_out;
+      tensor_out.name = outnames[i];
+      tensor_out.type = dataType;
+      tensor_out.shape.assign(output_shape.begin(), output_shape.end());
+      std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
+      for (int li = 0; li < out_lod.size(); ++li) {
+        std::vector<size_t> lod_element;
+        lod_element.assign(out_lod[li].begin(), out_lod[li].end());
+        tensor_out.lod.push_back(lod_element);
+      }
+      tensor_out.data = DataBuf(databuf_data,databuf_size,true);
+
+      batchTensor_pointer_out->push_back(tensor_out);
     }
     return 0;
   }
+
+  int infer_impl2(const BatchTensor& in, BatchTensor& out) {  // NOLINT
+    return infer_impl1(&in, &out);
+  }
+
+
 };
 
 typedef FactoryPool<InferEngine> StaticInferFactory;
@@ -713,45 +797,13 @@ class VersionedInferEngine : public InferEngine {
     return _versions.begin()->second;
   }
 
-  int infer() {
+  int infer(const void* in, void* out, uint32_t batch_size) {
     InferEngine* engine = default_engine();
     if (!engine) {
       LOG(WARNING) << "fail to get default engine";
       return -1;
     }
-    return engine->infer();
-  }
-
-  std::vector<std::string> GetInputNames() {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get default engine";
-    }
-    return engine->GetInputNames();
-  }
-  std::vector<std::string> GetOutputNames() {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get default engine";
-    }
-    return engine->GetOutputNames();
-  }
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      const std::string& name) {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get default engine";
-    }
-    return engine->GetInputHandle(name);
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      const std::string& name) {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get default engine";
-    }
-    return engine->GetOutputHandle(name);
+    return engine->infer(in, out, batch_size);
   }
 
   template <typename T>
@@ -770,47 +822,14 @@ class VersionedInferEngine : public InferEngine {
   }
 
   // versioned inference interface
-  int infer(uint64_t version) {
+  int infer(const void* in, void* out, uint32_t batch_size, uint64_t version) {
     auto iter = _versions.find(version);
     if (iter == _versions.end()) {
       LOG(ERROR) << "Not found version engine: " << version;
       return -1;
     }
 
-    return iter->second->infer();
-  }
-  std::vector<std::string> GetInputNames(uint64_t version) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-    }
-    return iter->second->GetInputNames();
-  }
-
-  std::vector<std::string> GetOutputNames(uint64_t version) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-    }
-    return iter->second->GetOutputNames();
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      uint64_t version, const std::string& name) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-    }
-    return iter->second->GetInputHandle(name);
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      uint64_t version, const std::string& name) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-    }
-    return iter->second->GetOutputHandle(name);
+    return iter->second->infer(in, out, batch_size);
   }
 
   template <typename T>
@@ -837,7 +856,10 @@ class VersionedInferEngine : public InferEngine {
   int thrd_finalize_impl() { return -1; }
   int thrd_clear_impl() { return -1; }
   int proc_finalize_impl() { return -1; }
-  int infer_impl() { return -1; }
+  int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) { return -1; }
+  int infer_impl2(const BatchTensor& in, BatchTensor& out) {  // NOLINT
+    return -1;
+  }  // NOLINT
 
  private:
   boost::unordered_map<uint64_t, InferEngine*> _versions;
@@ -935,44 +957,16 @@ class InferManager {
   }
 
   // Inference interface
-  int infer(const char* model_name) {
+  int infer(const char* model_name,
+            const void* in,
+            void* out,
+            uint32_t batch_size = -1) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
       return -1;
     }
-    return it->second->infer();
-  }
-
-  std::vector<std::string> GetInputNames(const char* model_name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetInputNames();
-  }
-  std::vector<std::string> GetOutputNames(const char* model_name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetOutputNames();
-  }
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      const char* model_name, const std::string& name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetInputHandle(name);
-  }
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      const char* model_name, const std::string& name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetOutputHandle(name);
+    return it->second->infer(in, out, batch_size);
   }
 
   template <typename T>
@@ -992,48 +986,19 @@ class InferManager {
   }
 
   // Versioned inference interface
-  int infer(const char* model_name, uint64_t version) {
+  int infer(const char* model_name, 
+            const void* in,
+            void* out,
+            uint32_t batch_size,
+            uint64_t version) {
     auto it = _map.find(model_name);
     if (it == _map.end()) {
       LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
       return -1;
     }
-    return it->second->infer(version);
-  }
-  std::vector<std::string> GetInputNames(const char* model_name,
-                                         uint64_t version) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetInputNames(version);
+    return it->second->infer(in, out, batch_size, version);
   }
 
-  std::vector<std::string> GetOutputNames(const char* model_name,
-                                          uint64_t version) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetOutputNames(version);
-  }
-
-  std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
-      const char* model_name, uint64_t version, const std::string& name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetInputHandle(version, name);
-  }
-  std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
-      const char* model_name, uint64_t version, const std::string& name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-    }
-    return it->second->GetOutputHandle(version, name);
-  }
   template <typename T>
   T* get_core(const char* model_name, uint64_t version) {
     auto it = _map.find(model_name);

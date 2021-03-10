@@ -20,7 +20,6 @@
 #include "core/general-server/op/general_infer_helper.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
-#include "core/predictor/framework/resource.h"
 #include "core/util/include/timer.h"
 
 namespace baidu {
@@ -33,7 +32,6 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-using baidu::paddle_serving::predictor::InferManager;
 
 int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
@@ -73,34 +71,75 @@ int conf_check(const Request *req,
 
 int GeneralReaderOp::inference() {
   // reade request from client
-  // TODO: only support one engine here
-  std::string engine_name = "general_infer_0";
   const Request *req = dynamic_cast<const Request *>(get_request_message());
   uint64_t log_id = req->log_id();
   int input_var_num = 0;
   std::vector<int64_t> elem_type;
   std::vector<int64_t> elem_size;
   std::vector<int64_t> capacity;
+
+  GeneralBlob *res = mutable_data<GeneralBlob>();
+  TensorVector *out = &res->tensor_vector;
+
+  res->SetLogId(log_id);
+
+  if (!res) {
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed get op tls reader object output";
+  }
+
+  Timer timeline;
+  int64_t start = timeline.TimeStampUS();
   int var_num = req->insts(0).tensor_array_size();
+  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num;
+
+  VLOG(2) << "(logid=" << log_id
+          << ") start to call load general model_conf op";
+
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
+
+  VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
+
+  VLOG(2) << "(logid=" << log_id << ") print general model config done.";
+
+  // TODO(guru4elephant): how to do conditional check?
+  /*
+  int ret = conf_check(req, model_config);
+  if (ret != 0) {
+    LOG(ERROR) << "model conf of server:";
+    resource.print_general_model_config(model_config);
+    return 0;
+  }
+  */
+  // package tensor
+
   elem_type.resize(var_num);
   elem_size.resize(var_num);
   capacity.resize(var_num);
+  // prepare basic information for input
   for (int i = 0; i < var_num; ++i) {
-    std::string tensor_name = model_config->_feed_name[i];
-    VLOG(2) << "(logid=" << log_id << ") get tensor name: " << tensor_name;
-    auto lod_tensor = InferManager::instance().GetInputHandle(
-        engine_name.c_str(), tensor_name.c_str());
-    std::vector<std::vector<size_t>> lod;
-    std::vector<int> shape;
-    // get lod info here
+    paddle::PaddleTensor lod_tensor;
+    elem_type[i] = req->insts(0).tensor_array(i).elem_type();
+    VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
+    if (elem_type[i] == 0) {  // int64
+      elem_size[i] = sizeof(int64_t);
+      lod_tensor.dtype = paddle::PaddleDType::INT64;
+    } else if (elem_type[i] == 1) {
+      elem_size[i] = sizeof(float);
+      lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
+    } else if (elem_type[i] == 2) {
+      elem_size[i] = sizeof(int32_t);
+      lod_tensor.dtype = paddle::PaddleDType::INT32;
+    }
+    // implement lod tensor here
     if (req->insts(0).tensor_array(i).lod_size() > 0) {
-      lod.resize(1);
+      VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
+      lod_tensor.lod.resize(1);
       for (int k = 0; k < req->insts(0).tensor_array(i).lod_size(); ++k) {
-        lod[0].push_back(req->insts(0).tensor_array(i).lod(k));
+        lod_tensor.lod[0].push_back(req->insts(0).tensor_array(i).lod(k));
       }
       capacity[i] = 1;
       for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
@@ -108,7 +147,7 @@ int GeneralReaderOp::inference() {
         VLOG(2) << "(logid=" << log_id << ") shape for var[" << i
                 << "]: " << dim;
         capacity[i] *= dim;
-        shape.push_back(dim);
+        lod_tensor.shape.push_back(dim);
       }
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] is tensor, capacity: " << capacity[i];
@@ -119,41 +158,92 @@ int GeneralReaderOp::inference() {
         VLOG(2) << "(logid=" << log_id << ") shape for var[" << i
                 << "]: " << dim;
         capacity[i] *= dim;
-        shape.push_back(dim);
+        lod_tensor.shape.push_back(dim);
       }
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] is tensor, capacity: " << capacity[i];
     }
-    lod_tensor->SetLoD(lod);
-    lod_tensor->Reshape(shape);
-    // insert data here
-    if (req->insts(0).tensor_array(i).elem_type() == 0) {
-      // TODO: Copy twice here, can optimize
-      int elem_num = req->insts(0).tensor_array(i).int64_data_size();
-      std::vector<int64_t> data(elem_num);
-      int64_t *dst_ptr = data.data();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = req->insts(0).tensor_array(i).int64_data(k);
+    lod_tensor.name = model_config->_feed_name[i];
+    out->push_back(lod_tensor);
+  }
+  // specify the memory needed for output tensor_vector
+  for (int i = 0; i < var_num; ++i) {
+    if (out->at(i).lod.size() == 1) {
+      int tensor_size = 0;
+      const Tensor &tensor = req->insts(0).tensor_array(i);
+      int data_len = 0;
+      if (tensor.int64_data_size() > 0) {
+        data_len = tensor.int64_data_size();
+      } else if (tensor.float_data_size() > 0) {
+        data_len = tensor.float_data_size();
+      } else if (tensor.int_data_size() > 0) {
+        data_len = tensor.int_data_size();
       }
-      lod_tensor->CopyFromCpu(dst_ptr);
-    } else if (req->insts(0).tensor_array(i).elem_type() == 1) {
-      int elem_num = req->insts(0).tensor_array(i).float_data_size();
-      std::vector<float> data(elem_num);
-      float *dst_ptr = data.data();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = req->insts(0).tensor_array(i).float_data(k);
+      VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
+              << "]: " << data_len;
+      tensor_size += data_len;
+
+      int cur_len = out->at(i).lod[0].back();
+      VLOG(2) << "(logid=" << log_id << ") current len: " << cur_len;
+
+      int sample_len = 0;
+      if (tensor.shape_size() == 1) {
+        sample_len = data_len;
+      } else {
+        sample_len = tensor.shape(0);
       }
-      lod_tensor->CopyFromCpu(dst_ptr);
-    } else if (req->insts(0).tensor_array(i).elem_type() == 2) {
-      int elem_num = req->insts(0).tensor_array(i).int_data_size();
-      std::vector<int32_t> data(elem_num);
-      int32_t *dst_ptr = data.data();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = req->insts(0).tensor_array(i).int_data(k);
-      }
-      lod_tensor->CopyFromCpu(dst_ptr);
+      VLOG(2) << "(logid=" << log_id << ") new len: " << cur_len + sample_len;
+      out->at(i).data.Resize(tensor_size * elem_size[i]);
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
+              << "] is lod_tensor and len=" << out->at(i).lod[0].back();
+    } else {
+      out->at(i).data.Resize(capacity[i] * elem_size[i]);
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
+              << "] is tensor and capacity=" << capacity[i];
     }
   }
+
+  // fill the data into output general_blob
+  for (int i = 0; i < var_num; ++i) {
+    if (elem_type[i] == 0) {
+      int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
+      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
+              << "] is " << req->insts(0).tensor_array(i).int64_data(0);
+      int offset = 0;
+      int elem_num = req->insts(0).tensor_array(i).int64_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int64_data(k);
+      }
+    } else if (elem_type[i] == 1) {
+      float *dst_ptr = static_cast<float *>(out->at(i).data.data());
+      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
+              << "] is " << req->insts(0).tensor_array(i).float_data(0);
+      int offset = 0;
+      int elem_num = req->insts(0).tensor_array(i).float_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).float_data(k);
+      }
+    } else if (elem_type[i] == 2) {
+      int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
+      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
+              << "] is " << req->insts(0).tensor_array(i).int_data(0);
+      int offset = 0;
+      int elem_num = req->insts(0).tensor_array(i).int_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int_data(k);
+      }
+    }
+  }
+
+  VLOG(2) << "(logid=" << log_id << ") output size: " << out->size();
+  timeline.Pause();
+  int64_t end = timeline.TimeStampUS();
+  res->p_size = 0;
+  res->_batch_size = 1;
+  AddBlobInfo(res, start);
+  AddBlobInfo(res, end);
+
+  VLOG(2) << "(logid=" << log_id << ") read data from client success";
   return 0;
 }
 DEFINE_OP(GeneralReaderOp);

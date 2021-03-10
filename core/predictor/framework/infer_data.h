@@ -21,7 +21,7 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-enum DataType { FLOAT32, INT64 };
+enum DataType { FLOAT32, INT64,INT32 };
 
 class DataBuf {
  public:
@@ -80,9 +80,12 @@ struct Tensor {
   size_t ele_byte() const {
     if (type == INT64) {
       return sizeof(int64_t);
-    } else {
+    } else if(type == FLOAT32) {
       return sizeof(float);
+    } else if(type == INT32){
+      return sizeof(int32_t);
     }
+    return sizeof(int32_t);
   }
 
   bool valid() const {
