@@ -14,17 +14,8 @@ endif()
 
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../core/predictor
-        )
-    include_directories(${CUDNN_ROOT}/include/)
-if(WITH_GPU)
-    target_link_libraries(serving -Wl,--whole-archive paddle_infence_engine
-            -Wl,--no-whole-archive)
-endif()
-
-if(WITH_LITE)
-    target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
-            -Wl,--no-whole-archive)
-endif()
+)
+include_directories(${CUDNN_ROOT}/include/)
 
 target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
         -Wl,--no-whole-archive)
