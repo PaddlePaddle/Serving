@@ -661,9 +661,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out.lod.push_back(lod_element);
       }
-      tensor_out.data = DataBuf(databuf_data,databuf_size,true);
-
-      batchTensor_pointer_out->push_back(tensor_out);
+      tensor_out.data = DataBuf(databuf_data,databuf_size);
+      batchTensor_pointer_out->push_back_owned(tensor_out);
     }
     return 0;
   }

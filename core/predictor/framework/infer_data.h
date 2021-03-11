@@ -39,6 +39,10 @@ class DataBuf {
 
   size_t size() const { return _size; }
 
+  void set_owned(bool owned){
+    this._owned = owned;
+  }
+
   void free() {
     _size = 0;
     if (_owned) {
@@ -144,6 +148,12 @@ class BatchTensor {
   const Tensor& operator[](int index) const { return _features[index]; }
 
   void push_back(const Tensor& tensor) { _features.push_back(tensor); }
+
+  void push_back_owned(const Tensor& tensor){
+    _features.push_back(tensor);
+    //change the DataBuf parameter "owned"= true 
+    _features[count()-1].data.set_owned(true);
+  }
 
   size_t count() const { return _features.size(); }
 
