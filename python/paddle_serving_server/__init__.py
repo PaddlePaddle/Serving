@@ -13,19 +13,20 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from . import dag
 from . import monitor
 from . import rpc_service
 from . import serve
-from . import web_service
 from . import version
 
-from dag import *
-from monitor import *
-from rpc_service import *
-from serve import *
-from web_service import *
-from version import *
+__all__ = ["version", "server", "serve", "monitor", "rpc_service", "dag"]
 
-SERVER_VERSION = "0.0.0"
-__version__ = SERVER_VERSION
+from paddle_serving_server import (
+    version,
+    server,
+    serve,
+    monitor,
+    rpc_service,
+    dag,
+)
+
+__version__ = version.serving_server_version
