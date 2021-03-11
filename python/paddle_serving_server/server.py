@@ -2,7 +2,7 @@
 import os
 import tarfile
 import socket
-import paddle_serving_server_gpu as paddle_serving_server
+import paddle_serving_server as paddle_serving_server
 import time
 from .version import serving_server_version
 from contextlib import closing
@@ -157,18 +157,19 @@ class Server(object):
             if device == "arm":
                 engine.use_lite = self.use_lite
                 engine.use_xpu = self.use_xpu
-            if device == "cpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_CPU_ANALYSIS" + suffix
-            elif device == "gpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_GPU_ANALYSIS" + suffix
-            elif device == "arm":
-                engine.type = "FLUID_ARM_ANALYSIS" + suffix
+            engine.type = "PaddleInferenceEngine"
+            # if device == "cpu":
+            #     if use_encryption_model:
+            #         engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
+            #     else:
+            #         engine.type = "FLUID_CPU_ANALYSIS" + suffix
+            # elif device == "gpu":
+            #     if use_encryption_model:
+            #         engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
+            #     else:
+            #         engine.type = "FLUID_GPU_ANALYSIS" + suffix
+            # elif device == "arm":
+            #     engine.type = "FLUID_ARM_ANALYSIS" + suffix
             self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
@@ -290,6 +291,7 @@ class Server(object):
         version_file = open("{}/version.py".format(self.module_path), "r")
         import re
         for line in version_file.readlines():
+            # to add, version_suffix
             if re.match("cuda_version", line):
                 cuda_version = line.split("\"")[1]
                 if cuda_version == "101" or cuda_version == "102":

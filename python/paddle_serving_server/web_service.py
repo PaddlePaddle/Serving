@@ -18,15 +18,15 @@ from flask import Flask, request, abort
 from contextlib import closing
 from multiprocessing import Pool, Process, Queue
 from paddle_serving_client import Client
-from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
-from paddle_serving_server_gpu.serve import start_multi_card
+from paddle_serving_server import OpMaker, OpSeqMaker, Server
+from paddle_serving_server.serve import start_multi_card
 import socket
 import sys
 import numpy as np
-import paddle_serving_server_gpu as serving
+import paddle_serving_server as serving
 
-from paddle_serving_server_gpu import pipeline
-from paddle_serving_server_gpu.pipeline import Op
+from paddle_serving_server import pipeline
+from paddle_serving_server.pipeline import Op
 
 def port_is_available(port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:

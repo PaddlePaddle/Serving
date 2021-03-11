@@ -13,8 +13,19 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-SERVER_VERSION = "0.0.0"
+from . import dag
+from . import monitor
+from . import rpc_service
+from . import serve
+from . import web_service
+from . import version
 
+from dag import *
+from monitor import *
+from rpc_service import *
+from serve import *
+from web_service import *
+from version import *
+
+SERVER_VERSION = "0.0.0"
 __version__ = SERVER_VERSION
-cuda_version = "9"
-commit_id = ""

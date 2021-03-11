@@ -23,7 +23,7 @@ import json
 import base64
 import time
 from multiprocessing import Pool, Process
-from paddle_serving_server_gpu import serve_args
+from paddle_serving_server import serve_args
 from flask import Flask, request
 import sys
 if sys.version_info.major == 2:
