@@ -35,7 +35,7 @@ def update_info(file_name, feature, info):
 
 
 if len(sys.argv) > 2:
-    update_info("paddle_serving_server_gpu/version.py", "cuda_version",
+    update_info("paddle_serving_server/version.py", "cuda_version",
                 sys.argv[2])
 
 path = "paddle_serving_" + sys.argv[1]

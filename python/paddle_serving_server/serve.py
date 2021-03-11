@@ -18,12 +18,12 @@ Usage:
         python -m paddle_serving_server.serve --model ./serving_server_model --port 9292
 """
 import argparse
-import sys
+import os
 import json
 import base64
 import time
-from multiprocessing import Process
-from .web_service import WebService, port_is_available
+from multiprocessing import Pool, Process
+from paddle_serving_server_gpu import serve_args
 from flask import Flask, request
 import sys
 if sys.version_info.major == 2:
@@ -31,24 +31,26 @@ if sys.version_info.major == 2:
 elif sys.version_info.major == 3:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
-
-def parse_args():  # pylint: disable=doc-string-missing
+def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=10, help="Concurrency of server")
+        "--thread", type=int, default=2, help="Concurrency of server")
+    parser.add_argument(
+        "--port", type=int, default=9292, help="Port of the starting gpu")
+    parser.add_argument(
+        "--device", type=str, default="gpu", help="Type of device")
+    parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
     parser.add_argument(
         "--model", type=str, default="", help="Model for serving")
-    parser.add_argument(
-        "--port", type=int, default=9292, help="Port the server")
-    parser.add_argument(
-        "--name", type=str, default="None", help="Web service name")
     parser.add_argument(
         "--workdir",
         type=str,
         default="workdir",
         help="Working dir of current service")
     parser.add_argument(
-        "--device", type=str, default="cpu", help="Type of device")
+        "--name", type=str, default="None", help="Default service name")
+    parser.add_argument(
+        "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
         "--mem_optim_off",
         default=False,
@@ -56,8 +58,6 @@ def parse_args():  # pylint: disable=doc-string-missing
         help="Memory optimize")
     parser.add_argument(
         "--ir_optim", default=False, action="store_true", help="Graph optimize")
-    parser.add_argument(
-        "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
         "--max_body_size",
         type=int,
@@ -74,6 +74,12 @@ def parse_args():  # pylint: disable=doc-string-missing
         action="store_true",
         help="Use Multi-language-service")
     parser.add_argument(
+        "--use_trt", default=False, action="store_true", help="Use TensorRT")
+    parser.add_argument(
+        "--use_lite", default=False, action="store_true", help="Use PaddleLite")
+    parser.add_argument(
+        "--use_xpu", default=False, action="store_true", help="Use XPU")
+    parser.add_argument(
         "--product_name",
         type=str,
         default=None,
@@ -85,26 +91,29 @@ def parse_args():  # pylint: disable=doc-string-missing
         help="container_id for authentication")
     return parser.parse_args()
 
-
-def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
-    args = parse_args()
+def start_gpu_card_model(port, args, index = 0, gpuid):  # pylint: disable=doc-string-missing
+    workdir = args.workdir
+    gpuid = int(gpuid)
+    device = "gpu"
+    if gpuid == -1:
+        device = "cpu"
+    elif gpuid >= 0:
+        port = port + index
     thread_num = args.thread
     model = args.model
-    port = serving_port
-    workdir = args.workdir
-    device = args.device
     mem_optim = args.mem_optim_off is False
     ir_optim = args.ir_optim
-    max_body_size = args.max_body_size
     use_mkl = args.use_mkl
-    use_encryption_model = args.use_encryption_model
+    max_body_size = args.max_body_size
     use_multilang = args.use_multilang
+    if gpuid >= 0:
+        workdir = "{}_{}".format(args.workdir, gpuid)
 
     if model == "":
         print("You must specify your serving model")
         exit(-1)
 
-    import paddle_serving_server as serving
+    import paddle_serving_server_gpu as serving
     op_maker = serving.OpMaker()
     read_op = op_maker.create('general_reader')
     general_infer_op = op_maker.create('general_infer')
@@ -115,27 +124,82 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     op_seq_maker.add_op(general_infer_op)
     op_seq_maker.add_op(general_response_op)
 
-    server = None
     if use_multilang:
         server = serving.MultiLangServer()
     else:
         server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
+    server.use_mkl(use_mkl)
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
-    server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
-    server.set_port(port)
-    server.use_encryption_model(use_encryption_model)
+    if args.use_trt:
+        server.set_trt()
+
+    if args.use_lite:
+        server.set_lite()
+        device = "arm"
+
+    server.set_device(device)
+    if args.use_xpu:
+        server.set_xpu()
+
     if args.product_name != None:
         server.set_product_name(args.product_name)
     if args.container_id != None:
         server.set_container_id(args.container_id)
 
     server.load_model_config(model)
-    server.prepare_server(workdir=workdir, port=port, device=device)
+    server.prepare_server(
+        workdir=workdir,
+        port=port,
+        device=device,
+        use_encryption_model=args.use_encryption_model)
+    if gpuid >= 0:
+        server.set_gpuid(gpuid)
     server.run_server()
+
+
+def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
+    gpus = ""
+    if serving_port == None:
+        serving_port = args.port
+    if args.gpu_ids == "":
+        gpus = []
+    else:
+        gpus = args.gpu_ids.split(",")
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+            for ids in gpus:
+                if int(ids) >= len(env_gpus):
+                    print(
+                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}."
+                        .format(len(env_gpus)))
+                    exit(-1)
+        else:
+            env_gpus = []
+    if args.use_lite:
+        print("run arm server.")
+        start_gpu_card_model(-1, -1, args)
+    elif len(gpus) <= 0:
+        print("gpu_ids not set, going to run cpu service.")
+        start_gpu_card_model(-1, -1, serving_port, args)
+    else:
+        gpu_processes = []
+        for i, gpu_id in enumerate(gpus):
+            p = Process(
+                target=start_gpu_card_model,
+                args=(
+                    i,
+                    gpu_id,
+                    serving_port,
+                    args, ))
+            gpu_processes.append(p)
+        for p in gpu_processes:
+            p.start()
+        for p in gpu_processes:
+            p.join()
 
 
 class MainService(BaseHTTPRequestHandler):
@@ -146,7 +210,7 @@ class MainService(BaseHTTPRequestHandler):
                 return default_port + i
 
     def start_serving(self):
-        start_standard_model(serving_port)
+        start_multi_card(args, serving_port)
 
     def get_key(self, post_data):
         if "key" not in post_data:
@@ -207,9 +271,9 @@ class MainService(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-
-    args = parse_args()
+    args = serve_args()
     if args.name == "None":
+        from .web_service import port_is_available
         if args.use_encryption_model:
             p_flag = False
             p = None
@@ -220,27 +284,39 @@ if __name__ == "__main__":
             )
             server.serve_forever()
         else:
-            start_standard_model(args.port)
+            start_multi_card(args)
     else:
-        service = WebService(name=args.name)
-        service.load_model_config(args.model)
-        service.prepare_server(
-            workdir=args.workdir, port=args.port, device=args.device)
-        service.run_rpc_service()
+        from .web_service import WebService
+        web_service = WebService(name=args.name)
+        web_service.load_model_config(args.model)
+        gpu_ids = args.gpu_ids
+        if gpu_ids == "":
+            if "CUDA_VISIBLE_DEVICES" in os.environ:
+                gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
+        if len(gpu_ids) > 0:
+            web_service.set_gpus(gpu_ids)
+        web_service.prepare_server(
+            workdir=args.workdir,
+            port=args.port,
+            device=args.device,
+            use_lite=args.use_lite,
+            use_xpu=args.use_xpu,
+            ir_optim=args.ir_optim)
+        web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
 
         @app_instance.before_first_request
         def init():
-            service._launch_web_service()
+            web_service._launch_web_service()
 
-        service_name = "/" + service.name + "/prediction"
+        service_name = "/" + web_service.name + "/prediction"
 
         @app_instance.route(service_name, methods=["POST"])
         def run():
-            return service.get_prediction(request)
+            return web_service.get_prediction(request)
 
         app_instance.run(host="0.0.0.0",
-                         port=service.port,
+                         port=web_service.port,
                          threaded=False,
                          processes=4)
