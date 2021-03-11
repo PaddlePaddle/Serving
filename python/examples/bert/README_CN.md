@@ -45,7 +45,7 @@ python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #�
 ```
 或者，启动gpu预测服务，执行
 ```
-python -m paddle_serving_server_gpu.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
+python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
 
 ```
 

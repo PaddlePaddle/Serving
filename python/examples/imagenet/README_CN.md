@@ -39,7 +39,7 @@ python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 #cpu
 ```
 
 ```
-python -m paddle_serving_server_gpu.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu预测服务
+python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu预测服务
 ```
 
 client端进行预测

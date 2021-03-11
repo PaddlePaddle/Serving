@@ -14,7 +14,7 @@
 import sys
 from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize, Base64ToImage
 try:
-    from paddle_serving_server_gpu.web_service import WebService, Op
+    from paddle_serving_server.web_service import WebService, Op
 except ImportError:
     from paddle_serving_server.web_service import WebService, Op
 import logging

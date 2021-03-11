@@ -15,8 +15,8 @@
 import os
 import logging
 import multiprocessing
-#from paddle_serving_server_gpu import OpMaker, OpSeqMaker
-#from paddle_serving_server_gpu import Server as GpuServer
+#from paddle_serving_server import OpMaker, OpSeqMaker
+#from paddle_serving_server import Server as GpuServer
 #from paddle_serving_server import Server as CpuServer
 from . import util
 #from paddle_serving_app.local_predict import LocalPredictor
@@ -235,7 +235,7 @@ class LocalServiceHandler(object):
             server = Server()
         else:
             #gpu or arm
-            from paddle_serving_server_gpu import OpMaker, OpSeqMaker, Server
+            from paddle_serving_server import OpMaker, OpSeqMaker, Server
             op_maker = OpMaker()
             read_op = op_maker.create('general_reader')
             general_infer_op = op_maker.create('general_infer')
