@@ -13,25 +13,6 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from . import convert
-from . import client
 from . import version
-from . import io
-from . import utils
-from . import metric
-
-from convert import *
-from client import *
-from version import *
-from io import *
-from utils import *
-from metric import *
-
-__all__ = convert.__all__ \
-        + client.__all__ \
-        + version.__all__ \
-        + io.__all__ \
-        + utils.__all__ \
-	+ metric.__all__
 
 __version__ = version.serving_client_version
