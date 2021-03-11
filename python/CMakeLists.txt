@@ -62,12 +62,19 @@ if (CLIENT)
 endif()
 
 if (SERVER)
-  if(CUDA_VERSION EQUAL 10.1)
-    set(VERSION_SUFFIX 101)
-  elseif(CUDA_VERSION EQUAL 10.2)
-    set(VERSION_SUFFIX 102)
-  elseif(CUDA_VERSION EQUAL 11.0)
-    set(VERSION_SUFFIX 11)
+  # todo, generate suffix for cpu、gpu、arm
+  if(WITH_TRT)
+    if(CUDA_VERSION EQUAL 10.1)
+      set(VERSION_SUFFIX 101)
+    elseif(CUDA_VERSION EQUAL 10.2)
+      set(VERSION_SUFFIX 102)
+    elseif(CUDA_VERSION EQUAL 11.0)
+      set(VERSION_SUFFIX 11)
+    endif()
+  endif()
+
+  if(WITH_LITE)
+    set(VERSION_SUFFIX xpu)
   endif()
 
   add_custom_command(
