@@ -40,7 +40,7 @@ class DataBuf {
   size_t size() const { return _size; }
 
   void set_owned(bool owned){
-    this._owned = owned;
+    _owned = owned;
   }
 
   void free() {
