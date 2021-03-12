@@ -626,44 +626,49 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     //get out and copy to void* out
     TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
     std::vector<std::string> outnames = core->GetOutputNames();
+    std::vector<int> output_shape;
+    int out_num =0;
+    int dataType =0;
+    void* databuf_data = NULL;
+    char* databuf_char = NULL;
+    size_t databuf_size = 0;
     for (int i = 0; i < outnames.size(); ++i){
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
-      std::vector<int> output_shape = lod_tensor_out->shape();
-      int out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
-      int dataType = lod_tensor_out->type();
-      char* databuf_data = NULL;
-      size_t databuf_size = 0;
+      output_shape = lod_tensor_out->shape();
+      out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
+      dataType = lod_tensor_out->type();
       if(dataType == paddle::PaddleDType::FLOAT32){
-        float* data_out = new float[out_num];
-        lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<char*>(data_out);
         databuf_size = out_num*sizeof(float);
+        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        if (!databuf_data) {
+            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+            return -1;
+        }
+        float* data_out = reinterpret_cast<float*>(databuf_data);
+        //float* data_out = new float[out_num];
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_char = reinterpret_cast<char*>(data_out);
       }else if(dataType == paddle::PaddleDType::INT64){
-        int64_t* data_out = new int64_t[out_num];
-        lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<char*>(data_out);
         databuf_size = out_num*sizeof(int64_t);
-      }else if(dataType == paddle::PaddleDType::INT32){
-        int32_t* data_out = new int32_t[out_num];
+        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        if (!databuf_data) {
+            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+            return -1;
+        }
+        int64_t* data_out = reinterpret_cast<int64_t*>(data_out);
         lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<char*>(data_out);
+        databuf_char = reinterpret_cast<char*>(data_out);
+      }else if(dataType == paddle::PaddleDType::INT32){
         databuf_size = out_num*sizeof(int32_t);
+        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        if (!databuf_data) {
+            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+            return -1;
+        }
+        int32_t* data_out = reinterpret_cast<int32_t*>(databuf_data);
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_char = reinterpret_cast<char*>(data_out);
       }
-      /*
-      paddle::PaddleTensor* tensor_out = new paddle::PaddleTensor();
-      tensor_out->name = outnames[i];
-      tensor_out->dtype = paddle::PaddleDType(dataType);
-      tensor_out->shape.assign(output_shape.begin(), output_shape.end());
-      std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
-      for (int li = 0; li < out_lod.size(); ++li) {
-        std::vector<size_t> lod_element;
-        lod_element.assign(out_lod[li].begin(), out_lod[li].end());
-        tensor_out->lod.push_back(lod_element);
-      }
-      paddle::PaddleBuf* newData = new paddle::PaddleBuf(databuf_data,databuf_size);
-      tensor_out->data = *newData;
-      tensorVector_out_pointer->push_back(*tensor_out);
-      */
       paddle::PaddleTensor tensor_out;
       tensor_out.name = outnames[i];
       tensor_out.dtype = paddle::PaddleDType(dataType);
@@ -674,7 +679,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out.lod.push_back(lod_element);
       }
-      paddle::PaddleBuf paddleBuf(databuf_data,databuf_size);
+      paddle::PaddleBuf paddleBuf(databuf_char,databuf_size);
       tensor_out.data = paddleBuf;
       tensorVector_out_pointer->push_back(tensor_out);
     }
