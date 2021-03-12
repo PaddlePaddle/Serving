@@ -80,12 +80,9 @@ int GeneralInferOp::inference() {
   }
 
   int64_t end = timeline.TimeStampUS();
-  std::cout << "GeneralInferOp    ---ysl" << std::endl;
-  LOG(ERROR) << "GeneralInferOp    ---ysl";
   CopyBlobInfo(input_blob, output_blob);
   AddBlobInfo(output_blob, start);
   AddBlobInfo(output_blob, end);
-  std::cout << "GeneralInferOp    ---ysl222" << std::endl;
   return 0;
 }
 DEFINE_OP(GeneralInferOp);

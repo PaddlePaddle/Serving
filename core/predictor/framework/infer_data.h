@@ -21,7 +21,7 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-enum DataType { FLOAT32, INT64 };
+enum DataType { FLOAT32, INT64, INT32 };
 
 class DataBuf {
  public:
@@ -84,9 +84,11 @@ struct Tensor {
   size_t ele_byte() const {
     if (type == INT64) {
       return sizeof(int64_t);
-    } else {
+    } else if(type == FLOAT32){
       return sizeof(float);
-    } 
+    }else{
+      return sizeof(int32_t);
+    }
   }
 
   bool valid() const {
@@ -145,12 +147,6 @@ class BatchTensor {
   const Tensor& operator[](int index) const { return _features[index]; }
 
   void push_back(const Tensor& tensor) { _features.push_back(tensor); }
-
-  void push_back_owned(const Tensor& tensor){
-    _features.push_back(tensor);
-    //change the DataBuf parameter "owned"= true 
-    _features[count()-1].data.set_owned(true);
-  }
 
   size_t count() const { return _features.size(); }
 

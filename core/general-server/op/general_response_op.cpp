@@ -96,6 +96,7 @@ int GeneralResponseOp::inference() {
 
     for (auto &idx : fetch_index) {
       Tensor *tensor = fetch_inst->add_tensor_array();
+      //tensor->set_elem_type(1);
       if (model_config->_is_lod_fetch[idx]) {
         VLOG(2) << "(logid=" << log_id << ") out[" << idx << "] "
                 << model_config->_fetch_name[idx] << " is lod_tensor";
@@ -124,7 +125,6 @@ int GeneralResponseOp::inference() {
 
       FetchInst *fetch_p = output->mutable_insts(0);
       auto dtype = in->at(idx).dtype;
-
       if (dtype == paddle::PaddleDType::INT64) {
         VLOG(2) << "(logid=" << log_id << ") Prepare int64 var ["
                 << model_config->_fetch_name[idx] << "].";
@@ -141,15 +141,12 @@ int GeneralResponseOp::inference() {
                 << model_config->_fetch_name[idx] << "].";
         
         float *data_ptr = static_cast<float *>(in->at(idx).data.data());
-        std::cout<<" response op ---- for"<<std::endl;
-        for(int k =0; k<cap; ++k){
-          std::cout<< "i am ysl -response op-copy idx = "<< k<< "num = "<< *(data_ptr+k)<<std::endl;
-        }
         google::protobuf::RepeatedField<float> tmp_data(data_ptr,
                                                         data_ptr + cap);
         fetch_p->mutable_tensor_array(var_idx)->mutable_float_data()->Swap(
             &tmp_data);
       } else if (dtype == paddle::PaddleDType::INT32) {
+
         VLOG(2) << "(logid=" << log_id << ")Prepare int32 var ["
                 << model_config->_fetch_name[idx] << "].";
         int32_t *data_ptr = static_cast<int32_t *>(in->at(idx).data.data());
@@ -198,9 +195,6 @@ int GeneralResponseOp::inference() {
     res->add_profile_time(start);
     res->add_profile_time(end);
   }
-  std::cout << "GeneralResponseOp    ---ysl" << std::endl;
-  LOG(ERROR) << "GeneralResponseOp    ---ysl";
-  
   return 0;
 }
 

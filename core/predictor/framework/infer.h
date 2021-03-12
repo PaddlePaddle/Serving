@@ -24,7 +24,7 @@
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
-//#include "paddle_inference_api.h"  // NOLINT
+#include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -593,9 +593,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
  public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
-
+  typedef std::vector<paddle::PaddleTensor> TensorVector;
   int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
-    LOG(ERROR) << "come in    infer_impl1    ---ysl";
     FluidFamilyCore* core =DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
@@ -603,33 +602,29 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     }
 
     //set inputHandle
-    const BatchTensor* batchTensor_pointer_in = reinterpret_cast<const BatchTensor*>(in);
-    std::cout<<"input tensor: "<<batchTensor_pointer_in->count()<<std::endl;
-    for(int i =0; i< batchTensor_pointer_in->count();++i){
-      Tensor tensor_in_batchTensor = (*batchTensor_pointer_in)[i];
-      auto lod_tensor_in = core->GetInputHandle(tensor_in_batchTensor.name);
-      lod_tensor_in->SetLoD(tensor_in_batchTensor.lod);
-      lod_tensor_in->Reshape(tensor_in_batchTensor.shape);
-      void* origin_data = tensor_in_batchTensor.data.data();
-      if(tensor_in_batchTensor.type == FLOAT32){
-        float* data = reinterpret_cast<float*>(origin_data);
+    const TensorVector* tensorVector_in_pointer = reinterpret_cast<const TensorVector*>(in);
+    for(int i =0; i< tensorVector_in_pointer->size();++i){
+      auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
+      lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
+      lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
+      void* origin_data = (*tensorVector_in_pointer)[i].data.data();
+      if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32){
+        float* data = static_cast<float*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if(tensor_in_batchTensor.type == INT64){
-        int64_t* data = reinterpret_cast<int64_t*>(origin_data);
+      }else if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT64){
+        int64_t* data = static_cast<int64_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }/*else if(tensor_in_batchTensor.type == INT32){
-        int32_t* data = reinterpret_cast<int32_t*>(origin_data);
+      }else if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT32){
+        int32_t* data = static_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }*/
+      }
     }
     if (!core->Run()) {
         LOG(ERROR) << "Failed run fluid family core";
         return -1;
     }
-    LOG(ERROR) << "Run   infer_impl1    ---ysl";
     //get out and copy to void* out
-    BatchTensor* batchTensor_pointer_out = reinterpret_cast<BatchTensor*>(out);
-    LOG(ERROR) << "reinterpret_cast   infer_impl1    ---ysl";
+    TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
     std::vector<std::string> outnames = core->GetOutputNames();
     for (int i = 0; i < outnames.size(); ++i){
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
@@ -638,32 +633,26 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
       int dataType = lod_tensor_out->type();
       char* databuf_data = NULL;
       size_t databuf_size = 0;
-      if(dataType == FLOAT32){
+      if(dataType == paddle::PaddleDType::FLOAT32){
         float* data_out = new float[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        for ( int j = 0; j < out_num; j++ )
-        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
         databuf_data = reinterpret_cast<char*>(data_out);
         databuf_size = out_num*sizeof(float);
-      }else if(dataType == INT64){
+      }else if(dataType == paddle::PaddleDType::INT64){
         int64_t* data_out = new int64_t[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        for ( int j = 0; j < out_num; j++ )
-        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
         databuf_data = reinterpret_cast<char*>(data_out);
         databuf_size = out_num*sizeof(int64_t);
-      }/*else (dataType == INT32){
+      }else if(dataType == paddle::PaddleDType::INT32){
         int32_t* data_out = new int32_t[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        for ( int j = 0; j < out_num; j++ )
-        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
         databuf_data = reinterpret_cast<char*>(data_out);
         databuf_size = out_num*sizeof(int32_t);
-      }*/
-      Tensor* tensor_out = new Tensor();
+      }
+      /*
+      paddle::PaddleTensor* tensor_out = new paddle::PaddleTensor();
       tensor_out->name = outnames[i];
-      std::cout<< "i am test ----outnames:"<<outnames[i]<<std::endl;
-      tensor_out->type = DataType(dataType);
+      tensor_out->dtype = paddle::PaddleDType(dataType);
       tensor_out->shape.assign(output_shape.begin(), output_shape.end());
       std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
       for (int li = 0; li < out_lod.size(); ++li) {
@@ -671,14 +660,24 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out->lod.push_back(lod_element);
       }
-      LOG(ERROR) << "DataBuf   infer_impl1    ---ysl";
-      DataBuf* newData = new DataBuf(databuf_data,databuf_size,false);
+      paddle::PaddleBuf* newData = new paddle::PaddleBuf(databuf_data,databuf_size);
       tensor_out->data = *newData;
-      batchTensor_pointer_out->push_back(*tensor_out);
-      LOG(ERROR) << "push_back   infer_impl1    ---ysl";
+      tensorVector_out_pointer->push_back(*tensor_out);
+      */
+      paddle::PaddleTensor tensor_out;
+      tensor_out.name = outnames[i];
+      tensor_out.dtype = paddle::PaddleDType(dataType);
+      tensor_out.shape.assign(output_shape.begin(), output_shape.end());
+      std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
+      for (int li = 0; li < out_lod.size(); ++li) {
+        std::vector<size_t> lod_element;
+        lod_element.assign(out_lod[li].begin(), out_lod[li].end());
+        tensor_out.lod.push_back(lod_element);
+      }
+      paddle::PaddleBuf paddleBuf(databuf_data,databuf_size);
+      tensor_out.data = paddleBuf;
+      tensorVector_out_pointer->push_back(tensor_out);
     }
-    LOG(ERROR) << "return   infer_impl1    ---ysl";
-    std::cout << (*batchTensor_pointer_in)[0].shape.size()<< "(*batchTensor_pointer_in)[0].shape.size()"<<std::endl;
     return 0;
   }
 

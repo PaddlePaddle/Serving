@@ -244,8 +244,6 @@ int GeneralReaderOp::inference() {
   AddBlobInfo(res, end);
 
   VLOG(2) << "(logid=" << log_id << ") read data from client success";
-  LOG(ERROR) << "GeneralReaderOp    ---ysl";
-  std::cout << "GeneralReaderOp    ---ysl" << std::endl;
   return 0;
 }
 DEFINE_OP(GeneralReaderOp);
