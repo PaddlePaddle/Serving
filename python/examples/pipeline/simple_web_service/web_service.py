@@ -61,5 +61,5 @@ class UciService(WebService):
 
 
 uci_service = UciService(name="uci")
-uci_service.prepare_pipeline_config("config.yml")
+uci_service.prepare_pipeline_config("config2.yml")
 uci_service.run_service()
