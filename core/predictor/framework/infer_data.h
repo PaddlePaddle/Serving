@@ -39,10 +39,6 @@ class DataBuf {
 
   size_t size() const { return _size; }
 
-  void set_owned(bool owned){
-    _owned = owned;
-  }
-
   void free() {
     _size = 0;
     if (_owned) {
