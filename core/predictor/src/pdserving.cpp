@@ -118,6 +118,8 @@ int ut_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
 #endif
+try
+{
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   if (FLAGS_V) {
@@ -239,5 +241,11 @@ int main(int argc, char** argv) {
   google::ShutdownGoogleLogging();
 #endif
   VLOG(2) << "Paddle Inference Server exit successfully!";
+}
+catch (const std::exception &exc)
+{
+    // catch anything thrown within try block that derives from std::exception
+    std::cerr << exc.what();
+}
   return 0;
 }

@@ -183,6 +183,7 @@ int InferService::inference(const google::protobuf::Message* request,
     VLOG(2) << "(logid=" << log_id << ") enable map request == False";
     TRACEPRINTF("(logid=%" PRIu64 ") start to execute one workflow", log_id);
     size_t fsize = _flows.size();
+    std::cout<< "ysl--total workflow:"<< fsize <<std::endl;
     for (size_t fi = 0; fi < fsize; ++fi) {
       TRACEPRINTF(
           "(logid=%" PRIu64 ") start to execute one workflow-%lu", log_id, fi);
@@ -197,6 +198,7 @@ int InferService::inference(const google::protobuf::Message* request,
       }
     }
   }
+  std::cout<< "ysl----InferService::inference finish"<<std::endl;
   return ERR_OK;
 }
 
@@ -266,8 +268,10 @@ int InferService::_execute_workflow(Workflow* workflow,
       WORKFLOW_METRIC_PREFIX + dv->full_name(), workflow_time.u_elapsed());
 
   // return tls data to object pool
+  std::cout<<"ysl ------- _execute_workflow------"<<std::endl;
   workflow->return_dag_view(dv);
   TRACEPRINTF("(logid=%" PRIu64 ") finish to return dag view", log_id);
+  std::cout<<"ysl ------- _execute_workflow return_dag_view------"<<std::endl;
   return ERR_OK;
 }
 

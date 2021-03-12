@@ -595,6 +595,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   ~FluidInferEngine() {}
 
   int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
+    LOG(ERROR) << "come in    infer_impl1    ---ysl";
     FluidFamilyCore* core =DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
@@ -603,6 +604,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
 
     //set inputHandle
     const BatchTensor* batchTensor_pointer_in = reinterpret_cast<const BatchTensor*>(in);
+    std::cout<<"input tensor: "<<batchTensor_pointer_in->count()<<std::endl;
     for(int i =0; i< batchTensor_pointer_in->count();++i){
       Tensor tensor_in_batchTensor = (*batchTensor_pointer_in)[i];
       auto lod_tensor_in = core->GetInputHandle(tensor_in_batchTensor.name);
@@ -615,55 +617,68 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
       }else if(tensor_in_batchTensor.type == INT64){
         int64_t* data = reinterpret_cast<int64_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if(tensor_in_batchTensor.type == INT32){
+      }/*else if(tensor_in_batchTensor.type == INT32){
         int32_t* data = reinterpret_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }
+      }*/
     }
     if (!core->Run()) {
         LOG(ERROR) << "Failed run fluid family core";
         return -1;
     }
-
+    LOG(ERROR) << "Run   infer_impl1    ---ysl";
     //get out and copy to void* out
     BatchTensor* batchTensor_pointer_out = reinterpret_cast<BatchTensor*>(out);
+    LOG(ERROR) << "reinterpret_cast   infer_impl1    ---ysl";
     std::vector<std::string> outnames = core->GetOutputNames();
     for (int i = 0; i < outnames.size(); ++i){
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       std::vector<int> output_shape = lod_tensor_out->shape();
       int out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
       int dataType = lod_tensor_out->type();
-      void* databuf_data = NULL;
+      char* databuf_data = NULL;
       size_t databuf_size = 0;
       if(dataType == FLOAT32){
         float* data_out = new float[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<void*>(data_out);
-        databuf_size = sizeof(float);
-      }else if (dataType == INT64){
+        for ( int j = 0; j < out_num; j++ )
+        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
+        databuf_data = reinterpret_cast<char*>(data_out);
+        databuf_size = out_num*sizeof(float);
+      }else if(dataType == INT64){
         int64_t* data_out = new int64_t[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<void*>(data_out);
-        databuf_size = sizeof(int64_t);
-      }else if (dataType == INT32){
+        for ( int j = 0; j < out_num; j++ )
+        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
+        databuf_data = reinterpret_cast<char*>(data_out);
+        databuf_size = out_num*sizeof(int64_t);
+      }/*else (dataType == INT32){
         int32_t* data_out = new int32_t[out_num];
         lod_tensor_out->CopyToCpu(data_out);
-        databuf_data = reinterpret_cast<void*>(data_out);
-        databuf_size = sizeof(int32_t);
-      }
-      Tensor tensor_out;
-      tensor_out.name = outnames[i];
-      tensor_out.type = DataType(dataType);
-      tensor_out.shape.assign(output_shape.begin(), output_shape.end());
+        for ( int j = 0; j < out_num; j++ )
+        {std::cout << "ysl----data_out[+ " << j << "]) : ";std::cout << *(data_out + j) << std::endl;}
+        databuf_data = reinterpret_cast<char*>(data_out);
+        databuf_size = out_num*sizeof(int32_t);
+      }*/
+      Tensor* tensor_out = new Tensor();
+      tensor_out->name = outnames[i];
+      std::cout<< "i am test ----outnames:"<<outnames[i]<<std::endl;
+      tensor_out->type = DataType(dataType);
+      tensor_out->shape.assign(output_shape.begin(), output_shape.end());
       std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
       for (int li = 0; li < out_lod.size(); ++li) {
         std::vector<size_t> lod_element;
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
-        tensor_out.lod.push_back(lod_element);
+        tensor_out->lod.push_back(lod_element);
       }
-      tensor_out.data = DataBuf(databuf_data,databuf_size);
-      batchTensor_pointer_out->push_back_owned(tensor_out);
+      LOG(ERROR) << "DataBuf   infer_impl1    ---ysl";
+      DataBuf* newData = new DataBuf(databuf_data,databuf_size,false);
+      tensor_out->data = *newData;
+      batchTensor_pointer_out->push_back(*tensor_out);
+      LOG(ERROR) << "push_back   infer_impl1    ---ysl";
     }
+    LOG(ERROR) << "return   infer_impl1    ---ysl";
+    std::cout << (*batchTensor_pointer_in)[0].shape.size()<< "(*batchTensor_pointer_in)[0].shape.size()"<<std::endl;
     return 0;
   }
 

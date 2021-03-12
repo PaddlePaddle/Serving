@@ -163,6 +163,7 @@ int Op::process(const uint64_t log_id, bool debug) {
       OP_METRIC_PREFIX + full_name(), op_time.u_elapsed());
   LOG(INFO) << "(logid=" << log_id << ") " << name() << "_time=["
             << op_time.u_elapsed() << "]";
+  std::cout << "op process finish --ysl"<<_name<<std::endl;
   return ERR_OK;
 }
 

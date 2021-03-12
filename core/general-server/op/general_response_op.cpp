@@ -139,7 +139,12 @@ int GeneralResponseOp::inference() {
       } else if (dtype == paddle::PaddleDType::FLOAT32) {
         VLOG(2) << "(logid=" << log_id << ") Prepare float var ["
                 << model_config->_fetch_name[idx] << "].";
+        
         float *data_ptr = static_cast<float *>(in->at(idx).data.data());
+        std::cout<<" response op ---- for"<<std::endl;
+        for(int k =0; k<cap; ++k){
+          std::cout<< "i am ysl -response op-copy idx = "<< k<< "num = "<< *(data_ptr+k)<<std::endl;
+        }
         google::protobuf::RepeatedField<float> tmp_data(data_ptr,
                                                         data_ptr + cap);
         fetch_p->mutable_tensor_array(var_idx)->mutable_float_data()->Swap(
@@ -193,7 +198,9 @@ int GeneralResponseOp::inference() {
     res->add_profile_time(start);
     res->add_profile_time(end);
   }
-
+  std::cout << "GeneralResponseOp    ---ysl" << std::endl;
+  LOG(ERROR) << "GeneralResponseOp    ---ysl";
+  
   return 0;
 }
 
