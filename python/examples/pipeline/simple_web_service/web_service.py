@@ -25,32 +25,24 @@ _LOGGER = logging.getLogger()
 class UciOp(Op):
     def init_op(self):
         self.separator = ","
+        self.batch_separator = ";"
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         _LOGGER.error("UciOp::preprocess >>> log_id:{}, input:{}".format(
             log_id, input_dict))
-        x_value = input_dict["x"]
+        x_value = input_dict["x"].split(self.batch_separator)
+        x_lst = []
+        for x_val in x_value:
+            x_lst.append(np.array([float(x.strip()) for x in x_val.split(self.separator)]).reshape(1, 13))
+        input_dict["x"] = np.concatenate(x_lst, axis=0) 
         proc_dict = {}
-        if sys.version_info.major == 2:
-            if isinstance(x_value, (str, unicode)):
-                input_dict["x"] = np.array(
-                    [float(x.strip())
-                     for x in x_value.split(self.separator)]).reshape(1, 13)
-                _LOGGER.error("input_dict:{}".format(input_dict))
-        else:
-            if isinstance(x_value, str):
-                input_dict["x"] = np.array(
-                    [float(x.strip())
-                     for x in x_value.split(self.separator)]).reshape(1, 13)
-                _LOGGER.error("input_dict:{}".format(input_dict))
-
         return input_dict, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
         _LOGGER.info("UciOp::postprocess >>> log_id:{}, fetch_dict:{}".format(
             log_id, fetch_dict))
-        fetch_dict["price"] = str(fetch_dict["price"][0][0])
+        fetch_dict["price"] = str(fetch_dict["price"])
         return fetch_dict, None, ""
 
 

@@ -24,7 +24,9 @@ def run_http(idx, batch_size):
     print("start thread ({})".format(idx))
     url = "http://127.0.0.1:18082/uci/prediction"    
     start = time.time()
-    data = {"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}
+    value = "0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"
+    all_value = ";".join([value for i in range(batch_size)])
+    data = {"key": ["x"], "value": [all_value]}
     for i in range(1000):
         r = requests.post(url=url, data=json.dumps(data))
     print(r.json())
@@ -33,20 +35,21 @@ def run_http(idx, batch_size):
 
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(
-        run_http , thread, batch_size)
-
-
-def multithread_rpc(thraed, batch_size):
-    multi_thread_runner = MultiThreadRunner()
-
+    result = multi_thread_runner.run(run_http , thread, batch_size)
 
 def run_rpc(thread, batch_size):
     client = PipelineClient()
     client.connect(['127.0.0.1:9998'])
-    data = {"key": "x", "value": "0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"}
-    ret = client.predict(feed_dict={data["key"]: data["value"]}, fetch=["res"])
+    value = "0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"
+    all_value = ";".join([value for i in range(batch_size)])
+    data = {"key": "x", "value": all_value}
+    for i in range(1000):
+        ret = client.predict(feed_dict={data["key"]: data["value"]}, fetch=["res"])
     print(ret)
+
+def multithread_rpc(thraed, batch_size):
+    multi_thread_runner = MultiThreadRunner()
+    result = multi_thread_runner.run(run_rpc , thread, batch_size)
 
 if __name__ == "__main__":
     if sys.argv[1] == "yaml":
@@ -60,6 +63,6 @@ if __name__ == "__main__":
         if mode == "http":
             multithread_http(thread, batch_size)
         elif mode == "rpc":
-            run_rpc(thread, batch_size)
+            multithread_rpc(thread, batch_size)
 
     
