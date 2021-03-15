@@ -124,6 +124,9 @@ class PaddleInferenceEngine : public PaddleEngineBase {
     }
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
+      if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
+        config.EnableUseGpu(2000, FLAGS_gpuid);
+      }
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
                                   min_subgraph_size,
