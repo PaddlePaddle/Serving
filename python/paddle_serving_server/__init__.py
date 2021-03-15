@@ -26,7 +26,9 @@ from paddle_serving_server import (
     serve,
     monitor,
     rpc_service,
-    dag,
-)
+    dag, )
+
+from .dag import *
+from .server import *
 
 __version__ = version.serving_server_version

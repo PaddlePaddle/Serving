@@ -1,10 +1,26 @@
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import os
 import tarfile
 import socket
 import paddle_serving_server as paddle_serving_server
+from .proto import server_configure_pb2 as server_sdk
+from .proto import general_model_config_pb2 as m_config
+import google.protobuf.text_format
 import time
-from .version import serving_server_version
+from .version import serving_server_version, version_suffix, device_type
 from contextlib import closing
 import argparse
 
@@ -12,12 +28,14 @@ import sys
 if sys.platform.startswith('win') is False:
     import fcntl
 import shutil
+import platform
 import numpy as np
 import grpc
 import sys
 
 from multiprocessing import Pool, Process
 from concurrent import futures
+
 
 class Server(object):
     def __init__(self):
@@ -144,32 +162,18 @@ class Server(object):
             engine.runtime_thread_num = 0
             engine.batch_infer_size = 0
             engine.enable_batch_align = 0
-            engine.model_data_path = model_config_path
+            engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
-            engine.static_optimization = False
-            engine.force_update_static_cache = False
             engine.use_trt = self.use_trt
-            if os.path.exists('{}/__params__'.format(model_config_path)):
-                suffix = ""
-            else:
-                suffix = "_DIR"
-            if device == "arm":
-                engine.use_lite = self.use_lite
-                engine.use_xpu = self.use_xpu
-            engine.type = "PaddleInferenceEngine"
-            # if device == "cpu":
-            #     if use_encryption_model:
-            #         engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
-            #     else:
-            #         engine.type = "FLUID_CPU_ANALYSIS" + suffix
-            # elif device == "gpu":
-            #     if use_encryption_model:
-            #         engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
-            #     else:
-            #         engine.type = "FLUID_GPU_ANALYSIS" + suffix
-            # elif device == "arm":
-            #     engine.type = "FLUID_ARM_ANALYSIS" + suffix
+            engine.use_lite = self.use_lite
+            engine.use_xpu = self.use_xpu
+            if not os.path.exists('{}/__params__'.format(model_config_path)):
+                engine.combined_model = True
+            if use_encryption_model:
+                engine.encrypted_model = True
+            engine.type = "PaddleInfer"
+
             self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
@@ -259,7 +263,7 @@ class Server(object):
             str(f.read()), self.model_conf)
         # check config here
         # print config here
-    
+
     def use_mkl(self, flag):
         self.mkl_flag = flag
 
@@ -272,15 +276,27 @@ class Server(object):
             avx_flag = True
         if avx_flag:
             if mkl_flag:
-                device_version = "serving-cpu-avx-mkl-"
+                device_version = "cpu-avx-mkl"
             else:
-                device_version = "serving-cpu-avx-openblas-"
+                device_version = "cpu-avx-openblas"
         else:
             if mkl_flag:
                 print(
                     "Your CPU does not support AVX, server will running with noavx-openblas mode."
                 )
-            device_version = "serving-cpu-noavx-openblas-"
+            device_version = "cpu-noavx-openblas"
+        return device_version
+
+    def get_serving_bin_name(self):
+        if device_type == "0":
+            device_version = self.get_device_version()
+        elif device_type == "1":
+            if version_suffix == "101" or version_suffix == "102":
+                device_version = "gpu-" + version_suffix
+            else:
+                device_version = "gpu-cuda" + version_suffix
+        elif device_type == "2":
+            device_version = "xpu-" + platform.machine()
         return device_version
 
     def download_bin(self):
@@ -289,21 +305,10 @@ class Server(object):
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
-        import re
-        for line in version_file.readlines():
-            # to add, version_suffix
-            if re.match("cuda_version", line):
-                cuda_version = line.split("\"")[1]
-                if cuda_version == "101" or cuda_version == "102":
-                    device_version = "serving-gpu-" + cuda_version + "-"
-                elif cuda_version == "arm" or cuda_version == "arm-xpu":
-                    device_version = "serving-" + cuda_version + "-"
-                else:
-                    device_version = "serving-gpu-cuda" + cuda_version + "-"
 
-        folder_name = device_version + serving_server_version
-        tar_name = folder_name + ".tar.gz"
-        bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
+        tar_name = self.get_serving_bin_name() + ".tar.gz"
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/serving-%s-%s.tar.gz" % (
+            self.get_serving_bin_name(), serving_server_version)
         self.server_path = os.path.join(self.module_path, folder_name)
 
         download_flag = "{}/{}.is_download".format(self.module_path,
@@ -346,8 +351,7 @@ class Server(object):
         version_file.close()
         os.chdir(self.cur_path)
         self.bin_path = self.server_path + "/serving"
-    
-    
+
     def prepare_server(self,
                        workdir=None,
                        port=9292,
@@ -466,6 +470,7 @@ class Server(object):
 
         os.system(command)
 
+
 class MultiLangServer(object):
     def __init__(self):
         self.bserver_ = Server()
@@ -508,10 +513,10 @@ class MultiLangServer(object):
 
     def set_op_graph(self, op_graph):
         self.bserver_.set_op_graph(op_graph)
-    
+
     def use_mkl(self, flag):
         self.bserver_.use_mkl(flag)
-    
+
     def set_memory_optimize(self, flag=False):
         self.bserver_.set_memory_optimize(flag)
 

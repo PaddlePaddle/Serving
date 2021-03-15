@@ -30,6 +30,7 @@ if sys.version_info.major == 2:
 elif sys.version_info.major == 3:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
+
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
@@ -90,6 +91,7 @@ def serve_args():
         help="container_id for authentication")
     return parser.parse_args()
 
+
 def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     args = parse_args()
     thread_num = args.thread
@@ -141,6 +143,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     server.prepare_server(workdir=workdir, port=port, device=device)
     server.run_server()
 
+
 def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-string-missing
     workdir = args.workdir
     gpuid = int(gpuid)
@@ -189,7 +192,6 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
 
     if args.use_lite:
         server.set_lite()
-        device = "arm"
 
     server.set_device(device)
     if args.use_xpu:
@@ -230,7 +232,7 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
         else:
             env_gpus = []
     if args.use_lite:
-        print("run arm server.")
+        print("run using paddle-lite.")
         start_gpu_card_model(-1, -1, args)
     elif len(gpus) <= 0:
         print("gpu_ids not set, going to run cpu service.")

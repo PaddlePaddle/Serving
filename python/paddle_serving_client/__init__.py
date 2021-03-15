@@ -15,4 +15,7 @@
 
 from . import version
 
+from . import client
+from .client import *
+
 __version__ = version.serving_client_version

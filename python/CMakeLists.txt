@@ -7,6 +7,12 @@ if (CLIENT)
 endif()
 
 if (SERVER)
+  if (WITH_GPU) 
+    set(SERVER_PACKAGE_NAME "paddle-serving-server-gpu")
+  elseif(WITH_XPU)
+    set(SERVER_PACKAGE_NAME "paddle-serving-server-xpu")
+  endif()
+  elseif(WITH_XPU)
   file(INSTALL pipeline DESTINATION paddle_serving_server)
   file(GLOB_RECURSE SERVING_SERVER_PY_FILES paddle_serving_server/*.py)
   set(PY_FILES ${SERVING_SERVER_PY_FILES})
@@ -74,7 +80,7 @@ if (SERVER)
   endif()
 
   if(WITH_LITE)
-    set(VERSION_SUFFIX xpu)
+    set(VERSION_SUFFIX 2)
   endif()
 
   add_custom_command(

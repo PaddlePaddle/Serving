@@ -34,9 +34,15 @@ def update_info(file_name, feature, info):
         f.write(new_str)
 
 
-if len(sys.argv) > 2:
+if len(sys.argv) > 2 and len(sys.argv[2]) > 0:
     update_info("paddle_serving_server/version.py", "version_suffix",
                 sys.argv[2])
+
+package_name = '${SERVER_PACKAGE_NAME}'
+if package_name.endswith('gpu'):
+    update_info("paddle_serving_server/version.py", "device_type", "1")
+elif package_name.endswith('xpu'):
+    update_info("paddle_serving_server/version.py", "device_type", "2")
 
 path = "paddle_serving_" + sys.argv[1]
 commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
