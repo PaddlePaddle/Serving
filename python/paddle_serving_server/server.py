@@ -168,11 +168,13 @@ class Server(object):
             engine.use_trt = self.use_trt
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
-            if not os.path.exists('{}/__params__'.format(model_config_path)):
+            if os.path.exists('{}/__params__'.format(model_config_path)):
                 engine.combined_model = True
+            else:
+                engine.combined_model = False
             if use_encryption_model:
                 engine.encrypted_model = True
-            engine.type = "PaddleInfer"
+            engine.type = "PADDLE_INFER"
 
             self.model_toolkit_conf.engines.extend([engine])
 
@@ -306,9 +308,11 @@ class Server(object):
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
 
-        tar_name = self.get_serving_bin_name() + ".tar.gz"
-        bin_url = "https://paddle-serving.bj.bcebos.com/bin/serving-%s-%s.tar.gz" % (
-            self.get_serving_bin_name(), serving_server_version)
+        folder_name = "serving-%s-%s" % (self.get_serving_bin_name(),
+                                         serving_server_version)
+        tar_name = "%s.tar.gz" % folder_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/%s" % tar_name
+
         self.server_path = os.path.join(self.module_path, folder_name)
 
         download_flag = "{}/{}.is_download".format(self.module_path,
