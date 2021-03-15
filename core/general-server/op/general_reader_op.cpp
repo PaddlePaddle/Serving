@@ -32,7 +32,7 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-
+enum ProtoDataType { P_INT64,P_FLOAT32,P_INT32 };
 int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
   int var_num = req->insts(0).tensor_array_size();
@@ -80,7 +80,10 @@ int GeneralReaderOp::inference() {
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
   TensorVector *out = &res->tensor_vector;
-
+  if(!res){
+      LOG(ERROR) << "res is nullptr,error";
+      return -1;
+  }
   res->SetLogId(log_id);
 
   if (!res) {
@@ -124,13 +127,13 @@ int GeneralReaderOp::inference() {
     paddle::PaddleTensor lod_tensor;
     elem_type[i] = req->insts(0).tensor_array(i).elem_type();
     VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
-    if (elem_type[i] == 0) {  // int64
+    if (elem_type[i] == P_INT64) {  // int64
       elem_size[i] = sizeof(int64_t);
       lod_tensor.dtype = paddle::PaddleDType::INT64;
-    } else if (elem_type[i] == 1) {
+    } else if (elem_type[i] == P_FLOAT32) {
       elem_size[i] = sizeof(float);
       lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
-    } else if (elem_type[i] == 2) {
+    } else if (elem_type[i] == P_INT32) {
       elem_size[i] = sizeof(int32_t);
       lod_tensor.dtype = paddle::PaddleDType::INT32;
     }
@@ -205,30 +208,42 @@ int GeneralReaderOp::inference() {
 
   // fill the data into output general_blob
   for (int i = 0; i < var_num; ++i) {
-    if (elem_type[i] == 0) {
+    if (elem_type[i] == P_INT64) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int64_data(0);
       int offset = 0;
       int elem_num = req->insts(0).tensor_array(i).int64_data_size();
+      if(!dst_ptr){
+        LOG(ERROR) << "dst_ptr is nullptr";
+            return -1;
+      }
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[offset + k] = req->insts(0).tensor_array(i).int64_data(k);
       }
-    } else if (elem_type[i] == 1) {
+    } else if (elem_type[i] == P_FLOAT32) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).float_data(0);
       int offset = 0;
       int elem_num = req->insts(0).tensor_array(i).float_data_size();
+      if(!dst_ptr){
+        LOG(ERROR) << "dst_ptr is nullptr";
+            return -1;
+      }
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[offset + k] = req->insts(0).tensor_array(i).float_data(k);
       }
-    } else if (elem_type[i] == 2) {
+    } else if (elem_type[i] == P_INT32) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int_data(0);
       int offset = 0;
       int elem_num = req->insts(0).tensor_array(i).int_data_size();
+      if(!dst_ptr){
+        LOG(ERROR) << "dst_ptr is nullptr";
+            return -1;
+      }
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[offset + k] = req->insts(0).tensor_array(i).int_data(k);
       }

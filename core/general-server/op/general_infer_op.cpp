@@ -47,9 +47,18 @@ int GeneralInferOp::inference() {
   const std::string pre_name = pre_node_names[0];
 
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
+  if(!input_blob){
+    LOG(ERROR) << "input_blob is nullptr,error";
+      return -1;
+  }
   uint64_t log_id = input_blob->GetLogId();
   VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
+
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
+  if(!output_blob){
+    LOG(ERROR) << "output_blob is nullptr,error";
+      return -1;
+  }
   output_blob->SetLogId(log_id);
 
   if (!input_blob) {

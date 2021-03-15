@@ -121,7 +121,7 @@ class InferEngine {
   virtual int thrd_initialize() { return thrd_initialize_impl(); }
   virtual int thrd_clear() { return thrd_clear_impl(); }
   virtual int thrd_finalize() { return thrd_finalize_impl(); }
-  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) { return infer_impl1(in, out, batch_size); }
+  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) { return infer_impl(in, out, batch_size); }
 
   virtual int reload() = 0;
 
@@ -134,10 +134,10 @@ class InferEngine {
   virtual int thrd_finalize_impl() = 0;
   virtual int thrd_clear_impl() = 0;
   virtual int proc_finalize_impl() = 0;
-  virtual int infer_impl1(const void* in,
+  virtual int infer_impl(const void* in,
                           void* out,
                           uint32_t batch_size = -1) = 0;
-  virtual int infer_impl2(const BatchTensor& in,
+  virtual int task_infer_impl(const BatchTensor& in,
                           BatchTensor& out) = 0;  // NOLINT
 
   // end: framework inner call
@@ -236,7 +236,7 @@ class ReloadableInferEngine : public InferEngine {
     im::bsf::TaskExecutor<TaskT>::instance()->set_thread_reset_fn(
         boost::bind(&InferEngine::thrd_clear_impl, this));
     im::bsf::TaskExecutor<TaskT>::instance()->set_thread_callback_fn(
-        boost::bind(&InferEngine::infer_impl2, this, _1, _2));
+        boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
     im::bsf::TaskExecutor<TaskT>::instance()->set_batch_size(_infer_batch_size);
     im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(
         _infer_batch_align);
@@ -254,7 +254,7 @@ class ReloadableInferEngine : public InferEngine {
 
   int infer(const void* in, void* out, uint32_t batch_size = -1) {
     if (_infer_thread_num <= 0) {
-      return infer_impl1(in, out, batch_size);
+      return infer_impl(in, out, batch_size);
     }
 
     im::bsf::TaskManager<Tensor, Tensor> task_manager;
@@ -594,20 +594,24 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   FluidInferEngine() {}
   ~FluidInferEngine() {}
   typedef std::vector<paddle::PaddleTensor> TensorVector;
-  int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) {
+  int infer_impl(const void* in, void* out, uint32_t batch_size = -1) {
+    //First of all, get the real core acording to the template parameter 'FluidFamilyCore'.
     FluidFamilyCore* core =DBReloadableInferEngine<FluidFamilyCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
     }
-
-    //set inputHandle
+    //We use the for loop to process the input data.
+    //Inside each for loop, use the in[i]->name as inputName and call 'core->GetInputHandle(inputName)' to get the pointer of InputData.
+    //Set the lod and shape information of InputData first. then copy data from cpu to the core.
     const TensorVector* tensorVector_in_pointer = reinterpret_cast<const TensorVector*>(in);
     for(int i =0; i< tensorVector_in_pointer->size();++i){
       auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
       lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
       lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
       void* origin_data = (*tensorVector_in_pointer)[i].data.data();
+      //Because the core needs to determine the size of memory space according to the data type passed in.
+      //The pointer type of data must be one of float *,int64_t*,int32_t* instead void*.
       if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32){
         float* data = static_cast<float*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
@@ -619,12 +623,14 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_tensor_in->CopyFromCpu(data);
       }
     }
+    //After the input data is passed in, call 'core->Run()' perform the prediction process.
     if (!core->Run()) {
         LOG(ERROR) << "Failed run fluid family core";
         return -1;
     }
-    //get out and copy to void* out
-    TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
+    
+    //In order to get the results, first, call the 'core->GetOutputNames()' to get the name of output(which is a dict like {OutputName:pointer of OutputValue}).
+    //Then, use for-loop to get OutputValue by calling 'core->GetOutputHandle'.
     std::vector<std::string> outnames = core->GetOutputNames();
     std::vector<int> output_shape;
     int out_num =0;
@@ -632,6 +638,13 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     void* databuf_data = NULL;
     char* databuf_char = NULL;
     size_t databuf_size = 0;
+    TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
+    if(!tensorVector_out_pointer){
+      LOG(ERROR) << "tensorVector_out_pointer is nullptr,error";
+      return -1;
+    }
+    //Get the type and shape information of OutputData first. then copy data to cpu from the core.
+    //The pointer type of data_out must be one of float *,int64_t*,int32_t* instead void*.
     for (int i = 0; i < outnames.size(); ++i){
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       output_shape = lod_tensor_out->shape();
@@ -639,28 +652,27 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
       dataType = lod_tensor_out->type();
       if(dataType == paddle::PaddleDType::FLOAT32){
         databuf_size = out_num*sizeof(float);
-        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
             LOG(ERROR) << "Malloc failed, size: " << databuf_size;
             return -1;
         }
         float* data_out = reinterpret_cast<float*>(databuf_data);
-        //float* data_out = new float[out_num];
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }else if(dataType == paddle::PaddleDType::INT64){
         databuf_size = out_num*sizeof(int64_t);
-        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
             LOG(ERROR) << "Malloc failed, size: " << databuf_size;
             return -1;
         }
-        int64_t* data_out = reinterpret_cast<int64_t*>(data_out);
+        int64_t* data_out = reinterpret_cast<int64_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }else if(dataType == paddle::PaddleDType::INT32){
         databuf_size = out_num*sizeof(int32_t);
-        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
             LOG(ERROR) << "Malloc failed, size: " << databuf_size;
             return -1;
@@ -669,6 +681,9 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }
+      //Because task scheduling requires OPs to use 'Channel'(which is a data structure) to transfer data between OPs.
+      //We need to copy the processed data to the 'Channel' for the next OP.
+      //In this function, it means we should copy the 'databuf_char' to the pointer 'void* out'.(which is also called ‘tensorVector_out_pointer’)
       paddle::PaddleTensor tensor_out;
       tensor_out.name = outnames[i];
       tensor_out.dtype = paddle::PaddleDType(dataType);
@@ -679,15 +694,15 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out.lod.push_back(lod_element);
       }
-      paddle::PaddleBuf paddleBuf(databuf_char,databuf_size);
+      paddle::PaddleBuf paddleBuf(databuf_char, databuf_size);
       tensor_out.data = paddleBuf;
       tensorVector_out_pointer->push_back(tensor_out);
     }
     return 0;
   }
 
-  int infer_impl2(const BatchTensor& in, BatchTensor& out) {  // NOLINT
-    return infer_impl1(&in, &out);
+  int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
+    return infer_impl(&in, &out);
   }
 
 
@@ -875,8 +890,8 @@ class VersionedInferEngine : public InferEngine {
   int thrd_finalize_impl() { return -1; }
   int thrd_clear_impl() { return -1; }
   int proc_finalize_impl() { return -1; }
-  int infer_impl1(const void* in, void* out, uint32_t batch_size = -1) { return -1; }
-  int infer_impl2(const BatchTensor& in, BatchTensor& out) {  // NOLINT
+  int infer_impl(const void* in, void* out, uint32_t batch_size = -1) { return -1; }
+  int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
     return -1;
   }  // NOLINT
 
