@@ -1,6 +1,6 @@
 export FLAGS_profile_pipeline=1
 alias python3="python3.7"
-modelname="bert"
+modelname="ocr"
 # HTTP
 ps -ef | grep web_service | awk '{print $2}' | xargs kill -9 
 sleep 3
@@ -8,7 +8,7 @@ python3 benchmark.py yaml local_predictor 1 gpu
 rm -rf profile_log_$modelname
 for thread_num in 1 
 do
-  for batch_size in 20
+  for batch_size in 1
   do
     echo "----Bert thread num: $thread_num batch size: $batch_size mode:http ----" >>profile_log_$modelname
     rm -rf PipelineServingLogs
@@ -36,7 +36,7 @@ python3 benchmark.py yaml local_predictor 1 gpu
 
 for thread_num in 1 
 do
-  for batch_size in 20
+  for batch_size in 1
   do
     echo "----Bert thread num: $thread_num batch size: $batch_size mode:rpc ----" >>profile_log_$modelname
     rm -rf PipelineServingLogs
