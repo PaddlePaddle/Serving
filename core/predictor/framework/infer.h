@@ -612,13 +612,13 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
       void* origin_data = (*tensorVector_in_pointer)[i].data.data();
       //Because the core needs to determine the size of memory space according to the data type passed in.
       //The pointer type of data must be one of float *,int64_t*,int32_t* instead void*.
-      if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32){
+      if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32) {
         float* data = static_cast<float*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT64){
+      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT64) {
         int64_t* data = static_cast<int64_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT32){
+      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT32) {
         int32_t* data = static_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       }
@@ -639,7 +639,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     char* databuf_char = NULL;
     size_t databuf_size = 0;
     TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
-    if(!tensorVector_out_pointer){
+    if (!tensorVector_out_pointer) {
       LOG(ERROR) << "tensorVector_out_pointer is nullptr,error";
       return -1;
     }
@@ -650,7 +650,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
       output_shape = lod_tensor_out->shape();
       out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
       dataType = lod_tensor_out->type();
-      if(dataType == paddle::PaddleDType::FLOAT32){
+      if (dataType == paddle::PaddleDType::FLOAT32) {
         databuf_size = out_num*sizeof(float);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
@@ -660,7 +660,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         float* data_out = reinterpret_cast<float*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if(dataType == paddle::PaddleDType::INT64){
+      }else if (dataType == paddle::PaddleDType::INT64) {
         databuf_size = out_num*sizeof(int64_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
@@ -670,7 +670,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         int64_t* data_out = reinterpret_cast<int64_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if(dataType == paddle::PaddleDType::INT32){
+      }else if (dataType == paddle::PaddleDType::INT32) {
         databuf_size = out_num*sizeof(int32_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {

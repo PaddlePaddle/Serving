@@ -42,7 +42,9 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 int GeneralResponseOp::inference() {
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
-  const GeneralBlob *input_blob;
+  const GeneralBlob *input_blob = nullptr;
+  int var_idx = 0;
+  int cap = 1;
   uint64_t log_id =
       get_depend_argument<GeneralBlob>(pre_node_names[0])->GetLogId();
 
@@ -116,9 +118,9 @@ int GeneralResponseOp::inference() {
       }
     }
 
-    int var_idx = 0;
+    var_idx = 0;
     for (auto &idx : fetch_index) {
-      int cap = 1;
+      cap = 1;
       for (int j = 0; j < in->at(idx).shape.size(); ++j) {
         cap *= in->at(idx).shape[j];
       }

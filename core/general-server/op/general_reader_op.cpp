@@ -32,7 +32,7 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-enum ProtoDataType { P_INT64,P_FLOAT32,P_INT32 };
+enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32 };
 int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
   int var_num = req->insts(0).tensor_array_size();
@@ -79,13 +79,9 @@ int GeneralReaderOp::inference() {
   std::vector<int64_t> capacity;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
-  TensorVector *out = &res->tensor_vector;
-  if(!res){
-      LOG(ERROR) << "res is nullptr,error";
-      return -1;
-  }
+  TensorVector *out = &(res->tensor_vector);
+  
   res->SetLogId(log_id);
-
   if (!res) {
     LOG(ERROR) << "(logid=" << log_id
                << ") Failed get op tls reader object output";
@@ -94,9 +90,8 @@ int GeneralReaderOp::inference() {
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
   int var_num = req->insts(0).tensor_array_size();
-  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num;
 
-  VLOG(2) << "(logid=" << log_id
+  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
 
   baidu::paddle_serving::predictor::Resource &resource =
@@ -105,8 +100,6 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
       resource.get_general_model_config();
-
-  VLOG(2) << "(logid=" << log_id << ") print general model config done.";
 
   // TODO(guru4elephant): how to do conditional check?
   /*
@@ -170,11 +163,13 @@ int GeneralReaderOp::inference() {
     out->push_back(lod_tensor);
   }
   // specify the memory needed for output tensor_vector
+  int tensor_size = 0;
+  int data_len = 0;
   for (int i = 0; i < var_num; ++i) {
     if (out->at(i).lod.size() == 1) {
-      int tensor_size = 0;
+      tensor_size = 0;
       const Tensor &tensor = req->insts(0).tensor_array(i);
-      int data_len = 0;
+      data_len = 0;
       if (tensor.int64_data_size() > 0) {
         data_len = tensor.int64_data_size();
       } else if (tensor.float_data_size() > 0) {
@@ -207,14 +202,16 @@ int GeneralReaderOp::inference() {
   }
 
   // fill the data into output general_blob
+  int offset = 0;
+  int elem_num = 0;
   for (int i = 0; i < var_num; ++i) {
     if (elem_type[i] == P_INT64) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int64_data(0);
-      int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).int64_data_size();
-      if(!dst_ptr){
+      offset = 0;
+      elem_num = req->insts(0).tensor_array(i).int64_data_size();
+      if (!dst_ptr) {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }
@@ -225,9 +222,9 @@ int GeneralReaderOp::inference() {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).float_data(0);
-      int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).float_data_size();
-      if(!dst_ptr){
+      offset = 0;
+      elem_num = req->insts(0).tensor_array(i).float_data_size();
+      if (!dst_ptr) {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }
@@ -238,9 +235,9 @@ int GeneralReaderOp::inference() {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << req->insts(0).tensor_array(i).int_data(0);
-      int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).int_data_size();
-      if(!dst_ptr){
+      offset = 0;
+      elem_num = req->insts(0).tensor_array(i).int_data_size();
+      if (!dst_ptr) {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }

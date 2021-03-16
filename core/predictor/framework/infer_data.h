@@ -80,9 +80,9 @@ struct Tensor {
   size_t ele_byte() const {
     if (type == INT64) {
       return sizeof(int64_t);
-    } else if(type == FLOAT32){
+    } else if (type == FLOAT32) {
       return sizeof(float);
-    }else{
+    } else {
       return sizeof(int32_t);
     }
   }
