@@ -2,7 +2,7 @@ include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../../)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_fluid cube-api utils)
+add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api utils)
 
 if (WITH_GPU)
     add_dependencies(serving paddle_inference_engine)
@@ -20,7 +20,7 @@ include_directories(${CUDNN_ROOT}/include/)
 target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
         -Wl,--no-whole-archive)
 
-target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
+target_link_libraries(serving paddle_inference ${paddle_depend_libs})
 target_link_libraries(serving brpc)
 target_link_libraries(serving protobuf)
 target_link_libraries(serving pdserving)

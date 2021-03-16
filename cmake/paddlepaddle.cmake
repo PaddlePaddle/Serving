@@ -18,7 +18,7 @@ SET(PADDLE_SOURCES_DIR ${THIRD_PARTY_PATH}/Paddle)
 SET(PADDLE_DOWNLOAD_DIR ${PADDLE_SOURCES_DIR}/src/extern_paddle)
 SET(PADDLE_INSTALL_DIR ${THIRD_PARTY_PATH}/install/Paddle/)
 SET(PADDLE_INCLUDE_DIR "${PADDLE_INSTALL_DIR}/include" CACHE PATH "PaddlePaddle include directory." FORCE)
-SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a" CACHE FILEPATH "Paddle library." FORCE)
+SET(PADDLE_LIBRARIES "${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a" CACHE FILEPATH "Paddle library." FORCE)
 
 message("paddle install dir: " ${PADDLE_INSTALL_DIR})
 
@@ -31,7 +31,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.0.0")
+SET(PADDLE_VERSION "2.0.1")
 if (WITH_GPU)
     if(CUDA_VERSION EQUAL 11.0)
         set(CUDA_SUFFIX "cuda11-cudnn8-avx-mkl")
@@ -139,8 +139,8 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 
-ADD_LIBRARY(paddle_fluid STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_fluid PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_fluid.a)
+ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
 
 if (WITH_TRT)
     ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
