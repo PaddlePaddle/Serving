@@ -364,9 +364,9 @@ class Server(object):
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
-            os.system("mkdir {}".format(workdir))
+            os.system("mkdir -p {}".format(workdir))
         else:
-            os.system("mkdir {}".format(workdir))
+            os.system("mkdir -p {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
         if not self.port_is_available(port):

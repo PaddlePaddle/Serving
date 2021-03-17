@@ -233,7 +233,7 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
             env_gpus = []
     if args.use_lite:
         print("run using paddle-lite.")
-        start_gpu_card_model(-1, -1, args)
+        start_gpu_card_model(-1, -1, serving_port, args)
     elif len(gpus) <= 0:
         print("gpu_ids not set, going to run cpu service.")
         start_gpu_card_model(-1, -1, serving_port, args)
