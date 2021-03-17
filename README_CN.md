@@ -53,7 +53,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">教程</h2>
 
-Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serving服务化部署框架](https://aistudio.baidu.com/aistudio/projectdetail/1550674)
+Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
 教程提供了如下内容
 
