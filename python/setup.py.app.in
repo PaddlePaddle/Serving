@@ -32,8 +32,13 @@ if '${PACK}' == 'ON':
 
 
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece<=0.1.83', 'opencv-python<=4.2.0.32', 'pillow',
-    'pyclipper', 'shapely'
+    'six >= 1.10.0',
+    'pillow',
+    'pyclipper', 'shapely',
+    'sentencepiece<=0.1.83; platform_machine != "aarch64"',
+    'sentencepiece; platform_machine == "aarch64"',
+    'opencv-python<=4.2.0.32; platform_machine != "aarch64"',
+    'opencv-python; platform_machine == "aarch64"',
 ]
 
 packages=['paddle_serving_app',
