@@ -12,12 +12,12 @@ set_source_files_properties(
         ${pdserving_srcs}
         PROPERTIES
         COMPILE_FLAGS  "-Wno-strict-aliasing -Wno-unused-variable -Wno-non-virtual-dtor -Wno-error=non-virtual-dtor -Wno-error=delete-non-virtual-dtor")
-add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure extern_paddle paddle_fluid)
+add_dependencies(pdserving protobuf boost brpc leveldb pdcodegen configure extern_paddle paddle_inference)
 if (WITH_TRT)
     add_definitions(-DWITH_TRT)
 endif()
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz paddle_fluid ${paddle_depend_libs})
+        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz paddle_inference ${paddle_depend_libs})
 # install
 install(TARGETS pdserving
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin

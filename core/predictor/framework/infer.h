@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,83 +30,29 @@ namespace predictor {
 
 using configure::ModelToolkitConf;
 
-class InferEngineCreationParams {
+class AutoLock {
  public:
-  InferEngineCreationParams() {
-    _path = "";
-    _enable_memory_optimization = false;
-    _enable_ir_optimization = false;
-    _static_optimization = false;
-    _force_update_static_cache = false;
-    _use_trt = false;
-    _use_lite = false;
-    _use_xpu = false;
+  explicit AutoLock(pthread_mutex_t& mutex) : _mut(mutex) {
+    pthread_mutex_lock(&mutex);
   }
+  ~AutoLock() { pthread_mutex_unlock(&_mut); }
 
-  void set_path(const std::string& path) { _path = path; }
+ private:
+  pthread_mutex_t& _mut;
+};
 
-  void set_enable_memory_optimization(bool enable_memory_optimization) {
-    _enable_memory_optimization = enable_memory_optimization;
-  }
+class GlobalCreateMutex {
+ public:
+  pthread_mutex_t& mutex() { return _mut; }
 
-  void set_enable_ir_optimization(bool enable_ir_optimization) {
-    _enable_ir_optimization = enable_ir_optimization;
-  }
-
-  void set_use_trt(bool use_trt) { _use_trt = use_trt; }
-
-  void set_use_lite(bool use_lite) { _use_lite = use_lite; }
-
-  void set_use_xpu(bool use_xpu) { _use_xpu = use_xpu; }
-
-  bool enable_memory_optimization() const {
-    return _enable_memory_optimization;
-  }
-
-  bool enable_ir_optimization() const { return _enable_ir_optimization; }
-
-  bool use_trt() const { return _use_trt; }
-
-  bool use_lite() const { return _use_lite; }
-
-  bool use_xpu() const { return _use_xpu; }
-
-  void set_static_optimization(bool static_optimization = false) {
-    _static_optimization = static_optimization;
-  }
-
-  void set_force_update_static_cache(bool force_update_static_cache = false) {
-    _force_update_static_cache = force_update_static_cache;
-  }
-
-  bool static_optimization() const { return _static_optimization; }
-
-  bool force_update_static_cache() const { return _force_update_static_cache; }
-
-  std::string get_path() const { return _path; }
-
-  void dump() const {
-    LOG(INFO) << "InferEngineCreationParams: "
-              << "model_path = " << _path << ", "
-              << "enable_memory_optimization = " << _enable_memory_optimization
-              << ", "
-              << "enable_tensorrt = " << _use_trt << ", "
-              << "enable_lite = " << _use_lite << ", "
-              << "enable_xpu = " << _use_xpu << ", "
-              << "enable_ir_optimization = " << _enable_ir_optimization << ", "
-              << "static_optimization = " << _static_optimization << ", "
-              << "force_update_static_cache = " << _force_update_static_cache;
+  static pthread_mutex_t& instance() {
+    static GlobalCreateMutex gmutex;
+    return gmutex.mutex();
   }
 
  private:
-  std::string _path;
-  bool _enable_memory_optimization;
-  bool _enable_ir_optimization;
-  bool _static_optimization;
-  bool _force_update_static_cache;
-  bool _use_trt;
-  bool _use_lite;
-  bool _use_xpu;
+  GlobalCreateMutex() { pthread_mutex_init(&_mut, NULL); }
+  pthread_mutex_t _mut;
 };
 
 class InferEngine {
@@ -152,57 +99,19 @@ class ReloadableInferEngine : public InferEngine {
     uint64_t last_revision;
   };
 
-  virtual int load(const InferEngineCreationParams& params) = 0;
+  virtual int load(const configure::EngineDesc& conf) = 0;
 
   int proc_initialize_impl(const configure::EngineDesc& conf, bool version) {
     _reload_tag_file = conf.reloadable_meta();
     _reload_mode_tag = conf.reloadable_type();
-    _model_data_path = conf.model_data_path();
+    _model_data_path = conf.model_dir();
     _infer_thread_num = conf.runtime_thread_num();
     _infer_batch_size = conf.batch_infer_size();
     _infer_batch_align = conf.enable_batch_align();
 
-    bool enable_memory_optimization = false;
-    if (conf.has_enable_memory_optimization()) {
-      enable_memory_optimization = conf.enable_memory_optimization();
-    }
+    _conf = conf;
 
-    bool static_optimization = false;
-    if (conf.has_static_optimization()) {
-      static_optimization = conf.static_optimization();
-    }
-
-    bool force_update_static_cache = false;
-    if (conf.has_force_update_static_cache()) {
-      force_update_static_cache = conf.force_update_static_cache();
-    }
-
-    if (conf.has_enable_ir_optimization()) {
-      _infer_engine_params.set_enable_ir_optimization(
-          conf.enable_ir_optimization());
-    }
-
-    _infer_engine_params.set_path(_model_data_path);
-    if (enable_memory_optimization) {
-      _infer_engine_params.set_enable_memory_optimization(true);
-      _infer_engine_params.set_static_optimization(static_optimization);
-      _infer_engine_params.set_force_update_static_cache(
-          force_update_static_cache);
-    }
-
-    if (conf.has_use_trt()) {
-      _infer_engine_params.set_use_trt(conf.use_trt());
-    }
-
-    if (conf.has_use_lite()) {
-      _infer_engine_params.set_use_lite(conf.use_lite());
-    }
-
-    if (conf.has_use_xpu()) {
-      _infer_engine_params.set_use_xpu(conf.use_xpu());
-    }
-
-    if (!check_need_reload() || load(_infer_engine_params) != 0) {
+    if (!check_need_reload() || load(conf) != 0) {
       LOG(ERROR) << "Failed load model_data_path" << _model_data_path;
       return -1;
     }
@@ -230,7 +139,6 @@ class ReloadableInferEngine : public InferEngine {
     if (_infer_thread_num > 0) {
       return 0;
     }
-
     return thrd_initialize_impl();
   }
 
@@ -254,13 +162,13 @@ class ReloadableInferEngine : public InferEngine {
   int reload() {
     if (check_need_reload()) {
       LOG(WARNING) << "begin reload model[" << _model_data_path << "].";
-      return load(_infer_engine_params);
+      return load(_conf);
     }
     return 0;
   }
 
   uint64_t version() const { return _version; }
-
+  
   uint32_t thread_num() const { return _infer_thread_num; }
 
  private:
@@ -322,7 +230,7 @@ class ReloadableInferEngine : public InferEngine {
 
  protected:
   std::string _model_data_path;
-  InferEngineCreationParams _infer_engine_params;
+  configure::EngineDesc _conf;
 
  private:
   std::string _reload_tag_file;
@@ -361,25 +269,25 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     return ReloadableInferEngine::proc_initialize(conf, version);
   }
 
-  virtual int load(const InferEngineCreationParams& params) {
+  virtual int load(const configure::EngineDesc& conf) {
     if (_reload_vec.empty()) {
       return 0;
     }
 
     for (uint32_t ti = 0; ti < _reload_vec.size(); ++ti) {
-      if (load_data(_reload_vec[ti], params) != 0) {
+      if (load_data(_reload_vec[ti], conf) != 0) {
         LOG(ERROR) << "Failed reload engine model: " << ti;
         return -1;
       }
     }
 
-    LOG(WARNING) << "Succ load engine, path: " << params.get_path();
+    LOG(WARNING) << "Succ load engine, path: " << conf.model_dir();
 
     return 0;
   }
 
   int load_data(ModelData<EngineCore>* md,
-                const InferEngineCreationParams& params) {
+                const configure::EngineDesc& conf) {
     uint32_t next_idx = (md->current_idx + 1) % 2;
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
@@ -387,9 +295,9 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
-    params.dump();
-    if (!md->cores[next_idx] || md->cores[next_idx]->create(params) != 0) {
-      LOG(ERROR) << "Failed create model, path: " << params.get_path();
+    //params.dump();
+    if (!md->cores[next_idx] || md->cores[next_idx]->create(conf) != 0) {
+      LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
     }
     md->current_idx = next_idx;
@@ -400,9 +308,9 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     // memory pool to be inited in non-serving-threads
 
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
-    if (!md || load_data(md, _infer_engine_params) != 0) {
+    if (!md || load_data(md, _conf) != 0) {
       LOG(ERROR) << "Failed create thread data from "
-                 << _infer_engine_params.get_path();
+                 << _conf.model_dir();
       return -1;
     }
 
@@ -458,16 +366,16 @@ class CloneDBReloadableInferEngine
     return DBReloadableInferEngine<EngineCore>::proc_initialize(conf, version);
   }
 
-  virtual int load(const InferEngineCreationParams& params) {
+  virtual int load(const configure::EngineDesc& conf) {
     // 加载进程级模型数据
     if (!_pd ||
-        DBReloadableInferEngine<EngineCore>::load_data(_pd, params) != 0) {
-      LOG(ERROR) << "Failed to create common model from [" << params.get_path()
+        DBReloadableInferEngine<EngineCore>::load_data(_pd, conf) != 0) {
+      LOG(ERROR) << "Failed to create common model from [" << conf.model_dir()
                  << "].";
       return -1;
     }
     LOG(WARNING) << "Succ load common model[" << _pd->cores[_pd->current_idx]
-                 << "], path[" << params.get_path() << "].";
+                 << "], path[" << conf.model_dir() << "].";
 
     if (DBReloadableInferEngine<EngineCore>::_reload_vec.empty()) {
       return 0;
@@ -483,7 +391,7 @@ class CloneDBReloadableInferEngine
       }
     }
 
-    LOG(WARNING) << "Succ load clone model, path[" << params.get_path() << "]";
+    LOG(WARNING) << "Succ load clone model, path[" << conf.model_dir() << "]";
 
     return 0;
   }
@@ -527,18 +435,18 @@ class CloneDBReloadableInferEngine
       _pd;  // 进程级EngineCore，多个线程级EngineCore共用该对象的模型数据
 };
 
-template <typename FluidFamilyCore>
+template <typename PaddleInferenceCore>
 #ifdef WITH_TRT
-class FluidInferEngine : public DBReloadableInferEngine<FluidFamilyCore> {
+class FluidInferEngine : public DBReloadableInferEngine<PaddleInferenceCore> {
 #else
-class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
+class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore> {
 #endif
  public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
   std::vector<std::string> GetInputNames() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    PaddleInferenceCore* core =
+        DBReloadableInferEngine<PaddleInferenceCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
@@ -546,8 +454,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   }
 
   std::vector<std::string> GetOutputNames() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    PaddleInferenceCore* core =
+        DBReloadableInferEngine<PaddleInferenceCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
@@ -556,8 +464,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
 
   std::unique_ptr<paddle_infer::Tensor> GetInputHandle(
       const std::string& name) {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    PaddleInferenceCore* core =
+        DBReloadableInferEngine<PaddleInferenceCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetInputHandle()";
     }
@@ -566,8 +474,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
 
   std::unique_ptr<paddle_infer::Tensor> GetOutputHandle(
       const std::string& name) {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    PaddleInferenceCore* core =
+        DBReloadableInferEngine<PaddleInferenceCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in GetOutputHandle()";
     }
@@ -575,8 +483,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
   }
 
   int infer_impl() {
-    FluidFamilyCore* core =
-        DBReloadableInferEngine<FluidFamilyCore>::get_core();
+    PaddleInferenceCore* core =
+        DBReloadableInferEngine<PaddleInferenceCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
