@@ -10,7 +10,7 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/
 ### Start the service
 ```
 tar xf faster_rcnn_r50_fpn_1x_coco.tar
-python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0
+python -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_ids 0
 ```
 
 This model support TensorRT, if you want a faster inference, please use `--use_trt`. 

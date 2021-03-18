@@ -13,13 +13,5 @@
 # limitations under the License
 
 if (NOT CLIENT_ONLY)
-    add_subdirectory(inferencer-fluid-cpu)
-    
-    if (WITH_GPU)
-        add_subdirectory(inferencer-fluid-gpu)
-    endif()
-    
-    if (WITH_LITE)
-        add_subdirectory(inferencer-fluid-arm)
-    endif()
+    add_subdirectory(paddle)
 endif()

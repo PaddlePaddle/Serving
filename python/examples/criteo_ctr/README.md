@@ -20,7 +20,7 @@ the directories like `ctr_serving_model` and `ctr_client_conf` will appear.
 
 ```
 python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #CPU RPC Service
-python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #RPC Service on GPU 0
+python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #RPC Service on GPU 0
 ```
 
 ### RPC Infer

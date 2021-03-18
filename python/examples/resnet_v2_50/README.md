@@ -12,7 +12,7 @@ tar -xzvf resnet_v2_50_imagenet.tar.gz
 ### Start Service
 
 ```
-python -m paddle_serving_server_gpu.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 9393
+python -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 9393
 ```
 
 ### Client Prediction

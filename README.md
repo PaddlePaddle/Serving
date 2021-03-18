@@ -53,7 +53,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">AIStudio Turorial</h2>
 
-Here we provide tutorial on AIStudio(Chinese Version) [AIStudio教程-Paddle Serving服务化部署框架](https://aistudio.baidu.com/aistudio/projectdetail/1550674)
+Here we provide tutorial on AIStudio(Chinese Version) [AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
 The tutorial provides 
 <ul>

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "paddle_inference/inferencer-fluid-arm/include/fluid_arm_engine.h"
+#include "paddle_inference/paddle/include/paddle_engine.h"
 #include "core/predictor/framework/factory.h"
 
 namespace baidu {
 namespace paddle_serving {
-namespace fluid_arm {
+namespace inference {
+
+DEFINE_int32(gpuid, 0, "GPU device id to use");
 
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<FluidArmAnalysisCore>,
+    ::baidu::paddle_serving::predictor::FluidInferEngine<PaddleInferenceEngine>,
     ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_ANALYSIS");
+    "PADDLE_INFER");
 
-REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
-    ::baidu::paddle_serving::predictor::FluidInferEngine<
-        FluidArmAnalysisDirCore>,
-    ::baidu::paddle_serving::predictor::InferEngine,
-    "FLUID_ARM_ANALYSIS_DIR");
-
-}  // namespace fluid_arm
+}  // namespace inference
 }  // namespace paddle_serving
 }  // namespace baidu

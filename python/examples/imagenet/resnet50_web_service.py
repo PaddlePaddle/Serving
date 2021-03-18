@@ -25,7 +25,7 @@ device = sys.argv[2]
 if device == "cpu":
     from paddle_serving_server.web_service import WebService
 else:
-    from paddle_serving_server_gpu.web_service import WebService
+    from paddle_serving_server.web_service import WebService
 
 
 class ImageService(WebService):
