@@ -26,10 +26,11 @@ from time import time as _time
 import time
 import threading
 import multiprocessing
-
+import copy
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.propagate = False
 
+_is_profile = int(os.environ.get('FLAGS_profile_pipeline', 0))
 
 class PerformanceTracer(object):
     def __init__(self, is_thread_mode, interval_s, server_worker_num):
@@ -48,6 +49,8 @@ class PerformanceTracer(object):
         self._channels = []
         # The size of data in Channel will not exceed server_worker_num
         self._server_worker_num = server_worker_num
+        if _is_profile:
+            self.profile_dict = {}
 
     def data_buffer(self):
         return self._data_buffer
@@ -82,7 +85,7 @@ class PerformanceTracer(object):
                     item = self._data_buffer.get_nowait()
                     name = item["name"]
                     actions = item["actions"]
-
+                    
                     if name == "DAG":
                         succ = item["succ"]
                         req_id = item["id"]
@@ -106,9 +109,9 @@ class PerformanceTracer(object):
                     for action, costs in op_cost[name].items():
                         op_cost[name][action] = sum(costs) / (1e3 * len(costs))
                         tot_cost += op_cost[name][action]
-
                     if name != "DAG":
                         _LOGGER.info("Op({}):".format(name))
+                        
                         for action in all_actions:
                             if action in op_cost[name]:
                                 _LOGGER.info("\t{}[{} ms]".format(
@@ -118,7 +121,9 @@ class PerformanceTracer(object):
                                 calcu_cost += op_cost[name][action]
                         _LOGGER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
                                                          tot_cost))
-
+            if _is_profile:
+                self.profile_dict = copy.deepcopy(op_cost)
+                
             if "DAG" in op_cost:
                 calls = list(op_cost["DAG"].values())
                 calls.sort()
@@ -137,7 +142,17 @@ class PerformanceTracer(object):
                 for latency in latencys:
                     _LOGGER.info("\t\t.{}[{} ms]".format(latency, calls[int(
                         tot * latency / 100.0)]))
-
+                if _is_profile:
+                    self.profile_dict["DAG"]["query_count"] = tot
+                    self.profile_dict["DAG"]["qps"] = qps
+                    self.profile_dict["DAG"]["succ"] = 1 - 1.0 * err_count / tot
+                    self.profile_dict["DAG"]["avg"] = ave_cost
+                    for latency in latencys:
+                        self.profile_dict["DAG"][str(latency)] = calls[int(tot * latency / 100.0)]
+            if _is_profile:
+                import yaml
+                with open("benchmark.log", "w") as fout:
+                    yaml.dump(self.profile_dict, fout, default_flow_style=False)
             # channel
             _LOGGER.info("Channel (server worker num[{}]):".format(
                 self._server_worker_num))
