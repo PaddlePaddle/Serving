@@ -6,9 +6,9 @@ ps -ef | grep web_service | awk '{print $2}' | xargs kill -9
 sleep 3
 python3 benchmark.py yaml local_predictor 1 gpu 
 rm -rf profile_log_$modelname
-for thread_num in 1 
+for thread_num in 1 8 16 
 do
-  for batch_size in 20
+  for batch_size in 1 10 100
   do
     echo "----Bert thread num: $thread_num batch size: $batch_size mode:http ----" >>profile_log_$modelname
     rm -rf PipelineServingLogs
@@ -34,9 +34,9 @@ ps -ef | grep web_service | awk '{print $2}' | xargs kill -9
 sleep 3
 python3 benchmark.py yaml local_predictor 1 gpu
 
-for thread_num in 1 
+for thread_num in 1 8 16
 do
-  for batch_size in 20
+  for batch_size in 1 10 100
   do
     echo "----Bert thread num: $thread_num batch size: $batch_size mode:rpc ----" >>profile_log_$modelname
     rm -rf PipelineServingLogs

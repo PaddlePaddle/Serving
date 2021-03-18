@@ -14,4 +14,4 @@ op:
       - pooled_output
       model_config: bert_seq128_model/
 rpc_port: 9998
-worker_num: 1
+worker_num: 20
