@@ -82,7 +82,10 @@ class LocalPredictor(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        config = AnalysisConfig(model_path)
+        if os.path.exists(os.path.join(model_path, "__params__")):
+            config = AnalysisConfig(os.path.join(model_path, "__model__"), os.path.join(model_path, "__params__")) 
+        else:
+            config = AnalysisConfig(model_path) 
         logger.info("load_model_config params: model_path:{}, use_gpu:{},\
             gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{},\
             use_trt:{}, use_lite:{}, use_xpu: {}, use_feed_fetch_ops:{}".format(

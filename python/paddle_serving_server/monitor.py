@@ -28,7 +28,6 @@ import logging
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class Monitor(object):
     '''
     Monitor base class. It is used to monitor the remote model, pull and update the local model.

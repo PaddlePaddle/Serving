@@ -41,24 +41,24 @@ include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen fluid_cpu_engine pdserving paddle_fluid
+add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference
         opencv_imgcodecs cube-api)
 if (WITH_GPU)
-    add_dependencies(serving fluid_gpu_engine)
+    add_dependencies(serving paddle_inference_engine)
 endif()
 target_include_directories(serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../core/predictor
         )
 
 if(WITH_GPU)
-    target_link_libraries(serving -Wl,--whole-archive fluid_gpu_engine
+    target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
             -Wl,--no-whole-archive)
 endif()
 
-target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
+target_link_libraries(serving -Wl,--whole-archive paddle_inference_engine
         -Wl,--no-whole-archive)
 
-target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
+target_link_libraries(serving paddle_inference ${paddle_depend_libs})
 
 target_link_libraries(serving opencv_imgcodecs
         ${opencv_depend_libs})

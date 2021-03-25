@@ -53,7 +53,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 
 <h2 align="center">教程</h2>
 
-Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serving服务化部署框架](https://aistudio.baidu.com/aistudio/projectdetail/1550674)
+Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
 教程提供了如下内容
 
@@ -86,14 +86,14 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 ```
 # 启动 CPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # 启动 GPU Docker
 nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```

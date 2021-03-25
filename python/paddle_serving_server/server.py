@@ -1,4 +1,4 @@
-#   Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,186 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
 import os
+import tarfile
+import socket
+import paddle_serving_server as paddle_serving_server
 from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 import google.protobuf.text_format
-import tarfile
-import socket
-import paddle_serving_server_gpu as paddle_serving_server
 import time
-from .version import serving_server_version
+from .version import serving_server_version, version_suffix, device_type
 from contextlib import closing
 import argparse
-import collections
+
 import sys
 if sys.platform.startswith('win') is False:
     import fcntl
 import shutil
+import platform
 import numpy as np
 import grpc
-from .proto import multi_lang_general_model_service_pb2
 import sys
-sys.path.append(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import multi_lang_general_model_service_pb2_grpc
+
 from multiprocessing import Pool, Process
 from concurrent import futures
-
-
-def serve_args():
-    parser = argparse.ArgumentParser("serve")
-    parser.add_argument(
-        "--thread", type=int, default=2, help="Concurrency of server")
-    parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
-    parser.add_argument(
-        "--port", type=int, default=9292, help="Port of the starting gpu")
-    parser.add_argument(
-        "--workdir",
-        type=str,
-        default="workdir",
-        help="Working dir of current service")
-    parser.add_argument(
-        "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
-    parser.add_argument(
-        "--name", type=str, default="None", help="Default service name")
-    parser.add_argument(
-        "--mem_optim_off",
-        default=False,
-        action="store_true",
-        help="Memory optimize")
-    parser.add_argument(
-        "--ir_optim", default=False, action="store_true", help="Graph optimize")
-    parser.add_argument(
-        "--max_body_size",
-        type=int,
-        default=512 * 1024 * 1024,
-        help="Limit sizes of messages")
-    parser.add_argument(
-        "--use_encryption_model",
-        default=False,
-        action="store_true",
-        help="Use encryption model")
-    parser.add_argument(
-        "--use_multilang",
-        default=False,
-        action="store_true",
-        help="Use Multi-language-service")
-    parser.add_argument(
-        "--use_trt", default=False, action="store_true", help="Use TensorRT")
-    parser.add_argument(
-        "--use_lite", default=False, action="store_true", help="Use PaddleLite")
-    parser.add_argument(
-        "--use_xpu", default=False, action="store_true", help="Use XPU")
-    parser.add_argument(
-        "--product_name",
-        type=str,
-        default=None,
-        help="product_name for authentication")
-    parser.add_argument(
-        "--container_id",
-        type=str,
-        default=None,
-        help="container_id for authentication")
-    return parser.parse_args()
-
-
-class OpMaker(object):
-    def __init__(self):
-        self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_response": "GeneralResponseOp",
-            "general_text_reader": "GeneralTextReaderOp",
-            "general_text_response": "GeneralTextResponseOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv_infer": "GeneralDistKVInferOp",
-            "general_dist_kv": "GeneralDistKVOp"
-        }
-        self.node_name_suffix_ = collections.defaultdict(int)
-
-    def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
-        if node_type not in self.op_dict:
-            raise Exception("Op type {} is not supported right now".format(
-                node_type))
-        node = server_sdk.DAGNode()
-        # node.name will be used as the infer engine name
-        if engine_name:
-            node.name = engine_name
-        else:
-            node.name = '{}_{}'.format(node_type,
-                                       self.node_name_suffix_[node_type])
-            self.node_name_suffix_[node_type] += 1
-
-        node.type = self.op_dict[node_type]
-        if inputs:
-            for dep_node_str in inputs:
-                dep_node = server_sdk.DAGNode()
-                google.protobuf.text_format.Parse(dep_node_str, dep_node)
-                dep = server_sdk.DAGNodeDependency()
-                dep.name = dep_node.name
-                dep.mode = "RO"
-                node.dependencies.extend([dep])
-        # Because the return value will be used as the key value of the
-        # dict, and the proto object is variable which cannot be hashed,
-        # so it is processed into a string. This has little effect on
-        # overall efficiency.
-        return google.protobuf.text_format.MessageToString(node)
-
-
-class OpSeqMaker(object):
-    def __init__(self):
-        self.workflow = server_sdk.Workflow()
-        self.workflow.name = "workflow1"
-        self.workflow.workflow_type = "Sequence"
-
-    def add_op(self, node_str):
-        node = server_sdk.DAGNode()
-        google.protobuf.text_format.Parse(node_str, node)
-        if len(node.dependencies) > 1:
-            raise Exception(
-                'Set more than one predecessor for op in OpSeqMaker is not allowed.'
-            )
-        if len(self.workflow.nodes) >= 1:
-            if len(node.dependencies) == 0:
-                dep = server_sdk.DAGNodeDependency()
-                dep.name = self.workflow.nodes[-1].name
-                dep.mode = "RO"
-                node.dependencies.extend([dep])
-            elif len(node.dependencies) == 1:
-                if node.dependencies[0].name != self.workflow.nodes[-1].name:
-                    raise Exception(
-                        'You must add op in order in OpSeqMaker. The previous op is {}, but the current op is followed by {}.'
-                        .format(node.dependencies[0].name, self.workflow.nodes[
-                            -1].name))
-        self.workflow.nodes.extend([node])
-
-    def get_op_sequence(self):
-        workflow_conf = server_sdk.WorkflowConf()
-        workflow_conf.workflows.extend([self.workflow])
-        return workflow_conf
-
-
-class OpGraphMaker(object):
-    def __init__(self):
-        self.workflow = server_sdk.Workflow()
-        self.workflow.name = "workflow1"
-        # Currently, SDK only supports "Sequence"
-        self.workflow.workflow_type = "Sequence"
-
-    def add_op(self, node_str):
-        node = server_sdk.DAGNode()
-        google.protobuf.text_format.Parse(node_str, node)
-        self.workflow.nodes.extend([node])
-
-    def get_op_graph(self):
-        workflow_conf = server_sdk.WorkflowConf()
-        workflow_conf.workflows.extend([self.workflow])
-        return workflow_conf
 
 
 class Server(object):
@@ -217,6 +61,7 @@ class Server(object):
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
         self.cur_path = os.getcwd()
         self.use_local_bin = False
+        self.mkl_flag = False
         self.device = "cpu"
         self.gpuid = 0
         self.use_trt = False
@@ -317,31 +162,20 @@ class Server(object):
             engine.runtime_thread_num = 0
             engine.batch_infer_size = 0
             engine.enable_batch_align = 0
-            engine.model_data_path = model_config_path
+            engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
-            engine.static_optimization = False
-            engine.force_update_static_cache = False
             engine.use_trt = self.use_trt
+            engine.use_lite = self.use_lite
+            engine.use_xpu = self.use_xpu
             if os.path.exists('{}/__params__'.format(model_config_path)):
-                suffix = ""
+                engine.combined_model = True
             else:
-                suffix = "_DIR"
-            if device == "arm":
-                engine.use_lite = self.use_lite
-                engine.use_xpu = self.use_xpu
-            if device == "cpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_CPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_CPU_ANALYSIS" + suffix
-            elif device == "gpu":
-                if use_encryption_model:
-                    engine.type = "FLUID_GPU_ANALYSIS_ENCRPT"
-                else:
-                    engine.type = "FLUID_GPU_ANALYSIS" + suffix
-            elif device == "arm":
-                engine.type = "FLUID_ARM_ANALYSIS" + suffix
+                engine.combined_model = False
+            if use_encryption_model:
+                engine.encrypted_model = True
+            engine.type = "PADDLE_INFER"
+
             self.model_toolkit_conf.engines.extend([engine])
 
     def _prepare_infer_service(self, port):
@@ -432,26 +266,53 @@ class Server(object):
         # check config here
         # print config here
 
+    def use_mkl(self, flag):
+        self.mkl_flag = flag
+
+    def get_device_version(self):
+        avx_flag = False
+        mkl_flag = self.mkl_flag
+        openblas_flag = False
+        r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
+        if r == 0:
+            avx_flag = True
+        if avx_flag:
+            if mkl_flag:
+                device_version = "cpu-avx-mkl"
+            else:
+                device_version = "cpu-avx-openblas"
+        else:
+            if mkl_flag:
+                print(
+                    "Your CPU does not support AVX, server will running with noavx-openblas mode."
+                )
+            device_version = "cpu-noavx-openblas"
+        return device_version
+
+    def get_serving_bin_name(self):
+        if device_type == "0":
+            device_version = self.get_device_version()
+        elif device_type == "1":
+            if version_suffix == "101" or version_suffix == "102":
+                device_version = "gpu-" + version_suffix
+            else:
+                device_version = "gpu-cuda" + version_suffix
+        elif device_type == "2":
+            device_version = "xpu-" + platform.machine()
+        return device_version
+
     def download_bin(self):
         os.chdir(self.module_path)
         need_download = False
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
-        import re
-        for line in version_file.readlines():
-            if re.match("cuda_version", line):
-                cuda_version = line.split("\"")[1]
-                if cuda_version == "101" or cuda_version == "102":
-                    device_version = "serving-gpu-" + cuda_version + "-"
-                elif cuda_version == "arm" or cuda_version == "arm-xpu":
-                    device_version = "serving-" + cuda_version + "-"
-                else:
-                    device_version = "serving-gpu-cuda" + cuda_version + "-"
 
-        folder_name = device_version + serving_server_version
-        tar_name = folder_name + ".tar.gz"
-        bin_url = "https://paddle-serving.bj.bcebos.com/bin/" + tar_name
+        folder_name = "serving-%s-%s" % (self.get_serving_bin_name(),
+                                         serving_server_version)
+        tar_name = "%s.tar.gz" % folder_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/bin/%s" % tar_name
+
         self.server_path = os.path.join(self.module_path, folder_name)
 
         download_flag = "{}/{}.is_download".format(self.module_path,
@@ -503,9 +364,9 @@ class Server(object):
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
-            os.system("mkdir {}".format(workdir))
+            os.system("mkdir -p {}".format(workdir))
         else:
-            os.system("mkdir {}".format(workdir))
+            os.system("mkdir -p {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
         if not self.port_is_available(port):
@@ -614,157 +475,6 @@ class Server(object):
         os.system(command)
 
 
-class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
-                                     MultiLangGeneralModelServiceServicer):
-    def __init__(self, model_config_path, is_multi_model, endpoints):
-        self.is_multi_model_ = is_multi_model
-        self.model_config_path_ = model_config_path
-        self.endpoints_ = endpoints
-        with open(self.model_config_path_) as f:
-            self.model_config_str_ = str(f.read())
-        self._parse_model_config(self.model_config_str_)
-        self._init_bclient(self.model_config_path_, self.endpoints_)
-
-    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
-        from paddle_serving_client import Client
-        self.bclient_ = Client()
-        if timeout_ms is not None:
-            self.bclient_.set_rpc_timeout_ms(timeout_ms)
-        self.bclient_.load_client_config(model_config_path)
-        self.bclient_.connect(endpoints)
-
-    def _parse_model_config(self, model_config_str):
-        model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(model_config_str,
-                                                       model_conf)
-        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.feed_types_ = {}
-        self.feed_shapes_ = {}
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_types_ = {}
-        self.lod_tensor_set_ = set()
-        for i, var in enumerate(model_conf.feed_var):
-            self.feed_types_[var.alias_name] = var.feed_type
-            self.feed_shapes_[var.alias_name] = var.shape
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-        for i, var in enumerate(model_conf.fetch_var):
-            self.fetch_types_[var.alias_name] = var.fetch_type
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-
-    def _flatten_list(self, nested_list):
-        for item in nested_list:
-            if isinstance(item, (list, tuple)):
-                for sub_item in self._flatten_list(item):
-                    yield sub_item
-            else:
-                yield item
-
-    def _unpack_inference_request(self, request):
-        feed_names = list(request.feed_var_names)
-        fetch_names = list(request.fetch_var_names)
-        is_python = request.is_python
-        log_id = request.log_id
-        feed_batch = []
-        for feed_inst in request.insts:
-            feed_dict = {}
-            for idx, name in enumerate(feed_names):
-                var = feed_inst.tensor_array[idx]
-                v_type = self.feed_types_[name]
-                data = None
-                if is_python:
-                    if v_type == 0:
-                        data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:
-                        data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:
-                        data = np.frombuffer(var.data, dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                else:
-                    if v_type == 0:  # int64
-                        data = np.array(list(var.int64_data), dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:
-                        data = np.array(list(var.int_data), dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                data.shape = list(feed_inst.tensor_array[idx].shape)
-                feed_dict[name] = data
-                if len(var.lod) > 0:
-                    feed_dict["{}.lod".format(name)] = var.lod
-            feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python, log_id
-
-    def _pack_inference_response(self, ret, fetch_names, is_python):
-        resp = multi_lang_general_model_service_pb2.InferenceResponse()
-        if ret is None:
-            resp.err_code = 1
-            return resp
-        results, tag = ret
-        resp.tag = tag
-        resp.err_code = 0
-
-        if not self.is_multi_model_:
-            results = {'general_infer_0': results}
-        for model_name, model_result in results.items():
-            model_output = multi_lang_general_model_service_pb2.ModelOutput()
-            inst = multi_lang_general_model_service_pb2.FetchInst()
-            for idx, name in enumerate(fetch_names):
-                tensor = multi_lang_general_model_service_pb2.Tensor()
-                v_type = self.fetch_types_[name]
-                if is_python:
-                    tensor.data = model_result[name].tobytes()
-                else:
-                    if v_type == 0:  # int64
-                        tensor.int64_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
-                    elif v_type == 1:  # float32
-                        tensor.float_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
-                    elif v_type == 2:  # int32
-                        tensor.int_data.extend(model_result[name].reshape(-1)
-                                               .tolist())
-                    else:
-                        raise Exception("error type.")
-                tensor.shape.extend(list(model_result[name].shape))
-                if "{}.lod".format(name) in model_result:
-                    tensor.lod.extend(model_result["{}.lod".format(name)]
-                                      .tolist())
-                inst.tensor_array.append(tensor)
-            model_output.insts.append(inst)
-            model_output.engine_name = model_name
-            resp.outputs.append(model_output)
-        return resp
-
-    def SetTimeout(self, request, context):
-        # This porcess and Inference process cannot be operate at the same time.
-        # For performance reasons, do not add thread lock temporarily.
-        timeout_ms = request.timeout_ms
-        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
-        resp = multi_lang_general_model_service_pb2.SimpleResponse()
-        resp.err_code = 0
-        return resp
-
-    def Inference(self, request, context):
-        feed_batch, fetch_names, is_python, log_id \
-                = self._unpack_inference_request(request)
-        ret = self.bclient_.predict(
-            feed=feed_batch,
-            fetch=fetch_names,
-            batch=True,
-            need_variant_tag=True,
-            log_id=log_id)
-        return self._pack_inference_response(ret, fetch_names, is_python)
-
-    def GetClientConfig(self, request, context):
-        resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
-        resp.client_config_str = self.model_config_str_
-        return resp
-
-
 class MultiLangServer(object):
     def __init__(self):
         self.bserver_ = Server()
@@ -807,6 +517,9 @@ class MultiLangServer(object):
 
     def set_op_graph(self, op_graph):
         self.bserver_.set_op_graph(op_graph)
+
+    def use_mkl(self, flag):
+        self.bserver_.use_mkl(flag)
 
     def set_memory_optimize(self, flag=False):
         self.bserver_.set_memory_optimize(flag)

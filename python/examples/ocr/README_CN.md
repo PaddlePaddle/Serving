@@ -25,7 +25,7 @@ tar xf test_imgs.tar
 python -m paddle_serving_server.serve --model ocr_det_model --port 9293
 python ocr_web_server.py cpu
 #for gpu user
-python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
+python -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_id 0
 python ocr_web_server.py gpu
 ```
 

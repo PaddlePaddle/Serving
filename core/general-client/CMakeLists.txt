@@ -1,6 +1,5 @@
 if(CLIENT)
 add_subdirectory(pybind11)
 pybind11_add_module(serving_client src/general_model.cpp src/pybind_general_model.cpp)
-add_dependencies(serving_client sdk_cpp)
 target_link_libraries(serving_client PRIVATE -Wl,--whole-archive utils sdk-cpp pybind python -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -Wl,-rpath,'$ORIGIN'/lib)
 endif()

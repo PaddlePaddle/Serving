@@ -15,7 +15,7 @@ sh get_data.sh
 ### Start server
 
 ```shell
-python -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
 ```
 
 ### Client prediction

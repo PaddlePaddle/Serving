@@ -24,7 +24,7 @@ python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_
 ```
 GPU预测服务
 ```
-python -m paddle_serving_server_gpu.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
 ```
 
 ## 预测

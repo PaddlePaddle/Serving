@@ -53,7 +53,7 @@ We consider deploying deep learning inference service online to be a user-facing
 
 <h2 align="center">AIStudio Turorial</h2>
 
-Here we provide tutorial on AIStudio(Chinese Version) [AIStudio教程-Paddle Serving服务化部署框架](https://aistudio.baidu.com/aistudio/projectdetail/1550674)
+Here we provide tutorial on AIStudio(Chinese Version) [AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
 The tutorial provides 
 <ul>
@@ -85,14 +85,14 @@ We **highly recommend** you to **run Paddle Serving in Docker**, please visit [R
 ```
 # Run CPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # Run GPU Docker
 nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```

@@ -22,7 +22,7 @@ import logging
 try:
     from paddle_serving_server.web_service import WebService
 except ImportError:
-    from paddle_serving_server_gpu.web_service import WebService
+    from paddle_serving_server.web_service import WebService
 
 _LOGGER = logging.getLogger()
 user_handler = logging.StreamHandler()

@@ -20,7 +20,7 @@ mv models/ctr_serving_model .
 
 ```
 python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
-python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
+python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
 ```
 
 ### 执行预测

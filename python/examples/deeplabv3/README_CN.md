@@ -12,7 +12,7 @@ tar -xzvf deeplabv3.tar.gz
 ### 启动服务端
 
 ```
-python -m paddle_serving_server_gpu.serve --model deeplabv3_server --gpu_ids 0 --port 9494
+python -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 9494
 ```
 
 ### 客户端预测

@@ -2,7 +2,7 @@ rm profile_log*
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 export FLAGS_profile_server=1
 export FLAGS_profile_client=1
-python -m paddle_serving_server_gpu.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim --ir_optim  2> elog > stdlog &
+python -m paddle_serving_server.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim --ir_optim  2> elog > stdlog &
 
 sleep 5
 gpu_id=0
