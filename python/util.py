@@ -46,6 +46,7 @@ def gen_pipeline_code(package_name):
         "../../../../../third_party/install/protobuf/bin/protoc -I. "
         "-I$GOPATH/pkg/mod "
         "-I$GOPATH/pkg/mod/github.com/grpc-ecosystem/grpc-gateway\@v1.15.2/third_party/googleapis "
+        "-I./include "
         "--go_out=plugins=grpc:. "
         "gateway.proto".format(package_name))
     if ret != 0:
