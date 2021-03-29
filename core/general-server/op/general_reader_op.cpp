@@ -91,7 +91,7 @@ int GeneralReaderOp::inference() {
   capacity.resize(var_num);
   for (int i = 0; i < var_num; ++i) {
     std::string tensor_name = model_config->_feed_name[i];
-    VLOG(2) <<  "(logid=" << log_id << ") get tensor name: " << tensor_name;
+    VLOG(2) << "(logid=" << log_id << ") get tensor name: " << tensor_name;
     auto lod_tensor = InferManager::instance().GetInputHandle(
         engine_name.c_str(), tensor_name.c_str());
     std::vector<std::vector<size_t>> lod;

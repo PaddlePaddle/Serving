@@ -23,7 +23,7 @@ from paddle_serving_app.reader import Sequential, URL2Image, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 if sys.argv[1] == 'gpu':
-    from paddle_serving_server_gpu.web_service import WebService
+    from paddle_serving_server.web_service import WebService
 elif sys.argv[1] == 'cpu':
     from paddle_serving_server.web_service import WebService
 import time
@@ -43,25 +43,21 @@ class OCRService(WebService):
             data = np.fromstring(data, np.uint8)
             im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             img_list.append(im)
-        feed_list = []
         max_wh_ratio = 0
         for i, boximg in enumerate(img_list):
             h, w = boximg.shape[0:2]
             wh_ratio = w * 1.0 / h
             max_wh_ratio = max(max_wh_ratio, wh_ratio)
-        for img in img_list:
+        _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
+                                                  max_wh_ratio).shape
+        imgs = np.zeros((len(img_list), 3, w, h)).astype('float32')
+        for i, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-            #feed = {"image": norm_img}
-            feed_list.append(norm_img)
-        if len(feed_list) == 1:
-            feed_batch = {
-                "image": np.concatenate(
-                    feed_list, axis=0)[np.newaxis, :]
-            }
-        else:
-            feed_batch = {"image": np.concatenate(feed_list, axis=0)}
+            imgs[i] = norm_img
+
+        feed = {"image": imgs.copy()}
         fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-        return feed_batch, fetch, True
+        return feed, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
         rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)

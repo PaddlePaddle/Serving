@@ -23,6 +23,8 @@ import base64
 
 _LOGGER = logging.getLogger()
 np.set_printoptions(threshold=sys.maxsize)
+
+
 class UciOp(Op):
     def init_op(self):
         self.separator = ","
@@ -38,8 +40,8 @@ class UciOp(Op):
             log_id, input_dict))
         proc_dict = {}
         x_value = input_dict["x"]
-        input_dict["x"] = x_value.reshape(1,13)
-        
+        input_dict["x"] = x_value.reshape(1, 13)
+
         return input_dict, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):

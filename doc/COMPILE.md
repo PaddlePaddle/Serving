@@ -6,12 +6,11 @@
 
 |            module            |              version              |
 | :--------------------------: | :-------------------------------: |
-|              OS              |             CentOS 7              |
-|             gcc              |          4.8.5 and later          |
-|           gcc-c++            |          4.8.5 and later          |
-|             git              |          3.82 and later           |
+|              OS              |     Ubuntu16 and 18/CentOS 7      |
+|             gcc              | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
+|           gcc-c++            | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
 |            cmake             |          3.2.0 and later          |
-|            Python            |  2.7.2 and later / 3.6 and later  |
+|            Python            |  2.7.2 and later / 3.5.1 and later |
 |              Go              |          1.9.2 and later          |
 |             git              |         2.17.1 and later          |
 |         glibc-static         |               2.17                |
@@ -19,18 +18,12 @@
 |         bzip2-devel          |          1.0.6 and later          |
 | python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
 |         sqlite-devel         |         3.7.17 and later          |
-|           patchelf           |           0.9 and later           |
+|           patchelf           |                0.9                |
 |           libXext            |               1.3.3               |
 |            libSM             |               1.2.2               |
 |          libXrender          |              0.9.10               |
 
 It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you, see [this document](DOCKER_IMAGES.md).
-
-This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python3, just adjust the Python options of cmake:
-
-- Set `DPYTHON_INCLUDE_DIR` to `$PYTHONROOT/include/python3.6m/`
-- Set  `DPYTHON_LIBRARIES` to `$PYTHONROOT/lib64/libpython3.6.so`
-- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3.6`
 
 ## Get Code
 
@@ -39,34 +32,59 @@ git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
-
-
-
-## PYTHONROOT Setting
+## PYTHONROOT settings
 
 ```shell
-# for example, the path of python is /usr/bin/python, you can set /usr as PYTHONROOT
-export PYTHONROOT=/usr/
+# For example, the path of python is /usr/bin/python, you can set PYTHONROOT
+export PYTHONROOT=/usr
 ```
 
-In the default centos7 image we provide, the Python path is `/usr/bin/python`. If you want to use our centos6 image, you need to set it to `export PYTHONROOT=/usr/local/python2.7/`.
+If you are using a Docker development image, please follow the following to determine the Python version to be compiled, and set the corresponding environment variables
 
+```
+#Python 2.7
+export PYTHONROOT=/usr/local/python2.7.15/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python2.7
 
+#Python 3.5
+export PYTHONROOT=/usr/local/python3.5.1
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.5m
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.5m.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.5
+
+#Python3.6
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6m.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6
+
+#Python3.7
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.7m
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.7m.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.7
+
+#Python3.8
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.8
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.8.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
+
+```
 
 ## Install Python dependencies
 
 ```shell
-pip install -r python/requirements.txt
+pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
 ```
 
-If Python3 is used, replace `pip` with `pip3`.
+If you use other Python version, please use the right `pip` accordingly.
 
 ## GOPATH Setting
+The default GOPATH is set to `$HOME/go`, you can also set it to other values. **If it is the Docker environment provided by Serving, you do not need to set up.**
 
-
-## Compile Arguments
-
-The default GOPATH is `$HOME/go`, which you can set to other values.
 ```shell
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
@@ -100,52 +118,41 @@ make -j10
 you can execute `make install` to put targets under directory `./output`, you need to add`-DCMAKE_INSTALL_PREFIX=./output`to specify output path to cmake command shown above.
 
 ### Integrated GPU version paddle inference library
-### CUDA_PATH is the cuda install path,use the command(whereis cuda) to check,it should be /usr/local/cuda.
-### CUDNN_LIBRARY && CUDA_CUDART_LIBRARY is the lib path, it should be /usr/local/cuda/lib64/
- 
+
+Compared with CPU environment, GPU environment needs to refer to the following table,
+**It should be noted that the following table is used as a reference for non-Docker compilation environment. The Docker compilation environment has been configured with relevant parameters and does not need to be specified in cmake process. **
+
+| cmake environment variable | meaning | GPU environment considerations | whether Docker environment is needed |
+|-----------------------|-------------------------------------|-------------------------------|--------------------|
+| CUDA_TOOLKIT_ROOT_DIR | cuda installation path, usually /usr/local/cuda | Required for all environments | No (/usr/local/cuda) |
+| CUDNN_LIBRARY | The directory where libcudnn.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
+| CUDA_CUDART_LIBRARY | The directory where libcudart.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
+| TENSORRT_ROOT | The upper level directory of the directory where libnvinfer.so.* is located, depends on the TensorRT installation directory | Cuda 9.0/10.0 does not need, other needs | No (/usr) |
+
+If not in Docker environment, users can refer to the following execution methods. The specific path is subject to the current environment, and the code is only for reference.TENSORRT_LIBRARY_PATH is related to the TensorRT version and should be set according to the actual situation。For example, in the cuda10.1 environment, the TensorRT version is 6.0 (/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/)，In the cuda10.2 environment, the TensorRT version is 7.1 (/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/).
+
 ``` shell
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/"
 
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
-    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \  
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j10
 ```
 
-### Integrated TRT version paddle inference library
+Execute `make install` to put the target output in the `./output` directory.
 
-```
-export CUDA_PATH='/usr/local'
-export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
-export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
-
-mkdir server-build-trt && cd server-build-trt
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
-    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
-    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
-    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
-    -DSERVER=ON \
-    -DWITH_GPU=ON \
-    -DWITH_TRT=ON ..
-make -j10
-```
-
-execute `make install` to put targets under directory `./output`
-
-**Attention：** After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
-
-
+**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](COMPILE.md#Notes) ).
 
 ## Compile Client
 
@@ -208,7 +215,6 @@ Please use the example under `python/examples` to verify.
 |      CLIENT      |       Compile Paddle Serving Client        | OFF  |
 |      SERVER      |       Compile Paddle Serving Server        | OFF  |
 |       APP        |     Compile Paddle Serving App package     | OFF  |
-| WITH_ELASTIC_CTR |        Compile ELASITC-CTR solution        | OFF  |
 |       PACK       |              Compile for whl               | OFF  |
 
 ### WITH_GPU Option
@@ -230,11 +236,13 @@ Note here:
 
 The following is the base library version matching relationship used by the PaddlePaddle release version for reference:
 
-|          |  CUDA   |          CuDNN           | TensorRT |
-| :----:   | :-----: | :----------------------: | :----:   |
-| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
-| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
-| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
+|          |  CUDA   |   CuDNN      | TensorRT |
+| :----:   | :-----: | :----------: | :----:   |
+| post9    |  9.0    | CuDNN 7.6.4  |          |
+| post10   |  10.0   | CuDNN 7.6.5  |          |
+| post101  |  10.1   | CuDNN 7.6.5  | 6.0.1    |
+| post102  |  10.2   | CuDNN 8.0.5  | 7.1.3    |
+| post11   |  11.0   | CuDNN 8.0.4  | 7.1.3    |
 
 ### How to make the compiler detect the CuDNN library
 

@@ -25,6 +25,7 @@ endif()
 
 if (APP)
 add_subdirectory(configure)
+add_subdirectory(preprocess)
 endif()
 
 

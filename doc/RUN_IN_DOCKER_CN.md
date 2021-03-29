@@ -16,14 +16,16 @@ Docker（GPU版本需要在GPU机器上安装nvidia-docker）
 
 参考[该文档](DOCKER_IMAGES_CN.md)获取镜像：
 
+以CPU编译镜像为例
+
 ```shell
-docker pull hub.baidubce.com/paddlepaddle/serving:latest
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 ```
 
 ### 创建容器并进入
 
 ```bash
-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it test bash
 ```
 
@@ -37,15 +39,19 @@ docker exec -it test bash
 
 ## GPU 版本
 
+```shell
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+```
+
 ### 创建容器并进入
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 nvidia-docker exec -it test bash
 ```
 或者
 ```bash
-docker run --gpus all -p 9292:9292 --name test -dit hub.baidubce.com/paddlepaddle/serving:latest-cuda9.0-cudnn7
+docker run --gpus all -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
 docker exec -it test bash
 ```
 
@@ -55,8 +61,9 @@ docker exec -it test bash
 
 镜像里自带对应镜像tag版本的`paddle_serving_server_gpu`，`paddle_serving_client`，`paddle_serving_app`，如果用户不需要更改版本，可以直接使用，适用于没有外网服务的环境。
 
-如果需要更换版本，请参照首页的指导，下载对应版本的pip包。
+如果需要更换版本，请参照首页的指导，下载对应版本的pip包。[最新安装包合集](LATEST_PACKAGES.md)
 
 ## 注意事项
 
-运行时镜像不能用于开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。
+- 运行时镜像不能用于开发编译。如果想要从源码编译，请查看[如何编译PaddleServing](COMPILE.md)。
+- 由于Cuda10和Cuda9的环境受限于GCC版本，无法同时运行CPU版本的`paddle_serving_server`，因此如果想要在GPU环境中同时使用CPU版本的`paddle_serving_server`，请选择Cuda10.1，Cuda10.2和Cuda11版本的镜像。

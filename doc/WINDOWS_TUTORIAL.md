@@ -117,9 +117,9 @@ Please refer to [Docker Desktop](https://www.docker.com/products/docker-desktop)
 After installation, start the docker linux engine and download the relevant image. In the Serving directory
 
 ```
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 # There is no expose port here, users can set -p to perform port mapping as needed
-docker run --rm -dit --name serving_devel -v $PWD:/Serving hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker run --rm -dit --name serving_devel -v $PWD:/Serving registry.baidubce.com/paddlepaddle/serving:latest-devel
 docker exec -it serving_devel bash
 cd /Serving
 ```
