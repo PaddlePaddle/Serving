@@ -266,8 +266,12 @@ class WebService(object):
     def _launch_local_predictor(self, gpu):
         from paddle_serving_app.local_predict import LocalPredictor
         self.client = LocalPredictor()
-        self.client.load_model_config(
-            "{}".format(self.model_config), use_gpu=True, gpu_id=self.gpus[0])
+        if gpu:
+            self.client.load_model_config(
+                "{}".format(self.model_config), use_gpu=True, gpu_id=self.gpus[0])
+        else:
+            self.client.load_model_config(
+                "{}".format(self.model_config), use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")
