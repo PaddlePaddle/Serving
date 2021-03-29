@@ -18,5 +18,5 @@ python -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --port
 ### Client Prediction
 
 ```
-python resnet50_v2_client.py
+python resnet50_client.py
 ```
