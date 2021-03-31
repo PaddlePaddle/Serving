@@ -25,8 +25,16 @@ message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER}, version: "
         "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "C compiler: ${CMAKE_C_COMPILER}, version: "
         "${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
-
-
+SET(OPENCV_DIR "" CACHE PATH "Location of libraries")
+if(NOT DEFINED OPENCV_DIR)
+    message(FATAL_ERROR "please set OPENCV_DIR with -DOPENCV_DIR=/path/opencv")
+endif()
+if (WIN32)
+  find_package(OpenCV REQUIRED PATHS ${OPENCV_DIR}/build/ NO_DEFAULT_PATH)
+else ()
+  find_package(OpenCV REQUIRED PATHS ${OPENCV_DIR}/share/OpenCV NO_DEFAULT_PATH)
+endif ()
+include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
 find_package(CUDA QUIET)

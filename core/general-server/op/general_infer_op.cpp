@@ -37,6 +37,7 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
   VLOG(2) << "Going to run inference";
+  std::cout<<"I am GeneralInferOp"<<std::endl;
   const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() != 1) {
     LOG(ERROR) << "This op(" << op_name()

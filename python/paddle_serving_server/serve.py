@@ -37,7 +37,7 @@ def parse_args():  # pylint: disable=doc-string-missing
     parser.add_argument(
         "--thread", type=int, default=10, help="Concurrency of server")
     parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
+        "--model", type=str, default="", nargs="+", help="Model for serving")
     parser.add_argument(
         "--port", type=int, default=9292, help="Port the server")
     parser.add_argument(
@@ -106,14 +106,23 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
 
     import paddle_serving_server as serving
     op_maker = serving.OpMaker()
-    read_op = op_maker.create('general_reader')
-    general_infer_op = op_maker.create('general_infer')
-    general_response_op = op_maker.create('general_response')
-
     op_seq_maker = serving.OpSeqMaker()
+
+    read_op = op_maker.create('general_reader')
     op_seq_maker.add_op(read_op)
-    op_seq_maker.add_op(general_infer_op)
+
+    for idx, single_model in enumerate(model):
+        infer_op_name = "general_infer"
+        if len(model) == 2 and idx == 0:
+            infer_op_name = "general_YSL"
+        else:
+            infer_op_name = "general_infer"
+        general_infer_op = op_maker.create(infer_op_name)
+        op_seq_maker.add_op(general_infer_op)
+    
+    general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
+
 
     server = None
     if use_multilang:
@@ -167,7 +176,7 @@ class MainService(BaseHTTPRequestHandler):
             return (key == cur_key)
 
     def start(self, post_data):
-        post_data = json.loads(post_data)
+        post_data = json.loads(post_data.decode('utf-8'))
         global p_flag
         if not p_flag:
             if args.use_encryption_model:

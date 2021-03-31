@@ -608,6 +608,10 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     for(int i =0; i< tensorVector_in_pointer->size();++i){
       auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
       lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
+      std::cout<< "i am thomas young and i want to know the in info name : "<<(*tensorVector_in_pointer)[i].name
+                <<",shapesize:" <<(*tensorVector_in_pointer)[i].shape.size()<<"shape :";;
+      for (auto l = 0; l != (*tensorVector_in_pointer)[i].shape.size(); ++l) std::cout << (*tensorVector_in_pointer)[i].shape[l] << " ,";
+      std::cout<< std::endl;
       lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
       void* origin_data = (*tensorVector_in_pointer)[i].data.data();
       //Because the core needs to determine the size of memory space according to the data type passed in.
@@ -648,6 +652,10 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
     for (int i = 0; i < outnames.size(); ++i){
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       output_shape = lod_tensor_out->shape();
+      std::cout<< "i am thomas young and i want to know the out info name : "<<outnames[i]
+                <<",shapesize:" <<output_shape.size()<<"shape :";
+      for (auto l = 0; l != output_shape.size(); ++l) std::cout << output_shape[l] << " ,";
+      std::cout<< std::endl;
       out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
       dataType = lod_tensor_out->type();
       if (dataType == paddle::PaddleDType::FLOAT32) {
@@ -659,6 +667,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<FluidFamilyCore> {
         }
         float* data_out = reinterpret_cast<float*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
+        std::cout<< "the out num: "<<out_num<<" value = "<< data_out[0] <<"  ,"<<std::endl;
         databuf_char = reinterpret_cast<char*>(data_out);
       }else if (dataType == paddle::PaddleDType::INT64) {
         databuf_size = out_num*sizeof(int64_t);

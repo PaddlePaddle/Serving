@@ -78,7 +78,7 @@ PYBIND11_MODULE(serving_client, m) {
              self.init_gflags(argv);
            })
       .def("init",
-           [](PredictorClient &self, const std::string &conf) {
+           [](PredictorClient &self, const std::vector<std::string> &conf) {
              return self.init(conf);
            })
       .def("set_predictor_conf",
@@ -107,6 +107,10 @@ PYBIND11_MODULE(serving_client, m) {
               const std::vector<std::string> &int_feed_name,
               const std::vector<std::vector<int>> &int_shape,
               const std::vector<std::vector<int>> &int_lod_slot_batch,
+              const std::vector<std::vector<std::string>>& string_feed_batch,
+              const std::vector<std::string>& string_feed_name,
+              const std::vector<std::vector<int>>& string_shape,
+              const std::vector<std::vector<int>>& string_lod_slot_batch,
               const std::vector<std::string> &fetch_name,
               PredictorRes &predict_res_batch,
               const int &pid,
@@ -119,6 +123,10 @@ PYBIND11_MODULE(serving_client, m) {
                                        int_feed_name,
                                        int_shape,
                                        int_lod_slot_batch,
+                                       string_feed_batch,
+                                       string_feed_name,
+                                       string_shape,
+                                       string_lod_slot_batch,
                                        fetch_name,
                                        predict_res_batch,
                                        pid,

@@ -34,8 +34,10 @@ from .proto import multi_lang_general_model_service_pb2_grpc
 int64_type = 0
 float32_type = 1
 int32_type = 2
+bytes_type = 3
 int_type = set([int64_type, int32_type])
 float_type = set([float32_type])
+string_type= set([bytes_type])
 
 
 class _NOPProfiler(object):
@@ -140,9 +142,14 @@ class Client(object):
         self.predictorres_constructor = PredictorRes
 
     def load_client_config(self, path):
+        if isinstance(path, str):
+            path_list = [path]
+        elif isinstance(path, list):
+            path_list = path
+
         from .serving_client import PredictorClient
         model_conf = m_config.GeneralModelConfig()
-        f = open(path, 'r')
+        f = open(path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
 
@@ -151,21 +158,18 @@ class Client(object):
         # get feed shapes, feed types
         # map feed names to index
         self.client_handle_ = PredictorClient()
-        self.client_handle_.init(path)
+        self.client_handle_.init(path_list)
         if "FLAGS_max_body_size" not in os.environ:
             os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
         read_env_flags = ["profile_client", "profile_server", "max_body_size"]
         self.client_handle_.init_gflags([sys.argv[
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
+        
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.feed_names_to_idx_ = {}
-        self.fetch_names_to_type_ = {}
-        self.fetch_names_to_idx_ = {}
         self.lod_tensor_set = set()
         self.feed_tensor_len = {}
         self.key = None
-
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
             self.feed_types_[var.alias_name] = var.feed_type
@@ -178,12 +182,22 @@ class Client(object):
                 for dim in self.feed_shapes_[var.alias_name]:
                     counter *= dim
                 self.feed_tensor_len[var.alias_name] = counter
+        
+        if len(path_list) > 1:
+            model_conf = m_config.GeneralModelConfig()
+            f = open(path_list[-1], 'r')
+            model_conf = google.protobuf.text_format.Merge(
+                str(f.read()), model_conf)
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.fetch_names_to_type_ = {}
+        self.fetch_names_to_idx_ = {}
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_names_to_idx_[var.alias_name] = i
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
             if var.is_lod_tensor:
                 self.lod_tensor_set.add(var.alias_name)
         return
+
 
     def add_variant(self, tag, cluster, variant_weight):
         if self.predictor_sdk_ is None:
@@ -288,13 +302,17 @@ class Client(object):
             raise ValueError("Feed only accepts dict and list of dict")
 
         int_slot_batch = []
-        float_slot_batch = []
         int_feed_names = []
-        float_feed_names = []
         int_shape = []
         int_lod_slot_batch = []
+        float_slot_batch = []
+        float_feed_names = []
         float_lod_slot_batch = []
         float_shape = []
+        string_slot_batch = []
+        string_feed_names = []
+        string_lod_slot_batch = []
+        string_shape = []
 
         fetch_names = []
         counter = 0
@@ -311,9 +329,11 @@ class Client(object):
 
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
-            float_slot = []
             int_lod_slot = []
+            float_slot = []
             float_lod_slot = []
+            string_slot = []
+            string_lod_slot = []
             for key in feed_i:
                 if ".lod" not in key and key not in self.feed_names_:
                     raise ValueError("Wrong feed name: {}.".format(key))
@@ -368,10 +388,25 @@ class Client(object):
                     else:
                         float_slot.append(feed_i[key])
                         self.all_numpy_input = False
+                #if input is string, feed is not numpy.
+                elif self.feed_types_[key] in string_type:
+                    if i == 0:
+                        string_feed_names.append(key)
+                        string_shape.append(self.feed_shapes_[key])
+                        if "{}.lod".format(key) in feed_i:
+                            string_lod_slot_batch.append(feed_i["{}.lod".format(
+                                key)])
+                        else:
+                            string_lod_slot_batch.append([])
+                    string_slot.append(feed_i[key])
+                    self.has_numpy_input = True
+
             int_slot_batch.append(int_slot)
-            float_slot_batch.append(float_slot)
             int_lod_slot_batch.append(int_lod_slot)
+            float_slot_batch.append(float_slot)
             float_lod_slot_batch.append(float_lod_slot)
+            string_slot_batch.append(string_slot)
+            string_lod_slot_batch.append(string_lod_slot)
 
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
@@ -381,7 +416,8 @@ class Client(object):
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape,
                 float_lod_slot_batch, int_slot_batch, int_feed_names, int_shape,
-                int_lod_slot_batch, fetch_names, result_batch_handle, self.pid,
+                int_lod_slot_batch, string_slot_batch, string_feed_names, string_shape,
+                string_lod_slot_batch, fetch_names, result_batch_handle, self.pid,
                 log_id)
         elif self.has_numpy_input == False:
             raise ValueError(

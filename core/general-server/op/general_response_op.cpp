@@ -63,8 +63,9 @@ int GeneralResponseOp::inference() {
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
+  //get the last InferOP's model_config as ResponseOp's model_config by default.
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config().back();
 
   VLOG(2) << "(logid=" << log_id
           << ") max body size : " << brpc::fLU64::FLAGS_max_body_size;

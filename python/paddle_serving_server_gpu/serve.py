@@ -170,7 +170,7 @@ class MainService(BaseHTTPRequestHandler):
             return (key == cur_key)
 
     def start(self, post_data):
-        post_data = json.loads(post_data)
+        post_data = json.loads(post_data.decode('utf-8'))
         global p_flag
         if not p_flag:
             if args.use_encryption_model:

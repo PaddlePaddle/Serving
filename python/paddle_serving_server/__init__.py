@@ -48,7 +48,8 @@ class OpMaker(object):
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv_infer": "GeneralDistKVInferOp",
             "general_dist_kv_quant_infer": "GeneralDistKVQuantInferOp",
-            "general_copy": "GeneralCopyOp"
+            "general_copy": "GeneralCopyOp",
+            "general_YSL":"GeneralYSLOp",
         }
         self.node_name_suffix_ = collections.defaultdict(int)
 
@@ -136,16 +137,17 @@ class Server(object):
     def __init__(self):
         self.server_handle_ = None
         self.infer_service_conf = None
-        self.model_toolkit_conf = None
+        self.model_toolkit_conf = []#The quantity is equal to the InferOp quantity,Engine--OP
         self.resource_conf = None
         self.memory_optimization = False
         self.ir_optimization = False
-        self.model_conf = None
-        self.workflow_fn = "workflow.prototxt"
-        self.resource_fn = "resource.prototxt"
-        self.infer_service_fn = "infer_service.prototxt"
-        self.model_toolkit_fn = "model_toolkit.prototxt"
-        self.general_model_config_fn = "general_model.prototxt"
+        self.model_conf = collections.OrderedDict()# save the serving_server_conf.prototxt content (feed and fetch information) this is a map for multi-model in a workflow
+        self.workflow_fn = "workflow.prototxt"#only one for one Service,Workflow--Op 
+        self.resource_fn = "resource.prototxt"#only one for one Service,model_toolkit_fn and  general_model_config_fn is recorded in this file
+        self.infer_service_fn = "infer_service.prototxt"#only one for one Service,Service--Workflow
+        self.model_toolkit_fn = []#["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.general_model_config_fn = []#["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
+        self.subdirectory = []#The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
@@ -160,10 +162,10 @@ class Server(object):
         self.encryption_model = False
         self.product_name = None
         self.container_id = None
-        self.model_config_paths = None  # for multi-model in a workflow
+        self.model_config_paths = collections.OrderedDict()  # save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
 
-    def get_fetch_list(self):
-        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+    def get_fetch_list(self,infer_node_idx = -1 ):
+        fetch_names = [var.alias_name for var in list(self.model_conf.values())[infer_node_idx].fetch_var]
         return fetch_names
 
     def set_max_concurrency(self, concurrency):
@@ -218,8 +220,7 @@ class Server(object):
 
     def _prepare_engine(self, model_config_paths, device):
         if self.model_toolkit_conf == None:
-            self.model_toolkit_conf = server_sdk.ModelToolkitConf()
-
+            self.model_toolkit_conf = []
         for engine_name, model_config_path in model_config_paths.items():
             engine = server_sdk.EngineDesc()
             engine.name = engine_name
@@ -249,8 +250,8 @@ class Server(object):
                     engine.type = "FLUID_GPU_ANALYSIS_ENCRYPT"
                 else:
                     engine.type = "FLUID_GPU_ANALYSIS" + suffix
-
-            self.model_toolkit_conf.engines.extend([engine])
+            self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
+            self.model_toolkit_conf[-1].engines.extend([engine])
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -264,83 +265,83 @@ class Server(object):
     def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
-            with open("{}/{}".format(workdir, self.general_model_config_fn),
-                      "w") as fout:
-                fout.write(str(self.model_conf))
-            self.resource_conf = server_sdk.ResourceConf()
-            for workflow in self.workflow_conf.workflows:
-                for node in workflow.nodes:
-                    if "dist_kv" in node.name:
-                        self.resource_conf.cube_config_path = workdir
-                        self.resource_conf.cube_config_file = self.cube_config_fn
-                        if cube_conf == None:
-                            raise ValueError(
-                                "Please set the path of cube.conf while use dist_kv op."
-                            )
-                        shutil.copy(cube_conf, workdir)
-                        if "quant" in node.name:
-                            self.resource_conf.cube_quant_bits = 8
-            self.resource_conf.model_toolkit_path = workdir
-            self.resource_conf.model_toolkit_file = self.model_toolkit_fn
-            self.resource_conf.general_model_path = workdir
-            self.resource_conf.general_model_file = self.general_model_config_fn
-            if self.product_name != None:
-                self.resource_conf.auth_product_name = self.product_name
-            if self.container_id != None:
-                self.resource_conf.auth_container_id = self.container_id
+            for idx, op_general_model_config_fn in enumerate(self.general_model_config_fn):
+                with open("{}/{}".format(workdir, op_general_model_config_fn),
+                        "w") as fout:
+                    fout.write(str(list(self.model_conf.values())[idx]))
+                self.resource_conf = server_sdk.ResourceConf()
+                for workflow in self.workflow_conf.workflows:
+                    for node in workflow.nodes:
+                        if "dist_kv" in node.name:
+                            self.resource_conf.cube_config_path = workdir
+                            self.resource_conf.cube_config_file = self.cube_config_fn
+                            if cube_conf == None:
+                                raise ValueError(
+                                    "Please set the path of cube.conf while use dist_kv op."
+                                )
+                            shutil.copy(cube_conf, workdir)
+                            if "quant" in node.name:
+                                self.resource_conf.cube_quant_bits = 8
+                self.resource_conf.model_toolkit_path.extend([workdir])
+                self.resource_conf.model_toolkit_file.extend([self.model_toolkit_fn[idx]])
+                self.resource_conf.general_model_path.extend([workdir])
+                self.resource_conf.general_model_file.extend([op_general_model_config_fn])
+                #TODO:figure out the meaning of product_name and container_id.
+                if self.product_name != None:
+                    self.resource_conf.auth_product_name = self.product_name
+                if self.container_id != None:
+                    self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
             fout.write(str(pb_obj))
 
-    def load_model_config(self, model_config_paths):
+    def load_model_config(self, model_config_paths_args):
         # At present, Serving needs to configure the model path in
         # the resource.prototxt file to determine the input and output
         # format of the workflow. To ensure that the input and output
         # of multiple models are the same.
-        workflow_oi_config_path = None
-        if isinstance(model_config_paths, str):
+        if isinstance(model_config_paths_args, list):
             # If there is only one model path, use the default infer_op.
             # Because there are several infer_op type, we need to find
             # it from workflow_conf.
-            default_engine_names = [
-                'general_infer_0', 'general_dist_kv_infer_0',
-                'general_dist_kv_quant_infer_0'
+            default_engine_types = [
+                'GeneralInferOp', 'GeneralDistKVInferOp',
+                'GeneralDistKVQuantInferOp','GeneralYSLOp',
             ]
-            engine_name = None
+            model_config_paths_list_idx = 0
             for node in self.workflow_conf.workflows[0].nodes:
-                if node.name in default_engine_names:
-                    engine_name = node.name
-                    break
-            if engine_name is None:
-                raise Exception(
-                    "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
-                )
-            self.model_config_paths = {engine_name: model_config_paths}
-            workflow_oi_config_path = self.model_config_paths[engine_name]
-        elif isinstance(model_config_paths, dict):
-            self.model_config_paths = {}
-            for node_str, path in model_config_paths.items():
+                if node.type in default_engine_types:
+                    if node.name is None:
+                        raise Exception(
+                            "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
+                        )
+                    
+                    f = open("{}/serving_server_conf.prototxt".format(
+                        model_config_paths_args[model_config_paths_list_idx]), 'r')
+                    self.model_conf[node.name] = google.protobuf.text_format.Merge(str(f.read()), m_config.GeneralModelConfig())
+                    self.model_config_paths[node.name] = model_config_paths_args[model_config_paths_list_idx]
+                    self.general_model_config_fn.append(node.name+"/general_model.prototxt")
+                    self.model_toolkit_fn.append(node.name+"/model_toolkit.prototxt")
+                    self.subdirectory.append(node.name)
+                    model_config_paths_list_idx += 1
+                    if model_config_paths_list_idx == len(model_config_paths_args):
+                        break
+        elif isinstance(model_config_paths_args, dict):
+            self.model_config_paths = collections.OrderedDict()
+            for node_str, path in model_config_paths_args.items():
                 node = server_sdk.DAGNode()
                 google.protobuf.text_format.Parse(node_str, node)
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = list(self.model_config_paths.items())[0][
-                1]
+            f = open("{}/serving_server_conf.prototxt".format(path), 'r')
+            self.model_conf[node.name] = google.protobuf.text_format.Merge(
+            str(f.read()), m_config.GeneralModelConfig())
         else:
             raise Exception("The type of model_config_paths must be str or "
                             "dict({op: model_path}), not {}.".format(
-                                type(model_config_paths)))
-
-        self.model_conf = m_config.GeneralModelConfig()
-        f = open(
-            "{}/serving_server_conf.prototxt".format(workflow_oi_config_path),
-            'r')
-        self.model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), self.model_conf)
-        # check config here
-        # print config here
+                                type(model_config_paths_args)))
 
     def use_mkl(self, flag):
         self.mkl_flag = flag
@@ -416,7 +417,9 @@ class Server(object):
             os.system("mkdir {}".format(workdir))
         else:
             os.system("mkdir {}".format(workdir))
-        os.system("touch {}/fluid_time_file".format(workdir))
+        for subdir in self.subdirectory:
+            os.system("mkdir {}/{}".format(workdir, subdir))
+            os.system("touch {}/{}/fluid_time_file".format(workdir, subdir))
 
         if not self.port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
@@ -427,14 +430,18 @@ class Server(object):
         self.workdir = workdir
 
         infer_service_fn = "{}/{}".format(workdir, self.infer_service_fn)
-        workflow_fn = "{}/{}".format(workdir, self.workflow_fn)
-        resource_fn = "{}/{}".format(workdir, self.resource_fn)
-        model_toolkit_fn = "{}/{}".format(workdir, self.model_toolkit_fn)
-
         self._write_pb_str(infer_service_fn, self.infer_service_conf)
+
+        workflow_fn = "{}/{}".format(workdir, self.workflow_fn)
         self._write_pb_str(workflow_fn, self.workflow_conf)
+
+        resource_fn = "{}/{}".format(workdir, self.resource_fn)
         self._write_pb_str(resource_fn, self.resource_conf)
-        self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
+
+        for idx,single_model_toolkit_fn in enumerate(self.model_toolkit_fn):
+            model_toolkit_fn = "{}/{}".format(workdir, single_model_toolkit_fn)
+            self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf[idx])
+        
 
     def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -483,267 +490,3 @@ class Server(object):
         print("Going to Run Command")
         print(command)
         os.system(command)
-
-
-class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
-                                     MultiLangGeneralModelServiceServicer):
-    def __init__(self, model_config_path, is_multi_model, endpoints):
-        self.is_multi_model_ = is_multi_model
-        self.model_config_path_ = model_config_path
-        self.endpoints_ = endpoints
-        with open(self.model_config_path_) as f:
-            self.model_config_str_ = str(f.read())
-        self._parse_model_config(self.model_config_str_)
-        self._init_bclient(self.model_config_path_, self.endpoints_)
-
-    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
-        from paddle_serving_client import Client
-        self.bclient_ = Client()
-        if timeout_ms is not None:
-            self.bclient_.set_rpc_timeout_ms(timeout_ms)
-        self.bclient_.load_client_config(model_config_path)
-        self.bclient_.connect(endpoints)
-
-    def _parse_model_config(self, model_config_str):
-        model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(model_config_str,
-                                                       model_conf)
-        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.feed_types_ = {}
-        self.feed_shapes_ = {}
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_types_ = {}
-        self.lod_tensor_set_ = set()
-        for i, var in enumerate(model_conf.feed_var):
-            self.feed_types_[var.alias_name] = var.feed_type
-            self.feed_shapes_[var.alias_name] = var.shape
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-        for i, var in enumerate(model_conf.fetch_var):
-            self.fetch_types_[var.alias_name] = var.fetch_type
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-
-    def _flatten_list(self, nested_list):
-        for item in nested_list:
-            if isinstance(item, (list, tuple)):
-                for sub_item in self._flatten_list(item):
-                    yield sub_item
-            else:
-                yield item
-
-    def _unpack_inference_request(self, request):
-        feed_names = list(request.feed_var_names)
-        fetch_names = list(request.fetch_var_names)
-        is_python = request.is_python
-        log_id = request.log_id
-        feed_batch = []
-        for feed_inst in request.insts:
-            feed_dict = {}
-            for idx, name in enumerate(feed_names):
-                var = feed_inst.tensor_array[idx]
-                v_type = self.feed_types_[name]
-                data = None
-                if is_python:
-                    if v_type == 0:  # int64
-                        data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.frombuffer(var.data, dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                else:
-                    if v_type == 0:  # int64
-                        data = np.array(list(var.int64_data), dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.array(list(var.int_data), dtype="int32")
-                    else:
-                        raise Exception("error type.")
-                data.shape = list(feed_inst.tensor_array[idx].shape)
-                feed_dict[name] = data
-                if len(var.lod) > 0:
-                    feed_dict["{}.lod".format(name)] = var.lod
-            feed_batch.append(feed_dict)
-        return feed_batch, fetch_names, is_python, log_id
-
-    def _pack_inference_response(self, ret, fetch_names, is_python):
-        resp = multi_lang_general_model_service_pb2.InferenceResponse()
-        if ret is None:
-            resp.err_code = 1
-            return resp
-        results, tag = ret
-        resp.tag = tag
-        resp.err_code = 0
-        if not self.is_multi_model_:
-            results = {'general_infer_0': results}
-        for model_name, model_result in results.items():
-            model_output = multi_lang_general_model_service_pb2.ModelOutput()
-            inst = multi_lang_general_model_service_pb2.FetchInst()
-            for idx, name in enumerate(fetch_names):
-                tensor = multi_lang_general_model_service_pb2.Tensor()
-                v_type = self.fetch_types_[name]
-                if is_python:
-                    tensor.data = model_result[name].tobytes()
-                else:
-                    if v_type == 0:  # int64
-                        tensor.int64_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
-                    elif v_type == 1:  # float32
-                        tensor.float_data.extend(model_result[name].reshape(-1)
-                                                 .tolist())
-                    elif v_type == 2:  # int32
-                        tensor.int_data.extend(model_result[name].reshape(-1)
-                                               .tolist())
-                    else:
-                        raise Exception("error type.")
-                tensor.shape.extend(list(model_result[name].shape))
-                if "{}.lod".format(name) in model_result:
-                    tensor.lod.extend(model_result["{}.lod".format(name)]
-                                      .tolist())
-                inst.tensor_array.append(tensor)
-            model_output.insts.append(inst)
-            model_output.engine_name = model_name
-            resp.outputs.append(model_output)
-        return resp
-
-    def SetTimeout(self, request, context):
-        # This porcess and Inference process cannot be operate at the same time.
-        # For performance reasons, do not add thread lock temporarily.
-        timeout_ms = request.timeout_ms
-        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
-        resp = multi_lang_general_model_service_pb2.SimpleResponse()
-        resp.err_code = 0
-        return resp
-
-    def Inference(self, request, context):
-        feed_batch, fetch_names, is_python, log_id = \
-                self._unpack_inference_request(request)
-        ret = self.bclient_.predict(
-            feed=feed_batch,
-            fetch=fetch_names,
-            batch=True,
-            need_variant_tag=True,
-            log_id=log_id)
-        return self._pack_inference_response(ret, fetch_names, is_python)
-
-    def GetClientConfig(self, request, context):
-        resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
-        resp.client_config_str = self.model_config_str_
-        return resp
-
-
-class MultiLangServer(object):
-    def __init__(self):
-        self.bserver_ = Server()
-        self.worker_num_ = 4
-        self.body_size_ = 64 * 1024 * 1024
-        self.concurrency_ = 100000
-        self.is_multi_model_ = False  # for model ensemble
-
-    def set_max_concurrency(self, concurrency):
-        self.concurrency_ = concurrency
-        self.bserver_.set_max_concurrency(concurrency)
-
-    def set_num_threads(self, threads):
-        self.worker_num_ = threads
-        self.bserver_.set_num_threads(threads)
-
-    def set_max_body_size(self, body_size):
-        self.bserver_.set_max_body_size(body_size)
-        if body_size >= self.body_size_:
-            self.body_size_ = body_size
-        else:
-            print(
-                "max_body_size is less than default value, will use default value in service."
-            )
-
-    def use_encryption_model(self, flag=False):
-        self.encryption_model = flag
-
-    def set_port(self, port):
-        self.gport_ = port
-
-    def set_reload_interval(self, interval):
-        self.bserver_.set_reload_interval(interval)
-
-    def set_op_sequence(self, op_seq):
-        self.bserver_.set_op_sequence(op_seq)
-
-    def set_op_graph(self, op_graph):
-        self.bserver_.set_op_graph(op_graph)
-
-    def set_memory_optimize(self, flag=False):
-        self.bserver_.set_memory_optimize(flag)
-
-    def set_ir_optimize(self, flag=False):
-        self.bserver_.set_ir_optimize(flag)
-
-    def set_op_sequence(self, op_seq):
-        self.bserver_.set_op_sequence(op_seq)
-
-    def use_mkl(self, flag):
-        self.bserver_.use_mkl(flag)
-
-    def load_model_config(self, server_config_paths, client_config_path=None):
-        self.bserver_.load_model_config(server_config_paths)
-        if client_config_path is None:
-            if isinstance(server_config_paths, dict):
-                self.is_multi_model_ = True
-                client_config_path = '{}/serving_server_conf.prototxt'.format(
-                    list(server_config_paths.items())[0][1])
-            else:
-                client_config_path = '{}/serving_server_conf.prototxt'.format(
-                    server_config_paths)
-        self.bclient_config_path_ = client_config_path
-
-    def prepare_server(self,
-                       workdir=None,
-                       port=9292,
-                       device="cpu",
-                       cube_conf=None):
-        if not self._port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
-        default_port = 12000
-        self.port_list_ = []
-        for i in range(1000):
-            if default_port + i != port and self._port_is_available(default_port
-                                                                    + i):
-                self.port_list_.append(default_port + i)
-                break
-        self.bserver_.prepare_server(
-            workdir=workdir,
-            port=self.port_list_[0],
-            device=device,
-            cube_conf=cube_conf)
-        self.set_port(port)
-
-    def _launch_brpc_service(self, bserver):
-        bserver.run_server()
-
-    def _port_is_available(self, port):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
-        return result != 0
-
-    def run_server(self):
-        p_bserver = Process(
-            target=self._launch_brpc_service, args=(self.bserver_, ))
-        p_bserver.start()
-        options = [('grpc.max_send_message_length', self.body_size_),
-                   ('grpc.max_receive_message_length', self.body_size_)]
-        server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self.worker_num_),
-            options=options,
-            maximum_concurrent_rpcs=self.concurrency_)
-        multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerServiceServicer(
-                self.bclient_config_path_, self.is_multi_model_,
-                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
-        server.add_insecure_port('[::]:{}'.format(self.gport_))
-        server.start()
-        p_bserver.join()
-        server.wait_for_termination()
