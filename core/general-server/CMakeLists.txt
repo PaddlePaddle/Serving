@@ -28,7 +28,9 @@ endif()
 
 target_link_libraries(serving -Wl,--whole-archive fluid_cpu_engine
         -Wl,--no-whole-archive)
-target_link_libraries(serving ${OpenCV_LIBS})
+if(WITH_OPENCV)
+    target_link_libraries(serving ${OpenCV_LIBS})
+endif()
 target_link_libraries(serving paddle_fluid ${paddle_depend_libs})
 target_link_libraries(serving brpc)
 target_link_libraries(serving protobuf)

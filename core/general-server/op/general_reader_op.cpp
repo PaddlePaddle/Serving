@@ -70,7 +70,7 @@ int conf_check(const Request *req,
 }
 
 int GeneralReaderOp::inference() {
-  // reade request from client
+  // read request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
   uint64_t log_id = req->log_id();
   int input_var_num = 0;
@@ -100,7 +100,7 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   //get the first InferOP's model_config as ReaderOp's model_config by default.
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config()[0];
+      resource.get_general_model_config().front();
 
   // TODO(guru4elephant): how to do conditional check?
   /*
@@ -183,10 +183,13 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }
+      memcpy(dst_ptr, req->insts(0).tensor_array(i).int64_data().data(),databuf_size[i]);
+      /*
       int elem_num = req->insts(0).tensor_array(i).int64_data_size();
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[k] = req->insts(0).tensor_array(i).int64_data(k);
       }
+      */
     } else if (elem_type[i] == P_FLOAT32) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
@@ -195,11 +198,11 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }
-      //memcpy(dst_ptr,req->insts(0).tensor_array(i).float_data(),databuf_size[i]);
-      int elem_num = req->insts(0).tensor_array(i).float_data_size();
+      memcpy(dst_ptr, req->insts(0).tensor_array(i).float_data().data(),databuf_size[i]);
+      /*int elem_num = req->insts(0).tensor_array(i).float_data_size();
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[k] = req->insts(0).tensor_array(i).float_data(k);
-      }
+      }*/
     } else if (elem_type[i] == P_INT32) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
@@ -208,10 +211,13 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
             return -1;
       }
+      memcpy(dst_ptr, req->insts(0).tensor_array(i).int_data().data(),databuf_size[i]);
+      /*
       int elem_num = req->insts(0).tensor_array(i).int_data_size();
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[k] = req->insts(0).tensor_array(i).int_data(k);
       }
+      */
     } else if (elem_type[i] == P_STRING) {
       std::string *dst_ptr = static_cast<std::string *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i

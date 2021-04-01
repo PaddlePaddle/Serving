@@ -114,7 +114,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     for idx, single_model in enumerate(model):
         infer_op_name = "general_infer"
         if len(model) == 2 and idx == 0:
-            infer_op_name = "general_YSL"
+            infer_op_name = "general_detection"
         else:
             infer_op_name = "general_infer"
         general_infer_op = op_maker.create(infer_op_name)

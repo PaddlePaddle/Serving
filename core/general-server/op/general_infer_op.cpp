@@ -37,7 +37,6 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralInferOp::inference() {
   VLOG(2) << "Going to run inference";
-  std::cout<<"I am GeneralInferOp"<<std::endl;
   const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() != 1) {
     LOG(ERROR) << "This op(" << op_name()
@@ -88,7 +87,6 @@ int GeneralInferOp::inference() {
                << ") Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
-  std::cout<<"I am GeneralInferOp finish"<<std::endl;
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
   AddBlobInfo(output_blob, start);

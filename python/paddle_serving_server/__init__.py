@@ -49,7 +49,7 @@ class OpMaker(object):
             "general_dist_kv_infer": "GeneralDistKVInferOp",
             "general_dist_kv_quant_infer": "GeneralDistKVQuantInferOp",
             "general_copy": "GeneralCopyOp",
-            "general_YSL":"GeneralYSLOp",
+            "general_detection":"GeneralDetectionOp",
         }
         self.node_name_suffix_ = collections.defaultdict(int)
 
@@ -307,7 +307,7 @@ class Server(object):
             # it from workflow_conf.
             default_engine_types = [
                 'GeneralInferOp', 'GeneralDistKVInferOp',
-                'GeneralDistKVQuantInferOp','GeneralYSLOp',
+                'GeneralDistKVQuantInferOp','GeneralDetectionOp',
             ]
             model_config_paths_list_idx = 0
             for node in self.workflow_conf.workflows[0].nodes:
