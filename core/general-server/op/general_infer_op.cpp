@@ -88,7 +88,7 @@ int GeneralInferOp::inference() {
                << ") Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
-
+  std::cout<<"I am GeneralInferOp finish"<<std::endl;
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
   AddBlobInfo(output_blob, start);

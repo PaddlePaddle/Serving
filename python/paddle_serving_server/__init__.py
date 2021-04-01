@@ -265,11 +265,11 @@ class Server(object):
     def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
+            self.resource_conf = server_sdk.ResourceConf()
             for idx, op_general_model_config_fn in enumerate(self.general_model_config_fn):
                 with open("{}/{}".format(workdir, op_general_model_config_fn),
                         "w") as fout:
                     fout.write(str(list(self.model_conf.values())[idx]))
-                self.resource_conf = server_sdk.ResourceConf()
                 for workflow in self.workflow_conf.workflows:
                     for node in workflow.nodes:
                         if "dist_kv" in node.name:
