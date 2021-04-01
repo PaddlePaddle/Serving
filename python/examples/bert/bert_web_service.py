@@ -29,20 +29,24 @@ class BertService(WebService):
 
     def preprocess(self, feed=[], fetch=[]):
         feed_res = []
-        is_batch = False
+        is_batch = True
         for ins in feed:
             feed_dict = self.reader.process(ins["words"].encode("utf-8"))
             for key in feed_dict.keys():
                 feed_dict[key] = np.array(feed_dict[key]).reshape(
-                    (len(feed_dict[key]), 1))
+                    (1, len(feed_dict[key]), 1))
             feed_res.append(feed_dict)
-        return feed_res, fetch, is_batch
-
+        feed_dict = {}
+        for key in feed_res[0].keys():
+            feed_dict[key] = np.concatenate([x[key] for x in feed_res], axis=0)
+            print(key, feed_dict[key].shape)
+        return feed_dict, fetch, is_batch
 
 bert_service = BertService(name="bert")
+bert_service.setup_profile(30)
 bert_service.load()
 bert_service.load_model_config(sys.argv[1])
 bert_service.prepare_server(
     workdir="workdir", port=int(sys.argv[2]), device="cpu")
-bert_service.run_rpc_service()
+bert_service.run_debugger_service()
 bert_service.run_web_service()
