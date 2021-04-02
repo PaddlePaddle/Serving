@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_server.web_service import WebService
-from paddle_serving_client import Client
-from paddle_serving_app.reader import LACReader, SentaReader
 import os
 import sys
 import numpy as np
-#senta_web_service.py
-from paddle_serving_server.web_service import WebService
+try:
+    from paddle_serving_server.web_service import WebService
+except ImportError:
+    from paddle_serving_server_gpu.web_service import WebService
+
 from paddle_serving_client import Client
 from paddle_serving_app.reader import LACReader, SentaReader
 

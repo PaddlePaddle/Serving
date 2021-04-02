@@ -23,7 +23,7 @@ from paddle_serving_app.reader import Sequential, URL2Image, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 if sys.argv[1] == 'gpu':
-    from paddle_serving_server.web_service import WebService
+    from paddle_serving_server_gpu.web_service import WebService
 elif sys.argv[1] == 'cpu':
     from paddle_serving_server.web_service import WebService
 from paddle_serving_app.local_predict import LocalPredictor
@@ -107,7 +107,7 @@ ocr_service.prepare_server(workdir="workdir", port=9292)
 ocr_service.init_det_debugger(det_model_config="ocr_det_model")
 if sys.argv[1] == 'gpu':
     ocr_service.set_gpus("2")
-    ocr_service.run_debugger_service()
+    ocr_service.run_debugger_service(gpu=True)
 elif sys.argv[1] == 'cpu':
     ocr_service.run_debugger_service()
 ocr_service.run_web_service()

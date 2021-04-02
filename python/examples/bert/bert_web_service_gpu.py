@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-from paddle_serving_server.web_service import WebService
+from paddle_serving_server_gpu.web_service import WebService
 from paddle_serving_app.reader import ChineseBertReader
 import sys
 import os

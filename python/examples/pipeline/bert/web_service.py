@@ -37,7 +37,8 @@ class BertOp(Op):
         for i in range(batch_size):
             feed_dict = self.reader.process(input_dict[str(i)].encode("utf-8"))
             for key in feed_dict.keys():
-                feed_dict[key] = np.array(feed_dict[key]).reshape((1, len(feed_dict[key]), 1))
+                feed_dict[key] = np.array(feed_dict[key]).reshape(
+                    (1, len(feed_dict[key]), 1))
             feed_res.append(feed_dict)
         feed_dict = {}
         for key in feed_res[0].keys():
@@ -57,5 +58,5 @@ class BertService(WebService):
 
 
 bert_service = BertService(name="bert")
-bert_service.prepare_pipeline_config("config2.yml")
+bert_service.prepare_pipeline_config("config.yml")
 bert_service.run_service()
