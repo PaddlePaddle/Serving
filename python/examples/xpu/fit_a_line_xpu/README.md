@@ -13,7 +13,10 @@ sh get_data.sh
 ## RPC service
 
 ### Start server
-
+``` shell
+python test_server.py uci_housing_model/
+```
+You can alse use the following code to start the RPC service 
 ```shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
 ```
