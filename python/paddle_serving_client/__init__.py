@@ -141,15 +141,24 @@ class Client(object):
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
 
-    def load_client_config(self, path):
-        if isinstance(path, str):
-            path_list = [path]
-        elif isinstance(path, list):
-            path_list = path
+    def load_client_config(self, model_config_path_list):
+        if isinstance(model_config_path_list, str):
+            model_config_path_list = [model_config_path_list]
+        elif isinstance(model_config_path_list, list):
+            pass
 
+        file_path_list = []
+        for single_model_config in model_config_path_list:
+            if os.path.isdir(single_model_config):
+                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                    single_model_config))
+            elif os.path.isfile(single_model_config):
+                file_path_list.append(single_model_config)
+
+        
         from .serving_client import PredictorClient
         model_conf = m_config.GeneralModelConfig()
-        f = open(path_list[0], 'r')
+        f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
 
@@ -158,7 +167,7 @@ class Client(object):
         # get feed shapes, feed types
         # map feed names to index
         self.client_handle_ = PredictorClient()
-        self.client_handle_.init(path_list)
+        self.client_handle_.init(file_path_list)
         if "FLAGS_max_body_size" not in os.environ:
             os.environ["FLAGS_max_body_size"] = str(512 * 1024 * 1024)
         read_env_flags = ["profile_client", "profile_server", "max_body_size"]
@@ -166,9 +175,9 @@ class Client(object):
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.feed_names_to_idx_ = {}
+        self.feed_names_to_idx_ = {}#this is not useful
         self.lod_tensor_set = set()
-        self.feed_tensor_len = {}
+        self.feed_tensor_len = {}#this is only used for shape check 
         self.key = None
         for i, var in enumerate(model_conf.feed_var):
             self.feed_names_to_idx_[var.alias_name] = i
@@ -183,9 +192,9 @@ class Client(object):
                     counter *= dim
                 self.feed_tensor_len[var.alias_name] = counter
         
-        if len(path_list) > 1:
+        if len(file_path_list) > 1:
             model_conf = m_config.GeneralModelConfig()
-            f = open(path_list[-1], 'r')
+            f = open(file_path_list[-1], 'r')
             model_conf = google.protobuf.text_format.Merge(
                 str(f.read()), model_conf)
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -545,8 +554,8 @@ class MultiLangClient(object):
         get_client_config_req = multi_lang_general_model_service_pb2.GetClientConfigRequest(
         )
         resp = self.stub_.GetClientConfig(get_client_config_req)
-        model_config_str = resp.client_config_str
-        self._parse_model_config(model_config_str)
+        model_config_path_list = resp.client_config_str_list
+        self._parse_model_config(model_config_path_list)
 
     def _flatten_list(self, nested_list):
         for item in nested_list:
@@ -556,25 +565,42 @@ class MultiLangClient(object):
             else:
                 yield item
 
-    def _parse_model_config(self, model_config_str):
+    def _parse_model_config(self, model_config_path_list):
+        if isinstance(model_config_path_list, str):
+            model_config_path_list = [model_config_path_list]
+        elif isinstance(model_config_path_list, list):
+            pass
+
+        file_path_list = []
+        for single_model_config in model_config_path_list:
+            if os.path.isdir(single_model_config):
+                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                    single_model_config))
+            elif os.path.isfile(single_model_config):
+                file_path_list.append(single_model_config)
+        
         model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(model_config_str,
-                                                       model_conf)
+        f = open(file_path_list[0], 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_types_ = {}
         self.lod_tensor_set_ = set()
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
             self.feed_shapes_[var.alias_name] = var.shape
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
-            else:
-                counter = 1
-                for dim in self.feed_shapes_[var.alias_name]:
-                    counter *= dim
+        
+        if len(file_path_list) > 1:
+            model_conf = m_config.GeneralModelConfig()
+            f = open(file_path_list[-1], 'r')
+            model_conf = google.protobuf.text_format.Merge(
+                str(f.read()), model_conf)
+
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.fetch_types_ = {}
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_types_[var.alias_name] = var.fetch_type
             if var.is_lod_tensor:

@@ -53,15 +53,29 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
         print("You must specify your serving model")
         exit(-1)
 
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
+
     import paddle_serving_server_gpu as serving
     op_maker = serving.OpMaker()
-    read_op = op_maker.create('general_reader')
-    general_infer_op = op_maker.create('general_infer')
-    general_response_op = op_maker.create('general_response')
-
     op_seq_maker = serving.OpSeqMaker()
+
+    read_op = op_maker.create('general_reader')
     op_seq_maker.add_op(read_op)
-    op_seq_maker.add_op(general_infer_op)
+
+    for idx, single_model in enumerate(model):
+        infer_op_name = "general_infer"
+        if len(model) == 2 and idx == 0:
+            infer_op_name = "general_detection"
+        else:
+            infer_op_name = "general_infer"
+        general_infer_op = op_maker.create(infer_op_name)
+        op_seq_maker.add_op(general_infer_op)
+    
+    general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
     if use_multilang:
@@ -156,8 +170,11 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "wb") as f:
-                f.write(key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError("The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "wb") as f:
+                    f.write(key)
             return True
 
     def check_key(self, post_data):
@@ -165,9 +182,14 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "rb") as f:
-                cur_key = f.read()
-            return (key == cur_key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError("The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "rb") as f:
+                    cur_key = f.read()
+                if key != cur_key:
+                    return False
+            return True
 
     def start(self, post_data):
         post_data = json.loads(post_data.decode('utf-8'))
@@ -211,6 +233,12 @@ class MainService(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     args = serve_args()
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
+    
     if args.name == "None":
         from .web_service import port_is_available
         if args.use_encryption_model:

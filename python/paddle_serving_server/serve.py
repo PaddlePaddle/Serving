@@ -22,6 +22,7 @@ import sys
 import json
 import base64
 import time
+import os
 from multiprocessing import Process
 from .web_service import WebService, port_is_available
 from flask import Flask, request
@@ -103,6 +104,12 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     if model == "":
         print("You must specify your serving model")
         exit(-1)
+    
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
 
     import paddle_serving_server as serving
     op_maker = serving.OpMaker()
@@ -162,8 +169,11 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "wb") as f:
-                f.write(key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError("The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "wb") as f:
+                    f.write(key)
             return True
 
     def check_key(self, post_data):
@@ -171,9 +181,14 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "rb") as f:
-                cur_key = f.read()
-            return (key == cur_key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError("The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "rb") as f:
+                    cur_key = f.read()
+                if key != cur_key:
+                    return False
+            return True
 
     def start(self, post_data):
         post_data = json.loads(post_data.decode('utf-8'))
@@ -218,6 +233,12 @@ class MainService(BaseHTTPRequestHandler):
 if __name__ == "__main__":
 
     args = parse_args()
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
+
     if args.name == "None":
         if args.use_encryption_model:
             p_flag = False
@@ -232,6 +253,7 @@ if __name__ == "__main__":
             start_standard_model(args.port)
     else:
         service = WebService(name=args.name)
+        
         service.load_model_config(args.model)
         service.prepare_server(
             workdir=args.workdir, port=args.port, device=args.device)
