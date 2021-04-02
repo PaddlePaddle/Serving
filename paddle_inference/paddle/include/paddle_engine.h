@@ -104,7 +104,22 @@ class PaddleInferenceEngine : public PaddleEngineBase {
 
     Config config;
     // todo, auto config(zhangjun)
-    if (engine_conf.has_combined_model()) {
+    if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
+      // decrypt model
+      std::string model_buffer, params_buffer, key_buffer;
+      predictor::ReadBinaryFile(model_path + "encrypt_model", &model_buffer);
+      predictor::ReadBinaryFile(model_path + "encrypt_params", &params_buffer);
+      predictor::ReadBinaryFile(model_path + "key", &key_buffer);
+
+      auto cipher = paddle::MakeCipher("");
+      std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
+      std::string real_params_buffer =
+          cipher->Decrypt(params_buffer, key_buffer);
+      config.SetModelBuffer(&real_model_buffer[0],
+                            real_model_buffer.size(),
+                            &real_params_buffer[0],
+                            real_params_buffer.size());
+    } else if (engine_conf.has_combined_model()) {
       if (!engine_conf.combined_model()) {
         config.SetModel(model_path);
       } else {
@@ -156,22 +171,6 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       config.EnableMemoryOptim();
     }
 
-    if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
-      // decrypt model
-      std::string model_buffer, params_buffer, key_buffer;
-      predictor::ReadBinaryFile(model_path + "encrypt_model", &model_buffer);
-      predictor::ReadBinaryFile(model_path + "encrypt_params", &params_buffer);
-      predictor::ReadBinaryFile(model_path + "key", &key_buffer);
-
-      auto cipher = paddle::MakeCipher("");
-      std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
-      std::string real_params_buffer =
-          cipher->Decrypt(params_buffer, key_buffer);
-      config.SetModelBuffer(&real_model_buffer[0],
-                            real_model_buffer.size(),
-                            &real_params_buffer[0],
-                            real_params_buffer.size());
-    }
 
     predictor::AutoLock lock(predictor::GlobalCreateMutex::instance());
     _predictor = CreatePredictor(config);
