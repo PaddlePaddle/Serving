@@ -48,7 +48,7 @@ class DetOp(Op):
         imgs = []
         for key in input_dict.keys():
             data = base64.b64decode(input_dict[key].encode('utf8'))
-            data = np.fromstring(data, np.uint8)
+            data = np.frombuffer(data, np.uint8)
             self.im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             self.ori_h, self.ori_w, _ = self.im.shape
             det_img = self.det_preprocess(self.im)
@@ -57,7 +57,7 @@ class DetOp(Op):
         return {"image": np.concatenate(imgs, axis=0)}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
-#        print(fetch_dict)
+        #        print(fetch_dict)
         det_out = fetch_dict["concat_1.tmp_0"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
@@ -114,5 +114,5 @@ class OcrService(WebService):
 
 
 uci_service = OcrService(name="ocr")
-uci_service.prepare_pipeline_config("config2.yml")
+uci_service.prepare_pipeline_config("config.yml")
 uci_service.run_service()

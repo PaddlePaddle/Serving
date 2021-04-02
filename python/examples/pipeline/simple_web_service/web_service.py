@@ -14,7 +14,7 @@
 try:
     from paddle_serving_server.web_service import WebService, Op
 except ImportError:
-    from paddle_serving_server.web_service import WebService, Op
+    from paddle_serving_server_gpu.web_service import WebService, Op
 import logging
 import numpy as np
 import sys
@@ -34,8 +34,11 @@ class UciOp(Op):
         x_value = input_dict["x"].split(self.batch_separator)
         x_lst = []
         for x_val in x_value:
-            x_lst.append(np.array([float(x.strip()) for x in x_val.split(self.separator)]).reshape(1, 13))
-        input_dict["x"] = np.concatenate(x_lst, axis=0) 
+            x_lst.append(
+                np.array([
+                    float(x.strip()) for x in x_val.split(self.separator)
+                ]).reshape(1, 13))
+        input_dict["x"] = np.concatenate(x_lst, axis=0)
         proc_dict = {}
         return input_dict, False, None, ""
 
@@ -53,5 +56,5 @@ class UciService(WebService):
 
 
 uci_service = UciService(name="uci")
-uci_service.prepare_pipeline_config("config2.yml")
+uci_service.prepare_pipeline_config("config.yml")
 uci_service.run_service()
