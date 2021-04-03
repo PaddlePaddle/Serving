@@ -14,7 +14,7 @@
 try:
     from paddle_serving_server.web_service import WebService, Op
 except ImportError:
-    from paddle_serving_server.web_service import WebService, Op
+    from paddle_serving_server_gpu.web_service import WebService, Op
 import logging
 import numpy as np
 from numpy import array

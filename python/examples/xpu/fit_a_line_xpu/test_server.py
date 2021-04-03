@@ -13,7 +13,11 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.web_service import WebService
+try:
+    from paddle_serving_server.web_service import WebService
+except ImportError:
+    from paddle_serving_server_gpu.web_service import WebService
+
 import numpy as np
 
 
@@ -31,6 +35,7 @@ class UciService(WebService):
 
 uci_service = UciService(name="uci")
 uci_service.load_model_config("uci_housing_model")
-uci_service.prepare_server(workdir="workdir", port=9393, use_lite=True, use_xpu=True, ir_optim=True)
+uci_service.prepare_server(
+    workdir="workdir", port=9393, use_lite=True, use_xpu=True, ir_optim=True)
 uci_service.run_rpc_service()
 uci_service.run_web_service()

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_server.web_service import WebService
+try:
+    from paddle_serving_server.web_service import WebService
+except ImportError:
+    from paddle_serving_server_gpu.web_service import WebService
 import sys
 from paddle_serving_app.reader import LACReader
 import numpy as np

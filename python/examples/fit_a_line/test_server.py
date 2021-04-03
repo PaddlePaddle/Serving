@@ -13,7 +13,10 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_server.web_service import WebService
+try:
+    from paddle_serving_server_gpu.web_service import WebService
+except ImportError:
+    from paddle_serving_server.web_service import WebService
 import numpy as np
 
 

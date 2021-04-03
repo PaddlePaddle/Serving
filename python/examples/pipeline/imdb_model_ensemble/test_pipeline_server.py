@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server.pipeline import PipelineServer
-from paddle_serving_server.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server.pipeline.channel import ChannelDataErrcode
 import numpy as np
 from paddle_serving_app.reader.imdb_reader import IMDBDataset
 import logging
 try:
     from paddle_serving_server.web_service import WebService
+    from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
+    from paddle_serving_server.pipeline import PipelineServer
+    from paddle_serving_server.pipeline.proto import pipeline_service_pb2
+    from paddle_serving_server.pipeline.channel import ChannelDataErrcode
 except ImportError:
-    from paddle_serving_server.web_service import WebService
+    from paddle_serving_server_gpu.web_service import WebService
+    from paddle_serving_server_gpu.pipeline import Op, RequestOp, ResponseOp
+    from paddle_serving_server_gpu.pipeline import PipelineServer
+    from paddle_serving_server_gpu.pipeline.proto import pipeline_service_pb2
+    from paddle_serving_server_gpu.pipeline.channel import ChannelDataErrcode
 
 _LOGGER = logging.getLogger()
 user_handler = logging.StreamHandler()
