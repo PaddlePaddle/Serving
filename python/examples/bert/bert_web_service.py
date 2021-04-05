@@ -30,6 +30,7 @@ class BertService(WebService):
     def preprocess(self, feed=[], fetch=[]):
         feed_res = []
         is_batch = True
+        print(feed)
         for ins in feed:
             feed_dict = self.reader.process(ins["words"].encode("utf-8"))
             for key in feed_dict.keys():
