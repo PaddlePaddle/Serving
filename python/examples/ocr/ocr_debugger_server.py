@@ -23,7 +23,7 @@ from paddle_serving_app.reader import Sequential, URL2Image, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 if sys.argv[1] == 'gpu':
-    from paddle_serving_server_gpu.web_service import WebService
+    from paddle_serving_server.web_service import WebService
 elif sys.argv[1] == 'cpu':
     from paddle_serving_server.web_service import WebService
 from paddle_serving_app.local_predict import LocalPredictor
