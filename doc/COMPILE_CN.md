@@ -116,6 +116,21 @@ make -j10
 
 可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
 
+### 开启WITH_OPENCV选项编译C++ Server
+编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要安装安装openCV库，若没有可参考本文档后面的说明编译安装openCV库。
+在编译命令中，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项，例如：
+``` shell
+OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。
+mkdir server-build-cpu && cd server-build-cpu
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DOPENCV_DIR=${OPENCV_DIR} \
+    -DWITH_OPENCV=ON
+    -DSERVER=ON ..
+make -j10
+```
+
 ### 集成GPU版本Paddle Inference Library
 
 相比CPU环境，GPU环境需要参考以下表格,
@@ -152,6 +167,7 @@ make -j10
 执行`make install`可以把目标产出放在`./output`目录下。
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
+
 
 ## 编译Client部分
 
@@ -250,10 +266,7 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_LIBRARY`参数，指定CuDNN库所在路径。
 
-### WITH_OPENCV选项
-
-编译Serving C++ Server部分，若开启WITH_OPENCV选项，若没有安装openCV库，可参考以下说明（已安装则可跳过）:
-#### 编译opencv库
+## 编译安装opencv库
 
 * 首先需要从opencv官网上下载在Linux环境下源码编译的包，以opencv3.4.7为例，下载命令如下。
 
@@ -308,19 +321,4 @@ opencv3/
 |-- lib
 |-- lib64
 |-- share
-```
-
-#### 开启WITH_OPENCV选项编译C++ Server
-
-在编译命令中，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项，例如：
-``` shell
-OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。
-mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DOPENCV_DIR=${OPENCV_DIR} \
-    -DWITH_OPENCV=ON
-    -DSERVER=ON ..
-make -j10
 ```

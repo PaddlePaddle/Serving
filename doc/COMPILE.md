@@ -117,6 +117,21 @@ make -j10
 
 you can execute `make install` to put targets under directory `./output`, you need to add`-DCMAKE_INSTALL_PREFIX=./output`to specify output path to cmake command shown above.
 
+### Compile C++ Server under the condition of WITH_OPENCV=ON
+First of all , opencv library should be installed, if not, please refer to the `Compile and install opencv` section later in this article.
+In the compile command, add `DOPENCV_DIR=${OPENCV_DIR}` and `DWITH_OPENCV=ON`，for example：
+``` shell
+OPENCV_DIR=your_opencv_dir #`your_opencv_dir` is the installation path of OpenCV library。
+mkdir server-build-cpu && cd server-build-cpu
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DOPENCV_DIR=${OPENCV_DIR} \
+    -DWITH_OPENCV=ON
+    -DSERVER=ON ..
+make -j10
+```
+
 ### Integrated GPU version paddle inference library
 
 Compared with CPU environment, GPU environment needs to refer to the following table,
@@ -249,10 +264,7 @@ The following is the base library version matching relationship used by the Padd
 
 Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
 
-### WITH_OPENCV Option
-
-Compile the serving C + + server part. If WITH_OPENCV=ON and opencv library is not installed, please refer to the following instructions (if opencv library is installed, you can skip it)
-#### Compile opencv
+## Compile and install opencv
 
 * First of all, you need to download the source code compiled package in the Linux environment from the opencv official website. Taking opencv3.4.7 as an example, the download command is as follows.
 
@@ -309,19 +321,4 @@ opencv3/
 |-- lib
 |-- lib64
 |-- share
-```
-
-#### compile C++ Server under the condition of WITH_OPENCV=ON
-
-In the compile command, add `DOPENCV_DIR=${OPENCV_DIR}` and `DWITH_OPENCV=ON`，for example：
-``` shell
-OPENCV_DIR=your_opencv_dir #`your_opencv_dir` is the installation path of OpenCV library。
-mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DOPENCV_DIR=${OPENCV_DIR} \
-    -DWITH_OPENCV=ON
-    -DSERVER=ON ..
-make -j10
 ```
