@@ -119,6 +119,7 @@ you can execute `make install` to put targets under directory `./output`, you ne
 
 ### Compile C++ Server under the condition of WITH_OPENCV=ON
 First of all , opencv library should be installed, if not, please refer to the `Compile and install opencv` section later in this article.
+
 In the compile command, add `DOPENCV_DIR=${OPENCV_DIR}` and `DWITH_OPENCV=ON`，for example：
 ``` shell
 OPENCV_DIR=your_opencv_dir #`your_opencv_dir` is the installation path of OpenCV library。

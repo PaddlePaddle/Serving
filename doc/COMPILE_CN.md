@@ -118,6 +118,7 @@ make -j10
 
 ### 开启WITH_OPENCV选项编译C++ Server
 编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要安装安装openCV库，若没有可参考本文档后面的说明编译安装openCV库。
+
 在编译命令中，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项，例如：
 ``` shell
 OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。

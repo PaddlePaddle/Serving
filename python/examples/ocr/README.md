@@ -19,6 +19,7 @@ tar xf test_imgs.tar
 
 ### Start Service
 Select a startup mode according to CPU / GPU device
+
 After the -- model parameter, the folder path of multiple model files is passed in to start the prediction service of multiple model concatenation.
 ```
 #for cpu user
@@ -28,8 +29,10 @@ python -m paddle_serving_server_gpu.serve --model ocr_det_model ocr_rec_model --
 ```
 
 ### Client Prediction
-The pre-processing and post-processing is in the C + + server part, the image's Base64 encoded string is passed into the C + + server
+The pre-processing and post-processing is in the C + + server part, the image's Base64 encoded string is passed into the C + + server.
+
 so the value of parameter `feed_var` which is in the file `ocr_det_client/serving_client_conf.prototxt` should be changed.
+
 for this case, `feed_type` should be 3(which means the data type is string),`shape` should be 1.
 
 By passing in multiple client folder paths, the client can be started for multi model prediction.
