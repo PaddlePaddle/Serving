@@ -25,7 +25,7 @@ def serving_encryption():
         serving_client="encrypt_client",
         encryption=True)
 ```
-其中dirname为模型所在的文件夹路径，当参数为离散参数时，无须指定params_filename，当参数为为__params__时，需指定'params_filename = __params__'.
+其中dirname为模型所在的文件夹路径，当参数为离散参数时，无须指定params_filename，当参数为为__params__时，需指定params_filename参数=__params__
 
 密钥保存在`key`文件中，加密模型文件以及server端配置文件保存在`encrypt_server`目录下，client端配置文件保存在`encrypt_client`目录下。
 
