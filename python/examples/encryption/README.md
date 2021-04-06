@@ -26,7 +26,7 @@ def serving_encryption():
         serving_client="encrypt_client",
         encryption=True)
 ```
-dirname is the folder path where the model is located. If the parameter is discrete, it is unnecessary to specify params_filename, else you need to set params_filename='__params__'.
+dirname is the folder path where the model is located. If the parameter is discrete, it is unnecessary to specify params_filename, else you need to set the value of params_filename  = '__params__'.
 
 The key is stored in the `key` file, and the encrypted model file and server-side configuration file are stored in the `encrypt_server` directory.
 client-side configuration file are stored in the `encrypt_client` directory.
