@@ -16,11 +16,7 @@
 import os
 import sys
 import numpy as np
-try:
-    from paddle_serving_server.web_service import WebService
-except ImportError:
-    from paddle_serving_server_gpu.web_service import WebService
-
+from paddle_serving_server.web_service import WebService
 from paddle_serving_client import Client
 from paddle_serving_app.reader import LACReader, SentaReader
 
