@@ -16,8 +16,10 @@ import os
 import tarfile
 import socket
 import paddle_serving_server as paddle_serving_server
+from paddle_serving_server.rpc_service import MultiLangServerServiceServicer
 from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
+from .proto import multi_lang_general_model_service_pb2_grpc
 import google.protobuf.text_format
 import time
 from .version import serving_server_version, version_suffix, device_type
