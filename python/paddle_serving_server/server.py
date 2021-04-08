@@ -43,16 +43,17 @@ class Server(object):
     def __init__(self):
         self.server_handle_ = None
         self.infer_service_conf = None
-        self.model_toolkit_conf = None
+        self.model_toolkit_conf = []#The quantity is equal to the InferOp quantity,Engine--OP
         self.resource_conf = None
         self.memory_optimization = False
         self.ir_optimization = False
-        self.model_conf = None
-        self.workflow_fn = "workflow.prototxt"
-        self.resource_fn = "resource.prototxt"
-        self.infer_service_fn = "infer_service.prototxt"
-        self.model_toolkit_fn = "model_toolkit.prototxt"
-        self.general_model_config_fn = "general_model.prototxt"
+        self.model_conf = collections.OrderedDict()# save the serving_server_conf.prototxt content (feed and fetch information) this is a map for multi-model in a workflow
+        self.workflow_fn = "workflow.prototxt"#only one for one Service,Workflow--Op 
+        self.resource_fn = "resource.prototxt"#only one for one Service,model_toolkit_fn and  general_model_config_fn is recorded in this file
+        self.infer_service_fn = "infer_service.prototxt"#only one for one Service,Service--Workflow
+        self.model_toolkit_fn = []#["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.general_model_config_fn = []#["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
+        self.subdirectory = []#The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.cube_config_fn = "cube.conf"
         self.workdir = ""
         self.max_concurrency = 0
@@ -69,12 +70,12 @@ class Server(object):
         self.use_trt = False
         self.use_lite = False
         self.use_xpu = False
-        self.model_config_paths = None  # for multi-model in a workflow
+        self.model_config_paths = collections.OrderedDict()  # save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
         self.product_name = None
         self.container_id = None
 
-    def get_fetch_list(self):
-        fetch_names = [var.alias_name for var in self.model_conf.fetch_var]
+    def get_fetch_list(self,infer_node_idx = -1 ):
+        fetch_names = [var.alias_name for var in list(self.model_conf.values())[infer_node_idx].fetch_var]
         return fetch_names
 
     def set_max_concurrency(self, concurrency):
@@ -152,6 +153,7 @@ class Server(object):
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         if self.model_toolkit_conf == None:
+            self.model_toolkit_conf = []
             self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
         for engine_name, model_config_path in model_config_paths.items():
@@ -177,8 +179,8 @@ class Server(object):
             if use_encryption_model:
                 engine.encrypted_model = True
             engine.type = "PADDLE_INFER"
-
-            self.model_toolkit_conf.engines.extend([engine])
+            self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
+            self.model_toolkit_conf[-1].engines.extend([engine])
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -192,79 +194,95 @@ class Server(object):
     def _prepare_resource(self, workdir, cube_conf):
         self.workdir = workdir
         if self.resource_conf == None:
-            with open("{}/{}".format(workdir, self.general_model_config_fn),
-                      "w") as fout:
-                fout.write(str(self.model_conf))
             self.resource_conf = server_sdk.ResourceConf()
-            for workflow in self.workflow_conf.workflows:
-                for node in workflow.nodes:
-                    if "dist_kv" in node.name:
-                        self.resource_conf.cube_config_path = workdir
-                        self.resource_conf.cube_config_file = self.cube_config_fn
-                        if cube_conf == None:
-                            raise ValueError(
-                                "Please set the path of cube.conf while use dist_kv op."
-                            )
-                        shutil.copy(cube_conf, workdir)
-            self.resource_conf.model_toolkit_path = workdir
-            self.resource_conf.model_toolkit_file = self.model_toolkit_fn
-            self.resource_conf.general_model_path = workdir
-            self.resource_conf.general_model_file = self.general_model_config_fn
-            if self.product_name != None:
-                self.resource_conf.auth_product_name = self.product_name
-            if self.container_id != None:
-                self.resource_conf.auth_container_id = self.container_id
+            for idx, op_general_model_config_fn in enumerate(self.general_model_config_fn):
+                with open("{}/{}".format(workdir, op_general_model_config_fn),
+                        "w") as fout:
+                    fout.write(str(list(self.model_conf.values())[idx]))
+                for workflow in self.workflow_conf.workflows:
+                    for node in workflow.nodes:
+                        if "dist_kv" in node.name:
+                            self.resource_conf.cube_config_path = workdir
+                            self.resource_conf.cube_config_file = self.cube_config_fn
+                            if cube_conf == None:
+                                raise ValueError(
+                                    "Please set the path of cube.conf while use dist_kv op."
+                                )
+                            shutil.copy(cube_conf, workdir)
+                            if "quant" in node.name:
+                                self.resource_conf.cube_quant_bits = 8
+                self.resource_conf.model_toolkit_path.extend([workdir])
+                self.resource_conf.model_toolkit_file.extend([self.model_toolkit_fn[idx]])
+                self.resource_conf.general_model_path.extend([workdir])
+                self.resource_conf.general_model_file.extend([op_general_model_config_fn])
+                #TODO:figure out the meaning of product_name and container_id.
+                if self.product_name != None:
+                    self.resource_conf.auth_product_name = self.product_name
+                if self.container_id != None:
+                    self.resource_conf.auth_container_id = self.container_id
 
     def _write_pb_str(self, filepath, pb_obj):
         with open(filepath, "w") as fout:
             fout.write(str(pb_obj))
 
-    def load_model_config(self, model_config_paths):
+    def load_model_config(self, model_config_paths_args):
         # At present, Serving needs to configure the model path in
         # the resource.prototxt file to determine the input and output
         # format of the workflow. To ensure that the input and output
         # of multiple models are the same.
-        workflow_oi_config_path = None
-        if isinstance(model_config_paths, str):
+        if isinstance(model_config_paths_args, str):
+            model_config_paths_args = [model_config_paths_args]
+
+        for single_model_config in model_config_paths_args:
+            if os.path.isdir(single_model_config):
+                pass
+            elif os.path.isfile(single_model_config):
+                raise ValueError("The input of --model should be a dir not file.")
+        
+        if isinstance(model_config_paths_args, list):
             # If there is only one model path, use the default infer_op.
             # Because there are several infer_op type, we need to find
             # it from workflow_conf.
-            default_engine_names = [
-                'general_infer_0', 'general_dist_kv_infer_0',
-                'general_dist_kv_quant_infer_0'
+            default_engine_types = [
+                'GeneralInferOp', 'GeneralDistKVInferOp',
+                'GeneralDistKVQuantInferOp','GeneralDetectionOp',
             ]
-            engine_name = None
+            # now only support single-workflow.
+            # TODO:support multi-workflow
+            model_config_paths_list_idx = 0
             for node in self.workflow_conf.workflows[0].nodes:
-                if node.name in default_engine_names:
-                    engine_name = node.name
-                    break
-            if engine_name is None:
-                raise Exception(
-                    "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
-                )
-            self.model_config_paths = {engine_name: model_config_paths}
-            workflow_oi_config_path = self.model_config_paths[engine_name]
-        elif isinstance(model_config_paths, dict):
-            self.model_config_paths = {}
-            for node_str, path in model_config_paths.items():
+                if node.type in default_engine_types:
+                    if node.name is None:
+                        raise Exception(
+                            "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
+                        )
+                    
+                    f = open("{}/serving_server_conf.prototxt".format(
+                        model_config_paths_args[model_config_paths_list_idx]), 'r')
+                    self.model_conf[node.name] = google.protobuf.text_format.Merge(str(f.read()), m_config.GeneralModelConfig())
+                    self.model_config_paths[node.name] = model_config_paths_args[model_config_paths_list_idx]
+                    self.general_model_config_fn.append(node.name+"/general_model.prototxt")
+                    self.model_toolkit_fn.append(node.name+"/model_toolkit.prototxt")
+                    self.subdirectory.append(node.name)
+                    model_config_paths_list_idx += 1
+                    if model_config_paths_list_idx == len(model_config_paths_args):
+                        break
+        #Right now, this is not useful.
+        elif isinstance(model_config_paths_args, dict):
+            self.model_config_paths = collections.OrderedDict()
+            for node_str, path in model_config_paths_args.items():
                 node = server_sdk.DAGNode()
                 google.protobuf.text_format.Parse(node_str, node)
                 self.model_config_paths[node.name] = path
             print("You have specified multiple model paths, please ensure "
                   "that the input and output of multiple models are the same.")
-            workflow_oi_config_path = list(self.model_config_paths.items())[0][
-                1]
+            f = open("{}/serving_server_conf.prototxt".format(path), 'r')
+            self.model_conf[node.name] = google.protobuf.text_format.Merge(
+            str(f.read()), m_config.GeneralModelConfig())
         else:
-            raise Exception("The type of model_config_paths must be str or "
+            raise Exception("The type of model_config_paths must be str or list or "
                             "dict({op: model_path}), not {}.".format(
-                                type(model_config_paths)))
-
-        self.model_conf = m_config.GeneralModelConfig()
-        f = open(
-            "{}/serving_server_conf.prototxt".format(workflow_oi_config_path),
-            'r')
-        self.model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), self.model_conf)
+                                type(model_config_paths_args)))
         # check config here
         # print config here
 
@@ -371,6 +389,10 @@ class Server(object):
             os.system("mkdir -p {}".format(workdir))
         os.system("touch {}/fluid_time_file".format(workdir))
 
+        for subdir in self.subdirectory:
+            os.system("mkdir {}/{}".format(workdir, subdir))
+            os.system("touch {}/{}/fluid_time_file".format(workdir, subdir))
+
         if not self.port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
 
@@ -382,14 +404,17 @@ class Server(object):
         self.workdir = workdir
 
         infer_service_fn = "{}/{}".format(workdir, self.infer_service_fn)
-        workflow_fn = "{}/{}".format(workdir, self.workflow_fn)
-        resource_fn = "{}/{}".format(workdir, self.resource_fn)
-        model_toolkit_fn = "{}/{}".format(workdir, self.model_toolkit_fn)
-
         self._write_pb_str(infer_service_fn, self.infer_service_conf)
+
+        workflow_fn = "{}/{}".format(workdir, self.workflow_fn)
         self._write_pb_str(workflow_fn, self.workflow_conf)
+
+        resource_fn = "{}/{}".format(workdir, self.resource_fn)
         self._write_pb_str(resource_fn, self.resource_conf)
-        self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf)
+
+        for idx,single_model_toolkit_fn in enumerate(self.model_toolkit_fn):
+            model_toolkit_fn = "{}/{}".format(workdir, single_model_toolkit_fn)
+            self._write_pb_str(model_toolkit_fn, self.model_toolkit_conf[idx])
 
     def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -476,7 +501,6 @@ class Server(object):
 
         os.system(command)
 
-
 class MultiLangServer(object):
     def __init__(self):
         self.bserver_ = Server()
@@ -532,17 +556,51 @@ class MultiLangServer(object):
     def set_gpuid(self, gpuid=0):
         self.bserver_.set_gpuid(gpuid)
 
-    def load_model_config(self, server_config_paths, client_config_path=None):
-        self.bserver_.load_model_config(server_config_paths)
+    def load_model_config(self, server_config_dir_paths, client_config_path=None):
+        if isinstance(server_config_dir_paths, str):
+            server_config_dir_paths = [server_config_dir_paths]
+        elif isinstance(server_config_dir_paths, list):
+            pass
+        else:
+            raise Exception("The type of model_config_paths must be str or list"
+                            ", not {}.".format(
+                                type(server_config_dir_paths)))
+        
+
+        for single_model_config in server_config_dir_paths:
+            if os.path.isdir(single_model_config):
+                pass
+            elif os.path.isfile(single_model_config):
+                raise ValueError("The input of --model should be a dir not file.")
+
+        self.bserver_.load_model_config(server_config_dir_paths)
         if client_config_path is None:
-            if isinstance(server_config_paths, dict):
+            #now dict is not useful.
+            if isinstance(server_config_dir_paths, dict):
                 self.is_multi_model_ = True
-                client_config_path = '{}/serving_server_conf.prototxt'.format(
-                    list(server_config_paths.items())[0][1])
+                client_config_path = []
+                for server_config_path_items in list(server_config_dir_paths.items()):
+                    client_config_path.append( server_config_path_items[1] )
+            elif isinstance(server_config_dir_paths, list):
+                self.is_multi_model_ = False
+                client_config_path = server_config_dir_paths
             else:
-                client_config_path = '{}/serving_server_conf.prototxt'.format(
-                    server_config_paths)
-        self.bclient_config_path_ = client_config_path
+                raise Exception("The type of model_config_paths must be str or list or "
+                            "dict({op: model_path}), not {}.".format(
+                                type(server_config_dir_paths)))
+        if isinstance(client_config_path, str):
+            client_config_path = [client_config_path]
+        elif isinstance(client_config_path, list):
+            pass
+        else:# dict is not support right now.
+            raise Exception("The type of client_config_path must be str or list or "
+                            "dict({op: model_path}), not {}.".format(
+                                type(client_config_path)))
+        if len(client_config_path) != len(server_config_dir_paths):
+            raise Warning("The len(client_config_path) is {}, != len(server_config_dir_paths) {}."
+                            .format( len(client_config_path), len(server_config_dir_paths) )
+                            )
+        self.bclient_config_path_list = client_config_path
 
     def prepare_server(self,
                        workdir=None,
@@ -588,7 +646,7 @@ class MultiLangServer(object):
             maximum_concurrent_rpcs=self.concurrency_)
         multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
             MultiLangServerServiceServicer(
-                self.bclient_config_path_, self.is_multi_model_,
+                self.bclient_config_path_list, self.is_multi_model_,
                 ["0.0.0.0:{}".format(self.port_list_[0])]), server)
         server.add_insecure_port('[::]:{}'.format(self.gport_))
         server.start()
