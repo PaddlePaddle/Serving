@@ -267,6 +267,10 @@ class WebService(object):
         from paddle_serving_app.local_predict import LocalPredictor
         self.client = LocalPredictor()
         if gpu:
+            # if user forget to call function `set_gpus` to set self.gpus.
+            # default self.gpus = [0].
+            if len(self.gpus) == 0:
+                self.gpus.append(0)
             self.client.load_model_config(
                 "{}".format(self.model_config), use_gpu=True, gpu_id=self.gpus[0])
         else:
