@@ -110,14 +110,14 @@ class FluidFamilyCore {
 
 服务端实例透视图
 
-![服务端实例透视图](server-side.png)
+![服务端实例透视图](../server-side.png)
 
 
 #### 4.2.2 Paddle Serving的多服务机制
 
 ![Paddle Serving的多服务机制](../multi-service.png)
 
-Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../tools/cpp_examples/demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
+Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../..//tools/cpp_examples/demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
 #### 4.2.3 业务调度层级关系
 
