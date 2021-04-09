@@ -104,7 +104,7 @@ With reference to the abstract idea of model calculation of the TensorFlow frame
 
 ![Infer Service](../predict-service.png)
 
-Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](./deprecated/CREATING.md) (simplified Chinese Version)
+Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](CREATING.md) (simplified Chinese Version)
 
 Server instance perspective
 
