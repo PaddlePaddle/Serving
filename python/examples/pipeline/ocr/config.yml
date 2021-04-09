@@ -40,7 +40,7 @@ op:
             fetch_list: ["concat_1.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "2"
+            devices: "0"
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 2
@@ -64,4 +64,4 @@ op:
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"] 
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "2"
+            devices: "0"
