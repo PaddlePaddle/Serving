@@ -10,7 +10,7 @@ Next, we will take the text classification task as an example to show model ense
 
 In this example (see the figure below), the server side predict the bow and CNN models with the same input in a service in parallel, The client side fetchs the prediction results of the two models, and processes the prediction results to get the final predict results.
 
-![simple example](model_ensemble_example.png)
+![simple example](../model_ensemble_example.png)
 
 It should be noted that at present, only multiple models with the same format input and output in the same service are supported. In this example, the input and output formats of CNN and BOW model are the same.
 
