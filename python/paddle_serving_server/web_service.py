@@ -116,7 +116,7 @@ class WebService(object):
                 device = "arm"
             else:
                 device = "cpu"
-        op_maker = serving.OpMaker()
+        op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
 
         read_op = op_maker.create('general_reader')

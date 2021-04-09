@@ -34,6 +34,7 @@ import platform
 import numpy as np
 import grpc
 import sys
+import collections
 
 from multiprocessing import Pool, Process
 from concurrent import futures
@@ -154,13 +155,12 @@ class Server(object):
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = []
-            self.model_toolkit_conf = server_sdk.ModelToolkitConf()
 
         for engine_name, model_config_path in model_config_paths.items():
             engine = server_sdk.EngineDesc()
             engine.name = engine_name
             # engine.reloadable_meta = model_config_path + "/fluid_time_file"
-            engine.reloadable_meta = self.workdir + "/fluid_time_file"
+            engine.reloadable_meta = model_config_path + "/fluid_time_file"
             os.system("touch {}".format(engine.reloadable_meta))
             engine.reloadable_type = "timestamp_ne"
             engine.runtime_thread_num = 0
@@ -292,7 +292,6 @@ class Server(object):
     def get_device_version(self):
         avx_flag = False
         mkl_flag = self.mkl_flag
-        openblas_flag = False
         r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
         if r == 0:
             avx_flag = True
@@ -387,10 +386,8 @@ class Server(object):
             os.system("mkdir -p {}".format(workdir))
         else:
             os.system("mkdir -p {}".format(workdir))
-        os.system("touch {}/fluid_time_file".format(workdir))
-
         for subdir in self.subdirectory:
-            os.system("mkdir {}/{}".format(workdir, subdir))
+            os.system("mkdir -p {}/{}".format(workdir, subdir))
             os.system("touch {}/{}/fluid_time_file".format(workdir, subdir))
 
         if not self.port_is_available(port):
@@ -507,7 +504,7 @@ class MultiLangServer(object):
         self.worker_num_ = 4
         self.body_size_ = 64 * 1024 * 1024
         self.concurrency_ = 100000
-        self.is_multi_model_ = False  # for model ensemble
+        self.is_multi_model_ = False  # for model ensemble, which is not useful right now.
 
     def set_max_concurrency(self, concurrency):
         self.concurrency_ = concurrency
