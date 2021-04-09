@@ -66,7 +66,7 @@ def save_model(server_model_folder,
 
 ## 4. Paddle Serving Underlying Framework
 
-![Paddle-Serging Overall Architecture](framework.png)
+![Paddle-Serging Overall Architecture](../framework.png)
 
 **Model Management Framework**: Connects model files of multiple machine learning platforms and provides a unified inference interface
 **Business Scheduling Framework**: Abstracts the calculation logic of various different inference models, provides a general DAG scheduling framework, and connects different operators through DAG diagrams to complete a prediction service together. This abstract model allows users to conveniently implement their own calculation logic, and at the same time facilitates operator sharing. (Users build their own forecasting services. A large part of their work is to build DAGs and provide operators.)
