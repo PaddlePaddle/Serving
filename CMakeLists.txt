@@ -60,11 +60,6 @@ option(WITH_TRT             "Compile Paddle Serving with TRT"                   
 option(PADDLE_ON_INFERENCE  "Compile for encryption"                             ON)
 option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                    OFF)
 
-
-
-
-
-
 if (WITH_OPENCV)
     SET(OPENCV_DIR "" CACHE PATH "Location of libraries")
     if(NOT DEFINED OPENCV_DIR)
