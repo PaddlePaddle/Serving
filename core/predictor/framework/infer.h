@@ -512,7 +512,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
     //Inside each for loop, use the in[i]->name as inputName and call 'core->GetInputHandle(inputName)' to get the pointer of InputData.
     //Set the lod and shape information of InputData first. then copy data from cpu to the core.
     const TensorVector* tensorVector_in_pointer = reinterpret_cast<const TensorVector*>(in);
-    for(int i =0; i< tensorVector_in_pointer->size();++i){
+    for (int i=0; i < tensorVector_in_pointer->size(); ++i) {
       auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
       lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
       lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
@@ -552,7 +552,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
     }
     //Get the type and shape information of OutputData first. then copy data to cpu from the core.
     //The pointer type of data_out must be one of float *,int64_t*,int32_t* instead void*.
-    for (int i = 0; i < outnames.size(); ++i){
+    for (int i=0; i < outnames.size(); ++i) {
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       output_shape = lod_tensor_out->shape();
       out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
@@ -596,7 +596,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
       tensor_out.dtype = paddle::PaddleDType(dataType);
       tensor_out.shape.assign(output_shape.begin(), output_shape.end());
       std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
-      for (int li = 0; li < out_lod.size(); ++li) {
+      for (int li=0; li < out_lod.size(); ++li) {
         std::vector<size_t> lod_element;
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out.lod.push_back(lod_element);

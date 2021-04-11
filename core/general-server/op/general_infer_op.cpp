@@ -71,10 +71,7 @@ int GeneralInferOp::inference() {
   TensorVector *out = &output_blob->tensor_vector;
 
   int batch_size = input_blob->_batch_size;
-  VLOG(2) << "(logid=" << log_id << ") input batch size: " << batch_size;
-
   output_blob->_batch_size = batch_size;
-
   VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
   Timer timeline;

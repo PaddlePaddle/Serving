@@ -31,13 +31,18 @@ sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
 
+#param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
+#param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
+#param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
+#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
 bytes_type = 3
+#int_type,float_type,string_type are the set of each subdivision classes.
 int_type = set([int64_type, int32_type])
 float_type = set([float32_type])
-string_type= set([bytes_type])
+string_type = set([bytes_type])
 
 
 class _NOPProfiler(object):
@@ -172,9 +177,9 @@ class Client(object):
         self.client_handle_.init_gflags([sys.argv[
             0]] + ["--tryfromenv=" + ",".join(read_env_flags)])
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.feed_names_to_idx_ = {}#this is not useful
+        self.feed_names_to_idx_ = {}  #this is not useful
         self.lod_tensor_set = set()
-        self.feed_tensor_len = {}#this is only used for shape check
+        self.feed_tensor_len = {}  #this is only used for shape check
         self.key = None
 
         for i, var in enumerate(model_conf.feed_var):
@@ -420,9 +425,9 @@ class Client(object):
             res = self.client_handle_.numpy_predict(
                 float_slot_batch, float_feed_names, float_shape,
                 float_lod_slot_batch, int_slot_batch, int_feed_names, int_shape,
-                int_lod_slot_batch, string_slot_batch, string_feed_names, string_shape,
-                string_lod_slot_batch, fetch_names, result_batch_handle, self.pid,
-                log_id)
+                int_lod_slot_batch, string_slot_batch, string_feed_names,
+                string_shape, string_lod_slot_batch, fetch_names,
+                result_batch_handle, self.pid, log_id)
         elif self.has_numpy_input == False:
             raise ValueError(
                 "Please make sure all of your inputs are numpy array")

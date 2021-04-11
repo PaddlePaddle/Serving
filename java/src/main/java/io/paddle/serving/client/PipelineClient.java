@@ -88,7 +88,7 @@ public class PipelineClient {
             keys.add(entry.getKey());
             values.add(entry.getValue());
         }
-        if(profile){
+        if (profile) {
             keys.add(_profile_key);
             values.add(_profile_value);
         }

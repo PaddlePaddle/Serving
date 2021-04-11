@@ -32,7 +32,7 @@ public class PipelineClientExample {
         System.out.println(fetch);
         
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("127.0.0.1","18070")){
+            if (!StaticPipelineClient.initClient("127.0.0.1","18070")) {
                 System.out.println("connect failed.");
                 return false;
             }
@@ -57,7 +57,7 @@ public class PipelineClientExample {
         List<String> fetch = Arrays.asList("prediction");
         System.out.println(fetch);
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("127.0.0.1","18070")){
+            if (!StaticPipelineClient.initClient("127.0.0.1","18070")) {
                 System.out.println("connect failed.");
                 return false;
             }
@@ -86,7 +86,7 @@ public class PipelineClientExample {
             }};
         List<String> fetch = Arrays.asList("prediction");
         if (StaticPipelineClient.succ != true) {
-            if(!StaticPipelineClient.initClient("127.0.0.1","9998")){
+            if (!StaticPipelineClient.initClient("127.0.0.1","9998")) {
                 System.out.println("connect failed.");
                 return false;
             }
@@ -105,7 +105,7 @@ public class PipelineClientExample {
    * @param npdata INDArray type(The input data).
    * @return String (specified String type for python Numpy eval method).
    */
-    String convertINDArrayToString(INDArray npdata){
+    String convertINDArrayToString(INDArray npdata) {
         return "array("+npdata.toString()+")";
     }
 

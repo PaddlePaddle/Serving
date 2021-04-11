@@ -37,6 +37,8 @@ if(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel"
       FORCE)
 endif()
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
   "A path setting third party libraries download & build directories.")
@@ -49,21 +51,19 @@ option(WITH_GPU	            "Compile Paddle Serving with NVIDIA GPU"            
 option(WITH_LITE            "Compile Paddle Serving with Paddle Lite Engine"    OFF)
 option(WITH_XPU	            "Compile Paddle Serving with Baidu Kunlun"          OFF)
 option(WITH_PYTHON          "Compile Paddle Serving with Python"                 ON)
-option(CLIENT  	            "Compile Paddle Serving Client"		        OFF)
-option(SERVER	            "Compile Paddle Serving Server"		        OFF)
-option(APP                  "Compile Paddle Serving App package"	        OFF)
+option(CLIENT  	            "Compile Paddle Serving Client"		                OFF)
+option(SERVER	            "Compile Paddle Serving Server"		                OFF)
+option(APP                  "Compile Paddle Serving App package"	            OFF)
 option(WITH_ELASTIC_CTR     "Compile ELASITC-CTR solution"                      OFF)
 option(PACK                 "Compile for whl"                                   OFF)
 option(WITH_TRT             "Compile Paddle Serving with TRT"                   OFF)
 option(PADDLE_ON_INFERENCE  "Compile for encryption"                             ON)
-option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                OFF)
-option(WITH_GDB             "Compile Paddle Serving with GDB"                   OFF)
+option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                    OFF)
 
-if (WITH_GDB)
-    SET(CMAKE_BUILD_TYPE "Debug")
-    SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
-    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
-endif()
+
+
+
+
 
 if (WITH_OPENCV)
     SET(OPENCV_DIR "" CACHE PATH "Location of libraries")

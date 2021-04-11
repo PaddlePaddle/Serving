@@ -30,10 +30,10 @@ public class StaticPipelineClient {
    * @param strPort String type(The server port) such as "8891".
    * @return boolean (the sign of connect status).
    */
-    public static boolean initClient(String strIp,String strPort){
+    public static boolean initClient(String strIp,String strPort) {
         String target = strIp+ ":"+ strPort;//"172.17.0.2:18070";
         System.out.println("initial connect.");
-        if(succ){
+        if (succ) {
             System.out.println("already connect.");
             return true;
         }

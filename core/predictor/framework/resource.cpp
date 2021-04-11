@@ -150,10 +150,8 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 
   if (FLAGS_enable_model_toolkit) {
     size_t model_toolkit_num = resource_conf.model_toolkit_path_size();
-    for (size_t mi = 0; mi < model_toolkit_num; ++mi) {
-      
+    for (size_t mi=0; mi < model_toolkit_num; ++mi) {
       std::string model_toolkit_path = resource_conf.model_toolkit_path(mi);
-
       std::string model_toolkit_file = resource_conf.model_toolkit_file(mi);
 
       if (InferManager::instance().proc_initialize(
@@ -227,7 +225,7 @@ int Resource::general_model_initialize(const std::string& path,
     return -1;
   }
   size_t general_model_num = resource_conf.general_model_path_size();
-  for (size_t gi = 0; gi < general_model_num; ++gi) {
+  for (size_t gi=0; gi < general_model_num; ++gi) {
 
 
     std::string general_model_path = resource_conf.general_model_path(gi);
@@ -251,7 +249,7 @@ int Resource::general_model_initialize(const std::string& path,
     _config->_is_lod_feed.resize(feed_var_num);
     _config->_capacity.resize(feed_var_num);
     _config->_feed_shape.resize(feed_var_num);
-    for (int i = 0; i < feed_var_num; ++i) {
+    for (int i=0; i < feed_var_num; ++i) {
       _config->_feed_name[i] = model_config.feed_var(i).name();
       _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
       VLOG(2) << "feed var[" << i << "]: " << _config->_feed_name[i];
@@ -267,7 +265,7 @@ int Resource::general_model_initialize(const std::string& path,
         VLOG(2) << "var[" << i << "] is tensor";
         _config->_capacity[i] = 1;
         _config->_is_lod_feed[i] = false;
-        for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
+        for (int j=0; j < model_config.feed_var(i).shape_size(); ++j) {
           int32_t dim = model_config.feed_var(i).shape(j);
           VLOG(2) << "var[" << i << "].shape[" << i << "]: " << dim;
           _config->_feed_shape[i].push_back(dim);
@@ -281,7 +279,7 @@ int Resource::general_model_initialize(const std::string& path,
     _config->_fetch_name.resize(fetch_var_num);
     _config->_fetch_alias_name.resize(fetch_var_num);
     _config->_fetch_shape.resize(fetch_var_num);
-    for (int i = 0; i < fetch_var_num; ++i) {
+    for (int i=0; i < fetch_var_num; ++i) {
       _config->_fetch_name[i] = model_config.fetch_var(i).name();
       _config->_fetch_alias_name[i] = model_config.fetch_var(i).alias_name();
       _config->_fetch_name_to_index[_config->_fetch_name[i]] = i;
@@ -292,7 +290,7 @@ int Resource::general_model_initialize(const std::string& path,
         _config->_is_lod_fetch[i] = true;
       } else {
         _config->_is_lod_fetch[i] = false;
-        for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
+        for (int j=0; j < model_config.fetch_var(i).shape_size(); ++j) {
           int dim = model_config.fetch_var(i).shape(j);
           _config->_fetch_shape[i].push_back(dim);
         }

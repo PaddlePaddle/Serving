@@ -64,7 +64,7 @@ int PredictorClient::init(const std::vector<std::string> &conf_file) {
                  << ", file path: " << conf_file[0];
       return -1;
     }
-    
+
     _feed_name_to_idx.clear();
     _fetch_name_to_idx.clear();
     _shape.clear();
@@ -88,7 +88,7 @@ int PredictorClient::init(const std::vector<std::string> &conf_file) {
       _shape.push_back(tmp_feed_shape);
     }
 
-    if (conf_file.size()>1) {
+    if (conf_file.size() > 1) {
       model_config.Clear();
       if (configure::read_proto_conf(conf_file[conf_file.size()-1].c_str(), &model_config) != 0) {
         LOG(ERROR) << "Failed to load general model config"
@@ -162,8 +162,8 @@ int PredictorClient::numpy_predict(
     PredictorRes &predict_res_batch,
     const int &pid,
     const uint64_t log_id) {
-  int batch_size = std::max( float_feed_batch.size(), int_feed_batch.size() );
-  batch_size = batch_size>string_feed_batch.size()? batch_size : string_feed_batch.size();
+  int batch_size = std::max(float_feed_batch.size(), int_feed_batch.size());
+  batch_size = batch_size > string_feed_batch.size() ? batch_size : string_feed_batch.size();
   VLOG(2) << "batch size: " << batch_size;
   predict_res_batch.clear();
   Timer timeline;
@@ -186,6 +186,8 @@ int PredictorClient::numpy_predict(
     req.add_fetch_var_names(name);
   }
 
+  int vec_idx = 0;
+
   for (int bi = 0; bi < batch_size; bi++) {
     VLOG(2) << "prepare batch " << bi;
     std::vector<Tensor *> tensor_vec;
@@ -207,9 +209,13 @@ int PredictorClient::numpy_predict(
 
     VLOG(2) << "batch [" << bi << "] " << "prepared";
 
-    int vec_idx = 0;
+    vec_idx = 0;
     for (auto &name : float_feed_name) {
       int idx = _feed_name_to_idx[name];
+      if (idx >= tensor_vec.size()) {
+        LOG(ERROR) << "idx > tensor_vec.size()";
+        return -1;
+      }
       Tensor *tensor = tensor_vec[idx];
       VLOG(2) << "prepare float feed " << name << " shape size "
               << float_shape[vec_idx].size();
@@ -272,6 +278,10 @@ int PredictorClient::numpy_predict(
     vec_idx = 0;
     for (auto &name : int_feed_name) {
       int idx = _feed_name_to_idx[name];
+      if (idx >= tensor_vec.size()) {
+        LOG(ERROR) << "idx > tensor_vec.size()";
+        return -1;
+      }
       Tensor *tensor = tensor_vec[idx];
 
       for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
@@ -358,6 +368,10 @@ int PredictorClient::numpy_predict(
     vec_idx = 0;
     for (auto &name : string_feed_name) {
       int idx = _feed_name_to_idx[name];
+      if (idx >= tensor_vec.size()) {
+        LOG(ERROR) << "idx > tensor_vec.size()";
+        return -1;
+      }
       Tensor *tensor = tensor_vec[idx];
 
       for (uint32_t j = 0; j < string_shape[vec_idx].size(); ++j) {
@@ -371,7 +385,7 @@ int PredictorClient::numpy_predict(
       const int string_shape_size = string_shape[vec_idx].size();
       //string_shape[vec_idx] = [1];cause numpy has no datatype of string.
       //we pass string via vector<vector<string> >.
-      if( string_shape_size!= 1 ){
+      if (string_shape_size != 1) {
         LOG(ERROR) << "string_shape_size should be 1-D, but received is : " << string_shape_size;
         return -1;
       }
