@@ -116,22 +116,6 @@ make -j10
 
 可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
 
-### 开启WITH_OPENCV选项编译C++ Server
-编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要安装安装openCV库，若没有可参考本文档后面的说明编译安装openCV库。
-
-在编译命令中，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项，例如：
-``` shell
-OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。
-mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DOPENCV_DIR=${OPENCV_DIR} \
-    -DWITH_OPENCV=ON
-    -DSERVER=ON ..
-make -j10
-```
-
 ### 集成GPU版本Paddle Inference Library
 
 相比CPU环境，GPU环境需要参考以下表格,
@@ -166,6 +150,24 @@ make -j10
 ```
 
 执行`make install`可以把目标产出放在`./output`目录下。
+
+### 开启WITH_OPENCV选项编译C++ Server
+**注意：** 只有当您需要对Paddle Serving C++部分进行二次开发，且新增的代码依赖于openCV库时，您才需要这样做。
+
+编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要已安装的OpenCV库，若尚未安装，可参考本文档后面的说明编译安装OpenCV库。
+
+以开启WITH_OPENCV选项，编译CPU版本Paddle Inference Library为例，在上述编译命令基础上，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项。
+``` shell
+OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。
+mkdir server-build-cpu && cd server-build-cpu
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DOPENCV_DIR=${OPENCV_DIR} \
+    -DWITH_OPENCV=ON
+    -DSERVER=ON ..
+make -j10
+```
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
@@ -267,9 +269,10 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 
 从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_LIBRARY`参数，指定CuDNN库所在路径。
 
-## 编译安装opencv库
+## 编译安装OpenCV库
+**注意：** 只有当您需要在C++代码中引入OpenCV库时，您才需要这样做。
 
-* 首先需要从opencv官网上下载在Linux环境下源码编译的包，以opencv3.4.7为例，下载命令如下。
+* 首先需要从OpenCV官网上下载在Linux环境下源码编译的包，以OpenCV3.4.7为例，下载命令如下。
 
 ```
 wget https://github.com/opencv/opencv/archive/3.4.7.tar.gz
@@ -278,7 +281,7 @@ tar -xf 3.4.7.tar.gz
 
 最终可以在当前目录下看到`opencv-3.4.7/`的文件夹。
 
-* 编译opencv，设置opencv源码路径(`root_path`)以及安装路径(`install_path`)。进入opencv源码路径下，按照下面的方式进行编译。
+* 编译OpenCV，设置OpenCV源码路径(`root_path`)以及安装路径(`install_path`)。进入OpenCV源码路径下，按照下面的方式进行编译。
 
 ```shell
 root_path=your_opencv_root_path
@@ -311,7 +314,7 @@ make install
 ```
 
 
-其中`root_path`为下载的opencv源码路径，`install_path`为opencv的安装路径，`make install`完成之后，会在该文件夹下生成opencv头文件和库文件，用于后面的OCR代码编译。
+其中`root_path`为下载的OpenCV源码路径，`install_path`为OpenCV的安装路径，`make install`完成之后，会在该文件夹下生成OpenCV头文件和库文件，用于引用OpenCV库的代码的编译。
 
 最终在安装路径下的文件结构如下所示。
 
