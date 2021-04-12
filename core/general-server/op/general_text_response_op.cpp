@@ -58,7 +58,7 @@ int GeneralTextResponseOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config().back();
 
   std::vector<int> fetch_index;
   fetch_index.resize(req->fetch_var_names_size());

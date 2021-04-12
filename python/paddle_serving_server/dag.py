@@ -13,7 +13,9 @@ class OpMaker(object):
             "general_text_response": "GeneralTextResponseOp",
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv_infer": "GeneralDistKVInferOp",
-            "general_dist_kv": "GeneralDistKVOp"
+            "general_dist_kv": "GeneralDistKVOp",
+            "general_copy": "GeneralCopyOp",
+            "general_detection":"GeneralDetectionOp",
         }
         self.node_name_suffix_ = collections.defaultdict(int)
 
@@ -44,7 +46,6 @@ class OpMaker(object):
         # so it is processed into a string. This has little effect on
         # overall efficiency.
         return google.protobuf.text_format.MessageToString(node)
-
 
 class OpSeqMaker(object):
     def __init__(self):
@@ -78,7 +79,8 @@ class OpSeqMaker(object):
         workflow_conf.workflows.extend([self.workflow])
         return workflow_conf
 
-
+# TODO:Currently, SDK only supports "Sequence".OpGraphMaker is not useful.
+# Config should be changed to adapt command-line for list[dict] or list[list[] ]
 class OpGraphMaker(object):
     def __init__(self):
         self.workflow = server_sdk.Workflow()

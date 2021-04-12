@@ -14,7 +14,6 @@
 # pylint: disable=doc-string-missing
 
 from . import version
-
 from . import client
 from .client import *
 
