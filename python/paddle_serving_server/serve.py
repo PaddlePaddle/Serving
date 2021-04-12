@@ -125,10 +125,10 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
 
     for idx, single_model in enumerate(model):
         infer_op_name = "general_infer"
-        if len(model) == 2 and idx == 0:
+        #Temporary support for OCR model,it will be completely revised later
+        #If you want to use this, C++ server must compile with WITH_OPENCV option.
+        if len(model) == 2 and idx == 0 and model == 'ocr_det_model':
             infer_op_name = "general_detection"
-        else:
-            infer_op_name = "general_infer"
         general_infer_op = op_maker.create(infer_op_name)
         op_seq_maker.add_op(general_infer_op)
     
