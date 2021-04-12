@@ -47,7 +47,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ### 包含多个输入的节点
 
-在[Paddle Serving中的集成预测](MODEL_ENSEMBLE_IN_PADDLE_SERVING_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
+在[Paddle Serving中的集成预测](./deprecated/MODEL_ENSEMBLE_IN_PADDLE_SERVING_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
 
 <center>
 <img src='complex_dag.png' width = "480" height = "400" align="middle"/>
