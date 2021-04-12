@@ -14,9 +14,9 @@
 
      0-int64
     
-      1-float32
+     1-float32
     
-      2-int32
+     2-int32
 
 #### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
 
@@ -222,9 +222,7 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: python编译的GCC版本与serving的版本不匹配
 
-**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md#gpunvidia-docker)解决环境问题
-
-       2)修改anaconda的虚拟环境下安装的python的gcc版本[参考](https://www.jianshu.com/p/c498b3d86f77) 
+**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md#gpunvidia-docker)解决环境问题；2)修改anaconda的虚拟环境下安装的python的gcc版本[改变python的GCC编译环境](https://www.jianshu.com/p/c498b3d86f77) 
 
 #### Q: paddle-serving是否支持本地离线安装 
 

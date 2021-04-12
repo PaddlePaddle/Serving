@@ -115,7 +115,7 @@ Server instance perspective
 
 ![Paddle Serving multi-service](../multi-service.png)
 
-Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
+Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
 
 #### 4.2.3 Hierarchical relationship of business scheduling
 
@@ -124,7 +124,7 @@ From the client's perspective, a Paddle Serving service can be divided into thre
 ![Call hierarchy relationship](../multi-variants.png)
 
 One Service corresponds to one inference model, and there is one endpoint under the model. Different versions of the model are implemented through multiple variant concepts under endpoint:
-The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) section 3.2).
+The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](../CLIENT_CONFIGURE.md) section 3.2).
 
 ![Client-side proxy function](../client-side-proxy.png)
 
@@ -141,7 +141,7 @@ No matter how the communication protocol changes, the framework only needs to en
 
 ### 5.1 Data Compression Method
 
-Baidu-rpc has built-in data compression methods such as snappy, gzip, zlib, which can be configured in the configuration file (refer to [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) Section 3.1 for an introduction to compress_type)
+Baidu-rpc has built-in data compression methods such as snappy, gzip, zlib, which can be configured in the configuration file (refer to [Client Configuration](../CLIENT_CONFIGURE.md) Section 3.1 for an introduction to compress_type)
 
 ### 5.2 C ++ SDK API Interface
 

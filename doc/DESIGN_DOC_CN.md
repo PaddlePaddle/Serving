@@ -74,7 +74,7 @@ Paddle Serving提供了4种开发语言SDK，包括Python、C++、Java、Golang�
 
 其他深度学习平台训练的模型，可以通过《[PaddlePaddle/X2Paddle工具](https://github.com/PaddlePaddle/X2Paddle)》将多个主流的CV模型转为Paddle模型，测试过TensorFlow、Caffe、ONNX、PyTorch模型转换。
 
-以IMDB评论情感分析任务为例通过9步展示，Paddle Serving从模型的训练到部署预测服务的全流程《[端到端完成从训练到部署全流程](TRAIN_TO_SERVICE_CN.md)》
+以IMDB评论情感分析任务为例通过9步展示，Paddle Serving从模型的训练到部署预测服务的全流程《[AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)》
 
 由于无法直接查看模型文件中feed和fetch参数信息，不方便用户拼装参数。因此，Paddle Serving开发一个工具将Paddle模型转成Serving的格式，生成包含feed和fetch参数信息的prototxt文件。下图是uci_housing示例的生成的prototxt文件，更多转换方法参考文档《[怎样保存用于Paddle Serving的模型](SAVE_CN.md)》。
 ```
