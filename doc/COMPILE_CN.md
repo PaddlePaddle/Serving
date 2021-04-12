@@ -152,7 +152,7 @@ make -j10
 执行`make install`可以把目标产出放在`./output`目录下。
 
 ### 开启WITH_OPENCV选项编译C++ Server
-**注意：** 只有当您需要对Paddle Serving C++部分进行二次开发，且新增的代码依赖于openCV库时，您才需要这样做。
+**注意：** 只有当您需要对Paddle Serving C++部分进行二次开发，且新增的代码依赖于OpenCV库时，您才需要这样做。
 
 编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要已安装的OpenCV库，若尚未安装，可参考本文档后面的说明编译安装OpenCV库。
 
