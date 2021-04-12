@@ -92,7 +92,7 @@ with open('processed.data') as f:
         cnt[tag]['total'] += 1
 
     for tag, data in cnt.items():
-        print('[{}](total: {}) acc: {}'.format(tag, data['total'], float(data['acc'])/float(data['total']) ))
+        print('[{}]<total: {}> acc: {}'.format(tag, data['total'], float(data['acc'])/float(data['total']) ))
 ```
 代码中，`client.add_variant(tag, clusters, variant_weight)`是为了添加一个标签为`tag`、流量权重为`variant_weight`的variant。在这个样例中，添加了一个标签为`bow`、流量权重为`10`的BOW variant，以及一个标签为`lstm`、流量权重为`90`的LSTM variant。Client端的流量会根据`10:90`的比例分发到两个variant。
 
@@ -101,6 +101,6 @@ Client端做预测时，若指定参数`need_variant_tag=True`，返回值则包
 ### 预期结果
 由于网络情况的不同，可能每次预测的结果略有差异。
 ``` bash
-[lstm](total: 1867) acc: 0.490091055169
-[bow](total: 217) acc: 0.73732718894
+[lstm]<total: 1867> acc: 0.490091055169
+[bow]<total: 217> acc: 0.73732718894
 ```
