@@ -117,8 +117,9 @@ int GeneralDistKVQuantInferOp::inference() {
   std::unordered_map<int, int> in_out_map;
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
+  //TODO:Temporary addition, specific details to be studied by HexToString
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config()[0];
   int cube_quant_bits = resource.get_cube_quant_bits();
   size_t EMBEDDING_SIZE = 0;
   if (cube_quant_bits == 0) {

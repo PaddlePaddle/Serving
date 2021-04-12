@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  //google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();
 
@@ -202,6 +202,7 @@ int main(int argc, char** argv) {
   }
   VLOG(2) << "Succ call pthread worker start function";
 
+  //this is not used by any code segment,which can be cancelled.
   if (Resource::instance().general_model_initialize(FLAGS_resource_path,
                                                     FLAGS_resource_file) != 0) {
     LOG(ERROR) << "Failed to initialize general model conf: "

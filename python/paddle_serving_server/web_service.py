@@ -23,8 +23,7 @@ from paddle_serving_server.serve import start_multi_card
 import socket
 import sys
 import numpy as np
-import paddle_serving_server as serving
-
+import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 
@@ -64,23 +63,39 @@ class WebService(object):
     def run_service(self):
         self._server.run_server()
 
-    def load_model_config(self, model_config):
-        print("This API will be deprecated later. Please do not use it")
-        self.model_config = model_config
-        import os
+    def load_model_config(self, server_config_dir_paths, client_config_path=None):
+        if isinstance(server_config_dir_paths, str):
+            server_config_dir_paths = [server_config_dir_paths]
+        elif isinstance(server_config_dir_paths, list):
+            pass
+
+        for single_model_config in server_config_dir_paths:
+            if os.path.isdir(single_model_config):
+                pass
+            elif os.path.isfile(single_model_config):
+                raise ValueError("The input of --model should be a dir not file.")
+        self.server_config_dir_paths = server_config_dir_paths
         from .proto import general_model_config_pb2 as m_config
         import google.protobuf.text_format
-        if os.path.isdir(model_config):
-            client_config = "{}/serving_server_conf.prototxt".format(
-                model_config)
-        elif os.path.isfile(model_config):
-            client_config = model_config
+        file_path_list = []
+        for single_model_config in self.server_config_dir_paths:
+            file_path_list.append( "{}/serving_server_conf.prototxt".format(single_model_config) )
+        
         model_conf = m_config.GeneralModelConfig()
-        f = open(client_config, 'r')
+        f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
         self.feed_vars = {var.name: var for var in model_conf.feed_var}
+
+        if len(file_path_list) > 1:
+            model_conf = m_config.GeneralModelConfig()
+            f = open(file_path_list[-1], 'r')
+            model_conf = google.protobuf.text_format.Merge(
+                str(f.read()), model_conf)
+
         self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
+        if client_config_path == None:
+            self.client_config_path = self.server_config_dir_paths
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
@@ -101,14 +116,22 @@ class WebService(object):
                 device = "arm"
             else:
                 device = "cpu"
-        op_maker = serving.OpMaker()
-        read_op = op_maker.create('general_reader')
-        general_infer_op = op_maker.create('general_infer')
-        general_response_op = op_maker.create('general_response')
-
+        op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
+
+        read_op = op_maker.create('general_reader')
         op_seq_maker.add_op(read_op)
-        op_seq_maker.add_op(general_infer_op)
+
+        for idx, single_model in enumerate(self.server_config_dir_paths):
+            infer_op_name = "general_infer"
+            if len(self.server_config_dir_paths) == 2 and idx == 0:
+                infer_op_name = "general_detection"
+            else:
+                infer_op_name = "general_infer"
+            general_infer_op = op_maker.create(infer_op_name)
+            op_seq_maker.add_op(general_infer_op)
+        
+        general_response_op = op_maker.create('general_response')
         op_seq_maker.add_op(general_response_op)
 
         server = Server()
@@ -123,7 +146,7 @@ class WebService(object):
         if use_xpu:
             server.set_xpu()
 
-        server.load_model_config(self.model_config)
+        server.load_model_config(self.server_config_dir_paths)#brpc Server support server_config_dir_paths
         if gpuid >= 0:
             server.set_gpuid(gpuid)
         server.prepare_server(workdir=workdir, port=port, device=device)
@@ -182,8 +205,7 @@ class WebService(object):
     def _launch_web_service(self):
         gpu_num = len(self.gpus)
         self.client = Client()
-        self.client.load_client_config("{}/serving_server_conf.prototxt".format(
-            self.model_config))
+        self.client.load_client_config(self.client_config_path)
         endpoints = ""
         if gpu_num > 0:
             for i in range(gpu_num):
@@ -264,6 +286,10 @@ class WebService(object):
         self.app_instance = app_instance
 
     def _launch_local_predictor(self, gpu):
+        # actually, LocalPredictor is like a server, but it is WebService Request initiator
+        # for WebService it is a Client.
+        # local_predictor only support single-Model DirPath - Type:str
+        # so the input must be self.server_config_dir_paths[0]
         from paddle_serving_app.local_predict import LocalPredictor
         self.client = LocalPredictor()
         if gpu:
@@ -271,11 +297,9 @@ class WebService(object):
             # default self.gpus = [0].
             if len(self.gpus) == 0:
                 self.gpus.append(0)
-            self.client.load_model_config(
-                "{}".format(self.model_config), use_gpu=True, gpu_id=self.gpus[0])
+            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=True, gpu_id=self.gpus[0])
         else:
-            self.client.load_model_config(
-                "{}".format(self.model_config), use_gpu=False)
+            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")

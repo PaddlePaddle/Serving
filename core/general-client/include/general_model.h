@@ -207,7 +207,7 @@ class PredictorClient {
 
   void init_gflags(std::vector<std::string> argv);
 
-  int init(const std::string& client_conf);
+  int init(const std::vector<std::string> &client_conf);
 
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
@@ -227,6 +227,10 @@ class PredictorClient {
       const std::vector<std::string>& int_feed_name,
       const std::vector<std::vector<int>>& int_shape,
       const std::vector<std::vector<int>>& int_lod_slot_batch,
+      const std::vector<std::vector<std::string>>& string_feed_batch,
+      const std::vector<std::string>& string_feed_name,
+      const std::vector<std::vector<int>>& string_shape,
+      const std::vector<std::vector<int>>& string_lod_slot_batch,
       const std::vector<std::string>& fetch_name,
       PredictorRes& predict_res_batch,  // NOLINT
       const int& pid,

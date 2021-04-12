@@ -11,38 +11,55 @@ from .proto import multi_lang_general_model_service_pb2_grpc
 
 class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                                      MultiLangGeneralModelServiceServicer):
-    def __init__(self, model_config_path, is_multi_model, endpoints):
+    def __init__(self, model_config_path_list, is_multi_model, endpoints):
         self.is_multi_model_ = is_multi_model
-        self.model_config_path_ = model_config_path
+        self.model_config_path_list = model_config_path_list
         self.endpoints_ = endpoints
-        with open(self.model_config_path_) as f:
-            self.model_config_str_ = str(f.read())
-        self._parse_model_config(self.model_config_str_)
-        self._init_bclient(self.model_config_path_, self.endpoints_)
+        self._init_bclient(self.model_config_path_list, self.endpoints_)
+        self._parse_model_config(self.model_config_path_list)
 
-    def _init_bclient(self, model_config_path, endpoints, timeout_ms=None):
+    def _init_bclient(self, model_config_path_list, endpoints, timeout_ms=None):
         from paddle_serving_client import Client
         self.bclient_ = Client()
         if timeout_ms is not None:
             self.bclient_.set_rpc_timeout_ms(timeout_ms)
-        self.bclient_.load_client_config(model_config_path)
+        self.bclient_.load_client_config(model_config_path_list)
         self.bclient_.connect(endpoints)
 
-    def _parse_model_config(self, model_config_str):
+    def _parse_model_config(self, model_config_path_list):
+        if isinstance(model_config_path_list, str):
+            model_config_path_list = [model_config_path_list]
+        elif isinstance(model_config_path_list, list):
+            pass
+        
+        file_path_list = []
+        for single_model_config in model_config_path_list:
+            if os.path.isdir(single_model_config):
+                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                    single_model_config))
+            elif os.path.isfile(single_model_config):
+                file_path_list.append(single_model_config)
         model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(model_config_str,
-                                                       model_conf)
+        f = open(file_path_list[0], 'r')
+        model_conf = google.protobuf.text_format.Merge(
+            str(f.read()), model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_types_ = {}
         self.lod_tensor_set_ = set()
         for i, var in enumerate(model_conf.feed_var):
             self.feed_types_[var.alias_name] = var.feed_type
             self.feed_shapes_[var.alias_name] = var.shape
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
+        if len(file_path_list) > 1:
+            model_conf = m_config.GeneralModelConfig()
+            f = open(file_path_list[-1], 'r')
+            model_conf = google.protobuf.text_format.Merge(
+                str(f.read()), model_conf)
+        
+        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
+        self.fetch_types_ = {}
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_types_[var.alias_name] = var.fetch_type
             if var.is_lod_tensor:
@@ -69,11 +86,11 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 v_type = self.feed_types_[name]
                 data = None
                 if is_python:
-                    if v_type == 0:
+                    if v_type == 0:# int64
                         data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:
+                    elif v_type == 1:# float32
                         data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:
+                    elif v_type == 2:# int32
                         data = np.frombuffer(var.data, dtype="int32")
                     else:
                         raise Exception("error type.")
@@ -82,7 +99,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         data = np.array(list(var.int64_data), dtype="int64")
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:
+                    elif v_type == 2:# int32
                         data = np.array(list(var.int_data), dtype="int32")
                     else:
                         raise Exception("error type.")
@@ -138,7 +155,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         # This porcess and Inference process cannot be operate at the same time.
         # For performance reasons, do not add thread lock temporarily.
         timeout_ms = request.timeout_ms
-        self._init_bclient(self.model_config_path_, self.endpoints_, timeout_ms)
+        self._init_bclient(self.model_config_path_list, self.endpoints_, timeout_ms)
         resp = multi_lang_general_model_service_pb2.SimpleResponse()
         resp.err_code = 0
         return resp
@@ -155,6 +172,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         return self._pack_inference_response(ret, fetch_names, is_python)
 
     def GetClientConfig(self, request, context):
+        #model_config_path_list is list right now.
+        #dict should be added when graphMaker is used.
         resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
-        resp.client_config_str = self.model_config_str_
+        resp.client_config_str_list[:] = self.model_config_path_list
         return resp
