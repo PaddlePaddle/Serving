@@ -123,5 +123,5 @@ for this case, `feed_type` should be 3(which means the data type is string),`sha
 
 By passing in multiple client folder paths, the client can be started for multi model prediction.
 ```
-python ocr_c_client_bytes.py ocr_det_client ocr_rec_client
+python ocr_cpp_client.py ocr_det_client ocr_rec_client
 ```

@@ -122,5 +122,5 @@ python -m paddle_serving_server_gpu.serve --model ocr_det_model ocr_rec_model --
 
 通过在客户端启动后加入多个client模型的client配置文件夹路径，启动client进行预测。
 ```
-python ocr_c_client_bytes.py ocr_det_client ocr_rec_client
+python ocr_cpp_client.py ocr_det_client ocr_rec_client
 ```
