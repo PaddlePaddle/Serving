@@ -14,9 +14,9 @@
 
      0-int64
     
-      1-float32
+     1-float32
     
-      2-int32
+     2-int32
 
 #### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
 
