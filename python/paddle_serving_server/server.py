@@ -65,6 +65,8 @@ class Server(object):
         self.max_concurrency = 0
         self.num_threads = 2
         self.port = 8080
+        self.precision = "fp32"
+        self.use_calib = False
         self.reload_interval_s = 10
         self.max_body_size = 64 * 1024 * 1024
         self.module_path = os.path.dirname(paddle_serving_server.__file__)
@@ -107,6 +109,12 @@ class Server(object):
 
     def set_port(self, port):
         self.port = port
+
+    def set_precision(self, precision="fp32"):
+        self.precision = precision
+
+    def set_use_calib(self, use_calib=False):
+        self.use_calib = use_calib
 
     def set_reload_interval(self, interval):
         self.reload_interval_s = interval
@@ -471,6 +479,8 @@ class Server(object):
                       "-max_concurrency {} " \
                       "-num_threads {} " \
                       "-port {} " \
+                      "-precision {} " \
+                      "-use_calib {} " \
                       "-reload_interval_s {} " \
                       "-resource_path {} " \
                       "-resource_file {} " \
@@ -484,6 +494,8 @@ class Server(object):
                           self.max_concurrency,
                           self.num_threads,
                           self.port,
+                          self.precision,
+                          self.use_calib,
                           self.reload_interval_s,
                           self.workdir,
                           self.resource_fn,
@@ -499,6 +511,8 @@ class Server(object):
                       "-max_concurrency {} " \
                       "-num_threads {} " \
                       "-port {} " \
+                      "-precision {} " \
+                      "-use_calib {} " \
                       "-reload_interval_s {} " \
                       "-resource_path {} " \
                       "-resource_file {} " \
@@ -513,6 +527,8 @@ class Server(object):
                           self.max_concurrency,
                           self.num_threads,
                           self.port,
+                          self.precision,
+                          self.use_calib,
                           self.reload_interval_s,
                           self.workdir,
                           self.resource_fn,
@@ -560,6 +576,12 @@ class MultiLangServer(object):
 
     def set_port(self, port):
         self.gport_ = port
+
+    def set_precision(self, precision="fp32"):
+        self.precision = precision
+
+    def set_use_calib(self, use_calib=False):
+        self.use_calib = use_calib
 
     def set_reload_interval(self, interval):
         self.bserver_.set_reload_interval(interval)

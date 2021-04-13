@@ -27,6 +27,7 @@ import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 
+
 def port_is_available(port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         sock.settimeout(2)
@@ -35,6 +36,7 @@ def port_is_available(port):
         return True
     else:
         return False
+
 
 class WebService(object):
     def __init__(self, name="default_service"):
@@ -63,7 +65,9 @@ class WebService(object):
     def run_service(self):
         self._server.run_server()
 
-    def load_model_config(self, server_config_dir_paths, client_config_path=None):
+    def load_model_config(self,
+                          server_config_dir_paths,
+                          client_config_path=None):
         if isinstance(server_config_dir_paths, str):
             server_config_dir_paths = [server_config_dir_paths]
         elif isinstance(server_config_dir_paths, list):
@@ -73,14 +77,16 @@ class WebService(object):
             if os.path.isdir(single_model_config):
                 pass
             elif os.path.isfile(single_model_config):
-                raise ValueError("The input of --model should be a dir not file.")
+                raise ValueError(
+                    "The input of --model should be a dir not file.")
         self.server_config_dir_paths = server_config_dir_paths
         from .proto import general_model_config_pb2 as m_config
         import google.protobuf.text_format
         file_path_list = []
         for single_model_config in self.server_config_dir_paths:
-            file_path_list.append( "{}/serving_server_conf.prototxt".format(single_model_config) )
-        
+            file_path_list.append("{}/serving_server_conf.prototxt".format(
+                single_model_config))
+
         model_conf = m_config.GeneralModelConfig()
         f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -109,7 +115,9 @@ class WebService(object):
                             mem_optim=True,
                             use_lite=False,
                             use_xpu=False,
-                            ir_optim=False):
+                            ir_optim=False,
+                            precision="fp32",
+                            use_calib=False):
         device = "gpu"
         if gpuid == -1:
             if use_lite:
@@ -130,7 +138,7 @@ class WebService(object):
                 infer_op_name = "general_infer"
             general_infer_op = op_maker.create(infer_op_name)
             op_seq_maker.add_op(general_infer_op)
-        
+
         general_response_op = op_maker.create('general_response')
         op_seq_maker.add_op(general_response_op)
 
@@ -140,13 +148,16 @@ class WebService(object):
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
         server.set_device(device)
+        server.set_precision(precision)
+        server.set_use_calib(use_calib)
 
         if use_lite:
             server.set_lite()
         if use_xpu:
             server.set_xpu()
 
-        server.load_model_config(self.server_config_dir_paths)#brpc Server support server_config_dir_paths
+        server.load_model_config(self.server_config_dir_paths
+                                 )  #brpc Server support server_config_dir_paths
         if gpuid >= 0:
             server.set_gpuid(gpuid)
         server.prepare_server(workdir=workdir, port=port, device=device)
@@ -159,6 +170,8 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       precision="fp32",
+                       use_calib=False,
                        use_lite=False,
                        use_xpu=False,
                        ir_optim=False,
@@ -188,7 +201,9 @@ class WebService(object):
                     mem_optim=mem_optim,
                     use_lite=use_lite,
                     use_xpu=use_xpu,
-                    ir_optim=ir_optim))
+                    ir_optim=ir_optim,
+                    precision=precision,
+                    use_calib=use_calib))
         else:
             for i, gpuid in enumerate(self.gpus):
                 self.rpc_service_list.append(
@@ -200,7 +215,9 @@ class WebService(object):
                         mem_optim=mem_optim,
                         use_lite=use_lite,
                         use_xpu=use_xpu,
-                        ir_optim=ir_optim))
+                        ir_optim=ir_optim,
+                        precision=precision,
+                        use_calib=use_calib))
 
     def _launch_web_service(self):
         gpu_num = len(self.gpus)
@@ -297,9 +314,13 @@ class WebService(object):
             # default self.gpus = [0].
             if len(self.gpus) == 0:
                 self.gpus.append(0)
-            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=True, gpu_id=self.gpus[0])
+            self.client.load_model_config(
+                self.server_config_dir_paths[0],
+                use_gpu=True,
+                gpu_id=self.gpus[0])
         else:
-            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=False)
+            self.client.load_model_config(
+                self.server_config_dir_paths[0], use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")

@@ -40,6 +40,7 @@ DECLARE_int32(gpuid);
 
 static const int max_batch = 32;
 static const int min_subgraph_size = 3;
+static predictor::Precision precision_type;
 
 // Engine Base
 class PaddleEngineBase {
@@ -137,6 +138,7 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       // 2000MB GPU memory
       config.EnableUseGpu(2000, FLAGS_gpuid);
     }
+    precision_type = predictor::GetPrecision(FLAGS_precision);
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
@@ -145,15 +147,24 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
                                   min_subgraph_size,
-                                  Config::Precision::kFloat32,
+                                  precision_type,
                                   false,
                                   use_calib);
-      // EnableMkldnnBfloat16();
       LOG(INFO) << "create TensorRT predictor";
     }
 
     if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
-      config.EnableLiteEngine(PrecisionType::kFloat32, true);
+      config.EnableLiteEngine(precision_type, true);
+    }
+
+    if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
+        (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
+         engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
+      if (precision_type == Precision::kInt8) {
+        config.EnableMkldnnQuantizer();
+      } else if (precision_type == Precision::kHalf) {
+        config.EnableMkldnnBfloat16();
+      }
     }
 
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
