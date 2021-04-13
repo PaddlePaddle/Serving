@@ -147,7 +147,8 @@ class PaddleInferenceEngine : public PaddleEngineBase {
                                   min_subgraph_size,
                                   Config::Precision::kFloat32,
                                   false,
-                                  false);
+                                  use_calib);
+      // EnableMkldnnBfloat16();
       LOG(INFO) << "create TensorRT predictor";
     }
 
@@ -170,7 +171,6 @@ class PaddleInferenceEngine : public PaddleEngineBase {
         engine_conf.enable_memory_optimization()) {
       config.EnableMemoryOptim();
     }
-
 
     predictor::AutoLock lock(predictor::GlobalCreateMutex::instance());
     _predictor = CreatePredictor(config);

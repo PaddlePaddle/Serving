@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #pragma once
-#include <string>
 #include <fstream>
+#include <string>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/common/macros.h"
 
@@ -25,6 +25,41 @@ namespace predictor {
 #ifdef BCLOUD
 namespace butil = base;
 #endif
+
+enum class Precision {
+  kFloat32 = 0,  ///< fp32
+  kInt8,         ///< int8
+  kHalf,         ///< fp16
+  kBfloat16,     ///< bf16
+};
+
+string PrecisionTypeString(const Precision data_type) {
+  switch (data_type) {
+    case 0:
+      return "kFloat32";
+    case 1:
+      return "kInt8";
+    case 2:
+      return "kHalf";
+    case 3:
+      return "kBloat16";
+    default:
+      return "unUnk";
+  }
+}
+
+Precision GetPrecision(const std::string& precision_data) {
+  if (precision_data == "fp32") {
+    return Precision::kFloat32;
+  } else if (precision_data == "int8") {
+    return Precison::kInt8;
+  } else if (precision_data == "fp16") {
+    return Precision::kHalf;
+  } else if (precision_data == "bf16") {
+    return Precision::kBfloat16;
+  }
+  return "unknow type";
+}
 
 class TimerFlow {
  public:
