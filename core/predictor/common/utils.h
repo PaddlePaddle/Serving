@@ -33,10 +33,10 @@ enum class Precision {
   kFloat32 = 0,  // fp32
   kInt8,         // int8
   kHalf,         // fp16
-  kBfloat16      // bf16
+  kBfloat16,     // bf16
 };
 
-std::string PrecisionTypeString(const Precision data_type) {
+static std::string PrecisionTypeString(const Precision data_type) {
   switch (data_type) {
     case Precision::kFloat32:
       return "kFloat32";
@@ -51,7 +51,7 @@ std::string PrecisionTypeString(const Precision data_type) {
   }
 }
 
-std::string ToLower(const std::string& data) {
+static std::string ToLower(const std::string& data) {
   std::string result = data;
   std::transform(
       result.begin(), result.end(), result.begin(), [](unsigned char c) {
