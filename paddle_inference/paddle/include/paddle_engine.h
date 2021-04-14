@@ -107,9 +107,9 @@ class PaddleInferenceEngine : public PaddleEngineBase {
     if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
       // decrypt model
       std::string model_buffer, params_buffer, key_buffer;
-      predictor::ReadBinaryFile(model_path + "encrypt_model", &model_buffer);
-      predictor::ReadBinaryFile(model_path + "encrypt_params", &params_buffer);
-      predictor::ReadBinaryFile(model_path + "key", &key_buffer);
+      predictor::ReadBinaryFile(model_path + "/encrypt_model", &model_buffer);
+      predictor::ReadBinaryFile(model_path + "/encrypt_params", &params_buffer);
+      predictor::ReadBinaryFile(model_path + "/key", &key_buffer);
 
       auto cipher = paddle::MakeCipher("");
       std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
