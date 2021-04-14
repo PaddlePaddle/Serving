@@ -29,21 +29,22 @@ namespace butil = base;
 #endif
 
 enum class Precision {
-  kFloat32 = 0,  ///< fp32
-  kInt8,         ///< int8
-  kHalf,         ///< fp16
-  kBfloat16,     ///< bf16
+  kUnk = -1,     // unknown type
+  kFloat32 = 0,  // fp32
+  kInt8,         // int8
+  kHalf,         // fp16
+  kBfloat16      // bf16
 };
 
-string PrecisionTypeString(const Precision data_type) {
+std::string PrecisionTypeString(const Precision data_type) {
   switch (data_type) {
-    case 0:
+    case Precision::kFloat32:
       return "kFloat32";
-    case 1:
+    case Precision::kInt8:
       return "kInt8";
-    case 2:
+    case Precision::kHalf:
       return "kHalf";
-    case 3:
+    case Precision::kBfloat16:
       return "kBloat16";
     default:
       return "unUnk";
@@ -57,20 +58,6 @@ std::string ToLower(const std::string& data) {
         return tolower(c);
       });
   return result;
-}
-
-Precision GetPrecision(const std::string& precision_data) {
-  std::string precision_type = ToLower(precision_data);
-  if (precision_type == "fp32") {
-    return Precision::kFloat32;
-  } else if (precision_type == "int8") {
-    return Precison::kInt8;
-  } else if (precision_type == "fp16") {
-    return Precision::kHalf;
-  } else if (precision_type == "bf16") {
-    return Precision::kBfloat16;
-  }
-  return "unknow type";
 }
 
 class TimerFlow {

@@ -37,10 +37,24 @@ using paddle_infer::Tensor;
 using paddle_infer::CreatePredictor;
 
 DECLARE_int32(gpuid);
+DECLARE_string(precision);
+DECLARE_bool(use_calib);
 
 static const int max_batch = 32;
 static const int min_subgraph_size = 3;
-static predictor::Precision precision_type;
+static PrecisionType precision_type;
+
+PrecisionType GetPrecision(const std::string& precision_data) {
+  std::string precision_type = predictor::ToLower(precision_data);
+  if (precision_type == "fp32") {
+    return PrecisionType::kFloat32;
+  } else if (precision_type == "int8") {
+    return PrecisionType::kInt8;
+  } else if (precision_type == "fp16") {
+    return PrecisionType::kHalf;
+  }
+  return PrecisionType::kFloat32;
+}
 
 // Engine Base
 class PaddleEngineBase {
@@ -138,7 +152,7 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       // 2000MB GPU memory
       config.EnableUseGpu(2000, FLAGS_gpuid);
     }
-    precision_type = predictor::GetPrecision(FLAGS_precision);
+    precision_type = GetPrecision(FLAGS_precision);
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
@@ -149,7 +163,7 @@ class PaddleInferenceEngine : public PaddleEngineBase {
                                   min_subgraph_size,
                                   precision_type,
                                   false,
-                                  use_calib);
+                                  FLAGS_use_calib);
       LOG(INFO) << "create TensorRT predictor";
     }
 
@@ -160,9 +174,9 @@ class PaddleInferenceEngine : public PaddleEngineBase {
     if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
         (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
          engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
-      if (precision_type == Precision::kInt8) {
+      if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
-      } else if (precision_type == Precision::kHalf) {
+      } else if (precision_type == PrecisionType::kHalf) {
         config.EnableMkldnnBfloat16();
       }
     }
