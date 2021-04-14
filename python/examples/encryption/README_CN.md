@@ -31,6 +31,8 @@ def serving_encryption():
 
 密钥保存在`key`文件中，加密模型文件以及server端配置文件保存在`encrypt_server`目录下，client端配置文件保存在`encrypt_client`目录下。
 
+**注意：** 当使用加密预测时，服务端和客户端启动加载的模型配置和参数文件夹是encrypt_server/和encrypt_client/
+
 ## 启动加密预测服务
 CPU预测服务
 ```
@@ -43,5 +45,5 @@ python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_
 
 ## 预测
 ```
-python test_client.py uci_housing_client/serving_client_conf.prototxt
+python test_client.py encrypt_client/
 ```

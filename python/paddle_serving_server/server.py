@@ -42,23 +42,29 @@ from concurrent import futures
 
 class Server(object):
     def __init__(self):
+        """
+        self.model_toolkit_conf:'list'=[] # The quantity of self.model_toolkit_conf is equal to the InferOp quantity/Engine--OP
+        self.model_conf:'collections.OrderedDict()' # Save the serving_server_conf.prototxt content (feed and fetch information) this is a map for multi-model in a workflow
+        self.workflow_fn:'str'="workflow.prototxt" # Only one for one Service/Workflow
+        self.resource_fn:'str'="resource.prototxt" # Only one for one Service,model_toolkit_fn and general_model_config_fn is recorded in this file
+        self.infer_service_fn:'str'="infer_service.prototxt" # Only one for one Service,Service--Workflow
+        self.model_toolkit_fn:'list'=[] # ["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.general_model_config_fn:'list'=[] # ["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
+        self.subdirectory:'list'=[] # The quantity is equal to the InferOp quantity, and name = node.name = engine.name
+        self.model_config_paths:'collections.OrderedDict()' # Save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
+        """
         self.server_handle_ = None
         self.infer_service_conf = None
-        self.model_toolkit_conf = [
-        ]  #The quantity is equal to the InferOp quantity,Engine--OP
+        self.model_toolkit_conf = []
         self.resource_conf = None
         self.memory_optimization = False
         self.ir_optimization = False
-        # save the serving_server_conf.prototxt content (feed and fetch information) this is a map for multi-model in a workflow
         self.model_conf = collections.OrderedDict()
-        self.workflow_fn = "workflow.prototxt"  #only one for one Service,Workflow--Op 
-        self.resource_fn = "resource.prototxt"  #only one for one Service,model_toolkit_fn and  general_model_config_fn is recorded in this file
-        self.infer_service_fn = "infer_service.prototxt"  #only one for one Service,Service--Workflow
-        #["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.workflow_fn = "workflow.prototxt"
+        self.resource_fn = "resource.prototxt"
+        self.infer_service_fn = "infer_service.prototxt"
         self.model_toolkit_fn = []
-        #["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
         self.general_model_config_fn = []
-        #The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.subdirectory = []
         self.cube_config_fn = "cube.conf"
         self.workdir = ""
@@ -78,7 +84,6 @@ class Server(object):
         self.use_trt = False
         self.use_lite = False
         self.use_xpu = False
-        # save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
         self.model_config_paths = collections.OrderedDict()
         self.product_name = None
         self.container_id = None
