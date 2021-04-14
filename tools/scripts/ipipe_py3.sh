@@ -115,7 +115,7 @@ function error_log() {
     echo "deployment: ${deployment// /_}" | tee -a ${log_dir}error_models.txt
     echo "py_version: python3.6" | tee -a ${log_dir}error_models.txt
     echo "cuda_version: ${cuda_version}" | tee -a ${log_dir}error_models.txt
-    echo "status: Failed"
+    echo "status: Failed" | tee -a ${log_dir}error_models.txt
     echo -e "-----------------------------\n\n" | tee -a ${log_dir}error_models.txt
     prefix=${arg//\//_}
     for file in ${dir}*
