@@ -119,8 +119,8 @@ class LocalPredictor(object):
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
 
         precision_type = paddle_infer.PrecisionType.Float32
-        if precision in precision_map:
-            precision_type = precision_map[precision]
+        if precision.lower() in precision_map:
+            precision_type = precision_map[precision.lower()]
         if use_profile:
             config.enable_profile()
         if mem_optim:
@@ -157,7 +157,7 @@ class LocalPredictor(object):
         if not use_gpu and not use_lite:
             if precision_type == paddle_infer.PrecisionType.Int8:
                 config.enable_quantizer()
-            if precision == "bf16":
+            if precision.lower() == "bf16":
                 config.enable_mkldnn_bfloat16()
         self.predictor = paddle_infer.create_predictor(config)
 

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #pragma once
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <string>
 #include "core/predictor/common/inner_common.h"
@@ -48,14 +50,24 @@ string PrecisionTypeString(const Precision data_type) {
   }
 }
 
+std::string ToLower(const std::string& data) {
+  std::string result = data;
+  std::transform(
+      result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        return tolower(c);
+      });
+  return result;
+}
+
 Precision GetPrecision(const std::string& precision_data) {
-  if (precision_data == "fp32") {
+  std::string precision_type = ToLower(precision_data);
+  if (precision_type == "fp32") {
     return Precision::kFloat32;
-  } else if (precision_data == "int8") {
+  } else if (precision_type == "int8") {
     return Precison::kInt8;
-  } else if (precision_data == "fp16") {
+  } else if (precision_type == "fp16") {
     return Precision::kHalf;
-  } else if (precision_data == "bf16") {
+  } else if (precision_type == "bf16") {
     return Precision::kBfloat16;
   }
   return "unknow type";
