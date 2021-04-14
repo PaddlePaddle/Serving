@@ -36,7 +36,7 @@ go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
 go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
 go get -u google.golang.org/grpc@v1.33.0
 
-build_whl_list=(build_gpu_server build_client build_app)
+build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt)
@@ -63,6 +63,9 @@ function check() {
     cd ${build_path}
     if [ ! -f paddle_serving_app* ]; then
         echo "paddle_serving_app is compiled failed, please check your pull request"
+        exit 1
+    elif [ ! -f paddle_serving_server-* ]; then
+        echo "paddle_serving_server-cpu is compiled failed, please check your pull request"
         exit 1
     elif [ ! -f paddle_serving_server_* ]; then
         echo "paddle_serving_server_gpu is compiled failed, please check your pull request"
@@ -187,50 +190,74 @@ function build_gpu_server() {
           -DSERVER=ON \
           -DTENSORRT_ROOT=/usr \
           -DWITH_GPU=ON ..
-    make -j18
-    make -j18
-    make install -j18
+    make -j32
+    make -j32
+    make install -j32
     python3.6 -m pip uninstall paddle-serving-server-gpu -y
     python3.6 -m pip install ${build_path}/build/python/dist/*
     cp  ${build_path}/build/python/dist/* ../
     cp -r ${build_path}/build/ ${build_path}/build_gpu
 }
 
+function build_cpu_server(){
+    setproxy
+    cd ${build_path}
+    if [ -d build_cpu ];then
+        rm -rf build_cpu
+    fi
+    if [ -d build ];then
+        rm -rf build
+    fi
+    mkdir build && cd build
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
+          -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
+          -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
+          -DWITH_GPU=OFF \
+          -DSERVER=ON ..
+    make -j32
+    make -j32
+    make install -j32
+    cp ${build_path}/build/python/dist/* ../
+    python3.6 -m pip uninstall paddle-serving-server -y
+    python3.6 -m pip install ${build_path}/build/python/dist/*
+    cp -r ${build_path}/build/ ${build_path}/build_cpu
+}
+
 function build_client() {
-     setproxy
-     cd  ${build_path}
-     if [ -d build ];then
-          rm -rf build
-     fi
-     mkdir build && cd build
-     cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-           -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
-           -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-           -DCLIENT=ON ..
-     make -j18
-     make -j18
-     cp ${build_path}/build/python/dist/* ../
-     python3.6 -m pip uninstall paddle-serving-client -y
-     python3.6 -m pip install ${build_path}/build/python/dist/*
+    setproxy
+    cd  ${build_path}
+    if [ -d build ];then
+        rm -rf build
+    fi
+    mkdir build && cd build
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
+         -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
+         -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
+         -DCLIENT=ON ..
+    make -j32
+    make -j32
+    cp ${build_path}/build/python/dist/* ../
+    python3.6 -m pip uninstall paddle-serving-client -y
+    python3.6 -m pip install ${build_path}/build/python/dist/*
 }
 
 function build_app() {
-  setproxy
-  python3.6 -m pip install paddlehub ujson Pillow
-  python3.6 -m pip install paddlepaddle==2.0.0
-  cd ${build_path}
-  if [ -d build ];then
-      rm -rf build
-  fi
-  mkdir build && cd build
-  cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-        -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6.so \
-        -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-        -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
-  make
-  cp ${build_path}/build/python/dist/* ../
-  python3.6 -m pip uninstall paddle-serving-app -y
-  python3.6 -m pip install ${build_path}/build/python/dist/*
+    setproxy
+    python3.6 -m pip install paddlehub ujson Pillow
+    python3.6 -m pip install paddlepaddle==2.0.0
+    cd ${build_path}
+    if [ -d build ];then
+        rm -rf build
+    fi
+    mkdir build && cd build
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
+          -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6.so \
+          -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
+          -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
+    make
+    cp ${build_path}/build/python/dist/* ../
+    python3.6 -m pip uninstall paddle-serving-app -y
+    python3.6 -m pip install ${build_path}/build/python/dist/*
 }
 
 function faster_rcnn_hrnetv2p_w18_1x_encrypt() {
