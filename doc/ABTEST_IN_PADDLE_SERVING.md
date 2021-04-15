@@ -4,7 +4,7 @@
 
 This document will use an example of text classification task based on IMDB dataset to show how to build a A/B Test framework using Paddle Serving. The structure relationship between the client and servers in the example is shown in the figure below.
 
-<img src="abtest.png" style="zoom:33%;" />
+<img src="abtest.png" style="zoom:25%;" />
 
 Note that:  A/B Test is only applicable to RPC mode, not web mode.
 
@@ -88,7 +88,7 @@ with open('processed.data') as f:
         cnt[tag]['total'] += 1
 
     for tag, data in cnt.items():
-        print('[{}](total: {}) acc: {}'.format(tag, data['total'], float(data['acc']) / float(data['total'])))
+        print('[{}]<total: {}> acc: {}'.format(tag, data['total'], float(data['acc']) / float(data['total'])))
 ```
 
 In the code, the function `client.add_variant(tag, clusters, variant_weight)` is to add a variant with label `tag` and flow weight `variant_weight`. In this example, a BOW variant with label of `bow` and flow weight of `10`, and an LSTM variant with label of `lstm` and a flow weight of `90` are added. The flow on the client side will be distributed to two variants according to the ratio of `10:90`.
@@ -98,8 +98,8 @@ When making prediction on the client side, if the parameter `need_variant_tag=Tr
 ### Expected Results
 Due to different network conditions, the results of each prediction may be slightly different.
 ``` python
-[lstm](total: 1867) acc: 0.490091055169
-[bow](total: 217) acc: 0.73732718894
+[lstm]<total: 1867> acc: 0.490091055169
+[bow]<total: 217> acc: 0.73732718894
 ```
 
 <!--
