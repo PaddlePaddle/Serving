@@ -42,9 +42,9 @@ static const int max_batch = 32;
 static const int min_subgraph_size = 3;
 
 // Engine Base
-class PaddleEngineBase {
+class EngineCore {
  public:
-  virtual ~PaddleEngineBase() {}
+  virtual ~EngineCore() {}
   virtual std::vector<std::string> GetInputNames() {
     return _predictor->GetInputNames();
   }
@@ -92,7 +92,7 @@ class PaddleEngineBase {
 };
 
 // Paddle Inference Engine
-class PaddleInferenceEngine : public PaddleEngineBase {
+class PaddleInferenceEngine : public EngineCore {
  public:
   int create(const configure::EngineDesc& engine_conf) {
     std::string model_path = engine_conf.model_dir();

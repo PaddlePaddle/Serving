@@ -93,7 +93,7 @@ def serve_args():
 
 
 def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
-    args = parse_args()
+    args = serve_args()
     thread_num = args.thread
     model = args.model
     port = serving_port
@@ -109,7 +109,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     if model == "":
         print("You must specify your serving model")
         exit(-1)
-    
+
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
@@ -131,10 +131,9 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
             infer_op_name = "general_detection"
         general_infer_op = op_maker.create(infer_op_name)
         op_seq_maker.add_op(general_infer_op)
-    
+
     general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
-
 
     server = None
     if use_multilang:
@@ -199,7 +198,7 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
             infer_op_name = "general_infer"
         general_infer_op = op_maker.create(infer_op_name)
         op_seq_maker.add_op(general_infer_op)
-    
+
     general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
@@ -297,7 +296,8 @@ class MainService(BaseHTTPRequestHandler):
             key = base64.b64decode(post_data["key"].encode())
             for single_model_config in args.model:
                 if os.path.isfile(single_model_config):
-                    raise ValueError("The input of --model should be a dir not file.")
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
                 with open(single_model_config + "/key", "wb") as f:
                     f.write(key)
             return True
@@ -309,7 +309,8 @@ class MainService(BaseHTTPRequestHandler):
             key = base64.b64decode(post_data["key"].encode())
             for single_model_config in args.model:
                 if os.path.isfile(single_model_config):
-                    raise ValueError("The input of --model should be a dir not file.")
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
                 with open(single_model_config + "/key", "rb") as f:
                     cur_key = f.read()
                 if key != cur_key:
@@ -394,7 +395,8 @@ if __name__ == "__main__":
             device=args.device,
             use_lite=args.use_lite,
             use_xpu=args.use_xpu,
-            ir_optim=args.ir_optim)
+            ir_optim=args.ir_optim,
+            thread_num=args.thread)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)

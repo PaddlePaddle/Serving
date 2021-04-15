@@ -27,6 +27,7 @@ import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 
+
 def port_is_available(port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         sock.settimeout(2)
@@ -35,6 +36,7 @@ def port_is_available(port):
         return True
     else:
         return False
+
 
 class WebService(object):
     def __init__(self, name="default_service"):
@@ -63,7 +65,9 @@ class WebService(object):
     def run_service(self):
         self._server.run_server()
 
-    def load_model_config(self, server_config_dir_paths, client_config_path=None):
+    def load_model_config(self,
+                          server_config_dir_paths,
+                          client_config_path=None):
         if isinstance(server_config_dir_paths, str):
             server_config_dir_paths = [server_config_dir_paths]
         elif isinstance(server_config_dir_paths, list):
@@ -73,14 +77,16 @@ class WebService(object):
             if os.path.isdir(single_model_config):
                 pass
             elif os.path.isfile(single_model_config):
-                raise ValueError("The input of --model should be a dir not file.")
+                raise ValueError(
+                    "The input of --model should be a dir not file.")
         self.server_config_dir_paths = server_config_dir_paths
         from .proto import general_model_config_pb2 as m_config
         import google.protobuf.text_format
         file_path_list = []
         for single_model_config in self.server_config_dir_paths:
-            file_path_list.append( "{}/serving_server_conf.prototxt".format(single_model_config) )
-        
+            file_path_list.append("{}/serving_server_conf.prototxt".format(
+                single_model_config))
+
         model_conf = m_config.GeneralModelConfig()
         f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
@@ -130,7 +136,7 @@ class WebService(object):
                 infer_op_name = "general_infer"
             general_infer_op = op_maker.create(infer_op_name)
             op_seq_maker.add_op(general_infer_op)
-        
+
         general_response_op = op_maker.create('general_response')
         op_seq_maker.add_op(general_response_op)
 
@@ -146,7 +152,8 @@ class WebService(object):
         if use_xpu:
             server.set_xpu()
 
-        server.load_model_config(self.server_config_dir_paths)#brpc Server support server_config_dir_paths
+        server.load_model_config(self.server_config_dir_paths
+                                 )  #brpc Server support server_config_dir_paths
         if gpuid >= 0:
             server.set_gpuid(gpuid)
         server.prepare_server(workdir=workdir, port=port, device=device)
@@ -163,10 +170,12 @@ class WebService(object):
                        use_xpu=False,
                        ir_optim=False,
                        gpuid=0,
+                       thread_num=2,
                        mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
+        self.thread_num = thread_num
         self.device = device
         self.gpuid = gpuid
         self.port_list = []
@@ -184,7 +193,7 @@ class WebService(object):
                     self.workdir,
                     self.port_list[0],
                     -1,
-                    thread_num=2,
+                    thread_num=self.thread_num,
                     mem_optim=mem_optim,
                     use_lite=use_lite,
                     use_xpu=use_xpu,
@@ -196,7 +205,7 @@ class WebService(object):
                         "{}_{}".format(self.workdir, i),
                         self.port_list[i],
                         gpuid,
-                        thread_num=2,
+                        thread_num=self.thread_num,
                         mem_optim=mem_optim,
                         use_lite=use_lite,
                         use_xpu=use_xpu,
@@ -297,9 +306,13 @@ class WebService(object):
             # default self.gpus = [0].
             if len(self.gpus) == 0:
                 self.gpus.append(0)
-            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=True, gpu_id=self.gpus[0])
+            self.client.load_model_config(
+                self.server_config_dir_paths[0],
+                use_gpu=True,
+                gpu_id=self.gpus[0])
         else:
-            self.client.load_model_config(self.server_config_dir_paths[0], use_gpu=False)
+            self.client.load_model_config(
+                self.server_config_dir_paths[0], use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")
