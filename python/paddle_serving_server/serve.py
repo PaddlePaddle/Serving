@@ -52,6 +52,16 @@ def serve_args():
     parser.add_argument(
         "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
+        "--precision",
+        type=str,
+        default="fp32",
+        help="precision mode(fp32, int8, fp16, bf16)")
+    parser.add_argument(
+        "--use_calib",
+        default=False,
+        action="store_true",
+        help="Use TensorRT Calibration")
+    parser.add_argument(
         "--mem_optim_off",
         default=False,
         action="store_true",
@@ -109,7 +119,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     if model == "":
         print("You must specify your serving model")
         exit(-1)
-    
+
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
@@ -131,10 +141,9 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
             infer_op_name = "general_detection"
         general_infer_op = op_maker.create(infer_op_name)
         op_seq_maker.add_op(general_infer_op)
-    
+
     general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
-
 
     server = None
     if use_multilang:
@@ -148,6 +157,8 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
+    server.set_precision(args.precision)
+    server.set_use_calib(args.use_calib)
     server.use_encryption_model(use_encryption_model)
     if args.product_name != None:
         server.set_product_name(args.product_name)
@@ -199,7 +210,7 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
             infer_op_name = "general_infer"
         general_infer_op = op_maker.create(infer_op_name)
         op_seq_maker.add_op(general_infer_op)
-    
+
     general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
@@ -210,6 +221,8 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.use_mkl(use_mkl)
+    server.set_precision(args.precision)
+    server.set_use_calib(args.use_calib)
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
@@ -297,7 +310,8 @@ class MainService(BaseHTTPRequestHandler):
             key = base64.b64decode(post_data["key"].encode())
             for single_model_config in args.model:
                 if os.path.isfile(single_model_config):
-                    raise ValueError("The input of --model should be a dir not file.")
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
                 with open(single_model_config + "/key", "wb") as f:
                     f.write(key)
             return True
@@ -309,7 +323,8 @@ class MainService(BaseHTTPRequestHandler):
             key = base64.b64decode(post_data["key"].encode())
             for single_model_config in args.model:
                 if os.path.isfile(single_model_config):
-                    raise ValueError("The input of --model should be a dir not file.")
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
                 with open(single_model_config + "/key", "rb") as f:
                     cur_key = f.read()
                 if key != cur_key:
@@ -394,7 +409,9 @@ if __name__ == "__main__":
             device=args.device,
             use_lite=args.use_lite,
             use_xpu=args.use_xpu,
-            ir_optim=args.ir_optim)
+            ir_optim=args.ir_optim,
+            precision=args.precision,
+            use_calib=args.use_calib)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)

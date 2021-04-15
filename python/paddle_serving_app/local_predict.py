@@ -27,6 +27,12 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("LocalPredictor")
 logger.setLevel(logging.INFO)
 
+precision_map = {
+    'int8': paddle_infer.PrecisionType.Int8,
+    'fp32': paddle_infer.PrecisionType.Float32,
+    'fp16': paddle_infer.PrecisionType.Half,
+}
+
 
 class LocalPredictor(object):
     """
@@ -56,6 +62,8 @@ class LocalPredictor(object):
                           use_trt=False,
                           use_lite=False,
                           use_xpu=False,
+                          precision="fp32",
+                          use_calib=False,
                           use_feed_fetch_ops=False):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
@@ -71,6 +79,8 @@ class LocalPredictor(object):
             use_trt: use nvidia TensorRT optimization, False default
             use_lite: use Paddle-Lite Engint, False default
             use_xpu: run predict on Baidu Kunlun, False default
+            precision: precision mode, "fp32" default
+            use_calib: use TensorRT calibration, False default
             use_feed_fetch_ops: use feed/fetch ops, False default.
         """
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -88,9 +98,11 @@ class LocalPredictor(object):
         logger.info(
             "LocalPredictor load_model_config params: model_path:{}, use_gpu:{},\
             gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{},\
-            use_trt:{}, use_lite:{}, use_xpu: {}, use_feed_fetch_ops:{}".format(
-                model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
-                ir_optim, use_trt, use_lite, use_xpu, use_feed_fetch_ops))
+            use_trt:{}, use_lite:{}, use_xpu: {}, precision: {}, use_calib: {},\
+            use_feed_fetch_ops:{}"
+            .format(model_path, use_gpu, gpu_id, use_profile, thread_num,
+                    mem_optim, ir_optim, use_trt, use_lite, use_xpu, precision,
+                    use_calib, use_feed_fetch_ops))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -106,6 +118,9 @@ class LocalPredictor(object):
             self.fetch_names_to_idx_[var.alias_name] = i
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
 
+        precision_type = paddle_infer.PrecisionType.Float32
+        if precision.lower() in precision_map:
+            precision_type = precision_map[precision.lower()]
         if use_profile:
             config.enable_profile()
         if mem_optim:
@@ -121,6 +136,7 @@ class LocalPredictor(object):
             config.enable_use_gpu(100, gpu_id)
             if use_trt:
                 config.enable_tensorrt_engine(
+                    precision_mode=precision_type,
                     workspace_size=1 << 20,
                     max_batch_size=32,
                     min_subgraph_size=3,
@@ -129,7 +145,7 @@ class LocalPredictor(object):
 
         if use_lite:
             config.enable_lite_engine(
-                precision_mode=paddle_infer.PrecisionType.Float32,
+                precision_mode=precision_type,
                 zero_copy=True,
                 passes_filter=[],
                 ops_filter=[])
@@ -138,6 +154,11 @@ class LocalPredictor(object):
             # 2MB l3 cache
             config.enable_xpu(8 * 1024 * 1024)
 
+        if not use_gpu and not use_lite:
+            if precision_type == paddle_infer.PrecisionType.Int8:
+                config.enable_quantizer()
+            if precision.lower() == "bf16":
+                config.enable_mkldnn_bfloat16()
         self.predictor = paddle_infer.create_predictor(config)
 
     def predict(self, feed=None, fetch=None, batch=False, log_id=0):

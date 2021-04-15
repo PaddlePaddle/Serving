@@ -20,6 +20,8 @@ namespace paddle_serving {
 namespace inference {
 
 DEFINE_int32(gpuid, 0, "GPU device id to use");
+DEFINE_string(precision, "fp32", "precision to deploy, default is fp32");
+DEFINE_bool(use_calib, false, "calibration mode, default is false");
 
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<PaddleInferenceEngine>,
