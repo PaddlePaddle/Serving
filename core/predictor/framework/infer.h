@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 #include <numeric>
-#include <functional>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
