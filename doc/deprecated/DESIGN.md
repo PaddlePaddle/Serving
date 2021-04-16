@@ -45,11 +45,11 @@ Models that can be predicted using the Paddle Inference Library, models saved du
 
 ### 3.4 Server Inferface
 
-![Server Interface](server_interface.png)
+![Server Interface](../server_interface.png)
 
 ### 3.5 Client Interface
 
-<img src='client_inferface.png' width = "600" height = "200">
+<img src='../client_inferface.png' width = "600" height = "200">
 
 ### 3.6 Client io used during Training
 
@@ -66,7 +66,7 @@ def save_model(server_model_folder,
 
 ## 4. Paddle Serving Underlying Framework
 
-![Paddle-Serging Overall Architecture](framework.png)
+![Paddle-Serging Overall Architecture](../framework.png)
 
 **Model Management Framework**: Connects model files of multiple machine learning platforms and provides a unified inference interface
 **Business Scheduling Framework**: Abstracts the calculation logic of various different inference models, provides a general DAG scheduling framework, and connects different operators through DAG diagrams to complete a prediction service together. This abstract model allows users to conveniently implement their own calculation logic, and at the same time facilitates operator sharing. (Users build their own forecasting services. A large part of their work is to build DAGs and provide operators.)
@@ -102,31 +102,31 @@ class FluidFamilyCore {
 
 With reference to the abstract idea of model calculation of the TensorFlow framework, the business logic is abstracted into a DAG diagram, driven by configuration, generating a workflow, and skipping C ++ code compilation. Each specific step of the service corresponds to a specific OP. The OP can configure the upstream OP that it depends on. Unified message passing between OPs is achieved by the thread-level bus and channel mechanisms. For example, the service process of a simple prediction service can be abstracted into 3 steps including reading request data-> calling the prediction interface-> writing back the prediction result, and correspondingly implemented to 3 OP: ReaderOp-> ClassifyOp-> WriteOp
 
-![Infer Service](predict-service.png)
+![Infer Service](../predict-service.png)
 
-Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](./deprecated/CREATING.md) (simplified Chinese Version)
+Regarding the dependencies between OPs, and the establishment of workflows through OPs, you can refer to [从零开始写一个预测服务](CREATING.md) (simplified Chinese Version)
 
 Server instance perspective
 
-![Server instance perspective](server-side.png)
+![Server instance perspective](../server-side.png)
 
 
 #### 4.2.2 Paddle Serving Multi-Service Mechanism
 
-![Paddle Serving multi-service](multi-service.png)
+![Paddle Serving multi-service](../multi-service.png)
 
-Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
+Paddle Serving instances can load multiple models at the same time, and each model uses a Service (and its configured workflow) to undertake services. You can refer to [service configuration file in Demo example](../../tools/cpp_examples/demo-serving/conf/service.prototxt) to learn how to configure multiple services for the serving instance
 
 #### 4.2.3 Hierarchical relationship of business scheduling
 
 From the client's perspective, a Paddle Serving service can be divided into three levels: Service, Endpoint, and Variant from top to bottom.
 
-![Call hierarchy relationship](multi-variants.png)
+![Call hierarchy relationship](../multi-variants.png)
 
 One Service corresponds to one inference model, and there is one endpoint under the model. Different versions of the model are implemented through multiple variant concepts under endpoint:
-The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) section 3.2).
+The same model prediction service can configure multiple variants, and each variant has its own downstream IP list. The client code can configure relative weights for each variant to achieve the relationship of adjusting the traffic ratio (refer to the description of variant_weight_list in [Client Configuration](../CLIENT_CONFIGURE.md) section 3.2).
 
-![Client-side proxy function](client-side-proxy.png)
+![Client-side proxy function](../client-side-proxy.png)
 
 ## 5. User Interface
 
@@ -141,7 +141,7 @@ No matter how the communication protocol changes, the framework only needs to en
 
 ### 5.1 Data Compression Method
 
-Baidu-rpc has built-in data compression methods such as snappy, gzip, zlib, which can be configured in the configuration file (refer to [Client Configuration](./deprecated/CLIENT_CONFIGURE.md) Section 3.1 for an introduction to compress_type)
+Baidu-rpc has built-in data compression methods such as snappy, gzip, zlib, which can be configured in the configuration file (refer to [Client Configuration](../CLIENT_CONFIGURE.md) Section 3.1 for an introduction to compress_type)
 
 ### 5.2 C ++ SDK API Interface
 

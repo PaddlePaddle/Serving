@@ -37,9 +37,24 @@ using paddle_infer::Tensor;
 using paddle_infer::CreatePredictor;
 
 DECLARE_int32(gpuid);
+DECLARE_string(precision);
+DECLARE_bool(use_calib);
 
 static const int max_batch = 32;
 static const int min_subgraph_size = 3;
+static PrecisionType precision_type;
+
+PrecisionType GetPrecision(const std::string& precision_data) {
+  std::string precision_type = predictor::ToLower(precision_data);
+  if (precision_type == "fp32") {
+    return PrecisionType::kFloat32;
+  } else if (precision_type == "int8") {
+    return PrecisionType::kInt8;
+  } else if (precision_type == "fp16") {
+    return PrecisionType::kHalf;
+  }
+  return PrecisionType::kFloat32;
+}
 
 // Engine Base
 class PaddleEngineBase {
@@ -107,9 +122,9 @@ class PaddleInferenceEngine : public PaddleEngineBase {
     if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
       // decrypt model
       std::string model_buffer, params_buffer, key_buffer;
-      predictor::ReadBinaryFile(model_path + "encrypt_model", &model_buffer);
-      predictor::ReadBinaryFile(model_path + "encrypt_params", &params_buffer);
-      predictor::ReadBinaryFile(model_path + "key", &key_buffer);
+      predictor::ReadBinaryFile(model_path + "/encrypt_model", &model_buffer);
+      predictor::ReadBinaryFile(model_path + "/encrypt_params", &params_buffer);
+      predictor::ReadBinaryFile(model_path + "/key", &key_buffer);
 
       auto cipher = paddle::MakeCipher("");
       std::string real_model_buffer = cipher->Decrypt(model_buffer, key_buffer);
@@ -137,6 +152,7 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       // 2000MB GPU memory
       config.EnableUseGpu(2000, FLAGS_gpuid);
     }
+    precision_type = GetPrecision(FLAGS_precision);
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
@@ -145,14 +161,24 @@ class PaddleInferenceEngine : public PaddleEngineBase {
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
                                   min_subgraph_size,
-                                  Config::Precision::kFloat32,
+                                  precision_type,
                                   false,
-                                  false);
+                                  FLAGS_use_calib);
       LOG(INFO) << "create TensorRT predictor";
     }
 
     if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
-      config.EnableLiteEngine(PrecisionType::kFloat32, true);
+      config.EnableLiteEngine(precision_type, true);
+    }
+
+    if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
+        (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
+         engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
+      if (precision_type == PrecisionType::kInt8) {
+        config.EnableMkldnnQuantizer();
+      } else if (precision_type == PrecisionType::kHalf) {
+        config.EnableMkldnnBfloat16();
+      }
     }
 
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
@@ -170,7 +196,6 @@ class PaddleInferenceEngine : public PaddleEngineBase {
         engine_conf.enable_memory_optimization()) {
       config.EnableMemoryOptim();
     }
-
 
     predictor::AutoLock lock(predictor::GlobalCreateMutex::instance());
     _predictor = CreatePredictor(config);

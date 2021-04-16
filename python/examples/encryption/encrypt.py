@@ -18,6 +18,7 @@ from paddle_serving_client.io import inference_model_to_serving
 def serving_encryption():
     inference_model_to_serving(
         dirname="./uci_housing_model",
+        params_filename=None,
         serving_server="encrypt_server",
         serving_client="encrypt_client",
         encryption=True)

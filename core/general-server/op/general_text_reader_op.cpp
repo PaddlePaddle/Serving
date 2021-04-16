@@ -73,7 +73,7 @@ int GeneralTextReaderOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config()[0];
 
   VLOG(2) << "(logid=" << log_id << ") print general model config done.";
 

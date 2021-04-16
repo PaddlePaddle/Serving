@@ -14,7 +14,7 @@
 
 **安装Git工具**： 详情参见[Git官网](https://git-scm.com/downloads)
 
-**安装必要的C++库（可选）**：部分用户可能会在`import paddle`阶段遇见dll无法链接的问题，建议可以[安装Visual Studio社区版本](`https://visualstudio.microsoft.com/`) ，并且安装C++的相关组件。
+**安装必要的C++库（可选）**：部分用户可能会在`import paddle`阶段遇见dll无法链接的问题，建议[安装Visual Studio社区版本](https://visualstudio.microsoft.com/) ，并且安装C++的相关组件。
 
 **安装Paddle和Serving**：在Powershell，执行
 

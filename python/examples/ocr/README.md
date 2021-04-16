@@ -98,3 +98,30 @@ python rec_debugger_server.py gpu #for gpu user
 ```
 python rec_web_client.py
 ```
+
+## C++ OCR Service
+
+**Notice：** If you need to concatenate det model and rec model, and do pre-processing and post-processing in Paddle Serving C++ framework, you need to use the C++ server compiled with WITH_OPENCV option，see the [COMPILE.md](../../../doc/COMPILE.md)
+
+### Start Service
+Select a startup mode according to CPU / GPU device
+
+After the -- model parameter, the folder path of multiple model files is passed in to start the prediction service of multiple model concatenation.
+```
+#for cpu user
+python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
+#for gpu user
+python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0
+```
+
+### Client Prediction
+The pre-processing and post-processing is in the C + + server part, the image's Base64 encoded string is passed into the C + + server.
+
+so the value of parameter `feed_var` which is in the file `ocr_det_client/serving_client_conf.prototxt` should be changed.
+
+for this case, `feed_type` should be 3(which means the data type is string),`shape` should be 1.
+
+By passing in multiple client folder paths, the client can be started for multi model prediction.
+```
+python ocr_cpp_client.py ocr_det_client ocr_rec_client
+```

@@ -238,6 +238,8 @@ class PipelineServer(object):
                 "devices": "",
                 "mem_optim": True,
                 "ir_optim": False,
+                "precision": "fp32",
+                "use_calib": False,
             },
         }
         for op in self._used_op:
@@ -394,6 +396,8 @@ class ServerYamlConfChecker(object):
             "devices": "",
             "mem_optim": True,
             "ir_optim": False,
+            "precision": "fp32",
+            "use_calib": False,
         }
         conf_type = {
             "model_config": str,
@@ -403,6 +407,8 @@ class ServerYamlConfChecker(object):
             "devices": str,
             "mem_optim": bool,
             "ir_optim": bool,
+            "precision": str,
+            "use_calib": bool,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,

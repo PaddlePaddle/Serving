@@ -152,6 +152,24 @@ make -j10
 
 Execute `make install` to put the target output in the `./output` directory.
 
+### Compile C++ Server under the condition of WITH_OPENCV=ON
+**Note:** Only when you need to redevelop the paddle serving C + + part, and the new code depends on the OpenCV library, you need to do so.
+
+First of all , OpenCV library should be installed, if not, please refer to the `Compile and install OpenCV` section later in this article.
+
+In the compile command, add `DOPENCV_DIR=${OPENCV_DIR}` and `DWITH_OPENCV=ON`，for example：
+``` shell
+OPENCV_DIR=your_opencv_dir #`your_opencv_dir` is the installation path of OpenCV library。
+mkdir server-build-cpu && cd server-build-cpu
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DOPENCV_DIR=${OPENCV_DIR} \
+    -DWITH_OPENCV=ON
+    -DSERVER=ON ..
+make -j10
+```
+
 **Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](COMPILE.md#Notes) ).
 
 ## Compile Client
@@ -209,6 +227,7 @@ Please use the example under `python/examples` to verify.
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
 |     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
+|     WITH_OPENCV  |    Compile Paddle Serving with OPENCV      | OFF  |
 |  CUDNN_LIBRARY   |    Define CuDNN library and header path    |      |
 | CUDA_TOOLKIT_ROOT_DIR |       Define CUDA PATH                |      |
 |   TENSORRT_ROOT  |           Define TensorRT PATH             |      |
@@ -247,3 +266,63 @@ The following is the base library version matching relationship used by the Padd
 ### How to make the compiler detect the CuDNN library
 
 Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
+
+## Compile and install OpenCV
+**Note:** You need to do this only if you need to import the opencv library into your C + + code.
+
+* First of all, you need to download the source code compiled package in the Linux environment from the OpenCV official website. Taking OpenCV3.4.7 as an example, the download command is as follows.
+
+```
+wget https://github.com/opencv/opencv/archive/3.4.7.tar.gz
+tar -xf 3.4.7.tar.gz
+```
+
+Finally, you can see the folder of `opencv-3.4.7/` in the current directory.
+
+* Compile OpenCV, the OpenCV source path (`root_path`) and installation path (`install_path`) should be set by yourself. Enter the OpenCV source code path and compile it in the following way.
+
+
+```shell
+root_path=your_opencv_root_path
+install_path=${root_path}/opencv3
+
+rm -rf build
+mkdir build
+cd build
+
+cmake .. \
+    -DCMAKE_INSTALL_PREFIX=${install_path} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DWITH_IPP=OFF \
+    -DBUILD_IPP_IW=OFF \
+    -DWITH_LAPACK=OFF \
+    -DWITH_EIGEN=OFF \
+    -DCMAKE_INSTALL_LIBDIR=lib64 \
+    -DWITH_ZLIB=ON \
+    -DBUILD_ZLIB=ON \
+    -DWITH_JPEG=ON \
+    -DBUILD_JPEG=ON \
+    -DWITH_PNG=ON \
+    -DBUILD_PNG=ON \
+    -DWITH_TIFF=ON \
+    -DBUILD_TIFF=ON
+
+make -j
+make install
+```
+
+Among them, `root_path` is the downloaded OpenCV source code path, and `install_path` is the installation path of OpenCV. After `make install` is completed, the OpenCV header file and library file will be generated in this folder for later source code compilation.
+
+
+
+The final file structure under the OpenCV installation path is as follows.
+
+```
+opencv3/
+|-- bin
+|-- include
+|-- lib
+|-- lib64
+|-- share
+```

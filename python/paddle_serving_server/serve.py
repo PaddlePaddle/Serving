@@ -22,7 +22,7 @@ import os
 import json
 import base64
 import time
-from multiprocessing import Pool, Process
+from multiprocessing import Process
 from flask import Flask, request
 import sys
 if sys.version_info.major == 2:
@@ -41,7 +41,7 @@ def serve_args():
         "--device", type=str, default="gpu", help="Type of device")
     parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
     parser.add_argument(
-        "--model", type=str, default="", help="Model for serving")
+        "--model", type=str, default="", nargs="+", help="Model for serving")
     parser.add_argument(
         "--workdir",
         type=str,
@@ -51,6 +51,16 @@ def serve_args():
         "--name", type=str, default="None", help="Default service name")
     parser.add_argument(
         "--use_mkl", default=False, action="store_true", help="Use MKL")
+    parser.add_argument(
+        "--precision",
+        type=str,
+        default="fp32",
+        help="precision mode(fp32, int8, fp16, bf16)")
+    parser.add_argument(
+        "--use_calib",
+        default=False,
+        action="store_true",
+        help="Use TensorRT Calibration")
     parser.add_argument(
         "--mem_optim_off",
         default=False,
@@ -110,15 +120,29 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
         print("You must specify your serving model")
         exit(-1)
 
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
+
     import paddle_serving_server as serving
     op_maker = serving.OpMaker()
-    read_op = op_maker.create('general_reader')
-    general_infer_op = op_maker.create('general_infer')
-    general_response_op = op_maker.create('general_response')
-
     op_seq_maker = serving.OpSeqMaker()
+
+    read_op = op_maker.create('general_reader')
     op_seq_maker.add_op(read_op)
-    op_seq_maker.add_op(general_infer_op)
+
+    for idx, single_model in enumerate(model):
+        infer_op_name = "general_infer"
+        #Temporary support for OCR model,it will be completely revised later
+        #If you want to use this, C++ server must compile with WITH_OPENCV option.
+        if len(model) == 2 and idx == 0 and model[0] == 'ocr_det_model':
+            infer_op_name = "general_detection"
+        general_infer_op = op_maker.create(infer_op_name)
+        op_seq_maker.add_op(general_infer_op)
+
+    general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
     server = None
@@ -133,6 +157,8 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     server.use_mkl(use_mkl)
     server.set_max_body_size(max_body_size)
     server.set_port(port)
+    server.set_precision(args.precision)
+    server.set_use_calib(args.use_calib)
     server.use_encryption_model(use_encryption_model)
     if args.product_name != None:
         server.set_product_name(args.product_name)
@@ -166,15 +192,26 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
         print("You must specify your serving model")
         exit(-1)
 
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
     import paddle_serving_server as serving
     op_maker = serving.OpMaker()
-    read_op = op_maker.create('general_reader')
-    general_infer_op = op_maker.create('general_infer')
-    general_response_op = op_maker.create('general_response')
-
     op_seq_maker = serving.OpSeqMaker()
+    read_op = op_maker.create('general_reader')
     op_seq_maker.add_op(read_op)
-    op_seq_maker.add_op(general_infer_op)
+    for idx, single_model in enumerate(model):
+        infer_op_name = "general_infer"
+        if len(model) == 2 and idx == 0:
+            infer_op_name = "general_detection"
+        else:
+            infer_op_name = "general_infer"
+        general_infer_op = op_maker.create(infer_op_name)
+        op_seq_maker.add_op(general_infer_op)
+
+    general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
     if use_multilang:
@@ -184,6 +221,8 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.use_mkl(use_mkl)
+    server.set_precision(args.precision)
+    server.set_use_calib(args.use_calib)
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
@@ -269,8 +308,12 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "wb") as f:
-                f.write(key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "wb") as f:
+                    f.write(key)
             return True
 
     def check_key(self, post_data):
@@ -278,12 +321,18 @@ class MainService(BaseHTTPRequestHandler):
             return False
         else:
             key = base64.b64decode(post_data["key"].encode())
-            with open(args.model + "/key", "rb") as f:
-                cur_key = f.read()
-            return (key == cur_key)
+            for single_model_config in args.model:
+                if os.path.isfile(single_model_config):
+                    raise ValueError(
+                        "The input of --model should be a dir not file.")
+                with open(single_model_config + "/key", "rb") as f:
+                    cur_key = f.read()
+                if key != cur_key:
+                    return False
+            return True
 
     def start(self, post_data):
-        post_data = json.loads(post_data)
+        post_data = json.loads(post_data.decode('utf-8'))
         global p_flag
         if not p_flag:
             if args.use_encryption_model:
@@ -323,7 +372,14 @@ class MainService(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+
     args = serve_args()
+    for single_model_config in args.model:
+        if os.path.isdir(single_model_config):
+            pass
+        elif os.path.isfile(single_model_config):
+            raise ValueError("The input of --model should be a dir not file.")
+
     if args.name == "None":
         from .web_service import port_is_available
         if args.use_encryption_model:
@@ -353,7 +409,9 @@ if __name__ == "__main__":
             device=args.device,
             use_lite=args.use_lite,
             use_xpu=args.use_xpu,
-            ir_optim=args.ir_optim)
+            ir_optim=args.ir_optim,
+            precision=args.precision,
+            use_calib=args.use_calib)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)
