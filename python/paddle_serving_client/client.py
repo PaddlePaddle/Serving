@@ -155,7 +155,7 @@ class Client(object):
         file_path_list = []
         for single_model_config in model_config_path_list:
             if os.path.isdir(single_model_config):
-                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                file_path_list.append("{}/serving_client_conf.prototxt".format(
                     single_model_config))
             elif os.path.isfile(single_model_config):
                 file_path_list.append(single_model_config)
@@ -574,7 +574,7 @@ class MultiLangClient(object):
         file_path_list = []
         for single_model_config in model_config_path_list:
             if os.path.isdir(single_model_config):
-                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                file_path_list.append("{}/serving_client_conf.prototxt".format(
                     single_model_config))
             elif os.path.isfile(single_model_config):
                 file_path_list.append(single_model_config)

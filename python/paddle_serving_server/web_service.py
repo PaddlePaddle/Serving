@@ -176,10 +176,12 @@ class WebService(object):
                        use_xpu=False,
                        ir_optim=False,
                        gpuid=0,
+                       thread_num=2,
                        mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
+        self.thread_num = thread_num
         self.device = device
         self.gpuid = gpuid
         self.port_list = []
@@ -197,7 +199,7 @@ class WebService(object):
                     self.workdir,
                     self.port_list[0],
                     -1,
-                    thread_num=2,
+                    thread_num=self.thread_num,
                     mem_optim=mem_optim,
                     use_lite=use_lite,
                     use_xpu=use_xpu,
@@ -211,7 +213,7 @@ class WebService(object):
                         "{}_{}".format(self.workdir, i),
                         self.port_list[i],
                         gpuid,
-                        thread_num=2,
+                        thread_num=self.thread_num,
                         mem_optim=mem_optim,
                         use_lite=use_lite,
                         use_xpu=use_xpu,

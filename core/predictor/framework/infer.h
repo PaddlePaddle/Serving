@@ -68,7 +68,9 @@ class InferEngine {
   virtual int thrd_initialize() { return thrd_initialize_impl(); }
   virtual int thrd_clear() { return thrd_clear_impl(); }
   virtual int thrd_finalize() { return thrd_finalize_impl(); }
-  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) { return infer_impl(in, out, batch_size); }
+  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) {
+    return infer_impl(in, out, batch_size);
+  }
 
   virtual int reload() = 0;
 
@@ -208,7 +210,6 @@ class ReloadableInferEngine : public InferEngine {
   }
 
   uint64_t version() const { return _version; }
-  
   uint32_t thread_num() const { return _infer_thread_num; }
 
  private:
@@ -335,7 +336,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
-    //params.dump();
+    // params.dump();
     if (!md->cores[next_idx] || md->cores[next_idx]->create(conf) != 0) {
       LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
@@ -491,71 +492,86 @@ class CloneDBReloadableInferEngine
       _pd;  // 进程级EngineCore，多个线程级EngineCore共用该对象的模型数据
 };
 
-template <typename PaddleInferenceCore>
+template <typename EngineCore>
 #ifdef WITH_TRT
-class FluidInferEngine : public DBReloadableInferEngine<PaddleInferenceCore> {
+class FluidInferEngine : public DBReloadableInferEngine<EngineCore> {
 #else
-class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore> {
+class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
 #endif
  public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
   typedef std::vector<paddle::PaddleTensor> TensorVector;
   int infer_impl(const void* in, void* out, uint32_t batch_size = -1) {
-    //First of all, get the real core acording to the template parameter 'PaddleInferenceCore'.
-    PaddleInferenceCore* core =DBReloadableInferEngine<PaddleInferenceCore>::get_core();
+    // First of all, get the real core acording to the
+    // Template parameter <EngineCore>.
+    EngineCore* core = DBReloadableInferEngine<EngineCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
     }
-    //We use the for loop to process the input data.
-    //Inside each for loop, use the in[i]->name as inputName and call 'core->GetInputHandle(inputName)' to get the pointer of InputData.
-    //Set the lod and shape information of InputData first. then copy data from cpu to the core.
-    const TensorVector* tensorVector_in_pointer = reinterpret_cast<const TensorVector*>(in);
+    // We use the for loop to process the input data.
+    // Inside each for loop, use the in[i]->name as inputName and call
+    // 'core->GetInputHandle(inputName)' to get the pointer of InputData.
+    // Set the lod and shape information of InputData first.
+    // Then copy data from cpu to the core.
+    const TensorVector* tensorVector_in_pointer =
+      reinterpret_cast<const TensorVector*>(in);
     for (int i=0; i < tensorVector_in_pointer->size(); ++i) {
-      auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
+      auto lod_tensor_in =
+        core->GetInputHandle((*tensorVector_in_pointer)[i].name);
       lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
       lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
       void* origin_data = (*tensorVector_in_pointer)[i].data.data();
-      //Because the core needs to determine the size of memory space according to the data type passed in.
-      //The pointer type of data must be one of float *,int64_t*,int32_t* instead void*.
+      // Because the core needs to determine the size of memory space
+      // according to the data type passed in.
+      // The pointer type of data must be one of
+      // float *,int64_t*,int32_t* instead void*.
       if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32) {
         float* data = static_cast<float*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT64) {
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                paddle::PaddleDType::INT64) {
         int64_t* data = static_cast<int64_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT32) {
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                paddle::PaddleDType::INT32) {
         int32_t* data = static_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       }
     }
-    //After the input data is passed in, call 'core->Run()' perform the prediction process.
+    // After the input data is passed in,
+    // call 'core->Run()' perform the prediction process.
     if (!core->Run()) {
         LOG(ERROR) << "Failed run fluid family core";
         return -1;
     }
-    
-    //In order to get the results, first, call the 'core->GetOutputNames()' to get the name of output(which is a dict like {OutputName:pointer of OutputValue}).
-    //Then, use for-loop to get OutputValue by calling 'core->GetOutputHandle'.
+    // In order to get the results,
+    // first, call the 'core->GetOutputNames()' to get the name of output
+    // (which is a dict like {OutputName:pointer of OutputValue}).
+    // Then, use for-loop to get OutputValue by calling 'core->GetOutputHandle'.
     std::vector<std::string> outnames = core->GetOutputNames();
     std::vector<int> output_shape;
-    int out_num =0;
-    int dataType =0;
+    int out_num = 0;
+    int dataType = 0;
     void* databuf_data = NULL;
     char* databuf_char = NULL;
     size_t databuf_size = 0;
-    TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
+    TensorVector* tensorVector_out_pointer =
+                  reinterpret_cast<TensorVector*>(out);
     if (!tensorVector_out_pointer) {
       LOG(ERROR) << "tensorVector_out_pointer is nullptr,error";
       return -1;
     }
-    //Get the type and shape information of OutputData first. then copy data to cpu from the core.
-    //The pointer type of data_out must be one of float *,int64_t*,int32_t* instead void*.
+    // Get the type and shape information of OutputData first.
+    // then copy data to cpu from the core.
+    // The pointer type of data_out must be one of
+    // float *,int64_t*,int32_t* instead void*.
     for (int i=0; i < outnames.size(); ++i) {
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       output_shape = lod_tensor_out->shape();
-      out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
+      out_num = std::accumulate(
+          output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
       dataType = lod_tensor_out->type();
       if (dataType == paddle::PaddleDType::FLOAT32) {
         databuf_size = out_num*sizeof(float);
@@ -567,7 +583,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
         float* data_out = reinterpret_cast<float*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if (dataType == paddle::PaddleDType::INT64) {
+      } else if (dataType == paddle::PaddleDType::INT64) {
         databuf_size = out_num*sizeof(int64_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
@@ -577,7 +593,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
         int64_t* data_out = reinterpret_cast<int64_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if (dataType == paddle::PaddleDType::INT32) {
+      } else if (dataType == paddle::PaddleDType::INT32) {
         databuf_size = out_num*sizeof(int32_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
@@ -588,9 +604,11 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }
-      //Because task scheduling requires OPs to use 'Channel'(which is a data structure) to transfer data between OPs.
-      //We need to copy the processed data to the 'Channel' for the next OP.
-      //In this function, it means we should copy the 'databuf_char' to the pointer 'void* out'.(which is also called ‘tensorVector_out_pointer’)
+      // Because task scheduling requires OPs to use 'Channel'
+      // (which is a data structure) to transfer data between OPs.
+      // We need to copy the processed data to the 'Channel' for the next OP.
+      // In this function, it means we should copy the 'databuf_char' to
+      // 'void* out'.(which is also called ‘tensorVector_out_pointer’)
       paddle::PaddleTensor tensor_out;
       tensor_out.name = outnames[i];
       tensor_out.dtype = paddle::PaddleDType(dataType);
@@ -611,8 +629,6 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
   int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
     return infer_impl(&in, &out);
   }
-
-
 };
 
 typedef FactoryPool<InferEngine> StaticInferFactory;
@@ -797,7 +813,9 @@ class VersionedInferEngine : public InferEngine {
   int thrd_finalize_impl() { return -1; }
   int thrd_clear_impl() { return -1; }
   int proc_finalize_impl() { return -1; }
-  int infer_impl(const void* in, void* out, uint32_t batch_size = -1) { return -1; }
+  int infer_impl(const void* in, void* out, uint32_t batch_size = -1) {
+    return -1;
+  }
   int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
     return -1;
   }  // NOLINT
@@ -927,7 +945,7 @@ class InferManager {
   }
 
   // Versioned inference interface
-  int infer(const char* model_name, 
+  int infer(const char* model_name,
             const void* in,
             void* out,
             uint32_t batch_size,
