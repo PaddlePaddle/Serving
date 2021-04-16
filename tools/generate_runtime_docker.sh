@@ -5,7 +5,7 @@ set -e
 
 function usage
 {
-    echo "usage: arg_parse_example -a AN_ARG -s SOME_MORE_ARGS [-y YET_MORE_ARGS || -h]"
+    echo "usage: sh tools/generate_runtime_docker.sh --SOME_ARG ARG_VALUE"
     echo "   ";
     echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11";
     echo "   --python              : python version, 2.7/3.6/3.7 ";
@@ -42,7 +42,7 @@ function parse_args
 
   # validate required args
   if [[ -z "${paddle}" || -z "${env}" || -z "${python}" || -z "${serving}" ]]; then
-      echo "Invalid arguments"
+      echo "Invalid arguments. paddle or env or python or serving is missing."
       usage
       exit;
   fi
@@ -73,7 +73,7 @@ function run
   echo "named arg: paddle: $paddle"
   echo "named arg: image_name: $image_name"
   
-  sed -e "s/<<base_image>>/$base_image/g" -e "s/<<python_version>>/$python/g" -e "s/<<run_env>>/$env/g" Dockerfile.runtime_template > Dockerfile.tmp
+  sed -e "s/<<base_image>>/$base_image/g" -e "s/<<python_version>>/$python/g" -e "s/<<run_env>>/$env/g" tools/Dockerfile.runtime_template > Dockerfile.tmp
   docker build --build-arg ftp_proxy=http://172.19.57.45:3128 --build-arg https_proxy=http://172.19.57.45:3128 --build-arg http_proxy=http://172.19.57.45:3128 --build-arg HTTP_PROXY=http://172.19.57.45:3128 --build-arg HTTPS_PROXY=http://172.19.57.45:3128 -t $image_name -f Dockerfile.tmp .
 }
 

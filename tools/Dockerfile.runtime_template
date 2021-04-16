@@ -6,11 +6,11 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get install -y wget tar xz-utils bzip2  libcurl4-openssl-dev \
-    curl sed grep zlib1g-dev  libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev && \
+    curl sed grep zlib1g-dev  libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev && \
     apt-get clean -y
 
 WORKDIR /usr/bin
-      COPY tools/dockerfile/build_scripts /build_scripts
+      COPY tools/dockerfiles/build_scripts /build_scripts
       RUN bash /build_scripts/install_gcc.sh gcc82 && rm -rf /build_scripts
       RUN cp gcc gcc.bak && cp g++ g++.bak && rm gcc && rm g++
       RUN ln -s /usr/local/gcc-8.2/bin/gcc /usr/local/bin/gcc
@@ -21,18 +21,18 @@ WORKDIR /usr/bin
 
 # install python
 WORKDIR /home
-      COPY tools/dockerfile/build_scripts /build_scripts
+      COPY tools/dockerfiles/build_scripts /build_scripts
       RUN bash /build_scripts/install_python.sh <<python_version>> && rm -rf /build_scripts
       # Other 
 
 # install whl and bin
 WORKDIR /home
-      COPY tools/dockerfile/build_scripts /build_scripts
+      COPY tools/dockerfiles/build_scripts /build_scripts
       RUN bash /build_scripts/install_whl.sh 0.5.0 2.0.0 <<run_env>> <<python_version>> && rm -rf /build_scripts
 
 # install tensorrt
 WORKDIR /home
-      COPY tools/dockerfile/build_scripts /build_scripts
+      COPY tools/dockerfiles/build_scripts /build_scripts
       RUN bash /build_scripts/install_trt.sh && rm -rf /build_scripts
 
 # install go
