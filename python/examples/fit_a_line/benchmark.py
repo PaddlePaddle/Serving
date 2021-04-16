@@ -35,7 +35,7 @@ def single_func(idx, resource):
             batch_size=1)
         start = time.time()
         for data in train_reader():
-            fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+            fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"],batch=True)
         end = time.time()
         return [[end - start]]
     elif args.request == "http":
