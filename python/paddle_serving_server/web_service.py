@@ -115,7 +115,9 @@ class WebService(object):
                             mem_optim=True,
                             use_lite=False,
                             use_xpu=False,
-                            ir_optim=False):
+                            ir_optim=False,
+                            precision="fp32",
+                            use_calib=False):
         device = "gpu"
         if gpuid == -1:
             if use_lite:
@@ -146,6 +148,8 @@ class WebService(object):
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
         server.set_device(device)
+        server.set_precision(precision)
+        server.set_use_calib(use_calib)
 
         if use_lite:
             server.set_lite()
@@ -166,6 +170,8 @@ class WebService(object):
                        workdir="",
                        port=9393,
                        device="gpu",
+                       precision="fp32",
+                       use_calib=False,
                        use_lite=False,
                        use_xpu=False,
                        ir_optim=False,
@@ -197,7 +203,9 @@ class WebService(object):
                     mem_optim=mem_optim,
                     use_lite=use_lite,
                     use_xpu=use_xpu,
-                    ir_optim=ir_optim))
+                    ir_optim=ir_optim,
+                    precision=precision,
+                    use_calib=use_calib))
         else:
             for i, gpuid in enumerate(self.gpus):
                 self.rpc_service_list.append(
@@ -209,7 +217,9 @@ class WebService(object):
                         mem_optim=mem_optim,
                         use_lite=use_lite,
                         use_xpu=use_xpu,
-                        ir_optim=ir_optim))
+                        ir_optim=ir_optim,
+                        precision=precision,
+                        use_calib=use_calib))
 
     def _launch_web_service(self):
         gpu_num = len(self.gpus)
