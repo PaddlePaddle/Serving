@@ -1,23 +1,22 @@
-# Low-Precision Deployment for Paddle Serving
-Intel CPU supports int8 and bfloat16 models, NVIDIA TensorRT supports int8 and bfload16 models.
+# Paddle Serving低精度部署
+低精度部署, 在Intel CPU上支持int8、bfloat16模型，Nvidia TensorRT支持int8、float16模型。
 
-## Obtain the quantized model using PaddleSlim tool
-Train the low-precision models please refer to [PaddleSlim](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html).
+## 通过PaddleSlim量化生成低精度模型
+详细见[PaddleSlim量化](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html)
 
-## Deploy the quantized model from PaddleSlim using Paddle Serving with Nvidia TensorRT int8 mode
-
-Firstly, download the [Resnet50 int8 model](https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz) and convert to Paddle Serving's saved model。
+## 使用TensorRT int8加载PaddleSlim Int8量化模型进行部署
+首先下载Resnet50 [PaddleSlim量化模型](https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz),并转换为Paddle Serving支持的部署模型格式。
 ```
 wget https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz
 tar zxvf ResNet50_quant.tar.gz
 
 python -m paddle_serving_client.convert --dirname ResNet50_quant
 ```
-Start RPC service, specify the GPU id and precision mode
+启动rpc服务, 设定所选GPU id、部署模型精度
 ```
 python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_gpu --use_trt --precision int8 
 ```
-Request the serving service with Client
+使用client进行请求
 ```
 from paddle_serving_client import Client
 from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
@@ -39,7 +38,7 @@ fetch_map = client.predict(feed={"image": img}, fetch=["score"])
 print(fetch_map["score"].reshape(-1))
 ```
 
-## Reference
+## 参考文档
 * [PaddleSlim](https://github.com/PaddlePaddle/PaddleSlim)
-* [Deploy the quantized model Using Paddle Inference on Intel CPU](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_x86_cpu_int8.html)
-* [Deploy the quantized model Using Paddle Inference on Nvidia GPU](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_trt.html)
+* PaddleInference Intel CPU部署量化模型[文档](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_x86_cpu_int8.html)
+* PaddleInference NV GPU部署量化模型[文档](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_trt.html)
