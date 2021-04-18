@@ -1,7 +1,7 @@
 # Paddle Serving低精度部署
 低精度部署在Intel CPU上支持int8、bfloat16模型，Nvidia TensorRT支持int8、bfloat16模型。
 
-## 通过PaddleSlim量化生成低精度模型原理
+## 通过PaddleSlim量化生成低精度模型
 详细见[PaddleSlim量化](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html)
 
 ## 使用TensorRT int8加载PaddleSlim Int8量化模型进行部署
