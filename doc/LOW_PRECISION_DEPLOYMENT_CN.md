@@ -1,4 +1,6 @@
 # Paddle Serving低精度部署
+(简体中文|[English](./LOW_PRECISION_DEPLOYMENT.md))
+
 低精度部署, 在Intel CPU上支持int8、bfloat16模型，Nvidia TensorRT支持int8、float16模型。
 
 ## 通过PaddleSlim量化生成低精度模型

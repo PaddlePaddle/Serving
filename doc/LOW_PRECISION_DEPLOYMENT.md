@@ -1,5 +1,7 @@
 # Low-Precision Deployment for Paddle Serving
-Intel CPU supports int8 and bfloat16 models, NVIDIA TensorRT supports int8 and bfload16 models.
+(English|[简体中文](./LOW_PRECISION_DEPLOYMENT_CN.md))
+
+Intel CPU supports int8 and bfloat16 models, NVIDIA TensorRT supports int8 and float16 models.
 
 ## Obtain the quantized model through PaddleSlim tool
 Train the low-precision models please refer to [PaddleSlim](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html).
