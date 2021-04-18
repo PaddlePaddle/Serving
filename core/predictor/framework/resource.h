@@ -54,15 +54,6 @@ class PaddleGeneralModelConfig {
 };
 
 class BaseRdDict;
-struct DynamicResource {
-  DynamicResource();
-
-  ~DynamicResource();
-
-  int initialize();
-
-  int clear();
-};
 
 class Resource {
  public:
@@ -94,20 +85,17 @@ class Resource {
 
   int finalize();
 
-  std::vector<std::shared_ptr<PaddleGeneralModelConfig> > get_general_model_config();
+  std::vector<std::shared_ptr<PaddleGeneralModelConfig>>
+  get_general_model_config();
 
   void print_general_model_config(
       const std::shared_ptr<PaddleGeneralModelConfig>& config);
 
-  DynamicResource* get_dynamic_resource() {
-    return reinterpret_cast<DynamicResource*>(
-        THREAD_GETSPECIFIC(_tls_bspec_key));
-  }
   size_t get_cube_quant_bits();
 
  private:
   int thread_finalize() { return 0; }
-  std::vector<std::shared_ptr<PaddleGeneralModelConfig> > _configs;
+  std::vector<std::shared_ptr<PaddleGeneralModelConfig>> _configs;
   std::string cube_config_fullpath;
   int cube_quant_bits;  // 0 if no empty
 
