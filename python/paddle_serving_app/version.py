@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Paddle Serving App version string """
-serving_app_version = "0.0.0"
+version = "0.0.0"
 commit_id = ""

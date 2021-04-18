@@ -19,10 +19,10 @@ from __future__ import print_function
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving_server.version import serving_server_version, version_suffix
+from paddle_serving_server.version import version_tag, version_suffix
 import util
 
-package_version = serving_server_version.replace('-', '')
+package_version = version_tag.replace('-', '')
 if version_suffix != "":
     version_suffix = "post" + version_suffix
     package_version = package_version + "." + version_suffix

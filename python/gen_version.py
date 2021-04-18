@@ -47,3 +47,5 @@ elif package_name.endswith('xpu'):
 path = "paddle_serving_" + sys.argv[1]
 commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
 update_info(path + "/version.py", "commit_id", commit_id)
+
+update_info(path + "/version.py", "version_tag", "${VERSION_TAG}")
