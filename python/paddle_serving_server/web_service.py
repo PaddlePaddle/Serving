@@ -101,7 +101,7 @@ class WebService(object):
 
         self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
         if client_config_path == None:
-            self.client_config_path = self.server_config_dir_paths
+            self.client_config_path = file_path_list
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
