@@ -170,7 +170,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
 make -j10
 ```
 
-**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](COMPILE.md#Notes).
+**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#Notes).
 
 ## Compile Client
 
