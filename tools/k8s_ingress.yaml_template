@@ -1,0 +1,15 @@
+#kong_api.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: << APP_NAME >>
+  annotations:
+    kubernetes.io/ingress.class: kong
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /<< APP_NAME >>
+        backend:
+          serviceName: << APP_NAME >>
+          servicePort: << PORT >>
