@@ -1,6 +1,6 @@
 ## 在Kubenetes集群上部署Paddle Serving
 
-Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
+Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving 模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
 
 ### 集群准备
 
