@@ -1,6 +1,6 @@
 ## 在Kubenetes集群上部署Paddle Serving
 
-Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
+Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
 
 ### 集群准备
 
@@ -84,7 +84,7 @@ web service模式本质上和pipeline模式类似，因此我们以`Serving/pyth
 
 ```bash
 #假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-py37
-docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py37 bash
+docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py27 bash
 cd Serving/python/examples/bert
 ### download model 
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -109,33 +109,7 @@ python3.7 bert_web_service.py 9292
 
 **为了方便您对照，我们也提供了示例镜像registry.baidubce.com/paddlepaddle/serving:k8s-web-demo**
 
-#### RPC模式：
 
-相比之下，RPC模式只需要Serving模型的服务端配置即可，我们也以`Serving/python/examples/detection/faster_rcnn`为例
-
-```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为paddle_serving:cuda10.2-py37
-docker run --rm -dit --name rpc_serving_demo paddle_serving:cuda10.2-py37 bash
-cd Serving/python/example/detections/faster_rcnn_r50_fpn_1x_coco]
-## get model
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn_r50_fpn_1x_coco.tar
-tar xf faster_rcnn_r50_fpn_1x_coco.tar
-cd ..
-docker cp faster_rcnn_r50_fpn_1x_coco rpc_serving_demo:/home/faster_rcnn
-docker commit rpc_serving_demo detection_serving:latest
-```
-
-**提示：如果您对runtime镜像是否可运行需要验证，可以执行**
-
-```
-docker exec -it rpc_serving_demo bash
-cd /home/faster_rcnn
-python3.7 -m paddle_serving_server.serve --model serving_server --port 9292
-```
-
-进入容器到工程目录之后，剩下的操作和调试代码的工作是类似的。
-
-**为了方便您对照，我们也提供了示例镜像registry.baidubce.com/paddlepaddle/serving:k8s-rpc-demo**
 
 ### 在Kubenetes集群上部署 
 
@@ -144,19 +118,13 @@ kubenetes集群操作需要`kubectl`去操纵yaml文件。我们这里给出了�
 - pipeline ocr示例 
 
 ```bash
-sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python3.7 web_service.py" --port 18080
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python2.7 web_service.py" --port 9999
 ```
 
 - web service bert示例
 
 ```bash
-sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python3.7 bert_web_service.py 9292" --port 9292
-```
-
-- rpc faster rcnn示例
-
-```bash
-sh tools/generate_k8s_yamls.sh  --app_name faster_rcnn --image_name registry.baidubce.com/paddlepaddle/serving:k8s-r pc-demo --workdir /home/faster_rcnn --command "python3.7 -m paddle_serving_server.serve --model serving_server --port 9292" --port 9292
+sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python2.7 bert_web_service.py 9292" --port 9292
 ```
 
 接下来我们会看到有两个yaml文件，分别是`k8s_serving.yaml`和 k8s_ingress.yaml`.
@@ -174,7 +142,7 @@ metadata:
 spec:
   ports:
   - port: 18080
-    name: rpc
+    name: http
     protocol: TCP
     targetPort: 18080
   selector:
@@ -264,4 +232,36 @@ NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 ocr    1/1     1            1           2d20h
 ```
 
+我们使用
 
+```
+kubectl get service --all-namespaces
+```
+
+可以看到
+
+```
+NAMESPACE     NAME                      TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE
+default       bert                      ClusterIP      172.16.86.12     <none>        9292/TCP                   20m
+default       kubernetes                ClusterIP      172.16.0.1       <none>        443/TCP                    28d
+default       ocr                       ClusterIP      172.16.152.43    <none>        9999/TCP                   50m
+kong          kong-proxy                LoadBalancer   172.16.88.132    <pending>     80:8893/TCP,443:8805/TCP   25d
+kong          kong-validation-webhook   ClusterIP      172.16.38.100    <none>        443/TCP                    25d
+kube-system   heapster                  ClusterIP      172.16.240.64    <none>        80/TCP                     28d
+kube-system   kube-dns                  ClusterIP      172.16.0.10      <none>        53/UDP,53/TCP,9153/TCP     28d
+kube-system   metrics-server            ClusterIP      172.16.34.157    <none>        443/TCP                    28d
+```
+
+访问的方式就在
+
+```:
+http://${KONG_IP}:80/${APP_NAME}/prediction
+```
+
+例如Bert
+
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://172.16.88.132:80/bert/prediction
+```
+
+就会从KONG的网关转发给bert服务。同理，OCR服务也可以把对应的IP地址换成`http://172.16.88.132:80/ocr/prediction`
