@@ -1,6 +1,20 @@
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import os
-
+import numpy as np
 import google.protobuf.text_format
 
 from .proto import general_model_config_pb2 as m_config
@@ -8,6 +22,7 @@ from .proto import multi_lang_general_model_service_pb2
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
 from .proto import multi_lang_general_model_service_pb2_grpc
+
 
 class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                                      MultiLangGeneralModelServiceServicer):
@@ -31,7 +46,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
             model_config_path_list = [model_config_path_list]
         elif isinstance(model_config_path_list, list):
             pass
-        
+
         file_path_list = []
         for single_model_config in model_config_path_list:
             if os.path.isdir(single_model_config):
@@ -57,7 +72,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
             f = open(file_path_list[-1], 'r')
             model_conf = google.protobuf.text_format.Merge(
                 str(f.read()), model_conf)
-        
+
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.fetch_types_ = {}
         for i, var in enumerate(model_conf.fetch_var):
@@ -86,11 +101,11 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                 v_type = self.feed_types_[name]
                 data = None
                 if is_python:
-                    if v_type == 0:# int64
+                    if v_type == 0:  # int64
                         data = np.frombuffer(var.data, dtype="int64")
-                    elif v_type == 1:# float32
+                    elif v_type == 1:  # float32
                         data = np.frombuffer(var.data, dtype="float32")
-                    elif v_type == 2:# int32
+                    elif v_type == 2:  # int32
                         data = np.frombuffer(var.data, dtype="int32")
                     else:
                         raise Exception("error type.")
@@ -99,7 +114,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                         data = np.array(list(var.int64_data), dtype="int64")
                     elif v_type == 1:  # float32
                         data = np.array(list(var.float_data), dtype="float32")
-                    elif v_type == 2:# int32
+                    elif v_type == 2:  # int32
                         data = np.array(list(var.int_data), dtype="int32")
                     else:
                         raise Exception("error type.")
@@ -155,7 +170,8 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         # This porcess and Inference process cannot be operate at the same time.
         # For performance reasons, do not add thread lock temporarily.
         timeout_ms = request.timeout_ms
-        self._init_bclient(self.model_config_path_list, self.endpoints_, timeout_ms)
+        self._init_bclient(self.model_config_path_list, self.endpoints_,
+                           timeout_ms)
         resp = multi_lang_general_model_service_pb2.SimpleResponse()
         resp.err_code = 0
         return resp

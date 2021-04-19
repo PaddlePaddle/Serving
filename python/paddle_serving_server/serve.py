@@ -103,7 +103,7 @@ def serve_args():
 
 
 def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
-    args = parse_args()
+    args = serve_args()
     thread_num = args.thread
     model = args.model
     port = serving_port
@@ -410,6 +410,7 @@ if __name__ == "__main__":
             use_lite=args.use_lite,
             use_xpu=args.use_xpu,
             ir_optim=args.ir_optim,
+            thread_num=args.thread,
             precision=args.precision,
             use_calib=args.use_calib)
         web_service.run_rpc_service()

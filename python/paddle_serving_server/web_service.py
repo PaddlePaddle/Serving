@@ -101,7 +101,7 @@ class WebService(object):
 
         self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
         if client_config_path == None:
-            self.client_config_path = self.server_config_dir_paths
+            self.client_config_path = file_path_list
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
@@ -176,10 +176,12 @@ class WebService(object):
                        use_xpu=False,
                        ir_optim=False,
                        gpuid=0,
+                       thread_num=2,
                        mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
+        self.thread_num = thread_num
         self.device = device
         self.gpuid = gpuid
         self.port_list = []
@@ -197,7 +199,7 @@ class WebService(object):
                     self.workdir,
                     self.port_list[0],
                     -1,
-                    thread_num=2,
+                    thread_num=self.thread_num,
                     mem_optim=mem_optim,
                     use_lite=use_lite,
                     use_xpu=use_xpu,
@@ -211,7 +213,7 @@ class WebService(object):
                         "{}_{}".format(self.workdir, i),
                         self.port_list[i],
                         gpuid,
-                        thread_num=2,
+                        thread_num=self.thread_num,
                         mem_optim=mem_optim,
                         use_lite=use_lite,
                         use_xpu=use_xpu,
