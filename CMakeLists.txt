@@ -60,6 +60,13 @@ option(WITH_TRT             "Compile Paddle Serving with TRT"                   
 option(PADDLE_ON_INFERENCE  "Compile for encryption"                             ON)
 option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                    OFF)
 
+if(NOT DEFINED VERSION_TAG)
+  set(VERSION_TAG "0.0.0")
+endif()
+if (WITH_PYTHON)
+  message(STATUS "Compile Version Tag for wheel: ${VERSION_TAG}")
+endif()
+
 if (WITH_OPENCV)
     SET(OPENCV_DIR "" CACHE PATH "Location of libraries")
     if(NOT DEFINED OPENCV_DIR)

@@ -22,7 +22,7 @@ import os
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving_app.version import serving_app_version
+from paddle_serving_app.version import version_tag
 from pkg_resources import DistributionNotFound, get_distribution
         
 def python_version():
@@ -78,7 +78,7 @@ package_dir={'paddle_serving_app':
 
 setup(
     name='paddle-serving-app',
-    version=serving_app_version.replace('-', ''),
+    version=version_tag.replace('-', ''),
     description=
     ('Paddle Serving Package for saved model with PaddlePaddle'),
     url='https://github.com/PaddlePaddle/Serving',

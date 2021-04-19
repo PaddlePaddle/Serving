@@ -59,11 +59,11 @@ For example, after the Server Compiation step，the whl package will be produced
 # Request parameters description
 In order to deploy serving
  service on the arm server with Baidu Kunlun xpu chips and use the acceleration capability of Paddle-Lite，please specify the following parameters during deployment。
-|param|param description|about|
-|:--|:--|:--|
-|use_lite|using Paddle-Lite Engine|use the inference capability of Paddle-Lite|
-|use_xpu|using Baidu Kunlun for inference|need to be used with the use_lite option|
-|ir_optim|open the graph optimization|refer to[Paddle-Lite](https://github.com/PaddlePaddle/Paddle-Lite)|
+| param    | param description                | about                                                              |
+| :------- | :------------------------------- | :----------------------------------------------------------------- |
+| use_lite | using Paddle-Lite Engine         | use the inference capability of Paddle-Lite                        |
+| use_xpu  | using Baidu Kunlun for inference | need to be used with the use_lite option                           |
+| ir_optim | open the graph optimization      | refer to[Paddle-Lite](https://github.com/PaddlePaddle/Paddle-Lite) |
 # Deplyment examples
 ## Download the model
 ```
@@ -78,15 +78,15 @@ There are mainly three deployment methods：
     
 The first two deployment methods are recommended。
 
-Start the rpc service, deploying on ARM server with Baidu Kunlun chips，and accelerate with Paddle-Lite and Baidu Kunlun xpu.
+Start the rpc service, deploying on ARM server with Baidu Kunlun chips，and accelerate with Paddle-Lite and Baidu Kunlun xpu.
 ```
 python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --use_xpu --ir_optim
 ```
-Start the rpc service, deploying on ARM server，and accelerate with Paddle-Lite.
+Start the rpc service, deploying on ARM server，and accelerate with Paddle-Lite.
 ```
 python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --ir_optim
 ```
-Start the rpc service, deploying on ARM server.
+Start the rpc service, deploying on ARM server.
 ```
 python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292
 ```
@@ -103,7 +103,7 @@ fetch_map = client.predict(feed={"x": np.array(data).reshape(1,13,1)}, fetch=["p
 print(fetch_map)
 ```
 Some examples are provided below, and other models can be modifed with reference to these examples。
-|sample name|sample links|
-|:-----|:--|
-|fit_a_line|[fit_a_line_xpu](../python/examples/xpu/fit_a_line_xpu)|
-|resnet|[resnet_v2_50_xpu](../python/examples/xpu/resnet_v2_50_xpu)|
+| sample name | sample links                                                |
+| :---------- | :---------------------------------------------------------- |
+| fit_a_line  | [fit_a_line_xpu](../python/examples/xpu/fit_a_line_xpu)     |
+| resnet      | [resnet_v2_50_xpu](../python/examples/xpu/resnet_v2_50_xpu) |
