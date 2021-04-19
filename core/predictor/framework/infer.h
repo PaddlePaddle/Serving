@@ -13,14 +13,14 @@
 // limitations under the License.
 
 #pragma once
+#include <pthread.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <pthread.h>
+#include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
-#include <numeric>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
@@ -68,7 +68,9 @@ class InferEngine {
   virtual int thrd_initialize() { return thrd_initialize_impl(); }
   virtual int thrd_clear() { return thrd_clear_impl(); }
   virtual int thrd_finalize() { return thrd_finalize_impl(); }
-  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) { return infer_impl(in, out, batch_size); }
+  virtual int infer(const void* in, void* out, uint32_t batch_size = -1) {
+    return infer_impl(in, out, batch_size);
+  }
 
   virtual int reload() = 0;
 
@@ -82,10 +84,10 @@ class InferEngine {
   virtual int thrd_clear_impl() = 0;
   virtual int proc_finalize_impl() = 0;
   virtual int infer_impl(const void* in,
-                          void* out,
-                          uint32_t batch_size = -1) = 0;
+                         void* out,
+                         uint32_t batch_size = -1) = 0;
   virtual int task_infer_impl(const BatchTensor& in,
-                          BatchTensor& out) = 0;  // NOLINT
+                              BatchTensor& out) = 0;  // NOLINT
 
   // end: framework inner call
 };
@@ -94,194 +96,77 @@ class ReloadableInferEngine : public InferEngine {
  public:
   virtual ~ReloadableInferEngine() {}
 
-  union last_check_status {
-    time_t last_timestamp;
-    uint64_t last_md5sum;
-    uint64_t last_revision;
+  // Reloadable record
+  union ReloadableRecord {
+    time_t timestamp;
+    uint64_t md5sum;
+    uint64_t revision;
   };
 
   virtual int load(const configure::EngineDesc& conf) = 0;
   typedef im::bsf::Task<Tensor, Tensor> TaskT;
 
-  int proc_initialize_impl(const configure::EngineDesc& conf, bool version) {
-    _reload_tag_file = conf.reloadable_meta();
-    _reload_mode_tag = conf.reloadable_type();
-    _model_data_path = conf.model_dir();
-    _infer_thread_num = conf.runtime_thread_num();
-    _infer_batch_size = conf.batch_infer_size();
-    _infer_batch_align = conf.enable_batch_align();
+  int proc_initialize_impl(const configure::EngineDesc& conf, bool version);
 
-    _conf = conf;
+  int proc_initialize(const configure::EngineDesc& conf, bool version);
 
-    if (!check_need_reload() || load(conf) != 0) {
-      LOG(ERROR) << "Failed load model_data_path" << _model_data_path;
-      return -1;
-    }
+  int infer(const void* in, void* out, uint32_t batch_size = -1);
 
-    if (parse_version_info(conf, version) != 0) {
-      LOG(ERROR) << "Failed parse version info";
-      return -1;
-    }
+  int thrd_initialize();
 
-    LOG(WARNING) << "Succ load model_data_path" << _model_data_path;
-    return 0;
-  }
+  int thrd_clear();
 
-  int proc_initialize(const configure::EngineDesc& conf, bool version) {
-    if (proc_initialize_impl(conf, version) != 0) {
-      LOG(ERROR) << "Failed proc initialize impl";
-      return -1;
-    }
+  int proc_finalize();
 
-    // init bsf framework
-    if (_infer_thread_num <= 0) {
-      return 0;
-    }
-
-    // init bsf framework
-    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_init_fn(
-        boost::bind(&InferEngine::thrd_initialize_impl, this));
-    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_reset_fn(
-        boost::bind(&InferEngine::thrd_clear_impl, this));
-    im::bsf::TaskExecutor<TaskT>::instance()->set_thread_callback_fn(
-        boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
-    im::bsf::TaskExecutor<TaskT>::instance()->set_batch_size(_infer_batch_size);
-    im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(
-        _infer_batch_align);
-    if (im::bsf::TaskExecutor<TaskT>::instance()->start(_infer_thread_num) !=
-        0) {
-      LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
-      return -1;
-    }
-
-    LOG(WARNING) << "Enable batch schedule framework, thread_num:"
-                 << _infer_thread_num << ", batch_size:" << _infer_batch_size
-                 << ", enable_batch_align:" << _infer_batch_align;
-    return 0;
-  }
-
-  int infer(const void* in, void* out, uint32_t batch_size = -1) {
-    if (_infer_thread_num <= 0) {
-      return infer_impl(in, out, batch_size);
-    }
-
-    im::bsf::TaskManager<Tensor, Tensor> task_manager;
-    task_manager.schedule(*(reinterpret_cast<const BatchTensor*>(in)),
-                          *(reinterpret_cast<BatchTensor*>(out)));
-    task_manager.wait();
-    return 0;
-  }
-
-  int thrd_initialize() {
-    if (_infer_thread_num > 0) {
-      return 0;
-    }
-    return thrd_initialize_impl();
-  }
-
-  int thrd_clear() {
-    if (_infer_thread_num > 0) {
-      return 0;
-    }
-
-    return thrd_clear_impl();
-  }
-
-  int proc_finalize() {
-    if (proc_finalize_impl() != 0) {
-      LOG(ERROR) << "Failed proc finalize impl";
-      return -1;
-    }
-
-    if (_infer_thread_num > 0) {
-      im::bsf::TaskExecutor<TaskT>::instance()->stop();
-    }
-    return 0;
-  }
-
-  int reload() {
-    if (check_need_reload()) {
-      LOG(WARNING) << "begin reload model[" << _model_data_path << "].";
-      return load(_conf);
-    }
-    return 0;
-  }
+  int reload();
 
   uint64_t version() const { return _version; }
-  
   uint32_t thread_num() const { return _infer_thread_num; }
 
  private:
-  int parse_version_info(const configure::EngineDesc& config, bool version) {
-    _version = uint64_t(-1);
-    return 0;
-  }
+  int parse_version_info(const configure::EngineDesc& config, bool version);
 
-  bool check_need_reload() {
-    if (_reload_mode_tag == "timestamp_ne") {
-      return check_timestamp_ne();
-    } else if (_reload_mode_tag == "timestamp_gt") {
-      return check_timestamp_gt();
-    } else if (_reload_mode_tag == "md5sum") {
-      return check_md5sum();
-    } else if (_reload_mode_tag == "revision") {
-      return check_revision();
-    } else if (_reload_mode_tag == "none") {
-      return false;
-    } else {
-      LOG(ERROR) << "Not support check type: " << _reload_mode_tag;
-      return false;
-    }
-  }
+  bool check_need_reload();
 
-  bool check_timestamp_ne() {
-    struct stat st;
-    if (stat(_reload_tag_file.c_str(), &st) != 0) {
-      LOG(ERROR) << "Failed stat config file:" << _reload_tag_file;
-      return false;
-    }
+  bool check_timestamp_ne();
 
-    if ((st.st_mode & S_IFREG) && st.st_mtime != _last_status.last_timestamp) {
-      _last_status.last_timestamp = st.st_mtime;
-      return true;
-    }
-
-    return false;
-  }
-
-  bool check_timestamp_gt() {
-    struct stat st;
-    if (stat(_reload_tag_file.c_str(), &st) != 0) {
-      LOG(ERROR) << "Failed stat config file:" << _reload_tag_file;
-      return false;
-    }
-
-    if ((st.st_mode & S_IFREG) && st.st_mtime > _last_status.last_timestamp) {
-      _last_status.last_timestamp = st.st_mtime;
-      return true;
-    }
-
-    return false;
-  }
+  bool check_timestamp_gt();
 
   bool check_md5sum() { return false; }
 
   bool check_revision() { return false; }
 
  protected:
-  std::string _model_data_path;
+  // Model directory
+  std::string _model_dir;
+
+  // The description of inference engine
   configure::EngineDesc _conf;
 
  private:
+  // Tag file of reloadable model
   std::string _reload_tag_file;
-  std::string _reload_mode_tag;
-  last_check_status _last_status;
+
+  // Type of reload, e.g. timestamp_ne, timestamp_gt, md5sum, reversion
+  std::string _reload_type;
+
+  // Record the last loading infermation
+  ReloadableRecord _last_record;
+
+  // Number of inference threads
   uint32_t _infer_thread_num;
+
+  // Size of inference batch
   uint32_t _infer_batch_size;
+
+  // Need to align batch_size in inferring
   bool _infer_batch_align;
+
+  // model version
   uint64_t _version;
 };
 
+// Lock free switching two models
 template <typename EngineCore>
 struct ModelData {
   ModelData() : current_idx(1) {
@@ -322,12 +207,10 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     }
 
     LOG(WARNING) << "Succ load engine, path: " << conf.model_dir();
-
     return 0;
   }
 
-  int load_data(ModelData<EngineCore>* md,
-                const configure::EngineDesc& conf) {
+  int load_data(ModelData<EngineCore>* md, const configure::EngineDesc& conf) {
     uint32_t next_idx = (md->current_idx + 1) % 2;
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
@@ -335,7 +218,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
-    //params.dump();
+    // params.dump();
     if (!md->cores[next_idx] || md->cores[next_idx]->create(conf) != 0) {
       LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
@@ -353,11 +236,11 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
 
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _conf) != 0) {
-      LOG(ERROR) << "Failed create thread data from "
-                 << _conf.model_dir();
+      LOG(ERROR) << "Failed create thread data from " << _conf.model_dir();
       return -1;
     }
 
+    LOG(ERROR) << "THREAD_SETSPECIFIC _skey = md";
     THREAD_SETSPECIFIC(_skey, md);
     im::bsf::AutoMutex lock(_mutex);
     _reload_vec.push_back(md);
@@ -395,8 +278,6 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   THREAD_KEY_T _skey;
   THREAD_MUTEX_T _mutex;
   std::vector<ModelData<EngineCore>*> _reload_vec;
-
- private:
 };
 
 // 多个EngineCore共用同一份模型数据
@@ -441,7 +322,6 @@ class CloneDBReloadableInferEngine
     }
 
     LOG(WARNING) << "Succ load clone model, path[" << conf.model_dir() << "]";
-
     return 0;
   }
 
@@ -491,112 +371,129 @@ class CloneDBReloadableInferEngine
       _pd;  // 进程级EngineCore，多个线程级EngineCore共用该对象的模型数据
 };
 
-template <typename PaddleInferenceCore>
+template <typename EngineCore>
 #ifdef WITH_TRT
-class FluidInferEngine : public DBReloadableInferEngine<PaddleInferenceCore> {
+class FluidInferEngine : public DBReloadableInferEngine<EngineCore> {
 #else
-class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore> {
+class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
 #endif
  public:  // NOLINT
   FluidInferEngine() {}
   ~FluidInferEngine() {}
   typedef std::vector<paddle::PaddleTensor> TensorVector;
   int infer_impl(const void* in, void* out, uint32_t batch_size = -1) {
-    //First of all, get the real core acording to the template parameter 'PaddleInferenceCore'.
-    PaddleInferenceCore* core =DBReloadableInferEngine<PaddleInferenceCore>::get_core();
+    // First of all, get the real core acording to the
+    // Template parameter <EngineCore>.
+    EngineCore* core = DBReloadableInferEngine<EngineCore>::get_core();
     if (!core || !core->get()) {
       LOG(ERROR) << "Failed get fluid core in infer_impl()";
       return -1;
     }
-    //We use the for loop to process the input data.
-    //Inside each for loop, use the in[i]->name as inputName and call 'core->GetInputHandle(inputName)' to get the pointer of InputData.
-    //Set the lod and shape information of InputData first. then copy data from cpu to the core.
-    const TensorVector* tensorVector_in_pointer = reinterpret_cast<const TensorVector*>(in);
-    for (int i=0; i < tensorVector_in_pointer->size(); ++i) {
-      auto lod_tensor_in = core->GetInputHandle((*tensorVector_in_pointer)[i].name);
+    // We use the for loop to process the input data.
+    // Inside each for loop, use the in[i]->name as inputName and call
+    // 'core->GetInputHandle(inputName)' to get the pointer of InputData.
+    // Set the lod and shape information of InputData first.
+    // Then copy data from cpu to the core.
+    const TensorVector* tensorVector_in_pointer =
+        reinterpret_cast<const TensorVector*>(in);
+    for (int i = 0; i < tensorVector_in_pointer->size(); ++i) {
+      auto lod_tensor_in =
+          core->GetInputHandle((*tensorVector_in_pointer)[i].name);
       lod_tensor_in->SetLoD((*tensorVector_in_pointer)[i].lod);
       lod_tensor_in->Reshape((*tensorVector_in_pointer)[i].shape);
       void* origin_data = (*tensorVector_in_pointer)[i].data.data();
-      //Because the core needs to determine the size of memory space according to the data type passed in.
-      //The pointer type of data must be one of float *,int64_t*,int32_t* instead void*.
+      // Because the core needs to determine the size of memory space
+      // according to the data type passed in.
+      // The pointer type of data must be one of
+      // float *,int64_t*,int32_t* instead void*.
       if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::FLOAT32) {
         float* data = static_cast<float*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT64) {
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                 paddle::PaddleDType::INT64) {
         int64_t* data = static_cast<int64_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
-      }else if ((*tensorVector_in_pointer)[i].dtype == paddle::PaddleDType::INT32) {
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                 paddle::PaddleDType::INT32) {
         int32_t* data = static_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       }
     }
-    //After the input data is passed in, call 'core->Run()' perform the prediction process.
+    // After the input data is passed in,
+    // call 'core->Run()' perform the prediction process.
     if (!core->Run()) {
-        LOG(ERROR) << "Failed run fluid family core";
-        return -1;
+      LOG(ERROR) << "Failed run fluid family core";
+      return -1;
     }
-    
-    //In order to get the results, first, call the 'core->GetOutputNames()' to get the name of output(which is a dict like {OutputName:pointer of OutputValue}).
-    //Then, use for-loop to get OutputValue by calling 'core->GetOutputHandle'.
+    // In order to get the results,
+    // first, call the 'core->GetOutputNames()' to get the name of output
+    // (which is a dict like {OutputName:pointer of OutputValue}).
+    // Then, use for-loop to get OutputValue by calling 'core->GetOutputHandle'.
     std::vector<std::string> outnames = core->GetOutputNames();
     std::vector<int> output_shape;
-    int out_num =0;
-    int dataType =0;
+    int out_num = 0;
+    int dataType = 0;
     void* databuf_data = NULL;
     char* databuf_char = NULL;
     size_t databuf_size = 0;
-    TensorVector* tensorVector_out_pointer = reinterpret_cast<TensorVector*>(out);
+    TensorVector* tensorVector_out_pointer =
+        reinterpret_cast<TensorVector*>(out);
     if (!tensorVector_out_pointer) {
       LOG(ERROR) << "tensorVector_out_pointer is nullptr,error";
       return -1;
     }
-    //Get the type and shape information of OutputData first. then copy data to cpu from the core.
-    //The pointer type of data_out must be one of float *,int64_t*,int32_t* instead void*.
-    for (int i=0; i < outnames.size(); ++i) {
+    // Get the type and shape information of OutputData first.
+    // then copy data to cpu from the core.
+    // The pointer type of data_out must be one of
+    // float *,int64_t*,int32_t* instead void*.
+    for (int i = 0; i < outnames.size(); ++i) {
       auto lod_tensor_out = core->GetOutputHandle(outnames[i]);
       output_shape = lod_tensor_out->shape();
-      out_num = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
+      out_num = std::accumulate(
+          output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
       dataType = lod_tensor_out->type();
       if (dataType == paddle::PaddleDType::FLOAT32) {
-        databuf_size = out_num*sizeof(float);
+        databuf_size = out_num * sizeof(float);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
-            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
-            return -1;
+          LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+          return -1;
         }
         float* data_out = reinterpret_cast<float*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if (dataType == paddle::PaddleDType::INT64) {
-        databuf_size = out_num*sizeof(int64_t);
+      } else if (dataType == paddle::PaddleDType::INT64) {
+        databuf_size = out_num * sizeof(int64_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
-            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
-            return -1;
+          LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+          return -1;
         }
         int64_t* data_out = reinterpret_cast<int64_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
-      }else if (dataType == paddle::PaddleDType::INT32) {
-        databuf_size = out_num*sizeof(int32_t);
+      } else if (dataType == paddle::PaddleDType::INT32) {
+        databuf_size = out_num * sizeof(int32_t);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
-            LOG(ERROR) << "Malloc failed, size: " << databuf_size;
-            return -1;
+          LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+          return -1;
         }
         int32_t* data_out = reinterpret_cast<int32_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }
-      //Because task scheduling requires OPs to use 'Channel'(which is a data structure) to transfer data between OPs.
-      //We need to copy the processed data to the 'Channel' for the next OP.
-      //In this function, it means we should copy the 'databuf_char' to the pointer 'void* out'.(which is also called ‘tensorVector_out_pointer’)
+      // Because task scheduling requires OPs to use 'Channel'
+      // (which is a data structure) to transfer data between OPs.
+      // We need to copy the processed data to the 'Channel' for the next OP.
+      // In this function, it means we should copy the 'databuf_char' to
+      // 'void* out'.(which is also called ‘tensorVector_out_pointer’)
       paddle::PaddleTensor tensor_out;
       tensor_out.name = outnames[i];
       tensor_out.dtype = paddle::PaddleDType(dataType);
       tensor_out.shape.assign(output_shape.begin(), output_shape.end());
       std::vector<std::vector<size_t>> out_lod = lod_tensor_out->lod();
-      for (int li=0; li < out_lod.size(); ++li) {
+      for (int li = 0; li < out_lod.size(); ++li) {
         std::vector<size_t> lod_element;
         lod_element.assign(out_lod[li].begin(), out_lod[li].end());
         tensor_out.lod.push_back(lod_element);
@@ -611,8 +508,6 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<PaddleInferenceCore
   int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
     return infer_impl(&in, &out);
   }
-
-
 };
 
 typedef FactoryPool<InferEngine> StaticInferFactory;
@@ -622,185 +517,49 @@ class VersionedInferEngine : public InferEngine {
   VersionedInferEngine() { _versions.clear(); }
   ~VersionedInferEngine() {}
 
-  int proc_initialize(const configure::EngineDesc& conf) {
-    if (proc_initialize(conf, false) != 0) {
-      LOG(ERROR) << "Failed proc intialize engine: " << conf.name().c_str();
-      return -1;
-    }
+  int proc_initialize(const configure::EngineDesc& conf);
 
-    LOG(WARNING) << "Succ proc initialize engine: " << conf.name().c_str();
-    return 0;
-  }
+  int proc_initialize(const configure::EngineDesc& conf, bool version);
 
-  int proc_initialize(const configure::EngineDesc& conf, bool version) {
-    std::string engine_type = conf.type();
-    InferEngine* engine =
-        StaticInferFactory::instance().generate_object(engine_type);
-    if (!engine) {
-      LOG(ERROR) << "Failed generate engine with type:" << engine_type;
-      return -1;
-    }
-#ifndef BCLOUD
-    VLOG(2) << "FLAGS_logtostderr " << FLAGS_logtostderr;
-    int tmp = FLAGS_logtostderr;
-    if (engine->proc_initialize(conf, version) != 0) {
-      LOG(ERROR) << "Failed initialize engine, type:" << engine_type;
-      return -1;
-    }
-    VLOG(2) << "FLAGS_logtostderr " << FLAGS_logtostderr;
-    FLAGS_logtostderr = tmp;
-#else
-    if (engine->proc_initialize(conf, version) != 0) {
-      LOG(ERROR) << "Failed initialize engine, type:" << engine_type;
-      return -1;
-    }
-#endif
-    auto r = _versions.insert(std::make_pair(engine->version(), engine));
-    if (!r.second) {
-      LOG(ERROR) << "Failed insert item: " << engine->version()
-                 << ", type: " << engine_type;
-      return -1;
-    }
-    LOG(WARNING) << "Succ proc initialize version engine: "
-                 << engine->version();
-    return 0;
-  }
+  int proc_finalize();
 
-  int proc_finalize() {
-    for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
-      if (iter->second->proc_finalize() != 0) {
-        LOG(ERROR) << "Failed proc finalize version engine: " << iter->first;
-      }
-      LOG(WARNING) << "Succ proc finalize version engine: " << iter->first;
-    }
-    return 0;
-  }
+  int thrd_initialize();
 
-  int thrd_initialize() {
-    for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
-      if (iter->second->thrd_initialize() != 0) {
-        LOG(ERROR) << "Failed thrd initialize version engine: " << iter->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ thrd initialize version engine: " << iter->first;
-    }
-    return 0;
-  }
+  int thrd_clear();
 
-  int thrd_clear() {
-    for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
-      if (iter->second->thrd_clear() != 0) {
-        LOG(ERROR) << "Failed thrd clear version engine: " << iter->first;
-        return -1;
-      }
-    }
-    return 0;
-  }
+  int thrd_finalize();
 
-  int thrd_finalize() {
-    for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
-      if (iter->second->thrd_finalize() != 0) {
-        LOG(ERROR) << "Failed thrd finalize version engine: " << iter->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ thrd finalize version engine: " << iter->first;
-    }
-    return 0;
-  }
+  int reload();
 
-  int reload() {
-    for (auto iter = _versions.begin(); iter != _versions.end(); ++iter) {
-      if (iter->second->reload() != 0) {
-        LOG(ERROR) << "Failed reload version engine: " << iter->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ reload version engine: " << iter->first;
-    }
-    return 0;
-  }
-
-  uint64_t version() const {
-    InferEngine* engine = default_engine();
-    if (engine) {
-      return engine->version();
-    } else {
-      return uint64_t(-1);
-    }
-  }
+  uint64_t version() const;
 
   // inference interface
-  InferEngine* default_engine() const {
-    if (_versions.size() != 1) {
-      LOG(ERROR) << "Ambiguous default engine version:" << _versions.size();
-      return NULL;
-    }
+  InferEngine* default_engine() const;
 
-    return _versions.begin()->second;
-  }
-
-  int infer(const void* in, void* out, uint32_t batch_size) {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get default engine";
-      return -1;
-    }
-    return engine->infer(in, out, batch_size);
-  }
+  int infer(const void* in, void* out, uint32_t batch_size);
 
   template <typename T>
-  T* get_core() {
-    InferEngine* engine = default_engine();
-    if (!engine) {
-      LOG(WARNING) << "fail to get core";
-      return NULL;
-    }
-    auto db_engine = dynamic_cast<DBReloadableInferEngine<T>*>(engine);
-    if (db_engine) {
-      return db_engine->get_core();
-    }
-    LOG(WARNING) << "fail to get core";
-    return NULL;
-  }
+  T* get_core();
 
   // versioned inference interface
-  int infer(const void* in, void* out, uint32_t batch_size, uint64_t version) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-      return -1;
-    }
-
-    return iter->second->infer(in, out, batch_size);
-  }
+  int infer(const void* in, void* out, uint32_t batch_size, uint64_t version);
 
   template <typename T>
-  T* get_core(uint64_t version) {
-    auto iter = _versions.find(version);
-    if (iter == _versions.end()) {
-      LOG(ERROR) << "Not found version engine: " << version;
-      return NULL;
-    }
+  T* get_core(uint64_t version);
 
-    auto db_engine = dynamic_cast<DBReloadableInferEngine<T>*>(iter->second);
-    if (db_engine) {
-      return db_engine->get_core();
-    }
-    LOG(WARNING) << "fail to get core for " << version;
-    return NULL;
-  }
+  int proc_initialize_impl(const configure::EngineDesc& conf, bool);
 
-  // --
-  int proc_initialize_impl(const configure::EngineDesc& conf, bool) {
-    return -1;
-  }
-  int thrd_initialize_impl() { return -1; }
-  int thrd_finalize_impl() { return -1; }
-  int thrd_clear_impl() { return -1; }
-  int proc_finalize_impl() { return -1; }
-  int infer_impl(const void* in, void* out, uint32_t batch_size = -1) { return -1; }
-  int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
-    return -1;
-  }  // NOLINT
+  int thrd_initialize_impl();
+
+  int thrd_finalize_impl();
+
+  int thrd_clear_impl();
+
+  int proc_finalize_impl();
+
+  int infer_impl(const void* in, void* out, uint32_t batch_size = -1);
+
+  int task_infer_impl(const BatchTensor& in, BatchTensor& out);
 
  private:
   boost::unordered_map<uint64_t, InferEngine*> _versions;
@@ -813,158 +572,38 @@ class InferManager {
     return ins;
   }
 
-  int proc_initialize(const char* path, const char* file) {
-    ModelToolkitConf model_toolkit_conf;
-    if (configure::read_proto_conf(path, file, &model_toolkit_conf) != 0) {
-      LOG(ERROR) << "failed load infer config, path: " << path << "/" << file;
-      return -1;
-    }
-    size_t engine_num = model_toolkit_conf.engines_size();
-    for (size_t ei = 0; ei < engine_num; ++ei) {
-      LOG(INFO) << "model_toolkit_conf.engines(" << ei
-                << ").name: " << model_toolkit_conf.engines(ei).name();
-      std::string engine_name = model_toolkit_conf.engines(ei).name();
-      VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
-      if (!engine) {
-        LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
-        return -1;
-      }
-      if (engine->proc_initialize(model_toolkit_conf.engines(ei)) != 0) {
-        LOG(ERROR) << "Failed initialize version engine, name:" << engine_name;
-        return -1;
-      }
-      auto r = _map.insert(std::make_pair(engine_name, engine));
-      if (!r.second) {
-        LOG(ERROR) << "Failed insert item: " << engine_name;
-        return -1;
-      }
-      LOG(WARNING) << "Succ proc initialize engine: " << engine_name;
-    }
-    return 0;
-  }
+  int proc_initialize(const char* path, const char* file);
 
-  int thrd_initialize() {
-    for (auto it = _map.begin(); it != _map.end(); ++it) {
-      if (it->second->thrd_initialize() != 0) {
-        LOG(ERROR) << "Failed thrd initialize engine, name: " << it->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ thrd initialize engine, name: " << it->first;
-    }
-    return 0;
-  }
+  int thrd_initialize();
 
-  int thrd_clear() {
-    for (auto it = _map.begin(); it != _map.end(); ++it) {
-      if (it->second->thrd_clear() != 0) {
-        LOG(ERROR) << "Failed thrd clear engine, name: " << it->first;
-        return -1;
-      }
-    }
-    return 0;
-  }
+  int thrd_clear();
 
-  int reload() {
-    for (auto it = _map.begin(); it != _map.end(); ++it) {
-      if (it->second->reload() != 0) {
-        LOG(ERROR) << "Failed reload engine, name: " << it->first;
-        return -1;
-      }
-    }
-    return 0;
-  }
+  int reload();
 
-  int thrd_finalize() {
-    for (auto it = _map.begin(); it != _map.end(); ++it) {
-      if (it->second->thrd_finalize() != 0) {
-        LOG(ERROR) << "Failed thrd finalize engine, name: " << it->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ thrd finalize engine, name: " << it->first;
-    }
-    return 0;
-  }
+  int thrd_finalize();
 
-  int proc_finalize() {
-    for (auto it = _map.begin(); it != _map.end(); ++it) {
-      if (it->second->proc_finalize() != 0) {
-        LOG(ERROR) << "Failed proc finalize engine, name: " << it->first;
-        return -1;
-      }
-      LOG(WARNING) << "Succ proc finalize engine, name: " << it->first;
-    }
-    _map.clear();
-    return 0;
-  }
+  int proc_finalize();
 
   // Inference interface
   int infer(const char* model_name,
             const void* in,
             void* out,
-            uint32_t batch_size = -1) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-      return -1;
-    }
-    return it->second->infer(in, out, batch_size);
-  }
+            uint32_t batch_size = -1);
 
   template <typename T>
-  T* get_core(const char* model_name) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-      return NULL;
-    }
-    auto infer_engine =
-        dynamic_cast<DBReloadableInferEngine<T>*>(it->second->default_engine());
-    if (infer_engine) {
-      return infer_engine->get_core();
-    }
-    LOG(WARNING) << "fail to get core for " << model_name;
-    return NULL;
-  }
+  T* get_core(const char* model_name);
 
   // Versioned inference interface
-  int infer(const char* model_name, 
+  int infer(const char* model_name,
             const void* in,
             void* out,
             uint32_t batch_size,
-            uint64_t version) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-      return -1;
-    }
-    return it->second->infer(in, out, batch_size, version);
-  }
+            uint64_t version);
 
   template <typename T>
-  T* get_core(const char* model_name, uint64_t version) {
-    auto it = _map.find(model_name);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
-      return NULL;
-    }
-    return it->second->get_core<T>(version);
-  }
+  T* get_core(const char* model_name, uint64_t version);
 
-  int query_version(const std::string& model, uint64_t& version) {  // NOLINT
-    auto it = _map.find(model);
-    if (it == _map.end()) {
-      LOG(WARNING) << "Cannot find engine in map, model name:" << model;
-      return -1;
-    }
-    auto infer_engine = it->second->default_engine();
-    if (!infer_engine) {
-      LOG(WARNING) << "Cannot get default engine for model:" << model;
-      return -1;
-    }
-    version = infer_engine->version();
-    LOG(INFO) << "Succ get version: " << version << " for model: " << model;
-    return 0;
-  }
+  int query_version(const std::string& model, uint64_t& version);
 
  private:
   boost::unordered_map<std::string, VersionedInferEngine*> _map;

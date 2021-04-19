@@ -22,7 +22,7 @@ from .proto import general_model_config_pb2 as m_config
 from .proto import multi_lang_general_model_service_pb2_grpc
 import google.protobuf.text_format
 import time
-from .version import serving_server_version, version_suffix, device_type
+from .version import version_tag, version_suffix, device_type
 from contextlib import closing
 import argparse
 
@@ -369,7 +369,7 @@ class Server(object):
         version_file = open("{}/version.py".format(self.module_path), "r")
 
         folder_name = "serving-%s-%s" % (self.get_serving_bin_name(),
-                                         serving_server_version)
+                                         version_tag)
         tar_name = "%s.tar.gz" % folder_name
         bin_url = "https://paddle-serving.bj.bcebos.com/bin/%s" % tar_name
 
