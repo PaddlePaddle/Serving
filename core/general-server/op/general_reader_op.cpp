@@ -157,15 +157,13 @@ int GeneralReaderOp::inference() {
     }
     // implement lod tensor here
     // only support 1-D lod
-    // TODO:support 2-D lod
+    // TODO(HexToString): support 2-D lod
     if (tensor.lod_size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
       lod_tensor.lod.resize(1);
       for (int k = 0; k < tensor.lod_size(); ++k) {
         lod_tensor.lod[0].push_back(tensor.lod(k));
       }
-      VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] has lod_tensor and len=" << out->at(i).lod[0].back();
     }
 
     for (int k = 0; k < tensor.shape_size(); ++k) {
@@ -180,7 +178,10 @@ int GeneralReaderOp::inference() {
             << "]: " << data_len;
     databuf_size[i] = data_len * elem_size[i];
     out->at(i).data.Resize(data_len * elem_size[i]);
-
+    if (out->at(i).lod.size() > 0) {
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
+              << "] has lod_tensor and len=" << out->at(i).lod[0].back();
+    }
     if (elem_type[i] == P_INT64) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
