@@ -34,11 +34,15 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         self._parse_model_config(self.model_config_path_list)
 
     def _init_bclient(self, model_config_path_list, endpoints, timeout_ms=None):
+        file_path_list = []
+        for single_model_config in model_config_path_list:
+            file_path_list.append("{}/serving_server_conf.prototxt".format(
+                single_model_config))
         from paddle_serving_client import Client
         self.bclient_ = Client()
         if timeout_ms is not None:
             self.bclient_.set_rpc_timeout_ms(timeout_ms)
-        self.bclient_.load_client_config(model_config_path_list)
+        self.bclient_.load_client_config(file_path_list)
         self.bclient_.connect(endpoints)
 
     def _parse_model_config(self, model_config_path_list):
