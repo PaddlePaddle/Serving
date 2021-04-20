@@ -825,7 +825,7 @@ function main() {
     if [ -f ${log_dir}error_models.txt ]; then
         cat ${log_dir}error_models.txt
         echo "error occurred!"
-        # exit 1
+        exit 1
     fi
 }
 
