@@ -555,7 +555,14 @@ class MultiLangClient(object):
         )
         resp = self.stub_.GetClientConfig(get_client_config_req)
         model_config_path_list = resp.client_config_str_list
-        self._parse_model_config(model_config_path_list)
+        file_path_list = []
+        for single_model_config in model_config_path_list:
+            if os.path.isdir(single_model_config):
+                file_path_list.append("{}/serving_server_conf.prototxt".format(
+                    single_model_config))
+            elif os.path.isfile(single_model_config):
+                file_path_list.append(single_model_config)
+        self._parse_model_config(file_path_list)
 
     def _flatten_list(self, nested_list):
         for item in nested_list:
