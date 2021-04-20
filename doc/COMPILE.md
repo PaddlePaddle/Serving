@@ -7,8 +7,8 @@
 |            module            |              version              |
 | :--------------------------: | :-------------------------------: |
 |              OS              |     Ubuntu16 and 18/CentOS 7      |
-|             gcc              |          5.4.0(Cuda 10.1)         |
-|           gcc-c++            |          5.4.0(Cuda 10.1)         |
+|             gcc              |          5.4.0(Cuda 10.1) and 8.2.0         |
+|           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
 |            cmake             |          3.2.0 and later          |
 |            Python            |          3.6.0 and later          |
 |              Go              |          1.9.2 and later          |
