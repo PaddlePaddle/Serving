@@ -186,7 +186,7 @@ wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
 
 （2）Cuda和Cudnn动态库：文件名通常为 `libcudart.so.$CUDA_VERSION`，和 `libcudnn.so.$CUDNN_VERSION`。例如Cuda9就是 `libcudart.so.9.0`，Cudnn7就是 `libcudnn.so.7`。Cuda和Cudnn与Serving的版本匹配参见[Serving所有镜像列表](DOCKER_IMAGES_CN.md#%E9%99%84%E5%BD%95%E6%89%80%E6%9C%89%E9%95%9C%E5%83%8F%E5%88%97%E8%A1%A8).
 
-  (3) Cuda10.1及更高版本需要TensorRT。安装TensorRT相关文件的脚本参考 [install_trt.sh](../tools/dockerfile/build_scripts/install_trt.sh).
+  (3) Cuda10.1及更高版本需要TensorRT。安装TensorRT相关文件的脚本参考 [install_trt.sh](../tools/dockerfiles/build_scripts/install_trt.sh).
 
 ## 部署问题
 
