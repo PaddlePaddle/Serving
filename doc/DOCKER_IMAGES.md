@@ -31,17 +31,10 @@ If you want to customize your Serving based on source code, use the version with
 
 |                         Description                          |   OS    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
-|                         CPU runtime                          | CentOS7 |            latest            |              [Dockerfile](../tools/Dockerfile)               |
-|                       CPU development                        | CentOS7 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
-|                 GPU (cuda9.0-cudnn7) runtime                 | CentOS7 |    latest-cuda9.0-cudnn7     | [Dockerfile.cuda9.0-cudnn7](../tools/Dockerfile.cuda9.0-cudnn7) |
-|               GPU (cuda9.0-cudnn7) development               | CentOS7 | latest-cuda9.0-cudnn7-devel  | [Dockerfile.cuda9.0-cudnn7.devel](../tools/Dockerfile.cuda9.0-cudnn7.devel) |
-|                GPU (cuda10.0-cudnn7) runtime                 | CentOS7 |    latest-cuda10.0-cudnn7    | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
-|              GPU (cuda10.0-cudnn7) development               | CentOS7 | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
-|                GPU (cuda10.1-cudnn7-tensorRT6) runtime                 | Ubuntu16 |    latest-cuda10.1-cudnn7    | [Dockerfile.cuda10.1-cudnn7](../tools/Dockerfile.cuda10.1-cudnn7) |
+|                       CPU development                        | Ubuntu16 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
+|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | latest-cuda10.1-cudnn7-gcc54-devel | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
 |              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | latest-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
-|                GPU (cuda10.2-cudnn8-tensorRT7) runtime                 | Ubuntu16|    latest-cuda10.2-cudnn8   | [Dockerfile.cuda10.2-cudnn8](../tools/Dockerfile.cuda10.2-cudnn8) |
 |              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | latest-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
-|                GPU (cuda11-cudnn8-tensorRT7) runtime                 | Ubuntu18|    latest-cuda11-cudnn8   | [Dockerfile.cuda11-cudnn8](../tools/Dockerfile.cuda11-cudnn8) |
 |              GPU (cuda11-cudnn8-tensorRT7) development               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
 
 **Java Client:**
@@ -68,34 +61,18 @@ Develop Images:
 
 | Env      | Version | Docker images tag            | OS        | Gcc Version |
 |----------|---------|------------------------------|-----------|-------------|
-|    CPU   | 0.5.0   | 0.5.0-devel                 | Ubuntu 16 |  8.2.0       |
+|    CPU   | >=0.5.0 | 0.6.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
-|  Cuda9.0 | 0.5.0 | 0.5.0-cuda9.0-cudnn7-devel    | Ubuntu 16 |  4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7-devel   | CentOS 7  | 4.8.5       |
-| Cuda10.0 | 0.5.0 | 0.5.0-cuda10.0-cudnn7-devel | Ubuntu 16 |    4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7-devel  | CentOS 7  | 4.8.5       |
-| Cuda10.1 | 0.5.0 | 0.5.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
-| Cuda10.2 | 0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.1 | >=0.5.0 | 0.6.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+|          | 0.6.0   | 0.5.0-cuda10.1-cudnn7-gcc54-devel  | Ubuntu 16 |  5.4.0 |
+|          | <=0.4.0 | 0.6.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
+| Cuda10.2 | >=0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
-| Cuda11.0 | 0.5.0 | 0.5.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
+| Cuda11.0 | >=0.5.0 | 0.6.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
 
 Running Images:
 
-| Env      | Version | Docker images tag     | OS        | Gcc Version |
-|----------|---------|-----------------------|-----------|-------------|
-|    CPU   | 0.5.0   | 0.5.0                 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | 0.4.0                 | CentOS 7  | 4.8.5       |
-|  Cuda9.0 | 0.5.0   | 0.5.0-cuda9.0-cudnn7   | Ubuntu 16 | 4.8.5      |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7  | CentOS 7  | 4.8.5       |
-| Cuda10.0 | 0.5.0   | 0.5.0-cuda10.0-cudnn7 | Ubuntu 16 | 4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7 | CentOS 7  | 4.8.5       |
-| Cuda10.1 | 0.5.0   | 0.5.0-cuda10.1-cudnn7 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7 | CentOS 7  | 4.8.5       |
-| Cuda10.2 | 0.5.0   | 0.5.0-cuda10.2-cudnn8 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | Nan                   | Nan       | Nan         |
-| Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
-|          | <=0.4.0 | Nan                   | Nan       | Nan         |
+Running Images is lighter than Develop Images, and Running Images are too many due to multiple combinations of python, device environment. If you want to know about it, plese check the document [Paddle Serving on Kubernetes.](PADDLE_SERVING_ON_KUBERNETES.md).
 
 **Tips:**  If you want to use CPU server and GPU server (version>=0.5.0) at the same time, you should check the gcc version,  only Cuda10.1/10.2/11 can run with CPU server owing to the same gcc version(8.2).

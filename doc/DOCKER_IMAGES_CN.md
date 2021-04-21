@@ -34,18 +34,11 @@
 
 |                         镜像选择                         |   操作系统    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
-|                         CPU 运行镜像                          | CentOS7 |            latest            |              [Dockerfile](../tools/Dockerfile)               |
-|                       CPU 开发镜像                        | CentOS7 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
-|                 GPU (cuda9.0-cudnn7) 运行镜像                 | CentOS7 |    latest-cuda9.0-cudnn7     | [Dockerfile.cuda9.0-cudnn7](../tools/Dockerfile.cuda9.0-cudnn7) |
-|               GPU (cuda9.0-cudnn7) 开发镜像          | CentOS7 | latest-cuda9.0-cudnn7-devel  | [Dockerfile.cuda9.0-cudnn7.devel](../tools/Dockerfile.cuda9.0-cudnn7.devel) |
-|                GPU (cuda10.0-cudnn7) 运行镜像                 | CentOS7 |    latest-cuda10.0-cudnn7    | [Dockerfile.cuda10.0-cudnn7](../tools/Dockerfile.cuda10.0-cudnn7) |
-|              GPU (cuda10.0-cudnn7) 开发镜像               | CentOS7 | latest-cuda10.0-cudnn7-devel | [Dockerfile.cuda10.0-cudnn7.devel](../tools/Dockerfile.cuda10.0-cudnn7.devel) |
-|                GPU (cuda10.1-cudnn7-tensorRT6) 运行镜像                 | Ubuntu16 |    latest-cuda10.1-cudnn7    | [Dockerfile.cuda10.1-cudnn7](../tools/Dockerfile.cuda10.1-cudnn7) |
-|              GPU (cuda10.1-cudnn7-tensorRT6) 开发镜像               | Ubuntu16 | latest-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
-|                GPU (cuda10.2-cudnn8-tensorRT7) 运行镜像                 | Ubuntu16|    latest-cuda10.2-cudnn8   | [Dockerfile.cuda10.2-cudnn8](../tools/Dockerfile.cuda10.2-cudnn8) |
-|              GPU (cuda10.2-cudnn8-tensorRT7) 开发镜像               | Ubuntu16 | latest-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
-|                GPU (cuda11-cudnn8-tensorRT7) 运行镜像                 | Ubuntu18|    latest-cuda11-cudnn8   | [Dockerfile.cuda11-cudnn8](../tools/Dockerfile.cuda11-cudnn8) |
-|              GPU (cuda11-cudnn8-tensorRT7) 开发镜像               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
+|                       CPU development                        | Ubuntu16 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
+|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | latest-cuda10.1-cudnn7-gcc54-devel | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
+|              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | latest-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
+|              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | latest-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
+|              GPU (cuda11-cudnn8-tensorRT7) development               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
 
 **Java镜像：**
 ```
@@ -70,36 +63,22 @@ registry.baidubce.com/paddlepaddle/serving:xpu-beta
 
 编译镜像：
 
+开发镜像:
+
 | Env      | Version | Docker images tag            | OS        | Gcc Version |
 |----------|---------|------------------------------|-----------|-------------|
-|    CPU   | 0.5.0   | 0.5.0-devel                 | Ubuntu 16 |  8.2.0       |
+|    CPU   | >=0.5.0 | 0.6.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
-|  Cuda9.0 | 0.5.0 | 0.5.0-cuda9.0-cudnn7-devel    | Ubuntu 16 |  4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7-devel   | CentOS 7  | 4.8.5       |
-| Cuda10.0 | 0.5.0 | 0.5.0-cuda10.0-cudnn7-devel | Ubuntu 16 |    4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7-devel  | CentOS 7  | 4.8.5       |
-| Cuda10.1 | 0.5.0 | 0.5.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
-| Cuda10.2 | 0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.1 | >=0.5.0 | 0.6.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+|          | 0.6.0   | 0.5.0-cuda10.1-cudnn7-gcc54-devel  | Ubuntu 16 |  5.4.0 |
+|          | <=0.4.0 | 0.6.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
+| Cuda10.2 | >=0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
-| Cuda11.0 | 0.5.0 | 0.5.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
+| Cuda11.0 | >=0.5.0 | 0.6.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
 
 运行镜像:
 
-| Env      | Version | Docker images tag     | OS        | Gcc Version |
-|----------|---------|-----------------------|-----------|-------------|
-|    CPU   | 0.5.0   | 0.5.0                 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | 0.4.0                 | CentOS 7  | 4.8.5       |
-|  Cuda9.0 | 0.5.0   | 0.5.0-cuda9.0-cudnn7   | Ubuntu 16 | 4.8.5      |
-|          | <=0.4.0 | 0.4.0-cuda9.0-cudnn7  | CentOS 7  | 4.8.5       |
-| Cuda10.0 | 0.5.0   | 0.5.0-cuda10.0-cudnn7 | Ubuntu 16 | 4.8.5       |
-|          | <=0.4.0 | 0.4.0-cuda10.0-cudnn7 | CentOS 7  | 4.8.5       |
-| Cuda10.1 | 0.5.0   | 0.5.0-cuda10.1-cudnn7 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7 | CentOS 7  | 4.8.5       |
-| Cuda10.2 | 0.5.0   | 0.5.0-cuda10.2-cudnn8 | Ubuntu 16 | 8.2.0       |
-|          | <=0.4.0 | Nan                   | Nan       | Nan         |
-| Cuda11.0 | 0.5.0   | 0.5.0-cuda11.0-cudnn8 | Ubuntu 18 | 8.2.0       |
-|          | <=0.4.0 | Nan                   | Nan       | Nan         |
+运行镜像比开发镜像更加轻量化, 且由于python，运行环境的多种组合，进而导致运行镜像种类过多。 如果您想了解有关信息，请检查文档[在Kubernetes上使用Paddle Serving](PADDLE_SERVING_ON_KUBERNETES.md)。
 
 **注意事项：** 如果您在0.5.0及以上版本需要在一个容器当中同时运行CPU server和GPU server，需要选择Cuda10.1/10.2/11的镜像，因为他们和CPU环境有着相同版本的gcc。

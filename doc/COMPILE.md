@@ -7,10 +7,10 @@
 |            module            |              version              |
 | :--------------------------: | :-------------------------------: |
 |              OS              |     Ubuntu16 and 18/CentOS 7      |
-|             gcc              | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
-|           gcc-c++            | 4.8.5(Cuda 9.0 and 10.0) and 8.2(Others) |
+|             gcc              |          5.4.0(Cuda 10.1) and 8.2.0         |
+|           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
 |            cmake             |          3.2.0 and later          |
-|            Python            |  2.7.2 and later / 3.5.1 and later |
+|            Python            |          3.6.0 and later          |
 |              Go              |          1.9.2 and later          |
 |             git              |         2.17.1 and later          |
 |         glibc-static         |               2.17                |
@@ -42,18 +42,6 @@ export PYTHONROOT=/usr
 If you are using a Docker development image, please follow the following to determine the Python version to be compiled, and set the corresponding environment variables
 
 ```
-#Python 2.7
-export PYTHONROOT=/usr/local/python2.7.15/
-export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/
-export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so
-export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python2.7
-
-#Python 3.5
-export PYTHONROOT=/usr/local/python3.5.1
-export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.5m
-export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.5m.so
-export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.5
-
 #Python3.6
 export PYTHONROOT=/usr/local/
 export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m
@@ -108,9 +96,9 @@ go get -u google.golang.org/grpc@v1.33.0
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DSERVER=ON ..
 make -j10
 ```
@@ -176,10 +164,10 @@ make -j10
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-      -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DCLIENT=ON ..
 make -j10
 ```
 
@@ -191,9 +179,9 @@ execute `make install` to put targets under directory `./output`
 
 ```bash
 mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DAPP=ON ..
 make
 ```
@@ -257,8 +245,6 @@ The following is the base library version matching relationship used by the Padd
 
 |          |  CUDA   |   CuDNN      | TensorRT |
 | :----:   | :-----: | :----------: | :----:   |
-| post9    |  9.0    | CuDNN 7.6.4  |          |
-| post10   |  10.0   | CuDNN 7.6.5  |          |
 | post101  |  10.1   | CuDNN 7.6.5  | 6.0.1    |
 | post102  |  10.2   | CuDNN 8.0.5  | 7.1.3    |
 | post11   |  11.0   | CuDNN 8.0.4  | 7.1.3    |
