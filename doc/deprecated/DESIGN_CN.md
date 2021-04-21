@@ -143,7 +143,7 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 
 ### 5.1 数据压缩方法
 
-Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
+Baidu-rpc内置了snappy, gzip, zlib等数据压缩方法，可在配置文件中配置（参考[客户端配置](../CLIENT_CONFIGURE.md)第3.1节关于compress_type的介绍）
 
 ### 5.2 C++ SDK API接口
 
