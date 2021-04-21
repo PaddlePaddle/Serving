@@ -392,4 +392,4 @@ predictors {
   }
 }
 ```
-关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](CLIENT_CONFIGURE.md)
+关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](../CLIENT_CONFIGURE.md)
