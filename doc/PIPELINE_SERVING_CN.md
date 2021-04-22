@@ -132,20 +132,21 @@ def __init__(name=None,
 
 各参数含义如下
 
-|        参数名         |                             含义                             |
-| :-------------------: | :----------------------------------------------------------: |
-|         name          |    （str）用于标识 OP 类型的字符串，该字段必须全局唯一。     |
-|       input_ops       |            （list）当前 OP 的所有前继 OP 的列表。            |
-|   server_endpoints    | （list）远程 Paddle Serving Service 的 endpoints 列表。如果不设置该参数，认为是local_precditor模式，从local_service_conf中读取配置。 |
-|      fetch_list       |     （list）远程 Paddle Serving Service 的 fetch 列表。      |
-|     client_config     | （str）Paddle Serving Service 对应的 Client 端配置文件路径。 |
-|      client_type      | (str) 可选择brpc、grpc或local_predictor。local_predictor不启动Serving服务，进程内预测。 |
-|      concurrency      |                     （int）OP 的并发数。                     |
-|        timeout        | （int）process 操作的超时时间，单位为毫秒。若该值小于零，则视作不超时。 |
-|         retry         |       （int）超时重试次数。当该值为 1 时，不进行重试。       |
-|      batch_size       | （int）进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值，默认为 1。 |
-| auto_batching_timeout | （float）进行 Auto-Batching 构建 batch 的超时时间，单位为毫秒。batch_size > 1时，要设置auto_batching_timeout，否则请求数量不足batch_size时会阻塞等待。 |
-| local_service_handler | (object) local predictor handler，Op init()入参赋值 或 在Op init()中创建|
+|        参数名         |     类型     |                  含义                             |
+| :-------------------: | :---------: |:------------------------------------------------: |
+|         name          |   （str）   | 用于标识 OP 类型的字符串，该字段必须全局唯一。     |
+|       input_ops       |   （list）  | 当前 OP 的所有前继 OP 的列表。            |
+|   server_endpoints    |   （list）  |远程 Paddle Serving Service 的 endpoints 列表。如果不设置该参数，认为是local_precditor模式，从local_service_conf中读取配置。 |
+|      fetch_list       |   （list）  |远程 Paddle Serving Service 的 fetch 列表。      |
+|     client_config     |   （str）   |Paddle Serving Service 对应的 Client 端配置文件路径。 |
+|      client_type      |    (str)    |可选择brpc、grpc或local_predictor。local_predictor不启动Serving服务，进程内预测。 |
+|      concurrency      |   （int）   | OP 的并发数。                     |
+|        timeout        |   （int）   |process 操作的超时时间，单位为毫秒。若该值小于零，则视作不超时。 |
+|         retry         |   （int）   |超时重试次数。当该值为 1 时，不进行重试。       |
+|      batch_size       |   （int）   |进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值，默认为 1。 |
+| auto_batching_timeout |  （float）  |进行 Auto-Batching 构建 batch 的超时时间，单位为毫秒。batch_size > 1时，要设置auto_batching_timeout，否则请求数量不足batch_size时会阻塞等待。 |
+| local_service_handler |   (object)  |local predictor handler，Op init()入参赋值 或 在Op init()中创建|
+
 
 
 
