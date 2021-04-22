@@ -27,7 +27,7 @@ from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
 
 client = Client()
 client.load_client_config(
-    "resnet_v2_50_imagenet_client/serving_client_conf.prototxt")
+    "serving_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:9393"])
 
 seq = Sequential([
@@ -37,8 +37,8 @@ seq = Sequential([
 
 image_file = "daisy.jpg"
 img = seq(image_file)
-fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-print(fetch_map["score"].reshape(-1))
+fetch_map = client.predict(feed={"image": img}, fetch=["save_infer_model/scale_0.tmp_0"])
+print(fetch_map["save_infer_model/scale_0.tmp_0"].reshape(-1))
 ```
 
 ## Reference
