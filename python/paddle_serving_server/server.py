@@ -386,8 +386,6 @@ class Server(object):
             return
 
         if not os.path.exists(self.server_path):
-            os.system("touch {}/{}.is_download".format(self.module_path,
-                                                       folder_name))
             print('Frist time run, downloading PaddleServing components ...')
 
             r = os.system('wget ' + bin_url + ' --no-check-certificate')
@@ -403,9 +401,10 @@ class Server(object):
                     tar = tarfile.open(tar_name)
                     tar.extractall()
                     tar.close()
+                    open(download_flag, "a").close()
                 except:
-                    if os.path.exists(exe_path):
-                        os.remove(exe_path)
+                    if os.path.exists(self.server_path):
+                        os.remove(self.server_path)
                     raise SystemExit(
                         'Decompressing failed, please check your permission of {} or disk space left.'
                         .format(self.module_path))
