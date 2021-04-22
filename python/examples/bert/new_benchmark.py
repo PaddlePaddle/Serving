@@ -25,7 +25,7 @@ def run_http(idx, batch_size):
     {"feed":[{"words": "hello"}], "fetch":["pooled_output"]}
     """
     print("start thread ({})".format(idx))
-    url = "http://127.0.0.1:9292/bert/prediction"    
+    url = "http://127.0.0.1:9696/bert/prediction"    
     start = time.time()
     with open("data-c.txt", 'r') as fin:
         start = time.time()
@@ -39,7 +39,7 @@ def run_http(idx, batch_size):
             r = requests.post(url=url, data=json.dumps(data), headers={"Content-Type": "application/json"})
             start_idx += batch_size
             end = time.time()
-            if end - start > 40:
+            if end - start > 15:
                 break            
         end = time.time()
     return [[end - start]]

@@ -13,6 +13,6 @@
 # limitations under the License.
 """ Paddle Serving Client version string """
 serving_client_version = "0.0.0"
-serving_server_version = "0.0.0"
+serving_server_version = "0.5.0"
 module_proto_version = "0.0.0"
 commit_id = ""

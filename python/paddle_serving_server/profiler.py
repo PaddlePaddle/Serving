@@ -31,6 +31,29 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.propagate = False
 
 _is_profile = int(os.environ.get('FLAGS_profile_pipeline', 0))
+import pynvml
+import psutil
+import GPUtil
+import argparse
+
+def get_mem(gpu_id=None):
+    pid = os.getpid()
+    p = psutil.Process(pid)
+    info = p.memory_full_info()
+    cpu_mem = info.uss / 1024. / 1024.
+    gpu_mem = 0
+    if gpu_id is not None:
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        gpu_mem = meminfo.used / 1024./ 1024.
+    return cpu_mem, gpu_mem 
+
+def get_gpu_util(gpu_id):
+    GPUs = GPUtil.getGPUs()
+    gpu_load = GPUs[gpu_id].load
+    return gpu_load
+
 
 class PerformanceTracer(object):
     def __init__(self, is_thread_mode, interval_s, server_worker_num):
@@ -245,3 +268,24 @@ class TimeProfiler(object):
                 tag, timestamp = item
                 self._time_record.put((name, tag, timestamp))
             return print_str
+
+def parse_args():  # pylint: disable=doc-string-missing
+    parser = argparse.ArgumentParser("serve")
+    parser.add_argument(
+        "--use_gpu", default=False, action="store_true", help="use gpu or not")
+    parser.add_argument(
+        "--gpu_id",
+        type=int,
+        default=0,
+        help="gpu id")
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    args = parse_args()
+    if args.use_gpu:
+        cm, gm = get_mem(args.gpu_id) 
+        gpu_util = get_gpu_util(args.gpu_id)
+        print("CPU_MEM: {}\nGPU_MEM: {}\nGPU_UTIL:{}\n".format(cm, gm, gpu_util))
+    else:
+        cm, _ = get_mem(args.gpu_id)
+        print("CPU_MEM: {}".format(cm))

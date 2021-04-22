@@ -46,7 +46,6 @@ class ImagenetOp(Op):
         return {"image": img[np.newaxis, :].copy()}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
-        print(fetch_dict)
         score_list = fetch_dict["score"]
         result = {"label": [], "prob": []}
         for score in score_list:
@@ -67,5 +66,5 @@ class ImageService(WebService):
 
 
 uci_service = ImageService(name="imagenet")
-uci_service.prepare_pipeline_config("config.yml")
+uci_service.prepare_pipeline_config("config2.yml")
 uci_service.run_service()

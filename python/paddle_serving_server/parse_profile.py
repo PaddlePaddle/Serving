@@ -78,9 +78,10 @@ if __name__ == "__main__":
     acc5 = "Nan"
     ## perf info
     average_latency, QPS = benchmark_raw["DAG"]["avg"], benchmark_raw["DAG"]["qps"]
+    cost_90, cost_99, succ_rate = benchmark_raw["DAG"]["90"], benchmark_raw["DAG"]["99"], benchmark_raw["DAG"]["succ"]
     process_latency = ""
-    cpu_rss, vms, shared, dirty, cpu_usage = "", "", "", "",  benchmark_raw["CPU_UTILIZATION"]
-    gpu_id, total, free, used, gpu_utilization_rate, gpu_mem_utilization_rate = "","","","", benchmark_raw["GPU_UTILIZATION"], benchmark_raw["MAX_GPU_MEMORY"]
+    cpu_rss, vms, shared, dirty, cpu_usage = "", "", "", "",  benchmark_raw["CPU_MEM"]
+    gpu_id, total, free, used, gpu_utilization_rate, gpu_mem_utilization_rate = "","","","", benchmark_raw["GPU_UTIL"], benchmark_raw["GPU_MEM"]
 
     fh = LogHandler()
 
@@ -118,6 +119,7 @@ if __name__ == "__main__":
     fh.append("----------------------- Perf info -----------------------")
     fh.append("average_latency(ms): {}, QPS: {}".format(average_latency, QPS))
     fh.append("process_latency(ms): {}".format(process_latency))
+    fh.append("90%_cost: {}, 99%_cost: {}, succ_rate: {}".format(cost_90, cost_99, succ_rate))
     fh.append("process_name: clas_benchmark, cpu_rss(MB): {}, vms(MB): {}, shared(MB): {}, dirty(MB): {}, cpu_usage(%): {}".format(cpu_rss, vms, shared, dirty, cpu_usage))
     fh.append("gpu_id: {}, total(MB): {}, free(MB): {}, used(MB): {}, gpu_utilization_rate(%): {}, gpu_mem_utilization_rate(%): {}".format(gpu_id, total, free, used, gpu_utilization_rate, gpu_mem_utilization_rate))
 

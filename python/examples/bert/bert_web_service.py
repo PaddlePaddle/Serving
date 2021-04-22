@@ -44,7 +44,7 @@ class BertService(WebService):
         return feed_dict, fetch, is_batch
 
 bert_service = BertService(name="bert")
-bert_service.setup_profile(30)
+bert_service.setup_profile(10)
 bert_service.load()
 bert_service.load_model_config(sys.argv[1])
 bert_service.prepare_server(

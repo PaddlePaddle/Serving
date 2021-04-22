@@ -23,7 +23,7 @@ import base64
 import os
 
 client = PipelineClient()
-client.connect(['127.0.0.1:9999'])
+client.connect(['127.0.0.1:9993'])
 
 
 def cv2_to_base64(image):
