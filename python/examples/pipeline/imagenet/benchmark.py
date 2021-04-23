@@ -47,8 +47,11 @@ def run_http(idx, batch_size):
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
     data = {"key": ["image"], "value": [image]}
-    for i in range(100):
+    start_time = time.time()
+    while True:
         r = requests.post(url=url, data=json.dumps(data))
+        if time.time() - start_time > 10:
+            break
     end = time.time()
     return [[end - start]]
 
@@ -58,16 +61,18 @@ def multithread_http(thread, batch_size):
 
 def run_rpc(thread, batch_size):
     client = PipelineClient()
-    client.connect(['127.0.0.1:18090'])
+    client.connect(['127.0.0.1:18080'])
     start = time.time()
     test_img_dir = "imgs/"
     for img_file in os.listdir(test_img_dir):
         with open(os.path.join(test_img_dir, img_file), 'rb') as file:
             image_data = file.read()
         image = cv2_to_base64(image_data)
-
-        for i in range(100):
+        start_time = time.time()
+        while True:
             ret = client.predict(feed_dict={"image": image}, fetch=["res"])
+            if time.time() - start_time > 10:
+                break
     end = time.time()
     return [[end - start]]
 
