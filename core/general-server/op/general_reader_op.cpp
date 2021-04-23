@@ -77,9 +77,6 @@ int GeneralReaderOp::inference() {
 
   uint64_t log_id = req->log_id();
   int input_var_num = 0;
-  std::vector<int64_t> elem_type;
-  std::vector<int64_t> elem_size;
-  std::vector<int64_t> databuf_size;
 
   GeneralBlob *res = mutable_data<GeneralBlob>();
   if (!res) {
@@ -119,40 +116,44 @@ int GeneralReaderOp::inference() {
   }
   */
   // package tensor
-
-  elem_type.resize(var_num);
-  elem_size.resize(var_num);
-  databuf_size.resize(var_num);
   // prepare basic information for input
   // specify the memory needed for output tensor_vector
   // fill the data into output general_blob
   int data_len = 0;
+  int64_t elem_type = 0;
+  int64_t elem_size = 0;
+  int64_t databuf_size = 0;
   for (int i = 0; i < var_num; ++i) {
-    paddle::PaddleTensor lod_tensor;
+    paddle::PaddleTensor paddleTensor;
     const Tensor &tensor = req->insts(0).tensor_array(i);
     data_len = 0;
-    elem_type[i] = tensor.elem_type();
-    VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
-    if (elem_type[i] == P_INT64) {  // int64
-      elem_size[i] = sizeof(int64_t);
-      lod_tensor.dtype = paddle::PaddleDType::INT64;
+    elem_type = 0;
+    elem_size = 0;
+    databuf_size = 0;
+    elem_type = tensor.elem_type();
+    VLOG(2) << "var[" << i << "] has elem type: " << elem_type;
+    if (elem_type == P_INT64) {  // int64
+      elem_size = sizeof(int64_t);
+      paddleTensor.dtype = paddle::PaddleDType::INT64;
       data_len = tensor.int64_data_size();
-    } else if (elem_type[i] == P_FLOAT32) {
-      elem_size[i] = sizeof(float);
-      lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
+    } else if (elem_type == P_FLOAT32) {
+      elem_size = sizeof(float);
+      paddleTensor.dtype = paddle::PaddleDType::FLOAT32;
       data_len = tensor.float_data_size();
-    } else if (elem_type[i] == P_INT32) {
-      elem_size[i] = sizeof(int32_t);
-      lod_tensor.dtype = paddle::PaddleDType::INT32;
+    } else if (elem_type == P_INT32) {
+      elem_size = sizeof(int32_t);
+      paddleTensor.dtype = paddle::PaddleDType::INT32;
       data_len = tensor.int_data_size();
-    } else if (elem_type[i] == P_STRING) {
+    } else if (elem_type == P_STRING) {
       // use paddle::PaddleDType::UINT8 as for String.
-      elem_size[i] = sizeof(uint8_t);
-      lod_tensor.dtype = paddle::PaddleDType::UINT8;
+      elem_size = sizeof(char);
+      paddleTensor.dtype = paddle::PaddleDType::UINT8;
       // this is for vector<String>, cause the databuf_size !=
       // vector<String>.size()*sizeof(char);
+      // data_len should be +1 cause '\0'
+      // now only support single string
       for (int idx = 0; idx < tensor.data_size(); idx++) {
-        data_len += tensor.data()[idx].length();
+        data_len += tensor.data()[idx].length() + 1;
       }
     }
     // implement lod tensor here
@@ -160,29 +161,29 @@ int GeneralReaderOp::inference() {
     // TODO(HexToString): support 2-D lod
     if (tensor.lod_size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
-      lod_tensor.lod.resize(1);
+      paddleTensor.lod.resize(1);
       for (int k = 0; k < tensor.lod_size(); ++k) {
-        lod_tensor.lod[0].push_back(tensor.lod(k));
+        paddleTensor.lod[0].push_back(tensor.lod(k));
       }
     }
 
     for (int k = 0; k < tensor.shape_size(); ++k) {
       int dim = tensor.shape(k);
       VLOG(2) << "(logid=" << log_id << ") shape for var[" << i << "]: " << dim;
-      lod_tensor.shape.push_back(dim);
+      paddleTensor.shape.push_back(dim);
     }
-    lod_tensor.name = model_config->_feed_name[i];
-    out->push_back(lod_tensor);
+    paddleTensor.name = model_config->_feed_name[i];
+    out->push_back(paddleTensor);
 
     VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
             << "]: " << data_len;
-    databuf_size[i] = data_len * elem_size[i];
-    out->at(i).data.Resize(data_len * elem_size[i]);
+    databuf_size = data_len * elem_size;
+    out->at(i).data.Resize(databuf_size);
     if (out->at(i).lod.size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();
     }
-    if (elem_type[i] == P_INT64) {
+    if (elem_type == P_INT64) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << tensor.int64_data(0);
@@ -190,14 +191,14 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
         return -1;
       }
-      memcpy(dst_ptr, tensor.int64_data().data(), databuf_size[i]);
+      memcpy(dst_ptr, tensor.int64_data().data(), databuf_size);
       /*
       int elem_num = tensor.int64_data_size();
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[k] = tensor.int64_data(k);
       }
       */
-    } else if (elem_type[i] == P_FLOAT32) {
+    } else if (elem_type == P_FLOAT32) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << tensor.float_data(0);
@@ -205,12 +206,12 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
         return -1;
       }
-      memcpy(dst_ptr, tensor.float_data().data(), databuf_size[i]);
+      memcpy(dst_ptr, tensor.float_data().data(), databuf_size);
       /*int elem_num = tensor.float_data_size();
       for (int k = 0; k < elem_num; ++k) {
         dst_ptr[k] = tensor.float_data(k);
       }*/
-    } else if (elem_type[i] == P_INT32) {
+    } else if (elem_type == P_INT32) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << tensor.int_data(0);
@@ -218,15 +219,9 @@ int GeneralReaderOp::inference() {
         LOG(ERROR) << "dst_ptr is nullptr";
         return -1;
       }
-      memcpy(dst_ptr, tensor.int_data().data(), databuf_size[i]);
-      /*
-      int elem_num = tensor.int_data_size();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = tensor.int_data(k);
-      }
-      */
-    } else if (elem_type[i] == P_STRING) {
-      std::string *dst_ptr = static_cast<std::string *>(out->at(i).data.data());
+      memcpy(dst_ptr, tensor.int_data().data(), databuf_size);
+    } else if (elem_type == P_STRING) {
+      char *dst_ptr = static_cast<char *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << tensor.data(0);
       if (!dst_ptr) {
@@ -234,8 +229,12 @@ int GeneralReaderOp::inference() {
         return -1;
       }
       int elem_num = tensor.data_size();
+      int offset = 0;
       for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = tensor.data(k);
+        memcpy(dst_ptr + offset,
+               tensor.data(k).c_str(),
+               strlen(tensor.data(k).c_str()) + 1);
+        offset += strlen(tensor.data(k).c_str()) + 1;
       }
     }
   }
