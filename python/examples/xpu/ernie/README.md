@@ -1,9 +1,19 @@
 
 ## Prepare
+### download model and extract
+```
+wget https://paddle-serving.bj.bcebos.com/models/xpu/ernie.tgz
+```
 ### convert model
 ```
 python3 -m paddle_serving_client.convert --dirname erine
 ```
+### Getting Dict and Sample Dataset
+
+```
+sh get_data.sh
+```
+this script will download Chinese Dictionary File vocab.txt and Chinese Sample Data data-c.txt
 
 ## RPC Service
 
