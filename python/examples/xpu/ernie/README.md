@@ -2,11 +2,17 @@
 ## Prepare
 ### download model and extract
 ```
-wget https://paddle-serving.bj.bcebos.com/models/xpu/ernie.tgz
+wget https://paddle-inference-dist.cdn.bcebos.com/PaddleLite/models_and_data_for_unittests/ernie.tar.gz
+tar zxvf ernie.tar.gz
 ```
 ### convert model
 ```
 python3 -m paddle_serving_client.convert --dirname erine
+```
+### or, you can get the serving saved model directly
+```
+wget https://paddle-serving.bj.bcebos.com/models/xpu/bert.tar.gz
+tar zxvf bert.tar.gz 
 ```
 ### Getting Dict and Sample Dataset
 
