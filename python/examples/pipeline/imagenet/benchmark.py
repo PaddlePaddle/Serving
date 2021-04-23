@@ -46,11 +46,16 @@ def run_http(idx, batch_size):
     with open(os.path.join(".", "daisy.jpg"), 'rb') as file:
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
-    data = {"key": ["image"], "value": [image]}
+    keys, values = [], []
+    for i in range(batch_size):
+        keys.append("image_{}".format(i))
+        values.append(image)
+    data = {"key": keys, "value": values}
     start_time = time.time()
     while True:
         r = requests.post(url=url, data=json.dumps(data))
-        if time.time() - start_time > 10:
+        print(r.json())
+        if time.time() - start_time > 20:
             break
     end = time.time()
     return [[end - start]]

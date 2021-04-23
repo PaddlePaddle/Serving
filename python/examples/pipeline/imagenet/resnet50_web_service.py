@@ -38,15 +38,19 @@ class ImagenetOp(Op):
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
-        data = base64.b64decode(input_dict["image"].encode('utf8'))
-        data = np.fromstring(data, np.uint8)
-        # Note: class variables(self.var) can only be used in process op mode
-        im = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        img = self.seq(im)
-        return {"image": img[np.newaxis, :].copy()}, False, None, ""
+        batch_size = len(input_dict.keys())
+        imgs = []
+        for key in input_dict.keys():
+            data = base64.b64decode(input_dict[key].encode('utf8'))
+            data = np.fromstring(data, np.uint8)
+            im = cv2.imdecode(data, cv2.IMREAD_COLOR)
+            img = self.seq(im)
+            imgs.append(img[np.newaxis, :].copy())
+        input_imgs = np.concatenate(imgs, axis=0)
+        return {"image": input_imgs}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
-        score_list = fetch_dict["score"]
+        score_list = fetch_dict["prediction"]
         result = {"label": [], "prob": []}
         for score in score_list:
             score = score.tolist()
