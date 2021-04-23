@@ -7,7 +7,7 @@ tar zxvf ernie.tar.gz
 ```
 ### convert model
 ```
-python3 -m paddle_serving_client.convert --dirname erine
+python3 -m paddle_serving_client.convert --dirname ernie
 ```
 ### or, you can get the serving saved model directly
 ```
