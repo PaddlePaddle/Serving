@@ -1,7 +1,5 @@
-# Low-Precision Deployment for Paddle Serving
-(English|[简体中文](./LOW_PRECISION_DEPLOYMENT_CN.md))
-
-Intel CPU supports int8 and bfloat16 models, NVIDIA TensorRT supports int8 and float16 models.
+# resnet50 int8 example
+(English|[简体中文](./README_CN.md))
 
 ## Obtain the quantized model through PaddleSlim tool
 Train the low-precision models please refer to [PaddleSlim](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html).
@@ -21,24 +19,7 @@ python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_i
 ```
 Request the serving service with Client
 ```
-from paddle_serving_client import Client
-from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
-from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
-
-client = Client()
-client.load_client_config(
-    "serving_client/serving_client_conf.prototxt")
-client.connect(["127.0.0.1:9393"])
-
-seq = Sequential([
-    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
-    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
-])
-
-image_file = "daisy.jpg"
-img = seq(image_file)
-fetch_map = client.predict(feed={"image": img}, fetch=["save_infer_model/scale_0.tmp_0"])
-print(fetch_map["save_infer_model/scale_0.tmp_0"].reshape(-1))
+python resnet50_client.py
 ```
 
 ## Reference
