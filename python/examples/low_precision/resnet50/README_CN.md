@@ -1,7 +1,5 @@
-# Paddle Serving低精度部署
-(简体中文|[English](./LOW_PRECISION_DEPLOYMENT.md))
-
-低精度部署, 在Intel CPU上支持int8、bfloat16模型，Nvidia TensorRT支持int8、float16模型。
+# resnet50 int8示例
+(简体中文|[English](./README.md))
 
 ## 通过PaddleSlim量化生成低精度模型
 详细见[PaddleSlim量化](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html)
@@ -20,24 +18,7 @@ python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_i
 ```
 使用client进行请求
 ```
-from paddle_serving_client import Client
-from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
-from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
-
-client = Client()
-client.load_client_config(
-    "resnet_v2_50_imagenet_client/serving_client_conf.prototxt")
-client.connect(["127.0.0.1:9393"])
-
-seq = Sequential([
-    File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
-    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
-])
-
-image_file = "daisy.jpg"
-img = seq(image_file)
-fetch_map = client.predict(feed={"image": img}, fetch=["score"])
-print(fetch_map["score"].reshape(-1))
+python resnet50_client.py
 ```
 
 ## 参考文档
