@@ -27,7 +27,7 @@ In order to meet the needs of users in different scenarios, Paddle Serving's pro
 |-----|------|-----|-----|------|------|
 | LOW | HIGH | LOW | HIGH |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
 | HIGH | HIGH | HIGH | HIGH |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
-| HIGH | LOW | HIGH| LOW |Python webserver| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
+| HIGH | LOW | HIGH| LOW |Python webservice| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
 
 Performance index description：
 1. Response time (ms): Average response time of a single request, calculate the response time of 50, 90, 95, 99 quantiles, the lower the better.
@@ -53,7 +53,7 @@ Paddle Serving takes into account a series of issues such as different operating
 
 Cross-platform is not dependent on the operating system, nor on the hardware environment. Applications developed under one operating system can still run under another operating system. Therefore, the design should consider not only the development language and the cross-platform components, but also the interpretation differences of the compilers on different systems.
 
-Docker is an open source application container engine that allows developers to package their applications and dependencies into a portable container, and then publish it to any popular Linux machine or Windows machine. We have packaged a variety of Docker images for the Paddle Serving framework. Refer to the image list《[Docker Images](DOCKER_IMAGES.md)》, Select mirrors according to user's usage. We provide Docker usage documentation《[How to run PaddleServing in Docker](RUN_IN_DOCKER.md)》.Currently, the Python webserver mode can be deployed and run on the native Linux and Windows dual systems.《[Paddle Serving for Windows Users](WINDOWS_TUTORIAL.md)》
+Docker is an open source application container engine that allows developers to package their applications and dependencies into a portable container, and then publish it to any popular Linux machine or Windows machine. We have packaged a variety of Docker images for the Paddle Serving framework. Refer to the image list《[Docker Images](DOCKER_IMAGES.md)》, Select mirrors according to user's usage. We provide Docker usage documentation《[How to run PaddleServing in Docker](RUN_IN_DOCKER.md)》.Currently, the Python webservice mode can be deployed and run on the native Linux and Windows dual systems.《[Paddle Serving for Windows Users](WINDOWS_TUTORIAL.md)》
 
 > Support multiple development languages client ​​SDKs
 
@@ -141,7 +141,7 @@ The underlying communication of Paddle Serving is implemented with C++ as well a
 
 ----
 
-## 4. Python Webserver Design
+## 4. Python Webservice Design
 
 ### 4.1 Network Communication Mechanism
 There are many open source frameworks for web services. Paddle Serving currently integrates the Flask framework, but this part is not visible to users. In the future, a better-performing web framework may be provided as the underlying HTTP service integration engine.
