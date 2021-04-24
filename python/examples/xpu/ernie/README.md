@@ -11,8 +11,8 @@ python3 -m paddle_serving_client.convert --dirname ernie
 ```
 ### or, you can get the serving saved model directly
 ```
-wget https://paddle-serving.bj.bcebos.com/models/xpu/bert.tar.gz
-tar zxvf bert.tar.gz 
+wget https://paddle-serving.bj.bcebos.com/models/xpu/ernie.tar.gz
+tar zxvf ernie.tar.gz 
 ```
 ### Getting Dict and Sample Dataset
 
