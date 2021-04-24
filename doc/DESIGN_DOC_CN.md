@@ -29,7 +29,7 @@ Paddle Serving提供很多大规模场景需要的部署功能：1）模型管�
 |-----|------|-----|-----|------|------|
 | 低 | 高 | 低 | 高 |C++ Serving | 高性能场景，大型在线推荐系统召回、排序服务|
 | 高 | 高 | 较高 |高|Python Pipeline Serving| 兼顾吞吐和效率，单算子多模型组合场景，异步模式|
-| 高 | 低 | 高| 低 |Python webserver| 高迭代效率场景，小型服务或需要快速迭代，模型效果验证|
+| 高 | 低 | 高| 低 |Python webservice| 高迭代效率场景，小型服务或需要快速迭代，模型效果验证|
 
 
 性能指标说明：
@@ -55,7 +55,7 @@ Paddle Serving从做顶层设计时考虑到不同团队在工业级场景中会
 > 跨平台运行
 
 跨平台是不依赖于操作系统，也不依赖硬件环境。一个操作系统下开发的应用，放到另一个操作系统下依然可以运行。因此，设计上既要考虑开发语言、组件是跨平台的，同时也要考虑不同系统上编译器的解释差异。
-Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](DOCKER_IMAGES_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)》。目前，Python webserver模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](WINDOWS_TUTORIAL_CN.md)》
+Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](DOCKER_IMAGES_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)》。目前，Python webservice模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](WINDOWS_TUTORIAL_CN.md)》
 
 > 支持多种开发语言SDK
 
@@ -144,7 +144,7 @@ Paddle Serving采用对称加密算法对模型进行加密，在服务加载模
 由于Paddle Serving底层采用基于C++的通信组件，并且核心框架也是基于C/C++编写，当用户想要在服务端定义复杂的前处理与后处理逻辑时，一种办法是修改Paddle Serving底层框架，重新编译源码。另一种方式可以通过在服务端嵌入轻量级的Web服务，通过在Web服务中实现更复杂的预处理逻辑，从而搭建一套逻辑完整的服务。当访问量超过了Web服务能够接受的范围，开发者有足够的理由开发一些高性能的C++预处理逻辑，并嵌入到Serving的原生服务库中。Web服务和RPC服务的关系以及他们的组合方式可以参考下文`用户类型`中的说明。
 
 ----
-## 4. Python webserver设计与使用
+## 4. Python webservice设计与使用
 
 ### 4.1 网络框架
 Web服务有很多开源的框架，Paddle Serving当前集成了Flask框架，但这部分对用户不可见，在未来可能会提供性能更好的Web框架作为底层HTTP服务集成引擎。
