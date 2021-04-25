@@ -24,16 +24,19 @@ def parse_benchmark(filein, fileout):
     with open(fileout, "w") as fout:
         yaml.dump(res, fout, default_flow_style=False)
 
-def gen_yml(device):
+def gen_yml(device, gpu_id):
     fin = open("config.yml", "r")
     config = yaml.load(fin)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 10}
     if device == "gpu":
         config["op"]["det"]["local_service_conf"]["device_type"] = 1
-        config["op"]["det"]["local_service_conf"]["devices"] = "2"
+        config["op"]["det"]["local_service_conf"]["devices"] = gpu_id
         config["op"]["rec"]["local_service_conf"]["device_type"] = 1
-        config["op"]["rec"]["local_service_conf"]["devices"] = "2"        
+        config["op"]["rec"]["local_service_conf"]["devices"] = gpu_id
+    else:
+        config["op"]["rec"]["local_service_conf"]["device_type"] = 0     
+        config["op"]["det"]["local_service_conf"]["device_type"] = 0
     with open("config2.yml", "w") as fout: 
         yaml.dump(config, fout, default_flow_style=False)
 
@@ -85,7 +88,11 @@ if __name__ == "__main__":
         mode = sys.argv[2] # brpc/  local predictor
         thread = int(sys.argv[3])
         device = sys.argv[4]
-        gen_yml(device)
+        if device == "gpu":
+            gpu_id = sys.argv[5]
+            gen_yml(device, gpu_id)
+        else:
+            gen_yml(device, "0")
     elif sys.argv[1] == "run":
         mode = sys.argv[2] # http/ rpc
         thread = int(sys.argv[3])
