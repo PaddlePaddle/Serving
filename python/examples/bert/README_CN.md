@@ -88,3 +88,10 @@ python bert_web_service_gpu.py bert_seq128_model/ 9292 #启动gpu预测服务
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
+
+## 性能测试
+``` shell
+bash benchmark.sh bert_seq128_model bert_seq128_client
+```
+性能测试的日志文件为profile_log_bert_seq128_model
+如需修改性能测试用例的参数，请修改benchmark.sh中的配置信息。
