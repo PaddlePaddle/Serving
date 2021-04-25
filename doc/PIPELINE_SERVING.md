@@ -425,6 +425,8 @@ service PipelineService {
 
 ## ★ Classic examples
 
+All examples of pipelines are in [examples/pipeline/](../python/examples/pipeline) directory.
+
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 
 
