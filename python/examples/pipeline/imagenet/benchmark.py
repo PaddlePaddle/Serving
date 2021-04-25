@@ -32,6 +32,8 @@ def gen_yml(device, gpu_id):
     if device == "gpu":
         config["op"]["imagenet"]["local_service_conf"]["device_type"] = 1
         config["op"]["imagenet"]["local_service_conf"]["devices"] = gpu_id
+    else:
+        config["op"]["imagenet"]["local_service_conf"]["device_type"] = 0
     with open("config2.yml", "w") as fout: 
         yaml.dump(config, fout, default_flow_style=False)
 
@@ -91,7 +93,10 @@ if __name__ == "__main__":
         mode = sys.argv[2] # brpc/  local predictor
         thread = int(sys.argv[3])
         device = sys.argv[4]
-        gpu_id = sys.argv[5]
+        if device == "gpu":
+            gpu_id = sys.argv[5]
+        else:
+            gpu_id = None
         gen_yml(device, gpu_id)
     elif sys.argv[1] == "run":
         mode = sys.argv[2] # http/ rpc
