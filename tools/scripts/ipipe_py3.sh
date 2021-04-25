@@ -148,7 +148,7 @@ function before_hook() {
     setproxy
     unsetproxy
     cd ${build_path}/python
-    python3.6 -m pip install --upgrade pip==20.0.1
+    python3.6 -m pip install --upgrade pip
     python3.6 -m pip install requests
     python3.6 -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
     python3.6 -m pip install numpy==1.16.4
@@ -323,7 +323,7 @@ function bert_rpc_cpu() {
     link_data ${data_dir}
     sed -i 's/8860/8861/g' bert_client.py
     python3.6 -m paddle_serving_server.serve --model bert_seq128_model/ --port 8861 > ${dir}server_log.txt 2>&1 &
-    check_result server 5
+    check_result server 3
     cp data-c.txt.1 data-c.txt
     head data-c.txt | python3.6 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "bert_CPU_RPC server test completed"
@@ -338,7 +338,7 @@ function pipeline_imagenet() {
     data_dir=${data}imagenet/
     link_data ${data_dir}
     python3.6 resnet50_web_service.py > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
     check_result client "pipeline_imagenet_GPU_RPC server test completed"
@@ -355,7 +355,7 @@ function ResNet50_rpc() {
     link_data ${data_dir}
     sed -i 's/9696/8863/g' resnet50_rpc_client.py
     python3.6 -m paddle_serving_server.serve --model ResNet50_vd_model --port 8863 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_RPC server test completed"
@@ -372,7 +372,7 @@ function ResNet101_rpc() {
     link_data ${data_dir}
     sed -i "22cclient.connect(['127.0.0.1:8864'])" image_rpc_client.py
     python3.6 -m paddle_serving_server.serve --model ResNet101_vd_model --port 8864 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 image_rpc_client.py ResNet101_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet101_GPU_RPC server test completed"
@@ -482,7 +482,7 @@ function cascade_rcnn_rpc() {
     link_data ${data_dir}
     sed -i "s/9292/8879/g" test_client.py
     python3.6 -m paddle_serving_server.serve --model serving_server --port 8879 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 test_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -499,7 +499,7 @@ function deeplabv3_rpc() {
     link_data ${data_dir}
     sed -i "s/9494/8880/g" deeplabv3_client.py
     python3.6 -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 2 > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 5
     nvidia-smi
     python3.6 deeplabv3_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -516,7 +516,7 @@ function mobilenet_rpc() {
     tar xf mobilenet_v2_imagenet.tar.gz
     sed -i "s/9393/8881/g" mobilenet_tutorial.py
     python3.6 -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 8881 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 mobilenet_tutorial.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -533,7 +533,7 @@ function unet_rpc() {
     link_data ${data_dir}
     sed -i "s/9494/8882/g" seg_client.py
     python3.6 -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 8882 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 seg_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -599,7 +599,7 @@ function criteo_ctr_rpc_gpu() {
     link_data ${data_dir}
     sed -i "s/8885/8886/g" test_client.py
     python3.6 -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     nvidia-smi
     python3.6 test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -617,7 +617,7 @@ function yolov4_rpc_gpu() {
     sed -i "s/9393/8887/g" test_client.py
     python3.6 -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
-    check_result server 8
+    check_result server 5
     python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "yolov4_GPU_RPC server test completed"
@@ -634,7 +634,7 @@ function senta_rpc_cpu() {
     sed -i "s/9393/8887/g" test_client.py
     python3.6 -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
-    check_result server 8
+    check_result server 5
     python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "senta_GPU_RPC server test completed"
@@ -724,7 +724,7 @@ function bert_http() {
     cp vocab.txt.1 vocab.txt
     export CUDA_VISIBLE_DEVICES=0
     python3.6 bert_web_service.py bert_seq128_model/ 8878 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
+    check_result server 5
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:8878/bert/prediction > ${dir}client_log.txt 2>&1
     check_result client "bert_GPU_HTTP server test completed"
     kill_server_process
@@ -762,7 +762,7 @@ function grpc_yolov4() {
     link_data ${data_dir}
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC server started${RES}"
     python3.6 -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 5
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC client started${RES}"
     python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "grpc_yolov4_GPU_GRPC server test completed"
