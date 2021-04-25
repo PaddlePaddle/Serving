@@ -428,6 +428,8 @@ service PipelineService {
 
 ## ★ 典型示例
 
+所有Pipeline示例在[examples/pipeline/](../python/examples/pipeline) 目录下。
+
 这里通过搭建简单的 imdb model ensemble 例子来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
 
 
