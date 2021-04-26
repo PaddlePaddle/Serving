@@ -19,7 +19,7 @@ from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
 client = Client()
 client.load_client_config(
     "serving_client/serving_client_conf.prototxt")
-client.connect(["127.0.0.1:9303"])
+client.connect(["127.0.0.1:9393"])
 
 seq = Sequential([
     File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
