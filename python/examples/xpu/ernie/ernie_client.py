@@ -23,7 +23,7 @@ args = benchmark_args()
 
 reader = ChineseErnieReader({"max_seq_len": 128})
 fetch = ["save_infer_model/scale_0"]
-endpoint_list = ['127.0.0.1:12000']
+endpoint_list = ['127.0.0.1:7704']
 client = Client()
 client.load_client_config(args.model)
 client.connect(endpoint_list)
