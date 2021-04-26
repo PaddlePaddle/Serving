@@ -15,7 +15,7 @@
 
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
-from paddle_serving_client.utils import benchmark_args
+from paddle_serving_client.utils import benchmark_args, show_latency
 import time
 import paddle
 import sys
@@ -37,9 +37,6 @@ def single_func(idx, resource):
         client.connect([args.endpoint])
         start = time.time()
         for data in train_reader():
-            #new_data = np.zeros((1, 13)).astype("float32")
-            #new_data[0] = data[0][0]
-            #fetch_map = client.predict(feed={"x": new_data}, fetch=["price"], batch=True)
             fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
         end = time.time()
         return [[end - start], [total_number]]
@@ -57,6 +54,17 @@ def single_func(idx, resource):
         return [[end - start], [total_number]]
 
 
+start = time.time()
 multi_thread_runner = MultiThreadRunner()
 result = multi_thread_runner.run(single_func, args.thread, {})
-print(result)
+end = time.time()
+total_cost = end - start
+avg_cost = 0
+for i in range(args.thread):
+    avg_cost += result[0][i]
+avg_cost = avg_cost / args.thread
+
+print("total cost: {}s".format(total_cost))
+print("each thread cost: {}s. ".format(avg_cost))
+print("qps: {}samples/s".format(args.batch_size * args.thread / total_cost))
+show_latency(result[1])
