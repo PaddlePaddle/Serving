@@ -84,3 +84,9 @@ set environmental variable to specify which gpus are used, the command above mea
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
 ```
+
+## Benchmark
+``` shell
+bash benchmark.sh bert_seq128_model bert_seq128_client
+```
+The output log file of benchmark named `profile_log_bert_seq128_model`

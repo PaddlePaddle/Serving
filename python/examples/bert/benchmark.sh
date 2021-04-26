@@ -1,5 +1,5 @@
 rm profile_log*
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1
 export FLAGS_profile_server=1
 export FLAGS_profile_client=1
 export FLAGS_serving_latency=1
@@ -12,7 +12,7 @@ else
     mkdir utilization
 fi
 #start server
-$PYTHONROOT/bin/python3 -m paddle_serving_server.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1,2,3 --mem_optim  --ir_optim >  elog  2>&1 &
+$PYTHONROOT/bin/python3 -m paddle_serving_server.serve --model $1 --port 9292 --thread 4 --gpu_ids 0,1 --mem_optim  --ir_optim >  elog  2>&1 &
 sleep 5
 
 #warm up
