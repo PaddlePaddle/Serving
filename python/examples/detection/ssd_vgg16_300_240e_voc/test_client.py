@@ -38,4 +38,4 @@ fetch_map = client.predict(
     },
     fetch=["save_infer_model/scale_0.tmp_1"],
     batch=False)
-print('ysl-----', fetch_map)
+print(fetch_map)
