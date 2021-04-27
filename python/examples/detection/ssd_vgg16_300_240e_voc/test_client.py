@@ -18,7 +18,7 @@ import sys
 import numpy as np
 
 preprocess = Sequential([
-    File2Image(), BGR2RGB(), 
+    File2Image(), BGR2RGB(),
     Normalize([123.675, 116.28, 103.53], [58.395, 57.12, 57.375], False),
     Resize((512, 512)), Transpose((2, 0, 1))
 ])
@@ -33,6 +33,7 @@ im = preprocess(sys.argv[1])
 fetch_map = client.predict(
     feed={
         "image": im,
+        "im_shape": np.array([512, 512]),
         "scale_factor": np.array([1.0, 1.0]).reshape(-1),
     },
     fetch=["save_infer_model/scale_0.tmp_1"],
