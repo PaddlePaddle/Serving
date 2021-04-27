@@ -198,5 +198,14 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
         #model_config_path_list is list right now.
         #dict should be added when graphMaker is used.
         resp = multi_lang_general_model_service_pb2.GetClientConfigResponse()
-        resp.client_config_str_list[:] = self.model_config_path_list
+        model_config_str = []
+        for single_model_config in self.model_config_path_list:
+            if os.path.isdir(single_model_config):
+                with open("{}/serving_server_conf.prototxt".format(
+                        single_model_config)) as f:
+                    model_config_str.append(str(f.read()))
+            elif os.path.isfile(single_model_config):
+                with open(single_model_config) as f:
+                    model_config_str.append(str(f.read()))
+        resp.client_config_str_list[:] = model_config_str
         return resp

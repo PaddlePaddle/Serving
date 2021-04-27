@@ -136,15 +136,15 @@ public class Client {
             System.out.format("Get Client config failed: %s\n", e.toString());
             return false;
         }
-        String model_config_str = resp.getClientConfigStr();
-        _parseModelConfig(model_config_str);
+        List<String> model_config_str_list = resp.getClientConfigStrListList();
+        _parseModelConfig(model_config_str_list);
         return true;
     }
 
-    private void _parseModelConfig(String model_config_str) {
+    private void _parseModelConfig(List<String> model_config_str_list) {
         GeneralModelConfig.Builder model_conf_builder = GeneralModelConfig.newBuilder();
         try {
-            com.google.protobuf.TextFormat.getParser().merge(model_config_str, model_conf_builder);
+            com.google.protobuf.TextFormat.getParser().merge(model_config_str_list.get(0), model_conf_builder);
         } catch (com.google.protobuf.TextFormat.ParseException e) {
             System.out.format("Parse client config failed: %s\n", e.toString());
         }
