@@ -26,7 +26,7 @@ this script will download Chinese Dictionary File vocab.txt and Chinese Sample D
 ### Start Service
 
 ```
-python3 bert_web_service.py serving_server 7703
+python3 -m paddle_serving_server.serve --model serving_server --port 7703 --use_lite --use_xpu --ir_optim
 ```
 
 ### Client Prediction
