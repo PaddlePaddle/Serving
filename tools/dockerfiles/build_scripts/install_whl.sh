@@ -59,7 +59,6 @@ elif [[ $SERVING_VERSION == "0.6.0" ]]; then
 fi
 
 if [[ "$RUN_ENV" == "cpu" ]];then
-    server_release="paddle-serving-server==$SERVING_VERSION"
     python$PYTHON_VERSION -m pip install $client_release $app_release $server_release
     python$PYTHON_VERSION -m pip install paddlepaddle==${PADDLE_VERSION}
     cd /usr/local/
@@ -70,7 +69,6 @@ if [[ "$RUN_ENV" == "cpu" ]];then
     rm -rf serving-cpu-noavx-openblas-${SERVING_VERSION}.tar.gz
     cd -
 elif [[ "$RUN_ENV" == "cuda10.1" ]];then
-    server_release="paddle-serving-server-gpu==$SERVING_VERSION.post101"
     python$PYTHON_VERSION -m pip install $client_release $app_release $server_release
     python$PYTHON_VERSION -m pip install paddlepaddle-gpu==${PADDLE_VERSION}
     cd /usr/local/
@@ -81,7 +79,6 @@ elif [[ "$RUN_ENV" == "cuda10.1" ]];then
     rm -rf serving-gpu-101-${SERVING_VERSION}.tar.gz
     cd -
 elif [[ "$RUN_ENV" == "cuda10.2" ]];then
-    server_release="paddle-serving-server-gpu==$SERVING_VERSION.post102"
     python$PYTHON_VERSION -m pip install $client_release $app_release $server_release
     python$PYTHON_VERSION -m pip install paddlepaddle-gpu==${PADDLE_VERSION}
     cd /usr/local/
