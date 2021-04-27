@@ -46,7 +46,7 @@ if [[ $SERVING_VERSION == "0.5.0" ]]; then
 elif [[ $SERVING_VERSION == "0.6.0" ]]; then 
     if [[ "$RUN_ENV" == "cpu" ]];then
         server_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-$SERVING_VERSION-py3-none-any.whl"
-        serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-$SERVING_VERSION.tar.gz"
+        serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-$SERVING_VERSION.tar.gz"
     elif [[ "$RUN_ENV" == "cuda10.1" ]];then
         server_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-$SERVING_VERSION.post101-py3-none-any.whl"
         serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-$SERVING_VERSION.tar.gz"
