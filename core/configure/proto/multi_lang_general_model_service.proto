@@ -59,7 +59,7 @@ message SimpleResponse { required int32 err_code = 1; }
 
 message GetClientConfigRequest {}
 
-message GetClientConfigResponse { repeated string client_config_str_list = 1; }
+message GetClientConfigResponse { required string client_config_str = 1; }
 
 service MultiLangGeneralModelService {
   rpc Inference(InferenceRequest) returns (InferenceResponse) {}
