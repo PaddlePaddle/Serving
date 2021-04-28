@@ -124,7 +124,7 @@ sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.co
 - web service bert示例
 
 ```bash
-sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python2.7 bert_web_service.py 9292" --port 9292
+sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python3.6 bert_web_service.py bert_seq128_model 9292" --port 9292
 ```
 **需要注意的是，app_name需要同URL的函数名相同。例如示例中bert的访问URL是`https://127.0.0.1:9292/bert/prediction`，那么app_name应为bert。**
 
