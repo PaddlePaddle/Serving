@@ -27,38 +27,6 @@ mvn compile
 mvn install
 ```
 
-### Start the server(not pipeline)
-
-Take the fit_a_line model as an example, the server starts
-
-```
-cd ../../python/examples/fit_a_line
-sh get_data.sh
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_multilang &
-```
-
-Client prediction
-
-```
-cd ../../../java/examples/target
-java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample fit_a_line
-```
-
-Take yolov4 as an example, the server starts
-
-```
-python -m paddle_serving_app.package --get_model yolov4
-tar -xzvf yolov4.tar.gz
-python -m paddle_serving_server_gpu.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang & #It needs to be executed in GPU Docker, otherwise the execution method of CPU must be used.
-```
-
-Client prediction
-
-```
-# in /Serving/java/examples/target
-java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 ../../../python/examples/yolov4/000000570688.jpg
-# The case of yolov4 needs to specify a picture as input
-```
 ### Start the server(pipeline)
 
 as for input data type = string，take IMDB model ensemble as an example，the server starts
