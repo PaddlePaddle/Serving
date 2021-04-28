@@ -22,7 +22,7 @@ cmake -DPYTHON_INCLUDE_DIR=/usr/include/python3.7m/ \
     -DSERVER=ON ..
 make -j10
 ```
-You can run `make install` to produce the target in `./output` directory. Add `-DCMAKE_INSTALL_PREFIX=./output` to specify the output path to CMake command shown above。
+You can run `make install` to produce the target in `./output` directory. Add `-DCMAKE_INSTALL_PREFIX=./output` to specify the output path to CMake command shown above. Please specify `-DWITH_MKL=ON` on Intel CPU platform with AVX2 support.  
 * Compile the Serving Client
 ```
 mkdir -p client-build-arm && cd client-build-arm
