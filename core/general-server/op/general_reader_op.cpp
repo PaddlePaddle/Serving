@@ -32,7 +32,7 @@ using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-
+enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
 int conf_check(const Request *req,
                const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
   int var_num = req->insts(0).tensor_array_size();
@@ -46,17 +46,15 @@ int conf_check(const Request *req,
   VLOG(2) << "fetch var num in reader op: " << req->fetch_var_names_size();
 
   for (int i = 0; i < var_num; ++i) {
-    if (model_config->_feed_type[i] !=
-        req->insts(0).tensor_array(i).elem_type()) {
+    const Tensor &tensor = req->insts(0).tensor_array(i);
+    if (model_config->_feed_type[i] != tensor.elem_type()) {
       LOG(ERROR) << "feed type not match.";
       return -1;
     }
-    if (model_config->_feed_shape[i].size() ==
-        req->insts(0).tensor_array(i).shape_size()) {
+    if (model_config->_feed_shape[i].size() == tensor.shape_size()) {
       for (int j = 0; j < model_config->_feed_shape[i].size(); ++j) {
-        req->insts(0).tensor_array(i).shape(j);
-        if (model_config->_feed_shape[i][j] !=
-            req->insts(0).tensor_array(i).shape(j)) {
+        tensor.shape(j);
+        if (model_config->_feed_shape[i][j] != tensor.shape(j)) {
           LOG(ERROR) << "feed shape not match.";
           return -1;
         }
@@ -70,40 +68,43 @@ int conf_check(const Request *req,
 }
 
 int GeneralReaderOp::inference() {
-  // reade request from client
+  // read request from client
   const Request *req = dynamic_cast<const Request *>(get_request_message());
-  uint64_t log_id = req->log_id();
-  int input_var_num = 0;
-  std::vector<int64_t> elem_type;
-  std::vector<int64_t> elem_size;
-  std::vector<int64_t> capacity;
-
-  GeneralBlob *res = mutable_data<GeneralBlob>();
-  TensorVector *out = &res->tensor_vector;
-
-  res->SetLogId(log_id);
-
-  if (!res) {
-    LOG(ERROR) << "(logid=" << log_id
-               << ") Failed get op tls reader object output";
+  if (!req) {
+    LOG(ERROR) << "Failed get request message";
+    return -1;
   }
 
+  uint64_t log_id = req->log_id();
+  int input_var_num = 0;
+
+  GeneralBlob *res = mutable_data<GeneralBlob>();
+  if (!res) {
+    LOG(ERROR) << "(logid=" << log_id << ") Failed get GeneralBlob";
+    return -1;
+  }
+
+  TensorVector *out = &(res->tensor_vector);
+  if (!out) {
+    LOG(ERROR) << "(logid=" << log_id << ") Failed get tensor_vector of res";
+    return -1;
+  }
+
+  res->SetLogId(log_id);
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
   int var_num = req->insts(0).tensor_array_size();
-  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num;
 
-  VLOG(2) << "(logid=" << log_id
+  VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
 
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
+  // get the first InferOP's model_config as ReaderOp's model_config by default.
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
-
-  VLOG(2) << "(logid=" << log_id << ") print general model config done.";
+      resource.get_general_model_config().front();
 
   // TODO(guru4elephant): how to do conditional check?
   /*
@@ -115,122 +116,125 @@ int GeneralReaderOp::inference() {
   }
   */
   // package tensor
-
-  elem_type.resize(var_num);
-  elem_size.resize(var_num);
-  capacity.resize(var_num);
   // prepare basic information for input
+  // specify the memory needed for output tensor_vector
+  // fill the data into output general_blob
+  int data_len = 0;
+  int64_t elem_type = 0;
+  int64_t elem_size = 0;
+  int64_t databuf_size = 0;
   for (int i = 0; i < var_num; ++i) {
-    paddle::PaddleTensor lod_tensor;
-    elem_type[i] = req->insts(0).tensor_array(i).elem_type();
-    VLOG(2) << "var[" << i << "] has elem type: " << elem_type[i];
-    if (elem_type[i] == 0) {  // int64
-      elem_size[i] = sizeof(int64_t);
-      lod_tensor.dtype = paddle::PaddleDType::INT64;
-    } else if (elem_type[i] == 1) {
-      elem_size[i] = sizeof(float);
-      lod_tensor.dtype = paddle::PaddleDType::FLOAT32;
-    } else if (elem_type[i] == 2) {
-      elem_size[i] = sizeof(int32_t);
-      lod_tensor.dtype = paddle::PaddleDType::INT32;
+    paddle::PaddleTensor paddleTensor;
+    const Tensor &tensor = req->insts(0).tensor_array(i);
+    data_len = 0;
+    elem_type = 0;
+    elem_size = 0;
+    databuf_size = 0;
+    elem_type = tensor.elem_type();
+    VLOG(2) << "var[" << i << "] has elem type: " << elem_type;
+    if (elem_type == P_INT64) {  // int64
+      elem_size = sizeof(int64_t);
+      paddleTensor.dtype = paddle::PaddleDType::INT64;
+      data_len = tensor.int64_data_size();
+    } else if (elem_type == P_FLOAT32) {
+      elem_size = sizeof(float);
+      paddleTensor.dtype = paddle::PaddleDType::FLOAT32;
+      data_len = tensor.float_data_size();
+    } else if (elem_type == P_INT32) {
+      elem_size = sizeof(int32_t);
+      paddleTensor.dtype = paddle::PaddleDType::INT32;
+      data_len = tensor.int_data_size();
+    } else if (elem_type == P_STRING) {
+      // use paddle::PaddleDType::UINT8 as for String.
+      elem_size = sizeof(char);
+      paddleTensor.dtype = paddle::PaddleDType::UINT8;
+      // this is for vector<String>, cause the databuf_size !=
+      // vector<String>.size()*sizeof(char);
+      // data_len should be +1 cause '\0'
+      // now only support single string
+      for (int idx = 0; idx < tensor.data_size(); idx++) {
+        data_len += tensor.data()[idx].length() + 1;
+      }
     }
     // implement lod tensor here
-    if (req->insts(0).tensor_array(i).lod_size() > 0) {
+    // only support 1-D lod
+    // TODO(HexToString): support 2-D lod
+    if (tensor.lod_size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
-      lod_tensor.lod.resize(1);
-      for (int k = 0; k < req->insts(0).tensor_array(i).lod_size(); ++k) {
-        lod_tensor.lod[0].push_back(req->insts(0).tensor_array(i).lod(k));
+      paddleTensor.lod.resize(1);
+      for (int k = 0; k < tensor.lod_size(); ++k) {
+        paddleTensor.lod[0].push_back(tensor.lod(k));
       }
-      capacity[i] = 1;
-      for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
-        int dim = req->insts(0).tensor_array(i).shape(k);
-        VLOG(2) << "(logid=" << log_id << ") shape for var[" << i
-                << "]: " << dim;
-        capacity[i] *= dim;
-        lod_tensor.shape.push_back(dim);
-      }
-      VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] is tensor, capacity: " << capacity[i];
-    } else {
-      capacity[i] = 1;
-      for (int k = 0; k < req->insts(0).tensor_array(i).shape_size(); ++k) {
-        int dim = req->insts(0).tensor_array(i).shape(k);
-        VLOG(2) << "(logid=" << log_id << ") shape for var[" << i
-                << "]: " << dim;
-        capacity[i] *= dim;
-        lod_tensor.shape.push_back(dim);
-      }
-      VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] is tensor, capacity: " << capacity[i];
     }
-    lod_tensor.name = model_config->_feed_name[i];
-    out->push_back(lod_tensor);
-  }
-  // specify the memory needed for output tensor_vector
-  for (int i = 0; i < var_num; ++i) {
-    if (out->at(i).lod.size() == 1) {
-      int tensor_size = 0;
-      const Tensor &tensor = req->insts(0).tensor_array(i);
-      int data_len = 0;
-      if (tensor.int64_data_size() > 0) {
-        data_len = tensor.int64_data_size();
-      } else if (tensor.float_data_size() > 0) {
-        data_len = tensor.float_data_size();
-      } else if (tensor.int_data_size() > 0) {
-        data_len = tensor.int_data_size();
-      }
-      VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
-              << "]: " << data_len;
-      tensor_size += data_len;
 
-      int cur_len = out->at(i).lod[0].back();
-      VLOG(2) << "(logid=" << log_id << ") current len: " << cur_len;
-
-      int sample_len = 0;
-      if (tensor.shape_size() == 1) {
-        sample_len = data_len;
-      } else {
-        sample_len = tensor.shape(0);
-      }
-      VLOG(2) << "(logid=" << log_id << ") new len: " << cur_len + sample_len;
-      out->at(i).data.Resize(tensor_size * elem_size[i]);
-      VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] is lod_tensor and len=" << out->at(i).lod[0].back();
-    } else {
-      out->at(i).data.Resize(capacity[i] * elem_size[i]);
-      VLOG(2) << "(logid=" << log_id << ") var[" << i
-              << "] is tensor and capacity=" << capacity[i];
+    for (int k = 0; k < tensor.shape_size(); ++k) {
+      int dim = tensor.shape(k);
+      VLOG(2) << "(logid=" << log_id << ") shape for var[" << i << "]: " << dim;
+      paddleTensor.shape.push_back(dim);
     }
-  }
+    paddleTensor.name = model_config->_feed_name[i];
+    out->push_back(paddleTensor);
 
-  // fill the data into output general_blob
-  for (int i = 0; i < var_num; ++i) {
-    if (elem_type[i] == 0) {
+    VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
+            << "]: " << data_len;
+    databuf_size = data_len * elem_size;
+    out->at(i).data.Resize(databuf_size);
+    if (out->at(i).lod.size() > 0) {
+      VLOG(2) << "(logid=" << log_id << ") var[" << i
+              << "] has lod_tensor and len=" << out->at(i).lod[0].back();
+    }
+    if (elem_type == P_INT64) {
       int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << req->insts(0).tensor_array(i).int64_data(0);
-      int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).int64_data_size();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int64_data(k);
+              << "] is " << tensor.int64_data(0);
+      if (!dst_ptr) {
+        LOG(ERROR) << "dst_ptr is nullptr";
+        return -1;
       }
-    } else if (elem_type[i] == 1) {
+      memcpy(dst_ptr, tensor.int64_data().data(), databuf_size);
+      /*
+      int elem_num = tensor.int64_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[k] = tensor.int64_data(k);
+      }
+      */
+    } else if (elem_type == P_FLOAT32) {
       float *dst_ptr = static_cast<float *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << req->insts(0).tensor_array(i).float_data(0);
-      int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).float_data_size();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[offset + k] = req->insts(0).tensor_array(i).float_data(k);
+              << "] is " << tensor.float_data(0);
+      if (!dst_ptr) {
+        LOG(ERROR) << "dst_ptr is nullptr";
+        return -1;
       }
-    } else if (elem_type[i] == 2) {
+      memcpy(dst_ptr, tensor.float_data().data(), databuf_size);
+      /*int elem_num = tensor.float_data_size();
+      for (int k = 0; k < elem_num; ++k) {
+        dst_ptr[k] = tensor.float_data(k);
+      }*/
+    } else if (elem_type == P_INT32) {
       int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << req->insts(0).tensor_array(i).int_data(0);
+              << "] is " << tensor.int_data(0);
+      if (!dst_ptr) {
+        LOG(ERROR) << "dst_ptr is nullptr";
+        return -1;
+      }
+      memcpy(dst_ptr, tensor.int_data().data(), databuf_size);
+    } else if (elem_type == P_STRING) {
+      char *dst_ptr = static_cast<char *>(out->at(i).data.data());
+      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
+              << "] is " << tensor.data(0);
+      if (!dst_ptr) {
+        LOG(ERROR) << "dst_ptr is nullptr";
+        return -1;
+      }
+      int elem_num = tensor.data_size();
       int offset = 0;
-      int elem_num = req->insts(0).tensor_array(i).int_data_size();
       for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[offset + k] = req->insts(0).tensor_array(i).int_data(k);
+        memcpy(dst_ptr + offset,
+               tensor.data(k).c_str(),
+               strlen(tensor.data(k).c_str()) + 1);
+        offset += strlen(tensor.data(k).c_str()) + 1;
       }
     }
   }

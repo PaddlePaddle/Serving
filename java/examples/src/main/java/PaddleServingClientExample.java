@@ -16,9 +16,11 @@ public class PaddleServingClientExample {
             0.0582f, -0.0727f, -0.1583f, -0.0584f,
             0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
         INDArray npdata = Nd4j.createFromArray(data);
+        long[] batch_shape = {1,13};
+        INDArray batch_npdata = npdata.reshape(batch_shape);
         HashMap<String, INDArray> feed_data
             = new HashMap<String, INDArray>() {{
-                put("x", npdata);
+                put("x", batch_npdata);
             }};
         List<String> fetch = Arrays.asList("price");
         
@@ -69,12 +71,16 @@ public class PaddleServingClientExample {
         
         // Div(255.0)
         INDArray image = RGBimage.divi(255.0);
-        
+        long[] batch_shape = {1,image.shape()[0],image.shape()[1],image.shape()[2]};
+        INDArray batch_image = image.reshape(batch_shape);        
+
         INDArray im_size = Nd4j.createFromArray(new int[]{height, width});
+        long[] batch_size_shape = {1,2};
+        INDArray batch_im_size = im_size.reshape(batch_size_shape);
         HashMap<String, INDArray> feed_data
             = new HashMap<String, INDArray>() {{
-                put("image", image);
-                put("im_size", im_size);
+                put("image", batch_image);
+                put("im_size", batch_im_size);
             }};
         List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
         

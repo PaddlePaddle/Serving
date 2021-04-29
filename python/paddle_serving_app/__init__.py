@@ -12,3 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .models import ServingModels
+from . import version
+
+__version__ = version.version_tag

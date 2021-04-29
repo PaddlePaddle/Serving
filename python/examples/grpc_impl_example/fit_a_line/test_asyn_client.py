@@ -18,7 +18,7 @@ import functools
 import time
 import threading
 import grpc
-
+import numpy as np
 client = Client()
 client.connect(["127.0.0.1:9393"])
 
@@ -43,7 +43,9 @@ x = [
 ]
 task_count = 0
 for i in range(3):
-    future = client.predict(feed={"x": x}, fetch=["price"], asyn=True)
+    new_data = np.array(x).astype("float32").reshape((1, 13))
+    future = client.predict(
+        feed={"x": new_data}, fetch=["price"], batch=False, asyn=True)
     task_count += 1
     future.add_done_callback(functools.partial(call_back))
 

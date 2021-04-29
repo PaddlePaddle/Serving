@@ -21,6 +21,7 @@ import contextlib
 from contextlib import closing
 import multiprocessing
 import yaml
+import io
 
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
@@ -55,7 +56,6 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
             resp = pipeline_service_pb2.Response()
             resp.err_no = channel.ChannelDataErrcode.NO_SERVICE.value
             resp.err_msg = "Failed to inference: Service name error."
-            resp.result = ""
             return resp
         resp = self._dag_executor.call(request)
         return resp
@@ -233,9 +233,12 @@ class PipelineServer(object):
             "local_service_conf": {
                 "workdir": "",
                 "thread_num": 2,
+                "device_type": -1,
                 "devices": "",
                 "mem_optim": True,
                 "ir_optim": False,
+                "precision": "fp32",
+                "use_calib": False,
             },
         }
         for op in self._used_op:
@@ -333,7 +336,7 @@ class ServerYamlConfChecker(object):
             raise SystemExit("Failed to prepare_server: only one of yml_file"
                              " or yml_dict can be selected as the parameter.")
         if yml_file is not None:
-            with open(yml_file) as f:
+            with io.open(yml_file, encoding='utf-8') as f:
                 conf = yaml.load(f.read())
         elif yml_dict is not None:
             conf = yml_dict
@@ -388,17 +391,23 @@ class ServerYamlConfChecker(object):
         default_conf = {
             "workdir": "",
             "thread_num": 2,
+            "device_type": -1,
             "devices": "",
             "mem_optim": True,
             "ir_optim": False,
+            "precision": "fp32",
+            "use_calib": False,
         }
         conf_type = {
             "model_config": str,
             "workdir": str,
             "thread_num": int,
+            "device_type": int,
             "devices": str,
             "mem_optim": bool,
             "ir_optim": bool,
+            "precision": str,
+            "use_calib": bool,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,

@@ -27,23 +27,10 @@ namespace predictor {
 using configure::ResourceConf;
 using configure::GeneralModelConfig;
 using rec::mcube::CubeAPI;
-// __thread bool p_thread_initialized = false;
 
-static void dynamic_resource_deleter(void* d) {
-#if 1
-  LOG(INFO) << "dynamic_resource_delete on " << bthread_self();
-#endif
-  delete static_cast<DynamicResource*>(d);
-}
-
-DynamicResource::DynamicResource() {}
-
-DynamicResource::~DynamicResource() {}
-
-int DynamicResource::initialize() { return 0; }
-
-std::shared_ptr<PaddleGeneralModelConfig> Resource::get_general_model_config() {
-  return _config;
+std::vector<std::shared_ptr<PaddleGeneralModelConfig>>
+Resource::get_general_model_config() {
+  return _configs;
 }
 
 void Resource::print_general_model_config(
@@ -96,8 +83,6 @@ void Resource::print_general_model_config(
   }
 }
 
-int DynamicResource::clear() { return 0; }
-
 int Resource::initialize(const std::string& path, const std::string& file) {
   ResourceConf resource_conf;
   if (configure::read_proto_conf(path, file, &resource_conf) != 0) {
@@ -149,37 +134,26 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 #endif
 
   if (FLAGS_enable_model_toolkit) {
-    int err = 0;
-    std::string model_toolkit_path = resource_conf.model_toolkit_path();
-    if (err != 0) {
-      LOG(ERROR) << "read model_toolkit_path failed, path[" << path
-                 << "], file[" << file << "]";
-      return -1;
-    }
-    std::string model_toolkit_file = resource_conf.model_toolkit_file();
-    if (err != 0) {
-      LOG(ERROR) << "read model_toolkit_file failed, path[" << path
-                 << "], file[" << file << "]";
-      return -1;
-    }
-    if (InferManager::instance().proc_initialize(
-            model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
-      LOG(ERROR) << "failed proc initialize modeltoolkit, config: "
-                 << model_toolkit_path << "/" << model_toolkit_file;
-      return -1;
-    }
+    size_t model_toolkit_num = resource_conf.model_toolkit_path_size();
+    for (size_t mi = 0; mi < model_toolkit_num; ++mi) {
+      std::string model_toolkit_path = resource_conf.model_toolkit_path(mi);
+      std::string model_toolkit_file = resource_conf.model_toolkit_file(mi);
 
-    if (KVManager::instance().proc_initialize(
-            model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
-      LOG(ERROR) << "Failed proc initialize kvmanager, config: "
-                 << model_toolkit_path << "/" << model_toolkit_file;
+      if (InferManager::instance().proc_initialize(
+              model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+        LOG(ERROR) << "failed proc initialize modeltoolkit, config: "
+                   << model_toolkit_path << "/" << model_toolkit_file;
+        return -1;
+      }
+
+      if (KVManager::instance().proc_initialize(
+              model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+        LOG(ERROR) << "Failed proc initialize kvmanager, config: "
+                   << model_toolkit_path << "/" << model_toolkit_file;
+      }
     }
   }
 
-  if (THREAD_KEY_CREATE(&_tls_bspec_key, dynamic_resource_deleter) != 0) {
-    LOG(ERROR) << "unable to create tls_bthread_key of thrd_data";
-    return -1;
-  }
   // init rocksDB or cube instance
   if (resource_conf.has_cube_config_file() &&
       resource_conf.has_cube_config_path()) {
@@ -231,80 +205,77 @@ int Resource::general_model_initialize(const std::string& path,
     LOG(ERROR) << "Failed initialize resource from: " << path << "/" << file;
     return -1;
   }
-  int err = 0;
-  std::string general_model_path = resource_conf.general_model_path();
-  std::string general_model_file = resource_conf.general_model_file();
-  if (err != 0) {
-    LOG(ERROR) << "read general_model_path failed, path[" << path << "], file["
-               << file << "]";
-    return -1;
-  }
+  size_t general_model_num = resource_conf.general_model_path_size();
+  for (size_t gi = 0; gi < general_model_num; ++gi) {
+    std::string general_model_path = resource_conf.general_model_path(gi);
+    std::string general_model_file = resource_conf.general_model_file(gi);
 
-  GeneralModelConfig model_config;
-  if (configure::read_proto_conf(general_model_path.c_str(),
-                                 general_model_file.c_str(),
-                                 &model_config) != 0) {
-    LOG(ERROR) << "Failed initialize model config from: " << general_model_path
-               << "/" << general_model_file;
-    return -1;
-  }
+    GeneralModelConfig model_config;
+    if (configure::read_proto_conf(general_model_path.c_str(),
+                                   general_model_file.c_str(),
+                                   &model_config) != 0) {
+      LOG(ERROR) << "Failed initialize model config from: "
+                 << general_model_path << "/" << general_model_file;
+      return -1;
+    }
+    auto _config = std::make_shared<PaddleGeneralModelConfig>();
+    int feed_var_num = model_config.feed_var_size();
+    VLOG(2) << "load general model config";
+    VLOG(2) << "feed var num: " << feed_var_num;
+    _config->_feed_name.resize(feed_var_num);
+    _config->_feed_alias_name.resize(feed_var_num);
+    _config->_feed_type.resize(feed_var_num);
+    _config->_is_lod_feed.resize(feed_var_num);
+    _config->_capacity.resize(feed_var_num);
+    _config->_feed_shape.resize(feed_var_num);
+    for (int i = 0; i < feed_var_num; ++i) {
+      _config->_feed_name[i] = model_config.feed_var(i).name();
+      _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
+      VLOG(2) << "feed var[" << i << "]: " << _config->_feed_name[i];
+      VLOG(2) << "feed var[" << i << "]: " << _config->_feed_alias_name[i];
+      _config->_feed_type[i] = model_config.feed_var(i).feed_type();
+      VLOG(2) << "feed type[" << i << "]: " << _config->_feed_type[i];
 
-  _config.reset(new PaddleGeneralModelConfig());
-  int feed_var_num = model_config.feed_var_size();
-  VLOG(2) << "load general model config";
-  VLOG(2) << "feed var num: " << feed_var_num;
-  _config->_feed_name.resize(feed_var_num);
-  _config->_feed_alias_name.resize(feed_var_num);
-  _config->_feed_type.resize(feed_var_num);
-  _config->_is_lod_feed.resize(feed_var_num);
-  _config->_capacity.resize(feed_var_num);
-  _config->_feed_shape.resize(feed_var_num);
-  for (int i = 0; i < feed_var_num; ++i) {
-    _config->_feed_name[i] = model_config.feed_var(i).name();
-    _config->_feed_alias_name[i] = model_config.feed_var(i).alias_name();
-    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_name[i];
-    VLOG(2) << "feed var[" << i << "]: " << _config->_feed_alias_name[i];
-    _config->_feed_type[i] = model_config.feed_var(i).feed_type();
-    VLOG(2) << "feed type[" << i << "]: " << _config->_feed_type[i];
-
-    if (model_config.feed_var(i).is_lod_tensor()) {
-      VLOG(2) << "var[" << i << "] is lod tensor";
-      _config->_feed_shape[i] = {-1};
-      _config->_is_lod_feed[i] = true;
-    } else {
-      VLOG(2) << "var[" << i << "] is tensor";
-      _config->_capacity[i] = 1;
-      _config->_is_lod_feed[i] = false;
-      for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
-        int32_t dim = model_config.feed_var(i).shape(j);
-        VLOG(2) << "var[" << i << "].shape[" << i << "]: " << dim;
-        _config->_feed_shape[i].push_back(dim);
-        _config->_capacity[i] *= dim;
+      if (model_config.feed_var(i).is_lod_tensor()) {
+        VLOG(2) << "var[" << i << "] is lod tensor";
+        _config->_feed_shape[i] = {-1};
+        _config->_is_lod_feed[i] = true;
+      } else {
+        VLOG(2) << "var[" << i << "] is tensor";
+        _config->_capacity[i] = 1;
+        _config->_is_lod_feed[i] = false;
+        for (int j = 0; j < model_config.feed_var(i).shape_size(); ++j) {
+          int32_t dim = model_config.feed_var(i).shape(j);
+          VLOG(2) << "var[" << i << "].shape[" << i << "]: " << dim;
+          _config->_feed_shape[i].push_back(dim);
+          _config->_capacity[i] *= dim;
+        }
       }
     }
-  }
 
-  int fetch_var_num = model_config.fetch_var_size();
-  _config->_is_lod_fetch.resize(fetch_var_num);
-  _config->_fetch_name.resize(fetch_var_num);
-  _config->_fetch_alias_name.resize(fetch_var_num);
-  _config->_fetch_shape.resize(fetch_var_num);
-  for (int i = 0; i < fetch_var_num; ++i) {
-    _config->_fetch_name[i] = model_config.fetch_var(i).name();
-    _config->_fetch_alias_name[i] = model_config.fetch_var(i).alias_name();
-    _config->_fetch_name_to_index[_config->_fetch_name[i]] = i;
-    _config->_fetch_alias_name_to_index[_config->_fetch_alias_name[i]] = i;
-    if (model_config.fetch_var(i).is_lod_tensor()) {
-      VLOG(2) << "fetch var[" << i << "] is lod tensor";
-      _config->_fetch_shape[i] = {-1};
-      _config->_is_lod_fetch[i] = true;
-    } else {
-      _config->_is_lod_fetch[i] = false;
-      for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
-        int dim = model_config.fetch_var(i).shape(j);
-        _config->_fetch_shape[i].push_back(dim);
+    int fetch_var_num = model_config.fetch_var_size();
+    _config->_is_lod_fetch.resize(fetch_var_num);
+    _config->_fetch_name.resize(fetch_var_num);
+    _config->_fetch_alias_name.resize(fetch_var_num);
+    _config->_fetch_shape.resize(fetch_var_num);
+    for (int i = 0; i < fetch_var_num; ++i) {
+      _config->_fetch_name[i] = model_config.fetch_var(i).name();
+      _config->_fetch_alias_name[i] = model_config.fetch_var(i).alias_name();
+      _config->_fetch_name_to_index[_config->_fetch_name[i]] = i;
+      _config->_fetch_alias_name_to_index[_config->_fetch_alias_name[i]] = i;
+      if (model_config.fetch_var(i).is_lod_tensor()) {
+        VLOG(2) << "fetch var[" << i << "] is lod tensor";
+        _config->_fetch_shape[i] = {-1};
+        _config->_is_lod_fetch[i] = true;
+      } else {
+        _config->_is_lod_fetch[i] = false;
+        for (int j = 0; j < model_config.fetch_var(i).shape_size(); ++j) {
+          int dim = model_config.fetch_var(i).shape(j);
+          _config->_fetch_shape[i].push_back(dim);
+        }
       }
     }
+    _configs.push_back(std::move(_config));
   }
   return 0;
 }
@@ -324,36 +295,6 @@ int Resource::thread_initialize() {
     return -1;
   }
 
-  DynamicResource* p_dynamic_resource =
-      reinterpret_cast<DynamicResource*>(THREAD_GETSPECIFIC(_tls_bspec_key));
-  if (p_dynamic_resource == NULL) {
-    p_dynamic_resource = new (std::nothrow) DynamicResource;
-    if (p_dynamic_resource == NULL) {
-      LOG(ERROR) << "failed to create tls DynamicResource";
-      return -1;
-    }
-    if (p_dynamic_resource->initialize() != 0) {
-      LOG(ERROR) << "DynamicResource initialize failed.";
-      delete p_dynamic_resource;
-      p_dynamic_resource = NULL;
-      return -1;
-    }
-
-    if (THREAD_SETSPECIFIC(_tls_bspec_key, p_dynamic_resource) != 0) {
-      LOG(ERROR) << "unable to set tls DynamicResource";
-      delete p_dynamic_resource;
-      p_dynamic_resource = NULL;
-      return -1;
-    }
-  }
-#if 0
-    LOG(INFO) << "Successfully thread initialized dynamic resource";
-#else
-  LOG(INFO) << bthread_self()
-            << ": Successfully thread initialized dynamic resource "
-            << p_dynamic_resource;
-
-#endif
   return 0;
 }
 
@@ -370,26 +311,6 @@ int Resource::thread_clear() {
     LOG(ERROR) << "Failed thrd clear infer manager";
     return -1;
   }
-
-  DynamicResource* p_dynamic_resource =
-      reinterpret_cast<DynamicResource*>(THREAD_GETSPECIFIC(_tls_bspec_key));
-  if (p_dynamic_resource == NULL) {
-#if 0
-    LOG(ERROR) << "tls dynamic resource shouldn't be null after "
-        << "thread_initialize";
-#else
-    LOG(ERROR)
-        << bthread_self()
-        << ": tls dynamic resource shouldn't be null after thread_initialize";
-#endif
-    return -1;
-  }
-  if (p_dynamic_resource->clear() != 0) {
-    LOG(ERROR) << "Failed to invoke dynamic resource clear";
-    return -1;
-  }
-
-  // ...
   return 0;
 }
 size_t Resource::get_cube_quant_bits() { return this->cube_quant_bits; }

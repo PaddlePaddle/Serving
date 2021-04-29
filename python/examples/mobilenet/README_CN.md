@@ -12,7 +12,7 @@ tar -xzvf mobilenet_v2_imagenet.tar.gz
 ### 启动服务端
 
 ```
-python -m paddle_serving_server_gpu.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 9393
+python -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 9393
 ```
 
 ### 客户端预测

@@ -15,9 +15,9 @@
 
 import os
 import sys
-from paddle_serving_server_gpu import OpMaker
-from paddle_serving_server_gpu import OpSeqMaker
-from paddle_serving_server_gpu import MultiLangServer as Server
+from paddle_serving_server import OpMaker
+from paddle_serving_server import OpSeqMaker
+from paddle_serving_server import MultiLangServer as Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('general_reader')

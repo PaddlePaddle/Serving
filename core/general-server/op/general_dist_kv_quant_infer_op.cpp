@@ -117,8 +117,9 @@ int GeneralDistKVQuantInferOp::inference() {
   std::unordered_map<int, int> in_out_map;
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
+  //TODO:Temporary addition, specific details to be studied by HexToString
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config()[0];
   int cube_quant_bits = resource.get_cube_quant_bits();
   size_t EMBEDDING_SIZE = 0;
   if (cube_quant_bits == 0) {
@@ -188,21 +189,6 @@ int GeneralDistKVQuantInferOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
 
-  Timer timeline;
-  int64_t start = timeline.TimeStampUS();
-  timeline.Start();
-
-  if (InferManager::instance().infer(
-          engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "(logid=" << log_id
-               << ") Failed do infer in fluid model: " << engine_name();
-    return -1;
-  }
-
-  int64_t end = timeline.TimeStampUS();
-  CopyBlobInfo(input_blob, output_blob);
-  AddBlobInfo(output_blob, start);
-  AddBlobInfo(output_blob, end);
   return 0;
 }
 DEFINE_OP(GeneralDistKVQuantInferOp);

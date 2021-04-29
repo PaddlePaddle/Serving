@@ -18,16 +18,16 @@ include_directories(SYSTEM  ${CMAKE_CURRENT_LIST_DIR}/../kvdb/include)
 include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 add_executable(elastic_serving ${serving_srcs})
-add_dependencies(elastic_serving pdcodegen fluid_cpu_engine pdserving paddle_fluid cube-api)
+add_dependencies(elastic_serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api)
 
 target_include_directories(elastic_serving PUBLIC
         ${CMAKE_CURRENT_BINARY_DIR}/../../predictor
         )
 
-target_link_libraries(elastic_serving -Wl,--whole-archive fluid_cpu_engine
+target_link_libraries(elastic_serving -Wl,--whole-archive paddle_inference_engine
         -Wl,--no-whole-archive)
 
-target_link_libraries(elastic_serving paddle_fluid ${paddle_depend_libs})
+target_link_libraries(elastic_serving paddle_inference ${paddle_depend_libs})
 
 target_link_libraries(elastic_serving pdserving)
 target_link_libraries(elastic_serving cube-api)

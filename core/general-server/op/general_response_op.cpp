@@ -42,7 +42,9 @@ using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 int GeneralResponseOp::inference() {
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
-  const GeneralBlob *input_blob;
+  const GeneralBlob *input_blob = nullptr;
+  int var_idx = 0;
+  int cap = 1;
   uint64_t log_id =
       get_depend_argument<GeneralBlob>(pre_node_names[0])->GetLogId();
 
@@ -61,8 +63,9 @@ int GeneralResponseOp::inference() {
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
+  //get the last InferOP's model_config as ResponseOp's model_config by default.
   std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config();
+      resource.get_general_model_config().back();
 
   VLOG(2) << "(logid=" << log_id
           << ") max body size : " << brpc::fLU64::FLAGS_max_body_size;
@@ -96,6 +99,7 @@ int GeneralResponseOp::inference() {
 
     for (auto &idx : fetch_index) {
       Tensor *tensor = fetch_inst->add_tensor_array();
+      //tensor->set_elem_type(1);
       if (model_config->_is_lod_fetch[idx]) {
         VLOG(2) << "(logid=" << log_id << ") out[" << idx << "] "
                 << model_config->_fetch_name[idx] << " is lod_tensor";
@@ -115,16 +119,15 @@ int GeneralResponseOp::inference() {
       }
     }
 
-    int var_idx = 0;
+    var_idx = 0;
     for (auto &idx : fetch_index) {
-      int cap = 1;
+      cap = 1;
       for (int j = 0; j < in->at(idx).shape.size(); ++j) {
         cap *= in->at(idx).shape[j];
       }
 
       FetchInst *fetch_p = output->mutable_insts(0);
       auto dtype = in->at(idx).dtype;
-
       if (dtype == paddle::PaddleDType::INT64) {
         VLOG(2) << "(logid=" << log_id << ") Prepare int64 var ["
                 << model_config->_fetch_name[idx] << "].";
@@ -139,12 +142,14 @@ int GeneralResponseOp::inference() {
       } else if (dtype == paddle::PaddleDType::FLOAT32) {
         VLOG(2) << "(logid=" << log_id << ") Prepare float var ["
                 << model_config->_fetch_name[idx] << "].";
+        
         float *data_ptr = static_cast<float *>(in->at(idx).data.data());
         google::protobuf::RepeatedField<float> tmp_data(data_ptr,
                                                         data_ptr + cap);
         fetch_p->mutable_tensor_array(var_idx)->mutable_float_data()->Swap(
             &tmp_data);
       } else if (dtype == paddle::PaddleDType::INT32) {
+
         VLOG(2) << "(logid=" << log_id << ")Prepare int32 var ["
                 << model_config->_fetch_name[idx] << "].";
         int32_t *data_ptr = static_cast<int32_t *>(in->at(idx).data.data());
@@ -193,7 +198,6 @@ int GeneralResponseOp::inference() {
     res->add_profile_time(start);
     res->add_profile_time(end);
   }
-
   return 0;
 }
 

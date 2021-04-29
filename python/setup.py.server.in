@@ -19,11 +19,15 @@ from __future__ import print_function
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving_server.version import serving_server_version
+from paddle_serving_server.version import version_tag, version_suffix
 import util
 
-max_version, mid_version, min_version = util.python_version()
+package_version = version_tag.replace('-', '')
+if version_suffix != "":
+    version_suffix = "post" + version_suffix
+    package_version = package_version + "." + version_suffix
 
+max_version, mid_version, min_version = util.python_version()
 # gen pipeline proto code
 util.gen_pipeline_code("paddle_serving_server")
 
@@ -55,8 +59,8 @@ package_dir={'paddle_serving_server':
 package_data={'paddle_serving_server': ['pipeline/gateway/libproxy_server.so'],}
 
 setup(
-    name='paddle-serving-server',
-    version=serving_server_version.replace('-', ''),
+    name='${SERVER_PACKAGE_NAME}',
+    version= package_version,
     description=
     ('Paddle Serving Package for saved model with PaddlePaddle'),
     url='https://github.com/PaddlePaddle/Serving',

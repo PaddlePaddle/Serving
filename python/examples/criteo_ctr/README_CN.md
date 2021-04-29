@@ -14,18 +14,18 @@ tar xf criteo_ctr_demo_model.tar.gz
 mv models/ctr_client_conf .
 mv models/ctr_serving_model .
 ```
-会在当前目录出现serving_server_model和serving_client_config文件夹。
+会在当前目录出现`ctr_serving_model` 和 `ctr_client_conf`文件夹。
 
 ### 启动RPC预测服务
 
 ```
 python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
-python -m paddle_serving_server_gpu.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
+python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
 ```
 
 ### 执行预测
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/
+python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
 ```
 预测完毕会输出预测过程的耗时。

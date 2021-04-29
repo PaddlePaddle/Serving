@@ -134,6 +134,7 @@ class Op(object):
         self.model_config = None
         self.workdir = None
         self.thread_num = self.concurrency
+        self.device_type = -1
         self.devices = ""
         self.mem_optim = False
         self.ir_optim = False
@@ -153,6 +154,7 @@ class Op(object):
                     self.client_type = local_service_conf.get("client_type")
                     self.workdir = local_service_conf.get("workdir")
                     self.thread_num = local_service_conf.get("thread_num")
+                    self.device_type = local_service_conf.get("device_type")
                     self.devices = local_service_conf.get("devices")
                     self.mem_optim = local_service_conf.get("mem_optim")
                     self.ir_optim = local_service_conf.get("ir_optim")
@@ -168,6 +170,7 @@ class Op(object):
                                 client_type=self.client_type,
                                 workdir=self.workdir,
                                 thread_num=self.thread_num,
+                                device_type=self.device_type,
                                 devices=self.devices,
                                 mem_optim=self.mem_optim,
                                 ir_optim=self.ir_optim)
@@ -188,8 +191,11 @@ class Op(object):
                                 client_type=self.client_type,
                                 workdir=self.workdir,
                                 thread_num=self.thread_num,
+                                device_type=self.device_type,
                                 devices=self.devices,
-                                fetch_names=self._fetch_names)
+                                fetch_names=self._fetch_names,
+                                mem_optim=self.mem_optim,
+                                ir_optim=self.ir_optim)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -394,7 +400,7 @@ class Op(object):
             log_id: global unique id for RTT, 0 default
 
         Return:
-            input_dict: data for process stage
+            output_data: data for process stage
             is_skip_process: skip process stage or not, False default
             prod_errcode: None default, otherwise, product errores occured.
                           It is handled in the same way as exception. 
@@ -447,20 +453,23 @@ class Op(object):
             call_result.pop("serving_status_code")
         return call_result
 
-    def postprocess(self, input_dict, fetch_dict, log_id=0):
+    def postprocess(self, input_data, fetch_data, log_id=0):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
-            input_dict: data returned in preprocess stage.
-            fetch_dict: data returned in process stage.
+            input_data: data returned in preprocess stage, dict(for single predict) or list(for batch predict)
+            fetch_data: data returned in process stage, dict(for single predict) or list(for batch predict)
             log_id: logid, 0 default
 
         Returns: 
-            fetch_dict: return fetch_dict default
+            fetch_dict: fetch result must be dict type.
             prod_errcode: None default, otherwise, product errores occured.
                           It is handled in the same way as exception.
             prod_errinfo: "" default
         """
+        fetch_dict = {}
+        if isinstance(fetch_data, dict):
+            fetch_dict = fetch_data
         return fetch_dict, None, ""
 
     def _parse_channeldata(self, channeldata_dict):
@@ -550,7 +559,8 @@ class Op(object):
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), False, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
-                      self.devices, self.mem_optim, self.ir_optim))
+                      self.device_type, self.devices, self.mem_optim,
+                      self.ir_optim))
             p.daemon = True
             p.start()
             process.append(p)
@@ -583,7 +593,8 @@ class Op(object):
                 args=(concurrency_idx, self._get_input_channel(),
                       self._get_output_channels(), True, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
-                      self.devices, self.mem_optim, self.ir_optim))
+                      self.device_type, self.devices, self.mem_optim,
+                      self.ir_optim))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -677,150 +688,211 @@ class Op(object):
         _LOGGER.debug("{} Running process".format(op_info_prefix))
         midped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
-        ### if (batch_num == 1 && skip == True) ,then skip the process stage.
         is_skip_process = False
         data_ids = list(preped_data_dict.keys())
+
+        # skip process stage
         if len(data_ids) == 1 and skip_process_dict.get(data_ids[0]) == True:
             is_skip_process = True
-            _LOGGER.info("(data_id={} log_id={}) skip process stage".format(
-                data_ids[0], logid_dict.get(data_ids[0])))
+        if self.with_serving is False or is_skip_process is True:
+            midped_data_dict = preped_data_dict
+            _LOGGER.warning("(data_id={} log_id={}) OP={} skip process stage. " \
+                "with_serving={}, is_skip_process={}".format(data_ids[0],
+                logid_dict.get(data_ids[0]), self.name, self.with_serving,
+                is_skip_process))
+            return midped_data_dict, err_channeldata_dict
 
-        if self.with_serving is True and is_skip_process is False:
-            # use typical_logid to mark batch data
-            typical_logid = data_ids[0]
-            if len(data_ids) != 1:
-                for data_id in data_ids:
-                    _LOGGER.info(
-                        "(data_id={} logid={}) {} During access to PaddleServingService,"
-                        " we selected logid={} (from batch: {}) as a "
-                        "representative for logging.".format(
-                            data_id,
-                            logid_dict.get(data_id), op_info_prefix,
-                            typical_logid, data_ids))
+        # use typical_logid to mark batch data
+        # data_ids is one self-increasing unique key. 
+        typical_logid = data_ids[0]
+        if len(data_ids) != 1:
+            for data_id in data_ids:
+                _LOGGER.info(
+                    "(data_id={} logid={}) Auto-batching is On Op={}!!" \
+                    "We selected logid={} (from batch: {}) as a " \
+                    "representative for logging.".format(
+                    data_id, logid_dict.get(data_id), self.name,
+                    typical_logid, data_ids))
 
-            # combine samples to batch
-            one_input = preped_data_dict[data_ids[0]]
-            feed_batch = []
-            input_offset = None
-            if isinstance(one_input, dict):
-                # sample input
+        one_input = preped_data_dict[data_ids[0]]
+        feed_batch = []
+        feed_dict = {}
+        cur_offset = 0
+        input_offset_dict = {}
+        batch_input = False
+
+        if isinstance(one_input, dict):
+            # For dict type, data structure is dict.
+            # Merge multiple dicts for data_ids into one dict.
+            # feed_batch is the input param of predict func.
+            # input_offset_dict is used for data restration[data_ids]
+            if len(data_ids) == 1:
                 feed_batch = [preped_data_dict[data_id] for data_id in data_ids]
-                input_offset = list(range(len(data_ids) + 1))
-            elif isinstance(one_input, list):
-                # batch input
-                input_offset = [0]
+            else:
                 for data_id in data_ids:
-                    batch_input = preped_data_dict[data_id]
-                    offset = input_offset[-1] + len(batch_input)
-                    feed_batch += batch_input
-                    input_offset.append(offset)
-            else:
-                _LOGGER.critical(
-                    "(data_id={} log_id={}){} Failed to process: expect input type is dict(sample"
-                    " input) or list(batch input), but get {}".format(data_ids[
-                        0], typical_logid, op_info_prefix, type(one_input)))
-                os._exit(-1)
+                    for key, val in preped_data_dict[data_id].items():
+                        has_val = feed_dict.get(key)
+                        if has_val is None:
+                            feed_dict[key] = val
+                            continue
+                        # merge 2 np.arrray
+                        if isinstance(val, np.ndarray):
+                            feed_dict[key] = np.append(
+                                feed_dict[key], val, axis=0)
+                feed_batch.append(feed_dict)
 
-            midped_batch = None
-            error_code = ChannelDataErrcode.OK.value
-            if self._timeout <= 0:
-                try:
+            for data_id in data_ids:
+                start = cur_offset
+                for key, val in preped_data_dict[data_id].items():
+                    if isinstance(val, (list, np.ndarray)):
+                        cur_offset += len(val)
+                    else:
+                        cur_offset += 1
+                    break
+                input_offset_dict[data_id] = [start, cur_offset]
+        elif isinstance(one_input, list):
+            # For list type, data structure of one_input is [dict, dict, ...]
+            # Data structure of feed_batch is [dict1_1, dict1_2, dict2_1, ...]   
+            # Data structure of input_offset_dict is { data_id : [start, end] }
+            batch_input = True
+            for data_id in data_ids:
+                feed_batch.extend(preped_data_dict[data_id])
+                data_size = len(preped_data_dict[data_id])
+                start = cur_offset
+                cur_offset = start + data_size
+                input_offset_dict[data_id] = [start, cur_offset]
+        else:
+            _LOGGER.critical(
+                "(data_id={} log_id={}){} Failed to process: expect input type is dict"
+                " or list(batch input), but get {}".format(data_ids[
+                    0], typical_logid, op_info_prefix, type(one_input)))
+            for data_id in data_ids:
+                error_code = ChannelDataErrcode.TYPE_ERROR.value
+                error_info = "expect input type is dict or list, but get {}".format(
+                    type(one_input))
+                err_channeldata_dict[data_id] = ChannelData(
+                    error_code=error_code,
+                    error_info=error_info,
+                    data_id=data_id,
+                    log_id=logid_dict.get(data_id))
+            return midped_data_dict, err_channeldata_dict
+
+        midped_batch = None
+        error_code = ChannelDataErrcode.OK.value
+        if self._timeout <= 0:
+            # No retry
+            try:
+                if batch_input is False:
                     midped_batch = self.process(feed_batch, typical_logid)
-                except Exception as e:
-                    error_code = ChannelDataErrcode.UNKNOW.value
-                    error_info = "(data_id={} log_id={}) {} Failed to process(batch: {}): {}".format(
-                        data_ids[0], typical_logid, op_info_prefix, data_ids, e)
-                    _LOGGER.error(error_info, exc_info=True)
-            else:
-                # retry N times configed in yaml files.
-                for i in range(self._retry):
-                    try:
-                        # time out for each process
+                else:
+                    midped_batch = []
+                    for idx in range(len(feed_batch)):
+                        predict_res = self.process([feed_batch[idx]],
+                                                   typical_logid)
+                        midped_batch.append(predict_res)
+            except Exception as e:
+                error_code = ChannelDataErrcode.UNKNOW.value
+                error_info = "(data_id={} log_id={}) {} Failed to process(batch: {}): {}".format(
+                    data_ids[0], typical_logid, op_info_prefix, data_ids, e)
+                _LOGGER.error(error_info, exc_info=True)
+        else:
+            # retry N times configed in yaml files.
+            for i in range(self._retry):
+                try:
+                    # time out for each process
+                    if batch_input is False:
                         midped_batch = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
-                    except func_timeout.FunctionTimedOut as e:
-                        if i + 1 >= self._retry:
-                            error_code = ChannelDataErrcode.TIMEOUT.value
-                            error_info = "(log_id={}) {} Failed to process(batch: {}): " \
-                                    "exceeded retry count.".format(
-                                            typical_logid, op_info_prefix, data_ids)
-                            _LOGGER.error(error_info)
-                        else:
-                            _LOGGER.warning(
-                                "(log_id={}) {} Failed to process(batch: {}): timeout,"
-                                " and retrying({}/{})...".format(
-                                    typical_logid, op_info_prefix, data_ids, i +
-                                    1, self._retry))
-                    except Exception as e:
-                        error_code = ChannelDataErrcode.UNKNOW.value
-                        error_info = "(log_id={}) {} Failed to process(batch: {}): {}".format(
-                            typical_logid, op_info_prefix, data_ids, e)
-                        _LOGGER.error(error_info, exc_info=True)
-                        break
                     else:
-                        break
-            if error_code != ChannelDataErrcode.OK.value:
-                for data_id in data_ids:
-                    err_channeldata_dict[data_id] = ChannelData(
-                        error_code=error_code,
-                        error_info=error_info,
-                        data_id=data_id,
-                        log_id=logid_dict.get(data_id))
-            elif midped_batch is None:
-                # op client return None
-                error_info = "(log_id={}) {} Failed to predict, please check if " \
-                        "PaddleServingService is working properly.".format(
-                                typical_logid, op_info_prefix)
-                _LOGGER.error(error_info)
-                for data_id in data_ids:
-                    err_channeldata_dict[data_id] = ChannelData(
-                        error_code=ChannelDataErrcode.CLIENT_ERROR.value,
-                        error_info=error_info,
-                        data_id=data_id,
-                        log_id=logid_dict.get(data_id))
-            else:
-                # transform np format to dict format
-                var_names = midped_batch.keys()
-                lod_var_names = set()
-                lod_offset_names = set()
-                for name in var_names:
+                        midped_batch = []
+                        for idx in range(len(feed_batch)):
+                            predict_res = func_timeout.func_timeout(
+                                self._timeout,
+                                self.process,
+                                args=([feed_batch[idx]], typical_logid))
+                            midped_batch[idx].append(predict_res)
+
+                except func_timeout.FunctionTimedOut as e:
+                    if i + 1 >= self._retry:
+                        error_code = ChannelDataErrcode.TIMEOUT.value
+                        error_info = "(log_id={}) {} Failed to process(batch: {}): " \
+                            "exceeded retry count.".format(typical_logid, op_info_prefix, data_ids)
+                        _LOGGER.error(error_info)
+                    else:
+                        _LOGGER.warning(
+                            "(log_id={}) {} Failed to process(batch: {}): timeout,"
+                            " and retrying({}/{})...".format(
+                                typical_logid, op_info_prefix, data_ids, i + 1,
+                                self._retry))
+                except Exception as e:
+                    error_code = ChannelDataErrcode.UNKNOW.value
+                    error_info = "(log_id={}) {} Failed to process(batch: {}): {}".format(
+                        typical_logid, op_info_prefix, data_ids, e)
+                    _LOGGER.error(error_info, exc_info=True)
+                    break
+                else:
+                    break
+
+        # 2 kinds of errors
+        if error_code != ChannelDataErrcode.OK.value or midped_batch is None:
+            error_info = "(log_id={}) {} failed to predict.".format(
+                typical_logid, self.name)
+            _LOGGER.error(error_info)
+            for data_id in data_ids:
+                err_channeldata_dict[data_id] = ChannelData(
+                    error_code=ChannelDataErrcode.CLIENT_ERROR.value,
+                    error_info=error_info,
+                    data_id=data_id,
+                    log_id=logid_dict.get(data_id))
+            return midped_data_dict, err_channeldata_dict
+
+        # Split batch infer result to each data_ids
+        if batch_input is False:
+            var_names = midped_batch.keys()
+            lod_var_names = set()
+            lod_offset_names = set()
+            # midped_batch is dict type for single input 
+            for name in var_names:
+                lod_offset_name = "{}.lod".format(name)
+                if lod_offset_name in var_names:
+                    _LOGGER.debug("(log_id={}) {} {} is LodTensor".format(
+                        typical_logid, op_info_prefix, name))
+                    lod_var_names.add(name)
+                    lod_offset_names.add(lod_offset_name)
+
+            for idx, data_id in enumerate(data_ids):
+                midped_data_dict[data_id] = {}
+
+            for name, value in midped_batch.items():
+                if name in lod_offset_names:
+                    continue
+                if name in lod_var_names:
+                    # lodtensor
                     lod_offset_name = "{}.lod".format(name)
-                    if lod_offset_name in var_names:
-                        _LOGGER.debug("(log_id={}) {} {} is LodTensor".format(
-                            typical_logid, op_info_prefix, name))
-                        lod_var_names.add(name)
-                        lod_offset_names.add(lod_offset_name)
-
-                for idx, data_id in enumerate(data_ids):
-                    midped_data_dict[data_id] = {}
-
-                for name, value in midped_batch.items():
-                    if name in lod_offset_names:
-                        continue
-                    if name in lod_var_names:
-                        # lodtensor
-                        lod_offset_name = "{}.lod".format(name)
-                        lod_offset = midped_batch[lod_offset_name]
-                        for idx, data_id in enumerate(data_ids):
-                            data_offset_left = input_offset[idx]
-                            data_offset_right = input_offset[idx + 1]
-                            lod_offset_left = lod_offset[data_offset_left]
-                            lod_offset_right = lod_offset[data_offset_right]
-                            midped_data_dict[data_id][name] = value[
-                                lod_offset_left:lod_offset_right]
-                            midped_data_dict[data_id][lod_offset_name] = \
-                                    lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
-                    else:
-                        # normal tensor
-                        for idx, data_id in enumerate(data_ids):
-                            left = input_offset[idx]
-                            right = input_offset[idx + 1]
-                            midped_data_dict[data_id][name] = value[left:right]
+                    lod_offset = midped_batch[lod_offset_name]
+                    for idx, data_id in enumerate(data_ids):
+                        data_offset_left = input_offset_dict[data_id][0]
+                        data_offset_right = input_offset_dict[data_id][1]
+                        lod_offset_left = lod_offset[data_offset_left]
+                        lod_offset_right = lod_offset[data_offset_right]
+                        midped_data_dict[data_id][name] = value[
+                            lod_offset_left:lod_offset_right]
+                        midped_data_dict[data_id][lod_offset_name] = \
+                            lod_offset[data_offset_left:data_offset_right + 1] - lod_offset[data_offset_left]
+                else:
+                    # normal tensor
+                    for idx, data_id in enumerate(data_ids):
+                        start = input_offset_dict[data_id][0]
+                        end = input_offset_dict[data_id][1]
+                        midped_data_dict[data_id][name] = value[start:end]
         else:
-            midped_data_dict = preped_data_dict
-        _LOGGER.debug("{} Succ process".format(op_info_prefix))
+            # midped_batch is list type for batch input
+            for idx, data_id in enumerate(data_ids):
+                start = input_offset_dict[data_id][0]
+                end = input_offset_dict[data_id][1]
+                midped_data_dict[data_id] = midped_batch[start:end]
         return midped_data_dict, err_channeldata_dict
 
     def _run_postprocess(self, parsed_data_dict, midped_data_dict,
@@ -991,7 +1063,7 @@ class Op(object):
 
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
-             devices, mem_optim, ir_optim):
+             device_type, devices, mem_optim, ir_optim):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1009,6 +1081,7 @@ class Op(object):
             model_config: model config path
             workdir: work directory
             thread_num: number of threads, concurrent quantity
+            device_type: support multiple devices
             devices: gpu id list[gpu], "" default[cpu]
             mem_optim: use memory/graphics memory optimization, True default.
             ir_optim: use calculation chart optimization, False default. 
@@ -1017,7 +1090,6 @@ class Op(object):
             None
         """
         op_info_prefix = "[{}|{}]".format(self.name, concurrency_idx)
-        tid = threading.current_thread().ident
 
         # init ops
         profiler = None
@@ -1028,6 +1100,7 @@ class Op(object):
                     client_type="local_predictor",
                     workdir=workdir,
                     thread_num=thread_num,
+                    device_type=device_type,
                     devices=devices,
                     mem_optim=mem_optim,
                     ir_optim=ir_optim)

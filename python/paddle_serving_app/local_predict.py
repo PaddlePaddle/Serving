@@ -19,16 +19,19 @@ import os
 import google.protobuf.text_format
 import numpy as np
 import argparse
-import paddle.fluid as fluid
 from .proto import general_model_config_pb2 as m_config
-from paddle.fluid.core import PaddleTensor
-from paddle.fluid.core import AnalysisConfig
-from paddle.fluid.core import create_paddle_predictor
+import paddle.inference as paddle_infer
 import logging
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("fluid")
+logger = logging.getLogger("LocalPredictor")
 logger.setLevel(logging.INFO)
+
+precision_map = {
+    'int8': paddle_infer.PrecisionType.Int8,
+    'fp32': paddle_infer.PrecisionType.Float32,
+    'fp16': paddle_infer.PrecisionType.Half,
+}
 
 
 class LocalPredictor(object):
@@ -57,9 +60,13 @@ class LocalPredictor(object):
                           mem_optim=True,
                           ir_optim=False,
                           use_trt=False,
+                          use_lite=False,
+                          use_xpu=False,
+                          precision="fp32",
+                          use_calib=False,
                           use_feed_fetch_ops=False):
         """
-        Load model config and set the engine config for the paddle predictor
+        Load model configs and create the paddle predictor by Paddle Inference API.
    
         Args:
             model_path: model config path.
@@ -70,6 +77,10 @@ class LocalPredictor(object):
             mem_optim: memory optimization, True default.
             ir_optim: open calculation chart optimization, False default.
             use_trt: use nvidia TensorRT optimization, False default
+            use_lite: use Paddle-Lite Engint, False default
+            use_xpu: run predict on Baidu Kunlun, False default
+            precision: precision mode, "fp32" default
+            use_calib: use TensorRT calibration, False default
             use_feed_fetch_ops: use feed/fetch ops, False default.
         """
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -77,12 +88,21 @@ class LocalPredictor(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        config = AnalysisConfig(model_path)
-        logger.info("load_model_config params: model_path:{}, use_gpu:{},\
+        if os.path.exists(os.path.join(model_path, "__params__")):
+            config = paddle_infer.Config(
+                os.path.join(model_path, "__model__"),
+                os.path.join(model_path, "__params__"))
+        else:
+            config = paddle_infer.Config(model_path)
+
+        logger.info(
+            "LocalPredictor load_model_config params: model_path:{}, use_gpu:{},\
             gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{},\
-            use_trt:{}, use_feed_fetch_ops:{}".format(
-            model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
-            ir_optim, use_trt, use_feed_fetch_ops))
+            use_trt:{}, use_lite:{}, use_xpu: {}, precision: {}, use_calib: {},\
+            use_feed_fetch_ops:{}"
+            .format(model_path, use_gpu, gpu_id, use_profile, thread_num,
+                    mem_optim, ir_optim, use_trt, use_lite, use_xpu, precision,
+                    use_calib, use_feed_fetch_ops))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -98,6 +118,9 @@ class LocalPredictor(object):
             self.fetch_names_to_idx_[var.alias_name] = i
             self.fetch_names_to_type_[var.alias_name] = var.fetch_type
 
+        precision_type = paddle_infer.PrecisionType.Float32
+        if precision.lower() in precision_map:
+            precision_type = precision_map[precision.lower()]
         if use_profile:
             config.enable_profile()
         if mem_optim:
@@ -113,17 +136,34 @@ class LocalPredictor(object):
             config.enable_use_gpu(100, gpu_id)
             if use_trt:
                 config.enable_tensorrt_engine(
+                    precision_mode=precision_type,
                     workspace_size=1 << 20,
                     max_batch_size=32,
                     min_subgraph_size=3,
                     use_static=False,
                     use_calib_mode=False)
 
-        self.predictor = create_paddle_predictor(config)
+        if use_lite:
+            config.enable_lite_engine(
+                precision_mode=precision_type,
+                zero_copy=True,
+                passes_filter=[],
+                ops_filter=[])
+
+        if use_xpu:
+            # 2MB l3 cache
+            config.enable_xpu(8 * 1024 * 1024)
+
+        if not use_gpu and not use_lite:
+            if precision_type == paddle_infer.PrecisionType.Int8:
+                config.enable_quantizer()
+            if precision.lower() == "bf16":
+                config.enable_mkldnn_bfloat16()
+        self.predictor = paddle_infer.create_predictor(config)
 
     def predict(self, feed=None, fetch=None, batch=False, log_id=0):
         """
-        Predict locally
+        Run model inference by Paddle Inference API.
 
         Args:
             feed: feed var
@@ -136,14 +176,16 @@ class LocalPredictor(object):
             fetch_map: dict 
         """
         if feed is None or fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction")
+            raise ValueError("You should specify feed and fetch for prediction.\
+                log_id:{}".format(log_id))
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, list):
             fetch_list = fetch
         else:
-            raise ValueError("Fetch only accepts string and list of string")
+            raise ValueError("Fetch only accepts string and list of string.\
+                log_id:{}".format(log_id))
 
         feed_batch = []
         if isinstance(feed, dict):
@@ -151,27 +193,21 @@ class LocalPredictor(object):
         elif isinstance(feed, list):
             feed_batch = feed
         else:
-            raise ValueError("Feed only accepts dict and list of dict")
+            raise ValueError("Feed only accepts dict and list of dict.\
+                log_id:{}".format(log_id))
 
-        int_slot_batch = []
-        float_slot_batch = []
-        int_feed_names = []
-        float_feed_names = []
-        int_shape = []
-        float_shape = []
         fetch_names = []
-        counter = 0
-        batch_size = len(feed_batch)
-
+        # Filter invalid fetch names
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
         if len(fetch_names) == 0:
             raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.")
-            return {}
+                "Fetch names should not be empty or out of saved fetch list.\
+                    log_id:{}".format(log_id))
 
+        # Assemble the input data of paddle predictor 
         input_names = self.predictor.get_input_names()
         for name in input_names:
             if isinstance(feed[name], list):
@@ -185,27 +221,31 @@ class LocalPredictor(object):
                 feed[name] = feed[name].astype("int32")
             else:
                 raise ValueError("local predictor receives wrong data type")
-            input_tensor = self.predictor.get_input_tensor(name)
+            input_tensor_handle = self.predictor.get_input_handle(name)
             if "{}.lod".format(name) in feed:
-                input_tensor.set_lod([feed["{}.lod".format(name)]])
+                input_tensor_handle.set_lod([feed["{}.lod".format(name)]])
             if batch == False:
-                input_tensor.copy_from_cpu(feed[name][np.newaxis, :])
+                input_tensor_handle.copy_from_cpu(feed[name][np.newaxis, :])
             else:
-                input_tensor.copy_from_cpu(feed[name])
-        output_tensors = []
+                input_tensor_handle.copy_from_cpu(feed[name])
+        output_tensor_handles = []
         output_names = self.predictor.get_output_names()
         for output_name in output_names:
-            output_tensor = self.predictor.get_output_tensor(output_name)
-            output_tensors.append(output_tensor)
+            output_tensor_handle = self.predictor.get_output_handle(output_name)
+            output_tensor_handles.append(output_tensor_handle)
+
+        # Run inference 
+        self.predictor.run()
+
+        # Assemble output data of predict results
         outputs = []
-        self.predictor.zero_copy_run()
-        for output_tensor in output_tensors:
-            output = output_tensor.copy_to_cpu()
+        for output_tensor_handle in output_tensor_handles:
+            output = output_tensor_handle.copy_to_cpu()
             outputs.append(output)
         fetch_map = {}
         for i, name in enumerate(fetch):
             fetch_map[name] = outputs[i]
-            if len(output_tensors[i].lod()) > 0:
-                fetch_map[name + ".lod"] = np.array(output_tensors[i].lod()[
-                    0]).astype('int32')
+            if len(output_tensor_handles[i].lod()) > 0:
+                fetch_map[name + ".lod"] = np.array(output_tensor_handles[i]
+                                                    .lod()[0]).astype('int32')
         return fetch_map

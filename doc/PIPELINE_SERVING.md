@@ -15,7 +15,6 @@ The Server side is built based on <b>RPC Service</b> and <b>graph execution engi
 <img src='pipeline_serving-image1.png' height = "250" align="middle"/>
 </center>
 
-
 ### 1. RPC Service
 
 In order to meet the needs of different users, the RPC service starts one Web server and one RPC server at the same time, and can process 2 types of requests, RESTful API and gRPC.The gPRC gateway receives RESTful API requests and forwards requests to the gRPC server through the reverse proxy server; gRPC requests are received by the gRPC server, so the two types of requests are processed by the gRPC Service in a unified manner to ensure that the processing logic is consistent.
@@ -425,6 +424,8 @@ service PipelineService {
 ***
 
 ## ★ Classic examples
+
+All examples of pipelines are in [examples/pipeline/](../python/examples/pipeline) directory.
 
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 

@@ -21,6 +21,7 @@ import sys
 import time
 import json
 import requests
+import numpy as np
 from paddle_serving_client import Client
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args, show_latency
@@ -56,7 +57,11 @@ def single_func(idx, resource):
                 feed_batch = []
                 b_start = time.time()
                 for bi in range(args.batch_size):
-                    feed_batch.append(reader.process(dataset[bi]))
+                    feed_dict = reader.process(dataset[bi])
+                    for key in feed_dict.keys():
+                        feed_dict[key] = np.array(feed_dict[key]).reshape(
+                            (1, 128, 1))
+                    feed_batch.append(feed_dict)
                 b_end = time.time()
 
                 if profile_flags:
@@ -65,7 +70,8 @@ def single_func(idx, resource):
                             os.getpid(),
                             int(round(b_start * 1000000)),
                             int(round(b_end * 1000000))))
-                result = client.predict(feed=feed_batch, fetch=fetch)
+                result = client.predict(
+                    feed=feed_batch, fetch=fetch, batch=True)
 
                 l_end = time.time()
                 if latency_flags:
@@ -116,9 +122,7 @@ def single_func(idx, resource):
 
 if __name__ == '__main__':
     multi_thread_runner = MultiThreadRunner()
-    endpoint_list = [
-        "127.0.0.1:9292", "127.0.0.1:9293", "127.0.0.1:9294", "127.0.0.1:9295"
-    ]
+    endpoint_list = ["127.0.0.1:9292", "127.0.0.1:9293"]
     turns = 100
     start = time.time()
     result = multi_thread_runner.run(

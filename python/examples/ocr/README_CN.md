@@ -25,7 +25,7 @@ tar xf test_imgs.tar
 python -m paddle_serving_server.serve --model ocr_det_model --port 9293
 python ocr_web_server.py cpu
 #for gpu user
-python -m paddle_serving_server_gpu.serve --model ocr_det_model --port 9293 --gpu_id 0
+python -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_id 0
 python ocr_web_server.py gpu
 ```
 
@@ -97,4 +97,30 @@ python rec_debugger_server.py gpu #for gpu user
 
 ```
 python rec_web_client.py
+```
+## C++ OCR Service服务
+
+**注意：** 若您需要使用Paddle Serving C++框架串联det模型和rec模型，并进行前后处理，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../doc/COMPILE.md)
+
+### 启动服务
+根据CPU/GPU设备选择一种启动方式
+
+通过--model后，指定多个模型文件的文件夹路径来启动多模型串联的预测服务。
+```
+#for cpu user
+python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
+#for gpu user
+python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0
+```
+
+### 启动客户端
+由于需要在C++Server部分进行前后处理，传入C++Server的仅仅是图片的base64编码的字符串，故第一个模型的Client配置需要修改
+
+即`ocr_det_client/serving_client_conf.prototxt`中`feed_var`字段
+
+对于本示例而言，`feed_type`应修改为3(数据类型为string),`shape`为1.
+
+通过在客户端启动后加入多个client模型的client配置文件夹路径，启动client进行预测。
+```
+python ocr_cpp_client.py ocr_det_client ocr_rec_client
 ```

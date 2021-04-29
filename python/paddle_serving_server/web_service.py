@@ -15,14 +15,27 @@
 # pylint: disable=doc-string-missing
 
 from flask import Flask, request, abort
-from multiprocessing import Pool, Process
-from paddle_serving_server import OpMaker, OpSeqMaker, Server
-from paddle_serving_client import Client
 from contextlib import closing
+from multiprocessing import Pool, Process, Queue
+from paddle_serving_client import Client
+from paddle_serving_server import OpMaker, OpSeqMaker, Server
+from paddle_serving_server.serve import start_multi_card
 import socket
-
+import sys
+import numpy as np
+import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
+
+
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
 
 
 class WebService(object):
@@ -30,6 +43,9 @@ class WebService(object):
         self.name = name
         # pipeline
         self._server = pipeline.PipelineServer(self.name)
+
+        self.gpus = []  # deprecated
+        self.rpc_service_list = []  # deprecated
 
     def get_pipeline_response(self, read_op):
         return None
@@ -49,76 +65,173 @@ class WebService(object):
     def run_service(self):
         self._server.run_server()
 
-    def load_model_config(self, model_config):
-        print("This API will be deprecated later. Please do not use it")
-        self.model_config = model_config
-        import os
+    def load_model_config(self,
+                          server_config_dir_paths,
+                          client_config_path=None):
+        if isinstance(server_config_dir_paths, str):
+            server_config_dir_paths = [server_config_dir_paths]
+        elif isinstance(server_config_dir_paths, list):
+            pass
+
+        for single_model_config in server_config_dir_paths:
+            if os.path.isdir(single_model_config):
+                pass
+            elif os.path.isfile(single_model_config):
+                raise ValueError(
+                    "The input of --model should be a dir not file.")
+        self.server_config_dir_paths = server_config_dir_paths
         from .proto import general_model_config_pb2 as m_config
         import google.protobuf.text_format
-        if os.path.isdir(model_config):
-            client_config = "{}/serving_server_conf.prototxt".format(
-                model_config)
-        elif os.path.isfile(model_config):
-            client_config = model_config
+        file_path_list = []
+        for single_model_config in self.server_config_dir_paths:
+            file_path_list.append("{}/serving_server_conf.prototxt".format(
+                single_model_config))
+
         model_conf = m_config.GeneralModelConfig()
-        f = open(client_config, 'r')
+        f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        self.feed_names = [var.alias_name for var in model_conf.feed_var]
-        self.fetch_names = [var.alias_name for var in model_conf.fetch_var]
+        self.feed_vars = {var.name: var for var in model_conf.feed_var}
 
-    def _launch_rpc_service(self):
+        if len(file_path_list) > 1:
+            model_conf = m_config.GeneralModelConfig()
+            f = open(file_path_list[-1], 'r')
+            model_conf = google.protobuf.text_format.Merge(
+                str(f.read()), model_conf)
+
+        self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
+        if client_config_path == None:
+            self.client_config_path = file_path_list
+
+    def set_gpus(self, gpus):
+        print("This API will be deprecated later. Please do not use it")
+        self.gpus = [int(x) for x in gpus.split(",")]
+
+    def default_rpc_service(self,
+                            workdir="conf",
+                            port=9292,
+                            gpuid=0,
+                            thread_num=2,
+                            mem_optim=True,
+                            use_lite=False,
+                            use_xpu=False,
+                            ir_optim=False,
+                            precision="fp32",
+                            use_calib=False):
+        device = "gpu"
+        if gpuid == -1:
+            if use_lite:
+                device = "arm"
+            else:
+                device = "cpu"
         op_maker = OpMaker()
-        read_op = op_maker.create('general_reader')
-        general_infer_op = op_maker.create('general_infer')
-        general_response_op = op_maker.create('general_response')
         op_seq_maker = OpSeqMaker()
+
+        read_op = op_maker.create('general_reader')
         op_seq_maker.add_op(read_op)
-        op_seq_maker.add_op(general_infer_op)
+
+        for idx, single_model in enumerate(self.server_config_dir_paths):
+            infer_op_name = "general_infer"
+            if len(self.server_config_dir_paths) == 2 and idx == 0:
+                infer_op_name = "general_detection"
+            else:
+                infer_op_name = "general_infer"
+            general_infer_op = op_maker.create(infer_op_name)
+            op_seq_maker.add_op(general_infer_op)
+
+        general_response_op = op_maker.create('general_response')
         op_seq_maker.add_op(general_response_op)
+
         server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
-        server.set_num_threads(16)
-        server.set_memory_optimize(self.mem_optim)
-        server.set_ir_optimize(self.ir_optim)
-        server.load_model_config(self.model_config)
-        server.prepare_server(
-            workdir=self.workdir, port=self.port_list[0], device=self.device)
-        server.run_server()
+        server.set_num_threads(thread_num)
+        server.set_memory_optimize(mem_optim)
+        server.set_ir_optimize(ir_optim)
+        server.set_device(device)
+        server.set_precision(precision)
+        server.set_use_calib(use_calib)
 
-    def port_is_available(self, port):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
-        if result != 0:
-            return True
-        else:
-            return False
+        if use_lite:
+            server.set_lite()
+        if use_xpu:
+            server.set_xpu()
+
+        server.load_model_config(self.server_config_dir_paths
+                                 )  #brpc Server support server_config_dir_paths
+        if gpuid >= 0:
+            server.set_gpuid(gpuid)
+        server.prepare_server(workdir=workdir, port=port, device=device)
+        return server
+
+    def _launch_rpc_service(self, service_idx):
+        self.rpc_service_list[service_idx].run_server()
 
     def prepare_server(self,
                        workdir="",
                        port=9393,
-                       device="cpu",
-                       mem_optim=True,
-                       ir_optim=False):
+                       device="gpu",
+                       precision="fp32",
+                       use_calib=False,
+                       use_lite=False,
+                       use_xpu=False,
+                       ir_optim=False,
+                       gpuid=0,
+                       thread_num=2,
+                       mem_optim=True):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
+        self.thread_num = thread_num
         self.device = device
-        default_port = 12000
+        self.gpuid = gpuid
         self.port_list = []
-        self.mem_optim = mem_optim
-        self.ir_optim = ir_optim
+        default_port = 12000
         for i in range(1000):
-            if self.port_is_available(default_port + i):
+            if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
+            if len(self.port_list) > len(self.gpus):
                 break
 
+        if len(self.gpus) == 0:
+            # init cpu service
+            self.rpc_service_list.append(
+                self.default_rpc_service(
+                    self.workdir,
+                    self.port_list[0],
+                    -1,
+                    thread_num=self.thread_num,
+                    mem_optim=mem_optim,
+                    use_lite=use_lite,
+                    use_xpu=use_xpu,
+                    ir_optim=ir_optim,
+                    precision=precision,
+                    use_calib=use_calib))
+        else:
+            for i, gpuid in enumerate(self.gpus):
+                self.rpc_service_list.append(
+                    self.default_rpc_service(
+                        "{}_{}".format(self.workdir, i),
+                        self.port_list[i],
+                        gpuid,
+                        thread_num=self.thread_num,
+                        mem_optim=mem_optim,
+                        use_lite=use_lite,
+                        use_xpu=use_xpu,
+                        ir_optim=ir_optim,
+                        precision=precision,
+                        use_calib=use_calib))
+
     def _launch_web_service(self):
+        gpu_num = len(self.gpus)
         self.client = Client()
-        self.client.load_client_config("{}/serving_server_conf.prototxt".format(
-            self.model_config))
-        self.client.connect(["0.0.0.0:{}".format(self.port_list[0])])
+        self.client.load_client_config(self.client_config_path)
+        endpoints = ""
+        if gpu_num > 0:
+            for i in range(gpu_num):
+                endpoints += "127.0.0.1:{},".format(self.port_list[i])
+        else:
+            endpoints = "127.0.0.1:{}".format(self.port_list[0])
+        self.client.connect([endpoints])
 
     def get_prediction(self, request):
         if not request.json:
@@ -148,8 +261,12 @@ class WebService(object):
         print("web service address:")
         print("http://{}:{}/{}/prediction".format(localIP, self.port,
                                                   self.name))
-        p_rpc = Process(target=self._launch_rpc_service)
-        p_rpc.start()
+        server_pros = []
+        for i, service in enumerate(self.rpc_service_list):
+            p = Process(target=self._launch_rpc_service, args=(i, ))
+            server_pros.append(p)
+        for p in server_pros:
+            p.start()
 
         app_instance = Flask(__name__)
 
@@ -165,7 +282,9 @@ class WebService(object):
 
         self.app_instance = app_instance
 
-    def run_debugger_service(self):
+    # TODO: maybe change another API name: maybe run_local_predictor?
+    def run_debugger_service(self, gpu=False):
+        print("This API will be deprecated later. Please do not use it")
         import socket
         localIP = socket.gethostbyname(socket.gethostname())
         print("web service address:")
@@ -175,7 +294,7 @@ class WebService(object):
 
         @app_instance.before_first_request
         def init():
-            self._launch_local_predictor()
+            self._launch_local_predictor(gpu)
 
         service_name = "/" + self.name + "/prediction"
 
@@ -185,11 +304,25 @@ class WebService(object):
 
         self.app_instance = app_instance
 
-    def _launch_local_predictor(self):
+    def _launch_local_predictor(self, gpu):
+        # actually, LocalPredictor is like a server, but it is WebService Request initiator
+        # for WebService it is a Client.
+        # local_predictor only support single-Model DirPath - Type:str
+        # so the input must be self.server_config_dir_paths[0]
         from paddle_serving_app.local_predict import LocalPredictor
         self.client = LocalPredictor()
-        self.client.load_model_config(
-            "{}".format(self.model_config), use_gpu=False)
+        if gpu:
+            # if user forget to call function `set_gpus` to set self.gpus.
+            # default self.gpus = [0].
+            if len(self.gpus) == 0:
+                self.gpus.append(0)
+            self.client.load_model_config(
+                self.server_config_dir_paths[0],
+                use_gpu=True,
+                gpu_id=self.gpus[0])
+        else:
+            self.client.load_model_config(
+                self.server_config_dir_paths[0], use_gpu=False)
 
     def run_web_service(self):
         print("This API will be deprecated later. Please do not use it")
@@ -201,6 +334,17 @@ class WebService(object):
     def preprocess(self, feed=[], fetch=[]):
         print("This API will be deprecated later. Please do not use it")
         is_batch = True
+        feed_dict = {}
+        for var_name in self.feed_vars.keys():
+            feed_dict[var_name] = []
+        for feed_ins in feed:
+            for key in feed_ins:
+                feed_dict[key].append(
+                    np.array(feed_ins[key]).reshape(
+                        list(self.feed_vars[key].shape))[np.newaxis, :])
+        feed = {}
+        for key in feed_dict:
+            feed[key] = np.concatenate(feed_dict[key], axis=0)
         return feed, fetch, is_batch
 
     def postprocess(self, feed=[], fetch=[], fetch_map=None):

@@ -1,5 +1,5 @@
-export CUDA_VISIBLE_DEVICES=0,1,2,3
-python -m paddle_serving_server_gpu.serve --model bert_seq20_model/ --port 9295 --thread 4 --gpu_ids 0,1,2,3 2> elog > stdlog &
+export CUDA_VISIBLE_DEVICES=0,1
+python -m paddle_serving_server.serve --model bert_seq20_model/ --port 9295 --thread 4 --gpu_ids 0,1 2> elog > stdlog &
 export FLAGS_profile_client=1
 export FLAGS_profile_server=1
 sleep 5

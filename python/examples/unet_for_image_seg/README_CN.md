@@ -12,7 +12,7 @@ tar -xzvf unet.tar.gz
 ### 启动服务端
 
 ```
-python -m paddle_serving_server_gpu.serve --model unet_model --gpu_ids 0 --port 9494
+python -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 9494
 ```
 
 ### 客户端预测

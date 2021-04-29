@@ -16,24 +16,38 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import platform
 import os
 
 from setuptools import setup, Distribution, Extension
 from setuptools import find_packages
 from setuptools import setup
-from paddle_serving_app.version import serving_app_version
+from paddle_serving_app.version import version_tag
 from pkg_resources import DistributionNotFound, get_distribution
-import util
         
-max_version, mid_version, min_version = util.python_version()
+def python_version():
+    return [int(v) for v in platform.python_version().split(".")]
+
+def find_package(pkgname):
+    try:
+        get_distribution(pkgname)
+        return True
+    except DistributionNotFound:
+        return False
+
+max_version, mid_version, min_version = python_version()
 
 if '${PACK}' == 'ON':
     copy_lib()
 
-
 REQUIRED_PACKAGES = [
-    'six >= 1.10.0', 'sentencepiece<=0.1.92', 'opencv-python<=4.2.0.32', 'pillow',
-    'pyclipper'
+    'six >= 1.10.0',
+    'pillow',
+    'pyclipper', 'shapely',
+    'sentencepiece<=0.1.92; platform_machine != "aarch64"',
+    'sentencepiece; platform_machine == "aarch64"',
+    'opencv-python<=4.2.0.32; platform_machine != "aarch64"',
+    'opencv-python; platform_machine == "aarch64"',
 ]
 
 packages=['paddle_serving_app',
@@ -43,7 +57,11 @@ packages=['paddle_serving_app',
 	  'paddle_serving_app.models',
 	  'paddle_serving_app.reader.pddet']
 
-package_data={}
+if os.path.exists('../core/preprocess/hwvideoframe/libgpupreprocess.so'):
+    package_data={'paddle_serving_app': ['../core/preprocess/hwvideoframe/libgpupreprocess.so'],}
+else:
+    package_data={}
+
 package_dir={'paddle_serving_app':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app',
 	     'paddle_serving_app.proto':
@@ -55,11 +73,12 @@ package_dir={'paddle_serving_app':
 	     'paddle_serving_app.models':
 	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/models',
 	     'paddle_serving_app.reader.pddet':
-	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader/pddet',}
+	     '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_app/reader/pddet',
+             }
 
 setup(
     name='paddle-serving-app',
-    version=serving_app_version.replace('-', ''),
+    version=version_tag.replace('-', ''),
     description=
     ('Paddle Serving Package for saved model with PaddlePaddle'),
     url='https://github.com/PaddlePaddle/Serving',

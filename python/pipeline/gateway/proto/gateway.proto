@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 package baidu.paddle_serving.pipeline_serving;
-option go_package = ".;pipeline_serving";
+option go_package = "./;pipeline_serving";
 
 import "google/api/annotations.proto";
 

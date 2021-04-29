@@ -6,12 +6,11 @@
 
 |            module            |              version              |
 | :--------------------------: | :-------------------------------: |
-|              OS              |             CentOS 7              |
-|             gcc              |          4.8.5 and later          |
-|           gcc-c++            |          4.8.5 and later          |
-|             git              |          3.82 and later           |
+|              OS              |     Ubuntu16 and 18/CentOS 7      |
+|             gcc              |          5.4.0(Cuda 10.1) and 8.2.0         |
+|           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
 |            cmake             |          3.2.0 and later          |
-|            Python            |  2.7.2 and later / 3.6 and later  |
+|            Python            |          3.6.0 and later          |
 |              Go              |          1.9.2 and later          |
 |             git              |         2.17.1 and later          |
 |         glibc-static         |               2.17                |
@@ -19,18 +18,12 @@
 |         bzip2-devel          |          1.0.6 and later          |
 | python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
 |         sqlite-devel         |         3.7.17 and later          |
-|           patchelf           |           0.9 and later           |
+|           patchelf           |                0.9                |
 |           libXext            |               1.3.3               |
 |            libSM             |               1.2.2               |
 |          libXrender          |              0.9.10               |
 
 It is recommended to use Docker for compilation. We have prepared the Paddle Serving compilation environment for you, see [this document](DOCKER_IMAGES.md).
-
-This document will take Python2 as an example to show how to compile Paddle Serving. If you want to compile with Python3, just adjust the Python options of cmake:
-
-- Set `DPYTHON_INCLUDE_DIR` to `$PYTHONROOT/include/python3.6m/`
-- Set  `DPYTHON_LIBRARIES` to `$PYTHONROOT/lib64/libpython3.6.so`
-- Set `DPYTHON_EXECUTABLE` to `$PYTHONROOT/bin/python3.6`
 
 ## Get Code
 
@@ -39,34 +32,47 @@ git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
 ```
 
-
-
-
-## PYTHONROOT Setting
+## PYTHONROOT settings
 
 ```shell
-# for example, the path of python is /usr/bin/python, you can set /usr as PYTHONROOT
-export PYTHONROOT=/usr/
+# For example, the path of python is /usr/bin/python, you can set PYTHONROOT
+export PYTHONROOT=/usr
 ```
 
-In the default centos7 image we provide, the Python path is `/usr/bin/python`. If you want to use our centos6 image, you need to set it to `export PYTHONROOT=/usr/local/python2.7/`.
+If you are using a Docker development image, please follow the following to determine the Python version to be compiled, and set the corresponding environment variables
 
+```
+#Python3.6
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6m.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6
 
+#Python3.7
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.7m
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.7m.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.7
+
+#Python3.8
+export PYTHONROOT=/usr/local/
+export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.8
+export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.8.so
+export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
+
+```
 
 ## Install Python dependencies
 
 ```shell
-pip install -r python/requirements.txt
+pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
 ```
 
-If Python3 is used, replace `pip` with `pip3`.
+If you use other Python version, please use the right `pip` accordingly.
 
 ## GOPATH Setting
+The default GOPATH is set to `$HOME/go`, you can also set it to other values. **If it is the Docker environment provided by Serving, you do not need to set up.**
 
-
-## Compile Arguments
-
-The default GOPATH is `$HOME/go`, which you can set to other values.
 ```shell
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
@@ -90,9 +96,9 @@ go get -u google.golang.org/grpc@v1.33.0
 
 ``` shell
 mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DSERVER=ON ..
 make -j10
 ```
@@ -100,61 +106,68 @@ make -j10
 you can execute `make install` to put targets under directory `./output`, you need to add`-DCMAKE_INSTALL_PREFIX=./output`to specify output path to cmake command shown above.
 
 ### Integrated GPU version paddle inference library
-### CUDA_PATH is the cuda install path,use the command(whereis cuda) to check,it should be /usr/local/cuda.
-### CUDNN_LIBRARY && CUDA_CUDART_LIBRARY is the lib path, it should be /usr/local/cuda/lib64/
- 
+
+Compared with CPU environment, GPU environment needs to refer to the following table,
+**It should be noted that the following table is used as a reference for non-Docker compilation environment. The Docker compilation environment has been configured with relevant parameters and does not need to be specified in cmake process. **
+
+| cmake environment variable | meaning | GPU environment considerations | whether Docker environment is needed |
+|-----------------------|-------------------------------------|-------------------------------|--------------------|
+| CUDA_TOOLKIT_ROOT_DIR | cuda installation path, usually /usr/local/cuda | Required for all environments | No (/usr/local/cuda) |
+| CUDNN_LIBRARY | The directory where libcudnn.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
+| CUDA_CUDART_LIBRARY | The directory where libcudart.so.* is located, usually /usr/local/cuda/lib64/ | Required for all environments | No (/usr/local/cuda/lib64/) |
+| TENSORRT_ROOT | The upper level directory of the directory where libnvinfer.so.* is located, depends on the TensorRT installation directory | Cuda 9.0/10.0 does not need, other needs | No (/usr) |
+
+If not in Docker environment, users can refer to the following execution methods. The specific path is subject to the current environment, and the code is only for reference.TENSORRT_LIBRARY_PATH is related to the TensorRT version and should be set according to the actual situation。For example, in the cuda10.1 environment, the TensorRT version is 6.0 (/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/)，In the cuda10.2 environment, the TensorRT version is 7.1 (/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/).
+
 ``` shell
-export CUDA_PATH='/usr/local'
+export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-6.0.1.5/targets/x86_64-linux-gnu/"
 
 mkdir server-build-gpu && cd server-build-gpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
     -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
-    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \  
+    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
+    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j10
 ```
 
-### Integrated TRT version paddle inference library
+Execute `make install` to put the target output in the `./output` directory.
 
-```
-export CUDA_PATH='/usr/local'
-export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
-export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+### Compile C++ Server under the condition of WITH_OPENCV=ON
+**Note:** Only when you need to redevelop the paddle serving C + + part, and the new code depends on the OpenCV library, you need to do so.
 
-mkdir server-build-trt && cd server-build-trt
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
-    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
-    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
-    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
-    -DSERVER=ON \
-    -DWITH_GPU=ON \
-    -DWITH_TRT=ON ..
+First of all , OpenCV library should be installed, if not, please refer to the `Compile and install OpenCV` section later in this article.
+
+In the compile command, add `DOPENCV_DIR=${OPENCV_DIR}` and `DWITH_OPENCV=ON`，for example：
+``` shell
+OPENCV_DIR=your_opencv_dir #`your_opencv_dir` is the installation path of OpenCV library。
+mkdir server-build-cpu && cd server-build-cpu
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DOPENCV_DIR=${OPENCV_DIR} \
+    -DWITH_OPENCV=ON
+    -DSERVER=ON ..
 make -j10
 ```
 
-execute `make install` to put targets under directory `./output`
-
-**Attention：** After the compilation is successful, you need to set the path of `SERVING_BIN`. See [Note](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Note) for details.
-
-
+**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md#Notes).
 
 ## Compile Client
 
 ``` shell
 mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-      -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-      -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
-      -DCLIENT=ON ..
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DCLIENT=ON ..
 make -j10
 ```
 
@@ -166,9 +179,9 @@ execute `make install` to put targets under directory `./output`
 
 ```bash
 mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python2.7/ \
-    -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython2.7.so \
-    -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DAPP=ON ..
 make
 ```
@@ -202,13 +215,13 @@ Please use the example under `python/examples` to verify.
 |     WITH_AVX     | Compile Paddle Serving with AVX intrinsics | OFF  |
 |     WITH_MKL     |  Compile Paddle Serving with MKL support   | OFF  |
 |     WITH_GPU     |   Compile Paddle Serving with NVIDIA GPU   | OFF  |
+|     WITH_OPENCV  |    Compile Paddle Serving with OPENCV      | OFF  |
 |  CUDNN_LIBRARY   |    Define CuDNN library and header path    |      |
 | CUDA_TOOLKIT_ROOT_DIR |       Define CUDA PATH                |      |
 |   TENSORRT_ROOT  |           Define TensorRT PATH             |      |
 |      CLIENT      |       Compile Paddle Serving Client        | OFF  |
 |      SERVER      |       Compile Paddle Serving Server        | OFF  |
 |       APP        |     Compile Paddle Serving App package     | OFF  |
-| WITH_ELASTIC_CTR |        Compile ELASITC-CTR solution        | OFF  |
 |       PACK       |              Compile for whl               | OFF  |
 
 ### WITH_GPU Option
@@ -230,12 +243,72 @@ Note here:
 
 The following is the base library version matching relationship used by the PaddlePaddle release version for reference:
 
-|          |  CUDA   |          CuDNN           | TensorRT |
-| :----:   | :-----: | :----------------------: | :----:   |
-| post9    |  9.0    | CuDNN 7.3.1 for CUDA 9.0 |          |
-| post10   |  10.0   | CuDNN 7.5.1 for CUDA 10.0|          |
-| trt      |  10.1   | CuDNN 7.5.1 for CUDA 10.1| 6.0.1.5  |
+|          |  CUDA   |   CuDNN      | TensorRT |
+| :----:   | :-----: | :----------: | :----:   |
+| post101  |  10.1   | CuDNN 7.6.5  | 6.0.1    |
+| post102  |  10.2   | CuDNN 8.0.5  | 7.1.3    |
+| post11   |  11.0   | CuDNN 8.0.4  | 7.1.3    |
 
 ### How to make the compiler detect the CuDNN library
 
 Download the corresponding CUDNN version from NVIDIA developer official website and decompressing it, add `-DCUDNN_ROOT` to cmake command, to specify the path of CUDNN.
+
+## Compile and install OpenCV
+**Note:** You need to do this only if you need to import the opencv library into your C + + code.
+
+* First of all, you need to download the source code compiled package in the Linux environment from the OpenCV official website. Taking OpenCV3.4.7 as an example, the download command is as follows.
+
+```
+wget https://github.com/opencv/opencv/archive/3.4.7.tar.gz
+tar -xf 3.4.7.tar.gz
+```
+
+Finally, you can see the folder of `opencv-3.4.7/` in the current directory.
+
+* Compile OpenCV, the OpenCV source path (`root_path`) and installation path (`install_path`) should be set by yourself. Enter the OpenCV source code path and compile it in the following way.
+
+
+```shell
+root_path=your_opencv_root_path
+install_path=${root_path}/opencv3
+
+rm -rf build
+mkdir build
+cd build
+
+cmake .. \
+    -DCMAKE_INSTALL_PREFIX=${install_path} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DWITH_IPP=OFF \
+    -DBUILD_IPP_IW=OFF \
+    -DWITH_LAPACK=OFF \
+    -DWITH_EIGEN=OFF \
+    -DCMAKE_INSTALL_LIBDIR=lib64 \
+    -DWITH_ZLIB=ON \
+    -DBUILD_ZLIB=ON \
+    -DWITH_JPEG=ON \
+    -DBUILD_JPEG=ON \
+    -DWITH_PNG=ON \
+    -DBUILD_PNG=ON \
+    -DWITH_TIFF=ON \
+    -DBUILD_TIFF=ON
+
+make -j
+make install
+```
+
+Among them, `root_path` is the downloaded OpenCV source code path, and `install_path` is the installation path of OpenCV. After `make install` is completed, the OpenCV header file and library file will be generated in this folder for later source code compilation.
+
+
+
+The final file structure under the OpenCV installation path is as follows.
+
+```
+opencv3/
+|-- bin
+|-- include
+|-- lib
+|-- lib64
+|-- share
+```

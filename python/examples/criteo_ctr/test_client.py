@@ -14,43 +14,63 @@
 # pylint: disable=doc-string-missing
 
 from paddle_serving_client import Client
-import paddle
 import sys
 import os
 import time
-import criteo_reader as criteo
 from paddle_serving_client.metric import auc
 import numpy as np
 import sys
+
+class CriteoReader(object):
+    def __init__(self, sparse_feature_dim):
+        self.cont_min_ = [0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.cont_max_ = [
+            20, 600, 100, 50, 64000, 500, 100, 50, 500, 10, 10, 10, 50
+        ]
+        self.cont_diff_ = [
+            20, 603, 100, 50, 64000, 500, 100, 50, 500, 10, 10, 10, 50
+        ]
+        self.hash_dim_ = sparse_feature_dim
+        # here, training data are lines with line_index < train_idx_
+        self.train_idx_ = 41256555
+        self.continuous_range_ = range(1, 14)
+        self.categorical_range_ = range(14, 40)
+
+    def process_line(self, line):
+        features = line.rstrip('\n').split('\t')
+        dense_feature = []
+        sparse_feature = []
+        for idx in self.continuous_range_:
+            if features[idx] == '':
+                dense_feature.append(0.0)
+            else:
+                dense_feature.append((float(features[idx]) - self.cont_min_[idx - 1]) / \
+                                     self.cont_diff_[idx - 1])
+        for idx in self.categorical_range_:
+            sparse_feature.append(
+                [hash(str(idx) + features[idx]) % self.hash_dim_])
+
+        return sparse_feature
 
 py_version = sys.version_info[0]
 
 client = Client()
 client.load_client_config(sys.argv[1])
 client.connect(["127.0.0.1:9292"])
-
+reader = CriteoReader(1000001)
 batch = 1
 buf_size = 100
-dataset = criteo.CriteoDataset()
-dataset.setup(1000001)
-test_filelists = [
-    "{}/part-%d".format(sys.argv[2]) % x
-    for x in range(len(os.listdir(sys.argv[2])))
-]
-reader = dataset.infer_reader(test_filelists[len(test_filelists) - 40:], batch,
-                              buf_size)
 label_list = []
 prob_list = []
 start = time.time()
-for ei in range(1000):
-    if py_version == 2:
-        data = reader().next()
-    else:
-        data = reader().__next__()
+f = open(sys.argv[2], 'r')
+for ei in range(10):
+    data = reader.process_line(f.readline())
     feed_dict = {}
     for i in range(1, 27):
-        feed_dict["sparse_{}".format(i - 1)] = np.array(data[0][i]).reshape(-1)
-        feed_dict["sparse_{}.lod".format(i - 1)] = [0, len(data[0][i])]
+        feed_dict["sparse_{}".format(i - 1)] = np.array(data[i-1]).reshape(-1)
+        feed_dict["sparse_{}.lod".format(i - 1)] = [0, len(data[i-1])]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
+    print(fetch_map)
 end = time.time()
-print(end - start)
+f.close()

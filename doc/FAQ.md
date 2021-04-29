@@ -6,17 +6,17 @@
 
 #### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
 
-**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。	paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
+**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。   paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
 
 #### Q: paddle-serving是否支持Int32支持
 
 **A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
 
-​     0-int64
-
-​	  1-float32
-
-​	  2-int32
+     0-int64
+    
+     1-float32
+    
+     2-int32
 
 #### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
 
@@ -34,6 +34,85 @@
 
 **A:** http rpc 
 
+## 安装问题
+
+#### Q: pip install安装whl包过程，报错信息如下：
+
+```
+Collecting opencv-python
+  Using cached opencv-python-4.3.0.38.tar.gz (88.0 MB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... error
+  ERROR: Command errored out with exit status 1:
+   command: /home/work/Python-2.7.17/build/bin/python /home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py get_requires_for_build_wheel /tmp/tmpLiweA9
+       cwd: /tmp/pip-install-_w6AUI/opencv-python
+  Complete output (22 lines):
+  Traceback (most recent call last):
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 280, in <module>
+      main()
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 263, in main
+      json_out['return_val'] = hook(**hook_input['kwargs'])
+    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 114, in get_requires_for_build_wheel
+      return hook(config_settings)
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 146, in get_requires_for_build_wheel
+      return self._get_build_requires(config_settings, requirements=['wheel'])
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 127, in _get_build_requires
+      self.run_setup()
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 243, in run_setup
+      self).run_setup(setup_script=setup_script)
+    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 142, in run_setup
+      exec(compile(code, __file__, 'exec'), locals())
+    File "setup.py", line 448, in <module>
+      main()
+    File "setup.py", line 99, in main
+      % {"ext": re.escape(sysconfig.get_config_var("EXT_SUFFIX"))}
+    File "/home/work/Python-2.7.17/build/lib/python2.7/re.py", line 210, in escape
+      s = list(pattern)
+  TypeError: 'NoneType' object is not iterable
+```
+
+**A:** 指定opencv-python版本安装，pip install opencv-python==4.2.0.32，再安装whl包
+
+#### Q: pip3 install whl包过程报错信息如下：
+
+```
+    Complete output from command python setup.py egg_info:
+    Found cython-generated files...
+    error in grpcio setup command: 'install_requires' must be a string or list of strings containing valid project/version requirement specifiers; Expected ',' or end-of-list in futures>=2.2.0; python_version<'3.2' at ; python_version<'3.2'
+
+    ----------------------------------------
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-taoxz02y/grpcio/
+```
+
+**A:** 需要升级pip3，再重新执行安装命令。
+
+```
+pip3 install --upgrade pip
+pip3 install --upgrade setuptools
+```
+
+#### Q: 运行过程中报错，信息如下：
+
+```
+Traceback (most recent call last):
+  File "../../deploy/serving/test_client.py", line 18, in <module>
+    from paddle_serving_app.reader import *
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/__init__.py", line 15, in <module>
+    from .image_reader import ImageReader, File2Image, URL2Image, Sequential, Normalize, Base64ToImage
+  File "/usr/local/python2.7.15/lib/python2.7/site-packages/paddle_serving_app/reader/image_reader.py", line 24, in <module>
+    from shapely.geometry import Polygon
+ImportError: No module named shapely.geometry
+```
+
+**A:** 有2种方法，第一种通过pip/pip3安装shapely，第二种通过pip/pip3安装所有依赖组件。
+
+```
+方法1：
+pip install shapely==1.7.0
+
+方法2：
+pip install -r python/requirements.txt
+```
 
 ## 编译问题
 
@@ -45,7 +124,69 @@
 
 **A:** 没有安装JDK，或者JAVA_HOME路径配置错误（正确配置是JDK路径，常见错误配置成JRE路径，例如正确路径参考JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/"）。Java JDK安装参考https://segmentfault.com/a/1190000015389941
 
+## 环境问题
 
+#### Q：使用过程中出现CXXABI错误。
+
+这个问题出现的原因是Python使用的gcc版本和Serving所需的gcc版本对不上。对于Docker用户，推荐使用[Docker容器](./RUN_IN_DOCKER_CN.md)，由于Docker容器内的Python版本与Serving在发布前都做过适配，这样就不会出现类似的错误。如果是其他开发环境，首先需要确保开发环境中具备GCC 8.2，如果没有gcc 8.2，参考安装方式
+
+```bash
+wget -q https://paddle-ci.gz.bcebos.com/gcc-8.2.0.tar.xz 
+tar -xvf gcc-8.2.0.tar.xz && \
+cd gcc-8.2.0 && \
+unset LIBRARY_PATH CPATH C_INCLUDE_PATH PKG_CONFIG_PATH CPLUS_INCLUDE_PATH INCLUDE && \
+./contrib/download_prerequisites && \
+cd .. && mkdir temp_gcc82 && cd temp_gcc82 && \
+../gcc-8.2.0/configure --prefix=/usr/local/gcc-8.2 --enable-threads=posix --disable-checking --disable-multilib && \
+make -j8 && make install
+cd .. && rm -rf temp_gcc82
+cp ${lib_so_6} ${lib_so_6}.bak  && rm -f ${lib_so_6} && 
+ln -s /usr/local/gcc-8.2/lib64/libgfortran.so.5 ${lib_so_5} && \
+ln -s /usr/local/gcc-8.2/lib64/libstdc++.so.6 ${lib_so_6} && \
+cp /usr/local/gcc-8.2/lib64/libstdc++.so.6.0.25 ${lib_path}
+```
+
+假如已经有了GCC 8.2，可以自行安装Python，此外我们也提供了两个GCC 8.2编译的[Python2.7](https://paddle-serving.bj.bcebos.com/others/Python2.7.17-gcc82.tar) 和 [Python3.6](https://paddle-serving.bj.bcebos.com/others/Python3.6.10-gcc82.tar) 。下载解压后，需要将对应的目录设置为`PYTHONROOT`，并设置`PATH`和`LD_LIBRARY_PATH`。
+
+```bash
+export PYTHONROOT=/path/of/python # 对应解压后的Python目录
+export PATH=$PYTHONROOT/bin:$PATH
+export LD_LIBRARY_PATH=$PYTHONROOT/lib:$LD_LIBRARY_PATH
+```
+
+#### Q：遇到libstdc++.so.6的版本不够的问题
+
+触发该问题的原因在于，编译Paddle Serving相关可执行程序和动态库，所采用的是GCC 8.2(Cuda 9.0和10.0的Server可执行程序受限Cuda兼容性采用GCC 4.8编译)。Python在调用的过程中，有可能链接到了其他GCC版本的 `libstdc++.so`。 需要做的就是受限确保所在环境具备GCC 8.2，其次将GCC8.2的`libstdc++.so.*`拷贝到某个目录例如`/home/libstdcpp`下。最后`export LD_LIBRARY_PATH=/home/libstdcpp:$LD_LIBRARY_PATH` 即可。
+
+#### Q: 遇到OPENSSL_1.0.1EC 符号找不到的问题。
+
+目前Serving的可执行程序和客户端动态库需要链接1.0.2k版本的openssl动态库。如果环境当中没有，可以执行
+
+```bash
+wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
+    tar xf centos_ssl.tar && rm -rf centos_ssl.tar && \
+    mv libcrypto.so.1.0.2k /usr/lib/libcrypto.so.1.0.2k && mv libssl.so.1.0.2k /usr/lib/libssl.so.1.0.2k && \
+    ln -sf /usr/lib/libcrypto.so.1.0.2k /usr/lib/libcrypto.so.10 && \
+    ln -sf /usr/lib/libssl.so.1.0.2k /usr/lib/libssl.so.10 && \
+    ln -sf /usr/lib/libcrypto.so.10 /usr/lib/libcrypto.so && \
+    ln -sf /usr/lib/libssl.so.10 /usr/lib/libssl.so
+```
+
+其中`/usr/lib` 可以换成其他目录，并确保该目录在`LD_LIBRARY_PATH`下。
+
+### GPU相关环境问题
+
+#### Q：需要做哪些检查确保Serving可以运行在GPU环境
+
+**注：如果是使用Serving提供的镜像不需要做下列检查，如果是其他开发环境可以参考以下指导。**
+
+首先需要确保`nvidia-smi`可用，其次需要确保所需的动态库so文件在`LD_LIBRARY_PATH`所在的目录（包括系统lib库）。
+
+（1）Cuda显卡驱动：文件名通常为 `libcuda.so.$DRIVER_VERSION` 例如驱动版本为440.10.15，文件名就是`libcuda.so.440.10.15`。
+
+（2）Cuda和Cudnn动态库：文件名通常为 `libcudart.so.$CUDA_VERSION`，和 `libcudnn.so.$CUDNN_VERSION`。例如Cuda9就是 `libcudart.so.9.0`，Cudnn7就是 `libcudnn.so.7`。Cuda和Cudnn与Serving的版本匹配参见[Serving所有镜像列表](DOCKER_IMAGES_CN.md#%E9%99%84%E5%BD%95%E6%89%80%E6%9C%89%E9%95%9C%E5%83%8F%E5%88%97%E8%A1%A8).
+
+  (3) Cuda10.1及更高版本需要TensorRT。安装TensorRT相关文件的脚本参考 [install_trt.sh](../tools/dockerfiles/build_scripts/install_trt.sh).
 
 ## 部署问题
 
@@ -81,9 +222,7 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: python编译的GCC版本与serving的版本不匹配
 
-**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md#gpunvidia-docker)解决环境问题
-
-​	   2)修改anaconda的虚拟环境下安装的python的gcc版本[参考](https://www.jianshu.com/p/c498b3d86f77) 
+**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/RUN_IN_DOCKER.md#gpunvidia-docker)解决环境问题；2)修改anaconda的虚拟环境下安装的python的gcc版本[改变python的GCC编译环境](https://www.jianshu.com/p/c498b3d86f77) 
 
 #### Q: paddle-serving是否支持本地离线安装 
 
@@ -150,9 +289,10 @@ client端的日志直接打印到标准输出。
 
 **A:** 1)警告是glog组件打印的，告知glog初始化之前日志打印在STDERR
 
-​	   2)一般采用GLOG_v方式启动服务同时设置日志级别。
+       2)一般采用GLOG_v方式启动服务同时设置日志级别。
 
 例如：
+
 ```
 GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999 
 ```

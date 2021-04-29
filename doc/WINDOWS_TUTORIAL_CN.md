@@ -14,7 +14,7 @@
 
 **安装Git工具**： 详情参见[Git官网](https://git-scm.com/downloads)
 
-**安装必要的C++库（可选）**：部分用户可能会在`import paddle`阶段遇见dll无法链接的问题，建议可以[安装Visual Studio社区版本](`https://visualstudio.microsoft.com/`) ，并且安装C++的相关组件。
+**安装必要的C++库（可选）**：部分用户可能会在`import paddle`阶段遇见dll无法链接的问题，建议[安装Visual Studio社区版本](https://visualstudio.microsoft.com/) ，并且安装C++的相关组件。
 
 **安装Paddle和Serving**：在Powershell，执行
 
@@ -117,9 +117,9 @@ python your_client.py
 安装之后启动docker的linux engine，下载相关镜像。在Serving目录下
 
 ```
-docker pull hub.baidubce.com/paddlepaddle/serving:latest-devel
+docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 # 此处没有expose端口，用户可根据需要设置-p来进行端口映射
-docker run --rm -dit --name serving_devel -v $PWD:/Serving hub.baidubce.com/paddlepaddle/serving:latest-devel 
+docker run --rm -dit --name serving_devel -v $PWD:/Serving registry.baidubce.com/paddlepaddle/serving:latest-devel 
 docker exec -it serving_devel bash
 cd /Serving
 ```
