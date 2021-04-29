@@ -554,15 +554,8 @@ class MultiLangClient(object):
         get_client_config_req = multi_lang_general_model_service_pb2.GetClientConfigRequest(
         )
         resp = self.stub_.GetClientConfig(get_client_config_req)
-        model_config_path_list = resp.client_config_str_list
-        file_path_list = []
-        for single_model_config in model_config_path_list:
-            if os.path.isdir(single_model_config):
-                file_path_list.append("{}/serving_server_conf.prototxt".format(
-                    single_model_config))
-            elif os.path.isfile(single_model_config):
-                file_path_list.append(single_model_config)
-        self._parse_model_config(file_path_list)
+        model_config_str = resp.client_config_str
+        self._parse_model_config(model_config_str)
 
     def _flatten_list(self, nested_list):
         for item in nested_list:
@@ -572,23 +565,10 @@ class MultiLangClient(object):
             else:
                 yield item
 
-    def _parse_model_config(self, model_config_path_list):
-        if isinstance(model_config_path_list, str):
-            model_config_path_list = [model_config_path_list]
-        elif isinstance(model_config_path_list, list):
-            pass
-
-        file_path_list = []
-        for single_model_config in model_config_path_list:
-            if os.path.isdir(single_model_config):
-                file_path_list.append("{}/serving_client_conf.prototxt".format(
-                    single_model_config))
-            elif os.path.isfile(single_model_config):
-                file_path_list.append(single_model_config)
+    def _parse_model_config(self, model_config_str):
         model_conf = m_config.GeneralModelConfig()
-        f = open(file_path_list[0], 'r')
-        model_conf = google.protobuf.text_format.Merge(
-            str(f.read()), model_conf)
+        model_conf = google.protobuf.text_format.Merge(model_config_str,
+                                                       model_conf)
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.feed_types_ = {}
         self.feed_shapes_ = {}
@@ -598,11 +578,6 @@ class MultiLangClient(object):
             self.feed_shapes_[var.alias_name] = var.shape
             if var.is_lod_tensor:
                 self.lod_tensor_set_.add(var.alias_name)
-        if len(file_path_list) > 1:
-            model_conf = m_config.GeneralModelConfig()
-            f = open(file_path_list[-1], 'r')
-            model_conf = google.protobuf.text_format.Merge(
-                str(f.read()), model_conf)
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
         self.fetch_types_ = {}
         for i, var in enumerate(model_conf.fetch_var):

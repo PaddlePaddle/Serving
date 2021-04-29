@@ -49,4 +49,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 bash benchmark.sh uci_housing_model uci_housing_client
 ```
 性能测试的日志文件为profile_log_uci_housing_model
+
 如需修改性能测试用例的参数，请修改benchmark.sh中的配置信息。
+
+注意:uci_housing_model和uci_housing_client路径后不要加'/'符号,示例需要在GPU机器上运行。
