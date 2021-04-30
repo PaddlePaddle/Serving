@@ -37,4 +37,13 @@ elif [[ "$VERSION" == "3.7" ]];then
     make -j8 > /dev/null && make altinstall > /dev/null && ldconfig
     cd .. && rm -rf Python-3.7.0*
     python3.7 -m pip install -U pip
+elif [[ "$VERSION" == "3.8" ]];then
+    wget -q https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz && \
+    tar -xzf Python-3.8.0.tgz && cd Python-3.8.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig
+    cd .. && rm -rf Python-3.8.0*
+    python3.8 -m pip install -U pip
 fi
+
+

@@ -8,7 +8,7 @@ function usage
     echo "usage: sh tools/generate_runtime_docker.sh --SOME_ARG ARG_VALUE"
     echo "   ";
     echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11";
-    echo "   --python              : python version, 2.7/3.6/3.7 ";
+    echo "   --python              : python version, 3.6/3.7/3.8 ";
     echo "   --serving             : serving version(0.5.0)";
     echo "   --paddle              : paddle version(2.0.1)"
     echo "   --image_name          : image name(default serving_runtime:env-python)"
@@ -73,8 +73,8 @@ function run
   echo "named arg: paddle: $paddle"
   echo "named arg: image_name: $image_name"
   
-  sed -e "s/<<base_image>>/$base_image/g" -e "s/<<python_version>>/$python/g" -e "s/<<run_env>>/$env/g" tools/Dockerfile.runtime_template > Dockerfile.tmp
-  docker build --build-arg ftp_proxy=http://172.19.57.45:3128 --build-arg https_proxy=http://172.19.57.45:3128 --build-arg http_proxy=http://172.19.57.45:3128 --build-arg HTTP_PROXY=http://172.19.57.45:3128 --build-arg HTTPS_PROXY=http://172.19.57.45:3128 -t $image_name -f Dockerfile.tmp .
+  sed -e "s/<<base_image>>/$base_image/g" -e "s/<<python_version>>/$python/g" -e "s/<<run_env>>/$env/g" -e "s/<<serving_version>>/$serving/g" -e "s/<<paddle_version>>/$paddle/g" tools/Dockerfile.runtime_template > Dockerfile.tmp
+  docker build --network=host --build-arg ftp_proxy=http://172.19.57.45:3128 --build-arg https_proxy=http://172.19.57.45:3128 --build-arg http_proxy=http://172.19.57.45:3128 --build-arg HTTP_PROXY=http://172.19.57.45:3128 --build-arg HTTPS_PROXY=http://172.19.57.45:3128 -t $image_name -f Dockerfile.tmp .
 }
 
 run "$@";
