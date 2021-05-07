@@ -33,7 +33,7 @@ WORKDIR /home
 # install tensorrt
 WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
-      RUN bash /build_scripts/install_trt.sh && rm -rf /build_scripts
+      RUN bash /build_scripts/install_trt.sh <<run_env>> && rm -rf /build_scripts
 
 # install go
 RUN wget -qO- https://dl.google.com/go/go1.14.linux-amd64.tar.gz | \
