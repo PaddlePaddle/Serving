@@ -42,7 +42,7 @@ if [[ $SERVING_VERSION == "0.5.0" ]]; then
         serving_bin="https://paddle-serving.bj.bcebos.com/bin/serving-gpu-102-${SERVING_VERSION}.tar.gz"
     elif [[ "$RUN_ENV" == "cuda11" ]];then
         server_release="paddle-serving-server-gpu==$SERVING_VERSION.post11"
-        serving_bin="https://paddle-serving.bj.bcebos.com/bin/serving-gpu-11-${SERVING_VERSION}.tar.gz"
+        serving_bin="https://paddle-serving.bj.bcebos.com/bin/serving-gpu-cuda11-${SERVING_VERSION}.tar.gz"
     fi
     client_release="paddle-serving-client==$SERVING_VERSION"
     app_release="paddle-serving-app==0.3.1"
@@ -58,7 +58,7 @@ elif [[ $SERVING_VERSION == "0.6.0" ]]; then
         serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-$SERVING_VERSION.tar.gz"
     elif [[ "$RUN_ENV" == "cuda11" ]];then
         server_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-$SERVING_VERSION.post11-py3-none-any.whl"
-        serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-11-$SERVING_VERSION.tar.gz"
+        serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-cuda11-$SERVING_VERSION.tar.gz"
     fi
     client_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-$SERVING_VERSION-cp$CPYTHON-none-any.whl"
     app_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-$SERVING_VERSION-py3-none-any.whl"
@@ -99,10 +99,10 @@ elif [[ "$RUN_ENV" == "cuda11" ]];then
     python$PYTHON_VERSION -m pip install paddlepaddle-gpu==${PADDLE_VERSION}
     cd /usr/local/
     wget $serving_bin
-    tar xf serving-gpu-11-${SERVING_VERSION}.tar.gz
-    mv $PWD/serving-gpu-11-${SERVING_VERSION} $PWD/serving_bin
+    tar xf serving-gpu-cuda11-${SERVING_VERSION}.tar.gz
+    mv $PWD/serving-gpu-cuda11-${SERVING_VERSION} $PWD/serving_bin
     echo "export SERVING_BIN=$PWD/serving_bin/serving">>/root/.bashrc
-    rm -rf serving-gpu-11-${SERVING_VERSION}.tar.gz
+    rm -rf serving-gpu-cuda11-${SERVING_VERSION}.tar.gz
     cd -
 fi
 
