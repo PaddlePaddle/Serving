@@ -28,12 +28,12 @@ WORKDIR /home
 # install whl and bin
 WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
-      RUN bash /build_scripts/install_whl.sh 0.5.0 2.0.0 <<run_env>> <<python_version>> && rm -rf /build_scripts
+      RUN bash /build_scripts/install_whl.sh <<serving_version>> <<paddle_version>> <<run_env>> <<python_version>> && rm -rf /build_scripts
 
 # install tensorrt
 WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
-      RUN bash /build_scripts/install_trt.sh && rm -rf /build_scripts
+      RUN bash /build_scripts/install_trt.sh <<run_env>> && rm -rf /build_scripts
 
 # install go
 RUN wget -qO- https://dl.google.com/go/go1.14.linux-amd64.tar.gz | \

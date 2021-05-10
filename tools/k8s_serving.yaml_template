@@ -34,6 +34,7 @@ spec:
       containers:
       - image: << IMAGE_NAME >>
         name: << APP_NAME >>
+        imagePullPolicy: Always
         ports:
         - containerPort: << PORT >>
         workingDir: << WORKDIR >>
@@ -41,6 +42,8 @@ spec:
         command: ['/bin/bash', '-c']
         args: [<< COMMAND >>] 
         env:
+          - name: SERVING_BIN
+            value: "/usr/local/serving_bin/serving"
           - name: NODE_NAME
             valueFrom:
               fieldRef:

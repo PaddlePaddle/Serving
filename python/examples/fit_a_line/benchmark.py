@@ -30,6 +30,7 @@ def single_func(idx, resource):
             paddle.dataset.uci_housing.train(), buf_size=500),
         batch_size=1)
     total_number = sum(1 for _ in train_reader())
+    latency_list = []
 
     if args.request == "rpc":
         client = Client()
@@ -37,9 +38,12 @@ def single_func(idx, resource):
         client.connect([args.endpoint])
         start = time.time()
         for data in train_reader():
+            l_start = time.time()
             fetch_map = client.predict(feed={"x": data[0][0]}, fetch=["price"])
+            l_end = time.time()
+            latency_list.append(l_end * 1000 - l_start * 1000)
         end = time.time()
-        return [[end - start], [total_number]]
+        return [[end - start], latency_list, [total_number]]
     elif args.request == "http":
         train_reader = paddle.batch(
             paddle.reader.shuffle(
@@ -47,11 +51,14 @@ def single_func(idx, resource):
             batch_size=1)
         start = time.time()
         for data in train_reader():
+            l_start = time.time()
             r = requests.post(
                 'http://{}/uci/prediction'.format(args.endpoint),
                 data={"x": data[0]})
+            l_end = time.time()
+            latency_list.append(l_end * 1000 - l_start * 1000)
         end = time.time()
-        return [[end - start], [total_number]]
+        return [[end - start], latency_list, [total_number]]
 
 
 start = time.time()

@@ -40,6 +40,9 @@ if [[ $SERVING_VERSION == "0.5.0" ]]; then
     elif [[ "$RUN_ENV" == "cuda10.2" ]];then
         server_release="paddle-serving-server-gpu==$SERVING_VERSION.post102"
         serving_bin="https://paddle-serving.bj.bcebos.com/bin/serving-gpu-102-${SERVING_VERSION}.tar.gz"
+    elif [[ "$RUN_ENV" == "cuda11" ]];then
+        server_release="paddle-serving-server-gpu==$SERVING_VERSION.post11"
+        serving_bin="https://paddle-serving.bj.bcebos.com/bin/serving-gpu-11-${SERVING_VERSION}.tar.gz"
     fi
     client_release="paddle-serving-client==$SERVING_VERSION"
     app_release="paddle-serving-app==0.3.1"
