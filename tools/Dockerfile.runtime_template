@@ -32,7 +32,7 @@ WORKDIR /home
 
 WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
-      RUN bash /build_scripts/soft_link.sh
+      RUN bash /build_scripts/soft_link.sh <<run_env>>
 
 # install tensorrt
 WORKDIR /home
