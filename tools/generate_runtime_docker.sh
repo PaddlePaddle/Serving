@@ -66,6 +66,8 @@ function run
       base_image="nvidia\/cuda:10.1-cudnn7-runtime-ubuntu16.04"
   elif [ $env == "cuda10.2" ]; then
       base_image="nvidia\/cuda:10.2-cudnn8-runtime-ubuntu16.04"
+  elif [ $env == "cuda11" ]; then
+      base_image="nvidia\/cuda:11.0.3-cudnn8-runtime-ubuntu16.04"
   fi
   echo "base image: $base_image"
   echo "named arg: python: $python"
