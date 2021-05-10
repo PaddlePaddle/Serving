@@ -25,10 +25,10 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 在`tools/generate_runtime_docker.sh`文件下，它的使用方式如下
 
 ```bash
-bash tool/generate_runtime_docker.sh --env cuda10.1 --python 2.7 --serving 0.5.0 --paddle 2.0.0 --name serving_runtime:cuda10.1-py27
+bash tool/generate_runtime_docker.sh --env cuda10.1 --python 3.6 --serving 0.6.0 --paddle 2.0.1 --name serving_runtime:cuda10.1-py36
 ```
 
-会生成 cuda10.1，python 2.7，serving版本0.5.0 还有 paddle版本2.0.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
+会生成 cuda10.1，python 3.6，serving版本0.6.0 还有 paddle版本2.0.1的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
 
 ```
 bash tools/generate_runtime_docker.sh --help
@@ -39,7 +39,7 @@ bash tools/generate_runtime_docker.sh --help
 - paddle-serving-server， paddle-serving-client，paddle-serving-app，paddlepaddle，具体版本可以在tools/runtime.dockerfile当中查看，同时，如果有定制化的需求，也可以在该文件中进行定制化。
 - paddle-serving-server 二进制可执行程序
 
-也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py37`
+也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py36`
 
 ### 添加您的代码和模型 
 
@@ -50,8 +50,8 @@ bash tools/generate_runtime_docker.sh --help
 对于pipeline模式，我们需要确保模型和程序文件、配置文件等各种依赖都能够在镜像中运行。因此可以在`/home/project`下存放我们的执行文件时，我们以`Serving/python/example/pipeline/ocr`为例，这是OCR文字识别任务。
 
 ```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为paddle_serving:cuda10.2-py37
-docker run --rm -dit --name pipeline_serving_demo paddle_serving:cuda10.2-py37 bash
+#假设您已经拥有Serving运行镜像，假设镜像名为paddle_serving:cuda10.2-py36
+docker run --rm -dit --name pipeline_serving_demo paddle_serving:cuda10.2-py36 bash
 cd Serving/python/example/pipeline/ocr
 # get models
 python -m paddle_serving_app.package --get_model ocr_rec
@@ -71,7 +71,7 @@ docker commit pipeline_serving_demo ocr_serving:latest
 ```
 docker exec -it pipeline_serving_demo bash
 cd /home/ocr
-python3.7 web_service.py 
+python3.6 web_service.py 
 ```
 
 进入容器到工程目录之后，剩下的操作和调试代码的工作是类似的。
@@ -83,8 +83,8 @@ python3.7 web_service.py
 web service模式本质上和pipeline模式类似，因此我们以`Serving/python/examples/bert`为例
 
 ```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-py37
-docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py27 bash
+#假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-py36
+docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py36 bash
 cd Serving/python/examples/bert
 ### download model 
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
@@ -102,7 +102,7 @@ docker commit webservice_serving_demo bert_serving:latest
 ```bash
 docker exec -it webservice_serving_demo bash
 cd /home/bert
-python3.7 bert_web_service.py 9292
+python3.6 bert_web_service.py bert_seq128_model 9292
 ```
 
 进入容器到工程目录之后，剩下的操作和调试代码的工作是类似的。
@@ -118,14 +118,15 @@ kubenetes集群操作需要`kubectl`去操纵yaml文件。我们这里给出了�
 - pipeline ocr示例 
 
 ```bash
-sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python2.7 web_service.py" --port 9999
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python3.6 web_service.py" --port 9999
 ```
 
 - web service bert示例
 
 ```bash
-sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python2.7 bert_web_service.py 9292" --port 9292
+sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python3.6 bert_web_service.py bert_seq128_model 9292" --port 9292
 ```
+**需要注意的是，app_name需要同URL的函数名相同。例如示例中bert的访问URL是`https://127.0.0.1:9292/bert/prediction`，那么app_name应为bert。**
 
 接下来我们会看到有两个yaml文件，分别是`k8s_serving.yaml`和 k8s_ingress.yaml`.
 
@@ -174,7 +175,7 @@ spec:
         workingDir: /home/ocr
         name: ocr
         command: ['/bin/bash', '-c']
-        args: ["python3.7 web_service.py"]
+        args: ["python3.6 bert_web_service.py bert_seq128_model 9292"]
         env:
           - name: NODE_NAME
             valueFrom:
@@ -216,7 +217,8 @@ spec:
 最终我们执行就可以启动相关容器和API网关。
 
 ```
-kubectl apply -f k8s_serving.yaml k8s_ingress.yaml
+kubectl apply -f k8s_serving.yaml
+kubectl apply -f k8s_ingress.yaml
 ```
 
 输入

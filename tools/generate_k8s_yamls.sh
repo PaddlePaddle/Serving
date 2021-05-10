@@ -60,8 +60,8 @@ function run
   echo "named arg: command: $start_command"
   echo "named arg: port: $port"
   
-  sed -e "s/<< APP_NAME >>/$app_name/g" -e "s/<< IMAGE_NAME >>/$(echo $image_name | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< WORKDIR >>/$(echo $workdir | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< COMMAND >>/\"$start_command\"/g" -e "s/<< PORT >>/$port/g"  tools/k8s_serving.yaml_template > k8s_serving.yaml
-  sed -e "s/<< APP_NAME >>/$app_name/g" -e "s/<< IMAGE_NAME >>/$(echo $image_name | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< WORKDIR >>/$(echo $workdir | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< COMMAND >>/\"$start_command\"/g" -e "s/<< PORT >>/$port/g"  tools/k8s_ingress.yaml_template > k8s_ingress.yaml
+  sed -e "s/<< APP_NAME >>/$app_name/g" -e "s/<< IMAGE_NAME >>/$(echo $image_name | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< WORKDIR >>/$(echo $workdir | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< COMMAND >>/\"$(echo $start_command | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')\"/g" -e "s/<< PORT >>/$port/g"  tools/k8s_serving.yaml_template > k8s_serving.yaml
+  sed -e "s/<< APP_NAME >>/$app_name/g" -e "s/<< IMAGE_NAME >>/$(echo $image_name | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< WORKDIR >>/$(echo $workdir | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')/g" -e "s/<< COMMAND >>/\"$(echo $start_command | sed -e 's/\\/\\\\/g; s/\//\\\//g; s/&/\\\&/g')\"/g" -e "s/<< PORT >>/$port/g"  tools/k8s_ingress.yaml_template > k8s_ingress.yaml
   echo "check k8s_serving.yaml and k8s_ingress.yaml please." 
 }
 

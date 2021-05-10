@@ -104,7 +104,7 @@ ENV PATH=usr/local/go/bin:/root/go/bin:${PATH}
 
 # Downgrade TensorRT 
 COPY tools/dockerfiles/build_scripts /build_scripts
-RUN bash /build_scripts/install_trt.sh 
+RUN bash /build_scripts/install_trt.sh cuda10.2 
 RUN rm -rf /build_scripts
 
 # git credential to skip password typing
@@ -132,9 +132,9 @@ RUN wget https://paddle-ci.gz.bcebos.com/ccache-3.7.9.tar.gz && \
     make -j8 && make install && \
     ln -s /usr/local/ccache-3.7.9/bin/ccache /usr/local/bin/ccache
 
-RUN python3.8 -m pip install --upgrade pip requests && \
-    python3.7 -m pip install --upgrade pip requests && \
-    python3.6 -m pip install --upgrade pip requests 
+RUN python3.8 -m pip install --upgrade pip==21.1.1 requests && \
+    python3.7 -m pip install --upgrade pip==21.1.1 requests && \
+    python3.6 -m pip install --upgrade pip==21.1.1 requests 
 
 RUN wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
     tar xf centos_ssl.tar && rm -rf centos_ssl.tar && \

@@ -27,40 +27,6 @@ mvn compile
 mvn install
 ```
 
-### 启动服务端(非pipeline方式)
-
-以fit_a_line模型为例，服务端启动
-
-```
-cd ../../python/examples/fit_a_line
-sh get_data.sh
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_multilang &
-```
-
-客户端预测
-
-```
-cd ../../../java/examples/target
-java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample fit_a_line
-```
-
-以yolov4为例子，服务端启动
-
-```
-python -m paddle_serving_app.package --get_model yolov4
-tar -xzvf yolov4.tar.gz
-python -m paddle_serving_server_gpu.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang &  #需要在GPU Docker当中执行，否则要使用CPU的执行方式。
-```
-
-客户端预测
-
-```
-# in /Serving/java/examples/target
-java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample yolov4 ../../../python/examples/yolov4/000000570688.jpg
-# yolov4的案例需要指定一个图片作为输入
-
-```
-
 ### 启动服务端(Pipeline方式)
 
 对于input data type = string类型，以IMDB model ensemble模型为例，服务端启动
