@@ -136,8 +136,10 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib")
 LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 
-ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
+if (NOT WITH_MKLML)
+    ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
+    SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
+endif()
 
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
