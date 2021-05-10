@@ -30,6 +30,10 @@ WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
       RUN bash /build_scripts/install_whl.sh <<serving_version>> <<paddle_version>> <<run_env>> <<python_version>> && rm -rf /build_scripts
 
+WORKDIR /home
+      COPY tools/dockerfiles/build_scripts /build_scripts
+      RUN bash /build_scripts/soft_link.sh <<run_env>>
+
 # install tensorrt
 WORKDIR /home
       COPY tools/dockerfiles/build_scripts /build_scripts
