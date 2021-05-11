@@ -54,7 +54,7 @@ class PPYoloMbvOp(Op):
 
     def postprocess(self, input_dicts, fetch_dict, log_id):
         #print(fetch_dict)
-        res_dict = {"bbox_result": str(self.img_postprocess(fetch_dict))}
+        res_dict = {"bbox_result": str(self.img_postprocess(fetch_dict, visualize=False))}
         return res_dict, None, ""
 
 
