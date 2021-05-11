@@ -122,6 +122,17 @@ class ChannelData(object):
         self.client_need_profile = client_need_profile
         self.profile_data_set = set()
 
+    def get_size(self):
+        size = 0
+        dict_data = None
+        if isinstance(self.dictdata, dict):
+            for k in self.dictdata:
+                size += sys.getsizeof(self.dictdata[k]) + sys.getsizeof(k)
+        if isinstance(self.npdata, dict):
+            for k in self.npdata:
+                size += sys.getsizeof(self.npdata[k]) + sys.getsizeof(k)
+        return size
+
     def add_profile(self, profile_set):
         if self.client_need_profile is False:
             self.client_need_profile = True
@@ -213,10 +224,10 @@ class ChannelData(object):
         else:
             return 1
 
-    def __str__(self):
-        return "type[{}], error_code[{}], data_id[{}], log_id[{}], dict_data[{}]".format(
+    def get_all_data(self):
+        return "type[{}], error_code[{}], data_id[{}], log_id[{}], dict_size[{}]".format(
             ChannelDataType(self.datatype).name, self.error_code, self.id,
-            self.log_id, str(self.dictdata))
+            self.log_id, self.get_size())
 
 
 class ProcessChannel(object):
@@ -313,8 +324,10 @@ class ProcessChannel(object):
 
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
-            self._log("(data_id={} log_id={}) Op({}) Enter channel::push".
-                      format(channeldata.id, channeldata.log_id, op_name)))
+            self._log(
+                "(data_id={} log_id={}) Op({}) Enter channel::push producers:{}".
+                format(channeldata.id, channeldata.log_id, op_name,
+                       len(self._producers))))
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(
@@ -323,19 +336,30 @@ class ProcessChannel(object):
                     format(channeldata.id, channeldata.log_id, op_name)))
             os._exit(-1)
         elif len(self._producers) == 1:
+            start_time = _time()
             with self._cv:
+                enter_cv_time = _time()
+                push_que_time = enter_cv_time
                 while self._stop.value == 0:
                     try:
                         self._que.put((channeldata.id, {
                             op_name: channeldata
                         }),
                                       timeout=0)
+                        push_que_time = _time()
                         break
                     except Queue.Full:
                         self._cv.wait()
                 if self._stop.value == 1:
                     raise ChannelStopError()
                 self._cv.notify_all()
+                notify_all_time = _time()
+                _LOGGER.debug(
+                    "(data_id={}) Op({}) channel push cost! enter_cv:{} ms, push_que:{} ms, notify:{} ms, data_size:{}".
+                    format(channeldata.id, op_name, (enter_cv_time - start_time)
+                           * 1000, (push_que_time - enter_cv_time) * 1000, (
+                               notify_all_time - push_que_time) * 1000,
+                           channeldata.get_size()))
             _LOGGER.debug(
                 self._log(
                     "(data_id={} log_id={}) Op({}) Pushed data into internal queue.".
@@ -414,10 +438,15 @@ class ProcessChannel(object):
             os._exit(-1)
         elif len(self._consumer_cursors) == 1:
             resp = None
+            time_1 = int(round(_time() * 1000000))
+            time_2 = time_1
+            time_3 = time_2
             with self._cv:
+                time_2 = int(round(_time() * 1000000))
                 while self._stop.value == 0 and resp is None:
                     try:
                         resp = self._que.get(timeout=0)[1]
+                        time_3 = int(round(_time() * 1000000))
                         break
                     except Queue.Empty:
                         if timeout is not None:
@@ -432,7 +461,12 @@ class ProcessChannel(object):
                             self._cv.wait()
                 if self._stop.value == 1:
                     raise ChannelStopError()
-
+            key = list(resp.keys())[0]
+            data_id = resp[key].id
+            _LOGGER.debug(
+                "(data_id={}) op({}) front cost enter_cv:{} ms, queue_get:{} ms".
+                format(data_id, op_name, (time_2 - time_1) / 1000.0, (
+                    time_3 - time_2) / 1000.0))
             if resp is not None:
                 list_values = list(resp.values())
                 _LOGGER.debug(
@@ -485,6 +519,7 @@ class ProcessChannel(object):
             if self._stop.value == 1:
                 raise ChannelStopError()
 
+            time_1 = int(round(_time() * 1000000))
             consumer_cursor = self._consumer_cursors[op_name]
             base_cursor = self._base_cursor.value
             data_idx = consumer_cursor - base_cursor
@@ -519,6 +554,8 @@ class ProcessChannel(object):
             self._cursor_count[new_consumer_cursor] += 1
 
             self._cv.notify_all()
+            time_2 = int(round(_time() * 1000000))
+            #_LOGGER.warning("self._cv logic cost:{}".format(time2 - time1))
 
         if resp is not None:
             list_values = list(resp.values())

@@ -123,7 +123,7 @@ class Op(object):
         if self._auto_batching_timeout is None:
             self._auto_batching_timeout = conf["auto_batching_timeout"]
         if self._auto_batching_timeout <= 0 or self._batch_size == 1:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 self._log(
                     "Because auto_batching_timeout <= 0 or batch_size == 1,"
                     " set auto_batching_timeout to None."))
@@ -1005,6 +1005,7 @@ class Op(object):
                 for idx in range(batch_size):
                     try:
                         channeldata_dict = None
+                        front_start_time = int(round(_time() * 1000000))
                         if timeout is not None:
                             remaining = endtime - _time()
                             if remaining <= 0.0:
@@ -1017,8 +1018,8 @@ class Op(object):
                             channeldata_dict = input_channel.front(op_name)
                         batch.append(channeldata_dict)
                         _LOGGER.debug(
-                            "_auto_batching_generator get {} channeldata from op:{} into batch, batch_size:{}".
-                            format(idx, op_name, batch_size))
+                            "_auto_batching_generator get {} channeldata from op:{} input channel. time={}".
+                            format(idx, op_name, front_start_time))
                     except ChannelTimeoutError:
                         _LOGGER.debug("{} Failed to generate batch: "
                                       "timeout".format(op_info_prefix))
@@ -1152,6 +1153,13 @@ class Op(object):
                 # data in the whole batch is all error data
                 continue
 
+            # print
+            front_cost = int(round(_time() * 1000000)) - start
+            for data_id, parsed_data in parsed_data_dict.items():
+                _LOGGER.debug(
+                    "(data_id={}) POP INPUT CHANNEL! op:{}, cost:{} ms".format(
+                        data_id, self.name, front_cost / 1000.0))
+
             # preprecess
             start = profiler.record("prep#{}_0".format(op_info_prefix))
             preped_data_dict, err_channeldata_dict, skip_process_dict \
@@ -1199,6 +1207,7 @@ class Op(object):
                     = self._run_postprocess(parsed_data_dict, midped_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
+            after_postp_time = _time()
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1212,7 +1221,6 @@ class Op(object):
                 break
             if len(postped_data_dict) == 0:
                 continue
-
             # push data to channel (if run succ)
             start = int(round(_time() * 1000000))
             try:
@@ -1226,12 +1234,21 @@ class Op(object):
                         profile_str=profile_str,
                         client_need_profile=need_profile_dict[data_id],
                         profile_set=profile_dict[data_id])
+                    after_outchannel_time = _time()
+                    _LOGGER.debug(
+                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
+                        format(data_id, self.name, (after_outchannel_time -
+                                                    after_postp_time) * 1000))
+                    _LOGGER.debug(
+                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push data:{}".
+                        format(data_id, self.name, postped_data.get_all_data()))
             except ChannelStopError:
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
             out_time = end - start
+            after_outchannel_time = int(round(_time() * 1000000))
             if trace_buffer is not None:
                 trace_que.append({
                     "name": self.name,
@@ -1345,14 +1362,7 @@ class RequestOp(Op):
             raise ValueError("request is None")
 
         for idx, key in enumerate(request.key):
-            data = request.value[idx]
-            try:
-                evaled_data = eval(data)
-                if isinstance(evaled_data, np.ndarray):
-                    data = evaled_data
-            except Exception as e:
-                pass
-            dict_data[key] = data
+            dict_data[key] = request.value[idx]
         log_id = request.logid
         _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
             name:{}, method:{}".format(log_id, request.clientip, request.name,
