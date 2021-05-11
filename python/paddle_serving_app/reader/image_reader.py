@@ -415,7 +415,7 @@ class RCNNPostprocess(object):
         out_path = os.path.join(self.output_dir, image_path)
         image.save(out_path, quality=95)
 
-    def __call__(self, image_with_bbox):
+    def __call__(self, image_with_bbox, visualize=True):
         fetch_name = ""
         for key in image_with_bbox:
             if key == "image":
@@ -427,6 +427,8 @@ class RCNNPostprocess(object):
                                             self.clsid2catid)
         if os.path.isdir(self.output_dir) is False:
             os.mkdir(self.output_dir)
+        if visualize is False:
+            return bbox_result
         self.visualize(image_with_bbox["image"], bbox_result, self.catid2name,
                        len(self.label_list))
         if os.path.isdir(self.output_dir) is False:
@@ -434,6 +436,7 @@ class RCNNPostprocess(object):
         bbox_file = os.path.join(self.output_dir, 'bbox.json')
         with open(bbox_file, 'w') as f:
             json.dump(bbox_result, f, indent=4)
+        return bbox_result
 
     def __repr__(self):
         return self.__class__.__name__ + "label_file: {1}, output_dir: {2}".format(
