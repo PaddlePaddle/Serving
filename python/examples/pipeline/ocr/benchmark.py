@@ -63,7 +63,6 @@ def run_http(idx, batch_size):
     print("start thread ({})".format(idx))
     url = "http://127.0.0.1:9999/ocr/prediction"
     start = time.time()
-
     test_img_dir = "imgs/"
     #test_img_dir = "rctw_test/images/"
     latency_list = []
