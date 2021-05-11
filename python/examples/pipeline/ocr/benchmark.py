@@ -63,7 +63,8 @@ def run_http(idx, batch_size):
     print("start thread ({})".format(idx))
     url = "http://127.0.0.1:9999/ocr/prediction"
     start = time.time()
-    test_img_dir = "rctw_test/images/"
+    test_img_dir = "imgs/"
+    #test_img_dir = "rctw_test/images/"
     latency_list = []
     total_number = 0
     for img_file in os.listdir(test_img_dir):
@@ -106,8 +107,8 @@ def run_rpc(thread, batch_size):
     client = PipelineClient()
     client.connect(['127.0.0.1:18090'])
     start = time.time()
-    #test_img_dir = "imgs/"
-    test_img_dir = "rctw_test/images/"
+    test_img_dir = "imgs/"
+    #test_img_dir = "rctw_test/images/"
     latency_list = []
     total_number = 0
     for img_file in os.listdir(test_img_dir):
