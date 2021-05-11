@@ -38,7 +38,7 @@ We can see that the `serving_server` and `serving_client` folders hold the serve
 Start the server (GPU)
 
 ```
-python -m paddle_serving_server_gpu.serve --model serving_server --port 9393 --gpu_id 0
+python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_id 0
 ```
 
 Client (`test_client.py`)

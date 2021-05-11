@@ -50,7 +50,7 @@ pip install paddle-server-server==${VERSION}.post11
 ```
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn_r50_fpn_1x_coco.tar
 tar xf faster_rcnn_r50_fpn_1x_coco.tar
-python -m paddle_serving_server_gpu.serve --model serving_server --port 9494 --gpu_ids 0 --use_trt
+python -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_ids 0 --use_trt
 ```
 TensorRT版本的faster_rcnn模型服务端就启动了
 

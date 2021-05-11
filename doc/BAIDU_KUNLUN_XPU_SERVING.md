@@ -80,15 +80,15 @@ The first two deployment methods are recommended。
 
 Start the rpc service, deploying on ARM server with Baidu Kunlun chips，and accelerate with Paddle-Lite and Baidu Kunlun xpu.
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --use_xpu --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --use_xpu --ir_optim
 ```
 Start the rpc service, deploying on ARM server，and accelerate with Paddle-Lite.
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --ir_optim
 ```
 Start the rpc service, deploying on ARM server.
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292
 ```
 ## 
 ```
