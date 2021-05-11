@@ -52,7 +52,7 @@ python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #c
 ```
 Or,start gpu inference service,Run
 ```
-python -m paddle_serving_server_gpu.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
+python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
 ```
 | Parameters | Meaning                                  |
 | ---------- | ---------------------------------------- |

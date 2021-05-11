@@ -76,15 +76,15 @@ tar -xzf uci_housing.tar.gz
 
 启动rpc服务，使用arm cpu+xpu部署，使用Paddle-Lite xpu优化加速能力
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --use_xpu --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --use_xpu --ir_optim
 ```
 启动rpc服务，使用arm cpu部署, 使用Paddle-Lite加速能力
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292 --use_lite --ir_optim
 ```
 启动rpc服务，使用arm cpu部署, 不使用Paddle-Lite加速能力
 ```
-python3 -m paddle_serving_server_gpu.serve --model uci_housing_model --thread 6 --port 9292
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 6 --port 9292
 ```
 ## client调用
 ```
