@@ -31,7 +31,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.0.1")
+SET(PADDLE_VERSION "2.1.0")
 if (WITH_GPU)
     if(CUDA_VERSION EQUAL 11.0)
         set(CUDA_SUFFIX "cuda11-cudnn8-avx-mkl")
