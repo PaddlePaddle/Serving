@@ -1,0 +1,32 @@
+
+cuda_version: "10.1"
+cudnn_version: "7.6"
+trt_version: "6.0"
+python_version: "3.7"
+gcc_version: "8.2"
+paddle_version: "2.0.2"
+
+cpu: "Xeon 6148"
+gpu: "P4"
+xpu: "None"
+api: ""
+owner: "wangjiawei04"
+
+model_name: "ppyolo"
+model_type: "static"
+model_source: "paddledetection"
+model_url: ""
+
+batch_size: 1
+num_of_samples: 1000
+input_shape: "3, 480, 640"
+
+runtime_device: "gpu"
+ir_optim: true
+enable_memory_optim: true
+enable_tensorrt: false
+precision: "fp32"
+enable_mkldnn: true
+cpu_math_library_num_threads: ""
+
+
