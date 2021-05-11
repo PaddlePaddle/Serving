@@ -68,19 +68,40 @@ def run_http(idx, batch_size):
     latency_list = []
     total_number = 0
     for img_file in os.listdir(test_img_dir):
+        l_start = time.time()
         with open(os.path.join(test_img_dir, img_file), 'rb') as file:
             image_data1 = file.read()
         image = cv2_to_base64(image_data1)
         data = {"key": ["image"], "value": [image]}
-        for i in range(100):
-            r = requests.post(url=url, data=json.dumps(data))
+        #for i in range(100):
+        r = requests.post(url=url, data=json.dumps(data))
+        print(r.json())
         end = time.time()
-    return [[end - start]]
+        l_end = time.time()
+        latency_list.append(l_end * 1000 - l_start * 1000)
+        total_number = total_number + 1
+    return [[end - start], latency_list, [total_number]]
 
 
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
     result = multi_thread_runner.run(run_http, thread, batch_size)
+    start = time.time()
+    result = multi_thread_runner.run(run_http, thread, batch_size)
+    end = time.time()
+    total_cost = end - start
+    avg_cost = 0
+    total_number = 0
+    for i in range(thread):
+        avg_cost += result[0][i]
+        total_number += result[2][i]
+    avg_cost = avg_cost / thread
+    print("Total cost: {}s".format(total_cost))
+    print("Each thread cost: {}s. ".format(avg_cost))
+    print("Total count: {}. ".format(total_number))
+    print("AVG QPS: {} samples/s".format(batch_size * total_number /
+                                         total_cost))
+    show_latency(result[1])
 
 
 def run_rpc(thread, batch_size):
@@ -92,19 +113,38 @@ def run_rpc(thread, batch_size):
     latency_list = []
     total_number = 0
     for img_file in os.listdir(test_img_dir):
+        l_start = time.time()
         with open(os.path.join(test_img_dir, img_file), 'rb') as file:
             image_data = file.read()
         image = cv2_to_base64(image_data)
-
-        for i in range(100):
-            ret = client.predict(feed_dict={"image": image}, fetch=["res"])
+        ret = client.predict(feed_dict={"image": image}, fetch=["res"])
+        print(ret)
+        l_end = time.time()
+        latency_list.append(l_end * 1000 - l_start * 1000)
+        total_number = total_number + 1
     end = time.time()
-    return [[end - start]]
+    return [[end - start], latency_list, [total_number]]
 
 
 def multithread_rpc(thraed, batch_size):
     multi_thread_runner = MultiThreadRunner()
     result = multi_thread_runner.run(run_rpc, thread, batch_size)
+    start = time.time()
+    result = multi_thread_runner.run(run_rpc, thread, batch_size)
+    end = time.time()
+    total_cost = end - start
+    avg_cost = 0
+    total_number = 0
+    for i in range(thread):
+        avg_cost += result[0][i]
+        total_number += result[2][i]
+    avg_cost = avg_cost / thread
+    print("Total cost: {}s".format(total_cost))
+    print("Each thread cost: {}s. ".format(avg_cost))
+    print("Total count: {}. ".format(total_number))
+    print("AVG QPS: {} samples/s".format(batch_size * total_number /
+                                         total_cost))
+    show_latency(result[1])
 
 
 if __name__ == "__main__":
