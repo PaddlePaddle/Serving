@@ -39,7 +39,8 @@ go get -u google.golang.org/grpc@v1.33.0
 build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
-criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt)
+criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
+low_precision_resnet50_int8)
 http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http\
 pipeline_ocr_cpu_http)
 
@@ -148,7 +149,7 @@ function before_hook() {
     setproxy
     unsetproxy
     cd ${build_path}/python
-    python3.6 -m pip install --upgrade pip==20.0.1
+    python3.6 -m pip install --upgrade pip
     python3.6 -m pip install requests
     python3.6 -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
     python3.6 -m pip install numpy==1.16.4
@@ -258,6 +259,22 @@ function build_app() {
     cp ${build_path}/build/python/dist/* ../
     python3.6 -m pip uninstall paddle-serving-app -y
     python3.6 -m pip install ${build_path}/build/python/dist/*
+}
+
+function low_precision_resnet50_int8 () {
+    dir=${log_dir}rpc_model/low_precision/resnet50/
+    cd ${build_path}/python/examples/low_precision/resnet50/
+    check_dir ${dir}
+    wget https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz
+    tar zxvf ResNet50_quant.tar.gz
+    python3.6 -m paddle_serving_client.convert --dirname ResNet50_quant
+    echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
+    python3.6 -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 > ${dir}server_log.txt 2>&1 &
+    check_result server 10
+    echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
+    python3.6 resnet50_client.py > ${dir}client_log.txt 2>&1
+    check_result client "low_precision_resnet50_int8_GPU_RPC server test completed"
+    kill_server_process
 }
 
 function faster_rcnn_hrnetv2p_w18_1x_encrypt() {
