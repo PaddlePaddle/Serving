@@ -45,6 +45,7 @@ class DetOp(Op):
         imgs = []
         for key in input_dict.keys():
             data = base64.b64decode(input_dict[key].encode('utf8'))
+            self.raw_im = data
             data = np.frombuffer(data, np.uint8)
             self.im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             self.ori_h, self.ori_w, _ = self.im.shape
@@ -61,7 +62,7 @@ class DetOp(Op):
         ]
         dt_boxes_list = self.post_func(det_out, [ratio_list])
         dt_boxes = self.filter_func(dt_boxes_list[0], [self.ori_h, self.ori_w])
-        out_dict = {"dt_boxes": dt_boxes, "image": self.im}
+        out_dict = {"dt_boxes": dt_boxes, "image": self.raw_im}
         return out_dict, None, ""
 
 
@@ -73,7 +74,9 @@ class RecOp(Op):
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
-        im = input_dict["image"]
+        raw_im = input_dict["image"]
+        data = np.frombuffer(raw_im, np.uint8)
+        im = cv2.imdecode(data, cv2.IMREAD_COLOR)
         dt_boxes = input_dict["dt_boxes"]
         dt_boxes = self.sorted_boxes(dt_boxes)
         feed_list = []
@@ -99,7 +102,7 @@ class RecOp(Op):
         """
 
         ## Many mini-batchs, the type of feed_data is list.
-        max_batch_size = 6  # len(dt_boxes)
+        max_batch_size = len(dt_boxes)
 
         # If max_batch_size is 0, skipping predict stage
         if max_batch_size == 0:
