@@ -357,7 +357,9 @@ function pipeline_imagenet() {
     python3.6 resnet50_web_service.py > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
+    timeout 30s python3.6 pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
+    echo "pipeline_log:-----------"
+    cat PipelineServingLogs/pipeline.log
     check_result client "pipeline_imagenet_GPU_RPC server test completed"
     nvidia-smi
     kill_server_process
