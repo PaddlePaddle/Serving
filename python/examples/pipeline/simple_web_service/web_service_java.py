@@ -36,7 +36,7 @@ class UciOp(Op):
         _LOGGER.error("UciOp::preprocess >>> log_id:{}, input:{}".format(
             log_id, input_dict))
         proc_dict = {}
-        x_value = input_dict["x"]
+        x_value = eval(input_dict["x"])
         input_dict["x"] = x_value.reshape(1, 13)
 
         return input_dict, False, None, ""
