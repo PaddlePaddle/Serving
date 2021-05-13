@@ -162,7 +162,7 @@ function run_env() {
     python3.6 -m pip install --upgrade nltk==3.4
     python3.6 -m pip install --upgrade scipy==1.2.1
     python3.6 -m pip install --upgrade setuptools==41.0.0
-    python3.6 -m pip install paddlehub ujson paddlepaddle==2.0.0
+    python3.6 -m pip install paddlehub ujson paddlepaddle==2.0.2
     echo "run env configuration is successful.... "
 }
 
@@ -245,7 +245,7 @@ function build_client() {
 function build_app() {
     setproxy
     python3.6 -m pip install paddlehub ujson Pillow
-    python3.6 -m pip install paddlepaddle==2.0.0
+    python3.6 -m pip install paddlepaddle==2.0.2
     cd ${build_path}
     if [ -d build ];then
         rm -rf build
