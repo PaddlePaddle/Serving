@@ -54,7 +54,7 @@ python ocr_web_client.py
 ```
 # filename:your_webservice.py
 from paddle_serving_server.web_service import WebService
-# 如果是GPU版本，请使用 from paddle_serving_server_gpu.web_service import WebService
+# 如果是GPU版本，请使用 from paddle_serving_server.web_service import WebService
 class YourWebService(WebService):
     def preprocess(self, feed=[], fetch=[]):
         #在这里实现前处理

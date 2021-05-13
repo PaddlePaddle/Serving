@@ -37,7 +37,7 @@ python -m paddle_serving_client.convert --dirname . --model_filename dygraph_mod
 
 启动服务端（GPU）
 ```
-python -m paddle_serving_server_gpu.serve --model serving_server --port 9393 --gpu_id 0
+python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_id 0
 ```
 
 客户端写法，保存为`test_client.py`

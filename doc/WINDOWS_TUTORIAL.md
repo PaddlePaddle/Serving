@@ -54,7 +54,7 @@ Currently Windows supports the Local Predictor of the Web Service framework. The
 ```
 # filename:your_webservice.py
 from paddle_serving_server.web_service import WebService
-# If it is the GPU version, please use from paddle_serving_server_gpu.web_service import WebService
+# If it is the GPU version, please use from paddle_serving_server.web_service import WebService
 class YourWebService(WebService):
     def preprocess(self, feed=[], fetch=[]):
         #Implement pre-processing here
