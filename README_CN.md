@@ -164,18 +164,19 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 ```
 <center>
 
-| Argument | Type | Default | Description |
-|--------------|------|-----------|--------------------------------|
-| `thread` | int | `4` | Concurrency of current service |
-| `port` | int | `9292` | Exposed port of current service to users|
-| `name` | str | `""` | Service name, can be used to generate HTTP request url |
-| `model` | str | `""` | Path of paddle model directory to be served |
-| `mem_optim_off` | - | - | Disable memory optimization |
-| `ir_optim` | - | - | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version) | - | - | Run inference with MKL |
-| `use_trt` (Only for Cuda>=10.1 version) | - | - | Run inference with TensorRT  |
-| `use_lite` (Only for ARM) | - | - | Run PaddleLite inference |
-| `use_xpu` (Only for ARM+XPU) | - | - | Run PaddleLite XPU inference |
+| Argument                                       | Type | Default | Description                                            |
+| ---------------------------------------------- | ---- | ------- | ------------------------------------------------------ |
+| `thread`                                       | int  | `4`     | Concurrency of current service                         |
+| `port`                                         | int  | `9292`  | Exposed port of current service to users               |
+| `name`                                         | str  | `""`    | Service name, can be used to generate HTTP request url |
+| `model`                                        | str  | `""`    | Path of paddle model directory to be served            |
+| `mem_optim_off`                                | -    | -       | Disable memory optimization                            |
+| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph  |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                 |
+| `use_trt` (Only for Cuda>=10.1 version)        | -    | -       | Run inference with TensorRT                            |
+| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                               |
+| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU         |
+| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8               |
 
 </center>
 
