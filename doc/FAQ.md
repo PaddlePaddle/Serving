@@ -124,6 +124,20 @@ pip install -r python/requirements.txt
 
 **A:** 没有安装JDK，或者JAVA_HOME路径配置错误（正确配置是JDK路径，常见错误配置成JRE路径，例如正确路径参考JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/"）。Java JDK安装参考https://segmentfault.com/a/1190000015389941
 
+#### Q: 编译过程报错 /usr/local/bin/ld: cannot find -lbz2
+```
+/usr/local/bin/ld: cannot find -lbz2
+collect2: error: ld returned 1 exit status
+core/general-server/CMakeFiles/serving.dir/build.make:276: recipe for target 'core/general-server/serving' failed
+make[2]: *** [core/general-server/serving] Error 1
+CMakeFiles/Makefile2:1181: recipe for target 'core/general-server/CMakeFiles/serving.dir/all' failed
+make[1]: *** [core/general-server/CMakeFiles/serving.dir/all] Error 2
+Makefile:129: recipe for target 'all' failed
+make: *** [all] Error 2
+```
+
+**A:** 运行命令安装libbz2: apt install libbz2-dev
+
 ## 环境问题
 
 #### Q：使用过程中出现CXXABI错误。
