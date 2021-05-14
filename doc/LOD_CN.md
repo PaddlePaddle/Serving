@@ -4,7 +4,9 @@
 
 ## 概念
 
-LoD(Level-of-Detail) Tensor是Paddle的高级特性，是对Tensor的一种扩充。LoDTensor通过牺牲灵活性来提升训练的效率。
+Tensor以及Padding的概念说明请参考[PaddlePaddle官网说明](https://www.paddlepaddle.org.cn/documentation/docs/zh/1.8/beginners_guide/basic_concept/tensor.html)
+
+LoD(Level-of-Detail) Tensor是Paddle的高级特性，是对Tensor的一种扩充。LoDTensor通过牺牲灵活性来提升训练的效率,减少padding带来的数据扩充的影响。
 
 **注：** 对于大部分用户来说，无需关注LoDTensor的用法，目前Serving中仅支持一维Lod的用法。
 
