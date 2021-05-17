@@ -56,4 +56,4 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 - 使用serving_uci的路径映射到网关
 - 在header处增加了 `X-INSTANCE-ID`和`apikey`
 
-
+## TODO:K8S
