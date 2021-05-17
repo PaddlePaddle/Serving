@@ -32,18 +32,17 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 
 其中我们之前serving容器 以 9393端口暴露，KONG网关的端口是8443， KONG的Web控制台的端口是8001。接下来我们在浏览器访问 `https://$IP_ADDR:8001`, 其中 IP_ADDR就是宿主机的IP。
 
-[kong_dashboard](./kong-dashboard.png)
-
+<img src="kong-dashboard.png">
 可以看到在注册结束后，登陆，看到了 DASHBOARD，我们先看SERVICES，可以看到`serving_service`，这意味着我们端口在9393的Serving服务已经在KONG当中被注册。
 
-[kong_services](./kong-services.png)
-[kong_routes](./kong-routes.png)
+<img src="kong-services.png">
+<img src="kong-routes.png">
 
 然后在ROUTES中，我们可以看到 serving 被链接到了 `/serving-uci`。
 
 最后我们点击 CONSUMERS - default_user - Credentials - API KEYS ，我们可以看到 `Api Keys` 下看到很多key
 
-[kong_api_keys](./kong-api_keys.png)
+<img src="kong-api_keys.png">
 
 接下来可以通过curl访问
 
