@@ -85,29 +85,27 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 
 ```
 # 启动 CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 
 ```shell
-pip install paddle-serving-client==0.5.0
-pip install paddle-serving-server==0.5.0 # CPU
-pip install paddle-serving-app==0.3.0
-pip install paddle-serving-server-gpu==0.5.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip install paddle-serving-client==0.6.0
+pip install paddle-serving-server==0.6.0 # CPU
+pip install paddle-serving-app==0.6.0
+pip install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
 # 其他GPU环境需要确认环境再选择执行哪一条
-pip install paddle-serving-server-gpu==0.5.0.post9 # GPU with CUDA9.0 
-pip install paddle-serving-server-gpu==0.5.0.post10 # GPU with CUDA10.0 
-pip install paddle-serving-server-gpu==0.5.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
+pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -116,16 +114,18 @@ pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + Tensor
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
-paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6/3.7/3.8。
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
 
-推荐安装2.0.0及以上版本的paddle
+**最新的0.6.0的版本，已经不支持Cuda 9.0和Cuda 10.0，Python已不支持2.7和3.5。**
+
+推荐安装2.1.0及以上版本的paddle
 
 ```
 # CPU环境请执行
-pip install paddlepaddle==2.0.0
+pip install paddlepaddle==2.1.0
 
 # GPU Cuda10.2环境请执行
-pip install paddlepaddle-gpu==2.0.0
+pip install paddlepaddle-gpu==2.1.0
 ```
 
 **注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
