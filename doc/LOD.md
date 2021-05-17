@@ -4,7 +4,9 @@
 
 ## Principle
 
-LoD(Level-of-Detail) Tensor is an advanced feature of paddle and an extension of tensor. LoD Tensor improves training efficiency by sacrificing flexibility.
+Explanation of Tensor and Padding, Please refer to [paddlepaddle official website description](https://www.paddlepaddle.org.cn/documentation/docs/zh/1.8/beginners_guide/basic_concept/tensor.html).
+
+LoD(Level-of-Detail) Tensor is an advanced feature of paddle and an extension of tensor. LoD Tensor improves training efficiency by sacrificing flexibility, reducing the impact of data expansion brought by padding.
 
 **Notice：** For most users, there is no need to pay attention to the usage of LoD Tensor. Currently, serving only supports the usage of one-dimensional LOD.
 
