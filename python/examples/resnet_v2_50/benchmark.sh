@@ -1,10 +1,10 @@
 rm profile_log*
 rm -rf resnet_log*
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 #export FLAGS_profile_server=1
 #export FLAGS_profile_client=1
 export FLAGS_serving_latency=1 
-gpu_id=0
+gpu_id=3
 #save cpu and gpu utilization log
 if [ -d utilization ];then
     rm -rf utilization
@@ -12,19 +12,19 @@ else
     mkdir utilization
 fi
 #start server
-python3.6 -m paddle_serving_server.serve --model $1 --port 9393 --thread 10 --gpu_ids 0  --use_trt --ir_optim >  elog  2>&1 &
-sleep 20
+python3.6 -m paddle_serving_server.serve --model $1 --port 9393 --thread 10 --gpu_ids $gpu_id  --use_trt --ir_optim >  elog  2>&1 &
+sleep 15
 
 #warm up
 python3.6 benchmark.py --thread 1 --batch_size 1 --model $2/serving_client_conf.prototxt --request rpc > profile 2>&1
 echo -e "import psutil\nimport time\nwhile True:\n\tcpu_res = psutil.cpu_percent()\n\twith open('cpu.txt', 'a+') as f:\n\t\tf.write(f'{cpu_res}\\\n')\n\ttime.sleep(0.1)" > cpu.py
-for thread_num in 1
+for thread_num in 1 2 4 8
 do
 for batch_size in 1
 do
     job_bt=`date '+%Y%m%d%H%M%S'`
-    nvidia-smi --id=0 --query-compute-apps=used_memory --format=csv -lms 100 > gpu_memory_use.log 2>&1 &
-    nvidia-smi --id=0 --query-gpu=utilization.gpu --format=csv -lms 100 > gpu_utilization.log 2>&1 &
+    nvidia-smi --id=$gpu_id --query-compute-apps=used_memory --format=csv -lms 100 > gpu_memory_use.log 2>&1 &
+    nvidia-smi --id=$gpu_id --query-gpu=utilization.gpu --format=csv -lms 100 > gpu_utilization.log 2>&1 &
     rm -rf cpu.txt
     python3.6 cpu.py &
     gpu_memory_pid=$!
