@@ -65,5 +65,5 @@ class PPYoloMbv(WebService):
 
 
 ppyolo_mbv3_service = PPYoloMbv(name="ppyolo_mbv3")
-ppyolo_mbv3_service.prepare_pipeline_config("config2.yml")
+ppyolo_mbv3_service.prepare_pipeline_config("config.yml")
 ppyolo_mbv3_service.run_service()
