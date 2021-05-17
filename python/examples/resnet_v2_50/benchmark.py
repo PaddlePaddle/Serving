@@ -56,9 +56,13 @@ def single_func(idx, resource):
                 ])
                 image_file = "daisy.jpg"
                 img = seq(image_file)
+                feed_data = np.array(img)
+                feed_data = np.expand_dims(feed_data, 0).repeat(
+                    args.batch_size, axis=0)
                 result = client.predict(
-                    feed={"image": img},
-                    fetch=["save_infer_model/scale_0.tmp_0"])
+                    feed={"image": feed_data},
+                    fetch=["save_infer_model/scale_0.tmp_0"],
+                    batch=True)
                 l_end = time.time()
                 if latency_flags:
                     latency_list.append(l_end * 1000 - l_start * 1000)
