@@ -70,5 +70,5 @@ class ImageService(WebService):
 
 
 uci_service = ImageService(name="imagenet")
-uci_service.prepare_pipeline_config("config2.yml")
+uci_service.prepare_pipeline_config("config.yml")
 uci_service.run_service()

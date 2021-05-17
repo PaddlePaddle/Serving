@@ -64,5 +64,5 @@ class Yolov3Service(WebService):
 
 
 yolov3_service = Yolov3Service(name="yolov3")
-yolov3_service.prepare_pipeline_config("config2.yml")
+yolov3_service.prepare_pipeline_config("config.yml")
 yolov3_service.run_service()
