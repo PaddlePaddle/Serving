@@ -20,7 +20,7 @@ python3.6 benchmark.py --thread 1 --batch_size 1 --model $2/serving_client_conf.
 echo -e "import psutil\nimport time\nwhile True:\n\tcpu_res = psutil.cpu_percent()\n\twith open('cpu.txt', 'a+') as f:\n\t\tf.write(f'{cpu_res}\\\n')\n\ttime.sleep(0.1)" > cpu.py
 for thread_num in 1 2 4 8
 do
-for batch_size in 1
+for batch_size in 1 4 8 16 32 64
 do
     job_bt=`date '+%Y%m%d%H%M%S'`
     nvidia-smi --id=$gpu_id --query-compute-apps=used_memory --format=csv -lms 100 > gpu_memory_use.log 2>&1 &
