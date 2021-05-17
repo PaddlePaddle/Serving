@@ -1,6 +1,6 @@
 export FLAGS_profile_pipeline=1
 alias python3="python3.6"
-modelname="clas-DarkNet53"
+modelname="clas-MobileNetV1"
 
 # HTTP
 #ps -ef | grep web_service | awk '{print $2}' | xargs kill -9
