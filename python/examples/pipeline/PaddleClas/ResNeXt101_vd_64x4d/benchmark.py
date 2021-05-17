@@ -53,18 +53,39 @@ def run_http(idx, batch_size):
         keys.append("image_{}".format(i))
         values.append(image)
     data = {"key": keys, "value": values}
+    latency_list = []
     start_time = time.time()
+    total_num = 0
     while True:
+        l_start = time.time()
         r = requests.post(url=url, data=json.dumps(data))
         print(r.json())
+        l_end = time.time()
+        latency_list.append(l_end * 1000 - l_start * 1000)
+        total_num += 1
         if time.time() - start_time > 20:
             break
     end = time.time()
-    return [[end - start]]
+    return [[end - start], latency_list, [total_num]]
 
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(run_http , thread, batch_size)
+    start = time.time()
+    result = multi_thread_runner.run(run_http, thread, batch_size)
+    end = time.time()
+    total_cost = end - start
+    avg_cost = 0
+    total_number = 0
+    for i in range(thread):
+        avg_cost += result[0][i]
+        total_number += result[2][i]
+    avg_cost = avg_cost / thread
+    print("Total cost: {}s".format(total_cost))
+    print("Each thread cost: {}s. ".format(avg_cost))
+    print("Total count: {}. ".format(total_number))
+    print("AVG QPS: {} samples/s".format(batch_size * total_number /
+                                         total_cost))
+    show_latency(result[1])
 
 def run_rpc(thread, batch_size):
     client = PipelineClient()
