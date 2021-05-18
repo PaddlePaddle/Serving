@@ -3,12 +3,13 @@
 ([English](./README.md)|简体中文)
 
 本文档将以 OCR 为例，介绍如何使用 Pipeline WebService 启动多模型串联的服务。
+本示例仅支持进程OP模式。
 
 ## 获取模型
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
@@ -19,13 +20,15 @@ tar xf test_imgs.tar
 ```
 
 ## 启动 WebService
+
+### 1.启动单server、单client
 ```
-python web_service.py &>log.txt &
+python3 web_service.py &>log.txt &
 ```
 
 ## 测试
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 
 <!--
@@ -36,12 +39,22 @@ python pipeline_http_client.py
 ### RPC
 
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
 
 ### HTTP
 
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 -->
+
+### 2.启动 benchmark
+```
+python3 web_service.py &>log.txt &
+```
+
+Test
+```
+sh benchmark.sh
+```

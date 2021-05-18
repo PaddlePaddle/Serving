@@ -726,6 +726,42 @@ There are two kinds of IDs in the pipeline for concatenating requests, `data_id`
 
 The log printed by the Pipeline framework will carry both data_id and log_id. After auto-batching is turned on, the first `data_id` in the batch will be used to mark the whole batch, and the framework will print all data_ids in the batch in a log.
 
+
+### 5.2 Log Rotating
+Log module of Pipeline Serving is defined in file `logger.py`.`logging.handlers.RotatingFileHandler` is used to support the rotation of disk log files. Set `maxBytes` and `backupCount` according to different file levels and daily quality. When the predetermined size is about to be exceeded, the old file will be closed and a new file will be opened for output.
+
+
+```python
+"handlers": {
+    "f_pipeline.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log"),
+        "maxBytes": 512000000,
+        "backupCount": 20,
+    },
+    "f_pipeline.log.wf": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "WARNING",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log.wf"),
+        "maxBytes": 512000000,
+        "backupCount": 10,
+    },
+    "f_tracer.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "tracer_fmt",
+        "filename": os.path.join(log_dir, "pipeline.tracer"),
+        "maxBytes": 512000000,
+        "backupCount": 5,
+    },
+},
+```
+
+***
+
 ## 6.Performance analysis and optimization
 
 

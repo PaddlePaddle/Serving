@@ -10,7 +10,7 @@ sh get_model.sh
 ## Start server
 
 ```
-python3 resnet50_web_service.py &>log.txt &
+python3 web_service.py &>log.txt &
 ```
 
 ## RPC test
