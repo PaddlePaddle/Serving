@@ -64,5 +64,5 @@ class FasterRCNNService(WebService):
 
 
 fasterrcnn_service = FasterRCNNService(name="faster_rcnn")
-fasterrcnn_service.prepare_pipeline_config("config2.yml")
+fasterrcnn_service.prepare_pipeline_config("config.yml")
 fasterrcnn_service.run_service()
