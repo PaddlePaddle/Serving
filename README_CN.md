@@ -83,6 +83,8 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 
 **提示**：目前paddlepaddle 2.0版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
 
+**提示**：本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
+
 ```
 # 启动 CPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
@@ -195,8 +197,31 @@ print(fetch_map)
 ```
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
+<h3 align="center">Pipeline服务</h3>
+Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考[OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
+
+我们先获取两个模型
+```
+python -m paddle_serving_app.package --get_model ocr_rec
+tar -xzvf ocr_rec.tar.gz
+python -m paddle_serving_app.package --get_model ocr_det
+tar -xzvf ocr_det.tar.gz
+```
+然后启动服务端程序，将两个串联的模型作为一个整体的服务。
+```
+python web_service.py
+```
+最终使用http的方式请求
+```
+python pipeline_http_client.py
+```
+也支持rpc的方式
+```
+python pipeline_rpc_client.py
+```
+
 <h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录 `python/examples/fit_a_line`.
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
 
 ```
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
