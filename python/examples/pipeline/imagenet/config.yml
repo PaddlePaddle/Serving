@@ -31,3 +31,11 @@ op:
 
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["score"] 
+
+            #precsion, 预测精度，降低预测精度可提升推理速度
+            #GPU 支持: "fp32"(default), "fp16", "int8"；
+            #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
+            precision: "fp16"
+
+            #ir_optim开关
+            ir_optim: False
