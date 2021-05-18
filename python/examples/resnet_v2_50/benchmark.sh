@@ -1,8 +1,8 @@
 rm profile_log*
 rm -rf resnet_log*
 export CUDA_VISIBLE_DEVICES=0,1,2,3
-#export FLAGS_profile_server=1
-#export FLAGS_profile_client=1
+export FLAGS_profile_server=1
+export FLAGS_profile_client=1
 export FLAGS_serving_latency=1 
 gpu_id=3
 #save cpu and gpu utilization log
@@ -18,9 +18,9 @@ sleep 15
 #warm up
 python3.6 benchmark.py --thread 1 --batch_size 1 --model $2/serving_client_conf.prototxt --request rpc > profile 2>&1
 echo -e "import psutil\nimport time\nwhile True:\n\tcpu_res = psutil.cpu_percent()\n\twith open('cpu.txt', 'a+') as f:\n\t\tf.write(f'{cpu_res}\\\n')\n\ttime.sleep(0.1)" > cpu.py
-for thread_num in 1 2 4 8
+for thread_num in 1 2 4 8 16
 do
-for batch_size in 1 4 8 16 32 64
+for batch_size in 1 4 8 16 32
 do
     job_bt=`date '+%Y%m%d%H%M%S'`
     nvidia-smi --id=$gpu_id --query-compute-apps=used_memory --format=csv -lms 100 > gpu_memory_use.log 2>&1 &
@@ -47,7 +47,7 @@ do
     awk -F" " '{sum+=$1} END {print "GPU_UTILIZATION:", sum/NR, sum, NR }' gpu_utilization.log.tmp >> profile_log_$1
     rm -rf gpu_memory_use.log gpu_utilization.log gpu_utilization.log.tmp
     python3.6 ../util/show_profile.py profile $thread_num >> profile_log_$1
-    tail -n 9 profile >> profile_log_$1
+    tail -n 10 profile >> profile_log_$1
     echo "" >> profile_log_$1
 done
 done
