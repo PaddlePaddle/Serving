@@ -5,9 +5,10 @@ dag:
 http_port: 18082
 op:
   ppyolo_mbv3:
+    concurrency: 10
+
     local_service_conf:
       client_type: local_predictor
-      concurrency: 10
       device_type: 1
       devices: '2'
       fetch_list:
