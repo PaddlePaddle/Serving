@@ -19,9 +19,9 @@ Paddle Serving提供了用户友好的多模型组合服务编程框架，Pipeli
 
 Server端基于<b>RPC服务层</b>和<b>图执行引擎</b>构建，两者的关系如下图所示。
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image1.png' height = "250" align="middle"/>
-</center>
+</div>
 
 </n>
 
