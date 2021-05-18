@@ -2,12 +2,12 @@
 
 ([简体中文](PIPELINE_SERVING_CN.md)|English)
 
-- [Architecture Design](PIPELINE_SERVING.md#1.Architecture_Design)
-- [Detailed Design](PIPELINE_SERVING.md#2.Detailed_Design)
-- [Classic Examples](PIPELINE_SERVING.md#3.Classic_Examples)
-- [Advanced Usages](PIPELINE_SERVING.md#4.Advanced_Usages)
-- [Log Tracing](PIPELINE_SERVING.md#5.Log_Tracing)
-- [Performance Analysis And Optimization](PIPELINE_SERVING.md#6.Performance_analysis_and_optimization)
+- [Architecture Design](PIPELINE_SERVING.md#1architecture-design)
+- [Detailed Design](PIPELINE_SERVING.md#2detailed-design)
+- [Classic Examples](PIPELINE_SERVING.md#3classic-examples)
+- [Advanced Usages](PIPELINE_SERVING.md#4advanced-usages)
+- [Log Tracing](PIPELINE_SERVING.md#5log-tracing)
+- [Performance Analysis And Optimization](PIPELINE_SERVING.md#6performance-analysis-and-optimization)
 
 In many deep learning frameworks,  Serving is usually used for the deployment of single model.but in the context of AI industrial, the end-to-end deep learning model can not solve all the problems at present. Usually, it is necessary to use multiple deep learning models to solve practical problems.However, the design of multi-model applications is complicated. In order to reduce the difficulty of development and maintenance, and to ensure the availability of services, serial or simple parallel methods are usually used. In general, the throughput only reaches the usable state and the GPU utilization rate is low.
 
@@ -17,10 +17,9 @@ Paddle Serving provides a user-friendly programming framework for multi-model co
 
 The Server side is built based on <b>RPC Service</b> and <b>graph execution engine</b>. The relationship between them is shown in the following figure.
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image1.png' height = "250" align="middle"/>
-</center>
-
+</div>
 
 ### 1.1 RPC Service
 
@@ -61,9 +60,9 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - After Request data enters the graph execution engine service, the graph engine will generator an Request ID, and Reponse is returned through corresponding Request ID.
 - For cases where large data needs to be transferred between OPs, consider RAM DB external memory for global storage and data transfer by passing index keys in Channel.
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image2.png' height = "300" align="middle"/>
-</center>
+</div>
 
 
 #### <b>1.2.1 OP Design</b>
@@ -80,9 +79,9 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - Outputs from multiple OPs can be stored in the same Channel, and data from the same Channel can be used by multiple OPs.
 - The following illustration shows the design of Channel in the graph execution engine, using input buffer and output buffer to align data between multiple OP inputs and multiple OP outputs, with a queue in the middle to buffer.
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image3.png' height = "500" align="middle"/>
-</center>
+</div>
 
 
 #### <b>1.2.3 client type design</b>
@@ -111,6 +110,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
   - For input buffer, adjust the number of concurrencies of OP1 and OP2 according to the amount of computation, so that the number of input buffers from each input OP is relatively balanced. (The length of the input buffer depends on the speed at which each item in the internal queue is ready)
   - For output buffer, you can use a similar process as input buffer, which adjusts the concurrency of OP3 and OP4 to control the buffer length of output buffer. (The length of the output buffer depends on the speed at which downstream OPs obtain data from the output buffer)
   - The amount of data in the Channel will not exceed `worker_num` of gRPC, that is, it will not exceed the thread pool size.
+***
 
 ## 2.Detailed Design
 
@@ -322,9 +322,9 @@ All examples of pipelines are in [examples/pipeline/](../python/examples/pipelin
 
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image4.png' height = "200" align="middle"/>
-</center>
+</div>
 
 ### 3.1 Files required for pipeline deployment
 

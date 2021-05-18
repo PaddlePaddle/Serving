@@ -2,12 +2,12 @@
 
 (简体中文|[English](PIPELINE_SERVING.md))
 
-- [架构设计](PIPELINE_SERVING_CN.md#1.架构设计)
-- [详细设计](PIPELINE_SERVING_CN.md#2.详细设计)
-- [典型示例](PIPELINE_SERVING_CN.md#3.典型示例)
-- [高阶用法](PIPELINE_SERVING_CN.md#4.高阶用法)
-- [日志追踪](PIPELINE_SERVING_CN.md#5.日志追踪)
-- [性能分析与优化](PIPELINE_SERVING_CN.md#6.性能优化)
+- [架构设计](PIPELINE_SERVING_CN.md#1架构设计)
+- [详细设计](PIPELINE_SERVING_CN.md#2详细设计)
+- [典型示例](PIPELINE_SERVING_CN.md#3典型示例)
+- [高阶用法](PIPELINE_SERVING_CN.md#4高阶用法)
+- [日志追踪](PIPELINE_SERVING_CN.md#5日志追踪)
+- [性能分析与优化](PIPELINE_SERVING_CN.md#6性能分析与优化)
 
 
 在许多深度学习框架中，Serving通常用于单模型的一键部署。在AI工业大生产的背景下，端到端的深度学习模型当前还不能解决所有问题，多个深度学习模型配合起来使用还是解决现实问题的常规手段。但多模型应用设计复杂，为了降低开发和维护难度，同时保证服务的可用性，通常会采用串行或简单的并行方式，但一般这种情况下吞吐量仅达到可用状态，而且GPU利用率偏低。
@@ -19,9 +19,9 @@ Paddle Serving提供了用户友好的多模型组合服务编程框架，Pipeli
 
 Server端基于<b>RPC服务层</b>和<b>图执行引擎</b>构建，两者的关系如下图所示。
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image1.png' height = "250" align="middle"/>
-</center>
+</div>
 
 </n>
 
@@ -64,9 +64,9 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - Request 进入图执行引擎服务后会产生一个 Request Id，Reponse 会通过 Request Id 进行对应的返回
 - 对于 OP 之间需要传输过大数据的情况，可以考虑 RAM DB 外存进行全局存储，通过在 Channel 中传递索引的 Key 来进行数据传输
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image2.png' height = "300" align="middle"/>
-</center>
+</div>
 
 
 #### <b>1.2.1 OP的设计</b>
@@ -83,9 +83,9 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - Channel 可以支持多个OP的输出存储在同一个 Channel，同一个 Channel 中的数据可以被多个 OP 使用
 - 下图为图执行引擎中 Channel 的设计，采用 input buffer 和 output buffer 进行多 OP 输入或多 OP 输出的数据对齐，中间采用一个 Queue 进行缓冲
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image3.png' height = "500" align="middle"/>
-</center>
+</div>
 
 #### <b>1.2.3 预测类型的设计</b>
 
@@ -179,9 +179,7 @@ def __init__(name=None,
 
 
 
-
 ### 2.3 重写OP前后处理
-
 OP 二次开发的目的是满足业务开发人员控制OP处理策略。
 
 |                    变量或接口                    |                             说明                             |
@@ -319,6 +317,7 @@ class ResponseOp(Op):
 
 ## 3.典型示例
 所有Pipeline示例在[examples/pipeline/](../python/examples/pipeline) 目录下，目前有7种类型模型示例：
+- [PaddleClas](../python/examples/pipeline/PaddleClas) 
 - [Detection](../python/examples/pipeline/PaddleDetection)  
 - [bert](../python/examples/pipeline/bert)
 - [imagenet](../python/examples/pipeline/imagenet)
@@ -327,9 +326,10 @@ class ResponseOp(Op):
 - [simple_web_service](../python/examples/pipeline/simple_web_service)
 
 以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
-<center>
+
+<div align=center>
 <img src='pipeline_serving-image4.png' height = "200" align="middle"/>
-</center>
+</div>
 
 ### 3.1 Pipeline部署需要的文件
 需要五类文件，其中模型文件、配置文件、服务端代码是构建Pipeline服务必备的三个文件。测试客户端和测试数据集为测试准备
@@ -642,7 +642,7 @@ Pipeline支持批量推理，通过增大batch size可以提高GPU利用率。Pi
   - 指定一个块大小，从而缩小"极大"尺寸数据的作用范围
 - 场景3：合并多个请求数据批量推理(auto-batching)
   - 推理耗时明显长于前后处理，合并多个请求数据推理一次会提高吞吐和GPU利用率
-  - 要求多个request的数据的shape一致
+  - 要求多个request的数据的shape一致
 
 |                  接口                  |                    说明                     |
 | :------------------------------------------: | :-----------------------------------------: |
