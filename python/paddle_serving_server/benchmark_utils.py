@@ -57,7 +57,7 @@ class PaddleInferBenchmark(object):
                  'gpu_util': 60}
         """
         # PaddleInferBenchmark Log Version
-        self.log_version = "1.0.1"
+        self.log_version = "1.0.3"
 
         # Paddle Version
         self.paddle_version = paddle.__version__
@@ -83,19 +83,20 @@ class PaddleInferBenchmark(object):
             self.shape = data_info['shape']
             self.data_num = data_info['data_num']
 
-            self.preprocess_time_s = round(perf_info['preprocess_time_s'], 4)
             self.inference_time_s = round(perf_info['inference_time_s'], 4)
-            self.postprocess_time_s = round(perf_info['postprocess_time_s'], 4)
-            self.total_time_s = round(perf_info['total_time_s'], 4)
         except:
             self.print_help()
             raise ValueError(
                 "Set argument wrong, please check input argument and its type")
 
-        self.inference_time_s_90 = perf_info.get(inference_time_s_90, "")
-        self.inference_time_s_99 = perf_info.get(inference_time_s_99, "")
-        self.succ_rate = perf_info.get(succ_rate, "")
-        self.qps = perf_info.get(qps, "")
+        self.preprocess_time_s = perf_info.get('preprocess_time_s', 0)
+        self.postprocess_time_s = perf_info.get('postprocess_time_s', 0)
+        self.total_time_s = perf_info.get('total_time_s', 0)
+
+        self.inference_time_s_90 = perf_info.get("inference_time_s_90", "")
+        self.inference_time_s_99 = perf_info.get("inference_time_s_99", "")
+        self.succ_rate = perf_info.get("succ_rate", "")
+        self.qps = perf_info.get("qps", "")
 
         # conf info
         self.config_status = self.parse_config(config)
@@ -129,6 +130,10 @@ class PaddleInferBenchmark(object):
         """
         benchmark logger
         """
+        # remove other logging handler
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
         # Init logger
         FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         log_output = f"{LOG_PATH_ROOT}/{self.model_name}.log"
@@ -228,7 +233,7 @@ class PaddleInferBenchmark(object):
             f"{identifier} cpu_rss(MB): {self.cpu_rss_mb}, cpu_vms: {self.cpu_vms_mb}, cpu_shared_mb: {self.cpu_shared_mb}, cpu_dirty_mb: {self.cpu_dirty_mb}, cpu_util: {self.cpu_util}%"
         )
         self.logger.info(
-            f"{identifier} gpu_rss(MB): {self.gpu_rss_mb}, gpu_util: {self.gpu_util}%, gpu_mem_util: {self.gpu_mem_util}"
+            f"{identifier} gpu_rss(MB): {self.gpu_rss_mb}, gpu_util: {self.gpu_util}%, gpu_mem_util: {self.gpu_mem_util}%"
         )
         self.logger.info(
             f"{identifier} total time spent(s): {self.total_time_s}")
