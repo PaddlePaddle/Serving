@@ -60,7 +60,7 @@ Docker is an open source application container engine that allows developers to 
 Paddle Serving provides 4 development language client SDKs, including Python, C++, Java, and Golang. Golang SDK is under construction, We hope that interested open source developers can help submit PR.
 
 + Python, Refer to the client example under python/examples or 4.2 web service example.
-+ C++, Refer to《[从零开始写一个预测服务](deprecated/CREATING.md)》
++ C++, Refer to《[从零开始写一个预测服务](CREATING.md)》
 + Java, Refer to《[Paddle Serving Client Java SDK](JAVA_SDK.md)》
 + Golang, Refer to《[How to use Go Client of Paddle Serving](deprecated/IMDB_GO_CLIENT.md)》
 

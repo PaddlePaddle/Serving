@@ -4,9 +4,9 @@
 
 图像分类是根据图像的语义信息将不同类别图像区分开来，是计算机视觉中重要的基本问题，也是图像检测、图像分割、物体跟踪、行为分析等其他高层视觉任务的基础。图像分类在很多领域有广泛应用，包括安防领域的人脸识别和智能视频分析等，交通领域的交通场景识别，互联网领域基于内容的图像检索和相册自动归类，医学领域的图像识别等。
 
-Paddle Serving已经提供了一个基于ResNet的模型预测服务，按照INSTALL.md中所述步骤，编译Paddle Serving，然后按GETTING_STARTED.md所述步骤启动client端和server端即可看到预测服务运行效果。
-
 本文接下来以图像分类任务为例，介绍从零搭建一个模型预测服务的步骤。
+
+**本文件仅供参考，部分接口内容已经变动**
 
 
 ## 2. Serving端
@@ -75,9 +75,9 @@ service ImageClassifyService {
 
 #### 2.2.2 示例配置
 
-关于Serving端的配置的详细信息，可以参考[Serving端配置](../SERVING_CONFIGURE.md)
+关于Serving端的配置的详细信息，可以参考[Serving端配置](SERVING_CONFIGURE.md)
 
-以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[设计文档](DESIGN.md))
+以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[设计文档](C++DESIGN_CN.md))
 
 - 配置文件示例：
 
@@ -392,4 +392,4 @@ predictors {
   }
 }
 ```
-关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](../CLIENT_CONFIGURE.md)
+关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](CLIENT_CONFIGURE.md)
