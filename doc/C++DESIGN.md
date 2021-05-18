@@ -1,6 +1,6 @@
 # Paddle Serving Design
 
-([简体中文](./DESIGN_CN.md)|English)
+([简体中文](./C++DESIGN_CN.md)|English)
 
 ## 1. Background
 
