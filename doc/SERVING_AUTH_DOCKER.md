@@ -17,7 +17,7 @@
 **注明：** docker-compose与docker不一样，它依赖于docker，一次可以部署多个docker容器，可以类比于本地版的kubenetes，docker-compose的教程请参考[docker-compose安装](https://docs.docker.com/compose/install/) 
 
 ```shell
-docker-compose -f tools/key-auth.yaml up -d
+docker-compose -f tools/auth/auth-serving-docker.yaml up -d
 ```
 
 可以通过 `docker ps` 来查看启动的容器。
@@ -56,4 +56,144 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 - 使用serving_uci的路径映射到网关
 - 在header处增加了 `X-INSTANCE-ID`和`apikey`
 
-## TODO:K8S
+
+## K8S部署
+
+同样，我们也提供了K8S集群部署Serving安全网关的方式。
+
+### Step 1：启动Serving服务
+
+我们仍然以 [Uci房价预测](../python/examples/fit_a_line)服务作为例子，这里省略了镜像制作的过程，详情可以参考 [在Kubernetes集群上部署Paddle Serving](./PADDLE_SERVING_ON_KUBERNETES.md)。
+
+在这里我们直接执行 
+```
+kubectl apply -f tools/auth/serving-demo-k8s.yaml
+```
+
+可以看到
+
+### Step 2: 安装 KONG (一个集群只需要执行一次就可以)
+接下来我们执行KONG Ingress的安装
+```
+kubectl apply -f tools/auth/kong-install.yaml
+```
+
+输出是
+```
+namespace/kong created
+customresourcedefinition.apiextensions.k8s.io/kongclusterplugins.configuration.konghq.com created
+customresourcedefinition.apiextensions.k8s.io/kongconsumers.configuration.konghq.com created
+customresourcedefinition.apiextensions.k8s.io/kongingresses.configuration.konghq.com created
+customresourcedefinition.apiextensions.k8s.io/kongplugins.configuration.konghq.com created
+customresourcedefinition.apiextensions.k8s.io/tcpingresses.configuration.konghq.com created
+serviceaccount/kong-serviceaccount created
+clusterrole.rbac.authorization.k8s.io/kong-ingress-clusterrole created
+clusterrolebinding.rbac.authorization.k8s.io/kong-ingress-clusterrole-nisa-binding created
+service/kong-proxy created
+service/kong-validation-webhook created
+deployment.apps/ingress-kong created
+```
+我们可以输入
+```
+kubectl get service --all-namespaces 
+```
+会显示
+```
+NAMESPACE     NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE
+default       uci                       ClusterIP   172.16.87.89     <none>        9393/TCP                   7d7h
+kong          kong-proxy                NodePort    172.16.23.91     <none>        80:8175/TCP,443:8521/TCP   102m
+kong          kong-validation-webhook   ClusterIP   172.16.114.93    <none>        443/TCP                    102m
+
+```
+
+### Step 3: 创建Ingress资源
+
+接下来需要做Serving服务和KONG的链接
+
+```
+kubectl apply -f tools/auth/kong-ingress-k8s.yaml
+```
+
+我们也给出yaml文件内容
+```
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: demo
+  annotations:
+    konghq.com/strip-path: "true"
+    kubernetes.io/ingress.class: kong
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /foo
+        backend:
+          serviceName: {{SERVING_SERVICE_NAME}}
+          servicePort: {{SERVICE_PORT}}
+```
+其中serviceName就是uci，servicePort就是9393，如果是别的服务就需要改这两个字段，最终会映射到`/foo`下。
+在这一步之后，我们就可以 
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://$IP:443/foo/uci/prediction
+```
+
+### Step 4: 增加安全网关限制
+
+之前的接口没有鉴权功能，无法验证用户身份合法性，现在我们添加一个key-auth插件
+
+执行
+```
+kubectl apply -f key-auth-k8s.yaml
+```
+
+其中,yaml文内容为
+```
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: key-auth
+plugin: key-auth
+```
+
+现在，需要创建secret，key值为用户指定，需要在请求时携带Header中apikey字段
+执行
+```
+kubectl create secret generic default-apikey  \
+   --from-literal=kongCredType=key-auth  \
+   --from-literal=key=ZGVmYXVsdC1hcGlrZXkK
+```
+
+在这里，我们的key是随意制定了一串 `ZGVmYXVsdC1hcGlrZXkK`，实际情况也可以
+创建一个用户（consumer）标识访问者身份，并未该用户绑定apikey。
+执行
+```
+kubectl apply -f kong-consumer-k8s.yaml
+```
+
+其中,yaml文内容为
+```
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: default
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: default
+credentials:
+- default-apikey
+```
+
+如果我们这时还想再像上一步一样的做curl访问，会发现已经无法访问，此时已经具备了安全能力，我们需要对应的key。
+
+
+### Step 5: 通过API Key访问服务
+
+执行
+```
+curl -H "Content-Type:application/json" -H "apikey:ZGVmYXVsdC1hcGlrZXkK" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' https://10.21.8.133:8521/foo/uci/prediction -k
+```
+我们可以看到 apikey 已经加入到了curl请求的header当中。
+
+
+
