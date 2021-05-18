@@ -98,15 +98,13 @@ git clone https://github.com/PaddlePaddle/Serving
 ```
 
 ```shell
-pip install paddle-serving-client==0.5.0
-pip install paddle-serving-server==0.5.0 # CPU
-pip install paddle-serving-app==0.3.0
-pip install paddle-serving-server-gpu==0.5.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip install paddle-serving-client==0.6.0
+pip install paddle-serving-server==0.6.0 # CPU
+pip install paddle-serving-app==0.6.0
+pip install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
 # DO NOT RUN ALL COMMANDS! check your GPU env and select the right one
-pip install paddle-serving-server-gpu==0.5.0.post9 # GPU with CUDA9.0
-pip install paddle-serving-server-gpu==0.5.0.post10 # GPU with CUDA10.0
-pip install paddle-serving-server-gpu==0.5.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
+pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
@@ -117,26 +115,26 @@ Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6
 
 Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.5/3.6/3.7/3.8.
 
-Recommended to install paddle >= 2.0.0
+Recommended to install paddle >= 2.1.0
 
 ```
 # CPU users, please run
-pip install paddlepaddle==2.0.0
+pip install paddlepaddle==2.1.0
 
 # GPU Cuda10.2 please run
-pip install paddlepaddle-gpu==2.0.0 
+pip install paddlepaddle-gpu==2.1.0 
 ```
 
 **Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle official documentation-multi-version whl package list
 ](https://www.paddlepaddle.org.cn/documentation/docs/en/install/Tables_en.html#multi-version-whl-package-list-release)
 
-Select the url link of the corresponding GPU environment and install it. For example, for Python2.7 users of Cuda 9.0, please select `cp27-cp27mu` and
-The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
+Select the url link of the corresponding GPU environment and install it. For example, for Python3.6 users of Cuda 10.1, please select `cp36-cp36m` and
+The url corresponding to `cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`, copy it and run
 ```
-pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
+pip install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
 
-the default `paddlepaddle-gpu==2.0.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`. More info please check [Paddle Serving uses TensorRT](./doc/TENSOR_RT.md)
+the default `paddlepaddle-gpu==2.1.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`. More info please check [Paddle Serving uses TensorRT](./doc/TENSOR_RT.md)
 
 If it is other environment and Python version, please find the corresponding link in the table and install it with pip.
 
@@ -218,8 +216,11 @@ the response is
 - [How to save a servable model?](doc/SAVE.md)
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 - [Paddle Serving Examples](python/examples)
+- [How to process natural data in Paddle Serving?(Chinese)](doc/PROCESS_DATA.md)
 
 ### Developers
+- [How to deploy Paddle Serving on K8S?(Chinese)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
+- [How to route Paddle Serving to secure endpoint?(Chinese)](doc/SERVIING_AUTH_DOCKER.md)
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Compile from source code](doc/COMPILE.md)
 - [Develop Pipeline Serving](doc/PIPELINE_SERVING.md)
