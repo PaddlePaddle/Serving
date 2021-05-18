@@ -64,9 +64,9 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - Request 进入图执行引擎服务后会产生一个 Request Id，Reponse 会通过 Request Id 进行对应的返回
 - 对于 OP 之间需要传输过大数据的情况，可以考虑 RAM DB 外存进行全局存储，通过在 Channel 中传递索引的 Key 来进行数据传输
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image2.png' height = "300" align="middle"/>
-</center>
+</div>
 
 
 #### <b>1.2.1 OP的设计</b>
@@ -83,9 +83,9 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - Channel 可以支持多个OP的输出存储在同一个 Channel，同一个 Channel 中的数据可以被多个 OP 使用
 - 下图为图执行引擎中 Channel 的设计，采用 input buffer 和 output buffer 进行多 OP 输入或多 OP 输出的数据对齐，中间采用一个 Queue 进行缓冲
 
-<center>
+<div align=center>
 <img src='pipeline_serving-image3.png' height = "500" align="middle"/>
-</center>
+</div>
 
 #### <b>1.2.3 预测类型的设计</b>
 
@@ -317,6 +317,7 @@ class ResponseOp(Op):
 
 ## 3.典型示例
 所有Pipeline示例在[examples/pipeline/](../python/examples/pipeline) 目录下，目前有7种类型模型示例：
+- [PaddleClas](../python/examples/pipeline/PaddleClas) 
 - [Detection](../python/examples/pipeline/PaddleDetection)  
 - [bert](../python/examples/pipeline/bert)
 - [imagenet](../python/examples/pipeline/imagenet)
@@ -325,9 +326,10 @@ class ResponseOp(Op):
 - [simple_web_service](../python/examples/pipeline/simple_web_service)
 
 以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
-<center>
+
+<div align=center>
 <img src='pipeline_serving-image4.png' height = "200" align="middle"/>
-</center>
+</div>
 
 ### 3.1 Pipeline部署需要的文件
 需要五类文件，其中模型文件、配置文件、服务端代码是构建Pipeline服务必备的三个文件。测试客户端和测试数据集为测试准备
@@ -716,6 +718,7 @@ Pipeline中有2种id用以串联请求，分别时data_id和log_id，二者区�
 
 通常，Pipeline框架打印的日志会同时带上data_id和log_id。开启auto-batching后，会使用批量中的第一个data_id标记batch整体，同时框架会在一条日志中打印批量中所有data_id。
 
+***
 
 ## 6.性能分析与优化
 
