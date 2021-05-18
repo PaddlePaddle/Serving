@@ -1,6 +1,6 @@
 # Paddle Serving设计方案
 
-(简体中文|[English](./DESIGN.md))
+(简体中文|[English](./C++DESIGN.md))
 
 注意本页内容有已经过期，请查看：[设计文档](DESIGN_DOC_CN.md)
 
@@ -51,7 +51,7 @@ PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学�
 
 ### 3.5 Client Interface
 
-<img src='../client_inferface.png' width = "600" height = "200">
+<img src='client_inferface.png' width = "600" height = "200">
 
 ### 3.6 训练过程中使用的Client io
 
