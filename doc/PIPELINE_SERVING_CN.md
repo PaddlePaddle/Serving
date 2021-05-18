@@ -651,7 +651,7 @@ Pipeline支持批量推理，通过增大batch size可以提高GPU利用率。Pi
 | auto-batching | config.yml中OP级别设置batch_size和auto_batching_timeout |
 
 
-### 4.7 单机多卡
+### 4.6 单机多卡
 单机多卡推理，M个OP进程与N个GPU卡绑定，在config.yml中配置3个参数有关系，首先选择进程模式、并发数即进程数，devices是GPU卡ID。绑定方法是进程启动时遍历GPU卡ID，例如启动7个OP进程，config.yml设置devices:0,1,2，那么第1，4，7个启动的进程与0卡绑定，第2，4个启动的进程与1卡绑定，3，6进程与卡2绑定。
 - 进程ID: 0  绑定 GPU 卡0
 - 进程ID: 1  绑定 GPU 卡1
@@ -667,7 +667,7 @@ config.yml中硬件配置：
 devices: "0,1,2"
 ```
 
-### 4.8 异构硬件
+### 4.7 异构硬件
 Pipeline除了支持CPU、GPU之外，还支持在多种异构硬件部署。在config.yml中由device_type和devices。优先使用device_type指定类型，当空缺时根据devices判断。device_type描述如下：
 - CPU(Intel) : 0
 - GPU : 1
@@ -684,7 +684,7 @@ device_type: 0
 devices: "" # "0,1"
 ```
            
-### 4.9 低精度推理
+### 4.8 低精度推理
 Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下图所示：
 
 - CPU
