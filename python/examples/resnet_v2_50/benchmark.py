@@ -100,6 +100,8 @@ if __name__ == '__main__':
     print("each thread cost: {}s. ".format(avg_cost))
     print("qps: {}samples/s".format(args.batch_size * total_number / (
         avg_cost * args.thread)))
+    print("qps(request): {}samples/s".format(total_number / (avg_cost *
+                                                             args.thread)))
     print("total count: {} ".format(total_number))
     if os.getenv("FLAGS_serving_latency"):
         show_latency(result[1])
