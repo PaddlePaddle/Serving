@@ -2,11 +2,11 @@
 
 (简体中文|[English](PIPELINE_SERVING.md))
 
-- [架构设计](PIPELINE_SERVING_CN.md#1.架构设计)
-- [详细设计](PIPELINE_SERVING_CN.md#2.详细设计)
-- [典型示例](PIPELINE_SERVING_CN.md#3.典型示例)
-- [高阶用法](PIPELINE_SERVING_CN.md#4.高阶用法)
-- [日志追踪](PIPELINE_SERVING_CN.md#5.日志追踪)
+- [架构设计](PIPELINE_SERVING_CN.md#1架构设计)
+- [详细设计](PIPELINE_SERVING_CN.md#2详细设计)
+- [典型示例](PIPELINE_SERVING_CN.md#3典型示例)
+- [高阶用法](PIPELINE_SERVING_CN.md#4高阶用法)
+- [日志追踪](PIPELINE_SERVING_CN.md#5日志追踪)
 - [性能分析与优化](PIPELINE_SERVING_CN.md#6性能分析与优化)
 
 
