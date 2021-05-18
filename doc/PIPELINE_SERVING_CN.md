@@ -705,9 +705,9 @@ Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型
 
 ## 5.日志追踪
 Pipeline服务日志在当前目录的PipelineServingLogs目录下，有3种类型日志，分别是pipeline.log日志、pipeline.log.wf日志、pipeline.tracer日志。
-- pipeline.log日志 : 记录 debug & info日志信息
-- pipeline.log.wf日志 : 记录 warning & error日志
-- pipeline.tracer日志 : 统计各个阶段耗时、channel堆积信息
+- `pipeline.log` : 记录 debug & info日志信息
+- `pipeline.log.wf` : 记录 warning & error日志
+- `pipeline.tracer` : 统计各个阶段耗时、channel堆积信息
 
 在服务发生异常时，错误信息会记录在pipeline.log.wf日志中。打印tracer日志要求在config.yml的DAG属性中添加tracer配置。
 
@@ -717,6 +717,38 @@ Pipeline中有2种id用以串联请求，分别时data_id和log_id，二者区�
 - log_id : 上游模块传入的标识，跟踪多个服务间串联关系，由于用户可不传入或不保证唯一性，因此不能作为唯一性标识
 
 通常，Pipeline框架打印的日志会同时带上data_id和log_id。开启auto-batching后，会使用批量中的第一个data_id标记batch整体，同时框架会在一条日志中打印批量中所有data_id。
+
+### 5.2 日志滚动
+Pipeline的日志模块在`logger.py`中定义，使用了`logging.handlers.RotatingFileHandler`支持磁盘日志文件的轮换。根据不同文件级别和日质量分别设置了`maxBytes` 和 `backupCount`，当即将超出预定大小时，将关闭旧文件并打开一个新文件用于输出。
+
+```python
+"handlers": {
+    "f_pipeline.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log"),
+        "maxBytes": 512000000,
+        "backupCount": 20,
+    },
+    "f_pipeline.log.wf": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "WARNING",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log.wf"),
+        "maxBytes": 512000000,
+        "backupCount": 10,
+    },
+    "f_tracer.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "tracer_fmt",
+        "filename": os.path.join(log_dir, "pipeline.tracer"),
+        "maxBytes": 512000000,
+        "backupCount": 5,
+    },
+},
+```
 
 ***
 

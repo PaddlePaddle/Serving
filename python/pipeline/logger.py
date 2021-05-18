@@ -42,22 +42,28 @@ logger_config = {
     },
     "handlers": {
         "f_pipeline.log": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "INFO",
             "formatter": "normal_fmt",
             "filename": os.path.join(log_dir, "pipeline.log"),
+            "maxBytes": 512000000,
+            "backupCount": 20,
         },
         "f_pipeline.log.wf": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "WARNING",
             "formatter": "normal_fmt",
             "filename": os.path.join(log_dir, "pipeline.log.wf"),
+            "maxBytes": 512000000,
+            "backupCount": 10,
         },
         "f_tracer.log": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "INFO",
             "formatter": "tracer_fmt",
             "filename": os.path.join(log_dir, "pipeline.tracer"),
+            "maxBytes": 512000000,
+            "backupCount": 5,
         },
     },
     "loggers": {
