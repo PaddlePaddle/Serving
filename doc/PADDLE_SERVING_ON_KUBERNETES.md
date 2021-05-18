@@ -4,9 +4,9 @@ Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供�
 
 ### 集群准备
 
-如果您还没有Kubenetes集群，我们推荐[购买并使用百度智能云CCE集群](). 如果是其他云服务商提供的集群，或者自行安装Kubenetes集群，请遵照对应的教程。
+如果您还没有Kubenetes集群，我们推荐[购买并使用百度智能云CCE集群](https://cloud.baidu.com/doc/CCE/index.html). 如果是其他云服务商提供的集群，或者自行安装Kubenetes集群，请遵照对应的教程。
 
-您还需要准备一个用于Kubenetes集群部署使用的镜像仓库，通常与云服务提供商绑定，如果您使用的是百度智能云的CCE集群，可以参照[百度智能云CCR镜像仓库使用方式]()。当然Docker Hub也可以作为镜像仓库，但是可能在部署时会出现下载速度慢的情况。
+您还需要准备一个用于Kubenetes集群部署使用的镜像仓库，通常与云服务提供商绑定，如果您使用的是百度智能云的CCE集群，可以参照[百度智能云CCR镜像仓库使用方式](https://cloud.baidu.com/doc/CCR/index.html)。当然Docker Hub也可以作为镜像仓库，但是可能在部署时会出现下载速度慢的情况。
 
 ### 环境准备
 

@@ -36,7 +36,7 @@ def gen_yml(device, gpu_id):
     config["dag"]["tracer"] = {"interval_s": 30}
     if device == "gpu":
         config["op"]["ppyolo_mbv3"]["local_service_conf"]["device_type"] = 1
-        config["op"]["ppyolo_mbv3"]["local_service_conf"]["devices"] = gpu_id        
+        config["op"]["ppyolo_mbv3"]["local_service_conf"]["devices"] = gpu_id
     with open("config2.yml", "w") as fout: 
         yaml.dump(config, fout, default_flow_style=False)
 
@@ -46,23 +46,43 @@ def run_http(idx, batch_size):
     with open(os.path.join(".", "000000570688.jpg"), 'rb') as file:
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
-
+    latency_list = []
     start = time.time()
+    total_num = 0
     while True:
+        l_start = time.time()
         data = {"key": [], "value": []}
         for j in range(batch_size):
             data["key"].append("image_" + str(j))
             data["value"].append(image)
         r = requests.post(url=url, data=json.dumps(data))
+        l_end = time.time()
+        total_num += 1
         end = time.time()
+        latency_list.append(l_end * 1000 - l_start * 1000)
         if end - start > 70:
-            print("70s end")
+            #print("70s end")
             break
-    return [[end - start]]
+    return [[end - start], latency_list, [total_num]]
 
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(run_http , thread, batch_size)
+    start = time.time()
+    result = multi_thread_runner.run(run_http, thread, batch_size)
+    end = time.time()
+    total_cost = end - start
+    avg_cost = 0
+    total_number = 0
+    for i in range(thread):
+        avg_cost += result[0][i]
+        total_number += result[2][i]
+    avg_cost = avg_cost / thread
+    print("Total cost: {}s".format(total_cost))
+    print("Each thread cost: {}s. ".format(avg_cost))
+    print("Total count: {}. ".format(total_number))
+    print("AVG QPS: {} samples/s".format(batch_size * total_number /
+                                         total_cost))
+    show_latency(result[1])
 
 def run_rpc(thread, batch_size):
     pass

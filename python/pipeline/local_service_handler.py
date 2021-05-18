@@ -44,7 +44,8 @@ class LocalServiceHandler(object):
                  mem_optim=True,
                  ir_optim=False,
                  available_port_generator=None,
-                 use_profile=False):
+                 use_profile=False,
+                 precision="fp32"):
         """
         Initialization of localservicehandler
 
@@ -62,6 +63,7 @@ class LocalServiceHandler(object):
            ir_optim: use calculation chart optimization, False default.
            available_port_generator: generate available ports
            use_profile: use profiling, False default.
+           precision: inference precesion, e.g. "fp32", "fp16", "int8"
 
         Returns:
            None
@@ -137,16 +139,17 @@ class LocalServiceHandler(object):
         self._server_pros = []
         self._use_profile = use_profile
         self._fetch_names = fetch_names
+        self._precision = precision
 
         _LOGGER.info(
             "Models({}) will be launched by device {}. use_gpu:{}, "
             "use_trt:{}, use_lite:{}, use_xpu:{}, device_type:{}, devices:{}, "
             "mem_optim:{}, ir_optim:{}, use_profile:{}, thread_num:{}, "
-            "client_type:{}, fetch_names:{}".format(
+            "client_type:{}, fetch_names:{} precision:{}".format(
                 model_config, self._device_name, self._use_gpu, self._use_trt,
-                self._use_lite, self._use_xpu, device_type, self._devices,
-                self._mem_optim, self._ir_optim, self._use_profile,
-                self._thread_num, self._client_type, self._fetch_names))
+                self._use_lite, self._use_xpu, device_type, self._devices, self.
+                _mem_optim, self._ir_optim, self._use_profile, self._thread_num,
+                self._client_type, self._fetch_names, self._precision))
 
     def get_fetch_list(self):
         return self._fetch_names
@@ -197,14 +200,15 @@ class LocalServiceHandler(object):
                 ir_optim=self._ir_optim,
                 use_trt=self._use_trt,
                 use_lite=self._use_lite,
-                use_xpu=self._use_xpu)
+                use_xpu=self._use_xpu,
+                precision=self._precision)
         return self._local_predictor_client
 
     def get_client_config(self):
         return os.path.join(self._model_config, "serving_server_conf.prototxt")
 
     def _prepare_one_server(self, workdir, port, gpuid, thread_num, mem_optim,
-                            ir_optim):
+                            ir_optim, precision):
         """
         According to self._device_name, generating one Cpu/Gpu/Arm Server, and
         setting the model config amd startup params.
@@ -216,6 +220,7 @@ class LocalServiceHandler(object):
             thread_num: thread num
             mem_optim: use memory/graphics memory optimization
             ir_optim: use calculation chart optimization
+            precision: inference precison, e.g."fp32", "fp16", "int8"
 
         Returns:
             server: CpuServer/GpuServer
@@ -256,6 +261,7 @@ class LocalServiceHandler(object):
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
         server.set_ir_optimize(ir_optim)
+        server.set_precision(precision)
 
         server.load_model_config(self._model_config)
         server.prepare_server(
@@ -292,7 +298,8 @@ class LocalServiceHandler(object):
                     device_id,
                     thread_num=self._thread_num,
                     mem_optim=self._mem_optim,
-                    ir_optim=self._ir_optim))
+                    ir_optim=self._ir_optim,
+                    precision=self._precision))
 
     def start_server(self):
         """
