@@ -217,12 +217,13 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 - [Paddle Serving示例合辑](python/examples)
 - [如何在Paddle Serving处理常见数据类型](doc/PROCESS_DATA.md)
+- [如何在Serving上处理lod of level(LOD)?](doc/LOD_CN.md)
 
 ### 开发者教程
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
-- [如何在K8S集群上部署Paddle Serving?)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
+- [如何在K8S集群上部署Paddle Serving?](doc/PADDLE_SERVING_ON_KUBERNETES.md)
 - [如何在Paddle Serving上部署安全网关?](doc/SERVIING_AUTH_DOCKER.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
