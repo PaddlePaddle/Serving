@@ -130,11 +130,11 @@ pip install paddlepaddle-gpu==2.1.0
 
 **注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
 
-选择相应的GPU环境的url链接并进行安装，例如Cuda 9.0的Python2.7用户，请选择表格当中的`cp27-cp27mu`和`cuda9.0_cudnn7-mkl`对应的url，复制下来并执行
+选择相应的GPU环境的url链接并进行安装，例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`对应的url，复制下来并执行
 ```
-pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
+pip install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
-由于默认的`paddlepaddle-gpu==2.0.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
+由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
 
 如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
 
@@ -196,7 +196,7 @@ print(fetch_map)
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
 <h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录 `python/examples/fit_a_line`.
 
 ```
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
@@ -216,10 +216,15 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 - [Paddle Serving示例合辑](python/examples)
+- [如何在Paddle Serving处理常见数据类型](doc/PROCESS_DATA.md)
 
 ### 开发者教程
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
+- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
+- [如何在K8S集群上部署Paddle Serving?)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
+- [如何在Paddle Serving上部署安全网关?](doc/SERVIING_AUTH_DOCKER.md)
+- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
