@@ -2,12 +2,12 @@
 
 ([简体中文](PIPELINE_SERVING_CN.md)|English)
 
-- [Architecture Design](PIPELINE_SERVING.md#1Architecture_Design)
-- [Detailed Design](PIPELINE_SERVING.md#2Detailed_Design)
-- [Classic Examples](PIPELINE_SERVING.md#3Classic_Examples)
-- [Advanced Usages](PIPELINE_SERVING.md#4Advanced_Usages)
-- [Log Tracing](PIPELINE_SERVING.md#5Log_Tracing)
-- [Performance Analysis And Optimization](PIPELINE_SERVING.md#6Performance_analysis_and_optimization)
+- [Architecture Design](PIPELINE_SERVING.md#1architecture-design)
+- [Detailed Design](PIPELINE_SERVING.md#2detailed-design)
+- [Classic Examples](PIPELINE_SERVING.md#3classic-examples)
+- [Advanced Usages](PIPELINE_SERVING.md#4advanced-usages)
+- [Log Tracing](PIPELINE_SERVING.md#5log-tracing)
+- [Performance Analysis And Optimization](PIPELINE_SERVING.md#6eprformance-analysis-and-optimization)
 
 In many deep learning frameworks,  Serving is usually used for the deployment of single model.but in the context of AI industrial, the end-to-end deep learning model can not solve all the problems at present. Usually, it is necessary to use multiple deep learning models to solve practical problems.However, the design of multi-model applications is complicated. In order to reduce the difficulty of development and maintenance, and to ensure the availability of services, serial or simple parallel methods are usually used. In general, the throughput only reaches the usable state and the GPU utilization rate is low.
 
