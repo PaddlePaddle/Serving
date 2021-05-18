@@ -654,7 +654,7 @@ Pipeline supports batch predictor, and GPU utilization can be improved by increa
 | mini-batch | the return type of preprocess is list，refer to the preprocess of RecOp in OCR example|
 | auto-batching | set batch_size and auto_batching_timeout in config.yml |
 
-### 4.7 Single-machine and multi-card inference
+### 4.6 Single-machine and multi-card inference
 
 Single-machine multi-card inference can be abstracted into M OP processes bound to N GPU cards. It is related to the configuration of three parameters in config.yml. First, select the process mode, the number of concurrent processes is the number of processes, and devices is the GPU card ID.The binding method is to traverse the GPU card ID when the process starts, for example, start 7 OP processes, set devices:0,1,2 in config.yml, then the first, fourth, and seventh started processes are bound to the 0 card, and the second , 4 started processes are bound to 1 card, 3 and 6 processes are bound to card 2.
 
@@ -672,7 +672,7 @@ Reference config.yml：
 devices: "0,1,2"
 ```
 
-### 4.8 Heterogeneous Devices
+### 4.7 Heterogeneous Devices
 In addition to supporting CPU and GPU, Pipeline also supports the deployment of a variety of heterogeneous hardware. It consists of device_type and devices in config.yml. Use device_type to specify the type first, and judge according to devices when it is vacant. The device_type is described as follows:
 - CPU(Intel) : 0
 - GPU : 1
@@ -689,7 +689,7 @@ device_type: 0
 devices: "" # "0,1"
 ```
 
-### 4.9 Low precision inference
+### 4.8 Low precision inference
 Pipeline Serving supports low-precision inference. The precision types supported by CPU, GPU and TensoRT are shown in the figure below:
 
 - CPU
