@@ -4,11 +4,13 @@
 
 This document will take OCR as an example to show how to use Pipeline WebService to start multi-model tandem services.
 
+This OCR example only supports Process OP.
+
 ## Get Model
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
@@ -18,14 +20,16 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/ocr/test_imgs.t
 tar xf test_imgs.tar
 ```
 
-## Start Service
+## Run services
+
+### 1.Start a single server and client.
 ```
-python web_service.py &>log.txt &
+python3 web_service.py &>log.txt &
 ```
 
-## Test
+Test
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 
 <!--
@@ -35,11 +39,22 @@ python pipeline_http_client.py
 
 ### RPC
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
 
 ### HTTP
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 -->
+
+
+### 2.Run benchmark
+```
+python3 web_service.py &>log.txt &
+```
+
+Test
+```
+sh benchmark.sh
+```
