@@ -70,9 +70,9 @@ registry.baidubce.com/paddlepaddle/serving:xpu-beta
 |    CPU   | >=0.5.0 | 0.6.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
 | Cuda10.1 | >=0.5.0 | 0.6.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
-|          | 0.6.0   | 0.5.0-cuda10.1-cudnn7-gcc54-devel  | Ubuntu 16 |  5.4.0 |
+|          | 0.6.0   | 0.6.0-cuda10.1-cudnn7-gcc54-devel  | Ubuntu 16 |  5.4.0 |
 |          | <=0.4.0 | 0.6.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
-| Cuda10.2 | >=0.5.0 | 0.5.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.2 | >=0.5.0 | 0.6.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
 | Cuda11.0 | >=0.5.0 | 0.6.0-cuda11.0-cudnn8-devel | Ubuntu 18 |    8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
