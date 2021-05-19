@@ -81,7 +81,7 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 
 **强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](doc/DOCKER_IMAGES_CN.md)。
 
-**提示**：目前paddlepaddle 2.0版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
+**提示**：目前paddlepaddle 2.1版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
 
 **提示**：本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
 
