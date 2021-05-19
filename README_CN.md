@@ -220,7 +220,8 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 ```
 
 <h3 align="center">Pipeline服务</h3>
-Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考[OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
+
+Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考 [OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
 
 我们先获取两个模型
 ```
