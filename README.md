@@ -209,6 +209,33 @@ the response is
 ```
 {"result":{"price":[[18.901151657104492]]}}
 ```
+<h3 align="center">Pipeline Service</h3>
+Paddle Serving provides industry-leading multi-model tandem services, which strongly supports the actual operating business scenarios of major companies, please refer to [OCR word recognition](python/examples/pipeline/ocr).
+
+we get two models
+```
+python -m paddle_serving_app.package --get_model ocr_rec
+tar -xzvf ocr_rec.tar.gz
+python -m paddle_serving_app.package --get_model ocr_det
+tar -xzvf ocr_det.tar.gz
+```
+then we start server side, launch two models as one standalone web service
+```
+python web_service.py
+```
+http request
+```
+python pipeline_http_client.py
+```
+grpc request
+```
+python pipeline_rpc_client.py
+```
+output
+```
+{'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
+```
+
 
 <h2 align="center">Document</h2>
 
