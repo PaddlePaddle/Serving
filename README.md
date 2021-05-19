@@ -98,6 +98,11 @@ nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepadd
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+install python dependencies
+```
+cd Serving
+pip install -r python/requirements.txt
+```
 
 ```shell
 pip install paddle-serving-client==0.6.0
