@@ -256,7 +256,6 @@ python pipeline_rpc_client.py
 - [如何在K8S集群上部署Paddle Serving?](doc/PADDLE_SERVING_ON_KUBERNETES.md)
 - [如何在Paddle Serving上部署安全网关?](doc/SERVIING_AUTH_DOCKER.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
-- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
 - [如何使用TensorRT?](doc/TENSOR_RT_CN.md)
