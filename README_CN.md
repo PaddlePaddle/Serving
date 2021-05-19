@@ -197,6 +197,22 @@ print(fetch_map)
 ```
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
+
+<h3 align="center">HTTP服务</h3>
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
+
+```
+python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+```
+客户端输入
+```
+curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
+```
+返回结果
+```
+{"result":{"price":[[18.901151657104492]]}}
+```
+
 <h3 align="center">Pipeline服务</h3>
 Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考[OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
 
@@ -219,20 +235,9 @@ python pipeline_http_client.py
 ```
 python pipeline_rpc_client.py
 ```
-
-<h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
-
+输出
 ```
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
-```
-客户端输入
-```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
-```
-返回结果
-```
-{"result":{"price":[[18.901151657104492]]}}
+{'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
 ```
 
 <h2 align="center">文档</h2>
