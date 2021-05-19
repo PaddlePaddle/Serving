@@ -271,8 +271,7 @@ python pipeline_rpc_client.py
 - [如何测试Paddle Serving性能？](python/examples/util/)
 - [如何优化性能?](doc/PERFORMANCE_OPTIM_CN.md)
 - [在一张GPU上启动多个预测服务](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [CPU版Benchmarks](doc/BENCHMARKING.md)
-- [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
+- [GPU版Benchmarks](doc/BENCHMARKING_GPU.md)
 
 ### 设计文档
 - [Paddle Serving设计文档](doc/DESIGN_DOC_CN.md)
