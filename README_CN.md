@@ -247,7 +247,7 @@ python pipeline_rpc_client.py
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 - [Paddle Serving示例合辑](python/examples)
 - [如何在Paddle Serving处理常见数据类型](doc/PROCESS_DATA.md)
-- [如何在Serving上处理lod of level(LOD)?](doc/LOD_CN.md)
+- [如何在Serving上处理level of details(LOD)?](doc/LOD_CN.md)
 
 ### 开发者教程
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
@@ -286,6 +286,7 @@ python pipeline_rpc_client.py
 - 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
 - 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
 - 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
+- 特别感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
 
 ### 反馈
 
