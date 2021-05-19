@@ -122,7 +122,7 @@ Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6
 
 Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python3.6/3.7/3.8.
 
-**For latest version, Cuda 9.0 or Cuda 10.0 are no longer supported, Python2.7/3.5 is no longer supported. **
+** For latest version, Cuda 9.0 or Cuda 10.0 are no longer supported, Python2.7/3.5 is no longer supported. **
 
 Recommended to install paddle >= 2.1.0
 
