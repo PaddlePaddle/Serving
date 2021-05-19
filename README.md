@@ -271,8 +271,7 @@ output
 - [How to profile Paddle Serving latency?](python/examples/util)
 - [How to optimize performance?](doc/PERFORMANCE_OPTIM.md)
 - [Deploy multi-services on one GPU(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
-- [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
+- [GPU Benchmarks(Chinese)](doc/BENCHMARKING_GPU.md)
 
 ### Design
 - [Design Doc](doc/DESIGN_DOC.md)
