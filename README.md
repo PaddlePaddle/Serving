@@ -82,6 +82,8 @@ We **highly recommend** you to **run Paddle Serving in Docker**, please visit [R
 
 **Attention:**: Currently, the default GPU environment of paddlepaddle 2.1 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
 
+**Attention:** the following so-called 'python' or 'pip' stands for one of Python 3.6/3.7/3.8.
+
 ```
 # Run CPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
@@ -115,7 +117,10 @@ Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6
 
 Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python3.6/3.7/3.8.
 
+**For latest version, Cuda 9.0 or Cuda 10.0 are no longer supported, Python2.7/3.5 is no longer supported. **
+
 Recommended to install paddle >= 2.1.0
+
 
 ```
 # CPU users, please run
