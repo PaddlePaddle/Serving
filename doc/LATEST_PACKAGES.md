@@ -40,18 +40,24 @@ https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp
 https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.0.0-py3-none-any.whl
 ```
 
-## ARM user
-for ARM user who uses [Paddle-Lite](https://github.com/PaddlePaddle/Paddle-Lite) can download the wheel packages as follows. And ARM user should use the xpu-beta docker [DOCKER IMAGES](./DOCKER_IMAGES.md) 
-**We only support Python 3.6 for Arm Users.**
+## Baidu Kunlun user
+for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as follows. Users should use the xpu-beta docker [DOCKER IMAGES](./DOCKER_IMAGES.md) 
+**We only support Python 3.6 for Kunlun Users.**
 
 ### Wheel Package Links
+
+for arm kunlun user
 ```
-# Server 
-https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_server_gpu-0.0.0.postarm_xpu-py3-none-any.whl
-# Client
-https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_client-0.0.0-cp36-none-any.whl 
-# App
-https://paddle-serving.bj.bcebos.com/whl/xpu/paddle_serving_app-0.0.0-py3-none-any.whl 
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_server_xpu-0.6.0.post2-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_client-0.6.0-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_app-0.6.0-cp36-cp36m-linux_aarch64.whl
+```
+ 
+for x86 kunlun user
+``` 
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_server_xpu-0.6.0.post2-cp36-cp36m-linux_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_client-0.6.0-cp36-cp36m-linux_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.6.0/paddle_serving_app-0.6.0-cp36-cp36m-linux_x86_64.whl
 ```
 
 
