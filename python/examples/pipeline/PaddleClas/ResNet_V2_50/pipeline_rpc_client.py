@@ -1,4 +1,4 @@
-# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+try:
+    from paddle_serving_server_gpu.pipeline import PipelineClient
+except ImportError:
+    from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 import requests
 import json
@@ -19,17 +22,18 @@ import cv2
 import base64
 import os
 
+client = PipelineClient()
+client.connect(['127.0.0.1:9993'])
+
 
 def cv2_to_base64(image):
     return base64.b64encode(image).decode('utf8')
 
 
-if __name__ == "__main__":
-    url = "http://127.0.0.1:18080/imagenet/prediction"
-    with open(os.path.join(".", "daisy.jpg"), 'rb') as file:
-        image_data1 = file.read()
-    image = cv2_to_base64(image_data1)
-    data = {"key": ["image"], "value": [image]}
-    for i in range(1):
-        r = requests.post(url=url, data=json.dumps(data))
-        print(r.json())
+with open("daisy.jpg", 'rb') as file:
+    image_data = file.read()
+image = cv2_to_base64(image_data)
+
+for i in range(1):
+    ret = client.predict(feed_dict={"image": image}, fetch=["label", "prob"])
+    print(ret)
