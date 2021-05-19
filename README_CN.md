@@ -100,6 +100,12 @@ nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 
+安装所需的pip依赖
+```
+cd Serving
+pip install -r python/requirements.txt
+```
+
 ```shell
 pip install paddle-serving-client==0.6.0
 pip install paddle-serving-server==0.6.0 # CPU
