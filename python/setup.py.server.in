@@ -22,6 +22,10 @@ from setuptools import setup
 from paddle_serving_server.version import version_tag, version_suffix
 import util
 
+class BinaryDistribution(Distribution):
+    def has_ext_modules(foo):
+        return True
+
 package_version = version_tag.replace('-', '')
 if version_suffix != "":
     version_suffix = "post" + version_suffix
@@ -71,6 +75,7 @@ setup(
     packages=packages,
     package_data=package_data,
     package_dir=package_dir,
+    distclass=BinaryDistribution,
     # PyPI package information.
     classifiers=[
         'Development Status :: 4 - Beta',

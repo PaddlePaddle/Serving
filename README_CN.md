@@ -81,33 +81,39 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 
 **强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](doc/DOCKER_IMAGES_CN.md)。
 
-**提示**：目前paddlepaddle 2.0版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
+**提示**：目前paddlepaddle 2.1版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
+
+**提示**：本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
 
 ```
 # 启动 CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 
+安装所需的pip依赖
+```
+cd Serving
+pip install -r python/requirements.txt
+```
+
 ```shell
-pip install paddle-serving-client==0.5.0
-pip install paddle-serving-server==0.5.0 # CPU
-pip install paddle-serving-app==0.3.0
-pip install paddle-serving-server-gpu==0.5.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip install paddle-serving-client==0.6.0
+pip install paddle-serving-server==0.6.0 # CPU
+pip install paddle-serving-app==0.6.0
+pip install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
 # 其他GPU环境需要确认环境再选择执行哪一条
-pip install paddle-serving-server-gpu==0.5.0.post9 # GPU with CUDA9.0 
-pip install paddle-serving-server-gpu==0.5.0.post10 # GPU with CUDA10.0 
-pip install paddle-serving-server-gpu==0.5.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
+pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -116,25 +122,27 @@ pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + Tensor
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
-paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python2.7/3.5/3.6/3.7/3.8。
+paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
 
-推荐安装2.0.0及以上版本的paddle
+**最新的0.6.0的版本，已经不支持Cuda 9.0和Cuda 10.0，Python已不支持2.7和3.5。**
+
+推荐安装2.1.0及以上版本的paddle
 
 ```
 # CPU环境请执行
-pip install paddlepaddle==2.0.0
+pip install paddlepaddle==2.1.0
 
 # GPU Cuda10.2环境请执行
-pip install paddlepaddle-gpu==2.0.0
+pip install paddlepaddle-gpu==2.1.0
 ```
 
 **注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
 
-选择相应的GPU环境的url链接并进行安装，例如Cuda 9.0的Python2.7用户，请选择表格当中的`cp27-cp27mu`和`cuda9.0_cudnn7-mkl`对应的url，复制下来并执行
+选择相应的GPU环境的url链接并进行安装，例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`对应的url，复制下来并执行
 ```
-pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
+pip install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
-由于默认的`paddlepaddle-gpu==2.0.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
+由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
 
 如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
 
@@ -195,8 +203,10 @@ print(fetch_map)
 ```
 在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
 
+
 <h3 align="center">HTTP服务</h3>
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`
+
+用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
 
 ```
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
@@ -210,16 +220,49 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 {"result":{"price":[[18.901151657104492]]}}
 ```
 
+<h3 align="center">Pipeline服务</h3>
+
+Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考 [OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
+
+我们先获取两个模型
+```
+python -m paddle_serving_app.package --get_model ocr_rec
+tar -xzvf ocr_rec.tar.gz
+python -m paddle_serving_app.package --get_model ocr_det
+tar -xzvf ocr_det.tar.gz
+```
+然后启动服务端程序，将两个串联的模型作为一个整体的服务。
+```
+python web_service.py
+```
+最终使用http的方式请求
+```
+python pipeline_http_client.py
+```
+也支持rpc的方式
+```
+python pipeline_rpc_client.py
+```
+输出
+```
+{'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
+```
+
 <h2 align="center">文档</h2>
 
 ### 新手教程
 - [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
 - [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
 - [Paddle Serving示例合辑](python/examples)
+- [如何在Paddle Serving处理常见数据类型](doc/PROCESS_DATA.md)
+- [如何在Serving上处理level of details(LOD)?](doc/LOD_CN.md)
 
 ### 开发者教程
 - [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
+- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
+- [如何在K8S集群上部署Paddle Serving?](doc/PADDLE_SERVING_ON_KUBERNETES.md)
+- [如何在Paddle Serving上部署安全网关?](doc/SERVIING_AUTH_DOCKER.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
@@ -229,8 +272,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 - [如何测试Paddle Serving性能？](python/examples/util/)
 - [如何优化性能?](doc/PERFORMANCE_OPTIM_CN.md)
 - [在一张GPU上启动多个预测服务](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [CPU版Benchmarks](doc/BENCHMARKING.md)
-- [GPU版Benchmarks](doc/GPU_BENCHMARKING.md)
+- [GPU版Benchmarks](doc/BENCHMARKING_GPU.md)
 
 ### 设计文档
 - [Paddle Serving设计文档](doc/DESIGN_DOC_CN.md)
@@ -251,6 +293,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1
 - 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
 - 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
 - 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
+- 特别感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
 
 ### 反馈
 

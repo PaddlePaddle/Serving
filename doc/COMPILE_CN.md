@@ -16,7 +16,7 @@
 |         glibc-static         |               2.17                |
 |        openssl-devel         |              1.0.2k               |
 |         bzip2-devel          |          1.0.6 and later          |
-| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+| python-devel / python3-devel |          3.6.0 and later          |
 |         sqlite-devel         |         3.7.17 and later          |
 |           patchelf           |                0.9                |
 |           libXext            |               1.3.3               |
