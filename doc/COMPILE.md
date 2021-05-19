@@ -16,7 +16,7 @@
 |         glibc-static         |               2.17                |
 |        openssl-devel         |              1.0.2k               |
 |         bzip2-devel          |          1.0.6 and later          |
-| python-devel / python3-devel | 2.7.5 and later / 3.6.8 and later |
+|        python3-devel         |         3.6.0 and later |
 |         sqlite-devel         |         3.7.17 and later          |
 |           patchelf           |                0.9                |
 |           libXext            |               1.3.3               |
@@ -123,6 +123,7 @@ If not in Docker environment, users can refer to the following execution methods
 export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+
 export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT6-cuda10.1-cudnn7/targets/x86_64-linux-gnu/"
 
 mkdir server-build-gpu && cd server-build-gpu

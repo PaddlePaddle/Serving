@@ -1,15 +1,16 @@
 本次提测的Serving版本，支持GPU预测，希望以此任务为例，对Paddle Serving支持GPU预测的性能给出测试数据。
 
-# 1. 测试环境说明
+## 1. 测试环境说明
 
 |          | GPU | 显存 | CPU | 内存 |
 |----------|---------|----------|----------------------------------------------|------|
 | Serving端 | 4x Tesla P4-8GB | 7611MiB | Intel(R) Xeon(R) Gold 5117 CPU @ 2.00GHz 48核 | 216G |
 | Client端  | 4x Tesla P4-8GB | 7611MiB | Intel(R) Xeon(R) Gold 5117 CPU @ 2.00GHz 48核 | 216G |
 
+使用单卡GPU，未开启TensorRT。
 模型：ResNet_v2_50
 
-# 2. PaddleServing-PipeLine方式
+## 2. PaddleServing-PipeLine(python)
 |model_name |thread_num |batch_size |CPU_util(%) |GPU_memory(mb) |GPU_util(%) |qps(samples/s) |total count |mean(ms) |median(ms) |80 percent(ms) |90 percent(ms) |99 percent(ms) |total cost(s) |each cost(s)|
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--
 |ResNet_v2_50 |1 |1 |2.2 |3327 |17.25 |17.633658869240787 |355 |56.428481238996476 |38.646728515625 |39.496826171875 |39.98369140625 |1273.1911083984373 |20.131953477859497 |20.033540725708008|
@@ -43,8 +44,8 @@
 |ResNet_v2_50 |16 |16 |3.5 |6567 |77.8706 |186.56600081516 |248 |1332.1007946383568 |1365.2745361328125 |1399.212255859375 |1432.4037353515625 |1771.4374853515626 |21.26861262321472 |20.64799252152443|
 |ResNet_v2_50 |16 |32 |4.3 |6567 |83.6371 |201.1293408638195 |140 |2419.3400198800223 |2561.09228515625 |2616.081103515625 |2642.0835205078124 |2883.8197412109366 |22.274224042892456 |21.169659316539764|
 
-# 3. 竞品TensorFlow-Serving方式
-me|thread_num|batch_size|CPU_util(%)|GPU_memory(mb)|GPU_util(%)|qps(samples/s)|total count|mean(ms)|median(ms)|80 percent(ms)|90 percent(ms)|99 percent(ms)|total cost(s)|each cost(s)|
+## 3. 竞品TensorFlow-Serving(C++)
+model_name|thread_num|batch_size|CPU_util(%)|GPU_memory(mb)|GPU_util(%)|qps(samples/s)|total count|mean(ms)|median(ms)|80 percent(ms)|90 percent(ms)|99 percent(ms)|total cost(s)|each cost(s)|
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
 |ResNet_v2_50|1|1|2.1|6315|54|43.75570770301271|NaN|15.5063232421875|15.239013671875|15.387646484374999|15.971313476562498|19.846301269531253|0.22854161262512207|0.15510153770446777|
 |ResNet_v2_50|1|4|0.9|6315|89|48.117446702088664|NaN|73.0424560546875|35.518310546875|37.1490234375|74.91518554687487|379.05396972656257|0.8312993049621582|0.7305266857147217|
