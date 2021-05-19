@@ -44,7 +44,8 @@ registry.baidubce.com/paddlepaddle/serving:latest-java
 
 **XPU:**
 ```
-registry.baidubce.com/paddlepaddle/serving:xpu-beta
+registry.baidubce.com/paddlepaddle/serving:xpu-arm # for arm xpu user
+registry.baidubce.com/paddlepaddle/serving:xpu-x86 # for x86 xpu user
 ```
 
 ## Requirements for running CUDA containers
