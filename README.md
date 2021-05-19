@@ -249,7 +249,7 @@ output
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 - [Paddle Serving Examples](python/examples)
 - [How to process natural data in Paddle Serving?(Chinese)](doc/PROCESS_DATA.md)
-- [How to process lod of level(LOD)?](doc/LOD.md)
+- [How to process level of detail(LOD)?](doc/LOD.md)
 
 ### Developers
 - [How to deploy Paddle Serving on K8S?(Chinese)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
@@ -287,6 +287,7 @@ If you want to contribute code to Paddle Serving, please reference [Contribution
 - Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
 - Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
 - Special Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark and modifying resize comment error
+- Special Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
 
 ### Feedback
 
