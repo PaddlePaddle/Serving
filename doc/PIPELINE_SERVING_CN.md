@@ -467,7 +467,7 @@ op:
 
 ### 3.4 实现Server并启动服务
 
-代码示例中，重点留意3个自定义Op的proprocess、postprocess处理，以及Combin Op初始化列表input_ops=[bow_op, cnn_op]，设置Combin Op的前置OP列表。
+代码示例中，重点留意3个自定义Op的preprocess、postprocess处理，以及Combin Op初始化列表input_ops=[bow_op, cnn_op]，设置Combin Op的前置OP列表。
 
 ```python
 from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
