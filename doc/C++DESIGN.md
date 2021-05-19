@@ -1,4 +1,4 @@
-# Paddle Serving Design
+# C++ Serving Design
 
 ([简体中文](./C++DESIGN_CN.md)|English)
 
