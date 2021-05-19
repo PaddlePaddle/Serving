@@ -80,7 +80,7 @@ The tutorial provides
 
 We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](doc/RUN_IN_DOCKER.md). See the [document](doc/DOCKER_IMAGES.md) for more docker images.
 
-**Attention:**: Currently, the default GPU environment of paddlepaddle 2.0 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
+**Attention:**: Currently, the default GPU environment of paddlepaddle 2.1 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
 
 ```
 # Run CPU Docker
@@ -113,7 +113,7 @@ If you need install modules compiled with develop branch, please download packag
 
 Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 
-Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.5/3.6/3.7/3.8.
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python3.6/3.7/3.8.
 
 Recommended to install paddle >= 2.1.0
 
