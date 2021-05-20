@@ -263,10 +263,8 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
             for ids in gpus:
-                if int(ids) >= len(env_gpus):
-                    print(
-                        " Max index of gpu_ids out of range, the number of CUDA_VISIBLE_DEVICES is {}."
-                        .format(len(env_gpus)))
+                if ids not in env_gpus:
+                    print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
                     exit(-1)
         else:
             env_gpus = []
