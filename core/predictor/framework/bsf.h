@@ -50,7 +50,7 @@ struct Task {
   const InArrayT* in;
   OutArrayT* out;
 
-  size_t rem;
+  size_t remain;
   size_t size;
 
   size_t batch_size() { return in->size(); }
@@ -63,7 +63,7 @@ struct Task {
     owner_tid = -1;
     in = NULL;
     out = NULL;
-    rem = -1;
+    remain = -1;
     size = -1;
     index.store(0, butil::memory_order_relaxed);
   }
@@ -88,7 +88,7 @@ class BatchTasks {
 
   explicit BatchTasks(size_t batch_size, bool batch_align = true)
       : _batch_size(batch_size),
-        _rem_size(batch_size),
+        _remain_size(batch_size),
         _batch_align(batch_align) {
     _batch_in.clear();
     _batch_out.clear();
@@ -103,17 +103,17 @@ class BatchTasks {
 
   // synchronized operation
   size_t append_task(TaskT* task) {
-    size_t add = std::min(task->rem, _rem_size);
+    size_t add = std::min(task->remain, _remain_size);
     if (!_batch_align) {
-      add = task->rem;
+      add = task->remain;
     }
 
-    TaskMetaT tm(task, task->in->size() - task->rem, add);
+    TaskMetaT tm(task, task->in->size() - task->remain, add);
     _tasks.push_back(tm);
 
-    task->rem -= add;
-    _rem_size -= add;
-    return _rem_size;
+    task->remain -= add;
+    _remain_size -= add;
+    return _remain_size;
   }
 
   static bool check_valid(const typename TaskT::InArrayT& in,
@@ -177,7 +177,7 @@ class BatchTasks {
   std::vector<TaskMetaT> _tasks;
   typename TaskT::InArrayT _batch_in;
   typename TaskT::OutArrayT _batch_out;
-  size_t _rem_size;
+  size_t _remain_size;
   size_t _batch_size;
   bool _batch_align;
 };

@@ -152,7 +152,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(const InArrayT& in,
 
   task->in = &in;
   task->out = &out;
-  task->rem = in.size();
+  task->remain = in.size();
   task->size = in.size();
   task->index.store(0, butil::memory_order_relaxed);
 
@@ -177,11 +177,11 @@ bool TaskExecutor<TaskT>::fetch_batch(BatchTasks<TaskT>& batch) {  // NOLINT
 
   while (!_task_queue.empty()) {
     TaskT* task = _task_queue.front();
-    size_t rem = batch.append_task(task);
-    if (task->rem <= 0) {
+    size_t remain = batch.append_task(task);
+    if (task->remain <= 0) {
       _task_queue.pop_front();
     }
-    if (rem <= 0) break;
+    if (remain <= 0) break;
   }
 
   return true;

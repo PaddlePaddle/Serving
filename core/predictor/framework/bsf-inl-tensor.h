@@ -61,7 +61,7 @@ struct Task<baidu::paddle_serving::predictor::Tensor,
   const InArrayT* in;
   OutArrayT* out;
 
-  size_t rem;
+  size_t remain;
   size_t size;
 
   butil::atomic<size_t> index;
@@ -88,7 +88,7 @@ struct Task<baidu::paddle_serving::predictor::Tensor,
     owner_tid = -1;
     in = NULL;
     out = NULL;
-    rem = -1;
+    remain = -1;
     size = -1;
     index.store(0, butil::memory_order_relaxed);
   }
@@ -113,7 +113,7 @@ class BatchTasks<Task<baidu::paddle_serving::predictor::Tensor,
 
   explicit BatchTasks(size_t batch_size, bool batch_align = false)
       : _batch_size(batch_size),
-        _rem_size(batch_size),
+        _remain_size(batch_size),
         _batch_align(batch_align) {
     _batch_in.clear();
     _batch_out.clear();
@@ -159,16 +159,16 @@ class BatchTasks<Task<baidu::paddle_serving::predictor::Tensor,
   }
 
   size_t append_task(TaskT* task) {
-    size_t add = std::min(task->rem, _rem_size);
+    size_t add = std::min(task->remain, _remain_size);
     if (!_batch_align) {
-      add = task->rem;
+      add = task->remain;
     }
-    TaskMetaT tm(task, task->in->size() - task->rem, add);
+    TaskMetaT tm(task, task->in->size() - task->remain, add);
     _tasks.push_back(tm);
 
-    task->rem -= add;
-    _rem_size -= add;
-    return _rem_size;
+    task->remain -= add;
+    _remain_size -= add;
+    return _remain_size;
   }
 
   void merge_tasks() {
@@ -365,7 +365,7 @@ class BatchTasks<Task<baidu::paddle_serving::predictor::Tensor,
   InArrayT _batch_in;
   OutArrayT _batch_out;
   size_t _batch_size;
-  size_t _rem_size;
+  size_t _remain_size;
   bool _batch_align;
 };
 
