@@ -26,10 +26,6 @@ from paddle_serving_client.version import version_tag
 import util
 
 py_version = sys.version_info
-
-class BinaryDistribution(Distribution):
-    def has_ext_modules(foo):
-        return True
         
 def copy_lib():
     os.popen('mkdir -p paddle_serving_client/lib')
@@ -93,7 +89,6 @@ setup(
     packages=packages,
     package_data=package_data,
     package_dir=package_dir,
-    distclass=BinaryDistribution,
     # PyPI package information.
     classifiers=[
         'Development Status :: 4 - Beta',
