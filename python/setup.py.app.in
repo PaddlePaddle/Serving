@@ -25,10 +25,6 @@ from setuptools import setup
 from paddle_serving_app.version import version_tag
 from pkg_resources import DistributionNotFound, get_distribution
         
-class BinaryDistribution(Distribution):
-    def has_ext_modules(foo):
-        return True
-
 def python_version():
     return [int(v) for v in platform.python_version().split(".")]
 
@@ -92,7 +88,6 @@ setup(
     packages=packages,
     package_data=package_data,
     package_dir=package_dir,
-    distclass=BinaryDistribution,
     # PyPI package information.
     classifiers=[
         'Development Status :: 4 - Beta',
