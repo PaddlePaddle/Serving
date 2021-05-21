@@ -80,33 +80,38 @@ The tutorial provides
 
 We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](doc/RUN_IN_DOCKER.md). See the [document](doc/DOCKER_IMAGES.md) for more docker images.
 
-**Attention:**: Currently, the default GPU environment of paddlepaddle 2.0 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
+**Attention:**: Currently, the default GPU environment of paddlepaddle 2.1 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
+
+**Attention:** the following so-called 'python' or 'pip' stands for one of Python 3.6/3.7/3.8.
 
 ```
 # Run CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.5.0-cuda10.2-cudnn8-devel bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+install python dependencies
+```
+cd Serving
+pip install -r python/requirements.txt
+```
 
 ```shell
-pip install paddle-serving-client==0.5.0
-pip install paddle-serving-server==0.5.0 # CPU
-pip install paddle-serving-app==0.3.0
-pip install paddle-serving-server-gpu==0.5.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip install paddle-serving-client==0.6.0
+pip install paddle-serving-server==0.6.0 # CPU
+pip install paddle-serving-app==0.6.0
+pip install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
 # DO NOT RUN ALL COMMANDS! check your GPU env and select the right one
-pip install paddle-serving-server-gpu==0.5.0.post9 # GPU with CUDA9.0
-pip install paddle-serving-server-gpu==0.5.0.post10 # GPU with CUDA10.0
-pip install paddle-serving-server-gpu==0.5.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip install paddle-serving-server-gpu==0.5.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
+pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
@@ -115,28 +120,31 @@ If you need install modules compiled with develop branch, please download packag
 
 Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 
-Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python2.7/3.5/3.6/3.7/3.8.
+Packages of paddle-serving-client and paddle-serving-app support Linux and Windows, but paddle-serving-client only support python3.6/3.7/3.8.
 
-Recommended to install paddle >= 2.0.0
+**For latest version, Cuda 9.0 or Cuda 10.0 are no longer supported, Python2.7/3.5 is no longer supported.**
+
+Recommended to install paddle >= 2.1.0
+
 
 ```
 # CPU users, please run
-pip install paddlepaddle==2.0.0
+pip install paddlepaddle==2.1.0
 
 # GPU Cuda10.2 please run
-pip install paddlepaddle-gpu==2.0.0 
+pip install paddlepaddle-gpu==2.1.0 
 ```
 
 **Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle official documentation-multi-version whl package list
 ](https://www.paddlepaddle.org.cn/documentation/docs/en/install/Tables_en.html#multi-version-whl-package-list-release)
 
-Select the url link of the corresponding GPU environment and install it. For example, for Python2.7 users of Cuda 9.0, please select `cp27-cp27mu` and
-The url corresponding to `cuda9.0_cudnn7-mkl`, copy it and run
+Select the url link of the corresponding GPU environment and install it. For example, for Python3.6 users of Cuda 10.1, please select `cp36-cp36m` and
+The url corresponding to `cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`, copy it and run
 ```
-pip install https://paddle-wheel.bj.bcebos.com/2.0.0-gpu-cuda9-cudnn7-mkl/paddlepaddle_gpu-2.0.0.post90-cp27-cp27mu-linux_x86_64.whl
+pip install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
 
-the default `paddlepaddle-gpu==2.0.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`. More info please check [Paddle Serving uses TensorRT](./doc/TENSOR_RT.md)
+the default `paddlepaddle-gpu==2.1.0` is Cuda 10.2 with no TensorRT. If you want to install PaddlePaddle with TensorRT. please also check the documentation-multi-version whl package list and find key word `cuda10.2-cudnn8.0-trt7.1.3`. More info please check [Paddle Serving uses TensorRT](./doc/TENSOR_RT.md)
 
 If it is other environment and Python version, please find the corresponding link in the table and install it with pip.
 
@@ -211,6 +219,34 @@ the response is
 ```
 {"result":{"price":[[18.901151657104492]]}}
 ```
+<h3 align="center">Pipeline Service</h3>
+
+Paddle Serving provides industry-leading multi-model tandem services, which strongly supports the actual operating business scenarios of major companies, please refer to [OCR word recognition](./python/examples/pipeline/ocr).
+
+we get two models
+```
+python -m paddle_serving_app.package --get_model ocr_rec
+tar -xzvf ocr_rec.tar.gz
+python -m paddle_serving_app.package --get_model ocr_det
+tar -xzvf ocr_det.tar.gz
+```
+then we start server side, launch two models as one standalone web service
+```
+python web_service.py
+```
+http request
+```
+python pipeline_http_client.py
+```
+grpc request
+```
+python pipeline_rpc_client.py
+```
+output
+```
+{'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
+```
+
 
 <h2 align="center">Document</h2>
 
@@ -218,8 +254,12 @@ the response is
 - [How to save a servable model?](doc/SAVE.md)
 - [Write Bert-as-Service in 10 minutes](doc/BERT_10_MINS.md)
 - [Paddle Serving Examples](python/examples)
+- [How to process natural data in Paddle Serving?(Chinese)](doc/PROCESS_DATA.md)
+- [How to process level of detail(LOD)?](doc/LOD.md)
 
 ### Developers
+- [How to deploy Paddle Serving on K8S?(Chinese)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
+- [How to route Paddle Serving to secure endpoint?(Chinese)](doc/SERVIING_AUTH_DOCKER.md)
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Compile from source code](doc/COMPILE.md)
 - [Develop Pipeline Serving](doc/PIPELINE_SERVING.md)
@@ -231,8 +271,7 @@ the response is
 - [How to profile Paddle Serving latency?](python/examples/util)
 - [How to optimize performance?](doc/PERFORMANCE_OPTIM.md)
 - [Deploy multi-services on one GPU(Chinese)](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [CPU Benchmarks(Chinese)](doc/BENCHMARKING.md)
-- [GPU Benchmarks(Chinese)](doc/GPU_BENCHMARKING.md)
+- [GPU Benchmarks(Chinese)](doc/BENCHMARKING_GPU.md)
 
 ### Design
 - [Design Doc](doc/DESIGN_DOC.md)
@@ -253,6 +292,7 @@ If you want to contribute code to Paddle Serving, please reference [Contribution
 - Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
 - Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
 - Special Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark and modifying resize comment error
+- Special Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
 
 ### Feedback
 

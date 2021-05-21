@@ -9,8 +9,8 @@ function usage
     echo "   ";
     echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11";
     echo "   --python              : python version, 3.6/3.7/3.8 ";
-    echo "   --serving             : serving version(0.5.0)";
-    echo "   --paddle              : paddle version(2.0.1)"
+    echo "   --serving             : serving version(0.6.0)";
+    echo "   --paddle              : paddle version(2.1.0)"
     echo "   --image_name          : image name(default serving_runtime:env-python)"
     echo "  -h | --help            : helper";
 }

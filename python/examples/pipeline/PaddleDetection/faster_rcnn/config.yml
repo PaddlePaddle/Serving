@@ -5,9 +5,10 @@ dag:
 http_port: 18082
 op:
   faster_rcnn:
+    concurrency: 2
+
     local_service_conf:
       client_type: local_predictor
-      concurrency: 2
       device_type: 1
       devices: '2'
       fetch_list:
