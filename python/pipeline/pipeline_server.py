@@ -56,7 +56,6 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
             resp = pipeline_service_pb2.Response()
             resp.err_no = channel.ChannelDataErrcode.NO_SERVICE.value
             resp.err_msg = "Failed to inference: Service name error."
-            resp.result = ""
             return resp
         resp = self._dag_executor.call(request)
         return resp
