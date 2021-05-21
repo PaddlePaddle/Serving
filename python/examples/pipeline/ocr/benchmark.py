@@ -85,7 +85,6 @@ def run_http(idx, batch_size):
 
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(run_http, thread, batch_size)
     start = time.time()
     result = multi_thread_runner.run(run_http, thread, batch_size)
     end = time.time()
@@ -128,7 +127,6 @@ def run_rpc(thread, batch_size):
 
 def multithread_rpc(thraed, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(run_rpc, thread, batch_size)
     start = time.time()
     result = multi_thread_runner.run(run_rpc, thread, batch_size)
     end = time.time()
