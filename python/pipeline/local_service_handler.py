@@ -45,7 +45,11 @@ class LocalServiceHandler(object):
                  ir_optim=False,
                  available_port_generator=None,
                  use_profile=False,
-                 precision="fp32"):
+                 precision="fp32",
+                 use_mkldnn=False,
+                 mkldnn_cache_capacity=0,
+                 mkldnn_op_list=None,
+                 mkldnn_bf16_op_list=None):
         """
         Initialization of localservicehandler
 
@@ -64,6 +68,10 @@ class LocalServiceHandler(object):
            available_port_generator: generate available ports
            use_profile: use profiling, False default.
            precision: inference precesion, e.g. "fp32", "fp16", "int8"
+           use_mkldnn: use mkldnn, default False.
+           mkldnn_cache_capacity: cache capacity of mkldnn, 0 means no limit.
+           mkldnn_op_list: OP list optimized by mkldnn, None default.
+           mkldnn_bf16_op_list: OP list optimized by mkldnn bf16, None default.
 
         Returns:
            None
@@ -78,6 +86,10 @@ class LocalServiceHandler(object):
         self._use_trt = False
         self._use_lite = False
         self._use_xpu = False
+        self._use_mkldnn = False
+        self._mkldnn_cache_capacity = 0
+        self._mkldnn_op_list = None
+        self._mkldnn_bf16_op_list = None
 
         if device_type == -1:
             # device_type is not set, determined by `devices`, 
@@ -140,16 +152,24 @@ class LocalServiceHandler(object):
         self._use_profile = use_profile
         self._fetch_names = fetch_names
         self._precision = precision
+        self._use_mkldnn = use_mkldnn
+        self._mkldnn_cache_capacity = mkldnn_cache_capacity
+        self._mkldnn_op_list = mkldnn_op_list
+        self._mkldnn_bf16_op_list = mkldnn_bf16_op_list
 
         _LOGGER.info(
             "Models({}) will be launched by device {}. use_gpu:{}, "
             "use_trt:{}, use_lite:{}, use_xpu:{}, device_type:{}, devices:{}, "
             "mem_optim:{}, ir_optim:{}, use_profile:{}, thread_num:{}, "
-            "client_type:{}, fetch_names:{} precision:{}".format(
+            "client_type:{}, fetch_names:{}, precision:{}, use_mkldnn:{}, "
+            "mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
+            "mkldnn_bf16_op_list:{}".format(
                 model_config, self._device_name, self._use_gpu, self._use_trt,
-                self._use_lite, self._use_xpu, device_type, self._devices, self.
-                _mem_optim, self._ir_optim, self._use_profile, self._thread_num,
-                self._client_type, self._fetch_names, self._precision))
+                self._use_lite, self._use_xpu, device_type, self._devices,
+                self._mem_optim, self._ir_optim, self._use_profile,
+                self._thread_num, self._client_type, self._fetch_names,
+                self._precision, self._use_mkldnn, self._mkldnn_cache_capacity,
+                self._mkldnn_op_list, self._mkldnn_bf16_op_list))
 
     def get_fetch_list(self):
         return self._fetch_names
@@ -189,7 +209,7 @@ class LocalServiceHandler(object):
         from paddle_serving_app.local_predict import LocalPredictor
         if self._local_predictor_client is None:
             self._local_predictor_client = LocalPredictor()
-
+            # load model config and init predictor
             self._local_predictor_client.load_model_config(
                 model_path=self._model_config,
                 use_gpu=self._use_gpu,
@@ -201,7 +221,11 @@ class LocalServiceHandler(object):
                 use_trt=self._use_trt,
                 use_lite=self._use_lite,
                 use_xpu=self._use_xpu,
-                precision=self._precision)
+                precision=self._precision,
+                use_mkldnn=self._use_mkldnn,
+                mkldnn_cache_capacity=self._mkldnn_cache_capacity,
+                mkldnn_op_list=self._mkldnn_op_list,
+                mkldnn_bf16_op_list=self._mkldnn_bf16_op_list)
         return self._local_predictor_client
 
     def get_client_config(self):

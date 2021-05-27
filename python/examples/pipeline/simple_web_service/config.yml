@@ -9,10 +9,14 @@ http_port: 18082
 dag:
     #op资源类型, True, 为线程模型；False，为进程模型
     is_thread_op: False
+
+    #tracer
+    tracer:
+        interval_s: 10
 op:
     uci:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 2
+        concurrency: 1
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -35,7 +39,10 @@ op:
             #precsion, 预测精度，降低预测精度可提升预测速度
             #GPU 支持: "fp32"(default), "fp16", "int8"；
             #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
-            precision: "FP16"
+            precision: "fp32"
 
-            #ir_optim开关
-            ir_optim: False 
+            #ir_optim开关, 默认False
+            ir_optim: True 
+
+            #use_mkldnn开关, 默认False, use_mkldnn与ir_optim同时打开才有性能提升
+            use_mkldnn: True
