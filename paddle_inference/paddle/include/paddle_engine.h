@@ -174,11 +174,18 @@ class PaddleInferenceEngine : public EngineCore {
     if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
         (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
          engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
+#ifdef WITH_MKLML
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
       } else if (precision_type == PrecisionType::kHalf) {
         config.EnableMkldnnBfloat16();
+      } else {
+#ifdef WITH_MKLDNN
+        config.EnableMKLDNN();
+        config.SwitchIrOptim(true);
+#endif
       }
+#endif
     }
 
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
