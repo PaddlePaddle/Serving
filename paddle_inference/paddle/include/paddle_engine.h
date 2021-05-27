@@ -44,12 +44,12 @@ static const int max_batch = 32;
 static const int min_subgraph_size = 3;
 static PrecisionType precision_type;
 
-std::shared_ptr<std::vector<Tensor>> PrepareWarmupData() {
-  auto warmup_data = std::make_shared<std::vector<Tensor>>(1);
-  Tensor images;
+std::shared_ptr<std::vector<paddle::PaddleTensor>> PrepareWarmupData() {
+  auto warmup_data = std::make_shared<std::vector<paddle::PaddleTensor>>(1);
+  paddle::PaddleTensor images;
   images.name = "image";
   images.shape = {2, 3, 300, 300};
-  images.dtype = PrecisionType::kFloat32;
+  images.dtype = paddle::PaddleDType::FLOAT32;
   images.data.Resize(sizeof(float) * 2 * 3 * 300 * 300);
 
   (*warmup_data)[0] = std::move(images);
