@@ -166,6 +166,13 @@ class PaddleInferenceEngine : public EngineCore {
     }
     precision_type = GetPrecision(FLAGS_precision);
 
+    if (engine_conf.has_enable_ir_optimization() &&
+        !engine_conf.enable_ir_optimization()) {
+      config.SwitchIrOptim(false);
+    } else {
+      config.SwitchIrOptim(true);
+    }
+
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
         config.EnableUseGpu(2000, FLAGS_gpuid);
@@ -208,12 +215,6 @@ class PaddleInferenceEngine : public EngineCore {
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
-    }
-    if (engine_conf.has_enable_ir_optimization() &&
-        !engine_conf.enable_ir_optimization()) {
-      config.SwitchIrOptim(false);
-    } else {
-      config.SwitchIrOptim(true);
     }
 
     if (engine_conf.has_enable_memory_optimization() &&
