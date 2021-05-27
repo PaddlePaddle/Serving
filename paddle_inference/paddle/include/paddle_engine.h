@@ -44,6 +44,18 @@ static const int max_batch = 32;
 static const int min_subgraph_size = 3;
 static PrecisionType precision_type;
 
+std::shared_ptr<std::vector<Tensor>> PrepareWarmupData() {
+  auto warmup_data = std::make_shared<std::vector<Tensor>>(1);
+  Tensor images;
+  images.name = "image";
+  images.shape = {2, 3, 300, 300};
+  images.dtype = PrecisionType::kFloat32;
+  images.data.Resize(sizeof(float) * 2 * 3 * 300 * 300);
+
+  (*warmup_data)[0] = std::move(images);
+  return warmup_data;
+}
+
 PrecisionType GetPrecision(const std::string& precision_data) {
   std::string precision_type = predictor::ToLower(precision_data);
   if (precision_type == "fp32") {
@@ -177,6 +189,11 @@ class PaddleInferenceEngine : public EngineCore {
 #ifdef WITH_MKLML
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
+        auto quantizer_config = config.mkldnn_quantizer_config();
+        // TODO: warmup data
+        // quantizer_config -> SetWarmupData();
+        // quantizer_config -> SetWarmupBatchSize();
+        // quantizer_config -> SetEnabledOpTypes(4);
       } else if (precision_type == PrecisionType::kHalf) {
         config.EnableMkldnnBfloat16();
       } else {
