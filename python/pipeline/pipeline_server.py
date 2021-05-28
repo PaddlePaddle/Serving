@@ -239,6 +239,8 @@ class PipelineServer(object):
                 "ir_optim": False,
                 "precision": "fp32",
                 "use_calib": False,
+                "use_mkldnn": False,
+                "mkldnn_cache_capacity": 0,
             },
         }
         for op in self._used_op:
@@ -397,6 +399,8 @@ class ServerYamlConfChecker(object):
             "ir_optim": False,
             "precision": "fp32",
             "use_calib": False,
+            "use_mkldnn": False,
+            "mkldnn_cache_capacity": 0,
         }
         conf_type = {
             "model_config": str,
@@ -408,6 +412,10 @@ class ServerYamlConfChecker(object):
             "ir_optim": bool,
             "precision": str,
             "use_calib": bool,
+            "use_mkldnn": bool,
+            "mkldnn_cache_capacity": int,
+            "mkldnn_op_list": list,
+            "mkldnn_bf16_op_list": list,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,

@@ -6,7 +6,7 @@ http_port: 9999
 
 #worker_num, 最大并发数。当build_dag_each_worker=True时, 框架会创建worker_num个进程，每个进程内构建grpcSever和DAG
 ##当build_dag_each_worker=False时，框架会设置主线程grpc线程池的max_workers=worker_num
-worker_num: 5
+worker_num: 20
 
 #build_dag_each_worker, False，框架在进程内创建一条DAG；True，框架会每个进程内创建多个独立的DAG
 build_dag_each_worker: false
@@ -26,7 +26,7 @@ dag:
 op:
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 2
+        concurrency: 6
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -40,10 +40,19 @@ op:
             fetch_list: ["concat_1.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "0"
+            devices: ""
+
+            #use_mkldnn
+            #use_mkldnn: True
+
+            #thread_num
+            thread_num: 2
+
+            #ir_optim
+            ir_optim: True
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 2
+        concurrency: 3
 
         #超时时间, 单位ms
         timeout: -1
@@ -64,4 +73,13 @@ op:
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"] 
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "0"
+            devices: ""
+
+            #use_mkldnn
+            #use_mkldnn: True
+
+            #thread_num
+            thread_num: 2
+
+            #ir_optim
+            ir_optim: True

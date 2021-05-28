@@ -1,5 +1,5 @@
 export FLAGS_profile_pipeline=1
-alias python3="python3.6"
+alias python3="python3.7"
 modelname="ocr"
 
 # HTTP
@@ -11,11 +11,11 @@ rm -rf profile_log_$modelname
 
 echo "Starting HTTP Clients..."
 # Start a client in each thread, tesing the case of multiple threads.
-for thread_num in 1 2 4 8 12 16
+for thread_num in 1 2 4 6 8 12 16
 do
   for batch_size in 1
   do
-    echo '----$modelname thread num: $thread_num batch size: $batch_size mode:http ----' >>profile_log_$modelname
+    echo "----$modelname thread num: $thread_num batch size: $batch_size mode:http ----" >>profile_log_$modelname
     # Start one web service, If you start the service yourself, you can ignore it here.
     #python3 web_service.py >web.log 2>&1 &
     #sleep 3
@@ -51,7 +51,7 @@ sleep 3
 
 # Create yaml，If you already have the config.yaml, ignore it.
 #python3 benchmark.py yaml local_predictor 1 gpu
-rm -rf profile_log_$modelname
+#rm -rf profile_log_$modelname
 
 # Start a client in each thread, tesing the case of multiple threads.
 for thread_num in 1 2 4 6 8 12 16

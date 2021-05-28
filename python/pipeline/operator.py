@@ -139,6 +139,11 @@ class Op(object):
         self.mem_optim = False
         self.ir_optim = False
         self.precision = "fp32"
+        self.use_mkldnn = False
+        self.mkldnn_cache_capacity = 0
+        self.mkldnn_op_list = None
+        self.mkldnn_bf16_op_list = None
+
         if self._server_endpoints is None:
             server_endpoints = conf.get("server_endpoints", [])
             if len(server_endpoints) != 0:
@@ -161,6 +166,14 @@ class Op(object):
                     self.ir_optim = local_service_conf.get("ir_optim")
                     self._fetch_names = local_service_conf.get("fetch_list")
                     self.precision = local_service_conf.get("precision")
+                    self.use_mkldnn = local_service_conf.get("use_mkldnn")
+                    self.mkldnn_cache_capacity = local_service_conf.get(
+                        "mkldnn_cache_capacity")
+                    self.mkldnn_op_list = local_service_conf.get(
+                        "mkldnn_op_list")
+                    self.mkldnn_bf16_op_list = local_service_conf.get(
+                        "mkldnn_bf16_op_list")
+
                     if self.model_config is None:
                         self.with_serving = False
                     else:
@@ -176,7 +189,12 @@ class Op(object):
                                 devices=self.devices,
                                 mem_optim=self.mem_optim,
                                 ir_optim=self.ir_optim,
-                                precision=self.precision)
+                                precision=self.precision,
+                                use_mkldnn=self.use_mkldnn,
+                                mkldnn_cache_capacity=self.
+                                mkldnn_cache_capacity,
+                                mkldnn_op_list=self.mkldnn_bf16_op_list,
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -199,7 +217,12 @@ class Op(object):
                                 fetch_names=self._fetch_names,
                                 mem_optim=self.mem_optim,
                                 ir_optim=self.ir_optim,
-                                precision=self.precision)
+                                precision=self.precision,
+                                use_mkldnn=self.use_mkldnn,
+                                mkldnn_cache_capacity=self.
+                                mkldnn_cache_capacity,
+                                mkldnn_op_list=self.mkldnn_op_list,
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -564,7 +587,9 @@ class Op(object):
                       self._get_output_channels(), False, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
                       self.device_type, self.devices, self.mem_optim,
-                      self.ir_optim, self.precision))
+                      self.ir_optim, self.precision, self.use_mkldnn,
+                      self.mkldnn_cache_capacity, self.mkldnn_op_list,
+                      self.mkldnn_bf16_op_list))
             p.daemon = True
             p.start()
             process.append(p)
@@ -598,7 +623,9 @@ class Op(object):
                       self._get_output_channels(), True, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
                       self.device_type, self.devices, self.mem_optim,
-                      self.ir_optim, self.precision))
+                      self.ir_optim, self.precision, self.use_mkldnn,
+                      self.mkldnn_cache_capacity, self.mkldnn_op_list,
+                      self.mkldnn_bf16_op_list))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -1068,7 +1095,8 @@ class Op(object):
 
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
-             device_type, devices, mem_optim, ir_optim, precision):
+             device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
+             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1090,7 +1118,11 @@ class Op(object):
             devices: gpu id list[gpu], "" default[cpu]
             mem_optim: use memory/graphics memory optimization, True default.
             ir_optim: use calculation chart optimization, False default.
-            precision: inference precision, e.g. "fp32", "fp16", "int8" 
+            precision: inference precision, e.g. "fp32", "fp16", "int8", "bf16"
+            use_mkldnn: use mkldnn, default False.
+            mkldnn_cache_capacity: cache capacity of mkldnn, 0 means no limit.
+            mkldnn_op_list: OP list optimized by mkldnn, None default.
+            mkldnn_bf16_op_list: OP list optimized by mkldnn bf16, None default.
 
         Returns:
             None
@@ -1110,7 +1142,11 @@ class Op(object):
                     devices=devices,
                     mem_optim=mem_optim,
                     ir_optim=ir_optim,
-                    precision=precision)
+                    precision=precision,
+                    use_mkldnn=use_mkldnn,
+                    mkldnn_cache_capacity=mkldnn_cache_capacity,
+                    mkldnn_op_list=mkldnn_op_list,
+                    mkldnn_bf16_op_list=mkldnn_bf16_op_list)
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))
