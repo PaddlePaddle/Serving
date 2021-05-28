@@ -194,6 +194,12 @@ class PaddleInferenceEngine : public EngineCore {
         (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
          engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
 #ifdef WITH_MKLML
+#ifdef WITH_MKLDNN
+      config.EnableMKLDNN();
+      config.SwitchIrOptim(true);
+      config.DisableGpu();
+      // config.SetCpuMathLibraryNumThreads(2);
+
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
         auto quantizer_config = config.mkldnn_quantizer_config();
@@ -203,12 +209,8 @@ class PaddleInferenceEngine : public EngineCore {
         // quantizer_config -> SetEnabledOpTypes(4);
       } else if (precision_type == PrecisionType::kHalf) {
         config.EnableMkldnnBfloat16();
-      } else {
-#ifdef WITH_MKLDNN
-        config.EnableMKLDNN();
-        config.SwitchIrOptim(true);
-#endif
       }
+#endif
 #endif
     }
 
