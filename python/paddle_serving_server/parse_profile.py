@@ -17,7 +17,7 @@ import os
 import yaml
 import argparse
 
-import .benchmark_utils
+from .benchmark_utils import PaddleInferBenchmark
 """
 {'CPU_UTILIZATION': 0.8, 'MAX_GPU_MEMORY': 0, 'GPU_UTILIZATION': '0 %', 'DAG': {'50': 670.256, '60': 670.256, '70': 670.765, '80': 671.23, '90': 687.546, '95': 687.546, '99': 687.546, 'avg': 670.755625, 'qps': 0.8, 'query_count': 8, 'succ': 1.0}, 'demo': {'midp': 669.484375, 'postp': 0.184875, 'prep': 1.001875}}
 """
@@ -37,6 +37,39 @@ class LogHandler(object):
     def append(self, new_str):
         self.fstr += new_str + "\n"
 
+def handle_benchmark(benchmark_config, benchmark_raw, indentifier):
+    model_info = {
+        'model_name': benchmark_config["model_name"],
+        'precision': benchmark_config["precision"]
+    }
+    data_info = {
+        'batch_size': benchmark_config["batch_size"],
+        'shape': benchmark_config["input_shape"],
+        'data_num': benchmark_config["num_of_samples"]
+    }
+    perf_info = {
+        'preprocess_time_s': "",
+        'inference_time_s': float(benchmark_raw["median"][0:-2])/1000, # *** ms
+        'postprocess_time_s': "",
+        'total_time_s': "",
+        'inference_time_s_90': float(benchmark_raw["90_percent"][0:-2])/1000,  # *** ms
+        'inference_time_s_99': float(benchmark_raw["99_percent"][0:-2])/1000,  # *** ms
+        'qps': benchmark_raw["AVG_QPS"]
+    }
+    resource_info = {
+        'cpu_rss_mb': "",
+        'cpu_vms_mb': "",
+        'cpu_shared_mb': "",
+        'cpu_dirty_mb': "",
+        'cpu_util': benchmark_raw["CPU_UTIL"],
+        'gpu_rss_mb': "",
+        'gpu_util': benchmark_raw["GPU_UTIL"],
+        'gpu_mem_util': benchmark_raw["GPU_MEM"]
+    }
+
+    server_log = PaddleInferBenchmark(
+        benchmark_config, model_info, data_info, perf_info, resource_info)
+    server_log(indentifier)
 
 def parse_args():  # pylint: disable=doc-string-missing
     parser = argparse.ArgumentParser("serve")
@@ -65,41 +98,18 @@ if __name__ == "__main__":
     f = open(benchmark_cfg_filename, 'r')
     benchmark_config = yaml.load(f)
     f.close()
-    benchmark_raw_filename = args.benchmark_log
-    f = open(benchmark_raw_filename, 'r')
-    benchmark_raw = yaml.load(f)
-    f.close()
-
-    model_info = {
-        'model_name': benchmark_config["model_name"],
-        'precision': benchmark_config["precision"]
-    }
-    data_info = {
-        'batch_size': benchmark_config["batch_size"],
-        'shape': benchmark_config["input_shape"],
-        'data_num': benchmark_config["num_of_samples"]
-    }
-    perf_info = {
-        'preprocess_time_s': "",
-        'inference_time_s': benchmark_raw["DAG"]["avg"],
-        'postprocess_time_s': "",
-        'total_time_s': "",
-        'inference_time_s_90': benchmark_raw["DAG"]["90"],
-        'inference_time_s_99': benchmark_raw["DAG"]["99"],
-        'succ_rate': benchmark_raw["DAG"]["succ"],
-        'qps': benchmark_raw["DAG"]["qps"]
-    }
-    resource_info = {
-        'cpu_rss_mb': "",
-        'cpu_vms_mb': "",
-        'cpu_shared_mb': "",
-        'cpu_dirty_mb': "",
-        'cpu_util': benchmark_raw["CPU_MEM"],
-        'gpu_rss_mb': "",
-        'gpu_util': benchmark_raw["GPU_UTIL"],
-        'gpu_mem_util': benchmark_raw["GPU_MEM"]
-    }
-
-    server_log = benchmark_utils.PaddleInferBenchmark(
-        benchmark_config, model_info, data_info, perf_info, resource_info)
-    server_log('Serving')
+    benchmark_log_filename = args.benchmark_log
+    f = open(benchmark_log_filename, 'r')
+    lines = f.readlines()
+    line_no = 0
+    while line_no < len(lines):
+        if len(lines[line_no]) > 5 and lines[line_no].startswith("#---"):
+            iden = lines[line_no][5: -5]
+            line_no += 1
+            sub_log = lines[line_no: line_no + 13]
+            sub_dict = yaml.safe_load("".join(sub_log))
+            handle_benchmark(benchmark_config, sub_dict, iden)
+            line_no += 13
+        else:
+            line_no += 1
+            

@@ -23,8 +23,8 @@ import paddle.inference as paddle_infer
 from pathlib import Path
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_PATH_ROOT = f"{CUR_DIR}/../../tools/output"
-
+#LOG_PATH_ROOT = f"{CUR_DIR}/../../tools/output"
+LOG_PATH_ROOT = f"."
 
 class PaddleInferBenchmark(object):
     def __init__(self,
@@ -73,7 +73,6 @@ class PaddleInferBenchmark(object):
 
         # perf info
         self.perf_info = perf_info
-
         try:
             # required value
             self.model_name = model_info['model_name']
@@ -93,8 +92,8 @@ class PaddleInferBenchmark(object):
         self.postprocess_time_s = perf_info.get('postprocess_time_s', 0)
         self.total_time_s = perf_info.get('total_time_s', 0)
 
-        self.inference_time_s_90 = perf_info.get("inference_time_s_90", "")
-        self.inference_time_s_99 = perf_info.get("inference_time_s_99", "")
+        self.inference_time_s_90 = perf_info.get("inference_time_s_90", 0)
+        self.inference_time_s_99 = perf_info.get("inference_time_s_99", 0)
         self.succ_rate = perf_info.get("succ_rate", "")
         self.qps = perf_info.get("qps", "")
 
@@ -103,15 +102,17 @@ class PaddleInferBenchmark(object):
 
         # mem info
         if isinstance(resource_info, dict):
-            self.cpu_rss_mb = int(resource_info.get('cpu_rss_mb', 0))
-            self.cpu_vms_mb = int(resource_info.get('cpu_vms_mb', 0))
-            self.cpu_shared_mb = int(resource_info.get('cpu_shared_mb', 0))
-            self.cpu_dirty_mb = int(resource_info.get('cpu_dirty_mb', 0))
+            self.cpu_rss_mb = int("-1" if 'cpu_rss_mb' not in resource_info or resource_info.get('cpu_rss_mb').strip()=="" else resource_info.get('cpu_rss_mb', 0))
+            self.cpu_vms_mb = int("-1" if 'cpu_vms_mb' not in resource_info or resource_info.get('cpu_vms_mb').strip()=="" else resource_info.get('cpu_vms_mb', 0))
+            self.cpu_shared_mb = int("-1" if 'cpu_shared_mb' not in resource_info or resource_info.get('cpu_shared_mb').strip()=="" else resource_info.get('cpu_shared_mb', 0))
+            self.cpu_dirty_mb = int("-1" if 'cpu_dirty_mb' not in resource_info or resource_info.get('cpu_dirty_mb').strip()=="" else resource_info.get('cpu_dirty_mb', 0))
             self.cpu_util = round(resource_info.get('cpu_util', 0), 2)
 
-            self.gpu_rss_mb = int(resource_info.get('gpu_rss_mb', 0))
-            self.gpu_util = round(resource_info.get('gpu_util', 0), 2)
-            self.gpu_mem_util = round(resource_info.get('gpu_mem_util', 0), 2)
+            self.gpu_rss_mb = int("-1" if 'gpu_rss_mb' not in resource_info or resource_info.get('gpu_rss_mb').strip()=="" else resource_info.get('gpu_rss_mb', 0))
+            #self.gpu_util = round(resource_info.get('gpu_util', 0), 2)
+            self.gpu_util = resource_info.get('gpu_util', 0)
+            #self.gpu_mem_util = round(resource_info.get('gpu_mem_util', 0), 2)
+            self.gpu_mem_util =  resource_info.get('gpu_mem_util', 0)
         else:
             self.cpu_rss_mb = 0
             self.cpu_vms_mb = 0
@@ -170,6 +171,7 @@ class PaddleInferBenchmark(object):
                 'cpu_math_library_num_threads'] = config.cpu_math_library_num_threads(
                 )
         elif isinstance(config, dict):
+            config_status = {}
             config_status['runtime_device'] = config.get('runtime_device', "")
             config_status['ir_optim'] = config.get('ir_optim', "")
             config_status['enable_tensorrt'] = config.get('enable_tensorrt', "")
@@ -238,10 +240,10 @@ class PaddleInferBenchmark(object):
         self.logger.info(
             f"{identifier} total time spent(s): {self.total_time_s}")
         self.logger.info(
-            f"{identifier} preprocess_time(ms): {round(self.preprocess_time_s*1000, 1)}, inference_time(ms): {round(self.inference_time_s*1000, 1)}, postprocess_time(ms): {round(self.postprocess_time_s*1000, 1)}"
+            f"{identifier} preprocess_time(ms): {self.preprocess_time_s}, inference_time(ms): {self.inference_time_s}, postprocess_time(ms): {self.postprocess_time_s}"
         )
         if self.inference_time_s_90:
-            self.looger.info(
+            self.logger.info(
                 f"{identifier} 90%_cost: {self.inference_time_s_90}, 99%_cost: {self.inference_time_s_99}, succ_rate: {self.succ_rate}"
             )
         if self.qps:

@@ -41,9 +41,9 @@ def show_latency(latency_list):
     info = "latency:\n"
     info += "mean: {}ms\n".format(np.mean(latency_array))
     info += "median: {}ms\n".format(np.median(latency_array))
-    info += "80 percent: {}ms\n".format(np.percentile(latency_array, 80))
-    info += "90 percent: {}ms\n".format(np.percentile(latency_array, 90))
-    info += "99 percent: {}ms\n".format(np.percentile(latency_array, 99))
+    info += "80_percent: {}ms\n".format(np.percentile(latency_array, 80))
+    info += "90_percent: {}ms\n".format(np.percentile(latency_array, 90))
+    info += "99_percent: {}ms\n".format(np.percentile(latency_array, 99))
     sys.stderr.write(info)
 
 
