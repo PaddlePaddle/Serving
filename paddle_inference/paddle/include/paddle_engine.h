@@ -44,6 +44,18 @@ static const int max_batch = 32;
 static const int min_subgraph_size = 3;
 static PrecisionType precision_type;
 
+std::shared_ptr<std::vector<paddle::PaddleTensor>> PrepareWarmupData() {
+  auto warmup_data = std::make_shared<std::vector<paddle::PaddleTensor>>(1);
+  paddle::PaddleTensor images;
+  images.name = "image";
+  images.shape = {2, 3, 300, 300};
+  images.dtype = paddle::PaddleDType::FLOAT32;
+  images.data.Resize(sizeof(float) * 2 * 3 * 300 * 300);
+
+  (*warmup_data)[0] = std::move(images);
+  return warmup_data;
+}
+
 PrecisionType GetPrecision(const std::string& precision_data) {
   std::string precision_type = predictor::ToLower(precision_data);
   if (precision_type == "fp32") {
@@ -154,6 +166,13 @@ class PaddleInferenceEngine : public EngineCore {
     }
     precision_type = GetPrecision(FLAGS_precision);
 
+    if (engine_conf.has_enable_ir_optimization() &&
+        !engine_conf.enable_ir_optimization()) {
+      config.SwitchIrOptim(false);
+    } else {
+      config.SwitchIrOptim(true);
+    }
+
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
         config.EnableUseGpu(2000, FLAGS_gpuid);
@@ -174,22 +193,30 @@ class PaddleInferenceEngine : public EngineCore {
     if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
         (engine_conf.has_use_lite() && !engine_conf.use_lite() &&
          engine_conf.has_use_gpu() && !engine_conf.use_gpu())) {
+#ifdef WITH_MKLML
+#ifdef WITH_MKLDNN
+      config.EnableMKLDNN();
+      config.SwitchIrOptim(true);
+      config.DisableGpu();
+      // config.SetCpuMathLibraryNumThreads(2);
+
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
+        auto quantizer_config = config.mkldnn_quantizer_config();
+        // TODO: warmup data
+        // quantizer_config -> SetWarmupData();
+        // quantizer_config -> SetWarmupBatchSize();
+        // quantizer_config -> SetEnabledOpTypes(4);
       } else if (precision_type == PrecisionType::kHalf) {
         config.EnableMkldnnBfloat16();
       }
+#endif
+#endif
     }
 
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
-    }
-    if (engine_conf.has_enable_ir_optimization() &&
-        !engine_conf.enable_ir_optimization()) {
-      config.SwitchIrOptim(false);
-    } else {
-      config.SwitchIrOptim(true);
     }
 
     if (engine_conf.has_enable_memory_optimization() &&
