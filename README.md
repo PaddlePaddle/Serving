@@ -169,7 +169,7 @@ Paddle Serving provides HTTP and RPC based service for users to access
 
 A user can also start a RPC service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 <center>
 
@@ -209,7 +209,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 Users can also put the data format processing logic on the server side, so that they can directly use curl to access the service, refer to the following case whose path is `python/examples/fit_a_line`
 
 ```
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 for client side,
 ```
@@ -225,22 +225,22 @@ Paddle Serving provides industry-leading multi-model tandem services, which stro
 
 we get two models
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 then we start server side, launch two models as one standalone web service
 ```
-python web_service.py
+python3 web_service.py
 ```
 http request
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 grpc request
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
 output
 ```
