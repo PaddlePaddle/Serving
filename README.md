@@ -225,22 +225,22 @@ Paddle Serving provides industry-leading multi-model tandem services, which stro
 
 we get two models
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 then we start server side, launch two models as one standalone web service
 ```
-python web_service.py
+python3 web_service.py
 ```
 http request
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 grpc request
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
 output
 ```
