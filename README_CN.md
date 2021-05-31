@@ -103,17 +103,17 @@ git clone https://github.com/PaddlePaddle/Serving
 安装所需的pip依赖
 ```
 cd Serving
-pip install -r python/requirements.txt
+pip3 install -r python/requirements.txt
 ```
 
 ```shell
-pip install paddle-serving-client==0.6.0
-pip install paddle-serving-server==0.6.0 # CPU
-pip install paddle-serving-app==0.6.0
-pip install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip3 install paddle-serving-client==0.6.0
+pip3 install paddle-serving-server==0.6.0 # CPU
+pip3 install paddle-serving-app==0.6.0
+pip3 install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
 # 其他GPU环境需要确认环境再选择执行哪一条
-pip install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip3 install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
+pip3 install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -130,17 +130,17 @@ paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其�
 
 ```
 # CPU环境请执行
-pip install paddlepaddle==2.1.0
+pip3 install paddlepaddle==2.1.0
 
 # GPU Cuda10.2环境请执行
-pip install paddlepaddle-gpu==2.1.0
+pip3 install paddlepaddle-gpu==2.1.0
 ```
 
 **注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
 
 选择相应的GPU环境的url链接并进行安装，例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`对应的url，复制下来并执行
 ```
-pip install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
+pip3 install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
 由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
 
@@ -168,7 +168,7 @@ Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
 用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 <center>
 
@@ -209,7 +209,7 @@ print(fetch_map)
 用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
 
 ```
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 客户端输入
 ```
@@ -226,22 +226,22 @@ Paddle Serving提供业界领先的多模型串联服务，强力支持各大公
 
 我们先获取两个模型
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 然后启动服务端程序，将两个串联的模型作为一个整体的服务。
 ```
-python web_service.py
+python3 web_service.py
 ```
 最终使用http的方式请求
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```
 也支持rpc的方式
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
 输出
 ```
