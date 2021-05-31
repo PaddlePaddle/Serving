@@ -169,7 +169,7 @@ Paddle Serving provides HTTP and RPC based service for users to access
 
 A user can also start a RPC service with `paddle_serving_server.serve`. RPC service is usually faster than HTTP service, although a user needs to do some coding based on Paddle Serving's python client API. Note that we do not specify `--name` here. 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 <center>
 
@@ -209,7 +209,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 Users can also put the data format processing logic on the server side, so that they can directly use curl to access the service, refer to the following case whose path is `python/examples/fit_a_line`
 
 ```
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
 ```
 for client side,
 ```
