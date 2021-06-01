@@ -271,7 +271,7 @@ int PredictorClient::numpy_predict(
         return -1;
       }
       int nbytes = float_feed[vec_idx].nbytes();
-      void *rawdata_ptr = reinterpret_cast<void *> float_feed[vec_idx].data(0);
+      void *rawdata_ptr = (void*)(float_feed[vec_idx].data(0));
       int total_number = float_feed[vec_idx].size();
       Tensor *tensor = tensor_vec[idx];
 
@@ -413,7 +413,7 @@ int PredictorClient::numpy_predict(
       }
       Tensor *tensor = tensor_vec[idx];
       int nbytes = int_feed[vec_idx].nbytes();
-      void *rawdata_ptr = reinterpret_cast<void *> int_feed[vec_idx].data(0);
+      void *rawdata_ptr = (void *)(int_feed[vec_idx].data(0));
       int total_number = int_feed[vec_idx].size();
 
       for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
