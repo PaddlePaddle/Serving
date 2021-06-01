@@ -356,7 +356,8 @@ class Client(object):
                         int_feed_names.append(key)
                         shape_lst = []
                         if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis, :]
+                            feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                                1, axis=0)
                         if isinstance(feed_i[key], np.ndarray):
                             shape_lst.extend(list(feed_i[key].shape))
                             int_shape.append(shape_lst)
@@ -380,7 +381,8 @@ class Client(object):
                         float_feed_names.append(key)
                         shape_lst = []
                         if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis, :]
+                            feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                                1, axis=0)
                         if isinstance(feed_i[key], np.ndarray):
                             shape_lst.extend(list(feed_i[key].shape))
                             float_shape.append(shape_lst)
