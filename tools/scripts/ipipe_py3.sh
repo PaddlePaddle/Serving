@@ -3,7 +3,7 @@ echo "################################################################"
 echo "#                                                              #"
 echo "#                                                              #"
 echo "#                                                              #"
-echo "#          Paddle Serving  begin run  with python3.6.8!        #"
+echo "#          Paddle Serving  begin run  with ${py_version}!      #"
 echo "#                                                              #"
 echo "#                                                              #"
 echo "#                                                              #"
@@ -58,6 +58,46 @@ function kill_server_process() {
     kill `ps -ef | grep serving | awk '{print $2}'` > /dev/null 2>&1
     kill `ps -ef | grep python | awk '{print $2}'` > /dev/null 2>&1
     echo -e "${GREEN_COLOR}process killed...${RES}"
+}
+
+function set_env() {
+    if [ $1 == 36 ]; then
+        export PYTHONROOT=/usr/local/
+        export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m
+        export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6m.so
+        export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6
+        py_version="python3.6"
+    elif [ $1 == 37 ]; then
+        export PYTHONROOT=/usr/local/
+        export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.7m
+        export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.7m.so
+        export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.7
+        py_version="python3.7"
+    elif [ $1 == 38 ]; then
+        export PYTHONROOT=/usr/local/
+        export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.8
+        export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.8.so
+        export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
+        py_version="python3.8"
+    else
+        echo -e "${RED_COLOR}Error py version$1${RES}"
+        exit
+    fi
+    export CUDA_PATH='/usr/local/cuda'
+    export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
+    export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
+    if [ $2 == 101 ]; then
+        export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT6-cuda10.1-cudnn7/targets/x86_64-linux-gnu/"
+    elif [ $2 == 102 ]; then
+        export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/"
+    elif [ $2 == 110 ]; then
+        export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/"
+    elif [ $2 == "cpu" ]; then
+        export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT6-cuda9.0-cudnn7/targets/x86_64-linux-gnu"
+    else
+        echo -e "${RED_COLOR}Error cuda version$1${RES}"
+        exit
+    fi
 }
 
 function check() {
@@ -149,20 +189,20 @@ function before_hook() {
     setproxy
     unsetproxy
     cd ${build_path}/python
-    python3.6 -m pip install --upgrade pip
-    python3.6 -m pip install requests
-    python3.6 -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
-    python3.6 -m pip install numpy==1.16.4
-    python3.6 -m pip install paddlehub -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install --upgrade pip
+    ${py_version} -m pip install requests
+    ${py_version} -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install numpy==1.16.4
+    ${py_version} -m pip install paddlehub -i https://mirror.baidu.com/pypi/simple
     echo "before hook configuration is successful.... "
 }
 
 function run_env() {
     setproxy
-    python3.6 -m pip install --upgrade nltk==3.4
-    python3.6 -m pip install --upgrade scipy==1.2.1
-    python3.6 -m pip install --upgrade setuptools==41.0.0
-    python3.6 -m pip install paddlehub ujson paddlepaddle==2.0.2
+    ${py_version} -m pip install --upgrade nltk==3.4
+    ${py_version} -m pip install --upgrade scipy==1.2.1
+    ${py_version} -m pip install --upgrade setuptools==41.0.0
+    ${py_version} -m pip install paddlehub ujson paddlepaddle==2.0.2
     echo "run env configuration is successful.... "
 }
 
@@ -185,17 +225,20 @@ function build_gpu_server() {
         rm -rf build
     fi
     mkdir build && cd build
-    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-          -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
-          -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-          -DSERVER=ON \
-          -DTENSORRT_ROOT=/usr \
-          -DWITH_GPU=ON ..
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+        -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+        -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+        -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
+        -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
+        -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
+        -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+        -DSERVER=ON \
+        -DWITH_GPU=ON ..
     make -j32
     make -j32
     make install -j32
-    python3.6 -m pip uninstall paddle-serving-server-gpu -y
-    python3.6 -m pip install ${build_path}/build/python/dist/*
+    ${py_version} -m pip uninstall paddle-serving-server-gpu -y
+    ${py_version} -m pip install ${build_path}/build/python/dist/*
     cp  ${build_path}/build/python/dist/* ../
     cp -r ${build_path}/build/ ${build_path}/build_gpu
 }
@@ -210,17 +253,16 @@ function build_cpu_server(){
         rm -rf build
     fi
     mkdir build && cd build
-    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-          -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
-          -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-          -DWITH_GPU=OFF \
-          -DSERVER=ON ..
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
+        -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+        -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+        -DSERVER=ON ..
     make -j32
     make -j32
     make install -j32
     cp ${build_path}/build/python/dist/* ../
-    python3.6 -m pip uninstall paddle-serving-server -y
-    python3.6 -m pip install ${build_path}/build/python/dist/*
+    ${py_version} -m pip uninstall paddle-serving-server -y
+    ${py_version} -m pip install ${build_path}/build/python/dist/*
     cp -r ${build_path}/build/ ${build_path}/build_cpu
 }
 
@@ -231,34 +273,34 @@ function build_client() {
         rm -rf build
     fi
     mkdir build && cd build
-    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-         -DPYTHON_LIBRARIES=$PYTHONROOT/lib64/libpython3.6.so \
-         -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-         -DCLIENT=ON ..
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+        -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+        -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+        -DCLIENT=ON ..
     make -j32
     make -j32
     cp ${build_path}/build/python/dist/* ../
-    python3.6 -m pip uninstall paddle-serving-client -y
-    python3.6 -m pip install ${build_path}/build/python/dist/*
+    ${py_version} -m pip uninstall paddle-serving-client -y
+    ${py_version} -m pip install ${build_path}/build/python/dist/*
 }
 
 function build_app() {
     setproxy
-    python3.6 -m pip install paddlehub ujson Pillow
-    python3.6 -m pip install paddlepaddle==2.0.2
+    ${py_version} -m pip install paddlehub ujson Pillow
+    ${py_version} -m pip install paddlepaddle==2.0.2
     cd ${build_path}
     if [ -d build ];then
         rm -rf build
     fi
     mkdir build && cd build
-    cmake -DPYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m/ \
-          -DPYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6.so \
-          -DPYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6 \
-          -DCMAKE_INSTALL_PREFIX=./output -DAPP=ON ..
+    cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+        -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+        -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+        -DAPP=ON ..
     make
     cp ${build_path}/build/python/dist/* ../
-    python3.6 -m pip uninstall paddle-serving-app -y
-    python3.6 -m pip install ${build_path}/build/python/dist/*
+    ${py_version} -m pip uninstall paddle-serving-app -y
+    ${py_version} -m pip install ${build_path}/build/python/dist/*
 }
 
 function low_precision_resnet50_int8 () {
@@ -267,12 +309,12 @@ function low_precision_resnet50_int8 () {
     check_dir ${dir}
     wget https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz
     tar zxvf ResNet50_quant.tar.gz
-    python3.6 -m paddle_serving_client.convert --dirname ResNet50_quant
+    ${py_version} -m paddle_serving_client.convert --dirname ResNet50_quant
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
-    python3.6 -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
-    python3.6 resnet50_client.py > ${dir}client_log.txt 2>&1
+    ${py_version} resnet50_client.py > ${dir}client_log.txt 2>&1
     check_result client "low_precision_resnet50_int8_GPU_RPC server test completed"
     kill_server_process
 }
@@ -283,13 +325,13 @@ function faster_rcnn_hrnetv2p_w18_1x_encrypt() {
     check_dir ${dir}
     data_dir=${data}detection/faster_rcnn_hrnetv2p_w18_1x/
     link_data ${data_dir}
-    python3.6 encrypt.py
+    ${py_version} encrypt.py
     unsetproxy
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
-    python3.6 -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --use_trt --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --use_trt --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
     check_result server 3
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
-    python3.6 test_encryption.py 000000570688.jpg > ${dir}client_log.txt 2>&1
+    ${py_version} test_encryption.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC server test completed"
     kill_server_process
 }
@@ -322,10 +364,10 @@ function bert_rpc_gpu() {
     sed -i 's/9292/8860/g' bert_client.py
     sed -i '$aprint(result)' bert_client.py
     ls -hlst
-    python3.6 -m paddle_serving_server.serve --model bert_seq128_model/ --port 8860 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model bert_seq128_model/ --port 8860 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 15
     nvidia-smi
-    head data-c.txt | python3.6 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
+    head data-c.txt | ${py_version} bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "bert_GPU_RPC server test completed"
     nvidia-smi
     kill_server_process
@@ -339,10 +381,10 @@ function bert_rpc_cpu() {
     data_dir=${data}bert/
     link_data ${data_dir}
     sed -i 's/8860/8861/g' bert_client.py
-    python3.6 -m paddle_serving_server.serve --model bert_seq128_model/ --port 8861 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model bert_seq128_model/ --port 8861 > ${dir}server_log.txt 2>&1 &
     check_result server 5
     cp data-c.txt.1 data-c.txt
-    head data-c.txt | python3.6 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
+    head data-c.txt | ${py_version} bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "bert_CPU_RPC server test completed"
     kill_server_process
 }
@@ -354,10 +396,10 @@ function pipeline_imagenet() {
     cd ${build_path}/python/examples/pipeline/imagenet
     data_dir=${data}imagenet/
     link_data ${data_dir}
-    python3.6 resnet50_web_service.py > ${dir}server_log.txt 2>&1 &
+    ${py_version} resnet50_web_service.py > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    timeout 30s python3.6 pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
+    timeout 30s ${py_version} pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
     echo "pipeline_log:-----------"
     cat PipelineServingLogs/pipeline.log
     check_result client "pipeline_imagenet_GPU_RPC server test completed"
@@ -373,10 +415,10 @@ function ResNet50_rpc() {
     data_dir=${data}imagenet/
     link_data ${data_dir}
     sed -i 's/9696/8863/g' resnet50_rpc_client.py
-    python3.6 -m paddle_serving_server.serve --model ResNet50_vd_model --port 8863 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ResNet50_vd_model --port 8863 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
+    ${py_version} resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_RPC server test completed"
     nvidia-smi
     kill_server_process
@@ -390,10 +432,10 @@ function ResNet101_rpc() {
     data_dir=${data}imagenet/
     link_data ${data_dir}
     sed -i "22cclient.connect(['127.0.0.1:8864'])" image_rpc_client.py
-    python3.6 -m paddle_serving_server.serve --model ResNet101_vd_model --port 8864 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ResNet101_vd_model --port 8864 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 image_rpc_client.py ResNet101_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
+    ${py_version} image_rpc_client.py ResNet101_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet101_GPU_RPC server test completed"
     nvidia-smi
     kill_server_process
@@ -407,9 +449,9 @@ function cnn_rpc() {
     data_dir=${data}imdb/
     link_data ${data_dir}
     sed -i 's/9292/8865/g' test_client.py
-    python3.6 -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    head test_data/part-0 | python3.6 test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    head test_data/part-0 | ${py_version} test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
     check_result client "cnn_CPU_RPC server test completed"
     kill_server_process
 }
@@ -422,9 +464,9 @@ function bow_rpc() {
     data_dir=${data}imdb/
     link_data ${data_dir}
     sed -i 's/8865/8866/g' test_client.py
-    python3.6 -m paddle_serving_server.serve --model imdb_bow_model/ --port 8866 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_bow_model/ --port 8866 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    head test_data/part-0 | python3.6 test_client.py imdb_bow_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    head test_data/part-0 | ${py_version} test_client.py imdb_bow_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
     check_result client "bow_CPU_RPC server test completed"
     kill_server_process
 }
@@ -437,9 +479,9 @@ function lstm_rpc() {
     data_dir=${data}imdb/
     link_data ${data_dir}
     sed -i 's/8866/8867/g' test_client.py
-    python3.6 -m paddle_serving_server.serve --model imdb_lstm_model/ --port 8867 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_lstm_model/ --port 8867 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    head test_data/part-0 | python3.6 test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    head test_data/part-0 | ${py_version} test_client.py imdb_lstm_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
     check_result client "lstm_CPU_RPC server test completed"
     kill_server_process
 }
@@ -452,9 +494,9 @@ function lac_rpc() {
     data_dir=${data}lac/
     link_data ${data_dir}
     sed -i 's/9292/8868/g' lac_client.py
-    python3.6 -m paddle_serving_server.serve --model lac_model/ --port 8868 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 8868 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    echo "我爱北京天安门" | python3.6 lac_client.py lac_client/serving_client_conf.prototxt lac_dict/ > ${dir}client_log.txt 2>&1
+    echo "我爱北京天安门" | ${py_version} lac_client.py lac_client/serving_client_conf.prototxt lac_dict/ > ${dir}client_log.txt 2>&1
     check_result client "lac_CPU_RPC server test completed"
     kill_server_process
 }
@@ -467,9 +509,9 @@ function fit_a_line_rpc() {
     data_dir=${data}fit_a_line/
     link_data ${data_dir}
     sed -i 's/9393/8869/g' test_client.py
-    python3.6 -m paddle_serving_server.serve --model uci_housing_model --port 8869 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model uci_housing_model --port 8869 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    python3.6 test_client.py uci_housing_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py uci_housing_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "fit_a_line_CPU_RPC server test completed"
     kill_server_process
 }
@@ -482,11 +524,11 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    python3.6 -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 --use_trt > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 --use_trt > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
-    python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "faster_rcnn_GPU_RPC server test completed"
     kill_server_process
@@ -500,10 +542,10 @@ function cascade_rcnn_rpc() {
     data_dir=${data}cascade_rcnn/
     link_data ${data_dir}
     sed -i "s/9292/8879/g" test_client.py
-    python3.6 -m paddle_serving_server.serve --model serving_server --port 8879 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8879 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 test_client.py > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "cascade_rcnn_GPU_RPC server test completed"
     kill_server_process
@@ -517,10 +559,10 @@ function deeplabv3_rpc() {
     data_dir=${data}deeplabv3/
     link_data ${data_dir}
     sed -i "s/9494/8880/g" deeplabv3_client.py
-    python3.6 -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 2 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 2 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     nvidia-smi
-    python3.6 deeplabv3_client.py > ${dir}client_log.txt 2>&1
+    ${py_version} deeplabv3_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "deeplabv3_GPU_RPC server test completed"
     kill_server_process
@@ -531,13 +573,13 @@ function mobilenet_rpc() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/mobilenet
-    python3.6 -m paddle_serving_app.package --get_model mobilenet_v2_imagenet >/dev/null 2>&1
+    ${py_version} -m paddle_serving_app.package --get_model mobilenet_v2_imagenet >/dev/null 2>&1
     tar xf mobilenet_v2_imagenet.tar.gz
     sed -i "s/9393/8881/g" mobilenet_tutorial.py
-    python3.6 -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 8881 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 8881 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 mobilenet_tutorial.py > ${dir}client_log.txt 2>&1
+    ${py_version} mobilenet_tutorial.py > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "mobilenet_GPU_RPC server test completed"
     kill_server_process
@@ -551,10 +593,10 @@ function unet_rpc() {
     data_dir=${data}unet_for_image_seg/
     link_data ${data_dir}
     sed -i "s/9494/8882/g" seg_client.py
-    python3.6 -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 8882 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 8882 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 seg_client.py > ${dir}client_log.txt 2>&1
+    ${py_version} seg_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "unet_GPU_RPC server test completed"
     kill_server_process
@@ -568,10 +610,10 @@ function resnetv2_rpc() {
     data_dir=${data}resnet_v2_50/
     link_data ${data_dir}
     sed -i 's/9393/8883/g' resnet50_v2_tutorial.py
-    python3.6 -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 8883 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 8883 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     nvidia-smi
-    python3.6 resnet50_v2_tutorial.py > ${dir}client_log.txt 2>&1
+    ${py_version} resnet50_v2_tutorial.py > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "resnetv2_GPU_RPC server test completed"
     kill_server_process
@@ -584,12 +626,12 @@ function ocr_rpc() {
     cd ${build_path}/python/examples/ocr
     data_dir=${data}ocr/
     link_data ${data_dir}
-    python3.6 -m paddle_serving_app.package --get_model ocr_rec >/dev/null 2>&1
+    ${py_version} -m paddle_serving_app.package --get_model ocr_rec >/dev/null 2>&1
     tar xf ocr_rec.tar.gz
     sed -i 's/9292/8884/g' test_ocr_rec_client.py
-    python3.6 -m paddle_serving_server.serve --model ocr_rec_model --port 8884 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ocr_rec_model --port 8884 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    python3.6 test_ocr_rec_client.py > ${dir}client_log.txt 2>&1
+    ${py_version} test_ocr_rec_client.py > ${dir}client_log.txt 2>&1
     check_result client "ocr_CPU_RPC server test completed"
     kill_server_process
 }
@@ -602,9 +644,9 @@ function criteo_ctr_rpc_cpu() {
     data_dir=${data}criteo_ctr/
     link_data ${data_dir}
     sed -i "s/9292/8885/g" test_client.py
-    python3.6 -m paddle_serving_server.serve --model ctr_serving_model/ --port 8885 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8885 > ${dir}server_log.txt 2>&1 &
     check_result server 5
-    python3.6 test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
     check_result client "criteo_ctr_CPU_RPC server test completed"
     kill_server_process
 }
@@ -617,10 +659,10 @@ function criteo_ctr_rpc_gpu() {
     data_dir=${data}criteo_ctr/
     link_data ${data_dir}
     sed -i "s/8885/8886/g" test_client.py
-    python3.6 -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     nvidia-smi
-    python3.6 test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "criteo_ctr_GPU_RPC server test completed"
     kill_server_process
@@ -634,10 +676,10 @@ function yolov4_rpc_gpu() {
     data_dir=${data}yolov4/
     link_data ${data_dir}
     sed -i "s/9393/8887/g" test_client.py
-    python3.6 -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
     check_result server 8
-    python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "yolov4_GPU_RPC server test completed"
     kill_server_process
@@ -651,10 +693,10 @@ function senta_rpc_cpu() {
     data_dir=${data}senta/
     link_data ${data_dir}
     sed -i "s/9393/8887/g" test_client.py
-    python3.6 -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
     check_result server 8
-    python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "senta_GPU_RPC server test completed"
     kill_server_process
@@ -667,7 +709,7 @@ function fit_a_line_http() {
     unsetproxy
     cd ${build_path}/python/examples/fit_a_line
     sed -i "s/9393/8871/g" test_server.py
-    python3.6 test_server.py > ${dir}server_log.txt 2>&1 &
+    ${py_version} test_server.py > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:8871/uci/prediction > ${dir}client_log.txt 2>&1
     check_result client "fit_a_line_CPU_HTTP server test completed"
@@ -679,7 +721,7 @@ function lac_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/lac
-    python3.6 lac_web_service.py lac_model/ lac_workdir 8872 > ${dir}server_log.txt 2>&1 &
+    ${py_version} lac_web_service.py lac_model/ lac_workdir 8872 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:8872/lac/prediction > ${dir}client_log.txt 2>&1
     check_result client "lac_CPU_HTTP server test completed"
@@ -691,7 +733,7 @@ function cnn_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    python3.6 text_classify_service.py imdb_cnn_model/ workdir/ 8873 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} text_classify_service.py imdb_cnn_model/ workdir/ 8873 imdb.vocab > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8873/imdb/prediction > ${dir}client_log.txt 2>&1
     check_result client "cnn_CPU_HTTP server test completed"
@@ -703,7 +745,7 @@ function bow_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    python3.6 text_classify_service.py imdb_bow_model/ workdir/ 8874 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} text_classify_service.py imdb_bow_model/ workdir/ 8874 imdb.vocab > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8874/imdb/prediction > ${dir}client_log.txt 2>&1
     check_result client "bow_CPU_HTTP server test completed"
@@ -715,7 +757,7 @@ function lstm_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    python3.6 text_classify_service.py imdb_bow_model/ workdir/ 8875 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} text_classify_service.py imdb_bow_model/ workdir/ 8875 imdb.vocab > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8875/imdb/prediction > ${dir}client_log.txt 2>&1
     check_result client "lstm_CPU_HTTP server test completed"
@@ -727,7 +769,7 @@ function ResNet50_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imagenet
-    python3.6 resnet50_web_service.py ResNet50_vd_model gpu 8876 > ${dir}server_log.txt 2>&1 &
+    ${py_version} resnet50_web_service.py ResNet50_vd_model gpu 8876 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:8876/image/prediction > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_HTTP server test completed"
@@ -742,7 +784,7 @@ function bert_http() {
     cp data-c.txt.1 data-c.txt
     cp vocab.txt.1 vocab.txt
     export CUDA_VISIBLE_DEVICES=0
-    python3.6 bert_web_service.py bert_seq128_model/ 8878 > ${dir}server_log.txt 2>&1 &
+    ${py_version} bert_web_service.py bert_seq128_model/ 8878 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:8878/bert/prediction > ${dir}client_log.txt 2>&1
     check_result client "bert_GPU_HTTP server test completed"
@@ -756,19 +798,19 @@ function grpc_fit_a_line() {
     cd ${build_path}/python/examples/grpc_impl_example/fit_a_line
     data_dir=${data}fit_a_line/
     link_data ${data_dir}
-    python3.6 test_server.py uci_housing_model/ > ${dir}server_log.txt 2>&1 &
+    ${py_version} test_server.py uci_housing_model/ > ${dir}server_log.txt 2>&1 &
     check_result server 5
     echo "sync predict" > ${dir}client_log.txt 2>&1
-    python3.6 test_sync_client.py >> ${dir}client_log.txt 2>&1
+    ${py_version} test_sync_client.py >> ${dir}client_log.txt 2>&1
     check_result client "grpc_impl_example_fit_a_line_sync_CPU_gRPC server sync test completed"
     echo "async predict" >> ${dir}client_log.txt 2>&1
-    python3.6 test_asyn_client.py >> ${dir}client_log.txt 2>&1
+    ${py_version} test_asyn_client.py >> ${dir}client_log.txt 2>&1
     check_result client "grpc_impl_example_fit_a_line_asyn_CPU_gRPC server asyn test completed"
     echo "batch predict" >> ${dir}client_log.txt 2>&1
-    python3.6 test_batch_client.py >> ${dir}client_log.txt 2>&1
+    ${py_version} test_batch_client.py >> ${dir}client_log.txt 2>&1
     check_result client "grpc_impl_example_fit_a_line_batch_CPU_gRPC server batch test completed"
     echo "timeout predict" >> ${dir}client_log.txt 2>&1
-    python3.6 test_timeout_client.py >> ${dir}client_log.txt 2>&1
+    ${py_version} test_timeout_client.py >> ${dir}client_log.txt 2>&1
     check_result client "grpc_impl_example_fit_a_line_timeout_CPU_gRPC server timeout test completed"
     kill_server_process
 }
@@ -780,10 +822,10 @@ function grpc_yolov4() {
     data_dir=${data}yolov4/
     link_data ${data_dir}
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC server started${RES}"
-    python3.6 -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang > ${dir}server_log.txt 2>&1 &
     check_result server 10
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC client started${RES}"
-    python3.6 test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
+    ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "grpc_yolov4_GPU_GRPC server test completed"
     kill_server_process
 }
@@ -829,6 +871,7 @@ function end_hook() {
 }
 
 function main() {
+    set_env $1 $2
     before_hook
     build_all_whl
     check
