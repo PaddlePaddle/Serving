@@ -370,10 +370,10 @@ class Client(object):
                             int_lod_slot_batch.append([])
 
                     if isinstance(feed_i[key], np.ndarray):
-                        int_slot.append(feed_i[key])
+                        int_slot.append(np.ascontiguousarray(feed_i[key]))
                         self.has_numpy_input = True
                     else:
-                        int_slot.append(feed_i[key])
+                        int_slot.append(np.ascontiguousarray(feed_i[key]))
                         self.all_numpy_input = False
 
                 elif self.feed_types_[key] in float_type:
@@ -395,10 +395,10 @@ class Client(object):
                             float_lod_slot_batch.append([])
 
                     if isinstance(feed_i[key], np.ndarray):
-                        float_slot.append(feed_i[key])
+                        float_slot.append(np.ascontiguousarray(feed_i[key]))
                         self.has_numpy_input = True
                     else:
-                        float_slot.append(feed_i[key])
+                        float_slot.append(np.ascontiguousarray(feed_i[key]))
                         self.all_numpy_input = False
                 #if input is string, feed is not numpy.
                 elif self.feed_types_[key] in string_type:
@@ -410,7 +410,7 @@ class Client(object):
                                 key)])
                         else:
                             string_lod_slot_batch.append([])
-                    string_slot.append(feed_i[key])
+                    string_slot.append(np.ascontiguousarray(feed_i[key]))
                     self.has_numpy_input = True
             int_slot_batch.append(int_slot)
             int_lod_slot_batch.append(int_lod_slot)
@@ -628,6 +628,7 @@ class MultiLangClient(object):
                         raise Exception("error tensor value type.")
                 else:
                     raise Exception("var must be list or ndarray.")
+                data = np.ascontiguousarray(data)
                 tensor.data = data.tobytes()
             tensor.shape.extend(list(var.shape))
             if "{}.lod".format(name) in feed.keys():
@@ -702,7 +703,7 @@ class MultiLangClient(object):
         if batch is False:
             for key in feed:
                 if ".lod" not in key:
-                    feed[key] = feed[key][np.newaxis, :]
+                    feed[key] = np.expand_dims(feed_i[key], 0).repeat(1, axis=0)
         if not asyn:
             try:
                 self.profile_.record('py_prepro_0')

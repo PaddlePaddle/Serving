@@ -145,59 +145,6 @@ int PredictorClient::create_predictor() {
   return 0;
 }
 
-/*Determine whether the memory structure can be copied directly
- if the memory offset stored in rows == the actual memory offset
- if means the structure of memory is not changed by numpy(newaxis,numpy) or
- numpy(1:numpy)
- so you can directly copy the memory.
-*/
-template <typename T>
-bool isCopyLegal(py::array_t<T> *feed_array) {
-  const ssize_t *shape = feed_array->shape();
-  ssize_t dims = feed_array->ndim();
-  ssize_t item_size = feed_array->itemsize();
-  ssize_t *middle = new ssize_t[dims];
-  // Calculates the memory offset stored in rows
-  int64_t memory_offset = 0;
-  for (int16_t i = dims - 1; i >= 0; --i) {
-    middle[i] = i == 0 ? (ssize_t)(shape[i] / 3) : (ssize_t)(shape[i] / 2);
-    int64_t one_dim_offset = middle[i];
-    for (int16_t j = i + 1; j < dims; ++j) {
-      one_dim_offset = one_dim_offset * shape[j];
-    }
-    memory_offset += item_size * one_dim_offset;
-  }
-  // Calculate the actual memory offset
-  int64_t feed_offset = 0;
-  switch (dims) {
-    case 6: {
-      feed_offset = feed_array->offset_at(
-          middle[0], middle[1], middle[2], middle[3], middle[4], middle[5]);
-      break;
-    }
-    case 5: {
-      feed_offset = feed_array->offset_at(
-          middle[0], middle[1], middle[2], middle[3], middle[4]);
-      break;
-    }
-    case 4: {
-      feed_offset =
-          feed_array->offset_at(middle[0], middle[1], middle[2], middle[3]);
-      break;
-    }
-    case 3: {
-      feed_offset = feed_array->offset_at(middle[0], middle[1], middle[2]);
-      break;
-    }
-    case 2: {
-      feed_offset = feed_array->offset_at(middle[0], middle[1]);
-      break;
-    }
-  }
-  delete[] middle;
-  return memory_offset == feed_offset;
-}
-
 int PredictorClient::numpy_predict(
     const std::vector<std::vector<py::array_t<float>>> &float_feed_batch,
     const std::vector<std::string> &float_feed_name,
@@ -271,7 +218,7 @@ int PredictorClient::numpy_predict(
         return -1;
       }
       int nbytes = float_feed[vec_idx].nbytes();
-      void *rawdata_ptr = (void*)(float_feed[vec_idx].data(0));
+      void *rawdata_ptr = (void *)(float_feed[vec_idx].data(0));
       int total_number = float_feed[vec_idx].size();
       Tensor *tensor = tensor_vec[idx];
 
@@ -284,120 +231,9 @@ int PredictorClient::numpy_predict(
         tensor->add_lod(float_lod_slot_batch[vec_idx][j]);
       }
       tensor->set_elem_type(P_FLOAT32);
-      if (isCopyLegal(&float_feed[vec_idx])) {
-        tensor->mutable_float_data()->Resize(total_number, 0);
-        memcpy(
-            tensor->mutable_float_data()->mutable_data(), rawdata_ptr, nbytes);
-        vec_idx++;
-        continue;
-      }
-      tensor->mutable_float_data()->Reserve(total_number);
-      const int float_shape_size = float_shape[vec_idx].size();
-      switch (float_shape_size) {
-        case 6: {
-          auto float_array = float_feed[vec_idx].unchecked<6>();
-          for (ssize_t i = 0; i < float_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < float_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < float_array.shape(2); ++k) {
-                for (ssize_t l = 0; l < float_array.shape(3); ++l) {
-                  for (ssize_t m = 0; m < float_array.shape(4); ++m) {
-                    for (ssize_t n = 0; n < float_array.shape(5); ++n) {
-                      tensor->add_float_data(float_array(i, j, k, l, m, n));
-                    }
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 5: {
-          auto float_array = float_feed[vec_idx].unchecked<5>();
-          for (ssize_t i = 0; i < float_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < float_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < float_array.shape(2); ++k) {
-                for (ssize_t l = 0; l < float_array.shape(3); ++l) {
-                  for (ssize_t m = 0; m < float_array.shape(4); ++m) {
-                    tensor->add_float_data(float_array(i, j, k, l, m));
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 4: {
-          auto float_array = float_feed[vec_idx].unchecked<4>();
-          for (ssize_t i = 0; i < float_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < float_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < float_array.shape(2); ++k) {
-                for (ssize_t l = 0; l < float_array.shape(3); ++l) {
-                  tensor->add_float_data(float_array(i, j, k, l));
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 3: {
-          auto float_array = float_feed[vec_idx].unchecked<3>();
-          for (ssize_t i = 0; i < float_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < float_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < float_array.shape(2); ++k) {
-                tensor->add_float_data(float_array(i, j, k));
-              }
-            }
-          }
-          break;
-        }
-        case 2: {
-          auto float_array = float_feed[vec_idx].unchecked<2>();
-          for (ssize_t i = 0; i < float_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < float_array.shape(1); ++j) {
-              tensor->add_float_data(float_array(i, j));
-            }
-          }
-          break;
-        }
-        case 1: {
-          auto float_array = float_feed[vec_idx].unchecked<1>();
-          for (ssize_t i = 0; i < float_array.shape(0); i++) {
-            tensor->add_float_data(float_array(i));
-          }
-          break;
-        }
-      }
-      /*
-      // this is for debug.
-      std::cout << std::endl;
-      std::cout << "origin " <<std::endl;
-      std::cout << "tensor->float_data_size() = " << tensor->float_data_size()
-      << std::endl;
-      std::cout << "&tensor->first = " <<
-      tensor->mutable_float_data()->mutable_data() << std::endl;
-      std::cout << "tensor->first = " <<
-      *tensor->mutable_float_data()->mutable_data() << std::endl;
-      std::cout << "&tensor->last = " <<
-      (tensor->mutable_float_data()->mutable_data()+total_number-1) <<
-      std::endl;
-      std::cout << "tensor->last = " <<
-      *(tensor->mutable_float_data()->mutable_data()+total_number-1) <<
-      std::endl;
-      std::cout << "&tensor->middle = " <<
-      (tensor->mutable_float_data()->mutable_data()+int(total_number/7)) <<
-      std::endl;
-      std::cout << "tensor->middle = " <<
-      *(tensor->mutable_float_data()->mutable_data()+int(total_number/7)) <<
-      std::endl;
 
-      for(int my =0; my <total_number/1000; my++){
-          std::cout << my << " : " <<
-      *(tensor->mutable_float_data()->mutable_data()+my) << "    ";
-      }
-      std::cout << std::endl;
-      std::cout << std::endl;
-      */
-
+      tensor->mutable_float_data()->Resize(total_number, 0);
+      memcpy(tensor->mutable_float_data()->mutable_data(), rawdata_ptr, nbytes);
       vec_idx++;
     }
 
@@ -423,129 +259,14 @@ int PredictorClient::numpy_predict(
         tensor->add_lod(int_lod_slot_batch[vec_idx][j]);
       }
       tensor->set_elem_type(_type[idx]);
-      if (isCopyLegal(&int_feed[vec_idx])) {
-        if (_type[idx] == P_INT64) {
-          tensor->mutable_int64_data()->Resize(total_number, 0);
-          memcpy(tensor->mutable_int64_data()->mutable_data(),
-                 rawdata_ptr,
-                 nbytes);
-          vec_idx++;
-        } else {
-          tensor->mutable_int_data()->Resize(total_number, 0);
-          memcpy(
-              tensor->mutable_int_data()->mutable_data(), rawdata_ptr, nbytes);
-          vec_idx++;
-        }
-        continue;
-      }
 
       if (_type[idx] == P_INT64) {
-        VLOG(2) << "prepare int feed " << name << " shape size "
-                << int_shape[vec_idx].size();
-        tensor->mutable_int64_data()->Reserve(total_number);
+        tensor->mutable_int64_data()->Resize(total_number, 0);
+        memcpy(
+            tensor->mutable_int64_data()->mutable_data(), rawdata_ptr, nbytes);
       } else {
-        VLOG(2) << "prepare int32 feed " << name << " shape size "
-                << int_shape[vec_idx].size();
-        tensor->mutable_int_data()->Reserve(total_number);
-      }
-      const int int_shape_size = int_shape[vec_idx].size();
-      switch (int_shape_size) {
-        case 6: {
-          auto int_array = int_feed[vec_idx].unchecked<6>();
-          for (ssize_t i = 0; i < int_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < int_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < int_array.shape(2); ++k) {
-                for (ssize_t l = 0; k < int_array.shape(3); ++l) {
-                  for (ssize_t m = 0; k < int_array.shape(4); ++m) {
-                    for (ssize_t n = 0; k < int_array.shape(5); ++n) {
-                      if (_type[idx] == P_INT64) {
-                        tensor->add_int64_data(int_array(i, j, k, l, m, n));
-                      } else {
-                        tensor->add_int_data(int_array(i, j, k, l, m, n));
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 5: {
-          auto int_array = int_feed[vec_idx].unchecked<5>();
-          for (ssize_t i = 0; i < int_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < int_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < int_array.shape(2); ++k) {
-                for (ssize_t l = 0; k < int_array.shape(3); ++l) {
-                  for (ssize_t m = 0; k < int_array.shape(4); ++m) {
-                    if (_type[idx] == P_INT64) {
-                      tensor->add_int64_data(int_array(i, j, k, l, m));
-                    } else {
-                      tensor->add_int_data(int_array(i, j, k, l, m));
-                    }
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 4: {
-          auto int_array = int_feed[vec_idx].unchecked<4>();
-          for (ssize_t i = 0; i < int_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < int_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < int_array.shape(2); ++k) {
-                for (ssize_t l = 0; k < int_array.shape(3); ++l) {
-                  if (_type[idx] == P_INT64) {
-                    tensor->add_int64_data(int_array(i, j, k, l));
-                  } else {
-                    tensor->add_int_data(int_array(i, j, k, l));
-                  }
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 3: {
-          auto int_array = int_feed[vec_idx].unchecked<3>();
-          for (ssize_t i = 0; i < int_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < int_array.shape(1); ++j) {
-              for (ssize_t k = 0; k < int_array.shape(2); ++k) {
-                if (_type[idx] == P_INT64) {
-                  tensor->add_int64_data(int_array(i, j, k));
-                } else {
-                  tensor->add_int_data(int_array(i, j, k));
-                }
-              }
-            }
-          }
-          break;
-        }
-        case 2: {
-          auto int_array = int_feed[vec_idx].unchecked<2>();
-          for (ssize_t i = 0; i < int_array.shape(0); ++i) {
-            for (ssize_t j = 0; j < int_array.shape(1); ++j) {
-              if (_type[idx] == P_INT64) {
-                tensor->add_int64_data(int_array(i, j));
-              } else {
-                tensor->add_int_data(int_array(i, j));
-              }
-            }
-          }
-          break;
-        }
-        case 1: {
-          auto int_array = int_feed[vec_idx].unchecked<1>();
-          for (ssize_t i = 0; i < int_array.shape(0); i++) {
-            if (_type[idx] == P_INT64) {
-              tensor->add_int64_data(int_array(i));
-            } else {
-              tensor->add_int_data(int_array(i));
-            }
-          }
-          break;
-        }
+        tensor->mutable_int_data()->Resize(total_number, 0);
+        memcpy(tensor->mutable_int_data()->mutable_data(), rawdata_ptr, nbytes);
       }
       vec_idx++;
     }
