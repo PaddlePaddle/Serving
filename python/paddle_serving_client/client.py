@@ -703,7 +703,7 @@ class MultiLangClient(object):
         if batch is False:
             for key in feed:
                 if ".lod" not in key:
-                    feed[key] = np.expand_dims(feed_i[key], 0).repeat(1, axis=0)
+                    feed[key] = np.expand_dims(feed[key], 0).repeat(1, axis=0)
         if not asyn:
             try:
                 self.profile_.record('py_prepro_0')
