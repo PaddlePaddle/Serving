@@ -3,7 +3,7 @@ echo "################################################################"
 echo "#                                                              #"
 echo "#                                                              #"
 echo "#                                                              #"
-echo "#          Paddle Serving  begin run  with ${py_version}!      #"
+echo "#          Paddle Serving  begin run  with python$1!           #"
 echo "#                                                              #"
 echo "#                                                              #"
 echo "#                                                              #"
@@ -41,7 +41,7 @@ rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
 low_precision_resnet50_int8)
-http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http\
+http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
 function setproxy() {
@@ -131,6 +131,9 @@ function check_result() {
             grep -E "${error_words}" ${dir}client_log.txt > /dev/null
             if [ $? == 0 ]; then
                 echo -e "${RED_COLOR}$1 error command${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
+                echo -e "--------------pipeline.log:----------------\n"
+                cat PipelineServingLogs/pipeline.log
+                echo -e "-------------------------------------------\n"
                 error_log $2
             else
                 echo -e "${GREEN_COLOR}$2${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
@@ -157,7 +160,7 @@ function error_log() {
     fi
     echo "model: ${model// /_}" | tee -a ${log_dir}error_models.txt
     echo "deployment: ${deployment// /_}" | tee -a ${log_dir}error_models.txt
-    echo "py_version: python3.6" | tee -a ${log_dir}error_models.txt
+    echo "py_version: ${py_version}" | tee -a ${log_dir}error_models.txt
     echo "cuda_version: ${cuda_version}" | tee -a ${log_dir}error_models.txt
     echo "status: Failed" | tee -a ${log_dir}error_models.txt
     echo -e "-----------------------------\n\n" | tee -a ${log_dir}error_models.txt
@@ -202,7 +205,14 @@ function run_env() {
     ${py_version} -m pip install --upgrade nltk==3.4
     ${py_version} -m pip install --upgrade scipy==1.2.1
     ${py_version} -m pip install --upgrade setuptools==41.0.0
-    ${py_version} -m pip install paddlehub ujson paddlepaddle==2.0.2
+    ${py_version} -m pip install paddlehub ujson
+    if [ ${py_version} == "python3.6" ]; then
+        ${py_version} -m pip install paddlepaddle-gpu==2.1.0
+    elif [ ${py_version} == "python3.8" ]; then
+        cd ${build_path}
+        wget https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda11.0-cudnn8-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post110-cp38-cp38-linux_x86_64.whl
+        ${py_version} -m pip install paddlepaddle_gpu-2.1.0.post110-cp38-cp38-linux_x86_64.whl
+    fi
     echo "run env configuration is successful.... "
 }
 
@@ -401,7 +411,6 @@ function pipeline_imagenet() {
     nvidia-smi
     timeout 30s ${py_version} pipeline_rpc_client.py > ${dir}client_log.txt 2>&1
     echo "pipeline_log:-----------"
-    cat PipelineServingLogs/pipeline.log
     check_result client "pipeline_imagenet_GPU_RPC server test completed"
     nvidia-smi
     kill_server_process
@@ -891,4 +900,4 @@ function main() {
     fi
 }
 
-main$@
+main $@
