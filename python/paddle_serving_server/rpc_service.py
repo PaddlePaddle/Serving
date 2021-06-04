@@ -126,7 +126,7 @@ class MultiLangServerServiceServicer(multi_lang_general_model_service_pb2_grpc.
                     else:
                         raise Exception("error type.")
                 data.shape = list(feed_inst.tensor_array[idx].shape)
-                feed_dict[name] = data
+                feed_dict[name] = np.ascontiguousarray(data)
                 if len(var.lod) > 0:
                     feed_dict["{}.lod".format(name)] = var.lod
             feed_batch.append(feed_dict)
