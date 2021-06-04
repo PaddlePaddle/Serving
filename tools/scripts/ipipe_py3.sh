@@ -202,10 +202,10 @@ function before_hook() {
 
 function run_env() {
     setproxy
-    ${py_version} -m pip install --upgrade nltk==3.4
-    ${py_version} -m pip install --upgrade scipy==1.2.1
-    ${py_version} -m pip install --upgrade setuptools==41.0.0
-    ${py_version} -m pip install paddlehub ujson
+    ${py_version} -m pip install nltk==3.4 -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install scipy==1.2.1 -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install setuptools==41.0.0 -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install paddlehub -i https://mirror.baidu.com/pypi/simple
     if [ ${py_version} == "python3.6" ]; then
         ${py_version} -m pip install paddlepaddle-gpu==2.1.0
     elif [ ${py_version} == "python3.8" ]; then
