@@ -18,7 +18,6 @@
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
 #include "core/util/include/timer.h"
-
 DEFINE_bool(profile_client, false, "");
 DEFINE_bool(profile_server, false, "");
 
@@ -46,7 +45,7 @@ void PredictorClient::init_gflags(std::vector<std::string> argv) {
     int argc = argv.size();
     char **arr = new char *[argv.size()];
     std::string line;
-    for (size_t i = 0; i < argv.size(); i++) {
+    for (size_t i = 0; i < argv.size(); ++i) {
       arr[i] = &argv[i][0];
       line += argv[i];
       line += ' ';
@@ -189,7 +188,6 @@ int PredictorClient::numpy_predict(
   }
 
   int vec_idx = 0;
-
   for (int bi = 0; bi < batch_size; bi++) {
     VLOG(2) << "prepare batch " << bi;
     std::vector<Tensor *> tensor_vec;
@@ -220,11 +218,10 @@ int PredictorClient::numpy_predict(
         return -1;
       }
       int nbytes = float_feed[vec_idx].nbytes();
-      // int ndims = float_feed[vec_idx].ndim();
-      void *rawdata_ptr = (void *)float_feed[vec_idx].data(0);
+      void *rawdata_ptr = (void *)(float_feed[vec_idx].data(0));
       int total_number = float_feed[vec_idx].size();
-      // float* end_ptr = (rawdata_ptr + total_number);
       Tensor *tensor = tensor_vec[idx];
+
       VLOG(2) << "prepare float feed " << name << " shape size "
               << float_shape[vec_idx].size();
       for (uint32_t j = 0; j < float_shape[vec_idx].size(); ++j) {
@@ -234,6 +231,7 @@ int PredictorClient::numpy_predict(
         tensor->add_lod(float_lod_slot_batch[vec_idx][j]);
       }
       tensor->set_elem_type(P_FLOAT32);
+
       tensor->mutable_float_data()->Resize(total_number, 0);
       memcpy(tensor->mutable_float_data()->mutable_data(), rawdata_ptr, nbytes);
       vec_idx++;
@@ -251,7 +249,7 @@ int PredictorClient::numpy_predict(
       }
       Tensor *tensor = tensor_vec[idx];
       int nbytes = int_feed[vec_idx].nbytes();
-      void *rawdata_ptr = (void *)int_feed[vec_idx].data(0);
+      void *rawdata_ptr = (void *)(int_feed[vec_idx].data(0));
       int total_number = int_feed[vec_idx].size();
 
       for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
@@ -263,19 +261,14 @@ int PredictorClient::numpy_predict(
       tensor->set_elem_type(_type[idx]);
 
       if (_type[idx] == P_INT64) {
-        VLOG(2) << "prepare int feed " << name << " shape size "
-                << int_shape[vec_idx].size();
         tensor->mutable_int64_data()->Resize(total_number, 0);
         memcpy(
             tensor->mutable_int64_data()->mutable_data(), rawdata_ptr, nbytes);
-        vec_idx++;
       } else {
-        VLOG(2) << "prepare int32 feed " << name << " shape size "
-                << int_shape[vec_idx].size();
         tensor->mutable_int_data()->Resize(total_number, 0);
         memcpy(tensor->mutable_int_data()->mutable_data(), rawdata_ptr, nbytes);
-        vec_idx++;
       }
+      vec_idx++;
     }
 
     VLOG(2) << "batch [" << bi << "] "

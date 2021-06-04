@@ -29,10 +29,12 @@ You can get images in two ways:
 Runtime images cannot be used for compilation.
 If you want to customize your Serving based on source code, use the version with the suffix - devel.
 
+**cuda10.1-cudnn7-gcc54 image is not ready, you should run from dockerfile if you need it.**
+
 |                         Description                          |   OS    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
 |                       CPU development                        | Ubuntu16 |         latest-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
-|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | latest-cuda10.1-cudnn7-gcc54-devel | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
+|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | latest-cuda10.1-cudnn7-gcc54-devel(not ready) | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
 |              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | latest-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
 |              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | latest-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
 |              GPU (cuda11-cudnn8-tensorRT7) development               | Ubuntu18 | latest-cuda11-cudnn8-devel | [Dockerfile.cuda11-cudnn8.devel](../tools/Dockerfile.cuda11-cudnn8.devel) |
@@ -65,7 +67,7 @@ Develop Images:
 |    CPU   | >=0.5.0 | 0.6.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
 | Cuda10.1 | >=0.5.0 | 0.6.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
-|          | 0.6.0   | 0.6.0-cuda10.1-cudnn7-gcc54-devel  | Ubuntu 16 |  5.4.0 |
+|          | 0.6.0   | 0.6.0-cuda10.1-cudnn7-gcc54-devel(not ready)  | Ubuntu 16 |  5.4.0 |
 |          | <=0.4.0 | 0.6.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
 | Cuda10.2 | >=0.5.0 | 0.6.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
