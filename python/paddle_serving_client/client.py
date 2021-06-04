@@ -410,7 +410,7 @@ class Client(object):
                                 key)])
                         else:
                             string_lod_slot_batch.append([])
-                    string_slot.append(np.ascontiguousarray(feed_i[key]))
+                    string_slot.append(feed_i[key])
                     self.has_numpy_input = True
             int_slot_batch.append(int_slot)
             int_lod_slot_batch.append(int_lod_slot)
