@@ -18,6 +18,7 @@ build_path=/workspace/Serving/
 error_words="Fail|DENIED|UNKNOWN|None"
 log_dir=${build_path}logs/
 data=/root/.cache/serving_data/
+OPENCV_DIR=${data}/opencv-3.4.7/opencv3
 dir=`pwd`
 RED_COLOR='\E[1;31m'
 GREEN_COLOR='\E[1;32m'
@@ -40,7 +41,7 @@ build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
-low_precision_resnet50_int8)
+low_precision_resnet50_int8 ocr_c++_service)
 http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
@@ -190,13 +191,12 @@ function link_data() {
 
 function before_hook() {
     setproxy
-    unsetproxy
     cd ${build_path}/python
     ${py_version} -m pip install --upgrade pip
     ${py_version} -m pip install requests
-    ${py_version} -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install -r requirements.txt
     ${py_version} -m pip install numpy==1.16.4
-    ${py_version} -m pip install paddlehub -i https://mirror.baidu.com/pypi/simple
+    ${py_version} -m pip install paddlehub
     echo "before hook configuration is successful.... "
 }
 
@@ -242,6 +242,8 @@ function build_gpu_server() {
         -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
         -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
         -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+        -DOPENCV_DIR=${OPENCV_DIR} \
+        -DWITH_OPENCV=ON \
         -DSERVER=ON \
         -DWITH_GPU=ON ..
     make -j32
@@ -266,6 +268,8 @@ function build_cpu_server(){
     cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
         -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
         -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+        -DOPENCV_DIR=${OPENCV_DIR} \
+        -DWITH_OPENCV=ON \
         -DSERVER=ON ..
     make -j32
     make -j32
@@ -836,6 +840,30 @@ function grpc_yolov4() {
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC client started${RES}"
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "grpc_yolov4_GPU_GRPC server test completed"
+    kill_server_process
+}
+
+function ocr_c++_service() {
+    dir=${log_dir}rpc_model/ocr_c++_serving/
+    cd ${build_path}/python/examples/ocr
+    check_dir ${dir}
+    data_dir=${data}ocr/
+    link_data ${data_dir}
+    cp -r ocr_det_client/ ./ocr_det_client_cp
+    rm -rf ocr_det_client
+    mv ocr_det_client_cp ocr_det_client
+    sed -i "s/feed_type: 1/feed_type: 3/g" ocr_det_client/serving_client_conf.prototxt
+    sed -i "s/shape: 3/shape: 1/g" ocr_det_client/serving_client_conf.prototxt
+    sed -i '7,8d' ocr_det_client/serving_client_conf.prototxt
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC server started${RES}"
+    $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"
+    echo "------------------first:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client
+    echo "------------------second:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client > ${dir}client_log.txt 2>&1
+    check_result client "OCR_C++_Service_GPU_RPC server test completed"
     kill_server_process
 }
 
