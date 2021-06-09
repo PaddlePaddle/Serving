@@ -35,6 +35,7 @@ import numpy as np
 import grpc
 import sys
 import collections
+import subprocess
 
 from multiprocessing import Pool, Process
 from concurrent import futures
