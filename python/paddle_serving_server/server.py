@@ -342,7 +342,7 @@ class Server(object):
     def get_device_version(self):
         avx_flag = False
         avx_support = self.check_avx()
-        if avx_suppport:
+        if avx_support:
             avx_flag = True
             self.use_mkl(True)
         mkl_flag = self.mkl_flag
