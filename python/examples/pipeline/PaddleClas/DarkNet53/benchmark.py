@@ -83,7 +83,7 @@ def multithread_http(thread, batch_size):
     print("Total cost: {}s".format(total_cost))
     print("Each thread cost: {}s. ".format(avg_cost))
     print("Total count: {}. ".format(total_number))
-    print("AVG QPS: {} samples/s".format(batch_size * total_number /
+    print("AVG_QPS: {} samples/s".format(batch_size * total_number /
                                          total_cost))
     show_latency(result[1])
 
