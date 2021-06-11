@@ -334,7 +334,7 @@ class Server(object):
     def check_avx(self):
         p = subprocess.Popen(['cat /proc/cpuinfo | grep avx 2>/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out, err = p.communicate()
-        if err == '' and len(out) > 0:
+        if err == b'' and len(out) > 0:
             return True
         else:
             return False
@@ -342,7 +342,7 @@ class Server(object):
     def get_device_version(self):
         avx_flag = False
         avx_support = self.check_avx()
-        if avx_suppport:
+        if avx_support:
             avx_flag = True
             self.use_mkl(True)
         mkl_flag = self.mkl_flag
