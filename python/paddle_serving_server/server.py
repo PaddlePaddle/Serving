@@ -346,7 +346,6 @@ class Server(object):
             avx_flag = True
             self.use_mkl(True)
         mkl_flag = self.mkl_flag
-        print(avx_support)
         if avx_flag:
             if mkl_flag:
                 device_version = "cpu-avx-mkl"
