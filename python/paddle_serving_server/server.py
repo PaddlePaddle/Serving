@@ -675,7 +675,7 @@ class MultiLangServer(object):
                        use_encryption_model=False,
                        cube_conf=None):
         if not self._port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
+            raise SystemExit("Port {} is already used".format(port))
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):

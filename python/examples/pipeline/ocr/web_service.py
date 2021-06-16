@@ -175,6 +175,6 @@ class OcrService(WebService):
         return rec_op
 
 
-uci_service = OcrService(name="ocr")
-uci_service.prepare_pipeline_config("config.yml")
-uci_service.run_service()
+ocr_service = OcrService(name="ocr")
+ocr_service.prepare_pipeline_config("config.yml")
+ocr_service.run_service()
