@@ -13,7 +13,7 @@
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
     </a>
-    <img alt="Release" src="https://img.shields.io/badge/Release-0.6.0-yellowgreen">
+    <img alt="Release" src="https://img.shields.io/badge/Release-0.6.2-yellowgreen">
     <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
     <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
     <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
@@ -86,15 +86,15 @@ We **highly recommend** you to **run Paddle Serving in Docker**, please visit [R
 
 ```
 # Run CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # Run GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
@@ -105,13 +105,13 @@ pip3 install -r python/requirements.txt
 ```
 
 ```shell
-pip3 install paddle-serving-client==0.6.0
-pip3 install paddle-serving-server==0.6.0 # CPU
-pip3 install paddle-serving-app==0.6.0
-pip3 install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip3 install paddle-serving-client==0.6.2
+pip3 install paddle-serving-server==0.6.2 # CPU
+pip3 install paddle-serving-app==0.6.2
+pip3 install paddle-serving-server-gpu==0.6.2.post102 #GPU with CUDA10.2 + TensorRT7
 # DO NOT RUN ALL COMMANDS! check your GPU env and select the right one
-pip3 install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip3 install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip3 install paddle-serving-server-gpu==0.6.2.post101 # GPU with CUDA10.1 + TensorRT6
+pip3 install paddle-serving-server-gpu==0.6.2.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
