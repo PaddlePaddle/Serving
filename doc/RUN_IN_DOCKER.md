@@ -32,9 +32,7 @@ The `-p` option is to map the `9292` port of the container to the `9292` port of
 
 ### Install PaddleServing
 
-The mirror comes with `paddle_serving_server`, `paddle_serving_client`, and `paddle_serving_app` corresponding to the mirror tag version. If users don’t need to change the version, they can use it directly, which is suitable for environments without extranet services.
-
-If you need to change the version, please refer to the instructions on the homepage to download the pip package of the corresponding version.
+Please refer to the instructions on the homepage to download the pip package of the corresponding version.
   
 
 ## GPU
