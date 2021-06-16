@@ -59,9 +59,7 @@ docker exec -it test bash
 
 ### 安装PaddleServing
 
-镜像里自带对应镜像tag版本的`paddle_serving_server_gpu`，`paddle_serving_client`，`paddle_serving_app`，如果用户不需要更改版本，可以直接使用，适用于没有外网服务的环境。
-
-如果需要更换版本，请参照首页的指导，下载对应版本的pip包。[最新安装包合集](LATEST_PACKAGES.md)
+请参照首页的指导，下载对应版本的pip包。[最新安装包合集](LATEST_PACKAGES.md)
 
 ## 注意事项
 
