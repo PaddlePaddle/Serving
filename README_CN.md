@@ -87,15 +87,15 @@ Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serv
 
 ```
 # 启动 CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 ```
 # 启动 GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-cudnn8-devel bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
@@ -107,13 +107,13 @@ pip3 install -r python/requirements.txt
 ```
 
 ```shell
-pip3 install paddle-serving-client==0.6.0
-pip3 install paddle-serving-server==0.6.0 # CPU
-pip3 install paddle-serving-app==0.6.0
-pip3 install paddle-serving-server-gpu==0.6.0.post102 #GPU with CUDA10.2 + TensorRT7
+pip3 install paddle-serving-client==0.6.2
+pip3 install paddle-serving-server==0.6.2 # CPU
+pip3 install paddle-serving-app==0.6.2
+pip3 install paddle-serving-server-gpu==0.6.2.post102 #GPU with CUDA10.2 + TensorRT7
 # 其他GPU环境需要确认环境再选择执行哪一条
-pip3 install paddle-serving-server-gpu==0.6.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip3 install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + TensorRT7
+pip3 install paddle-serving-server-gpu==0.6.2.post101 # GPU with CUDA10.1 + TensorRT6
+pip3 install paddle-serving-server-gpu==0.6.2.post11 # GPU with CUDA10.1 + TensorRT7
 ```
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
@@ -124,7 +124,7 @@ paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubun
 
 paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
 
-**最新的0.6.0的版本，已经不支持Cuda 9.0和Cuda 10.0，Python已不支持2.7和3.5。**
+**最新的0.6.2的版本，已经不支持Cuda 9.0和Cuda 10.0，Python已不支持2.7和3.5。**
 
 推荐安装2.1.0及以上版本的paddle
 
@@ -262,7 +262,7 @@ python3 pipeline_rpc_client.py
 - [如何编译PaddleServing?](doc/COMPILE_CN.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何在K8S集群上部署Paddle Serving?](doc/PADDLE_SERVING_ON_KUBERNETES.md)
-- [如何在Paddle Serving上部署安全网关?](doc/SERVIING_AUTH_DOCKER.md)
+- [如何在Paddle Serving上部署安全网关?](doc/SERVING_AUTH_DOCKER.md)
 - [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
 - [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
 - [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)

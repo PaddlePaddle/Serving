@@ -35,6 +35,7 @@ import numpy as np
 import grpc
 import sys
 import collections
+import subprocess
 
 from multiprocessing import Pool, Process
 from concurrent import futures
@@ -330,12 +331,21 @@ class Server(object):
     def use_mkl(self, flag):
         self.mkl_flag = flag
 
+    def check_avx(self):
+        p = subprocess.Popen(['cat /proc/cpuinfo | grep avx 2>/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        if err == b'' and len(out) > 0:
+            return True
+        else:
+            return False
+
     def get_device_version(self):
         avx_flag = False
-        mkl_flag = self.mkl_flag
-        r = os.system("cat /proc/cpuinfo | grep avx > /dev/null 2>&1")
-        if r == 0:
+        avx_support = self.check_avx()
+        if avx_support:
             avx_flag = True
+            self.use_mkl(True)
+        mkl_flag = self.mkl_flag
         if avx_flag:
             if mkl_flag:
                 device_version = "cpu-avx-mkl"
@@ -665,7 +675,7 @@ class MultiLangServer(object):
                        use_encryption_model=False,
                        cube_conf=None):
         if not self._port_is_available(port):
-            raise SystemExit("Prot {} is already used".format(port))
+            raise SystemExit("Port {} is already used".format(port))
         default_port = 12000
         self.port_list_ = []
         for i in range(1000):
