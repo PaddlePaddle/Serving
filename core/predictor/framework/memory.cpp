@@ -126,7 +126,7 @@ void MempoolWrapper::free(void* p, size_t size) {
                  << ", since mempool is not thread initialized";
     return;
   }
-  return mempool->free(p,size);
+  return mempool->free(p, size);
 }
 
 }  // namespace predictor

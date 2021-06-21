@@ -341,8 +341,9 @@ class Region {
       2 * 1024 *
       1024;  // 2MB,means when you need less than 2M, get memory from Block.
 
-  // 64MB,means when you need less than 64MB, get memory from BigMemory instead of BigNode
-  static const int BIGNODE_MEM_THRESHOLD = (64 * 1024 * 1024 + 1);  
+  // 64MB,means when you need less than 64MB, get memory from BigMemory instead
+  // of BigNode
+  static const int BIGNODE_MEM_THRESHOLD = (64 * 1024 * 1024 + 1);
   static const int COUNTER_SIZE =
       BIGNODE_MEM_THRESHOLD / BIG_MEM_THRESHOLD + 1;  // this is not used
 
