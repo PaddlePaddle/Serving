@@ -19,6 +19,11 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
+// why we need MempoolRegion
+// because we need to release the resource.
+// so we need both Mempool and Region.
+// Mempool is a wrapper class for us to use memory more safely.
+// Region is the RAII class.
 struct MempoolRegion {
   MempoolRegion(im::fugue::memory::Region* region, im::Mempool* mempool)
       : _region(region), _mempool(mempool) {}
