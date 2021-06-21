@@ -264,7 +264,7 @@ struct BlockReference {
 // total number is 32*1024
 class BlockFreeList {
  public:
-  static const int MAX_BLOCK_COUNT = 32 * 1024;
+  static const int MAX_BLOCK_COUNT = 256 * 1024;
   typedef lockfree::FreeList<Block, MAX_BLOCK_COUNT> BlockFreeListType;
   static BlockFreeListType* instance() {
     static BlockFreeListType singleton;
@@ -340,7 +340,9 @@ class Region {
   static const int BIG_MEM_THRESHOLD =
       2 * 1024 *
       1024;  // 2MB,means when you need less than 2M, get memory from Block.
-  static const int BIGNODE_MEM_THRESHOLD = 4 * 1024 * 1024;  // 4MB
+
+  // 64MB,means when you need less than 64MB, get memory from BigMemory instead of BigNode
+  static const int BIGNODE_MEM_THRESHOLD = (64 * 1024 * 1024 + 1);  
   static const int COUNTER_SIZE =
       BIGNODE_MEM_THRESHOLD / BIG_MEM_THRESHOLD + 1;  // this is not used
 
@@ -421,7 +423,8 @@ class Mempool {
     }
 
     // 可能返回的是单独Region中malloc的内存。
-    // 也可能是Block，例如new_size=1M, old_data原本的指针头就在1.2M处，old_size =
+    // 也可能是Block，例如new_size=1M, old_data原本的指针头就在1.2M处，old_size
+    // =
     // 0.5M
     // 此时,_free_size = 0.3M，new_size<2M,但是required = 1-0.5 >0.3
     // 分配出来的就是Block，但是该Block没有并很完美的利用完全。

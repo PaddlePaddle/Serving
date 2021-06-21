@@ -38,6 +38,8 @@ class MempoolWrapper {
 
   void* malloc(size_t size);
 
+  void free(void* p, size_t size);
+
  private:
   // im::fugue::memory::Region _region;
   THREAD_KEY_T _bspec_key;

@@ -501,6 +501,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
       paddle::PaddleBuf paddleBuf(databuf_char, databuf_size);
       tensor_out.data = paddleBuf;
       tensorVector_out_pointer->push_back(tensor_out);
+      MempoolWrapper::instance().free(databuf_char, databuf_size);
     }
     return 0;
   }

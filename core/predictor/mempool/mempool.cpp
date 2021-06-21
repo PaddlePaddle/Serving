@@ -24,7 +24,7 @@ namespace fugue {
 namespace memory {
 
 void Region::init() {
-  _big_mem_capacity = 32 * 1024 * 1024;
+  _big_mem_capacity = 64 * 1024 * 1024;//64MB
   _big_mem_start = new char[_big_mem_capacity];
 }
 
