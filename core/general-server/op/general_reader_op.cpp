@@ -93,6 +93,9 @@ int GeneralReaderOp::inference() {
   res->SetLogId(log_id);
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
+  // only get insts(0), cause batch is already in Tensor.
+  // req can only include 1 inst.
+  // var_num means the number of feed_var.
   int var_num = req->insts(0).tensor_array_size();
 
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num

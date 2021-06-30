@@ -307,6 +307,8 @@ class Client(object):
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, list):
+            if len(feed) != 1:
+                raise ValueError("Feed only list = [dict]")
             feed_batch = feed
         else:
             raise ValueError("Feed only accepts dict and list of dict")
@@ -326,7 +328,7 @@ class Client(object):
 
         fetch_names = []
         counter = 0
-        batch_size = len(feed_batch)
+        batch_size = len(feed_batch)  # batch_size must be 1.
 
         for key in fetch_list:
             if key in self.fetch_names_:

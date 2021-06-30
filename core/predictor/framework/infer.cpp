@@ -82,9 +82,9 @@ int ReloadableInferEngine::infer(const void* in,
     return infer_impl(in, out, batch_size);
   }
 
-  im::bsf::TaskManager<Tensor, Tensor> task_manager;
-  task_manager.schedule(*(reinterpret_cast<const BatchTensor*>(in)),
-                        *(reinterpret_cast<BatchTensor*>(out)));
+  im::bsf::TaskManager<paddle::PaddleTensor, paddle::PaddleTensor> task_manager;
+
+  task_manager.schedule(in, out);
   task_manager.wait();
   return 0;
 }
@@ -362,8 +362,8 @@ int VersionedInferEngine::infer_impl(const void* in,
                                      uint32_t batch_size) {
   return -1;
 }
-int VersionedInferEngine::task_infer_impl(const BatchTensor& in,
-                                          BatchTensor& out) {  // NOLINT
+int VersionedInferEngine::task_infer_impl(const void* in,
+                                          void* out) {  // NOLINT
   return -1;
 }
 

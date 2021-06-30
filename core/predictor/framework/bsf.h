@@ -29,46 +29,184 @@
 
 #include "boost/function.hpp"
 
+#include "core/predictor/framework/memory.h"
+#include "paddle_inference_api.h"
+
 namespace im {
 namespace bsf {
 
 static const size_t DEFAULT_BATCH_SIZE = 100;
 
+// InItemT is paddle::PaddleTensor
+// InVectorT std::vector<paddle::PaddleTensor>
+// InVectorT means different feedvar, but not batch.
+// Batch is already inside the  paddle::PaddleTensor.
+
+// size_t `rem` records how many batch have not been put in BatchTasks.
+// `rem` don`t need to be atomic, cause the operation `put` is synchronous.
+// actually, the reason is that lock have been added outside the operation
+// `put`.
+
+// size_t `index` records how many batch have been processing completed.
+// `index` need to be atomic, cause the operation 'notify' is asynchronous.
 template <typename InItemT, typename OutItemT>
 struct Task {
-  typedef std::vector<InItemT> InArrayT;
-  typedef std::vector<OutItemT> OutArrayT;
+  typedef std::vector<InItemT> InVectorT;
+  typedef std::vector<OutItemT> OutVectorT;
   typedef InItemT InType;
   typedef OutItemT OutType;
   typedef Task<InItemT, OutItemT> TaskT;
+  typedef std::vector<int> ShapeVector;
+  typedef std::vector<ShapeVector> VectorOfShapeVector;
 
   int read_fd;
   int write_fd;
-
   pid_t owner_tid;
-
-  const InArrayT* in;
-  OutArrayT* out;
-
+  const InVectorT* inVectorT_ptr;
+  OutVectorT* outVectorT_ptr;
   size_t rem;
-  size_t size;
-
-  size_t batch_size() { return in->size(); }
-
   butil::atomic<size_t> index;
 
   Task() {
     read_fd = -1;
     write_fd = -1;
     owner_tid = -1;
-    in = NULL;
-    out = NULL;
+    inVectorT_ptr = NULL;
+    outVectorT_ptr = NULL;
     rem = -1;
-    size = -1;
     index.store(0, butil::memory_order_relaxed);
+  }
+
+  bool check_feedvar_valid(int feedvar_index) {
+    if (feedvar_index < 0 || inVectorT_ptr->size() <= feedvar_index) {
+      LOG(ERROR) << "feedvar doesnt exsit or feedvar_index error";
+      return 0;
+    }
+
+    if ((*inVectorT_ptr)[feedvar_index].shape.size() <= 0) {
+      LOG(ERROR) << "feedvar[" << feedvar_index << "].shape.size()<=0,error";
+      return 0;
+    }
+
+    return 1;
+  }
+
+  // Now, it simply assume that the first dimension of data is batch.
+  // so the batch is PaddleTensor.shape[0]
+
+  // If batch information is added into feedvar.prototxt.
+  // we can get the information from the feedvar.prototxt instead of assume.
+  size_t feedvar_batch_size(int feedvar_index) {
+    if (!check_feedvar_valid(feedvar_index)) {
+      return 0;
+    }
+
+    return (*inVectorT_ptr)[feedvar_index].shape[0];
+  }
+
+  size_t feedvar_element_bytesize(int feedvar_index) {
+    if (!check_feedvar_valid(feedvar_index)) {
+      return 0;
+    }
+    int dtype = (*inVectorT_ptr)[feedvar_index].dtype;
+    if (dtype == paddle::PaddleDType::INT64) {
+      return sizeof(int64_t);
+    }
+    if (dtype == paddle::PaddleDType::FLOAT32) {
+      return sizeof(float);
+    }
+    if (dtype == paddle::PaddleDType::INT32) {
+      return sizeof(int32_t);
+    }
+    if (dtype == paddle::PaddleDType::UINT8) {
+      return sizeof(char);
+    }
+    return 0;
+  }
+
+  // Now, the implementation of this function is based on assumption
+  // that shape [0] = batch_size.
+  size_t feedvar_element_num(int feedvar_index) {
+    if (!check_feedvar_valid(feedvar_index)) {
+      return 0;
+    }
+    int element_num = 1;
+    if ((*inVectorT_ptr)[feedvar_index].shape.size() == 1) {
+      // cause shape[0] is batch_size.
+      return 1;
+    }
+    // start from shape[1], cause shape[0] = batch_size.
+    for (int i = 1; i < (*inVectorT_ptr)[feedvar_index].shape.size(); ++i) {
+      element_num *= (*inVectorT_ptr)[feedvar_index].shape[i];
+    }
+    return element_num;
+  }
+
+  size_t feedvar_bytesize(int feedvar_index) {
+    return feedvar_element_num(feedvar_index) *
+           feedvar_element_bytesize(feedvar_index);
+  }
+
+  ShapeVector feedvar_shape_nobatch(int feedvar_index) {
+    if (!check_feedvar_valid(feedvar_index)) {
+      return ShapeVector();
+    }
+    return ShapeVector{(*inVectorT_ptr)[feedvar_index].shape.begin() + 1,
+                       (*inVectorT_ptr)[feedvar_index].shape.end()};
+  }
+
+  VectorOfShapeVector feedvar_shape_nobatch() {
+    VectorOfShapeVector vector_of_feedvar_shape_nobatch(inVectorT_ptr->size());
+    for (int index = 0; index < inVectorT_ptr->size(); ++index) {
+      vector_of_feedvar_shape_nobatch.push_back(feedvar_shape_nobatch(index));
+    }
+    return vector_of_feedvar_shape_nobatch;
+  }
+
+  // At present, it is considered that the batch of all feedvar is consistent.
+  // so for each feedvar, PaddleTensor.shape[0] should be the same.
+  bool check_batch_align() {
+    int batch_size_align = feedvar_batch_size(0);
+    for (int feedvar_index = 0; feedvar_index < inVectorT_ptr->size();
+         ++feedvar_index) {
+      if (feedvar_batch_size(feedvar_index) != batch_size_align) {
+        return 0;
+      }
+    }
+    /*
+    for(int fetchvar_index = 0; fetchvar_index < outVectorT_ptr->size();
+    ++fetchvar_index) {
+      if(fetchvar_batch_size(fetchvar_index) != batch_size_align) {
+        return 0;
+      }
+    }
+    */
+    return 1;
+  }
+
+  size_t batch_size() {
+    if (check_batch_align()) {
+      return feedvar_batch_size(0);
+    }
+    return 0;
   }
 };
 
+// `Several Task` or `part of batch in Task` can be a TaskMeta.
+// Task is the original Request from User.
+// For example, the batch of Task is 30. There are 4 Requests.
+// The batch of BatchTasks is 100, which means we can deal 100 batch 1 time.
+// TaskMeta-1:{task-1,0,30} TaskMeta-2:{task-2,0,30} TaskMeta-3:{task-3,0,30}
+// but the last Task will be divided to 2 TaskMeta.
+// TaskMeta-4:{task-4,0,10} TaskMeta-5:{task-4,10,30}.
+// TaskMeta-1 ~ TaskMeta-4 will be inside BatchTasks-1.
+// TaskMeta-5 will be inside BatchTasks-2.
+
+// TaskMeta is necessary.
+// cause we need know the the corresponding relationship between
+// `batch_out`(which is in BatchTasks) and `outVectorT_ptr`(which is in Task).
+// especially when 1 Task be divided into several TaskMeta and be put into
+// several different BatchTasks.
 template <typename TaskT>
 struct TaskMeta {
   TaskMeta(TaskT* ptr, size_t start, size_t add)
@@ -79,6 +217,10 @@ struct TaskMeta {
   size_t end;
 };
 
+// each TaskT is already include batch in itself
+// BatchTasks need to combine several `small TaskMeta` into a new `big TaskT`.
+// The only difference between the `big TaskT` and `small TaskT` is that
+// the TaskT.inVectorT_ptr->[feedvar_index].shape[0] is different.
 template <typename TaskT>
 class BatchTasks {
  public:
@@ -91,33 +233,38 @@ class BatchTasks {
         _rem_size(batch_size),
         _batch_align(batch_align) {
     _batch_in.clear();
+    _batch_in_offset.clear();
     _batch_out.clear();
-    _tasks.clear();
+    _batch_out_offset.clear();
+    _taskmeta_vector.clear();
   }
 
   ~BatchTasks() {
     _batch_in.clear();
+    _batch_in_offset.clear();
     _batch_out.clear();
-    _tasks.clear();
+    _batch_out_offset.clear();
+    _taskmeta_vector.clear();
   }
 
   // synchronized operation
+  // because Upper level callers of this function have already locked.
   size_t append_task(TaskT* task) {
     size_t add = std::min(task->rem, _rem_size);
     if (!_batch_align) {
       add = task->rem;
     }
-
-    TaskMetaT tm(task, task->in->size() - task->rem, add);
-    _tasks.push_back(tm);
+    int start_index = task->batch_size() - task->rem;
+    TaskMetaT tm(task, start_index, add);
+    _taskmeta_vector.push_back(tm);
 
     task->rem -= add;
     _rem_size -= add;
     return _rem_size;
   }
 
-  static bool check_valid(const typename TaskT::InArrayT& in,
-                          const typename TaskT::OutArrayT& out,
+  static bool check_valid(const typename TaskT::InVectorT& in,
+                          const typename TaskT::OutVectorT& out,
                           bool align) {
     (void)in;
     (void)out;
@@ -125,40 +272,221 @@ class BatchTasks {
     return true;
   }
 
+  // this should be modified totally.
+  // maybe we don`t need to do this inside the BatchTasks.
+  // we can do the copy work outside the BatchTasks.
+  // cause maybe next time we don`t need to do the extra copy.
+  // directly copy the every Task into the Predictor.
+
+  // lod is not supported.
+  // if lod is set, we should not allow to use the bsf task.
+
+  // batch.merge_tasks() is thread-safe function
+  // cause batch is a local variable and Task is just read, not written.
   void merge_tasks() {
-    for (size_t ti = 0; ti < _tasks.size(); ++ti) {
-      TaskMetaT& tm = _tasks[ti];
-      for (size_t vi = tm.begin; vi < tm.end; ++vi) {
-        _batch_in.push_back((*tm.task->in)[vi]);
-        _batch_out.push_back((*tm.task->out)[vi]);
+    if (_taskmeta_vector.size() <= 0) {
+      return;
+    }
+
+    // Temporarily, the batch of each feedvar is consistent
+    // If not consistent, use feedvar_batch_size instead of task->batch_size().
+    int temp_batch = 0;
+    for (size_t ti = 0; ti < _taskmeta_vector.size(); ++ti) {
+      TaskMetaT& tm = _taskmeta_vector[ti];
+      temp_batch += tm.task->batch_size();
+    }
+    if (temp_batch > _batch_size) {
+      LOG(ERROR) << "_realNumber_batch_in >_batch_size, error.";
+      return;
+    }
+
+    int feedvar_num = _taskmeta_vector[0].task->inVectorT_ptr->size();
+    if (_batch_in_offset.size() == 0) {
+      _batch_in_offset.resize(feedvar_num, 0);
+      _realNumber_batch_in.resize(feedvar_num, temp_batch);
+    }
+
+    for (size_t ti = 0; ti < _taskmeta_vector.size(); ++ti) {
+      TaskMetaT& tm = _taskmeta_vector[ti];
+
+      for (int index = 0; index < feedvar_num; ++index) {
+        const paddle::PaddleTensor& feedVarTensor =
+            (*tm.task->inVectorT_ptr)[index];
+        int feedvar_bytesize = tm.task->feedvar_bytesize(index);
+
+        if (ti == 0) {
+          if (feedVarTensor.lod.size() > 0 && feedVarTensor.lod[0].size() > 0) {
+            LOG(ERROR) << "lod Tensor is not supported now.";
+            return;
+          }
+          // for now, we assume that every task feedvar_bytesize is the same.
+          // which means we dont support auto embedding.
+          // but for different feedvar, it is different.
+          paddle::PaddleTensor paddleTensor;
+          paddleTensor.dtype = feedVarTensor.dtype;
+          paddleTensor.name = feedVarTensor.name;
+          paddleTensor.lod = feedVarTensor.lod;
+          paddleTensor.shape = feedVarTensor.shape;
+          paddleTensor.shape[0] = _realNumber_batch_in[index];
+          paddleTensor.data.Resize(feedvar_bytesize *
+                                   _realNumber_batch_in[index]);
+          _batch_in.push_back(paddleTensor);
+        }
+
+        void* dst_ptr = _batch_in[index].data.data() +
+                        feedvar_bytesize * _batch_in_offset[index];
+        void* source_ptr =
+            feedVarTensor.data.data() + feedvar_bytesize * tm.begin;
+        int length = feedvar_bytesize * (tm.end - tm.begin);
+        memcpy(dst_ptr, source_ptr, length);
+        _batch_in_offset[index] += length;
       }
     }
   }
 
+  bool check_fetchvar_valid(int fetchvar_index) {
+    if (fetchvar_index < 0 || _batch_out.size() <= fetchvar_index) {
+      LOG(ERROR) << "fetchvar doesnt exsit or fetchvar_index error";
+      return 0;
+    }
+
+    if (_batch_out[fetchvar_index].shape.size() <= 0) {
+      LOG(ERROR) << "fetchvar[" << fetchvar_index << "].shape.size()<=0,error";
+      return 0;
+    }
+
+    return 1;
+  }
+
+  size_t fetchvar_batch_size(int fetchvar_index) {
+    if (!check_fetchvar_valid(fetchvar_index)) {
+      return 0;
+    }
+
+    return _batch_out[fetchvar_index].shape[0];
+  }
+
+  size_t fetchvar_element_bytesize(int fetchvar_index) {
+    if (!check_fetchvar_valid(fetchvar_index)) {
+      return 0;
+    }
+    int dtype = _batch_out[fetchvar_index].dtype;
+    if (dtype == paddle::PaddleDType::INT64) {
+      return sizeof(int64_t);
+    }
+    if (dtype == paddle::PaddleDType::FLOAT32) {
+      return sizeof(float);
+    }
+    if (dtype == paddle::PaddleDType::INT32) {
+      return sizeof(int32_t);
+    }
+    if (dtype == paddle::PaddleDType::UINT8) {
+      return sizeof(char);
+    }
+    return 0;
+  }
+
+  // Now, the implementation of this function is based on assumption
+  // that shape [0] = batch_size.
+  size_t fetchvar_element_num(int fetchvar_index) {
+    if (!check_fetchvar_valid(fetchvar_index)) {
+      return 0;
+    }
+    int element_num = 1;
+    if (_batch_out[fetchvar_index].shape.size() == 1) {
+      // cause shape[0] is batch_size.
+      return 1;
+    }
+    // start from shape[1], cause shape[0] = batch_size.
+    for (int i = 1; i < _batch_out[fetchvar_index].shape.size(); ++i) {
+      element_num *= _batch_out[fetchvar_index].shape[i];
+    }
+    return element_num;
+  }
+
+  size_t fetchvar_bytesize(int fetchvar_index) {
+    return fetchvar_element_num(fetchvar_index) *
+           fetchvar_element_bytesize(fetchvar_index);
+  }
+
+  bool check_fetchvar_batch_align() {
+    int batch_size_align = fetchvar_batch_size(0);
+
+    for (int fetchvar_index = 0; fetchvar_index < _batch_out.size();
+         ++fetchvar_index) {
+      if (fetchvar_batch_size(fetchvar_index) != batch_size_align) {
+        return 0;
+      }
+    }
+
+    return 1;
+  }
+
+  size_t fetchvar_batch_size() {
+    if (check_fetchvar_batch_align()) {
+      return fetchvar_batch_size(0);
+    }
+    return 0;
+  }
+
   void notify_tasks() {
-    if (_batch_out.size() != _batch_in.size()) {
-      LOG(ERROR) << "batch size not consistency: " << _batch_out.size()
-                 << " != " << _batch_in.size();
+    if (_taskmeta_vector.size() <= 0) {
+      LOG(ERROR) << "_taskmeta_vector.size() <=0, error.";
+      return;
+    }
+    if (_realNumber_batch_in[0] != fetchvar_batch_size()) {
+      LOG(ERROR) << "_batch_out`s batch != _batch_in`s batch, error.";
       return;
     }
 
-    for (size_t ti = 0, bi = 0; ti < _tasks.size(); ++ti) {
-      TaskT* task = _tasks[ti].task;
-      size_t begin = _tasks[ti].begin;
-      size_t end = _tasks[ti].end;
+    int fetchvar_num = _batch_out.size();
+    if (_batch_out_offset.size() == 0) {
+      _batch_out_offset.resize(fetchvar_num, 0);
+    }
+
+    for (size_t ti = 0; ti < _taskmeta_vector.size(); ++ti) {
+      TaskT* task = _taskmeta_vector[ti].task;
+      size_t begin = _taskmeta_vector[ti].begin;
+      size_t end = _taskmeta_vector[ti].end;
       size_t add = end - begin;
 
-      for (size_t oi = begin; oi < end; ++oi, ++bi) {
-        if (bi >= _batch_in.size()) {
-          LOG(ERROR) << "batch index overflow: " << bi << " > "
-                     << _batch_in.size();
+      for (int index = 0; index < fetchvar_num; ++index) {
+        // the task->outVectorT_ptr is null before core->run().
+        // first time we should copy from _batch_out
+        // so we need init.
+        int fetchvar_bytesize_index = fetchvar_bytesize(index);
+        if (task->outVectorT_ptr->size() <= index) {
+          paddle::PaddleTensor tensor_out;
+          tensor_out.name = _batch_out[index].name;
+          tensor_out.dtype = paddle::PaddleDType(_batch_out[index].dtype);
+          tensor_out.shape = _batch_out[index].shape;
+          tensor_out.shape[0] = task->batch_size();
+          tensor_out.lod = _batch_out[index].lod;
+          // resize all batch memory at one time
+          size_t databuf_size = task->batch_size() * fetchvar_bytesize_index;
+          tensor_out.data.Resize(databuf_size);
+          task->outVectorT_ptr->push_back(tensor_out);
+        }
+
+        paddle::PaddleTensor& fetchVarTensor = (*task->outVectorT_ptr)[index];
+
+        void* dst_ptr =
+            fetchVarTensor.data.data() + fetchvar_bytesize_index * begin;
+        int length = fetchvar_bytesize_index * add;
+        if (_batch_out_offset[index] + length >
+            fetchvar_batch_size() * fetchvar_bytesize(index)) {
+          LOG(ERROR) << "_batch_out is less than taskmeta, error.";
           return;
         }
-        (*task->out)[oi] = _batch_out[bi];
+        void* source_ptr =
+            _batch_out[index].data.data() + _batch_out_offset[index];
+
+        memcpy(dst_ptr, source_ptr, length);
+        _batch_out_offset[index] += length;
       }
 
       size_t index = task->index.fetch_add(add);
-      if ((index + add) >= task->in->size()) {
+      if ((index + add) >= task->batch_size()) {
         char c = 0;
         while (write(task->write_fd, &c, 1) != 1 && errno == EINTR) {
         }
@@ -167,16 +495,20 @@ class BatchTasks {
     }
   }
 
-  const typename TaskT::InArrayT& in() const { return _batch_in; }
+  const typename TaskT::InVectorT& in() const { return _batch_in; }
 
-  typename TaskT::OutArrayT& out() { return _batch_out; }
+  typename TaskT::OutVectorT& out() { return _batch_out; }
 
-  size_t task_size() { return _tasks.size(); }
+  size_t task_size() { return _taskmeta_vector.size(); }
 
  private:
-  std::vector<TaskMetaT> _tasks;
-  typename TaskT::InArrayT _batch_in;
-  typename TaskT::OutArrayT _batch_out;
+  std::vector<TaskMetaT> _taskmeta_vector;
+  typename TaskT::InVectorT _batch_in;
+  std::vector<int> _batch_in_offset;
+  std::vector<int> _realNumber_batch_in;
+  typename TaskT::OutVectorT _batch_out;
+  std::vector<int> _batch_out_offset;
+  std::vector<int> _realNumber_batch_out;
   size_t _rem_size;
   size_t _batch_size;
   bool _batch_align;
@@ -236,9 +568,10 @@ class TaskExecutor {
  public:
   typedef typename TaskT::InType InType;
   typedef typename TaskT::OutType OutType;
-  typedef typename TaskT::InArrayT InArrayT;
-  typedef typename TaskT::OutArrayT OutArrayT;
+  typedef typename TaskT::InVectorT InVectorT;
+  typedef typename TaskT::OutVectorT OutVectorT;
   typedef std::vector<TaskT> TaskArrayT;
+  typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
 
   TaskExecutor()
       : _stop(false),
@@ -277,8 +610,7 @@ class TaskExecutor {
     _thread_reset_fn = reset_fn;
   }
 
-  void set_thread_callback_fn(
-      boost::function<void(const InArrayT&, OutArrayT&)> cb) {
+  void set_thread_callback_fn(boost::function<void(const void*, void*)> cb) {
     _fn = cb;
   }
 
@@ -293,9 +625,9 @@ class TaskExecutor {
 
   int work(ThreadContext<TaskT>* context);
 
-  TaskHandler<TaskT> schedule(const InArrayT&, OutArrayT&);
+  TaskHandler<TaskT> schedule(const void*, void*);
 
-  bool fetch_batch(BatchTasks<TaskT>& batch);  // NOLINT
+  bool move_task_to_batch(BatchTasks<TaskT>& batch);  // NOLINT
 
   bool _stop;
 
@@ -315,15 +647,15 @@ class TaskExecutor {
   size_t _batch_size;
   bool _batch_align;
 
-  boost::function<void(const InArrayT&, OutArrayT&)> _fn;
+  boost::function<void(const void*, void*)> _fn;
 };
 
 template <typename InItemT, typename OutItemT>
 class TaskManager {
  public:
   typedef Task<InItemT, OutItemT> TaskT;
-  typedef typename TaskT::InArrayT InArrayT;
-  typedef typename TaskT::OutArrayT OutArrayT;
+  typedef typename TaskT::InVectorT InVectorT;
+  typedef typename TaskT::OutVectorT OutVectorT;
 
   explicit TaskManager(TaskExecutor<TaskT>& exe, size_t batch_size)  // NOLINT
       : _executor(exe) {}
@@ -332,7 +664,7 @@ class TaskManager {
 
   ~TaskManager() { wait(); }
 
-  bool schedule(const InArrayT& in, OutArrayT& out);  // NOLINT
+  bool schedule(const void* in, void* out);  // NOLINT
   void wait();
 
   inline void clear() { wait(); }
@@ -357,5 +689,5 @@ class AutoMutex {
 }  // namespace bsf
 }  // namespace im
 
-#include "core/predictor/framework/bsf-inl-tensor.h"
+// #include "core/predictor/framework/bsf-inl-tensor.h"
 #include "core/predictor/framework/bsf-inl.h"

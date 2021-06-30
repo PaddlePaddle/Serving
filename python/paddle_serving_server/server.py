@@ -81,8 +81,11 @@ class Server(object):
         self.use_local_bin = False
         self.mkl_flag = False
         self.device = "cpu"
-        self.gpuid = 0
+        self.gpuid = []
+        self.op_num = [0]
+        self.op_max_batch = [32]
         self.use_trt = False
+        self.gpu_multi_stream = False
         self.use_lite = False
         self.use_xpu = False
         self.model_config_paths = collections.OrderedDict()
@@ -137,11 +140,13 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
+    # Multi-Server does not have this Function. 
     def set_product_name(self, product_name=None):
         if product_name == None:
             raise ValueError("product_name can't be None.")
         self.product_name = product_name
 
+    # Multi-Server does not have this Function.
     def set_container_id(self, container_id):
         if container_id == None:
             raise ValueError("container_id can't be None.")
@@ -163,11 +168,20 @@ class Server(object):
     def set_device(self, device="cpu"):
         self.device = device
 
-    def set_gpuid(self, gpuid=0):
+    def set_gpuid(self, gpuid):
         self.gpuid = gpuid
+
+    def set_op_num(self, op_num):
+        self.op_num = op_num
+
+    def set_op_max_batch(self, op_max_batch):
+        self.op_max_batch = op_max_batch
 
     def set_trt(self):
         self.use_trt = True
+
+    def set_gpu_multi_stream(self):
+        self.gpu_multi_stream = True
 
     def set_lite(self):
         self.use_lite = True
@@ -178,6 +192,27 @@ class Server(object):
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = []
+        self.device = device
+
+        if isinstance(self.gpuid, str):
+            self.gpuid = [self.gpuid]
+        if len(self.gpuid) == 0:
+            if self.device == "gpu" or self.use_trt:
+                self.gpuid.append("0")
+            else:
+                self.gpuid.append("-1")
+
+        if isinstance(self.op_num, int):
+            self.op_num = [self.op_num]
+        if len(self.op_num) == 0:
+            self.op_num.append(0)
+
+        if isinstance(self.op_max_batch, int):
+            self.op_max_batch = [self.op_max_batch]
+        if len(self.op_max_batch) == 0:
+            self.op_max_batch.append(32)
+
+        index = 0
 
         for engine_name, model_config_path in model_config_paths.items():
             engine = server_sdk.EngineDesc()
@@ -186,18 +221,27 @@ class Server(object):
             engine.reloadable_meta = model_config_path + "/fluid_time_file"
             os.system("touch {}".format(engine.reloadable_meta))
             engine.reloadable_type = "timestamp_ne"
-            engine.runtime_thread_num = 0
-            engine.batch_infer_size = 0
-            engine.enable_batch_align = 0
+            engine.runtime_thread_num = self.op_num[index % len(self.op_num)]
+            engine.batch_infer_size = self.op_max_batch[index %
+                                                        len(self.op_max_batch)]
+
+            engine.enable_batch_align = 1
             engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
             engine.use_trt = self.use_trt
+            engine.gpu_multi_stream = self.gpu_multi_stream
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
             engine.use_gpu = False
-            if self.device == "gpu":
+            if self.device == "gpu" or self.use_trt:
                 engine.use_gpu = True
+
+            if len(self.gpuid) == 0:
+                raise ValueError("CPU: self.gpuid = -1, GPU: must set it ")
+            op_gpu_list = self.gpuid[index % len(self.gpuid)].split(",")
+            for ids in op_gpu_list:
+                engine.gpu_ids.extend([int(ids)])
 
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 engine.combined_model = True
@@ -208,6 +252,7 @@ class Server(object):
             engine.type = "PADDLE_INFER"
             self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
             self.model_toolkit_conf[-1].engines.extend([engine])
+            index = index + 1
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -332,7 +377,11 @@ class Server(object):
         self.mkl_flag = flag
 
     def check_avx(self):
-        p = subprocess.Popen(['cat /proc/cpuinfo | grep avx 2>/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(
+            ['cat /proc/cpuinfo | grep avx 2>/dev/null'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True)
         out, err = p.communicate()
         if err == b'' and len(out) > 0:
             return True
@@ -431,6 +480,7 @@ class Server(object):
                        device="cpu",
                        use_encryption_model=False,
                        cube_conf=None):
+        self.device = device
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir -p {}".format(workdir))
@@ -533,7 +583,6 @@ class Server(object):
                       "-workflow_path {} " \
                       "-workflow_file {} " \
                       "-bthread_concurrency {} " \
-                      "-gpuid {} " \
                       "-max_body_size {} ".format(
                           self.bin_path,
                           self.workdir,
@@ -549,7 +598,6 @@ class Server(object):
                           self.workdir,
                           self.workflow_fn,
                           self.num_threads,
-                          self.gpuid,
                           self.max_body_size)
         print("Going to Run Comand")
         print(command)
@@ -615,8 +663,26 @@ class MultiLangServer(object):
     def set_ir_optimize(self, flag=False):
         self.bserver_.set_ir_optimize(flag)
 
-    def set_gpuid(self, gpuid=0):
+    def set_gpuid(self, gpuid):
         self.bserver_.set_gpuid(gpuid)
+
+    def set_op_num(self, op_num):
+        self.bserver_.set_op_num(op_num)
+
+    def set_op_max_batch(self, op_max_batch):
+        self.bserver_.set_op_max_batch(op_max_batch)
+
+    def set_trt(self):
+        self.bserver_.set_trt()
+
+    def set_gpu_multi_stream(self):
+        self.bserver_.set_gpu_multi_stream()
+
+    def set_lite(self):
+        self.bserver_.set_lite()
+
+    def set_xpu(self):
+        self.bserver_.set_xpu()
 
     def load_model_config(self,
                           server_config_dir_paths,
@@ -674,6 +740,7 @@ class MultiLangServer(object):
                        device="cpu",
                        use_encryption_model=False,
                        cube_conf=None):
+        self.device = device
         if not self._port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
         default_port = 12000

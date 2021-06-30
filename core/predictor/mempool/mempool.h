@@ -129,7 +129,7 @@ class FreeList {
     to get the class Pointer
     for example
     T is the member of class Node, T data, 'data' is the name.
-    T* value is the member(pointer type) class Node
+    T* value is the member(pointer type) of class Node
     so we can get the Node* by calling container_of(value, Node, data)
     */
     Node* node = container_of(value, Node, data);
@@ -261,7 +261,11 @@ struct BlockReference {
 
 // because BlockFreeList is a threal-safe Singleton.
 // so we don`t release Block, it is global memory.
-// total number is 32*1024
+// total number is 256*1024.
+// the MAX_BLOCK_COUNT of Region(one thread one Region) is 1024.
+// so BlockFreeList allow 256 Region(means 256 thread).
+// the memory used by BlockFreeListType is sizeof(void*)*256*1024.
+// Block(2MB) memory is created only when get() is called.
 class BlockFreeList {
  public:
   static const int MAX_BLOCK_COUNT = 256 * 1024;
@@ -374,7 +378,8 @@ class Mempool {
   void* malloc(size_t size) {
     size = _align(size);
     // It does not enter the if statement the first time.
-    // Because the block has not been used up, it will enter.
+    // The if statement may enter after the block is created.
+    // If the block has not been used up, it will enter.
     if (size <= _free_size) {
       void* p = _free_cursor;
       _free_size -= size;
@@ -392,7 +397,7 @@ class Mempool {
       return;
     }
 
-    // memory in Block，update the pointer.
+    // memory in _block，update the pointer.
     if (_free_cursor - size == static_cast<char*>(p)) {
       // for example, you need to release -(8+1)bytes
       // you can only release -8bytes，cause -(8+2)byte is used by other.
@@ -424,9 +429,8 @@ class Mempool {
     }
 
     // 可能返回的是单独Region中malloc的内存。
-    // 也可能是Block，例如new_size=1M, old_data原本的指针头就在1.2M处，old_size
-    // =
-    // 0.5M
+    // 也可能是Block，例如new_size=1M, old_data原本的指针头就在1.2M处
+    // old_size = 0.5M
     // 此时,_free_size = 0.3M，new_size<2M,但是required = 1-0.5 >0.3
     // 分配出来的就是Block，但是该Block没有并很完美的利用完全。
     void* p = this->malloc_from_region(new_size);

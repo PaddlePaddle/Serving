@@ -30,7 +30,7 @@ find_package(Threads REQUIRED)
 find_package(CUDA QUIET)
 
 include(simd)
-
+SET(CMAKE_BUILD_TYPE "Debug")
 # CMAKE_BUILD_TYPE
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
