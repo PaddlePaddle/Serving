@@ -17,11 +17,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <functional>
 #include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
-#include <functional>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
@@ -73,7 +73,7 @@ class InferEngine {
   virtual int infer(const void* in, void* out, uint32_t batch_size = -1) {
     return infer_impl(in, out, batch_size);
   }
-
+  virtual void set_model_index(uint32_t index) { _model_index = index; }
   virtual int reload() = 0;
 
   virtual uint64_t version() const = 0;
@@ -89,10 +89,12 @@ class InferEngine {
                          void* out,
                          uint32_t batch_size = -1) = 0;
   virtual int task_infer_impl(const void* in, void* out) = 0;  // NOLINT
-
+  
+ protected:
+  uint32_t _model_index;
   // end: framework inner call
 };
-
+typedef im::bsf::Task<paddle::PaddleTensor, paddle::PaddleTensor> TaskT;
 class ReloadableInferEngine : public InferEngine {
  public:
   virtual ~ReloadableInferEngine() {}
@@ -105,7 +107,6 @@ class ReloadableInferEngine : public InferEngine {
   };
 
   virtual int load(const configure::EngineDesc& conf) = 0;
-  typedef im::bsf::Task<paddle::PaddleTensor, paddle::PaddleTensor> TaskT;
 
   int proc_initialize_impl(const configure::EngineDesc& conf, bool version);
 
@@ -372,8 +373,7 @@ class CloneDBReloadableInferEngine
 
  protected:
   // 模板EngineCore，如果已创建，则多个线程级EngineCore共用该对象的模型数据
-  std::vector<ModelData<EngineCore>*>
-      _cloneTemplate;
+  std::vector<ModelData<EngineCore>*> _cloneTemplate;
 };
 
 template <typename EngineCore>

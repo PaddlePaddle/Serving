@@ -56,15 +56,23 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
   }
 
   // init bsf framework
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_init_fn(
-      boost::bind(&InferEngine::thrd_initialize_impl, this));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_reset_fn(
-      boost::bind(&InferEngine::thrd_clear_impl, this));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_callback_fn(
-      boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_batch_size(_infer_batch_size);
-  im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(_infer_batch_align);
-  if (im::bsf::TaskExecutor<TaskT>::instance()->start(_infer_thread_num) != 0) {
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_init_fn(
+          boost::bind(&InferEngine::thrd_initialize_impl, this));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_init_fn(
+          boost::bind(&InferEngine::thrd_initialize_impl, this));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_reset_fn(boost::bind(&InferEngine::thrd_clear_impl, this));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_callback_fn(
+          boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_size(
+      _infer_batch_size);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_align(
+      _infer_batch_align);
+  if (im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].start(
+          _infer_thread_num) != 0) {
     LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
     return -1;
   }
@@ -75,6 +83,11 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
   return 0;
 }
 
+// Multiple threads will enter this method of the same object
+// One Model corresponds to One ReloadableInferEngine object.
+// ReloadableInferEngine object is Process object.
+// One ReloadableInferEngine object can have several ModelData<EngineCore>
+// ModelData<EngineCore> is Thread object.
 int ReloadableInferEngine::infer(const void* in,
                                  void* out,
                                  uint32_t batch_size) {
@@ -82,7 +95,8 @@ int ReloadableInferEngine::infer(const void* in,
     return infer_impl(in, out, batch_size);
   }
 
-  im::bsf::TaskManager<paddle::PaddleTensor, paddle::PaddleTensor> task_manager;
+  im::bsf::TaskManager<paddle::PaddleTensor, paddle::PaddleTensor> task_manager(
+      _model_index);
 
   task_manager.schedule(in, out);
   task_manager.wait();
@@ -110,7 +124,7 @@ int ReloadableInferEngine::proc_finalize() {
   }
 
   if (_infer_thread_num > 0) {
-    im::bsf::TaskExecutor<TaskT>::instance()->stop();
+    im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].stop();
   }
   return 0;
 }
@@ -191,6 +205,7 @@ int VersionedInferEngine::proc_initialize(const configure::EngineDesc& conf,
   std::string engine_type = conf.type();
   InferEngine* engine =
       StaticInferFactory::instance().generate_object(engine_type);
+  engine->set_model_index(_model_index);
   if (!engine) {
     LOG(ERROR) << "Failed generate engine with type:" << engine_type;
     return -1;
@@ -373,12 +388,14 @@ int InferManager::proc_initialize(const char* path, const char* file) {
     LOG(ERROR) << "failed load infer config, path: " << path << "/" << file;
     return -1;
   }
-  size_t engine_num = model_toolkit_conf.engines_size();
-  for (size_t ei = 0; ei < engine_num; ++ei) {
+  uint32_t engine_num = model_toolkit_conf.engines_size();
+  im::bsf::TaskExecutorVector<TaskT>::instance().resize(engine_num);
+  for (uint32_t ei = 0; ei < engine_num; ++ei) {
     LOG(INFO) << "model_toolkit_conf.engines(" << ei
               << ").name: " << model_toolkit_conf.engines(ei).name();
     std::string engine_name = model_toolkit_conf.engines(ei).name();
     VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
+    engine->set_model_index(ei);
     if (!engine) {
       LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
       return -1;

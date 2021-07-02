@@ -36,7 +36,7 @@ void* TaskExecutor<TaskT>::thread_entry(void* args) {
       static_cast<TaskExecutor<TaskT>*>(context->executor);
   executor->work(context);
 
-  return NULL;
+  return nullptr;
 }
 
 template <typename TaskT>
@@ -256,7 +256,8 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
 template <typename InItemT, typename OutItemT>
 bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
                                               void* out) {  // NOLINT
-  TaskHandler<TaskT> handler = _executor.schedule(in, out);
+  TaskHandler<TaskT> handler =
+      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out);
 
   if (handler.valid()) {
     _task_owned = handler;

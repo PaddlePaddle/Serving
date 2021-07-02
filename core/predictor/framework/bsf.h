@@ -16,7 +16,7 @@
 
 #include <errno.h>
 #include <algorithm>
-#include <deque>
+#include <list>
 #include <vector>
 
 #ifdef BCLOUD
@@ -220,7 +220,8 @@ struct TaskMeta {
 // each TaskT is already include batch in itself
 // BatchTasks need to combine several `small TaskMeta` into a new `big TaskT`.
 // The only difference between the `big TaskT` and `small TaskT` is that
-// the TaskT.inVectorT_ptr->[feedvar_index].shape[0] is different.
+// the TaskT.inVectorT_ptr->[feedvar_index].shape[0]
+// which is actually batch_size is different.
 template <typename TaskT>
 class BatchTasks {
  public:
@@ -540,9 +541,6 @@ struct TaskHandler {
 template <typename TaskT>
 class TaskExecutor;
 
-template <typename InItemT, typename OutItemT>
-class TaskManager;
-
 template <typename TaskT>
 struct ThreadContext {
   TaskExecutor<TaskT>* executor;
@@ -591,10 +589,18 @@ class TaskExecutor {
     THREAD_COND_DESTROY(&_cond);
   }
 
-  static TaskExecutor<TaskT>* instance() {
-    static TaskExecutor<TaskT> singleton;
-    return &singleton;
+  // cause vector.resize will use copy or move construct.
+  TaskExecutor(TaskExecutor<TaskT>&& other) noexcept {
+    if (this != &other) {
+      TaskExecutor();
+    }
   }
+  /*
+    static TaskExecutor<TaskT>* instance() {
+      static TaskExecutor<TaskT> singleton;
+      return &singleton;
+    }
+  */
 
   void set_batch_size(size_t batch_size) { _batch_size = batch_size; }
 
@@ -619,15 +625,21 @@ class TaskExecutor {
 
   static void* thread_entry(void* args);
 
- private:
-  TaskExecutor(TaskExecutor<TaskT> const& other);
-  TaskExecutor* operator=(TaskExecutor<TaskT> const& other);
-
   int work(ThreadContext<TaskT>* context);
 
   TaskHandler<TaskT> schedule(const void*, void*);
 
   bool move_task_to_batch(BatchTasks<TaskT>& batch);  // NOLINT
+
+ private:
+  TaskExecutor(TaskExecutor<TaskT> const& other) = delete;
+
+  TaskExecutor& operator=(TaskExecutor<TaskT> const& other) = delete;
+  /*
+  TaskExecutor(TaskExecutor<TaskT> && other) = delete;
+
+  TaskExecutor& operator=(TaskExecutor<TaskT> && other) = delete;
+  */
 
   bool _stop;
 
@@ -635,19 +647,46 @@ class TaskExecutor {
   THREAD_MUTEX_T _mut;
   THREAD_COND_T _cond;
 
-  std::deque<TaskT*> _task_queue;
+  std::list<TaskT*> _task_queue;
 
   boost::function<int(void*)> _thread_init_fn;
   boost::function<int(void*)> _thread_reset_fn;
   void** _user_thread_contexts;
 
   std::vector<ThreadContext<TaskT>*> _thread_contexts;
-  friend class TaskManager<InType, OutType>;
 
   size_t _batch_size;
   bool _batch_align;
 
   boost::function<void(const void*, void*)> _fn;
+};
+
+template <typename TaskT>
+class TaskExecutorVector {
+ public:
+  static TaskExecutorVector<TaskT>& instance() {
+    static TaskExecutorVector<TaskT> singleton;
+    return singleton;
+  }
+
+  void resize(int size) { _vector_executor.resize(size); }
+
+  TaskExecutor<TaskT>& operator[](int index) {
+    if (_vector_executor.size() <= index || index <= -1) {
+      LOG(ERROR) << "_vector_executor.size() <= index or <= -1";
+      throw "_vector_executor.size() <= index or <= -1";
+    }
+    return _vector_executor[index];
+  }
+
+ private:
+  TaskExecutorVector() = default;
+  TaskExecutorVector(const TaskExecutorVector<TaskT>& other) = delete;
+  TaskExecutorVector& operator=(const TaskExecutorVector<TaskT>& other) =
+      delete;
+  TaskExecutorVector(TaskExecutorVector<TaskT>&& other) = delete;
+  TaskExecutorVector& operator=(TaskExecutorVector<TaskT>&& other) = delete;
+  std::vector<TaskExecutor<TaskT>> _vector_executor;
 };
 
 template <typename InItemT, typename OutItemT>
@@ -657,10 +696,8 @@ class TaskManager {
   typedef typename TaskT::InVectorT InVectorT;
   typedef typename TaskT::OutVectorT OutVectorT;
 
-  explicit TaskManager(TaskExecutor<TaskT>& exe, size_t batch_size)  // NOLINT
-      : _executor(exe) {}
-
-  TaskManager() : _executor(*TaskExecutor<TaskT>::instance()) {}
+  explicit TaskManager(uint32_t index)  // NOLINT
+      : _model_index(index) {}
 
   ~TaskManager() { wait(); }
 
@@ -670,8 +707,8 @@ class TaskManager {
   inline void clear() { wait(); }
 
  private:
-  TaskExecutor<TaskT>& _executor;
   TaskHandler<TaskT> _task_owned;
+  uint32_t _model_index;
 };  // class TaskManager
 
 class AutoMutex {
