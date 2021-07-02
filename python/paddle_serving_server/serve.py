@@ -147,7 +147,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     op_seq_maker.add_op(read_op)
     for idx, single_model in enumerate(model):
         infer_op_name = "general_infer"
-        if len(model) == 2 and idx == 0:
+        if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
             infer_op_name = "general_detection"
         else:
             infer_op_name = "general_infer"
