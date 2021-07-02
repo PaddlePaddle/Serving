@@ -191,12 +191,22 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 | `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
 
+#### Description of asynchronous model
+    Asynchronous mode is suitable for 1. When the number of requests is very large, 2. When multiple models are concatenated and you want to specify the concurrency number of each model.
+    Asynchronous mode helps to improve the throughput (QPS) of service, but for a single request, the delay will increase slightly.
+    In asynchronous mode, each model will start n threads of the number you specify, and each thread contains a model instance. In other words, each model is equivalent to a thread pool containing N threads, and the task is taken from the task queue of the thread pool to execute.
+    In asynchronous mode, each RPC server thread is only responsible for putting the request into the task queue of the model thread pool. After the task is executed, the completed task is removed from the task queue.
+    In the above table, the number of RPC server threads is specified by --thread, and the default value is 2.
+    --op_num specifies the number of threads in the thread pool of each model. The default value is 0, indicating that asynchronous mode is not used.
+    --op_max_batch specifies the number of batches for each model. The default value is 32. It takes effect when --op_num is not 0.
 #### When you want a model to use multiple GPU cards.
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
 #### When you want 2 models.
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292
 #### When you want 2 models, and want each of them use multiple GPU cards.
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
+#### When a service contains two models, and each model needs to specify multiple GPU cards, and needs asynchronous mode, each model specifies different concurrency number.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --op_num 4 8
 </center>
 
 ```python
