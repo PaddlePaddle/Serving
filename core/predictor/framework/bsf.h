@@ -133,6 +133,8 @@ struct Task {
     int element_num = 1;
     if ((*inVectorT_ptr)[feedvar_index].shape.size() == 1) {
       // cause shape[0] is batch_size.
+      // [10,1] = [10], so if shape[1] doesn`t exist.
+      // should return 1.
       return 1;
     }
     // start from shape[1], cause shape[0] = batch_size.
@@ -516,6 +518,13 @@ class BatchTasks {
 };
 
 // BSF task handle
+// TaskHandler is the handle of Task.
+// `read_fd` is used for receive signal in brpc Thread.
+// 'write_fd' is used for write signal in bsf Thread.
+// when TaskMeta is done, bsf Thread will write to 'write_fd'.
+// brpc Thread is keeping reading 'read_fd' in a while loop.
+// brpc Thread will receive signal when TaskMeta is done.
+// so `read_fd` and 'write_fd' is used for communicate in different Thread.
 template <typename TaskT>
 struct TaskHandler {
   int read_fd;
@@ -538,9 +547,11 @@ struct TaskHandler {
   }
 };
 
+// TaskExecutor is a Thread pool.
 template <typename TaskT>
 class TaskExecutor;
 
+// ThreadContext is used for start a bsf Thread.
 template <typename TaskT>
 struct ThreadContext {
   TaskExecutor<TaskT>* executor;
@@ -561,6 +572,15 @@ struct ThreadContext {
   }
 };
 
+// TaskExecutor is a Thread pool.
+// Each Model corresponding to a Model.
+// TaskT is actually a Request preprocessed by ReaderOp.
+// TaskT will be divided as TaskMeta which will be
+// put into _task_queue in brpc-Thread by schedule().
+// TaskHander will be returned to brpc-Thread.
+// start() function will create `thread_num` bsf Threads.
+// every bsf Thread check the _task_queue and take TaskMeta from it.
+// when a Task`s all TaskMeta is done, TaskHander will be noticed.
 template <typename TaskT>
 class TaskExecutor {
  public:
@@ -595,12 +615,6 @@ class TaskExecutor {
       TaskExecutor();
     }
   }
-  /*
-    static TaskExecutor<TaskT>* instance() {
-      static TaskExecutor<TaskT> singleton;
-      return &singleton;
-    }
-  */
 
   void set_batch_size(size_t batch_size) { _batch_size = batch_size; }
 
@@ -661,6 +675,9 @@ class TaskExecutor {
   boost::function<void(const void*, void*)> _fn;
 };
 
+// TaskExecutorVector is a SingleTon class.
+// Each Model corresponding to a TaskExecutor.
+// So we need several TaskExecutor when there are more than 1 Model.
 template <typename TaskT>
 class TaskExecutorVector {
  public:
@@ -689,6 +706,11 @@ class TaskExecutorVector {
   std::vector<TaskExecutor<TaskT>> _vector_executor;
 };
 
+// TaskManager is actually a wrapper of Request in bsf.
+// TaskManager`s schedule() change Request to be TaskT.
+// and divided TaskT into several TaskMeta to put into the TaskExecutor`s
+// task_queue.
+// wait() is a while loop to receive signal when a whole Task is done.
 template <typename InItemT, typename OutItemT>
 class TaskManager {
  public:

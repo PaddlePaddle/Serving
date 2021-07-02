@@ -89,7 +89,7 @@ class InferEngine {
                          void* out,
                          uint32_t batch_size = -1) = 0;
   virtual int task_infer_impl(const void* in, void* out) = 0;  // NOLINT
-  
+
  protected:
   uint32_t _model_index;
   // end: framework inner call
@@ -260,17 +260,27 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   }
 
   int thrd_clear_impl() {
-    // for bsf-Task-threads
     // actually, there are 2 kinds of multi-thread.
     // 1. brpc thread 2. bsf Task thread
     // each request is in 1-single brpc thread.
     // IF (bsf Task thread is not used)
-    // every single brpc thread thread corresponds to all the EngineCores.
-    // each request runs all models in 1-single thread brpc thread.
+    // every single brpc thread corresponds to all the DBReloadableInferEngines.
+    // each request runs all models in 1-single brpc thread.
+    // every single brpc thread will create or clone N predictor.
+    // N = the number of Model.
+    // so if there are 2 models, and --thread 10.
+    // each brpc thread will create predictor of Model-1 and Model-2.
+    // there are totally 10 predictors of Model-1 and 10 predictors of Model-2
+    // cause there are 10 brpc threads.
 
-    // IF (bsf Task thread is used)
+    // IF bsf Task thread is used。
     // there will be a ThreadPool called bsf TaskExecutor.
-    // in TaskExecutor, 1 bsf thread corresponds to 1 EngineCore.
+    // TaskExecutorVector is the vector of TaskExecutor.
+    // the number of TaskExecutor equals to the number of Model.
+    // 1 TaskExecutor corresponding to 1 Model.
+    // 1 TaskExecutor have N bsf threads.
+    // 1 bsf thread corresponds to 1 predictor of
+    // the Model corresponding to the TaskExecutor.
     // brpc thread only put the data into the task_queue(which is in
     // TaskExecutor)
     // EngineCore->infer() is running in bsf Task thread.
@@ -335,8 +345,8 @@ class CloneDBReloadableInferEngine
                             gpu_ids_num);
     }
     // gpu_index will be set to be 0, when load() or proc_initial() is called.
-    // gpu_index < gpu_ids_num, means there are still not create on some GPU
-    // card.
+    // gpu_index < gpu_ids_num, means there are predictors still not create
+    // on some GPU card.
     // so we need to create the predictor.
     // gpu_index >= gpu_ids_num, means each GPU card has already create one.
     // so we need to clone the predictor.
@@ -356,6 +366,10 @@ class CloneDBReloadableInferEngine
       }
     } else {
       // when gpu_id = -1, means we use cpu, but the index should be 0.
+      // _cloneTemplate[-1] will occur error.
+      // actually, when gpu_id = -1, there is only 1 predictor in
+      // _cloneTemplate.
+      // so the index should always be 0 when gpu_id = -1.
       if (gpu_id == -1) gpu_id = 0;
       if (!md->cores[next_idx] ||
           md->cores[next_idx]->clone(_cloneTemplate[gpu_id]->get()) != 0) {
