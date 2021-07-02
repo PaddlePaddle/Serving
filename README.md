@@ -175,9 +175,12 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `4`     | Concurrency of current service                        |
+| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
+| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `op_max_batch`                                 | int[]| `0`     | Batch Number for each model in asynchronous mode      |
+| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
 | `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str  | `""`    | Path of paddle model directory to be served           |
+| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
 | `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
 | `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
@@ -186,7 +189,14 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 | `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
 | `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
 | `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
+| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
 
+#### When you want a model to use multiple GPU cards.
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
+#### When you want 2 models.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292
+#### When you want 2 models, and want each of them use multiple GPU cards.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
 </center>
 
 ```python
