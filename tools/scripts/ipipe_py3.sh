@@ -41,7 +41,7 @@ build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
-low_precision_resnet50_int8 ocr_c++_service)
+faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service)
 http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
@@ -325,7 +325,7 @@ function low_precision_resnet50_int8 () {
     ${py_version} -m paddle_serving_client.convert --dirname ResNet50_quant
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
     ${py_version} -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 15
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
     ${py_version} resnet50_client.py > ${dir}client_log.txt 2>&1
     check_result client "low_precision_resnet50_int8_GPU_RPC server test completed"
@@ -341,7 +341,7 @@ function faster_rcnn_hrnetv2p_w18_1x_encrypt() {
     ${py_version} encrypt.py
     unsetproxy
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
-    ${py_version} -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --use_trt --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
     check_result server 3
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
     ${py_version} test_encryption.py 000000570688.jpg > ${dir}client_log.txt 2>&1
@@ -536,7 +536,7 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 --use_trt > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
@@ -835,7 +835,7 @@ function grpc_yolov4() {
     link_data ${data_dir}
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC server started${RES}"
     ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 15
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC client started${RES}"
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "grpc_yolov4_GPU_GRPC server test completed"
