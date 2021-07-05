@@ -93,6 +93,9 @@ int GeneralReaderOp::inference() {
   res->SetLogId(log_id);
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
+  // only get insts(0), cause batch is already in Tensor.
+  // req can only include 1 inst.
+  // var_num means the number of feed_var.
   int var_num = req->insts(0).tensor_array_size();
 
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
@@ -178,7 +181,10 @@ int GeneralReaderOp::inference() {
     VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
             << "]: " << data_len;
     databuf_size = data_len * elem_size;
-    out->at(i).data.Resize(databuf_size);
+    void *databuf_char = MempoolWrapper::instance().malloc(databuf_size);
+    paddle::PaddleBuf paddleBuf(databuf_char, databuf_size);
+    out->at(i).data = paddleBuf;
+    // out->at(i).data.Resize(databuf_size);
     if (out->at(i).lod.size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();

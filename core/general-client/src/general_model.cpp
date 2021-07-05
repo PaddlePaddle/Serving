@@ -166,6 +166,8 @@ int PredictorClient::numpy_predict(
   batch_size = batch_size > string_feed_batch.size() ? batch_size
                                                      : string_feed_batch.size();
   VLOG(2) << "batch size: " << batch_size;
+  // batch_size must be 1, cause batch is already in Tensor.
+  // I suggest to remove the outside vector<>.
   predict_res_batch.clear();
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
@@ -188,6 +190,8 @@ int PredictorClient::numpy_predict(
   }
 
   int vec_idx = 0;
+  // batch_size can only be 1, cause batch is already in Tensor.
+  // if batch_size is not 1, error will occur in C++ part.
   for (int bi = 0; bi < batch_size; bi++) {
     VLOG(2) << "prepare batch " << bi;
     std::vector<Tensor *> tensor_vec;

@@ -39,7 +39,16 @@ def serve_args():
         "--port", type=int, default=9292, help="Port of the starting gpu")
     parser.add_argument(
         "--device", type=str, default="gpu", help="Type of device")
-    parser.add_argument("--gpu_ids", type=str, default="", help="gpu ids")
+    parser.add_argument(
+        "--gpu_ids", type=str, default="", nargs="+", help="gpu ids")
+    parser.add_argument(
+        "--op_num", type=int, default=0, nargs="+", help="Number of each op")
+    parser.add_argument(
+        "--op_max_batch",
+        type=int,
+        default=32,
+        nargs="+",
+        help="Max batch of each op")
     parser.add_argument(
         "--model", type=str, default="", nargs="+", help="Model for serving")
     parser.add_argument(
@@ -99,85 +108,20 @@ def serve_args():
         type=str,
         default=None,
         help="container_id for authentication")
+    parser.add_argument(
+        "--gpu_multi_stream",
+        default=False,
+        action="store_true",
+        help="Use gpu_multi_stream")
     return parser.parse_args()
 
 
-def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
-    args = serve_args()
-    thread_num = args.thread
-    model = args.model
-    port = serving_port
-    workdir = args.workdir
-    device = args.device
-    mem_optim = args.mem_optim_off is False
-    ir_optim = args.ir_optim
-    max_body_size = args.max_body_size
-    use_mkl = args.use_mkl
-    use_encryption_model = args.use_encryption_model
-    use_multilang = args.use_multilang
+def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-missing
 
-    if model == "":
-        print("You must specify your serving model")
-        exit(-1)
-
-    for single_model_config in args.model:
-        if os.path.isdir(single_model_config):
-            pass
-        elif os.path.isfile(single_model_config):
-            raise ValueError("The input of --model should be a dir not file.")
-
-    import paddle_serving_server as serving
-    op_maker = serving.OpMaker()
-    op_seq_maker = serving.OpSeqMaker()
-
-    read_op = op_maker.create('general_reader')
-    op_seq_maker.add_op(read_op)
-
-    for idx, single_model in enumerate(model):
-        infer_op_name = "general_infer"
-        #Temporary support for OCR model,it will be completely revised later
-        #If you want to use this, C++ server must compile with WITH_OPENCV option.
-        if len(model) == 2 and idx == 0 and model[0] == 'ocr_det_model':
-            infer_op_name = "general_detection"
-        general_infer_op = op_maker.create(infer_op_name)
-        op_seq_maker.add_op(general_infer_op)
-
-    general_response_op = op_maker.create('general_response')
-    op_seq_maker.add_op(general_response_op)
-
-    server = None
-    if use_multilang:
-        server = serving.MultiLangServer()
-    else:
-        server = serving.Server()
-    server.set_op_sequence(op_seq_maker.get_op_sequence())
-    server.set_num_threads(thread_num)
-    server.set_memory_optimize(mem_optim)
-    server.set_ir_optimize(ir_optim)
-    server.use_mkl(use_mkl)
-    server.set_max_body_size(max_body_size)
-    server.set_port(port)
-    server.set_precision(args.precision)
-    server.set_use_calib(args.use_calib)
-    server.use_encryption_model(use_encryption_model)
-    if args.product_name != None:
-        server.set_product_name(args.product_name)
-    if args.container_id != None:
-        server.set_container_id(args.container_id)
-
-    server.load_model_config(model)
-    server.prepare_server(workdir=workdir, port=port, device=device)
-    server.run_server()
-
-
-def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-string-missing
-    workdir = args.workdir
-    gpuid = int(gpuid)
     device = "gpu"
-    if gpuid == -1:
+    if gpu_mode == False:
         device = "cpu"
-    elif gpuid >= 0:
-        port = port + index
+
     thread_num = args.thread
     model = args.model
     mem_optim = args.mem_optim_off is False
@@ -185,8 +129,7 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     use_mkl = args.use_mkl
     max_body_size = args.max_body_size
     use_multilang = args.use_multilang
-    if gpuid >= 0:
-        workdir = "{}_{}".format(args.workdir, gpuid)
+    workdir = "{}_{}".format(args.workdir, port)
 
     if model == "":
         print("You must specify your serving model")
@@ -204,7 +147,11 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     op_seq_maker.add_op(read_op)
     for idx, single_model in enumerate(model):
         infer_op_name = "general_infer"
-        if len(model) == 2 and idx == 0:
+        # 目前由于ocr的节点Det模型依赖于opencv的第三方库
+        # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
+        # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
+        # 以后可能考虑不用python脚本来生成配置
+        if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
             infer_op_name = "general_detection"
         else:
             infer_op_name = "general_infer"
@@ -226,8 +173,19 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
     server.set_memory_optimize(mem_optim)
     server.set_ir_optimize(ir_optim)
     server.set_max_body_size(max_body_size)
-    if args.use_trt:
+
+    if args.use_trt and device == "gpu":
         server.set_trt()
+        server.set_ir_optimize(True)
+
+    if args.gpu_multi_stream and device == "gpu":
+        server.set_gpu_multi_stream()
+
+    if args.op_num:
+        server.set_op_num(args.op_num)
+
+    if args.op_max_batch:
+        server.set_op_max_batch(args.op_max_batch)
 
     if args.use_lite:
         server.set_lite()
@@ -247,48 +205,40 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
         port=port,
         device=device,
         use_encryption_model=args.use_encryption_model)
-    if gpuid >= 0:
-        server.set_gpuid(gpuid)
+    if gpu_mode == True:
+        server.set_gpuid(args.gpu_ids)
     server.run_server()
 
 
 def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
-    gpus = ""
+    gpus = []
     if serving_port == None:
         serving_port = args.port
+
     if args.gpu_ids == "":
         gpus = []
     else:
-        gpus = args.gpu_ids.split(",")
+        #check the gpu_id is valid or not.
+        gpus = args.gpu_ids
+        if isinstance(gpus, str):
+            gpus = [gpus]
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-            for ids in gpus:
-                if ids not in env_gpus:
-                    print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
-                    exit(-1)
-        else:
-            env_gpus = []
+            for op_gpus_str in gpus:
+                op_gpu_list = op_gpus_str.split(",")
+                for ids in op_gpu_list:
+                    if ids not in env_gpus:
+                        print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
+                        exit(-1)
+
     if args.use_lite:
         print("run using paddle-lite.")
-        start_gpu_card_model(-1, -1, serving_port, args)
+        start_gpu_card_model(False, serving_port, args)
     elif len(gpus) <= 0:
         print("gpu_ids not set, going to run cpu service.")
-        start_gpu_card_model(-1, -1, serving_port, args)
+        start_gpu_card_model(False, serving_port, args)
     else:
-        gpu_processes = []
-        for i, gpu_id in enumerate(gpus):
-            p = Process(
-                target=start_gpu_card_model,
-                args=(
-                    i,
-                    gpu_id,
-                    serving_port,
-                    args, ))
-            gpu_processes.append(p)
-        for p in gpu_processes:
-            p.start()
-        for p in gpu_processes:
-            p.join()
+        start_gpu_card_model(True, serving_port, args)
 
 
 class MainService(BaseHTTPRequestHandler):
@@ -395,14 +345,28 @@ if __name__ == "__main__":
         from .web_service import WebService
         web_service = WebService(name=args.name)
         web_service.load_model_config(args.model)
-        gpu_ids = args.gpu_ids
-        if gpu_ids == "":
+
+        if args.gpu_ids == "":
+            gpus = []
+        else:
+            #check the gpu_id is valid or not.
+            gpus = args.gpu_ids
+            if isinstance(gpus, str):
+                gpus = [gpus]
             if "CUDA_VISIBLE_DEVICES" in os.environ:
-                gpu_ids = os.environ["CUDA_VISIBLE_DEVICES"]
-        if len(gpu_ids) > 0:
-            web_service.set_gpus(gpu_ids)
+                env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+                for op_gpus_str in gpus:
+                    op_gpu_list = op_gpus_str.split(",")
+                    for ids in op_gpu_list:
+                        if ids not in env_gpus:
+                            print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
+                            exit(-1)
+
+        if len(gpus) > 0:
+            web_service.set_gpus(gpus)
+        workdir = "{}_{}".format(args.workdir, args.port)
         web_service.prepare_server(
-            workdir=args.workdir,
+            workdir=workdir,
             port=args.port,
             device=args.device,
             use_lite=args.use_lite,
@@ -410,7 +374,11 @@ if __name__ == "__main__":
             ir_optim=args.ir_optim,
             thread_num=args.thread,
             precision=args.precision,
-            use_calib=args.use_calib)
+            use_calib=args.use_calib,
+            use_trt=args.use_trt,
+            gpu_multi_stream=args.gpu_multi_stream,
+            op_num=args.op_num,
+            op_max_batch=args.op_max_batch)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)

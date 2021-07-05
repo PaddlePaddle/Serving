@@ -27,7 +27,7 @@ preprocess = Sequential([
 postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
 client = Client()
 client.connect(['127.0.0.1:9393'])
-client.set_rpc_timeout_ms(15000)
+client.set_rpc_timeout_ms(100000)
 
 im = preprocess(sys.argv[1])
 fetch_map = client.predict(
