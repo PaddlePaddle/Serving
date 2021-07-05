@@ -150,6 +150,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
         # 目前由于ocr的节点Det模型依赖于opencv的第三方库
         # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
         # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
+        # 以后可能考虑不用python脚本来生成配置
         if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
             infer_op_name = "general_detection"
         else:
