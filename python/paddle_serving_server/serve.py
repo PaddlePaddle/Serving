@@ -199,14 +199,14 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     if args.container_id != None:
         server.set_container_id(args.container_id)
 
+    if gpu_mode == True:
+        server.set_gpuid(args.gpu_ids)
     server.load_model_config(model)
     server.prepare_server(
         workdir=workdir,
         port=port,
         device=device,
         use_encryption_model=args.use_encryption_model)
-    if gpu_mode == True:
-        server.set_gpuid(args.gpu_ids)
     server.run_server()
 
 
