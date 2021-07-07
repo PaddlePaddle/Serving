@@ -169,7 +169,13 @@ class Server(object):
         self.device = device
 
     def set_gpuid(self, gpuid):
-        self.gpuid = gpuid
+        if isinstance(gpuid, int):
+            self.gpuid = str(gpuid)
+        elif isinstance(gpuid, list):
+            gpu_list = [str(x) for x in gpuid]
+            self.gpuid = ",".join(gpu_list)
+        else:
+            self.gpuid = gpuid
 
     def set_op_num(self, op_num):
         self.op_num = op_num
