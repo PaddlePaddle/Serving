@@ -168,9 +168,13 @@ int GeneralDistKVInferOp::inference() {
       rec::mcube::CubeValue* cur_val = key_map[cur_key];
       if (cur_val->buff.size() == 0) {
          memset(data_ptr, (float)0.0, sizeof(float) * EMBEDDING_SIZE);
+        // VLOG(2) << "key: "<< cur_key << " not found in cube";
+         cube_val_idx++;
          continue;
       }
       memcpy(data_ptr, cur_val->buff.data()+10, cur_val->buff.size()-10);
+      //VLOG(2) << "key: "<< cur_key << " , val: "<< data_ptr[0] << ", " << data_ptr[1] << ", " << data_ptr[2] << ", " << data_ptr[3] << ", " << data_ptr[4] << ", " << data_ptr[5] << ", " << data_ptr[6] << ", " << data_ptr[7] << ", " << data_ptr[8];
+
       cube_val_idx++;
     }
     ++sparse_idx;
