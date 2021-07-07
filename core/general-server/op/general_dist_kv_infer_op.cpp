@@ -112,7 +112,8 @@ int GeneralDistKVInferOp::inference() {
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
     LOG(ERROR) << "cube value return null";
   }
-  size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
+  //size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
+  size_t EMBEDDING_SIZE = 9;
   TensorVector sparse_out;
   sparse_out.resize(sparse_count);
   TensorVector dense_out;
@@ -146,9 +147,11 @@ int GeneralDistKVInferOp::inference() {
     float *dst_ptr = static_cast<float *>(sparse_out[sparse_idx].data.data());
     for (int x = 0; x < sparse_out[sparse_idx].lod[0].back(); ++x) {
       float *data_ptr = dst_ptr + x * EMBEDDING_SIZE;
-      memcpy(data_ptr,
-             values[cube_val_idx].buff.data(),
-             values[cube_val_idx].buff.size());
+      if (values[cube_val_idx].buff.size() == 0) {
+         memset(data_ptr, (float)0.0, sizeof(float) * EMBEDDING_SIZE);
+         continue;
+      }
+      memcpy(data_ptr, values[cube_val_idx].buff.data()+10, values[cube_val_idx].buff.size()-10);
       cube_val_idx++;
     }
     ++sparse_idx;
