@@ -108,8 +108,7 @@ class WebService(object):
         if isinstance(gpus, int):
             self.gpus = str(gpus)
         elif isinstance(gpus, list):
-            gpu_list = [str(x) for x in gpus]
-            self.gpus = ",".join(gpu_list)
+            self.gpus = [str(x) for x in gpus]
         else:
             self.gpus = gpus
 
@@ -261,8 +260,7 @@ class WebService(object):
         if isinstance(gpuid, int):
             self.gpus = str(gpuid)
         elif isinstance(gpuid, list):
-            gpu_list = [str(x) for x in gpuid]
-            self.gpus = ",".join(gpu_list)
+            self.gpus = [str(x) for x in gpuid]
         else:
             self.gpus = gpuid
 
@@ -363,7 +361,8 @@ class WebService(object):
             # default self.gpus = [0].
             if len(self.gpus) == 0:
                 self.gpus.append(0)
-
+            # right now, local Predictor only support 1 card.
+            # no matter how many gpu_id is in gpus, we only use the first one.
             gpu_id = (self.gpus[0].split(","))[0]
             self.client.load_model_config(
                 self.server_config_dir_paths[0], use_gpu=True, gpu_id=gpu_id)
