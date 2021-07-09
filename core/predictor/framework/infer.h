@@ -18,11 +18,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <functional>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <utility>
 #include <vector>
-#include <memory>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"

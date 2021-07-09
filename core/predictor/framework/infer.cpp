@@ -391,7 +391,7 @@ int InferManager::proc_initialize(const char* path,
     return -1;
   }
   uint32_t engine_num = model_toolkit_conf.engines_size();
-  im::bsf::TaskExecutorVector<TaskT>::instance().resize(engine_num);
+  im::bsf::TaskExecutorVector<TaskT>::instance().resize(*engine_index_ptr+engine_num);
   for (uint32_t ei = 0; ei < engine_num; ++ei) {
     LOG(INFO) << "model_toolkit_conf.engines(" << ei
               << ").name: " << model_toolkit_conf.engines(ei).name();
