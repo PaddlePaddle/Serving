@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 #include "core/cube/cube-api/include/cube_api.h"
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/infer.h"

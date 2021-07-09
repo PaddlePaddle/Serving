@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <memory>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
@@ -595,7 +596,9 @@ class InferManager {
     return ins;
   }
 
-  int proc_initialize(const char* path, const char* file);
+  int proc_initialize(const char* path,
+                      const char* file,
+                      std::shared_ptr<int> engine_index_ptr);
 
   int thrd_initialize();
 
