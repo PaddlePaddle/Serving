@@ -41,6 +41,8 @@ from multiprocessing import Pool, Process
 from concurrent import futures
 
 
+# The whole file is about to be discarded.
+# We will use default config-file to start C++Server.
 class Server(object):
     def __init__(self):
         """
@@ -172,8 +174,7 @@ class Server(object):
         if isinstance(gpuid, int):
             self.gpuid = str(gpuid)
         elif isinstance(gpuid, list):
-            gpu_list = [str(x) for x in gpuid]
-            self.gpuid = ",".join(gpu_list)
+            self.gpuid = [str(x) for x in gpuid]
         else:
             self.gpuid = gpuid
 
@@ -200,8 +201,14 @@ class Server(object):
             self.model_toolkit_conf = []
         self.device = device
 
+        # Generally, self.gpuid = str[] or str.
+        # such as "0" or ["0"] or ["0,1"] or ["0,1" , "1,2"]
         if isinstance(self.gpuid, str):
             self.gpuid = [self.gpuid]
+
+        # when len(self.gpuid) means no gpuid is specified.
+        # if self.device == "gpu" or self.use_trt:
+        # we assume you forget to set gpuid, so set gpuid = ['0'];
         if len(self.gpuid) == 0:
             if self.device == "gpu" or self.use_trt:
                 self.gpuid.append("0")
@@ -240,14 +247,24 @@ class Server(object):
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
             engine.use_gpu = False
-            if self.device == "gpu" or self.use_trt:
-                engine.use_gpu = True
 
             if len(self.gpuid) == 0:
                 raise ValueError("CPU: self.gpuid = -1, GPU: must set it ")
             op_gpu_list = self.gpuid[index % len(self.gpuid)].split(",")
             for ids in op_gpu_list:
                 engine.gpu_ids.extend([int(ids)])
+
+            if self.device == "gpu" or self.use_trt:
+                engine.use_gpu = True
+                # this is for Mixed use of GPU and CPU
+                # if model-1 use GPU and set the device="gpu"
+                # but gpuid[1] = "-1" which means use CPU in Model-2
+                # so config about GPU should be False.
+                if len(op_gpu_list) == 1:
+                    if int(op_gpu_list[0]) == -1:
+                        engine.use_gpu = False
+                        engine.gpu_multi_stream = False
+                        engine.use_trt = False
 
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 engine.combined_model = True
@@ -540,71 +557,38 @@ class Server(object):
         else:
             print("Use local bin : {}".format(self.bin_path))
         #self.check_cuda()
-        # Todo: merge CPU and GPU code, remove device to model_toolkit
-        if self.device == "cpu" or self.device == "arm":
-            command = "{} " \
-                      "-enable_model_toolkit " \
-                      "-inferservice_path {} " \
-                      "-inferservice_file {} " \
-                      "-max_concurrency {} " \
-                      "-num_threads {} " \
-                      "-port {} " \
-                      "-precision {} " \
-                      "-use_calib {} " \
-                      "-reload_interval_s {} " \
-                      "-resource_path {} " \
-                      "-resource_file {} " \
-                      "-workflow_path {} " \
-                      "-workflow_file {} " \
-                      "-bthread_concurrency {} " \
-                      "-max_body_size {} ".format(
-                          self.bin_path,
-                          self.workdir,
-                          self.infer_service_fn,
-                          self.max_concurrency,
-                          self.num_threads,
-                          self.port,
-                          self.precision,
-                          self.use_calib,
-                          self.reload_interval_s,
-                          self.workdir,
-                          self.resource_fn,
-                          self.workdir,
-                          self.workflow_fn,
-                          self.num_threads,
-                          self.max_body_size)
-        else:
-            command = "{} " \
-                      "-enable_model_toolkit " \
-                      "-inferservice_path {} " \
-                      "-inferservice_file {} " \
-                      "-max_concurrency {} " \
-                      "-num_threads {} " \
-                      "-port {} " \
-                      "-precision {} " \
-                      "-use_calib {} " \
-                      "-reload_interval_s {} " \
-                      "-resource_path {} " \
-                      "-resource_file {} " \
-                      "-workflow_path {} " \
-                      "-workflow_file {} " \
-                      "-bthread_concurrency {} " \
-                      "-max_body_size {} ".format(
-                          self.bin_path,
-                          self.workdir,
-                          self.infer_service_fn,
-                          self.max_concurrency,
-                          self.num_threads,
-                          self.port,
-                          self.precision,
-                          self.use_calib,
-                          self.reload_interval_s,
-                          self.workdir,
-                          self.resource_fn,
-                          self.workdir,
-                          self.workflow_fn,
-                          self.num_threads,
-                          self.max_body_size)
+        command = "{} " \
+                    "-enable_model_toolkit " \
+                    "-inferservice_path {} " \
+                    "-inferservice_file {} " \
+                    "-max_concurrency {} " \
+                    "-num_threads {} " \
+                    "-port {} " \
+                    "-precision {} " \
+                    "-use_calib {} " \
+                    "-reload_interval_s {} " \
+                    "-resource_path {} " \
+                    "-resource_file {} " \
+                    "-workflow_path {} " \
+                    "-workflow_file {} " \
+                    "-bthread_concurrency {} " \
+                    "-max_body_size {} ".format(
+                        self.bin_path,
+                        self.workdir,
+                        self.infer_service_fn,
+                        self.max_concurrency,
+                        self.num_threads,
+                        self.port,
+                        self.precision,
+                        self.use_calib,
+                        self.reload_interval_s,
+                        self.workdir,
+                        self.resource_fn,
+                        self.workdir,
+                        self.workflow_fn,
+                        self.num_threads,
+                        self.max_body_size)
+
         print("Going to Run Comand")
         print(command)
 

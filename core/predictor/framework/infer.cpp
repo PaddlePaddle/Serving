@@ -382,20 +382,24 @@ int VersionedInferEngine::task_infer_impl(const void* in,
   return -1;
 }
 
-int InferManager::proc_initialize(const char* path, const char* file) {
+int InferManager::proc_initialize(const char* path,
+                                  const char* file,
+                                  std::shared_ptr<int> engine_index_ptr) {
   ModelToolkitConf model_toolkit_conf;
   if (configure::read_proto_conf(path, file, &model_toolkit_conf) != 0) {
     LOG(ERROR) << "failed load infer config, path: " << path << "/" << file;
     return -1;
   }
   uint32_t engine_num = model_toolkit_conf.engines_size();
-  im::bsf::TaskExecutorVector<TaskT>::instance().resize(engine_num);
+  im::bsf::TaskExecutorVector<TaskT>::instance().resize(*engine_index_ptr+engine_num);
   for (uint32_t ei = 0; ei < engine_num; ++ei) {
     LOG(INFO) << "model_toolkit_conf.engines(" << ei
               << ").name: " << model_toolkit_conf.engines(ei).name();
     std::string engine_name = model_toolkit_conf.engines(ei).name();
     VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
-    engine->set_model_index(ei);
+    int temp_engine_index_ptr = *engine_index_ptr;
+    engine->set_model_index(temp_engine_index_ptr);
+    *engine_index_ptr = temp_engine_index_ptr + 1;
     if (!engine) {
       LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
       return -1;

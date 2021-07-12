@@ -96,7 +96,6 @@ int ServerManager::start_and_wait() {
     LOG(ERROR) << "Failed to start Paddle Inference Server";
     return -1;
   }
-  LOG(WARNING) << "Finsh start C++ PaddleServing.";
   _server.RunUntilAskedToQuit();
 
   ServerManager::stop_reloader();

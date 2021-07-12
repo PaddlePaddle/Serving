@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <functional>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <utility>
@@ -337,12 +338,19 @@ class CloneDBReloadableInferEngine
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
     // params.dump();
+    // gpu_ids_num > 0 is always true.
+    // if use CPU, gpu_ids = [-1].
+    // if gpu_ids_num = 0, which means no gpuid is given.
+    // so we should set gpu_ids_num = 1, and gpu_id = -1.
+    // so that we can create at least 1 predictor.
     size_t gpu_ids_num = conf.gpu_ids_size();
     im::bsf::AutoMutex lock(DBReloadableInferEngine<EngineCore>::_mutex);
     int gpu_id = -1;
     if (gpu_ids_num > 0) {
       gpu_id = conf.gpu_ids(DBReloadableInferEngine<EngineCore>::gpu_index %
                             gpu_ids_num);
+    } else {
+      gpu_ids_num = 1;
     }
     // gpu_index will be set to be 0, when load() or proc_initial() is called.
     // gpu_index < gpu_ids_num, means there are predictors still not create
@@ -365,14 +373,11 @@ class CloneDBReloadableInferEngine
         _cloneTemplate[DBReloadableInferEngine<EngineCore>::gpu_index - 1] = md;
       }
     } else {
-      // when gpu_id = -1, means we use cpu, but the index should be 0.
-      // _cloneTemplate[-1] will occur error.
-      // actually, when gpu_id = -1, there is only 1 predictor in
-      // _cloneTemplate.
-      // so the index should always be 0 when gpu_id = -1.
-      if (gpu_id == -1) gpu_id = 0;
+      int template_index = DBReloadableInferEngine<EngineCore>::gpu_index %
+                           _cloneTemplate.size();
       if (!md->cores[next_idx] ||
-          md->cores[next_idx]->clone(_cloneTemplate[gpu_id]->get()) != 0) {
+          md->cores[next_idx]->clone(_cloneTemplate[template_index]->get()) !=
+              0) {
         LOG(ERROR) << "Failed clone model from core";
         return -1;
       }
@@ -591,7 +596,9 @@ class InferManager {
     return ins;
   }
 
-  int proc_initialize(const char* path, const char* file);
+  int proc_initialize(const char* path,
+                      const char* file,
+                      std::shared_ptr<int> engine_index_ptr);
 
   int thrd_initialize();
 

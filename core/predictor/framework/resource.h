@@ -16,6 +16,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include "core/cube/cube-api/include/cube_api.h"
 #include "core/predictor/common/inner_common.h"
