@@ -105,25 +105,38 @@ class WebService(object):
 
     def set_gpus(self, gpus):
         print("This API will be deprecated later. Please do not use it")
-        self.gpus = [int(x) for x in gpus.split(",")]
+        if isinstance(gpus, int):
+            self.gpus = str(gpus)
+        elif isinstance(gpus, list):
+            self.gpus = [str(x) for x in gpus]
+        else:
+            self.gpus = gpus
 
     def default_rpc_service(self,
-                            workdir="conf",
+                            workdir,
                             port=9292,
-                            gpuid=0,
+                            gpus=-1,
                             thread_num=2,
                             mem_optim=True,
                             use_lite=False,
                             use_xpu=False,
                             ir_optim=False,
                             precision="fp32",
-                            use_calib=False):
+                            use_calib=False,
+                            use_trt=False,
+                            gpu_multi_stream=False,
+                            op_num=None,
+                            op_max_batch=None):
         device = "gpu"
-        if gpuid == -1:
+        server = Server()
+
+        if gpus == -1 or gpus == "-1":
             if use_lite:
                 device = "arm"
             else:
                 device = "cpu"
+        else:
+            server.set_gpuid(gpus)
         op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
 
@@ -142,7 +155,6 @@ class WebService(object):
         general_response_op = op_maker.create('general_response')
         op_seq_maker.add_op(general_response_op)
 
-        server = Server()
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
         server.set_memory_optimize(mem_optim)
@@ -151,6 +163,19 @@ class WebService(object):
         server.set_precision(precision)
         server.set_use_calib(use_calib)
 
+        if use_trt and device == "gpu":
+            server.set_trt()
+            server.set_ir_optimize(True)
+
+        if gpu_multi_stream and device == "gpu":
+            server.set_gpu_multi_stream()
+
+        if op_num:
+            server.set_op_num(op_num)
+
+        if op_max_batch:
+            server.set_op_max_batch(op_max_batch)
+
         if use_lite:
             server.set_lite()
         if use_xpu:
@@ -158,8 +183,7 @@ class WebService(object):
 
         server.load_model_config(self.server_config_dir_paths
                                  )  #brpc Server support server_config_dir_paths
-        if gpuid >= 0:
-            server.set_gpuid(gpuid)
+
         server.prepare_server(workdir=workdir, port=port, device=device)
         return server
 
@@ -180,24 +204,29 @@ class WebService(object):
                     use_xpu=self.use_xpu,
                     ir_optim=self.ir_optim,
                     precision=self.precision,
-                    use_calib=self.use_calib))
+                    use_calib=self.use_calib,
+                    op_num=self.op_num,
+                    op_max_batch=self.op_max_batch))
         else:
-            for i, gpuid in enumerate(self.gpus):
-                self.rpc_service_list.append(
-                    self.default_rpc_service(
-                        "{}_{}".format(self.workdir, i),
-                        self.port_list[i],
-                        gpuid,
-                        thread_num=self.thread_num,
-                        mem_optim=self.mem_optim,
-                        use_lite=self.use_lite,
-                        use_xpu=self.use_xpu,
-                        ir_optim=self.ir_optim,
-                        precision=self.precision,
-                        use_calib=self.use_calib))
+            self.rpc_service_list.append(
+                self.default_rpc_service(
+                    self.workdir,
+                    self.port_list[0],
+                    self.gpus,
+                    thread_num=self.thread_num,
+                    mem_optim=self.mem_optim,
+                    use_lite=self.use_lite,
+                    use_xpu=self.use_xpu,
+                    ir_optim=self.ir_optim,
+                    precision=self.precision,
+                    use_calib=self.use_calib,
+                    use_trt=self.use_trt,
+                    gpu_multi_stream=self.gpu_multi_stream,
+                    op_num=self.op_num,
+                    op_max_batch=self.op_max_batch))
 
     def prepare_server(self,
-                       workdir="",
+                       workdir,
                        port=9393,
                        device="gpu",
                        precision="fp32",
@@ -205,9 +234,13 @@ class WebService(object):
                        use_lite=False,
                        use_xpu=False,
                        ir_optim=False,
-                       gpuid=0,
                        thread_num=2,
-                       mem_optim=True):
+                       mem_optim=True,
+                       use_trt=False,
+                       gpu_multi_stream=False,
+                       op_num=None,
+                       op_max_batch=None,
+                       gpuid=-1):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
         self.port = port
@@ -219,25 +252,29 @@ class WebService(object):
         self.use_xpu = use_xpu
         self.ir_optim = ir_optim
         self.mem_optim = mem_optim
-        self.gpuid = gpuid
         self.port_list = []
+        self.use_trt = use_trt
+        self.gpu_multi_stream = gpu_multi_stream
+        self.op_num = op_num
+        self.op_max_batch = op_max_batch
+        if isinstance(gpuid, int):
+            self.gpus = str(gpuid)
+        elif isinstance(gpuid, list):
+            self.gpus = [str(x) for x in gpuid]
+        else:
+            self.gpus = gpuid
+
         default_port = 12000
         for i in range(1000):
             if port_is_available(default_port + i):
                 self.port_list.append(default_port + i)
-            if len(self.port_list) > len(self.gpus):
                 break
 
     def _launch_web_service(self):
-        gpu_num = len(self.gpus)
         self.client = Client()
         self.client.load_client_config(self.client_config_path)
         endpoints = ""
-        if gpu_num > 0:
-            for i in range(gpu_num):
-                endpoints += "127.0.0.1:{},".format(self.port_list[i])
-        else:
-            endpoints = "127.0.0.1:{}".format(self.port_list[0])
+        endpoints = "127.0.0.1:{}".format(self.port_list[0])
         self.client.connect([endpoints])
 
     def get_prediction(self, request):
@@ -324,10 +361,11 @@ class WebService(object):
             # default self.gpus = [0].
             if len(self.gpus) == 0:
                 self.gpus.append(0)
+            # right now, local Predictor only support 1 card.
+            # no matter how many gpu_id is in gpus, we only use the first one.
+            gpu_id = (self.gpus[0].split(","))[0]
             self.client.load_model_config(
-                self.server_config_dir_paths[0],
-                use_gpu=True,
-                gpu_id=self.gpus[0])
+                self.server_config_dir_paths[0], use_gpu=True, gpu_id=gpu_id)
         else:
             self.client.load_model_config(
                 self.server_config_dir_paths[0], use_gpu=False)
