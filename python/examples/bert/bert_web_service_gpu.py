@@ -42,6 +42,7 @@ class BertService(WebService):
 bert_service = BertService(name="bert")
 bert_service.load()
 bert_service.load_model_config(sys.argv[1])
+bert_service.set_gpus("0")
 bert_service.prepare_server(
     workdir="workdir", port=int(sys.argv[2]), device="gpu")
 bert_service.run_rpc_service()
