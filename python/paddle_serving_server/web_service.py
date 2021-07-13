@@ -134,7 +134,7 @@ class WebService(object):
                             op_num=None,
                             op_max_batch=None):
 
-        device = "gpu"
+        device = "cpu"
         server = Server()
         # only when `gpus == None`, which means it`s not set at all
         # we will use the self.gpus.
@@ -149,6 +149,8 @@ class WebService(object):
                 device = "arm"
             else:
                 device = "cpu"
+        else:
+            device = "gpu"
 
         op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
@@ -227,7 +229,7 @@ class WebService(object):
     def prepare_server(self,
                        workdir,
                        port=9393,
-                       device="gpu",
+                       device="cpu",
                        precision="fp32",
                        use_calib=False,
                        use_lite=False,

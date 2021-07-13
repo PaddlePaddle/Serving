@@ -99,7 +99,7 @@ def serve_args():
     parser.add_argument(
         "--port", type=int, default=9292, help="Port of the starting gpu")
     parser.add_argument(
-        "--device", type=str, default="gpu", help="Type of device")
+        "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
         "--gpu_ids", type=str, default="", nargs="+", help="gpu ids")
     parser.add_argument(
@@ -179,9 +179,9 @@ def serve_args():
 
 def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-missing
 
-    device = "gpu"
-    if gpu_mode == False:
-        device = "cpu"
+    device = "cpu"
+    if gpu_mode == True:
+        device = "gpu"
 
     thread_num = args.thread
     model = args.model
