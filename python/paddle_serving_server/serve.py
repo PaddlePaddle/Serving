@@ -31,6 +31,67 @@ elif sys.version_info.major == 3:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
+def format_gpu_to_strlist(unformatted_gpus):
+    gpus_strlist = []
+    if isinstance(unformatted_gpus, int):
+        gpus_strlist = [str(unformatted_gpus)]
+    elif isinstance(unformatted_gpus, list):
+        if unformatted_gpus == [""]:
+            gpus_strlist = ["-1"]
+        elif len(unformatted_gpus) == 0:
+            gpus_strlist = ["-1"]
+        else:
+            gpus_strlist = [str(x) for x in unformatted_gpus]
+    elif isinstance(unformatted_gpus, str):
+        if unformatted_gpus == "":
+            gpus_strlist = ["-1"]
+        else:
+            gpus_strlist = [unformatted_gpus]
+    elif unformatted_gpus == None:
+        gpus_strlist = ["-1"]
+    else:
+        raise ValueError("error input of set_gpus")
+
+    # check cuda visible
+    if "CUDA_VISIBLE_DEVICES" in os.environ:
+        env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+        for op_gpus_str in gpus_strlist:
+            op_gpu_list = op_gpus_str.split(",")
+            # op_gpu_list == ["-1"] means this op use CPU
+            # so don`t check cudavisible.
+            if op_gpu_list == ["-1"]:
+                continue
+            for ids in op_gpu_list:
+                if ids not in env_gpus:
+                    print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
+                    exit(-1)
+
+    # check gpuid is valid
+    for op_gpus_str in gpus_strlist:
+        op_gpu_list = op_gpus_str.split(",")
+        use_gpu = False
+        for ids in op_gpu_list:
+            if int(ids) < -1:
+                raise ValueError("The input of gpuid error.")
+            if int(ids) >= 0:
+                use_gpu = True
+            if int(ids) == -1 and use_gpu:
+                raise ValueError("You can not use CPU and GPU in one model.")
+
+    return gpus_strlist
+
+
+def is_gpu_mode(unformatted_gpus):
+    gpus_strlist = format_gpu_to_strlist(unformatted_gpus)
+    for op_gpus_str in gpus_strlist:
+        op_gpu_list = op_gpus_str.split(",")
+        for ids in op_gpu_list:
+            if int(ids) >= 0:
+                return True
+
+    return False
+
+
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
@@ -38,7 +99,7 @@ def serve_args():
     parser.add_argument(
         "--port", type=int, default=9292, help="Port of the starting gpu")
     parser.add_argument(
-        "--device", type=str, default="gpu", help="Type of device")
+        "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
         "--gpu_ids", type=str, default="", nargs="+", help="gpu ids")
     parser.add_argument(
@@ -118,9 +179,9 @@ def serve_args():
 
 def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-missing
 
-    device = "gpu"
-    if gpu_mode == False:
-        device = "cpu"
+    device = "cpu"
+    if gpu_mode == True:
+        device = "gpu"
 
     thread_num = args.thread
     model = args.model
@@ -211,34 +272,15 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
 
 
 def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
-    gpus = []
+
     if serving_port == None:
         serving_port = args.port
-
-    if args.gpu_ids == "":
-        gpus = []
-    else:
-        #check the gpu_id is valid or not.
-        gpus = args.gpu_ids
-        if isinstance(gpus, str):
-            gpus = [gpus]
-        if "CUDA_VISIBLE_DEVICES" in os.environ:
-            env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-            for op_gpus_str in gpus:
-                op_gpu_list = op_gpus_str.split(",")
-                for ids in op_gpu_list:
-                    if ids not in env_gpus:
-                        print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
-                        exit(-1)
 
     if args.use_lite:
         print("run using paddle-lite.")
         start_gpu_card_model(False, serving_port, args)
-    elif len(gpus) <= 0:
-        print("gpu_ids not set, going to run cpu service.")
-        start_gpu_card_model(False, serving_port, args)
     else:
-        start_gpu_card_model(True, serving_port, args)
+        start_gpu_card_model(is_gpu_mode(args.gpu_ids), serving_port, args)
 
 
 class MainService(BaseHTTPRequestHandler):
@@ -320,7 +362,9 @@ class MainService(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-
+    # args.device is not used at all.
+    # just keep the interface.
+    # so --device should not be recommended at the HomePage.
     args = serve_args()
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
@@ -346,29 +390,10 @@ if __name__ == "__main__":
         web_service = WebService(name=args.name)
         web_service.load_model_config(args.model)
 
-        if args.gpu_ids == "":
-            gpus = []
-        else:
-            #check the gpu_id is valid or not.
-            gpus = args.gpu_ids
-            if isinstance(gpus, str):
-                gpus = [gpus]
-            if "CUDA_VISIBLE_DEVICES" in os.environ:
-                env_gpus = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-                for op_gpus_str in gpus:
-                    op_gpu_list = op_gpus_str.split(",")
-                    for ids in op_gpu_list:
-                        if ids not in env_gpus:
-                            print("gpu_ids is not in CUDA_VISIBLE_DEVICES.")
-                            exit(-1)
-
-        if len(gpus) > 0:
-            web_service.set_gpus(gpus)
         workdir = "{}_{}".format(args.workdir, args.port)
         web_service.prepare_server(
             workdir=workdir,
             port=args.port,
-            device=args.device,
             use_lite=args.use_lite,
             use_xpu=args.use_xpu,
             ir_optim=args.ir_optim,
@@ -378,7 +403,8 @@ if __name__ == "__main__":
             use_trt=args.use_trt,
             gpu_multi_stream=args.gpu_multi_stream,
             op_num=args.op_num,
-            op_max_batch=args.op_max_batch)
+            op_max_batch=args.op_max_batch,
+            gpuid=args.gpu_ids)
         web_service.run_rpc_service()
 
         app_instance = Flask(__name__)

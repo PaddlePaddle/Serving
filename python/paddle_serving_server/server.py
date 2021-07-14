@@ -17,6 +17,7 @@ import tarfile
 import socket
 import paddle_serving_server as paddle_serving_server
 from paddle_serving_server.rpc_service import MultiLangServerServiceServicer
+from paddle_serving_server.serve import format_gpu_to_strlist
 from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
 from .proto import multi_lang_general_model_service_pb2_grpc
@@ -171,12 +172,7 @@ class Server(object):
         self.device = device
 
     def set_gpuid(self, gpuid):
-        if isinstance(gpuid, int):
-            self.gpuid = str(gpuid)
-        elif isinstance(gpuid, list):
-            self.gpuid = [str(x) for x in gpuid]
-        else:
-            self.gpuid = gpuid
+        self.gpuid = format_gpu_to_strlist(gpuid)
 
     def set_op_num(self, op_num):
         self.op_num = op_num
@@ -197,23 +193,20 @@ class Server(object):
         self.use_xpu = True
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
+        self.device = device
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = []
-        self.device = device
 
-        # Generally, self.gpuid = str[] or str.
-        # such as "0" or ["0"] or ["0,1"] or ["0,1" , "1,2"]
-        if isinstance(self.gpuid, str):
-            self.gpuid = [self.gpuid]
-
+        # Generally, self.gpuid = str[] or [].
         # when len(self.gpuid) means no gpuid is specified.
         # if self.device == "gpu" or self.use_trt:
         # we assume you forget to set gpuid, so set gpuid = ['0'];
-        if len(self.gpuid) == 0:
-            if self.device == "gpu" or self.use_trt:
-                self.gpuid.append("0")
+        if len(self.gpuid) == 0 or self.gpuid == ["-1"]:
+            if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
+                self.gpuid = ["0"]
+                self.device = "gpu"
             else:
-                self.gpuid.append("-1")
+                self.gpuid = ["-1"]
 
         if isinstance(self.op_num, int):
             self.op_num = [self.op_num]
@@ -254,12 +247,14 @@ class Server(object):
             for ids in op_gpu_list:
                 engine.gpu_ids.extend([int(ids)])
 
-            if self.device == "gpu" or self.use_trt:
+            if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
                 engine.use_gpu = True
                 # this is for Mixed use of GPU and CPU
                 # if model-1 use GPU and set the device="gpu"
                 # but gpuid[1] = "-1" which means use CPU in Model-2
                 # so config about GPU should be False.
+                # op_gpu_list = gpuid[index].split(",")
+                # which is the gpuid for each engine.
                 if len(op_gpu_list) == 1:
                     if int(op_gpu_list[0]) == -1:
                         engine.use_gpu = False
@@ -500,10 +495,17 @@ class Server(object):
     def prepare_server(self,
                        workdir=None,
                        port=9292,
-                       device="cpu",
+                       device=None,
                        use_encryption_model=False,
                        cube_conf=None):
-        self.device = device
+        # if `device` is not set, use self.device
+        # self.device may not be changed.
+        # or self.device may have changed by set_device.
+        if device == None:
+            device = self.device
+        # if `device` is set, let self.device = device.
+        else:
+            self.device = device
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir -p {}".format(workdir))
@@ -602,6 +604,7 @@ class MultiLangServer(object):
         self.body_size_ = 64 * 1024 * 1024
         self.concurrency_ = 100000
         self.is_multi_model_ = False  # for model ensemble, which is not useful right now.
+        self.device = "cpu"  # this is the default value for multilang `device`.
 
     def set_max_concurrency(self, concurrency):
         self.concurrency_ = concurrency
@@ -609,6 +612,7 @@ class MultiLangServer(object):
 
     def set_device(self, device="cpu"):
         self.device = device
+        self.bserver_.set_device(device)
 
     def set_num_threads(self, threads):
         self.worker_num_ = threads
@@ -727,10 +731,18 @@ class MultiLangServer(object):
     def prepare_server(self,
                        workdir=None,
                        port=9292,
-                       device="cpu",
+                       device=None,
                        use_encryption_model=False,
                        cube_conf=None):
-        self.device = device
+        # if `device` is not set, use self.device
+        # self.device may not be changed.
+        # or self.device may have changed by set_device.
+        if device == None:
+            device = self.device
+        # if `device` is set, let self.device = device.
+        else:
+            self.device = device
+
         if not self._port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
         default_port = 12000

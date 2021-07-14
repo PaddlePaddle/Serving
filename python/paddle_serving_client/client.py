@@ -79,7 +79,7 @@ class SDKConfig(object):
         self.tag_list = []
         self.cluster_list = []
         self.variant_weight_list = []
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         self.load_balance_strategy = "la"
 
     def add_server_variant(self, tag, cluster, variant_weight):
@@ -142,7 +142,7 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
 
