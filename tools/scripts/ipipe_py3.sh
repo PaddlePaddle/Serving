@@ -139,6 +139,7 @@ function check_result() {
             cat ${dir}server_log.txt | tee -a ${log_dir}server_total.txt
         fi
         if [ $1 == "client" ]; then
+            cat ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
             grep -E "${error_words}" ${dir}client_log.txt > /dev/null
             if [ $? == 0 ]; then
                 if [ "${status}" != "" ]; then
@@ -147,13 +148,13 @@ function check_result() {
                     status="Failed"
                 fi
                 echo -e "${RED_COLOR}$1 error command${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
-                echo "----------server log:"
+                echo "--------------server log:--------------"
                 cat ${dir}server_log.txt
-                echo "----------client log:"
-                cat ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
-                echo -e "--------------pipeline.log:----------------\n"
+                echo "--------------client log:--------------"
+                cat ${dir}client_log.txt
+                echo "--------------pipeline.log:----------------"
                 cat PipelineServingLogs/pipeline.log
-                echo -e "-------------------------------------------\n"
+                echo "-------------------------------------------\n"
                 error_log $2
             else
                 if [ "${status}" != "" ]; then
@@ -164,10 +165,13 @@ function check_result() {
         fi
     else
         echo -e "${RED_COLOR}$1 error command${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
-        echo "----------server log:"
+        echo "--------------server log:--------------"
         cat ${dir}server_log.txt
-        echo "----------client log:"
-        cat ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
+        echo "--------------client log:--------------"
+        cat ${dir}client_log.txt
+        echo "--------------pipeline.log:----------------"
+        cat PipelineServingLogs/pipeline.log
+        echo "-------------------------------------------\n"
         if [ "${status}" != "" ]; then
             status="${status}|Failed"
         else
@@ -570,11 +574,11 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 2 > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
-    check_gpu_memory 0
+    check_gpu_memory 1
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "faster_rcnn_GPU_RPC server test completed"
@@ -643,9 +647,9 @@ function unet_rpc() {
     data_dir=${data}unet_for_image_seg/
     link_data ${data_dir}
     sed -i "s/9494/8882/g" seg_client.py
-    ${py_version} -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 8882 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model unet_model --gpu_ids 1 --port 8882 > ${dir}server_log.txt 2>&1 &
     check_result server 8
-    check_gpu_memory 0
+    check_gpu_memory 1
     nvidia-smi
     ${py_version} seg_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -711,9 +715,9 @@ function criteo_ctr_rpc_gpu() {
     data_dir=${data}criteo_ctr/
     link_data ${data_dir}
     sed -i "s/8885/8886/g" test_client.py
-    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 1 > ${dir}server_log.txt 2>&1 &
     check_result server 8
-    check_gpu_memory 0
+    check_gpu_memory 1
     nvidia-smi
     ${py_version} test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -833,7 +837,7 @@ function ResNet50_http() {
 }
 
 function bert_http() {
-    dir=${log_dir}http_model/ResNet50_http/
+    dir=${log_dir}http_model/bert_http/
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/bert
