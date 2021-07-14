@@ -71,7 +71,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
     _thread_contexts.push_back(&contexts[i]);
   }
 
-  int init_timeout = init_timeout_sec * 1000 * 1000;
+  size_t init_timeout = init_timeout_sec * 1000 * 1000;
   bool has_error = false;
 
   bool has_timeout = true;
@@ -103,7 +103,7 @@ int TaskExecutor<TaskT>::start(uint32_t thread_num, uint32_t init_timeout_sec) {
     }
 
     // 100ms
-    const int sleep_interval = 100 * 1000;
+    const size_t sleep_interval = 100 * 1000;
     usleep(sleep_interval);
     init_timeout -= sleep_interval;
   }
