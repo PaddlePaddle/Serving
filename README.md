@@ -259,7 +259,7 @@ output
 
 ### Developers
 - [How to deploy Paddle Serving on K8S?(Chinese)](doc/PADDLE_SERVING_ON_KUBERNETES.md)
-- [How to route Paddle Serving to secure endpoint?(Chinese)](doc/SERVIING_AUTH_DOCKER.md)
+- [How to route Paddle Serving to secure endpoint?(Chinese)](doc/SERVING_AUTH_DOCKER.md)
 - [How to develop a new Web Service?](doc/NEW_WEB_SERVICE.md)
 - [Compile from source code](doc/COMPILE.md)
 - [Develop Pipeline Serving](doc/PIPELINE_SERVING.md)
