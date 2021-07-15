@@ -130,7 +130,7 @@ struct Task {
     if (!check_feedvar_valid(feedvar_index)) {
       return 0;
     }
-    int element_num = 1;
+    size_t element_num = 1;
     if ((*inVectorT_ptr)[feedvar_index].shape.size() == 1) {
       // cause shape[0] is batch_size.
       // [10,1] = [10], so if shape[1] doesn`t exist.
@@ -315,7 +315,7 @@ class BatchTasks {
       for (int index = 0; index < feedvar_num; ++index) {
         const paddle::PaddleTensor& feedVarTensor =
             (*tm.task->inVectorT_ptr)[index];
-        int feedvar_bytesize = tm.task->feedvar_bytesize(index);
+        size_t feedvar_bytesize = tm.task->feedvar_bytesize(index);
 
         if (ti == 0) {
           if (feedVarTensor.lod.size() > 0 && feedVarTensor.lod[0].size() > 0) {
@@ -336,11 +336,10 @@ class BatchTasks {
           _batch_in.push_back(paddleTensor);
         }
 
-        void* dst_ptr = _batch_in[index].data.data() +
-                        feedvar_bytesize * _batch_in_offset[index];
+        void* dst_ptr = _batch_in[index].data.data() + _batch_in_offset[index];
         void* source_ptr =
             feedVarTensor.data.data() + feedvar_bytesize * tm.begin;
-        int length = feedvar_bytesize * (tm.end - tm.begin);
+        size_t length = feedvar_bytesize * (tm.end - tm.begin);
         memcpy(dst_ptr, source_ptr, length);
         _batch_in_offset[index] += length;
       }
@@ -395,7 +394,7 @@ class BatchTasks {
     if (!check_fetchvar_valid(fetchvar_index)) {
       return 0;
     }
-    int element_num = 1;
+    size_t element_num = 1;
     if (_batch_out[fetchvar_index].shape.size() == 1) {
       // cause shape[0] is batch_size.
       return 1;
@@ -457,7 +456,7 @@ class BatchTasks {
         // the task->outVectorT_ptr is null before core->run().
         // first time we should copy from _batch_out
         // so we need init.
-        int fetchvar_bytesize_index = fetchvar_bytesize(index);
+        size_t fetchvar_bytesize_index = fetchvar_bytesize(index);
         if (task->outVectorT_ptr->size() <= index) {
           paddle::PaddleTensor tensor_out;
           tensor_out.name = _batch_out[index].name;
@@ -475,7 +474,7 @@ class BatchTasks {
 
         void* dst_ptr =
             fetchVarTensor.data.data() + fetchvar_bytesize_index * begin;
-        int length = fetchvar_bytesize_index * add;
+        size_t length = fetchvar_bytesize_index * add;
         if (_batch_out_offset[index] + length >
             fetchvar_batch_size() * fetchvar_bytesize(index)) {
           LOG(ERROR) << "_batch_out is less than taskmeta, error.";
@@ -507,11 +506,11 @@ class BatchTasks {
  private:
   std::vector<TaskMetaT> _taskmeta_vector;
   typename TaskT::InVectorT _batch_in;
-  std::vector<int> _batch_in_offset;
-  std::vector<int> _realNumber_batch_in;
+  std::vector<size_t> _batch_in_offset;
+  std::vector<size_t> _realNumber_batch_in;
   typename TaskT::OutVectorT _batch_out;
-  std::vector<int> _batch_out_offset;
-  std::vector<int> _realNumber_batch_out;
+  std::vector<size_t> _batch_out_offset;
+  std::vector<size_t> _realNumber_batch_out;
   size_t _rem_size;
   size_t _batch_size;
   bool _batch_align;
