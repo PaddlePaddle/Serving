@@ -279,6 +279,9 @@ output
 ### FAQ
 - [FAQ(Chinese)](doc/FAQ.md)
 
+### Courses
+- [Please refer to AIStudio for detailed introduction to PaddleServing](https://aistudio.baidu.com/aistudio/course/introduce/19084)
+
 <h2 align="center">Community</h2>
 
 ### Slack
