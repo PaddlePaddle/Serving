@@ -227,7 +227,7 @@ function link_data() {
 function before_hook() {
     setproxy
     cd ${build_path}/python
-    ${py_version} -m pip install --upgrade pip
+    ${py_version} -m pip install --upgrade pip==21.1.3
     ${py_version} -m pip install requests
     ${py_version} -m pip install -r requirements.txt
     ${py_version} -m pip install numpy==1.16.4
