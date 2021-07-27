@@ -28,6 +28,21 @@ class PPYoloMbvOp(Op):
         ])
         self.img_postprocess = RCNNPostprocess("label_list.txt", "output")
 
+    def generate_scale(self, im):
+        """
+        Args:
+            im (np.ndarray): image (np.ndarray)
+        Returns:
+            im_scale_x: the resize ratio of X
+            im_scale_y: the resize ratio of Y
+        """
+        target_size = [320, 320]
+        origin_shape = im.shape[:2]
+        resize_h, resize_w = target_size
+        im_scale_y = resize_h / float(origin_shape[0])
+        im_scale_x = resize_w / float(origin_shape[1])
+        return im_scale_y, im_scale_x
+        
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         imgs = []
@@ -36,11 +51,19 @@ class PPYoloMbvOp(Op):
             data = base64.b64decode(input_dict[key].encode('utf8'))
             data = np.fromstring(data, np.uint8)
             im = cv2.imdecode(data, cv2.IMREAD_COLOR)
+            im_scale_y, im_scale_x = self.generate_scale(im)
             im = self.img_preprocess(im)
+            '''
             imgs.append({
               "image": im[np.newaxis,:],
               "im_shape": np.array(list(im.shape[1:])).reshape(-1)[np.newaxis,:],
               "scale_factor": np.array([1.0, 1.0]).reshape(-1)[np.newaxis,:],
+            })
+            '''
+            imgs.append({
+              "image": im[np.newaxis,:],
+              "im_shape": np.array(list(im.shape[1:])).reshape(-1)[np.newaxis,:],
+              "scale_factor": np.array([im_scale_y, im_scale_x]).astype('float32'),
             })
 
         feed_dict = {
