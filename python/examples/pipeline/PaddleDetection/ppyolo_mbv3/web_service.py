@@ -53,13 +53,6 @@ class PPYoloMbvOp(Op):
             im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             im_scale_y, im_scale_x = self.generate_scale(im)
             im = self.img_preprocess(im)
-            '''
-            imgs.append({
-              "image": im[np.newaxis,:],
-              "im_shape": np.array(list(im.shape[1:])).reshape(-1)[np.newaxis,:],
-              "scale_factor": np.array([1.0, 1.0]).reshape(-1)[np.newaxis,:],
-            })
-            '''
             imgs.append({
               "image": im[np.newaxis,:],
               "im_shape": np.array(list(im.shape[1:])).reshape(-1)[np.newaxis,:],
