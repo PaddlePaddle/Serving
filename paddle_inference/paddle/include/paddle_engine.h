@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
@@ -96,7 +97,7 @@ class EngineCore {
     return true;
   }
 
-  virtual int create(const configure::EngineDesc& conf) = 0;
+  virtual int create(const configure::EngineDesc& conf, int gpu_id) = 0;
 
   virtual int clone(void* predictor) {
     if (predictor == NULL) {
@@ -121,7 +122,7 @@ class EngineCore {
 // Paddle Inference Engine
 class PaddleInferenceEngine : public EngineCore {
  public:
-  int create(const configure::EngineDesc& engine_conf) {
+  int create(const configure::EngineDesc& engine_conf, int gpu_id) {
     std::string model_path = engine_conf.model_dir();
     if (access(model_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
@@ -162,7 +163,11 @@ class PaddleInferenceEngine : public EngineCore {
     config.SetCpuMathLibraryNumThreads(1);
     if (engine_conf.has_use_gpu() && engine_conf.use_gpu()) {
       // 2000MB GPU memory
-      config.EnableUseGpu(2000, FLAGS_gpuid);
+      config.EnableUseGpu(50, gpu_id);
+      if (engine_conf.has_gpu_multi_stream() &&
+          engine_conf.gpu_multi_stream()) {
+        config.EnableGpuMultiStream();
+      }
     }
     precision_type = GetPrecision(FLAGS_precision);
 
@@ -174,8 +179,13 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
+      config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
-        config.EnableUseGpu(2000, FLAGS_gpuid);
+        config.EnableUseGpu(50, gpu_id);
+        if (engine_conf.has_gpu_multi_stream() &&
+            engine_conf.gpu_multi_stream()) {
+          config.EnableGpuMultiStream();
+        }
       }
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
@@ -203,7 +213,7 @@ class PaddleInferenceEngine : public EngineCore {
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
         auto quantizer_config = config.mkldnn_quantizer_config();
-        // TODO: warmup data
+        // TODO(somebody): warmup data
         // quantizer_config -> SetWarmupData();
         // quantizer_config -> SetWarmupBatchSize();
         // quantizer_config -> SetEnabledOpTypes(4);

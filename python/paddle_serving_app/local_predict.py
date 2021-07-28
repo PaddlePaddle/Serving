@@ -91,6 +91,7 @@ class LocalPredictor(object):
             mkldnn_bf16_op_list: op list accelerated using MKLDNN bf16, None default.
             use_feed_fetch_ops: use feed/fetch ops, False default.
         """
+        gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
         model_conf = m_config.GeneralModelConfig()
         f = open(client_config, 'r')

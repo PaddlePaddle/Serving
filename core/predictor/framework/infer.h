@@ -17,6 +17,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <functional>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <utility>
@@ -25,6 +27,7 @@
 #include "core/predictor/framework/bsf.h"
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
+#include "core/predictor/framework/memory.h"
 #include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {
@@ -71,7 +74,7 @@ class InferEngine {
   virtual int infer(const void* in, void* out, uint32_t batch_size = -1) {
     return infer_impl(in, out, batch_size);
   }
-
+  virtual void set_model_index(uint32_t index) { _model_index = index; }
   virtual int reload() = 0;
 
   virtual uint64_t version() const = 0;
@@ -86,12 +89,13 @@ class InferEngine {
   virtual int infer_impl(const void* in,
                          void* out,
                          uint32_t batch_size = -1) = 0;
-  virtual int task_infer_impl(const BatchTensor& in,
-                              BatchTensor& out) = 0;  // NOLINT
+  virtual int task_infer_impl(const void* in, void* out) = 0;  // NOLINT
 
+ protected:
+  uint32_t _model_index;
   // end: framework inner call
 };
-
+typedef im::bsf::Task<paddle::PaddleTensor, paddle::PaddleTensor> TaskT;
 class ReloadableInferEngine : public InferEngine {
  public:
   virtual ~ReloadableInferEngine() {}
@@ -104,7 +108,6 @@ class ReloadableInferEngine : public InferEngine {
   };
 
   virtual int load(const configure::EngineDesc& conf) = 0;
-  typedef im::bsf::Task<Tensor, Tensor> TaskT;
 
   int proc_initialize_impl(const configure::EngineDesc& conf, bool version);
 
@@ -179,6 +182,8 @@ struct ModelData {
     delete cores[1];
   }
 
+  void* get() { return cores[current_idx]->get(); }
+
   EngineCore* cores[2];
   uint32_t current_idx;
 };
@@ -191,14 +196,20 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   int proc_initialize(const configure::EngineDesc& conf, bool version) {
     THREAD_KEY_CREATE(&_skey, NULL);
     THREAD_MUTEX_INIT(&_mutex, NULL);
+    gpu_index = 0;
     return ReloadableInferEngine::proc_initialize(conf, version);
   }
 
+  // 进程初始化会调用load，但由于未执行线程初始化，所以_reload_vec为空,不再继续执行。
+  // 热加载的话会调用load，由于线程已经初始化，_reload_vec不为空，所以继续执行load_data操作加载数据。
+  // 线程初始化会执行load_data操作加载数据，然后将engine加入_reload_vec中。
+  // 每个模型只有一个CloneDBReloadableInferEngine对象。
+  // 但一个CloneDBReloadableInferEngine对象，可以包含N个EngineCore。
   virtual int load(const configure::EngineDesc& conf) {
     if (_reload_vec.empty()) {
       return 0;
     }
-
+    gpu_index = 0;
     for (uint32_t ti = 0; ti < _reload_vec.size(); ++ti) {
       if (load_data(_reload_vec[ti], conf) != 0) {
         LOG(ERROR) << "Failed reload engine model: " << ti;
@@ -210,7 +221,8 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     return 0;
   }
 
-  int load_data(ModelData<EngineCore>* md, const configure::EngineDesc& conf) {
+  virtual int load_data(ModelData<EngineCore>* md,
+                        const configure::EngineDesc& conf) {
     uint32_t next_idx = (md->current_idx + 1) % 2;
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
@@ -219,28 +231,29 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
     // params.dump();
-    if (!md->cores[next_idx] || md->cores[next_idx]->create(conf) != 0) {
+    size_t gpu_ids_num = conf.gpu_ids_size();
+    im::bsf::AutoMutex lock(_mutex);
+    int gpu_id = -1;
+    if (gpu_ids_num > 0) {
+      gpu_id = conf.gpu_ids(gpu_index % gpu_ids_num);
+    }
+    if (!md->cores[next_idx] ||
+        md->cores[next_idx]->create(conf, gpu_id) != 0) {
       LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
     }
+    gpu_index++;
     md->current_idx = next_idx;
     return 0;
   }
 
   virtual int thrd_initialize_impl() {
-    // memory pool to be inited in non-serving-threads
-    if (MempoolWrapper::instance().thread_initialize() != 0) {
-      LOG(ERROR) << "Failed thread initialize mempool";
-      return -1;
-    }
-
     ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
     if (!md || load_data(md, _conf) != 0) {
       LOG(ERROR) << "Failed create thread data from " << _conf.model_dir();
       return -1;
     }
 
-    LOG(ERROR) << "THREAD_SETSPECIFIC _skey = md";
     THREAD_SETSPECIFIC(_skey, md);
     im::bsf::AutoMutex lock(_mutex);
     _reload_vec.push_back(md);
@@ -248,11 +261,33 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   }
 
   int thrd_clear_impl() {
-    // for non-serving-threads
-    if (MempoolWrapper::instance().thread_clear() != 0) {
-      LOG(ERROR) << "Failed thread clear mempool";
-      return -1;
-    }
+    // actually, there are 2 kinds of multi-thread.
+    // 1. brpc thread 2. bsf Task thread
+    // each request is in 1-single brpc thread.
+    // IF (bsf Task thread is not used)
+    // every single brpc thread corresponds to all the DBReloadableInferEngines.
+    // each request runs all models in 1-single brpc thread.
+    // every single brpc thread will create or clone N predictor.
+    // N = the number of Model.
+    // so if there are 2 models, and --thread 10.
+    // each brpc thread will create predictor of Model-1 and Model-2.
+    // there are totally 10 predictors of Model-1 and 10 predictors of Model-2
+    // cause there are 10 brpc threads.
+
+    // IF bsf Task thread is used。
+    // there will be a ThreadPool called bsf TaskExecutor.
+    // TaskExecutorVector is the vector of TaskExecutor.
+    // the number of TaskExecutor equals to the number of Model.
+    // 1 TaskExecutor corresponding to 1 Model.
+    // 1 TaskExecutor have N bsf threads.
+    // 1 bsf thread corresponds to 1 predictor of
+    // the Model corresponding to the TaskExecutor.
+    // brpc thread only put the data into the task_queue(which is in
+    // TaskExecutor)
+    // EngineCore->infer() is running in bsf Task thread.
+
+    // MempoolWrapper::instance() is actually a Thread-Local Mempool.
+    // so it belongs to a single Thread.
     return 0;
   }
 
@@ -278,6 +313,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   THREAD_KEY_T _skey;
   THREAD_MUTEX_T _mutex;
   std::vector<ModelData<EngineCore>*> _reload_vec;
+  int gpu_index = 0;
 };
 
 // 多个EngineCore共用同一份模型数据
@@ -287,88 +323,76 @@ class CloneDBReloadableInferEngine
  public:
   virtual ~CloneDBReloadableInferEngine() {}
 
-  virtual int proc_initialize(const configure::EngineDesc& conf, bool version) {
-    _pd = new (std::nothrow) ModelData<EngineCore>;
-    if (!_pd) {
-      LOG(ERROR) << "Failed to allocate for ProcData";
-      return -1;
-    }
-    return DBReloadableInferEngine<EngineCore>::proc_initialize(conf, version);
-  }
+  // 进程初始化会调用load，但由于未执行线程初始化，所以_reload_vec为空,不再继续执行。
+  // 热加载的话会调用load，由于线程已经初始化，_reload_vec不为空，所以继续执行load_data操作加载数据。
+  // 线程初始化会执行load_data操作加载数据，然后将engine加入_reload_vec中。
+  // 每个模型只有一个CloneDBReloadableInferEngine对象。
+  // 但一个CloneDBReloadableInferEngine对象，可以包含N个EngineCore。
 
-  virtual int load(const configure::EngineDesc& conf) {
-    // 加载进程级模型数据
-    if (!_pd ||
-        DBReloadableInferEngine<EngineCore>::load_data(_pd, conf) != 0) {
-      LOG(ERROR) << "Failed to create common model from [" << conf.model_dir()
-                 << "].";
-      return -1;
+  virtual int load_data(ModelData<EngineCore>* md,
+                        const configure::EngineDesc& conf) {
+    uint32_t next_idx = (md->current_idx + 1) % 2;
+    if (md->cores[next_idx]) {
+      delete md->cores[next_idx];
     }
-    LOG(WARNING) << "Succ load common model[" << _pd->cores[_pd->current_idx]
-                 << "], path[" << conf.model_dir() << "].";
+    md->cores[next_idx] = new (std::nothrow) EngineCore;
 
-    if (DBReloadableInferEngine<EngineCore>::_reload_vec.empty()) {
-      return 0;
+    // params.dump();
+    // gpu_ids_num > 0 is always true.
+    // if use CPU, gpu_ids = [-1].
+    // if gpu_ids_num = 0, which means no gpuid is given.
+    // so we should set gpu_ids_num = 1, and gpu_id = -1.
+    // so that we can create at least 1 predictor.
+    size_t gpu_ids_num = conf.gpu_ids_size();
+    im::bsf::AutoMutex lock(DBReloadableInferEngine<EngineCore>::_mutex);
+    int gpu_id = -1;
+    if (gpu_ids_num > 0) {
+      gpu_id = conf.gpu_ids(DBReloadableInferEngine<EngineCore>::gpu_index %
+                            gpu_ids_num);
+    } else {
+      gpu_ids_num = 1;
     }
-
-    for (uint32_t ti = 0;
-         ti < DBReloadableInferEngine<EngineCore>::_reload_vec.size();
-         ++ti) {
-      if (load_data(DBReloadableInferEngine<EngineCore>::_reload_vec[ti],
-                    _pd->cores[_pd->current_idx]) != 0) {
-        LOG(ERROR) << "Failed reload engine model: " << ti;
+    // gpu_index will be set to be 0, when load() or proc_initial() is called.
+    // gpu_index < gpu_ids_num, means there are predictors still not create
+    // on some GPU card.
+    // so we need to create the predictor.
+    // gpu_index >= gpu_ids_num, means each GPU card has already create one.
+    // so we need to clone the predictor.
+    if (DBReloadableInferEngine<EngineCore>::gpu_index < gpu_ids_num) {
+      if (!md->cores[next_idx] ||
+          md->cores[next_idx]->create(conf, gpu_id) != 0) {
+        LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
         return -1;
       }
+      DBReloadableInferEngine<EngineCore>::gpu_index++;
+      md->current_idx = next_idx;
+      if (_cloneTemplate.size() <
+          DBReloadableInferEngine<EngineCore>::gpu_index) {
+        _cloneTemplate.push_back(md);
+      } else {
+        _cloneTemplate[DBReloadableInferEngine<EngineCore>::gpu_index - 1] = md;
+      }
+    } else {
+      int template_index = DBReloadableInferEngine<EngineCore>::gpu_index %
+                           _cloneTemplate.size();
+      if (!md->cores[next_idx] ||
+          md->cores[next_idx]->clone(_cloneTemplate[template_index]->get()) !=
+              0) {
+        LOG(ERROR) << "Failed clone model from core";
+        return -1;
+      }
+      DBReloadableInferEngine<EngineCore>::gpu_index++;
+      md->current_idx = next_idx;
+      LOG(WARNING) << "core clone model succ, cur_idx[" << md->current_idx
+                   << "].";
     }
 
-    LOG(WARNING) << "Succ load clone model, path[" << conf.model_dir() << "]";
-    return 0;
-  }
-
-  // 加载线程级对象，多个线程级对象共用pd_core的模型数据
-  int load_data(ModelData<EngineCore>* td, EngineCore* pd_core) {
-    uint32_t next_idx = (td->current_idx + 1) % 2;
-    if (td->cores[next_idx]) {
-      delete td->cores[next_idx];
-    }
-
-    td->cores[next_idx] = new (std::nothrow) EngineCore;
-    if (!td->cores[next_idx] ||
-        td->cores[next_idx]->clone(pd_core->get()) != 0) {
-      LOG(ERROR) << "Failed clone model from pd_core[ " << pd_core << "], idx["
-                 << next_idx << "]";
-      return -1;
-    }
-    td->current_idx = next_idx;
-    LOG(WARNING) << "td_core[" << td->cores[td->current_idx]
-                 << "] clone model from pd_core[" << pd_core
-                 << "] succ, cur_idx[" << td->current_idx << "].";
-    return 0;
-  }
-
-  virtual int thrd_initialize_impl() {
-    // memory pool to be inited in non-serving-threads
-    if (MempoolWrapper::instance().thread_initialize() != 0) {
-      LOG(ERROR) << "Failed thread initialize mempool";
-      return -1;
-    }
-
-    ModelData<EngineCore>* md = new (std::nothrow) ModelData<EngineCore>;
-    if (!md || load_data(md, _pd->cores[_pd->current_idx]) != 0) {
-      LOG(ERROR) << "Failed clone thread data, origin_core["
-                 << _pd->cores[_pd->current_idx] << "].";
-      return -1;
-    }
-
-    THREAD_SETSPECIFIC(DBReloadableInferEngine<EngineCore>::_skey, md);
-    im::bsf::AutoMutex lock(DBReloadableInferEngine<EngineCore>::_mutex);
-    DBReloadableInferEngine<EngineCore>::_reload_vec.push_back(md);
     return 0;
   }
 
  protected:
-  ModelData<EngineCore>*
-      _pd;  // 进程级EngineCore，多个线程级EngineCore共用该对象的模型数据
+  // 模板EngineCore，如果已创建，则多个线程级EngineCore共用该对象的模型数据
+  std::vector<ModelData<EngineCore>*> _cloneTemplate;
 };
 
 template <typename EngineCore>
@@ -505,8 +529,8 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
     return 0;
   }
 
-  int task_infer_impl(const BatchTensor& in, BatchTensor& out) {  // NOLINT
-    return infer_impl(&in, &out);
+  int task_infer_impl(const void* in, void* out) {  // NOLINT
+    return infer_impl(in, out);
   }
 };
 
@@ -559,7 +583,7 @@ class VersionedInferEngine : public InferEngine {
 
   int infer_impl(const void* in, void* out, uint32_t batch_size = -1);
 
-  int task_infer_impl(const BatchTensor& in, BatchTensor& out);
+  int task_infer_impl(const void* in, void* out);
 
  private:
   boost::unordered_map<uint64_t, InferEngine*> _versions;
@@ -572,7 +596,9 @@ class InferManager {
     return ins;
   }
 
-  int proc_initialize(const char* path, const char* file);
+  int proc_initialize(const char* path,
+                      const char* file,
+                      std::shared_ptr<int> engine_index_ptr);
 
   int thrd_initialize();
 

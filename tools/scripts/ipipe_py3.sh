@@ -41,7 +41,7 @@ build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
 lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
-low_precision_resnet50_int8 ocr_c++_service)
+faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service)
 http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
@@ -120,31 +120,66 @@ function check() {
     fi
 }
 
+function check_gpu_memory() {
+    gpu_memory=`nvidia-smi --id=$1 --format=csv,noheader --query-gpu=memory.used | awk '{print $1}'`
+    echo -e "${GREEN_COLOR}-------id-$1 gpu_memory_used: ${gpu_memory}${RES}"
+    if [ ${gpu_memory} -le 100 ]; then
+        echo "-------GPU-$1 is not used"
+        status="GPU-$1 is not used"
+    else
+        echo "-------GPU_memory used is expected"
+    fi
+}
+
 function check_result() {
     if [ $? == 0 ]; then
         echo -e "${GREEN_COLOR}$1 execute normally${RES}"
         if [ $1 == "server" ]; then
             sleep $2
-            tail ${dir}server_log.txt | tee -a ${log_dir}server_total.txt
+            cat ${dir}server_log.txt | tee -a ${log_dir}server_total.txt
         fi
         if [ $1 == "client" ]; then
-            tail ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
+            cat ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
             grep -E "${error_words}" ${dir}client_log.txt > /dev/null
             if [ $? == 0 ]; then
+                if [ "${status}" != "" ]; then
+                    status="${status}|Failed"
+                else
+                    status="Failed"
+                fi
                 echo -e "${RED_COLOR}$1 error command${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
-                echo -e "--------------pipeline.log:----------------\n"
+                echo "--------------server log:--------------"
+                cat ${dir}server_log.txt
+                echo "--------------client log:--------------"
+                cat ${dir}client_log.txt
+                echo "--------------pipeline.log:----------------"
                 cat PipelineServingLogs/pipeline.log
-                echo -e "-------------------------------------------\n"
+                echo "-------------------------------------------\n"
                 error_log $2
             else
+                if [ "${status}" != "" ]; then
+                    error_log $2
+                fi
                 echo -e "${GREEN_COLOR}$2${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
             fi
         fi
     else
         echo -e "${RED_COLOR}$1 error command${RES}\n" | tee -a ${log_dir}server_total.txt ${log_dir}client_total.txt
-        tail ${dir}client_log.txt | tee -a ${log_dir}client_total.txt
+        echo "--------------server log:--------------"
+        cat ${dir}server_log.txt
+        echo "--------------client log:--------------"
+        cat ${dir}client_log.txt
+        echo "--------------pipeline.log:----------------"
+        cat PipelineServingLogs/pipeline.log
+        echo "-------------------------------------------\n"
+        if [ "${status}" != "" ]; then
+            status="${status}|Failed"
+        else
+            status="Failed"
+        fi
         error_log $2
     fi
+    status=""
 }
 
 function error_log() {
@@ -163,7 +198,7 @@ function error_log() {
     echo "deployment: ${deployment// /_}" | tee -a ${log_dir}error_models.txt
     echo "py_version: ${py_version}" | tee -a ${log_dir}error_models.txt
     echo "cuda_version: ${cuda_version}" | tee -a ${log_dir}error_models.txt
-    echo "status: Failed" | tee -a ${log_dir}error_models.txt
+    echo "status: ${status}" | tee -a ${log_dir}error_models.txt
     echo -e "-----------------------------\n\n" | tee -a ${log_dir}error_models.txt
     prefix=${arg//\//_}
     for file in ${dir}*
@@ -192,7 +227,7 @@ function link_data() {
 function before_hook() {
     setproxy
     cd ${build_path}/python
-    ${py_version} -m pip install --upgrade pip
+    ${py_version} -m pip install --upgrade pip==21.1.3
     ${py_version} -m pip install requests
     ${py_version} -m pip install -r requirements.txt
     ${py_version} -m pip install numpy==1.16.4
@@ -325,7 +360,7 @@ function low_precision_resnet50_int8 () {
     ${py_version} -m paddle_serving_client.convert --dirname ResNet50_quant
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
     ${py_version} -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 15
     echo -e "${GREEN_COLOR}low_precision_resnet50_int8_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
     ${py_version} resnet50_client.py > ${dir}client_log.txt 2>&1
     check_result client "low_precision_resnet50_int8_GPU_RPC server test completed"
@@ -341,7 +376,7 @@ function faster_rcnn_hrnetv2p_w18_1x_encrypt() {
     ${py_version} encrypt.py
     unsetproxy
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC server started${RES}" | tee -a ${log_dir}server_total.txt
-    ${py_version} -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --use_trt --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model encrypt_server/ --port 9494 --gpu_ids 0 --use_encryption_model > ${dir}server_log.txt 2>&1 &
     check_result server 3
     echo -e "${GREEN_COLOR}faster_rcnn_hrnetv2p_w18_1x_ENCRYPTION_GPU_RPC client started${RES}" | tee -a ${log_dir}client_total.txt
     ${py_version} test_encryption.py 000000570688.jpg > ${dir}client_log.txt 2>&1
@@ -379,6 +414,7 @@ function bert_rpc_gpu() {
     ls -hlst
     ${py_version} -m paddle_serving_server.serve --model bert_seq128_model/ --port 8860 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 15
+    check_gpu_memory 0
     nvidia-smi
     head data-c.txt | ${py_version} bert_client.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "bert_GPU_RPC server test completed"
@@ -429,6 +465,7 @@ function ResNet50_rpc() {
     sed -i 's/9696/8863/g' resnet50_rpc_client.py
     ${py_version} -m paddle_serving_server.serve --model ResNet50_vd_model --port 8863 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_RPC server test completed"
@@ -446,6 +483,7 @@ function ResNet101_rpc() {
     sed -i "22cclient.connect(['127.0.0.1:8864'])" image_rpc_client.py
     ${py_version} -m paddle_serving_server.serve --model ResNet101_vd_model --port 8864 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} image_rpc_client.py ResNet101_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet101_GPU_RPC server test completed"
@@ -536,10 +574,11 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 0 --thread 2 --use_trt > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 2 > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
+    check_gpu_memory 1
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "faster_rcnn_GPU_RPC server test completed"
@@ -556,6 +595,7 @@ function cascade_rcnn_rpc() {
     sed -i "s/9292/8879/g" test_client.py
     ${py_version} -m paddle_serving_server.serve --model serving_server --port 8879 --gpu_ids 0 --thread 2 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} test_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -573,6 +613,7 @@ function deeplabv3_rpc() {
     sed -i "s/9494/8880/g" deeplabv3_client.py
     ${py_version} -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 2 > ${dir}server_log.txt 2>&1 &
     check_result server 10
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} deeplabv3_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -590,6 +631,7 @@ function mobilenet_rpc() {
     sed -i "s/9393/8881/g" mobilenet_tutorial.py
     ${py_version} -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 8881 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} mobilenet_tutorial.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -605,8 +647,9 @@ function unet_rpc() {
     data_dir=${data}unet_for_image_seg/
     link_data ${data_dir}
     sed -i "s/9494/8882/g" seg_client.py
-    ${py_version} -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 8882 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model unet_model --gpu_ids 1 --port 8882 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 1
     nvidia-smi
     ${py_version} seg_client.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -624,6 +667,7 @@ function resnetv2_rpc() {
     sed -i 's/9393/8883/g' resnet50_v2_tutorial.py
     ${py_version} -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 8883 > ${dir}server_log.txt 2>&1 &
     check_result server 10
+    check_gpu_memory 0
     nvidia-smi
     ${py_version} resnet50_v2_tutorial.py > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -671,8 +715,9 @@ function criteo_ctr_rpc_gpu() {
     data_dir=${data}criteo_ctr/
     link_data ${data_dir}
     sed -i "s/8885/8886/g" test_client.py
-    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ctr_serving_model/ --port 8886 --gpu_ids 1 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 1
     nvidia-smi
     ${py_version} test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0 > ${dir}client_log.txt 2>&1
     nvidia-smi
@@ -691,6 +736,7 @@ function yolov4_rpc_gpu() {
     ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
     check_result server 8
+    check_gpu_memory 0
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "yolov4_GPU_RPC server test completed"
@@ -708,6 +754,7 @@ function senta_rpc_cpu() {
     ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 8887 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     nvidia-smi
     check_result server 8
+    check_gpu_memory 0
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     nvidia-smi
     check_result client "senta_GPU_RPC server test completed"
@@ -783,13 +830,14 @@ function ResNet50_http() {
     cd ${build_path}/python/examples/imagenet
     ${py_version} resnet50_web_service.py ResNet50_vd_model gpu 8876 > ${dir}server_log.txt 2>&1 &
     check_result server 10
+    check_gpu_memory 0
     curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:8876/image/prediction > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_HTTP server test completed"
     kill_server_process
 }
 
 function bert_http() {
-    dir=${log_dir}http_model/ResNet50_http/
+    dir=${log_dir}http_model/bert_http/
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/bert
@@ -835,7 +883,8 @@ function grpc_yolov4() {
     link_data ${data_dir}
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC server started${RES}"
     ${py_version} -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0 --use_multilang > ${dir}server_log.txt 2>&1 &
-    check_result server 10
+    check_result server 15
+    check_gpu_memory 0
     echo -e "${GREEN_COLOR}grpc_impl_example_yolov4_GPU_gRPC client started${RES}"
     ${py_version} test_client.py 000000570688.jpg > ${dir}client_log.txt 2>&1
     check_result client "grpc_yolov4_GPU_GRPC server test completed"
@@ -857,6 +906,7 @@ function ocr_c++_service() {
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC server started${RES}"
     $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 > ${dir}server_log.txt 2>&1 &
     check_result server 8
+    check_gpu_memory 0
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"
     echo "------------------first:"
     $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client

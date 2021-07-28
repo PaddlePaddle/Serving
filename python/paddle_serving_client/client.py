@@ -79,7 +79,7 @@ class SDKConfig(object):
         self.tag_list = []
         self.cluster_list = []
         self.variant_weight_list = []
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         self.load_balance_strategy = "la"
 
     def add_server_variant(self, tag, cluster, variant_weight):
@@ -142,7 +142,7 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
 
@@ -307,6 +307,9 @@ class Client(object):
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, list):
+            # batch_size must be 1, cause batch is already in Tensor.
+            if len(feed) != 1:
+                raise ValueError("Feed only list = [dict]")
             feed_batch = feed
         else:
             raise ValueError("Feed only accepts dict and list of dict")
@@ -324,6 +327,10 @@ class Client(object):
         string_lod_slot_batch = []
         string_shape = []
         fetch_names = []
+
+        counter = 0
+        # batch_size must be 1, cause batch is already in Tensor.
+        batch_size = len(feed_batch)
 
         for key in fetch_list:
             if key in self.fetch_names_:

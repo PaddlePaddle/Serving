@@ -135,12 +135,14 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 
   if (FLAGS_enable_model_toolkit) {
     size_t model_toolkit_num = resource_conf.model_toolkit_path_size();
+    std::shared_ptr<int> engine_index_ptr(new int(0));
     for (size_t mi = 0; mi < model_toolkit_num; ++mi) {
       std::string model_toolkit_path = resource_conf.model_toolkit_path(mi);
       std::string model_toolkit_file = resource_conf.model_toolkit_file(mi);
 
-      if (InferManager::instance().proc_initialize(
-              model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+      if (InferManager::instance().proc_initialize(model_toolkit_path.c_str(),
+                                                   model_toolkit_file.c_str(),
+                                                   engine_index_ptr) != 0) {
         LOG(ERROR) << "failed proc initialize modeltoolkit, config: "
                    << model_toolkit_path << "/" << model_toolkit_file;
         return -1;
