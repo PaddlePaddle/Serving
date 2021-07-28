@@ -326,8 +326,8 @@ class Client(object):
         string_feed_names = []
         string_lod_slot_batch = []
         string_shape = []
-
         fetch_names = []
+
         counter = 0
         # batch_size must be 1, cause batch is already in Tensor.
         batch_size = len(feed_batch)
@@ -339,7 +339,6 @@ class Client(object):
         if len(fetch_names) == 0:
             raise ValueError(
                 "Fetch names should not be empty or out of saved fetch list.")
-            return {}
 
         for i, feed_i in enumerate(feed_batch):
             int_slot = []
