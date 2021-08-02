@@ -20,7 +20,8 @@ import time
 
 client = HttpClient()
 client.load_client_config(sys.argv[1])
-client.use_key("./key")
+# if you want to enable Encrypt Module,uncommenting the following line
+#client.use_key("./key")
 client.set_response_compress(True)
 client.set_request_compress(True)
 fetch_list = client.get_fetch_names()
