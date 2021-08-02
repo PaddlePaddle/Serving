@@ -25,7 +25,8 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         HttpClient client = new HttpClient();
-        
+        client.setIP("172.17.0.2");
+        client.setPort("9393");
         String result = client.predict(feed_data, fetch, true, 0);
         
         System.out.println(result);
@@ -73,6 +74,8 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
         HttpClient client = new HttpClient();
+        client.setIP("172.17.0.2");
+        client.setPort("9393");
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;
@@ -91,8 +94,9 @@ public class PaddleServingClientExample {
                 put("segment_ids", Nd4j.createFromArray(segment_ids));
             }};
         List<String> fetch = Arrays.asList("pooled_output");
-
         HttpClient client = new HttpClient();
+        client.setIP("172.17.0.2");
+        client.setPort("9393");
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;
@@ -160,6 +164,8 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("prob");
         HttpClient client = new HttpClient();
+        client.setIP("172.17.0.2");
+        client.setPort("9393");
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;

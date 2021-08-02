@@ -109,7 +109,7 @@ public class HttpClient {
         feedTensorLen_ = null;
         feedNameToIndex_ = null;
         httpTimeoutS_ = 200000;
-        ip = "127.0.0.1";
+        ip = "0.0.0.0";
         port = "9393";
         serverPort = "9393";
         serviceName = "/GeneralModelService/inference";
@@ -151,10 +151,13 @@ public class HttpClient {
     public void loadClientConfig(String model_config_path) {
         GeneralModelConfig.Builder model_conf_builder = GeneralModelConfig.newBuilder();
         try {
-            String model_config_str = Files.readString(Paths.get(model_config_path));
+            byte[] data = Files.readAllBytes(Paths.get(model_config_path));
+            String model_config_str = new String(data, "utf-8");
             com.google.protobuf.TextFormat.getParser().merge(model_config_str, model_conf_builder);
         } catch (com.google.protobuf.TextFormat.ParseException e) {
             System.out.format("Parse client config failed: %s\n", e.toString());
+        } catch (Exception e) {
+            System.out.format("Open client config failed: %s\n", e.toString());
         }
         GeneralModelConfig model_conf = model_conf_builder.build();
 
@@ -202,7 +205,8 @@ public class HttpClient {
         String key_str = null;
         String encrypt_url = "http://" + this.ip + ":" +this.port;
         try {
-            key_str = Files.readString(Paths.get(keyFilePath));
+            byte[] data = Files.readAllBytes(Paths.get(keyFilePath));
+            key_str = new String(data, "utf-8");
         } catch (Exception e) {
             System.out.format("Open key file failed: %s\n", e.toString());
         }
