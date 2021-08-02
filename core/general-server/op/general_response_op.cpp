@@ -101,7 +101,11 @@ int GeneralResponseOp::inference() {
 
     var_idx = 0;
     // idx is the real index of FetchVar.
-    // idx is not the index of fetch_index.
+    // idx is not the index of FetchList.
+    // fetch_index is the real index in FetchVar of Fetchlist
+    // for example, FetchVar = {0:A, 1:B, 2:C}
+    // FetchList = {0:C,1:A}, at this situation.
+    // fetch_index = [2,0], C`index = 2 and A`index = 0 
     for (auto &idx : fetch_index) {
       Tensor *tensor = output->add_tensor();
       tensor->set_name(in->at(idx).name);
