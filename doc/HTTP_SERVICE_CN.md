@@ -37,7 +37,7 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 ### 客户端使用curl访问
 
 ```shell
-curl -XPOST http://127.0.0.1:9393/GeneralModelService/inference -d ' {"insts":[{"tensor_array":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"shape":[1,13]}]}],"fetch_var_names":["price"],"log_id":0}'
+curl -XPOST http://127.0.0.1:9393/GeneralModelService/inference -d ' {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}'
 ```
 其中`127.0.0.1:9393`为IP和Port，根据您服务端启动的IP和Port自行设定。
 
@@ -76,7 +76,7 @@ repeated int32 numbers = 1;
 // rapidjson
 {"numbers" : [12, 17, 1, 24] }
 ```
-#### shape
+#### elem_type
 
 表示数据类型，0 means int64, 1 means float32, 2 means int32, 3 means bytes(string)
 
@@ -93,7 +93,7 @@ repeated int32 numbers = 1;
 以上面的fit_a_line为例，仍使用上文的请求数据体，但只作为示例演示用法，实际此时使用压缩得不偿失。
 
 ```shell
-echo ' {"insts":[{"tensor_array":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"shape":[1,13]}]}],"fetch_var_names":["price"],"log_id":0}' | gzip -c > data.txt.gz
+echo ' {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}' | gzip -c > data.txt.gz
 ```
 
 ```shell

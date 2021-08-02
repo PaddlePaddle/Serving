@@ -35,11 +35,11 @@ client-side configuration file are stored in the `encrypt_client` directory.
 ## Start Encryption Service
 CPU Service
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model
 ```
 GPU Service
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model --gpu_ids 0
 ```
 
 ## Prediction
