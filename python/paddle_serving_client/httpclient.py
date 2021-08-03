@@ -42,6 +42,23 @@ def list_flatten(items, ignore_types=(str, bytes)):
             yield x
 
 
+def data_bytes_number(datalist):
+    total_bytes_number = 0
+    if isinstance(datalist, list):
+        if len(datalist) == 0:
+            return total_bytes_number
+        else:
+            for data in datalist:
+                if isinstance(data, str):
+                    total_bytes_number = total_bytes_number + len(data)
+                else:
+                    total_bytes_number = total_bytes_number + 4 * len(datalist)
+                    break
+    else:
+        raise ValueError(
+            "In the Function data_bytes_number(), data must be list.")
+
+
 class HttpClient(object):
     def __init__(self,
                  ip="0.0.0.0",
@@ -157,7 +174,8 @@ class HttpClient(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    # feed 支持Numpy类型，Json-String，以及直接List、tuple
+    # feed 支持Numpy类型，以及直接List、tuple
+    # 不支持str类型，因为proto中为repeated.
     def predict(self,
                 feed=None,
                 fetch=None,
@@ -179,7 +197,7 @@ class HttpClient(object):
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, (list, str, tuple)):
-            # if input is a list or str, and the number of feed_var is 1.
+            # if input is a list or str or tuple, and the number of feed_var is 1.
             # create a temp_dict { key = feed_var_name, value = list}
             # put the temp_dict into the feed_batch.
             if len(self.feed_names_) != 1:
@@ -230,46 +248,55 @@ class HttpClient(object):
             data_value = feed_i[key]
             data_key = proto_data_key_list[elem_type]
 
-            # 输入不是string类型
-            if self.feed_types_[key] != bytes_type:
-                # feed_i[key] 可以是np.ndarray
-                # 也可以是string或list或tuple
-                # 当np.ndarray需要处理为list
-                if isinstance(feed_i[key], np.ndarray):
-                    shape_lst = []
-                    # 0维numpy 需要在外层再加一个[]
-                    if feed_i[key].ndim == 0:
-                        data_value = [feed_i[key].tolist()]
-                        shape_lst.append(1)
-                    else:
-                        shape_lst.extend(list(feed_i[key].shape))
-                        shape = shape_lst
-                        data_value = feed_i[key].flatten().tolist()
-                    # 当Batch为False，shape字段前插一个1,表示batch维
-                    # 当Batch为True,则直接使用numpy.shape作为batch维度
-                    if batch == False:
-                        shape.insert(0, 1)
+            # feed_i[key] 可以是np.ndarray
+            # 也可以是list或tuple
+            # 当np.ndarray需要处理为list
+            if isinstance(feed_i[key], np.ndarray):
+                shape_lst = []
+                # 0维numpy 需要在外层再加一个[]
+                if feed_i[key].ndim == 0:
+                    data_value = [feed_i[key].tolist()]
+                    shape_lst.append(1)
+                else:
+                    shape_lst.extend(list(feed_i[key].shape))
+                    shape = shape_lst
+                    data_value = feed_i[key].flatten().tolist()
+                # 当Batch为False，shape字段前插一个1,表示batch维
+                # 当Batch为True,则直接使用numpy.shape作为batch维度
+                if batch == False:
+                    shape.insert(0, 1)
 
-                    # 当是list或tuple时，需要把多层嵌套展开
-                if isinstance(feed_i[key], (list, tuple)):
-                    # 当Batch为False，shape字段前插一个1,表示batch维
-                    # 当Batch为True, 由于list并不像numpy那样规整，所以
-                    # 无法获取shape，此时取第一维度作为Batch维度.
-                    # 插入到feedVar.shape前面.
-                    if batch == False:
-                        shape.insert(0, 1)
-                    else:
-                        shape.insert(0, len(feed_i[key]))
-                    feed_i[key] = [x for x in list_flatten(feed_i[key])]
-                    data_value = feed_i[key]
-            '''
-            this is comment, for coder to understand.
-            #if input is string, feed is not numpy.
-            else:
-                shape = self.feed_shapes_[key]
+                # 当是list或tuple时，需要把多层嵌套展开
+            elif isinstance(feed_i[key], (list, tuple)):
+                # 当Batch为False，shape字段前插一个1,表示batch维
+                # 当Batch为True, 由于list并不像numpy那样规整，所以
+                # 无法获取shape，此时取第一维度作为Batch维度.
+                # 插入到feedVar.shape前面.
+                if batch == False:
+                    shape.insert(0, 1)
+                else:
+                    shape.insert(0, len(feed_i[key]))
+                feed_i[key] = [x for x in list_flatten(feed_i[key])]
                 data_value = feed_i[key]
-            '''
-            total_data_number = total_data_number + len(data_value)
+            else:
+                # 输入可能是单个的str或int值等
+                # 此时先统一处理为一个list
+                # 由于输入比较特殊，shape保持原feedvar中不变
+                data_value = []
+                data_value.append(feed_i[key])
+                if isinstance(feed_i[key], str):
+                    if self.feed_types_[key] != bytes_type:
+                        raise ValueError(
+                            "feedvar is not string-type,feed can`t be a single string."
+                        )
+                else:
+                    if self.feed_types_[key] == bytes_type:
+                        raise ValueError(
+                            "feedvar is string-type,feed, feed can`t be a single int or others."
+                        )
+
+            total_data_number = total_data_number + data_bytes_number(
+                data_value)
             Request["tensor"][index]["elem_type"] = elem_type
             Request["tensor"][index]["shape"] = shape
             Request["tensor"][index][data_key] = data_value
@@ -285,6 +312,7 @@ class HttpClient(object):
         web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
         postData = json.dumps(Request)
         headers = {}
+        # 当数据区长度大于512字节时才压缩.
         if self.try_request_gzip and total_data_number > 512:
             postData = gzip.compress(bytes(postData, 'utf-8'))
             headers["Content-Encoding"] = "gzip"

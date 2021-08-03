@@ -11,7 +11,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import java.util.*;
 
 public class PaddleServingClientExample {
-    boolean fit_a_line() {
+    boolean fit_a_line(String model_config_path) {
         float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
             0.0582f, -0.0727f, -0.1583f, -0.0584f,
             0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
@@ -25,15 +25,69 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         HttpClient client = new HttpClient();
-        client.setIP("172.17.0.2");
+        client.setIP("0.0.0.0");
         client.setPort("9393");
+        client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
         
         System.out.println(result);
         return true;
     }
 
-    boolean yolov4(String filename) {
+    boolean encrypt(String model_config_path,String keyFilePath) {
+        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+            0.0582f, -0.0727f, -0.1583f, -0.0584f,
+            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
+        INDArray npdata = Nd4j.createFromArray(data);
+        long[] batch_shape = {1,13};
+        INDArray batch_npdata = npdata.reshape(batch_shape);
+        HashMap<String, Object> feed_data
+            = new HashMap<String, Object>() {{
+                put("x", batch_npdata);
+            }};
+        List<String> fetch = Arrays.asList("price");
+        
+        HttpClient client = new HttpClient();
+        client.setIP("0.0.0.0");
+        client.setPort("9393");
+        client.loadClientConfig(model_config_path);
+        client.use_key(keyFilePath);
+        try {
+            Thread.sleep(1000*3);   // 休眠3秒，等待Server启动
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+        String result = client.predict(feed_data, fetch, true, 0);
+        
+        System.out.println(result);
+        return true;
+    }
+
+    boolean compress(String model_config_path) {
+        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+            0.0582f, -0.0727f, -0.1583f, -0.0584f,
+            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
+        INDArray npdata = Nd4j.createFromArray(data);
+        long[] batch_shape = {500,13};
+        INDArray batch_npdata = npdata.broadcast(batch_shape);
+        HashMap<String, Object> feed_data
+            = new HashMap<String, Object>() {{
+                put("x", batch_npdata);
+            }};
+        List<String> fetch = Arrays.asList("price");
+        
+        HttpClient client = new HttpClient();
+        client.setIP("0.0.0.0");
+        client.setPort("9393");
+        client.loadClientConfig(model_config_path);
+        client.set_request_compress(true);
+        client.set_response_compress(true);
+        String result = client.predict(feed_data, fetch, true, 0);
+        System.out.println(result);
+        return true;
+    }
+
+    boolean yolov4(String model_config_path,String filename) {
         // https://deeplearning4j.konduit.ai/
         int height = 608;
         int width = 608;
@@ -74,14 +128,15 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
         HttpClient client = new HttpClient();
-        client.setIP("172.17.0.2");
+        client.setIP("0.0.0.0");
         client.setPort("9393");
+        client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;
     }
 
-    boolean bert() {
+    boolean bert(String model_config_path) {
         float[] input_mask = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
         long[] position_ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         long[] input_ids = {101, 6843, 3241, 749, 8024, 7662, 2533, 1391, 2533, 2523, 7676, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -95,14 +150,15 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("pooled_output");
         HttpClient client = new HttpClient();
-        client.setIP("172.17.0.2");
+        client.setIP("0.0.0.0");
         client.setPort("9393");
+        client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;
     }
 
-    boolean cube_local() {
+    boolean cube_local(String model_config_path) {
         long[] embedding_14 = {250644};
         long[] embedding_2 = {890346};
         long[] embedding_10 = {3939};
@@ -164,8 +220,9 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("prob");
         HttpClient client = new HttpClient();
-        client.setIP("172.17.0.2");
+        client.setIP("0.0.0.0");
         client.setPort("9393");
+        client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
         System.out.println(result);
         return true;
@@ -177,25 +234,33 @@ public class PaddleServingClientExample {
         PaddleServingClientExample e = new PaddleServingClientExample();
         boolean succ = false;
         
-        if (args.length < 1) {
-            System.out.println("Usage: java -cp <jar> PaddleServingClientExample <test-type>.");
-            System.out.println("<test-type>: fit_a_line bert cube_local yolov4");
+        if (args.length < 2) {
+            System.out.println("Usage: java -cp <jar> PaddleServingClientExample <test-type> <configPath>.");
+            System.out.println("<test-type>: fit_a_line bert cube_local yolov4 encrypt");
             return;
         }
         String testType = args[0];
         System.out.format("[Example] %s\n", testType);
         if ("fit_a_line".equals(testType)) {
-            succ = e.fit_a_line();
+            succ = e.fit_a_line(args[1]);
+        } else if ("compress".equals(testType)) {
+            succ = e.compress(args[1]);
         } else if ("bert".equals(testType)) {
-            succ = e.bert();
+            succ = e.bert(args[1]);
         } else if ("cube_local".equals(testType)) {
-            succ = e.cube_local();
+            succ = e.cube_local(args[1]);
         } else if ("yolov4".equals(testType)) {
-            if (args.length < 2) {
-                System.out.println("Usage: java -cp <jar> PaddleServingClientExample yolov4 <image-filepath>.");
+            if (args.length < 3) {
+                System.out.println("Usage: java -cp <jar> PaddleServingClientExample yolov4 <configPath> <image-filepath>.");
                 return;
             }
-            succ = e.yolov4(args[1]);
+            succ = e.yolov4(args[1],args[2]);
+        } else if ("encrypt".equals(testType)) {
+            if (args.length < 3) {
+                System.out.println("Usage: java -cp <jar> PaddleServingClientExample encrypt <configPath> <keyPath>.");
+                return;
+            }
+            succ = e.encrypt(args[1],args[2]);
         } else {
             System.out.format("test-type(%s) not match.\n", testType);
             return;

@@ -28,6 +28,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.InputStreamEntity;
 
 import org.json.*;
 
@@ -97,6 +98,7 @@ public class HttpClient {
     private String serviceName;
     private boolean request_compress_flag;
     private boolean response_compress_flag;
+    private String GLOG_v;
 
     public HttpClient() {
         feedNames_ = null;
@@ -115,6 +117,7 @@ public class HttpClient {
         serviceName = "/GeneralModelService/inference";
         request_compress_flag = false;
         response_compress_flag = false;
+        GLOG_v = System.getenv("GLOG_v");
 
         feedTypeToDataKey_ = new HashMap<Integer, String>();
         feedTypeToDataKey_.put(0, "int64_data");
@@ -206,7 +209,7 @@ public class HttpClient {
         String encrypt_url = "http://" + this.ip + ":" +this.port;
         try {
             byte[] data = Files.readAllBytes(Paths.get(keyFilePath));
-            key_str = new String(data, "utf-8");
+            key_str = Base64.getEncoder().encodeToString(data);
         } catch (Exception e) {
             System.out.format("Open key file failed: %s\n", e.toString());
         }
@@ -237,16 +240,20 @@ public class HttpClient {
         this.response_compress_flag = response_compress_flag;
     }
 
-    public static String compress(String str,String inEncoding) throws IOException {
+    public byte[] compress(String str) {
         if (str == null || str.length() == 0) {
-          return str;
+            return null;
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        GZIPOutputStream gzip = new GZIPOutputStream(out);
-        gzip.write(str.getBytes(inEncoding));
-        gzip.close();
-        return out.toString("ISO-8859-1");
-        
+        GZIPOutputStream gzip;
+        try {
+            gzip = new GZIPOutputStream(out);
+            gzip.write(str.getBytes("UTF-8"));
+            gzip.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out.toByteArray();
     }
     
     // 帮助用户封装Http请求的接口，用户只需要传递FeedData,Lod,Fetchlist即可。
@@ -302,36 +309,83 @@ public class HttpClient {
                                     Object objectValue = mapEntry.getValue();
                                     String feed_alias_name = mapEntry.getKey();
                                     String feed_real_name = feedRealNames_.get(feed_alias_name);
-                                    List<Integer> shape = feedShapes_.get(feed_alias_name);
+                                    List<Integer> shape = new ArrayList<Integer>(feedShapes_.get(feed_alias_name));
                                     int element_type = feedTypes_.get(feed_alias_name);
+                                    
+                                    jsonTensor.put("alias_name", feed_alias_name);
+                                    jsonTensor.put("name", feed_real_name);
+                                    jsonTensor.put("elem_type", element_type);
+
+                                    // 处理数据与shape
                                     String protoDataKey = feedTypeToDataKey_.get(element_type);
-                                    Object feedLodValue = feedLod.get(feed_alias_name);
-                                    // 如果是INDArray类型，先转为一维，再objectValue.ToString.
-                                    // 如果是String或List，则直接objectValue.ToString.
-                                    if(objectValue.getClass().equals(INDArray.class)){
-                                        long[] flattened_shape = {-1};
-                                        Class<?> classLongArray = flattened_shape.getClass();
-                                        Method methodReshape = mapEntry.getValue().getClass().getMethod("reshape", classLongArray);
-                                        Method methodShape = mapEntry.getValue().getClass().getMethod("shape");
-                                        long[] indarrayShape = (long[])methodShape.invoke(objectValue);
+                                    // 如果是INDArray类型，先转为一维.
+                                    // 此时shape为INDArray的shape
+                                    if(objectValue instanceof INDArray){
+                                        INDArray tempIndArray = (INDArray)objectValue;
+                                        long[] indarrayShape = tempIndArray.shape();
                                         shape.clear();
                                         for(long dim:indarrayShape){
                                             shape.add((int)dim);
                                         }
-                                        objectValue = methodReshape.invoke(objectValue,flattened_shape);
+                                        objectValue = tempIndArray.data().asDouble();
+                                        
+                                    }else if(objectValue.getClass().isArray()){
+                                        // 如果是数组类型，则无须处理，直接使用即可。
+                                        // 且数组无法嵌套，此时batch无法从数据中获取
+                                        // 默认batch维度为1，或者feedVar的shape信息中已包含batch
+                                    }else if(objectValue instanceof List){
+                                        // 如果为list，可能存在嵌套，此时需要展平
+                                        // 如果batchFlag为True，则认为是嵌套list
+                                        // 此时取最外层为batch的维度
+                                        if (batchFlag) {
+                                            List<?> list = new ArrayList<>();
+                                            list = new ArrayList<>((Collection<?>)objectValue);
+                                            // 在index=0处，加上batch
+                                            shape.add(0, list.size());
+                                        }
+                                        objectValue = recursiveExtract(objectValue);
+                                    }else{
+                                        // 此时认为是传入的单个String或者Int等
+                                        // 此时无法获取batch信息，故对shape不处理
+                                        // 由于Proto中为Repeated,需要把数据包装成list
+                                        if(objectValue instanceof String){
+                                            if(feedTypes_.get(protoDataKey)!= ElementType.Bytes_type.ordinal()){
+                                                throw new Exception("feedvar is not string-type,feed can`t be a single string.");
+                                            }
+                                        }else{
+                                            if(feedTypes_.get(protoDataKey)== ElementType.Bytes_type.ordinal()){
+                                                throw new Exception("feedvar is string-type,feed, feed can`t be a single int or others.");
+                                            }
+                                        }
+                                        List<Object> list = new ArrayList<>();
+                                        list.add(objectValue);
+                                        objectValue = list;
                                     }
-                                    if(batchFlag){
+                                    jsonTensor.put(protoDataKey,objectValue);
+                                    if(!batchFlag){
                                         // 在index=0处，加上batch=1
                                         shape.add(0, 1);
                                     }
-                                    jsonTensor.put("alias_name", feed_alias_name);
-                                    jsonTensor.put("name", feed_real_name);
                                     jsonTensor.put("shape", shape);
                                     
-                                    jsonTensor.put("elem_type", element_type);
-                                    jsonTensor.put(protoDataKey,objectValue);
-                                    if(feedLodValue != null) {
-                                        jsonTensor.put("lod", feedLodValue);
+                                    // 处理lod信息，支持INDArray Array Iterable
+                                    Object feedLodValue = null;
+                                    if(feedLod != null){
+                                        feedLodValue = feedLod.get(feed_alias_name);
+                                        if(feedLodValue != null) {
+                                            if(feedLodValue instanceof INDArray){
+                                                INDArray tempIndArray = (INDArray)feedLodValue;    
+                                                feedLodValue = tempIndArray.data().asInt();
+                                            }else if(feedLodValue.getClass().isArray()){
+                                                // 如果是数组类型，则无须处理，直接使用即可。
+                                            }else if(feedLodValue instanceof Iterable){
+                                                // 如果为list，可能存在嵌套，此时需要展平
+                                                feedLodValue = recursiveExtract(feedLodValue);
+                                            }else{
+                                                throw new Exception("Lod must be INDArray or Array or Iterable.");
+                                            }
+                                            jsonTensor.put("lod", feedLodValue);
+                                        }
                                     }
                                     jsonTensorArray.put(jsonTensor);
                                 }
@@ -343,6 +397,9 @@ public class HttpClient {
                         jsonRequest.put("log_id",log_id);
                         jsonRequest.put("fetch_var_names", jsonFetchList);
                         jsonRequest.put("tensor",jsonTensorArray);
+                        if(GLOG_v != null){
+                            System.out.format("------- Final jsonRequest:  %s\n", jsonRequest.toString());
+                        }
                         return doPost(server_url, jsonRequest.toString());
                     }
 
@@ -361,29 +418,41 @@ public class HttpClient {
                 .build();
         // 为httpPost实例设置配置
         httpPost.setConfig(requestConfig);
+        httpPost.setHeader("Content-Type", "application/json;charset=utf-8");
         // 设置请求头
-        httpPost.addHeader("Content-Type", "application/json");
         if(response_compress_flag){
             httpPost.addHeader("Accept-encoding", "gzip");
-        }
-        if(request_compress_flag && strPostData.length()>512){
-            try{
-                strPostData = compress(strPostData,"UTF-8");
-                httpPost.addHeader("Content-Encoding", "gzip");
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(GLOG_v != null){
+                System.out.format("------- Accept-encoding gzip:  \n");
             }
         }
+        
         try {
-            httpPost.setEntity(new StringEntity(strPostData, "UTF-8"));
+            if(request_compress_flag && strPostData.length()>1024){
+                try{
+                    byte[] gzipEncrypt = compress(strPostData);
+                    httpPost.setEntity(new InputStreamEntity(new ByteArrayInputStream(gzipEncrypt), gzipEncrypt.length));
+                    httpPost.addHeader("Content-Encoding", "gzip");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }else{
+                httpPost.setEntity(new StringEntity(strPostData, "UTF-8"));
+            }
             // httpClient对象执行post请求,并返回响应参数对象
             httpResponse = httpClient.execute(httpPost);
             // 从响应对象中获取响应内容
             HttpEntity entity = httpResponse.getEntity();
             Header header = entity.getContentEncoding();
+            if(GLOG_v != null){
+                System.out.format("------- response header:  %s\n", header);
+            }
             if(header != null && header.getValue().equalsIgnoreCase("gzip")){	//判断返回内容是否为gzip压缩格式
                 GzipDecompressingEntity gzipEntity = new GzipDecompressingEntity(entity);
                 result = EntityUtils.toString(gzipEntity);
+                if(GLOG_v != null){
+                    System.out.format("------- degzip response:  %s\n", result);
+                }
             }else{
                 result = EntityUtils.toString(entity);
             }
@@ -410,5 +479,25 @@ public class HttpClient {
         }
         return result;
     }
+
+    public List<Object> recursiveExtract(Object stuff) {
+
+        List<Object> mylist = new ArrayList<Object>();
+    
+        if(stuff instanceof Iterable) {
+            for(Object o : (Iterable< ? >)stuff) {
+                mylist.addAll(recursiveExtract(o));
+            }
+        } else if(stuff instanceof Map) {
+            for(Object o : ((Map<?, ? extends Object>) stuff).values()) {
+                mylist.addAll(recursiveExtract(o));
+            }
+        } else {
+            mylist.add(stuff);
+        }
+    
+        return mylist;
+    }
+
 }
 
