@@ -335,8 +335,8 @@ class Client(object):
         string_feed_names = []
         string_lod_slot_batch = []
         string_shape = []
-
         fetch_names = []
+
         counter = 0
 
         for key in fetch_list:
@@ -346,7 +346,6 @@ class Client(object):
         if len(fetch_names) == 0:
             raise ValueError(
                 "Fetch names should not be empty or out of saved fetch list.")
-            return {}
 
         feed_i = feed_batch[0]
         for key in feed_i:
