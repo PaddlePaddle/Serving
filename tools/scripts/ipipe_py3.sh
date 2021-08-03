@@ -149,7 +149,7 @@ function before_hook() {
     setproxy
     unsetproxy
     cd ${build_path}/python
-    python3.6 -m pip install --upgrade pip
+    python3.6 -m pip install --upgrade pip==21.1.3
     python3.6 -m pip install requests
     python3.6 -m pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
     python3.6 -m pip install numpy==1.16.4
