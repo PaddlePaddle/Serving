@@ -93,7 +93,7 @@ class WebService(object):
         f = open(file_path_list[0], 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
-        self.feed_vars = {var.name: var for var in model_conf.feed_var}
+        self.feed_vars = {var.alias_name: var for var in model_conf.feed_var}
 
         if len(file_path_list) > 1:
             model_conf = m_config.GeneralModelConfig()
@@ -101,7 +101,7 @@ class WebService(object):
             model_conf = google.protobuf.text_format.Merge(
                 str(f.read()), model_conf)
 
-        self.fetch_vars = {var.name: var for var in model_conf.fetch_var}
+        self.fetch_vars = {var.alias_name: var for var in model_conf.fetch_var}
         if client_config_path == None:
             self.client_config_path = file_path_list
 

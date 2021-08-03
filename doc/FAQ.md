@@ -242,6 +242,9 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 **A:** 支持离线部署，需要把一些相关的[依赖包](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md)提前准备安装好
 
+#### Q: Docker中启动server IP地址 127.0.0.1 与 0.0.0.0 差异
+**A:** 您必须将容器的主进程设置为绑定到特殊的 0.0.0.0 “所有接口”地址，否则它将无法从容器外部访问。在Docker中 127.0.0.1 代表“这个容器”，而不是“这台机器”。如果您从容器建立到 127.0.0.1 的出站连接，它将返回到同一个容器；如果您将服务器绑定到 127.0.0.1，接收不到来自外部的连接。
+
 ## 预测问题
 
 #### Q: 使用GPU第一次预测时特别慢，如何调整RPC服务的等待时间避免超时？ 
