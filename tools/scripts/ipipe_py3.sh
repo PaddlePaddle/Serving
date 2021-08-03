@@ -852,6 +852,7 @@ function bert_http() {
 }
 
 function grpc_fit_a_line() {
+    echo "pass"
 #    dir=${log_dir}rpc_model/grpc_fit_a_line/
 #    check_dir ${dir}
 #    unsetproxy
@@ -876,6 +877,7 @@ function grpc_fit_a_line() {
 }
 
 function grpc_yolov4() {
+    echo "pass"
 #    dir=${log_dir}rpc_model/grpc_yolov4/
 #    cd ${build_path}/python/examples/grpc_impl_example/yolov4
 #    check_dir ${dir}
