@@ -42,6 +42,10 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 
 为了方便用户快速的使用Http方式请求Server端预测服务，我们已经将常用的Http请求的数据体封装、压缩、请求加密等功能封装为一个HttpClient类提供给用户，方便用户使用。
 
+使用HttpClient最简单只需要三步，1、创建一个HttpClient对象。2、加载Client端的prototxt配置文件（本例中为python/examples/fit_a_line/目录下的uci_housing_client/serving_client_conf.prototxt)，3、调用Predict函数，通过Http方式请求预测服务。
+
+此外，您可以根据自己的需要配置Server端IP、Port、服务名称（此服务名称需要与[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto)文件中的Service服务名和rpc方法名对应，即`GeneralModelService`字段和`inference`字段），设置Request数据体压缩，设置Response支持压缩传输，模型加密预测（需要配置Server端使用模型加密）、设置响应超时时间等功能。
+
 Python的HttpClient使用示例见[`python/examples/fit_a_line/test_httpclient.py`](../python/examples/fit_a_line/test_httpclient.py)，接口详见[`python/paddle_serving_client/httpclient.py`](../python/paddle_serving_client/httpclient.py)。
 
 Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/HttpClient.java`](../java/src/main/java/io/paddle/serving/client/HttpClient.java)。
