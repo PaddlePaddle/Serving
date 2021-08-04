@@ -20,7 +20,7 @@ import numpy as np
 client = Client()
 client.load_client_config(sys.argv[1])
 client.connect(["127.0.0.1:9393"])
-
+fetch_list = client.get_fetch_names()
 import paddle
 test_reader = paddle.batch(
     paddle.reader.shuffle(
@@ -31,6 +31,5 @@ for data in test_reader():
     new_data = np.zeros((1, 13)).astype("float32")
     new_data[0] = data[0][0]
     fetch_map = client.predict(
-        feed={"x": new_data}, fetch=["price"], batch=True)
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
+        feed={"x": new_data}, fetch=fetch_list, batch=True)
     print(fetch_map)
