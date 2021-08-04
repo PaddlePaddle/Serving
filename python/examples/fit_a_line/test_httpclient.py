@@ -13,29 +13,31 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_client import MultiLangClient as Client
+from paddle_serving_client.httpclient import HttpClient
+import sys
 import numpy as np
-client = Client()
-client.connect(["127.0.0.1:9393"])
-"""
-for data in test_reader():
-    new_data = np.zeros((1, 1, 13)).astype("float32")
-    new_data[0] = data[0][0]
-    fetch_map = client.predict(
-        feed={"x": new_data}, fetch=["price"], batch=True)
-    print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
-    print(fetch_map)
-"""
+import time
 
-x = [
-    0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283,
-    0.4919, 0.1856, 0.0795, -0.0332
-]
-for i in range(3):
-    new_data = np.array(x).astype("float32").reshape((1, 13))
+client = HttpClient()
+client.load_client_config(sys.argv[1])
+# if you want to enable Encrypt Module,uncommenting the following line
+# client.use_key("./key")
+client.set_response_compress(True)
+client.set_request_compress(True)
+fetch_list = client.get_fetch_names()
+import paddle
+test_reader = paddle.batch(
+    paddle.reader.shuffle(
+        paddle.dataset.uci_housing.test(), buf_size=500),
+    batch_size=1)
+
+for data in test_reader():
+    new_data = np.zeros((1, 13)).astype("float32")
+    new_data[0] = data[0][0]
+    lst_data = []
+    for i in range(200):
+        lst_data.append(data[0][0])
     fetch_map = client.predict(
-        feed={"x": new_data}, fetch=["price"], batch=False)
-    if fetch_map["serving_status_code"] == 0:
-        print(fetch_map)
-    else:
-        print(fetch_map["serving_status_code"])
+        feed={"x": lst_data}, fetch=fetch_list, batch=True)
+    print(fetch_map)
+    break

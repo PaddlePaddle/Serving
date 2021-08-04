@@ -16,7 +16,7 @@ from time import time as _time
 import time
 import threading
 import multiprocessing
-from paddle_serving_client import MultiLangClient, Client
+from paddle_serving_client import Client
 from concurrent import futures
 import logging
 import func_timeout
@@ -330,8 +330,9 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        elif self.client_type == 'grpc':
-            client = MultiLangClient()
+        # 待测试完成后，使用brpc-http替代。
+        # elif self.client_type == 'grpc':
+        #   client = MultiLangClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
@@ -474,10 +475,13 @@ class Op(object):
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
+        # 后续用HttpClient替代
+        '''
         if isinstance(self.client, MultiLangClient):
             if call_result is None or call_result["serving_status_code"] != 0:
                 return None
             call_result.pop("serving_status_code")
+        '''
         return call_result
 
     def postprocess(self, input_data, fetch_data, log_id=0):

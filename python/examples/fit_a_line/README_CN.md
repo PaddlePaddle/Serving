@@ -10,15 +10,16 @@ sh get_data.sh
 
 
 
-## RPC服务
 
-### 开启服务端
+## 开启服务端
 
 ```shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
 
-### 客户端预测
+## 客户端预测
+
+### 客户端RPC
 
 `test_client.py`中使用了`paddlepaddle`包，需要进行下载（`pip install paddlepaddle`）。
 
@@ -26,23 +27,12 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 python test_client.py uci_housing_client/serving_client_conf.prototxt
 ```
 
-
-
-## HTTP服务
-
-### 开启服务端
-
-通过下面的一行代码开启默认web服务：
+### 客户端Http预测
 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --name uci
+python test_httpclient.py uci_housing_client/serving_client_conf.prototxt
 ```
 
-### 客户端预测
-
-``` shell
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9393/uci/prediction
-```
 
 ## 性能测试
 ``` shell

@@ -23,12 +23,25 @@ import json
 import base64
 import time
 from multiprocessing import Process
-from flask import Flask, request
 import sys
 if sys.version_info.major == 2:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 elif sys.version_info.major == 3:
     from http.server import BaseHTTPRequestHandler, HTTPServer
+
+from contextlib import closing
+import socket
+
+
+# web_service.py is still used by Pipeline.
+def port_is_available(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex(('0.0.0.0', port))
+    if result != 0:
+        return True
+    else:
+        return False
 
 
 def format_gpu_to_strlist(unformatted_gpus):
@@ -118,8 +131,6 @@ def serve_args():
         default="workdir",
         help="Working dir of current service")
     parser.add_argument(
-        "--name", type=str, default="None", help="Default service name")
-    parser.add_argument(
         "--use_mkl", default=False, action="store_true", help="Use MKL")
     parser.add_argument(
         "--precision",
@@ -148,11 +159,6 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use encryption model")
-    parser.add_argument(
-        "--use_multilang",
-        default=False,
-        action="store_true",
-        help="Use Multi-language-service")
     parser.add_argument(
         "--use_trt", default=False, action="store_true", help="Use TensorRT")
     parser.add_argument(
@@ -189,7 +195,6 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     ir_optim = args.ir_optim
     use_mkl = args.use_mkl
     max_body_size = args.max_body_size
-    use_multilang = args.use_multilang
     workdir = "{}_{}".format(args.workdir, port)
 
     if model == "":
@@ -222,10 +227,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     general_response_op = op_maker.create('general_response')
     op_seq_maker.add_op(general_response_op)
 
-    if use_multilang:
-        server = serving.MultiLangServer()
-    else:
-        server = serving.Server()
+    server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.use_mkl(use_mkl)
@@ -372,54 +374,14 @@ if __name__ == "__main__":
         elif os.path.isfile(single_model_config):
             raise ValueError("The input of --model should be a dir not file.")
 
-    if args.name == "None":
-        from .web_service import port_is_available
-        if args.use_encryption_model:
-            p_flag = False
-            p = None
-            serving_port = 0
-            server = HTTPServer(('localhost', int(args.port)), MainService)
-            print(
-                'Starting encryption server, waiting for key from client, use <Ctrl-C> to stop'
-            )
-            server.serve_forever()
-        else:
-            start_multi_card(args)
+    if args.use_encryption_model:
+        p_flag = False
+        p = None
+        serving_port = 0
+        server = HTTPServer(('0.0.0.0', int(args.port)), MainService)
+        print(
+            'Starting encryption server, waiting for key from client, use <Ctrl-C> to stop'
+        )
+        server.serve_forever()
     else:
-        from .web_service import WebService
-        web_service = WebService(name=args.name)
-        web_service.load_model_config(args.model)
-
-        workdir = "{}_{}".format(args.workdir, args.port)
-        web_service.prepare_server(
-            workdir=workdir,
-            port=args.port,
-            use_lite=args.use_lite,
-            use_xpu=args.use_xpu,
-            ir_optim=args.ir_optim,
-            thread_num=args.thread,
-            precision=args.precision,
-            use_calib=args.use_calib,
-            use_trt=args.use_trt,
-            gpu_multi_stream=args.gpu_multi_stream,
-            op_num=args.op_num,
-            op_max_batch=args.op_max_batch,
-            gpuid=args.gpu_ids)
-        web_service.run_rpc_service()
-
-        app_instance = Flask(__name__)
-
-        @app_instance.before_first_request
-        def init():
-            web_service._launch_web_service()
-
-        service_name = "/" + web_service.name + "/prediction"
-
-        @app_instance.route(service_name, methods=["POST"])
-        def run():
-            return web_service.get_prediction(request)
-
-        app_instance.run(host="0.0.0.0",
-                         port=web_service.port,
-                         threaded=False,
-                         processes=4)
+        start_multi_card(args)

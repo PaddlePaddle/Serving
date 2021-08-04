@@ -14,6 +14,7 @@
 #!flask/bin/python
 # pylint: disable=doc-string-missing
 
+# Now, this is only for Pipeline.
 from flask import Flask, request, abort
 from contextlib import closing
 from multiprocessing import Pool, Process, Queue
