@@ -36,14 +36,14 @@ def serving_encryption():
 ## 启动加密预测服务
 CPU预测服务
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model
 ```
 GPU预测服务
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
+python -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model --gpu_ids 0
 ```
 
 ## 预测
 ```
-python test_client.py encrypt_client/
+python test_client.py encrypt_client/serving_client_conf.prototxt
 ```

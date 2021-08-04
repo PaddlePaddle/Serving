@@ -172,19 +172,40 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 ```
 <center>
 
-| Argument                                       | Type | Default | Description                                            |
-| ---------------------------------------------- | ---- | ------- | ------------------------------------------------------ |
-| `thread`                                       | int  | `4`     | Concurrency of current service                         |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users               |
-| `name`                                         | str  | `""`    | Service name, can be used to generate HTTP request url |
-| `model`                                        | str  | `""`    | Path of paddle model directory to be served            |
-| `mem_optim_off`                                | -    | -       | Disable memory optimization                            |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph  |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                 |
-| `use_trt` (Only for Cuda>=10.1 version)        | -    | -       | Run inference with TensorRT                            |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                               |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU         |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8               |
+| Argument                                       | Type | Default | Description                                           |
+| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
+| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
+| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
+| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
+| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
+| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
+| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
+| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
+| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
+| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
+| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
+| `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
+| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+
+#### 异步模型的说明
+    异步模式适用于1、请求数量非常大的情况，2、多模型串联，想要分别指定每个模型的并发数的情况。
+    异步模式有助于提高Service服务的吞吐（QPS），但对于单次请求而言，时延会有少量增加。
+    异步模式中，每个模型会启动您指定个数的N个线程，每个线程中包含一个模型实例，换句话说每个模型相当于包含N个线程的线程池，从线程池的任务队列中取任务来执行。
+    异步模式中，各个RPC Server的线程只负责将Request请求放入模型线程池的任务队列中，等任务被执行完毕后，再从任务队列中取出已完成的任务。
+    上表中通过 --thread 10 指定的是RPC Server的线程数量，默认值为2，--op_num 指定的是各个模型的线程池中线程数N，默认值为0，表示不使用异步模式。
+    --op_max_batch 指定的各个模型的batch数量，默认值为32，该参数只有当--op_num不为0时才生效。
+    
+#### 当您的某个模型想使用多张GPU卡部署时.
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
+#### 当您的一个服务包含两个模型部署时.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292
+#### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡部署时.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
+#### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡，且需要异步模式每个模型指定不同的并发数时.
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --op_num 4 8
 
 </center>
 

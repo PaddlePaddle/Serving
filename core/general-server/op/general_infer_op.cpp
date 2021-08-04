@@ -31,7 +31,6 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
@@ -49,7 +48,7 @@ int GeneralInferOp::inference() {
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
   if (!input_blob) {
     LOG(ERROR) << "input_blob is nullptr,error";
-      return -1;
+    return -1;
   }
   uint64_t log_id = input_blob->GetLogId();
   VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
@@ -57,7 +56,7 @@ int GeneralInferOp::inference() {
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
   if (!output_blob) {
     LOG(ERROR) << "output_blob is nullptr,error";
-      return -1;
+    return -1;
   }
   output_blob->SetLogId(log_id);
 

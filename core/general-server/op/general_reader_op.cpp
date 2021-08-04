@@ -30,42 +30,8 @@ using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::FeedInst;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
-int conf_check(const Request *req,
-               const std::shared_ptr<PaddleGeneralModelConfig> &model_config) {
-  int var_num = req->insts(0).tensor_array_size();
-  if (var_num != model_config->_feed_type.size()) {
-    LOG(ERROR) << "feed var number not match: model config["
-               << model_config->_feed_type.size() << "] vs. actual[" << var_num
-               << "]";
-    return -1;
-  }
-
-  VLOG(2) << "fetch var num in reader op: " << req->fetch_var_names_size();
-
-  for (int i = 0; i < var_num; ++i) {
-    const Tensor &tensor = req->insts(0).tensor_array(i);
-    if (model_config->_feed_type[i] != tensor.elem_type()) {
-      LOG(ERROR) << "feed type not match.";
-      return -1;
-    }
-    if (model_config->_feed_shape[i].size() == tensor.shape_size()) {
-      for (int j = 0; j < model_config->_feed_shape[i].size(); ++j) {
-        tensor.shape(j);
-        if (model_config->_feed_shape[i][j] != tensor.shape(j)) {
-          LOG(ERROR) << "feed shape not match.";
-          return -1;
-        }
-      }
-    } else {
-      LOG(ERROR) << "feed shape not match.";
-      return -1;
-    }
-  }
-  return 0;
-}
 
 int GeneralReaderOp::inference() {
   // read request from client
@@ -93,7 +59,8 @@ int GeneralReaderOp::inference() {
   res->SetLogId(log_id);
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
-  int var_num = req->insts(0).tensor_array_size();
+  // var_num means the number of feed_var.
+  int var_num = req->tensor_size();
 
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
@@ -102,19 +69,7 @@ int GeneralReaderOp::inference() {
       baidu::paddle_serving::predictor::Resource::instance();
 
   VLOG(2) << "(logid=" << log_id << ") get resource pointer done.";
-  // get the first InferOP's model_config as ReaderOp's model_config by default.
-  std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config().front();
 
-  // TODO(guru4elephant): how to do conditional check?
-  /*
-  int ret = conf_check(req, model_config);
-  if (ret != 0) {
-    LOG(ERROR) << "model conf of server:";
-    resource.print_general_model_config(model_config);
-    return 0;
-  }
-  */
   // package tensor
   // prepare basic information for input
   // specify the memory needed for output tensor_vector
@@ -125,7 +80,7 @@ int GeneralReaderOp::inference() {
   int64_t databuf_size = 0;
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor paddleTensor;
-    const Tensor &tensor = req->insts(0).tensor_array(i);
+    const Tensor &tensor = req->tensor(i);
     data_len = 0;
     elem_type = 0;
     elem_size = 0;
@@ -172,13 +127,16 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "(logid=" << log_id << ") shape for var[" << i << "]: " << dim;
       paddleTensor.shape.push_back(dim);
     }
-    paddleTensor.name = model_config->_feed_name[i];
+    paddleTensor.name = tensor.name();
     out->push_back(paddleTensor);
 
     VLOG(2) << "(logid=" << log_id << ") tensor size for var[" << i
             << "]: " << data_len;
     databuf_size = data_len * elem_size;
-    out->at(i).data.Resize(databuf_size);
+    void *databuf_char = MempoolWrapper::instance().malloc(databuf_size);
+    paddle::PaddleBuf paddleBuf(databuf_char, databuf_size);
+    out->at(i).data = paddleBuf;
+    // out->at(i).data.Resize(databuf_size);
     if (out->at(i).lod.size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();

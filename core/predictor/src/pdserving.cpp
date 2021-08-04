@@ -68,13 +68,14 @@ static bvar::PassiveStatus<std::string> s_predictor_revision(
 DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
 DECLARE_string(flagfile);
-
+/*
 namespace bthread {
 extern pthread_mutex_t g_task_control_mutex;
 }
 pthread_mutex_t g_worker_start_fn_mutex = PTHREAD_MUTEX_INITIALIZER;
-
+*/
 void pthread_worker_start_fn() {
+  /*
   while (pthread_mutex_lock(&g_worker_start_fn_mutex) != 0) {
   }
 
@@ -83,15 +84,18 @@ void pthread_worker_start_fn() {
   if (lock_status == EBUSY || lock_status == EAGAIN) {
     pthread_mutex_unlock(&bthread::g_task_control_mutex);
   }
+  */
   Resource::instance().thread_initialize();
 
   // Try to avoid deadlock in bthread
+  /*
   if (lock_status == EBUSY || lock_status == EAGAIN) {
     while (pthread_mutex_lock(&bthread::g_task_control_mutex) != 0) {
     }
   }
 
   pthread_mutex_unlock(&g_worker_start_fn_mutex);
+  */
 }
 
 static void g_change_server_port() {
@@ -126,7 +130,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  //google::ParseCommandLineFlags(&argc, &argv, true);
+  // google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();
 
@@ -202,7 +206,7 @@ int main(int argc, char** argv) {
   }
   VLOG(2) << "Succ call pthread worker start function";
 
-  //this is not used by any code segment,which can be cancelled.
+  // this is not used by any code segment,which can be cancelled.
   if (Resource::instance().general_model_initialize(FLAGS_resource_path,
                                                     FLAGS_resource_file) != 0) {
     LOG(ERROR) << "Failed to initialize general model conf: "

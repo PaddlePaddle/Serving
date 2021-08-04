@@ -207,7 +207,7 @@ class PredictorClient {
 
   void init_gflags(std::vector<std::string> argv);
 
-  int init(const std::vector<std::string> &client_conf);
+  int init(const std::vector<std::string>& client_conf);
 
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
@@ -218,23 +218,22 @@ class PredictorClient {
 
   int destroy_predictor();
 
-  int numpy_predict(
-      const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int>>& float_shape,
-      const std::vector<std::vector<int>>& float_lod_slot_batch,
-      const std::vector<std::vector<py::array_t<int64_t>>>& int_feed_batch,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::vector<int>>& int_shape,
-      const std::vector<std::vector<int>>& int_lod_slot_batch,
-      const std::vector<std::vector<std::string>>& string_feed_batch,
-      const std::vector<std::string>& string_feed_name,
-      const std::vector<std::vector<int>>& string_shape,
-      const std::vector<std::vector<int>>& string_lod_slot_batch,
-      const std::vector<std::string>& fetch_name,
-      PredictorRes& predict_res_batch,  // NOLINT
-      const int& pid,
-      const uint64_t log_id);
+  int numpy_predict(const std::vector<py::array_t<float>>& float_feed,
+                    const std::vector<std::string>& float_feed_name,
+                    const std::vector<std::vector<int>>& float_shape,
+                    const std::vector<std::vector<int>>& float_lod_slot_batch,
+                    const std::vector<py::array_t<int64_t>>& int_feed,
+                    const std::vector<std::string>& int_feed_name,
+                    const std::vector<std::vector<int>>& int_shape,
+                    const std::vector<std::vector<int>>& int_lod_slot_batch,
+                    const std::vector<std::string>& string_feed,
+                    const std::vector<std::string>& string_feed_name,
+                    const std::vector<std::vector<int>>& string_shape,
+                    const std::vector<std::vector<int>>& string_lod_slot_batch,
+                    const std::vector<std::string>& fetch_name,
+                    PredictorRes& predict_res_batch,  // NOLINT
+                    const int& pid,
+                    const uint64_t log_id);
 
  private:
   PredictorApi _api;
@@ -243,6 +242,7 @@ class PredictorClient {
   std::string _predictor_path;
   std::string _conf_file;
   std::map<std::string, int> _feed_name_to_idx;
+  std::vector<std::string> _feed_name;
   std::map<std::string, int> _fetch_name_to_idx;
   std::map<std::string, std::string> _fetch_name_to_var_name;
   std::map<std::string, int> _fetch_name_to_type;

@@ -14,18 +14,16 @@
 # pylint: disable=doc-string-missing
 
 from . import monitor
-from . import rpc_service
 from . import serve
 from . import version
 
-__all__ = ["version", "server", "serve", "monitor", "rpc_service", "dag"]
+__all__ = ["version", "server", "serve", "monitor", "dag"]
 
 from paddle_serving_server import (
     version,
     server,
     serve,
     monitor,
-    rpc_service,
     dag, )
 
 from .dag import *

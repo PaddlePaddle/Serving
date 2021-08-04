@@ -73,8 +73,7 @@ ocr_service.load_model_config("ocr_rec_model")
 ocr_service.init_rec()
 if sys.argv[1] == 'gpu':
     ocr_service.set_gpus("0")
-    ocr_service.prepare_server(
-        workdir="workdir", port=9292, device="gpu", gpuid=0)
+    ocr_service.prepare_server(workdir="workdir", port=9292, device="gpu")
 elif sys.argv[1] == 'cpu':
     ocr_service.prepare_server(workdir="workdir", port=9292, device="cpu")
 ocr_service.run_rpc_service()
