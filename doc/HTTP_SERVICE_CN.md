@@ -140,7 +140,11 @@ curl --data-binary @data.txt.gz -H'Content-Encoding: gzip' -XPOST http://127.0.0
 curl --data-binary @data.txt.gz -H'Content-Encoding: gzip' --compressed -XPOST http://127.0.0.1:9393/GeneralModelService/inference
 ```
 
-若使用-H'Accept-encoding: gzip'，收到的将是压缩后的Response,您需要手动解压。
+若您只是在Http请求头中通过-H'Accept-encoding: gzip'设置了接收压缩的信息，收到的将是压缩后的Response，此时，您需要手动解压。
+
+也就是说，--compressed = -H'Content-Encoding: gzip' + 自动解压，所以推荐您使用--compressed，以下仅作为单独设置请求头+手动解压的原理性示例。
+
+当您想要验证返回值是否真的压缩时，您可以只添加请求头-H'Content-Encoding: gzip'，而不解压，可以看到返回信息是压缩后的数据（一般而言是看不懂的压缩码）。
 ```shell
 curl --data-binary @data.txt.gz -H'Content-Encoding: gzip' -H'Accept-encoding: gzip' -XPOST http://127.0.0.1:9393/GeneralModelService/inference | gunzip
 ```
