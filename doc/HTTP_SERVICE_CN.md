@@ -27,23 +27,42 @@ BRPC-Server会尝试去JSON字符串中再去反序列化出Proto格式的数据
 sh get_data.sh
 ```
 
-### 开启服务端
+## 开启服务端
 
 ```shell
 python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
-服务端无须做任何改造。
+服务端无须做任何改造，即可支持BRPC和HTTP两种方式。
 
-### 客户端使用curl访问
+
+## 客户端访问
+
+
+### HttpClient方式发送Http请求(Python/Java)
+
+为了方便用户快速的使用Http方式请求Server端预测服务，我们已经将常用的Http请求的数据体封装、压缩、请求加密等功能封装为一个HttpClient类提供给用户，方便用户使用。
+
+Python的HttpClient使用示例见[`python/examples/fit_a_line/test_httpclient.py`](../python/examples/fit_a_line/test_httpclient.py)，接口详见[`python/paddle_serving_client/httpclient.py`](../python/paddle_serving_client/httpclient.py)。
+
+Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/HttpClient.java`](../java/src/main/java/io/paddle/serving/client/HttpClient.java)。
+
+如果不能满足您的需求，您也可以在此基础上添加一些功能。
+
+如需支持https或者自定义Response的Status Code等,则需要对C++端brpc-Server进行一定的二次开发，请参考https://github.com/apache/incubator-brpc/blob/master/docs/cn/http_service.md，后续如果需求很大，我们也会将这部分功能加入到Server中，尽情期待。
+
+
+### curl方式发送Http请求(基本原理)
 
 ```shell
 curl -XPOST http://0.0.0.0:9393/GeneralModelService/inference -d ' {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"name":"x","alias_name":"x","shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}'
 ```
 其中`127.0.0.1:9393`为IP和Port，根据您服务端启动的IP和Port自行设定。
 
-`GeneralModelService`字段和`inference`字段分别为Proto文件中的Service服务名和rpc方法名，详见[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto))
+`GeneralModelService`字段和`inference`字段分别为Proto文件中的Service服务名和rpc方法名，详见[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto)
 
 -d后面的是请求的数据体，json中一定要包含上述proto中的required字段，否则转化会失败，对应请求会被拒绝。
+
+需要注意的是，数据中的shape字段为模型实际需要的shape信息，包含batch维度在内，可能与proto文件中的shape不一致。
 
 #### message
 
