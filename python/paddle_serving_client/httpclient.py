@@ -57,6 +57,7 @@ def data_bytes_number(datalist):
     else:
         raise ValueError(
             "In the Function data_bytes_number(), data must be list.")
+    return total_bytes_number
 
 
 class HttpClient(object):
@@ -140,6 +141,15 @@ class HttpClient(object):
             raise ValueError("http_timeout_ms must be int type.")
         else:
             self.http_timeout_ms = http_timeout_ms
+
+    def set_ip(self, ip):
+        self.ip = ip
+
+    def set_service_name(self, service_name):
+        self.service_name = service_name
+
+    def set_port(self, port):
+        self.port = port
 
     def set_request_compress(self, try_request_gzip):
         self.try_request_gzip = try_request_gzip
@@ -294,9 +304,10 @@ class HttpClient(object):
                         raise ValueError(
                             "feedvar is string-type,feed, feed can`t be a single int or others."
                         )
-
-            total_data_number = total_data_number + data_bytes_number(
-                data_value)
+            # 如果不压缩，那么不需要统计数据量。
+            if self.try_request_gzip:
+                total_data_number = total_data_number + data_bytes_number(
+                    data_value)
             Request["tensor"][index]["elem_type"] = elem_type
             Request["tensor"][index]["shape"] = shape
             Request["tensor"][index][data_key] = data_value
