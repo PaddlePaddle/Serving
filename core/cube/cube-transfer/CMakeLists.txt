@@ -18,11 +18,9 @@ project(cube-transfer Go)
 
 include(cmake/golang.cmake)
 
-ExternalGoProject_Add(rfw github.com/mipearson/rfw)
-ExternalGoProject_Add(docopt-go github.com/docopt/docopt-go)  
-add_custom_target(logex
-                  COMMAND env GOPATH=${GOPATH} ${CMAKE_Go_COMPILER} get github.com/Badangel/logex
-                  DEPENDS rfw)
+ExternalGoProject_Add(transfer-rfw github.com/mipearson/rfw)
+ExternalGoProject_Add(transfer-docopt-go github.com/docopt/docopt-go)  
+ExternalGoProject_Add(transfer-logex github.com/Badangel/logex)
 
 add_subdirectory(src)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/conf DESTINATION ${PADDLE_SERVING_INSTALL_DIR})
