@@ -37,6 +37,8 @@ using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
+// DistKV Infer Op: seek cube and then call paddle inference
+// op seq: general_reader-> dist_kv_infer -> general_response
 int GeneralDistKVInferOp::inference() { 
   VLOG(2) << "Going to run inference";
   const std::vector<std::string> pre_node_names = pre_names();
@@ -51,14 +53,14 @@ int GeneralDistKVInferOp::inference() {
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
   if (!input_blob) {
     LOG(ERROR) << "input_blob is nullptr,error";
-      return -1;
+    return -1;
   }
   uint64_t log_id = input_blob->GetLogId();
   VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
 
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
   if (!output_blob) {
-    LOG(ERROR) << "output_blob is nullptr,error";
+    LOG(ERROR) <<  "(logid=" << log_id << ") output_blob is nullptr,error";
       return -1;
   }
   output_blob->SetLogId(log_id);
@@ -92,7 +94,7 @@ int GeneralDistKVInferOp::inference() {
     dataptr_size_pairs.push_back(std::make_pair(data_ptr, elem_num));
   }
   keys.resize(key_len);
-  VLOG(2) << "(logid=" << log_id << ") cube number of keys to look up: " << key_len;
+  VLOG(3) << "(logid=" << log_id << ") cube number of keys to look up: " << key_len;
   int key_idx = 0;
   for (size_t i = 0; i < dataptr_size_pairs.size(); ++i) {
     std::copy(dataptr_size_pairs[i].first,
@@ -108,7 +110,7 @@ int GeneralDistKVInferOp::inference() {
   }
   // gather keys and seek cube servers, put results in values 
   int ret = cube->seek(table_names[0], keys, &values);
-  VLOG(2) << "(logid=" << log_id << ") cube seek status: " << ret;
+  VLOG(3) << "(logid=" << log_id << ") cube seek status: " << ret;
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
     LOG(ERROR) << "cube value return null";
   }
@@ -155,7 +157,7 @@ int GeneralDistKVInferOp::inference() {
     }
     ++sparse_idx;
   }
-  VLOG(2) << "(logid=" << log_id << ") sparse tensor load success.";
+  VLOG(3) << "(logid=" << log_id << ") sparse tensor load success.";
   TensorVector infer_in;
   infer_in.insert(infer_in.end(), dense_out.begin(), dense_out.end());
   infer_in.insert(infer_in.end(), sparse_out.begin(), sparse_out.end());
@@ -167,7 +169,7 @@ int GeneralDistKVInferOp::inference() {
   // call paddle inference here
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
+    LOG(ERROR) <<  <<  "(logid=" << log_id << ") Failed do infer in fluid model: " << engine_name();
     return -1;
   }
   int64_t end = timeline.TimeStampUS();
