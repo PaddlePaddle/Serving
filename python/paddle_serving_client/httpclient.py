@@ -57,6 +57,7 @@ def data_bytes_number(datalist):
     else:
         raise ValueError(
             "In the Function data_bytes_number(), data must be list.")
+    return total_bytes_number
 
 
 class HttpClient(object):
