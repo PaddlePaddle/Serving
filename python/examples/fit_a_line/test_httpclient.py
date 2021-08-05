@@ -34,10 +34,7 @@ test_reader = paddle.batch(
 for data in test_reader():
     new_data = np.zeros((1, 13)).astype("float32")
     new_data[0] = data[0][0]
-    lst_data = []
-    for i in range(200):
-        lst_data.append(data[0][0])
     fetch_map = client.predict(
-        feed={"x": lst_data}, fetch=fetch_list, batch=True)
+        feed={"x": new_data}, fetch=fetch_list, batch=True)
     print(fetch_map)
     break
