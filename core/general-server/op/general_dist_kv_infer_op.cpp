@@ -73,8 +73,8 @@ int GeneralDistKVInferOp::inference() {
   TensorVector *out = &output_blob->tensor_vector;
   std::vector<uint64_t> keys;
   std::vector<rec::mcube::CubeValue> values;
-  int sparse_count = 0;
-  int dense_count = 0;
+  int sparse_count = 0; // sparse inputs counts, sparse would seek cube
+  int dense_count = 0; // dense inputs counts, dense would directly call paddle infer
   std::vector<std::pair<int64_t *, size_t>> dataptr_size_pairs;
   size_t key_len = 0;
   for (size_t i = 0; i < in->size(); ++i) {
@@ -106,11 +106,13 @@ int GeneralDistKVInferOp::inference() {
     LOG(ERROR) << "cube init error or cube config not given.";
     return -1;
   }
+  // gather keys and seek cube servers, put results in values 
   int ret = cube->seek(table_names[0], keys, &values);
   VLOG(2) << "(logid=" << log_id << ") cube seek status: " << ret;
   if (values.size() != keys.size() || values[0].buff.size() == 0) {
     LOG(ERROR) << "cube value return null";
   }
+  // EMBEDDING_SIZE means the length of sparse vector, user can define length here. 
   size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
   TensorVector sparse_out;
   sparse_out.resize(sparse_count);
@@ -123,6 +125,7 @@ int GeneralDistKVInferOp::inference() {
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
   std::shared_ptr<PaddleGeneralModelConfig> model_config = resource.get_general_model_config().front();
+  //copy data to tnsor
   for (size_t i = 0; i < in->size(); ++i) {
     if (in->at(i).dtype != paddle::PaddleDType::INT64) {
       dense_out[dense_idx] = in->at(i);
@@ -161,7 +164,7 @@ int GeneralDistKVInferOp::inference() {
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
-
+  // call paddle inference here
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
