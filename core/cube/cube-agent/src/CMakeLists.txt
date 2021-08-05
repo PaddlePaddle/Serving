@@ -14,6 +14,7 @@
 
 set(SOURCE_FILE cube-agent.go)
 add_go_executable(cube-agent ${SOURCE_FILE})
+add_dependencies(cube-agent paddle_python)
 add_dependencies(cube-agent agent-docopt-go)
 add_dependencies(cube-agent agent-logex)
 add_dependencies(cube-agent agent-pipeline)
