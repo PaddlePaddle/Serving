@@ -1,6 +1,6 @@
 ## 如果获得稀疏参数索引Cube所需的模型输入
 
-#### 背景知识
+### 背景知识
 
 推荐系统需要大规模稀疏参数索引来帮助分布式部署，可在`python/example/criteo_ctr_with_cube`或是[PaddleRec](https://github.com/paddlepaddle/paddlerec)了解推荐模型。
 
@@ -11,11 +11,11 @@
 用户在调试Cube服务功能时，可以自定义KV对生成SequenceFile格式文件来进行调试。
 用户在验证Cube的配送正确性时，可以转换SequenceFile格式文件至可读文字来进行比对验证。
 
-#### 预备知识
+### 预备知识
 
 - 需要会编译Paddle Serving，参见[编译文档](./COMPILE.md)
 
-#### 用法
+### 用法
 
 在编译结束后的安装文件，可以得到 seq_reader 和 kv_to_seqfile.py。
 
