@@ -169,7 +169,7 @@ int GeneralDistKVInferOp::inference() {
   // call paddle inference here
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) <<  <<  "(logid=" << log_id << ") Failed do infer in fluid model: " << engine_name();
+    LOG(ERROR) << "(logid=" << log_id << ") Failed do infer in fluid model: " << engine_name();
     return -1;
   }
   int64_t end = timeline.TimeStampUS();
