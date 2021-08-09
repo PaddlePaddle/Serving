@@ -44,8 +44,10 @@ class BertOp(Op):
         return feed_dict, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
-        fetch_dict["pooled_output"] = str(fetch_dict["pooled_output"])
-        return fetch_dict, None, ""
+        new_dict = {}
+        new_dict["pooled_output"] = str(fetch_dict["pooled_output"])
+        new_dict["sequence_output"] = str(fetch_dict["sequence_output"])
+        return new_dict, None, ""
 
 
 class BertService(WebService):
