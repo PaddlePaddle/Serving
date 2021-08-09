@@ -20,10 +20,16 @@ import time
 
 client = HttpClient()
 client.load_client_config(sys.argv[1])
-# if you want to enable Encrypt Module,uncommenting the following line
+'''
+if you want to enable Encrypt Module,uncommenting the following line
+'''
 # client.use_key("./key")
-client.set_response_compress(True)
-client.set_request_compress(True)
+'''
+if you want to compress,uncommenting the following line
+'''
+#client.set_response_compress(True)
+#client.set_request_compress(True)
+#client.set_http_proto(True)
 fetch_list = client.get_fetch_names()
 import paddle
 test_reader = paddle.batch(
@@ -34,7 +40,7 @@ test_reader = paddle.batch(
 for data in test_reader():
     new_data = np.zeros((1, 13)).astype("float32")
     new_data[0] = data[0][0]
-    fetch_map = client.predict(
+    fetch_map = client.grpc_client_predict(
         feed={"x": new_data}, fetch=fetch_list, batch=True)
     print(fetch_map)
     break

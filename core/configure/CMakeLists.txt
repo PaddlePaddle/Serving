@@ -33,7 +33,9 @@ if (WITH_PYTHON)
   add_custom_target(general_model_config_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
   add_dependencies(general_model_config_py_proto general_model_config_py_proto_init)
   
-
+  py_grpc_proto_compile(general_model_service_py_proto SRCS proto/general_model_service.proto)
+  add_custom_target(general_model_service_py_proto_init ALL COMMAND ${CMAKE_COMMAND} -E touch __init__.py)
+  add_dependencies(general_model_service_py_proto general_model_service_py_proto_init)
   
   if (CLIENT)
     py_proto_compile(sdk_configure_py_proto SRCS proto/sdk_configure.proto)
@@ -50,7 +52,12 @@ if (WITH_PYTHON)
                     COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
                     COMMENT "Copy generated general_model_config proto file into directory paddle_serving_client/proto."
                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    
+
+    add_custom_command(TARGET general_model_service_py_proto POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
+                    COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_client/proto
+                    COMMENT "Copy generated general_model_service proto file into directory paddle_serving_client/proto."
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
   endif()
   
@@ -77,6 +84,12 @@ if (WITH_PYTHON)
     		COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
     		COMMENT "Copy generated general_model_config proto file into directory paddle_serving_server/proto."
     		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+    add_custom_command(TARGET general_model_service_py_proto POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E make_directory ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
+                    COMMAND cp -f *.py ${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto
+                    COMMENT "Copy generated general_model_service proto file into directory paddle_serving_server/proto."
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     
   endif()
 

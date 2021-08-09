@@ -180,6 +180,8 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use gpu_multi_stream")
+    parser.add_argument(
+        "--grpc", default=False, action="store_true", help="Use grpc test")
     return parser.parse_args()
 
 
@@ -384,4 +386,33 @@ if __name__ == "__main__":
         )
         server.serve_forever()
     else:
-        start_multi_card(args)
+        # this is for grpc Test
+        if args.grpc:
+            from .proto import general_model_service_pb2
+            sys.path.append(
+                os.path.join(
+                    os.path.abspath(os.path.dirname(__file__)), 'proto'))
+            from .proto import general_model_service_pb2_grpc
+            import google.protobuf.text_format
+            from concurrent import futures
+            import grpc
+
+            _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+
+            class GeneralModelService(
+                    general_model_service_pb2_grpc.GeneralModelServiceServicer):
+                def inference(self, request, context):
+                    return general_model_service_pb2.Response()
+
+            server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+            general_model_service_pb2_grpc.add_GeneralModelServiceServicer_to_server(
+                GeneralModelService(), server)
+            server.add_insecure_port('[::]:9393')
+            server.start()
+            try:
+                while True:
+                    time.sleep(_ONE_DAY_IN_SECONDS)
+            except KeyboardInterrupt:
+                server.stop(0)
+        else:
+            start_multi_card(args)
