@@ -4,7 +4,7 @@ This document will takes Imagenet service as an example to introduce how to use 
 
 ## Get model
 ```
-sh get_model.sh
+sh get_data.sh
 ```
 
 ## Start server

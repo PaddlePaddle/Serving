@@ -54,7 +54,7 @@ class DetOp(Op):
             imgs.append(det_img[np.newaxis, :].copy())
         return {"image": np.concatenate(imgs, axis=0)}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         #        print(fetch_dict)
         det_out = fetch_dict["concat_1.tmp_0"]
         ratio_list = [
@@ -149,7 +149,7 @@ class RecOp(Op):
 
         return feed_list, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_data, log_id):
+    def postprocess(self, input_dicts, fetch_data, data_id, log_id):
         res_list = []
         if isinstance(fetch_data, dict):
             if len(fetch_data) > 0:
