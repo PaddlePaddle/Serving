@@ -101,7 +101,6 @@ def is_gpu_mode(unformatted_gpus):
         for ids in op_gpu_list:
             if int(ids) >= 0:
                 return True
-
     return False
 
 

@@ -96,7 +96,8 @@ func ExeCommad(files string, params []string) (err error) {
 
 func Wget(ftpPath string, downPath string) {
 	var params []string
-	params = append(params, "-P")
+	params = append(params, "--limit-rate=100m")
+        params = append(params, "-P")
 	params = append(params, downPath)
 	params = append(params, "-r")
 	params = append(params, "-N")

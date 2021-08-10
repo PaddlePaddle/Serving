@@ -31,6 +31,21 @@ import paddle.nn.functional as F
 import errno
 from paddle.jit import to_static
 
+_PADDLE_DTYPE_2_NUMPY_DTYPE = {
+    core.VarDesc.VarType.BOOL: 'bool',
+    core.VarDesc.VarType.FP16: 'float16',
+    core.VarDesc.VarType.BF16: 'uint16',
+    core.VarDesc.VarType.FP32: 'float32',
+    core.VarDesc.VarType.FP64: 'float64',
+    core.VarDesc.VarType.INT8: 'int8',
+    core.VarDesc.VarType.INT16: 'int16',
+    core.VarDesc.VarType.INT32: 'int32',
+    core.VarDesc.VarType.INT64: 'int64',
+    core.VarDesc.VarType.UINT8: 'uint8',
+    core.VarDesc.VarType.COMPLEX64: 'complex64',
+    core.VarDesc.VarType.COMPLEX128: 'complex128',
+}
+
 
 def save_dygraph_model(serving_model_folder, client_config_folder, model):
     paddle.jit.save(model, "serving_tmp")
@@ -57,13 +72,8 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
         feed_var.name = feed_var_dict[key].name
+        feed_var.feed_type = var_type_conversion(feed_var_dict[key].dtype)
         feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            feed_var.feed_type = 0
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            feed_var.feed_type = 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            feed_var.feed_type = 2
         if feed_var.is_lod_tensor:
             feed_var.shape.extend([-1])
         else:
@@ -77,13 +87,8 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
+        fetch_var.fetch_type = var_type_conversion(fetch_var_dict[key].dtype)
         fetch_var.is_lod_tensor = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            fetch_var.fetch_type = 0
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            fetch_var.fetch_type = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            fetch_var.fetch_type = 2
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
@@ -117,6 +122,59 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
     with open("{}/serving_server_conf.stream.prototxt".format(
             serving_model_folder), "wb") as fout:
         fout.write(config.SerializeToString())
+
+
+def var_type_conversion(dtype):
+    """
+    Variable type conversion
+
+    Args:
+        dtype: type of core.VarDesc.VarType.xxxxx
+        (https://github.com/PaddlePaddle/Paddle/blob/release/2.1/python/paddle/framework/dtype.py) 
+    
+    Returns:
+        (int)type value, -1 is type matching failed.
+            int64 => 0; 
+            float32 => 1; 
+            int32 => 2; 
+            float64 => 3; 
+            int16 => 4; 
+            float16 => 5; 
+            bfloat16 => 6; 
+            uint8 => 7; 
+            int8 => 8; 
+            bool => 9;
+            complex64 => 10, 
+            complex128 => 11;
+    """
+    type_val = -1
+    if dtype == core.VarDesc.VarType.INT64:
+        type_val = 0
+    elif dtype == core.VarDesc.VarType.FP32:
+        type_val = 1
+    elif dtype == core.VarDesc.VarType.INT32:
+        type_val = 2
+    elif dtype == core.VarDesc.VarType.FP64:
+        type_val = 3
+    elif dtype == core.VarDesc.VarType.INT16:
+        type_val = 4
+    elif dtype == core.VarDesc.VarType.FP16:
+        type_val = 5
+    elif dtype == core.VarDesc.VarType.BF16:
+        type_val = 6
+    elif dtype == core.VarDesc.VarType.UINT8:
+        type_val = 7
+    elif dtype == core.VarDesc.VarType.INT8:
+        type_val = 8
+    elif dtype == core.VarDesc.VarType.BOOL:
+        type_val = 9
+    elif dtype == core.VarDesc.VarType.COMPLEX64:
+        type_val = 10
+    elif dtype == core.VarDesc.VarType.COMPLEX128:
+        type_val = 11
+    else:
+        type_val = -1
+    return type_val
 
 
 def save_model(server_model_folder,
@@ -164,18 +222,13 @@ def save_model(server_model_folder,
 
     config = model_conf.GeneralModelConfig()
 
-    #int64 = 0; float32 = 1; int32 = 2;
     for key in feed_var_dict:
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
         feed_var.name = feed_var_dict[key].name
+        feed_var.feed_type = var_type_conversion(feed_var_dict[key].dtype)
+
         feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            feed_var.feed_type = 0
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            feed_var.feed_type = 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            feed_var.feed_type = 2
         if feed_var.is_lod_tensor:
             feed_var.shape.extend([-1])
         else:
@@ -190,14 +243,10 @@ def save_model(server_model_folder,
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
-        #fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
-        fetch_var.is_lod_tensor = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            fetch_var.fetch_type = 0
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            fetch_var.fetch_type = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            fetch_var.fetch_type = 2
+        fetch_var.fetch_type = var_type_conversion(fetch_var_dict[key].dtype)
+
+        fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        #fetch_var.is_lod_tensor = 1
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:

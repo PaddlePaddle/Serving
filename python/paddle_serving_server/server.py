@@ -140,7 +140,7 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
-    # Multi-Server does not have this Function. 
+    # Multi-Server does not have this Function.
     def set_product_name(self, product_name=None):
         if product_name == None:
             raise ValueError("product_name can't be None.")
@@ -437,7 +437,6 @@ class Server(object):
 
     def download_bin(self):
         os.chdir(self.module_path)
-        need_download = False
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")

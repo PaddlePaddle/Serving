@@ -41,9 +41,10 @@ class UciOp(Op):
 
         return input_dict, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
-        _LOGGER.info("UciOp::postprocess >>> log_id:{}, fetch_dict:{}".format(
-            log_id, fetch_dict))
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
+        _LOGGER.info(
+            "UciOp::postprocess >>> data_id:{}, log_id:{}, fetch_dict:{}".
+            format(data_id, log_id, fetch_dict))
         fetch_dict["price"] = str(fetch_dict["price"][0][0])
         return fetch_dict, None, ""
 
