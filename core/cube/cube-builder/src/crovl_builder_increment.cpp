@@ -159,9 +159,15 @@ bool CROVLBuilderIncremental::Init(int index_type,
         return false;
       }
     } else {
-      if (!read_last_meta_from_transfer()) {
-        LOG(ERROR) << "read last meta from transfer error! ";
-        return false;
+      //if (!read_last_meta_from_transfer()) {
+      //  LOG(ERROR) << "read last meta from transfer error! ";
+      //  return false;
+      //}
+      if (_master_address == "") {
+        if (!read_last_meta_from_local()) {
+          LOG(ERROR) << "read last meta from db error! ";
+          return false;
+        }
       }
     }
   }

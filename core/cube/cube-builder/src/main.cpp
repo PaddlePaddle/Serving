@@ -62,17 +62,18 @@ int main(int argc, char *argv[]) {
     }
 
   } else if (FLAGS_job_mode == "delta") {
-    if (FLAGS_last_version == 0 || FLAGS_depend_version == 0) {
-      LOG(ERROR) << "Param error! need last_version and depend_version! Usage: "
-                 << argv[0] << " --help";
-      return -1;
-    } else {
+    //if (FLAGS_last_version == 0 || FLAGS_depend_version == 0) {
+     // LOG(ERROR) << "Param error! need last_version and depend_version! Usage: "
+     //            << argv[0] << " --help";
+     // return -1;
+    //} else {
       if (FLAGS_only_build) {
         time_t t;
         time(&t);
         cur_version = std::to_string(t);
+        depend_version = cur_version; //hack here 
       }
-    }
+    //}
   } else {
     LOG(ERROR) << "Job mode error! Usage: " << argv[0] << " --help";
     return -1;
