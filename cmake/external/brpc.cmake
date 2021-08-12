@@ -40,10 +40,10 @@ set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/
 
 if(WITH_LITE)
     set(BRPC_REPO "https://github.com/apache/incubator-brpc")
-    set(BRPC_TAG "master")
+    set(BRPC_TAG "1.0.0-rc01")
 else()
     set(BRPC_REPO "https://github.com/apache/incubator-brpc")
-    set(BRPC_TAG "master")
+    set(BRPC_TAG "1.0.0-rc01")
 endif()
 
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
