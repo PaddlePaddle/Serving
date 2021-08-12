@@ -20,12 +20,12 @@ package baidu.paddle_serving.predictor.general_model;
 option cc_generic_services = true;
 
 message Tensor {
-  repeated bytes data = 1;
+  repeated string data = 1;
   repeated int32 int_data = 2;
   repeated int64 int64_data = 3;
   repeated float float_data = 4;
   optional int32 elem_type =
-      5; // 0 means int64, 1 means float32, 2 means int32, 3 means bytes(string)
+      5; // 0 means int64, 1 means float32, 2 means int32, 3 means string
   repeated int32 shape = 6;       // shape should include batch
   repeated int32 lod = 7;         // only for fetch tensor currently
   optional string name = 8;       // get from the Model prototxt

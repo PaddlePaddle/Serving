@@ -66,7 +66,14 @@ def data_bytes_number(datalist):
     return total_bytes_number
 
 
-class HttpClient(object):
+# 此文件名，暂时为httpclient.py，待后续测试后考虑是否替换client.py
+# 默认使用http方式，默认使用Proto in HTTP-body
+# 如果想使用JSON in HTTP-body, set_http_proto(False)
+# Predict()是包装类http_client_predict/grpc_client_predict
+# 可以直接调用需要的http_client_predict/grpc_client_predict
+# 例如，如果想使用GRPC方式，set_use_grpc_client(True)
+# 或者直接调用grpc_client_predict()
+class GeneralClient(object):
     def __init__(self,
                  ip="0.0.0.0",
                  port="9393",
@@ -77,7 +84,7 @@ class HttpClient(object):
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.http_timeout_ms = 200000
+        self.timeout_ms = 200000
         self.ip = ip
         self.port = port
         self.server_port = port
@@ -86,7 +93,9 @@ class HttpClient(object):
         self.try_request_gzip = False
         self.try_response_gzip = False
         self.total_data_number = 0
-        self.http_proto = False
+        self.http_proto = True
+        self.max_body_size = 512 * 1024 * 1024
+        self.use_grpc_client = False
 
     def load_client_config(self, model_config_path_list):
         if isinstance(model_config_path_list, str):
@@ -144,11 +153,14 @@ class HttpClient(object):
                 self.lod_tensor_set.add(var.alias_name)
         return
 
-    def set_http_timeout_ms(self, http_timeout_ms):
-        if not isinstance(http_timeout_ms, int):
-            raise ValueError("http_timeout_ms must be int type.")
+    def set_max_body_size(self, max_body_size):
+        self.max_body_size = max_body_size
+
+    def set_timeout_ms(self, timeout_ms):
+        if not isinstance(timeout_ms, int):
+            raise ValueError("timeout_ms must be int type.")
         else:
-            self.http_timeout_ms = http_timeout_ms
+            self.timeout_ms = timeout_ms
 
     def set_ip(self, ip):
         self.ip = ip
@@ -167,6 +179,9 @@ class HttpClient(object):
 
     def set_http_proto(self, http_proto):
         self.http_proto = http_proto
+
+    def set_use_grpc_client(self, use_grpc_client):
+        self.use_grpc_client = use_grpc_client
 
     # use_key is the function of encryption.
     def use_key(self, key_filename):
@@ -195,50 +210,6 @@ class HttpClient(object):
     def get_fetch_names(self):
         return self.fetch_names_
 
-    # feed 支持Numpy类型，以及直接List、tuple
-    # 不支持str类型，因为proto中为repeated.
-    def predict(self,
-                feed=None,
-                fetch=None,
-                batch=False,
-                need_variant_tag=False,
-                log_id=0):
-
-        feed_dict = self.get_feedvar_dict(feed)
-        fetch_list = self.get_legal_fetch(fetch)
-        headers = {}
-        postData = ''
-
-        if self.http_proto == True:
-            postData = self.process_proto_data(feed_dict, fetch_list, batch,
-                                               log_id).SerializeToString()
-            headers["Content-Type"] = "application/proto"
-        else:
-            postData = self.process_json_data(feed_dict, fetch_list, batch,
-                                              log_id)
-            headers["Content-Type"] = "application/json"
-
-        web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
-        # 当数据区长度大于512字节时才压缩.
-        if self.try_request_gzip and self.total_data_number > 512:
-            postData = gzip.compress(bytes(postData, 'utf-8'))
-            headers["Content-Encoding"] = "gzip"
-        if self.try_response_gzip:
-            headers["Accept-encoding"] = "gzip"
-
-        # requests支持自动识别解压
-        result = requests.post(url=web_url, headers=headers, data=postData)
-        if result == None:
-            return None
-        if result.status_code == 200:
-            if result.headers["Content-Type"] == 'application/proto':
-                response = general_model_service_pb2.Response()
-                response.ParseFromString(result.content)
-                return response
-            else:
-                return result.json()
-        return result
-
     def get_legal_fetch(self, fetch):
         if fetch is None:
             raise ValueError("You should specify feed and fetch for prediction")
@@ -265,29 +236,32 @@ class HttpClient(object):
     def get_feedvar_dict(self, feed):
         if feed is None:
             raise ValueError("You should specify feed and fetch for prediction")
-
-        feed_batch = []
+        feed_dict = {}
         if isinstance(feed, dict):
-            feed_batch.append(feed)
+            feed_dict = feed
         elif isinstance(feed, (list, str, tuple)):
             # if input is a list or str or tuple, and the number of feed_var is 1.
-            # create a temp_dict { key = feed_var_name, value = list}
-            # put the temp_dict into the feed_batch.
-            if len(self.feed_names_) != 1:
-                raise ValueError(
-                    "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
-                )
-            temp_dict = {}
-            temp_dict[self.feed_names_[0]] = feed
-            feed_batch.append(temp_dict)
+            # create a feed_dict { key = feed_var_name, value = list}
+            if len(self.feed_names_) == 1:
+                feed_dict[self.feed_names_[0]] = feed
+            elif len(self.feed_names_) > 1:
+                if isinstance(feed, str):
+                    raise ValueError(
+                        "input is a str, but we got 2+ feed_var, don`t know how to divide the string"
+                    )
+                # feed is a list or tuple
+                elif len(self.feed_names_) == len(feed):
+                    for index in range(len(feed)):
+                        feed_dict[self.feed_names_[index]] = feed[index]
+                else:
+                    raise ValueError("len(feed) ≠ len(feed_var), error")
+            else:
+                raise ValueError("we got feed, but feed_var is None")
+
         else:
-            raise ValueError("Feed only accepts dict and list of dict")
+            raise ValueError("Feed only accepts dict/str/list/tuple")
 
-        # batch_size must be 1, cause batch is already in Tensor.
-        if len(feed_batch) != 1:
-            raise ValueError("len of feed_batch can only be 1.")
-
-        return feed_batch[0]
+        return feed_dict
 
     def process_json_data(self, feed_dict, fetch_list, batch, log_id):
         Request = {}
@@ -429,6 +403,64 @@ class HttpClient(object):
             tensor_dict["lod"] = lod
         return tensor_dict
 
+    # feed结构必须为dict、List、tuple、string
+    # feed中数据支持Numpy、list、tuple、以及基本类型
+    # fetch默认是从模型的配置文件中获取全部的fetch_var
+    def predict(self,
+                feed=None,
+                fetch=None,
+                batch=False,
+                need_variant_tag=False,
+                log_id=0):
+        if self.use_grpc_client:
+            return self.grpc_client_predict(feed, fetch, batch,
+                                            need_variant_tag, log_id)
+        else:
+            return self.http_client_predict(feed, fetch, batch,
+                                            need_variant_tag, log_id)
+
+    def http_client_predict(self,
+                            feed=None,
+                            fetch=None,
+                            batch=False,
+                            need_variant_tag=False,
+                            log_id=0):
+
+        feed_dict = self.get_feedvar_dict(feed)
+        fetch_list = self.get_legal_fetch(fetch)
+        headers = {}
+        postData = ''
+
+        if self.http_proto == True:
+            postData = self.process_proto_data(feed_dict, fetch_list, batch,
+                                               log_id).SerializeToString()
+            headers["Content-Type"] = "application/proto"
+        else:
+            postData = self.process_json_data(feed_dict, fetch_list, batch,
+                                              log_id)
+            headers["Content-Type"] = "application/json"
+
+        web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
+        # 当数据区长度大于512字节时才压缩.
+        if self.try_request_gzip and self.total_data_number > 512:
+            postData = gzip.compress(bytes(postData, 'utf-8'))
+            headers["Content-Encoding"] = "gzip"
+        if self.try_response_gzip:
+            headers["Accept-encoding"] = "gzip"
+
+        # requests支持自动识别解压
+        result = requests.post(url=web_url, headers=headers, data=postData)
+        if result == None:
+            return None
+        if result.status_code == 200:
+            if result.headers["Content-Type"] == 'application/proto':
+                response = general_model_service_pb2.Response()
+                response.ParseFromString(result.content)
+                return response
+            else:
+                return result.json()
+        return result
+
     def grpc_client_predict(self,
                             feed=None,
                             fetch=None,
@@ -440,19 +472,17 @@ class HttpClient(object):
         fetch_list = self.get_legal_fetch(fetch)
 
         postData = self.process_proto_data(feed_dict, fetch_list, batch, log_id)
-        print('proto data', postData)
-        '''
+
         # https://github.com/tensorflow/serving/issues/1382
-        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
-                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
-                   ('grpc.lb_policy_name', 'round_robin')]
-        '''
+        options = [('grpc.max_receive_message_length', self.max_body_size),
+                   ('grpc.max_send_message_length', self.max_body_size)]
+
         endpoints = [self.ip + ":" + self.server_port]
         g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
         print("my endpoint is ", g_endpoint)
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = general_model_service_pb2_grpc.GeneralModelServiceStub(
             self.channel_)
-        resp = self.stub_.inference(postData, timeout=self.http_timeout_ms)
+        resp = self.stub_.inference(postData, timeout=self.timeout_ms)
 
         return resp

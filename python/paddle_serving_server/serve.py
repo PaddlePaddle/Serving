@@ -108,9 +108,13 @@ def is_gpu_mode(unformatted_gpus):
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=2, help="Concurrency of server")
+        "--thread",
+        type=int,
+        default=4,
+        help="Concurrency of server,[4,1024]",
+        choices=range(4, 1025))
     parser.add_argument(
-        "--port", type=int, default=9292, help="Port of the starting gpu")
+        "--port", type=int, default=9393, help="Port of the starting gpu")
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(
@@ -180,8 +184,6 @@ def serve_args():
         default=False,
         action="store_true",
         help="Use gpu_multi_stream")
-    parser.add_argument(
-        "--grpc", default=False, action="store_true", help="Use grpc test")
     return parser.parse_args()
 
 
@@ -386,33 +388,4 @@ if __name__ == "__main__":
         )
         server.serve_forever()
     else:
-        # this is for grpc Test
-        if args.grpc:
-            from .proto import general_model_service_pb2
-            sys.path.append(
-                os.path.join(
-                    os.path.abspath(os.path.dirname(__file__)), 'proto'))
-            from .proto import general_model_service_pb2_grpc
-            import google.protobuf.text_format
-            from concurrent import futures
-            import grpc
-
-            _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
-            class GeneralModelService(
-                    general_model_service_pb2_grpc.GeneralModelServiceServicer):
-                def inference(self, request, context):
-                    return general_model_service_pb2.Response()
-
-            server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-            general_model_service_pb2_grpc.add_GeneralModelServiceServicer_to_server(
-                GeneralModelService(), server)
-            server.add_insecure_port('[::]:9393')
-            server.start()
-            try:
-                while True:
-                    time.sleep(_ONE_DAY_IN_SECONDS)
-            except KeyboardInterrupt:
-                server.stop(0)
-        else:
-            start_multi_card(args)
+        start_multi_card(args)
