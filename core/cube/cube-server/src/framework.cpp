@@ -43,58 +43,58 @@ Framework* Framework::instance() {
 
 Framework::~Framework() {}
 
-int Framework::init(uint32_t dict_split, bool in_mem) {
+int Framework::init(std::string dict_name, uint32_t dict_split, bool in_mem) {
   Recycle* rec = Recycle::get_instance();
   int ret = rec->init();
   if (ret != 0) {
     LOG(ERROR) << "init recycle failed";
     return ret;
   }
-
+  LOG(INFO) << "will not init here.";
   /*
   _dict[0] = new (std::nothrow) Dict();
   _dict[1] = NULL;
   */
-  init_dict(dict_split);
-  VirtualDict* cur_dict = _dict[_dict_idx];
-  _dict_path = "./data";
-  _max_val_size = 1024;
-  _in_mem = in_mem;
+  //init_dict(dict_split);
+  //VirtualDict* cur_dict = _dict[_dict_idx];
+  //_dict_path = "./data";
+  //_max_val_size = 1024;
+  //_in_mem = in_mem;
 
-  std::string version_file = _dict_path + "/VERSION";
-  std::string version_path = "";
-  std::ifstream input(version_file.c_str());
-  if (!std::getline(input, version_path)) {
-    version_path = "";
-  } else {
-    version_path = "/" + version_path;
-  }
-  input.close();
+  //std::string version_file = _dict_path + "/VERSION";
+  //std::string version_path = "";
+  //std::ifstream input(version_file.c_str());
+  //if (!std::getline(input, version_path)) {
+  //  version_path = "";
+  //} else {
+  //  version_path = "/" + version_path;
+ // }
+  //input.close();
 
-  LOG(INFO) << "load dict from" << _dict_path << version_path;
-  if (_dict_split > 1) {
-    _dict_set_path.clear();
-    _dict_set_path.resize(_dict_split);
-    std::stringstream dict_set_path_buf;
-    for (size_t i = 0; i < _dict_split; ++i) {
-      dict_set_path_buf.str(std::string());
-      dict_set_path_buf.clear();
-      dict_set_path_buf << _dict_path << "/" << i;
-      _dict_set_path[i] = dict_set_path_buf.str();
-    }
-    ret = cur_dict->load(_dict_set_path, _in_mem, version_path);
-  } else {
-    ret = cur_dict->load(_dict_path, _in_mem, version_path);
-  }
+  //LOG(INFO) << "load dict from" << _dict_path << version_path;
+  //if (_dict_split > 1) {
+  //  _dict_set_path.clear();
+  //  _dict_set_path.resize(_dict_split);
+  //  std::stringstream dict_set_path_buf;
+  //  for (size_t i = 0; i < _dict_split; ++i) {
+  //    dict_set_path_buf.str(std::string());
+  //    dict_set_path_buf.clear();
+  //    dict_set_path_buf << _dict_path << "/" << i;
+  //    _dict_set_path[i] = dict_set_path_buf.str();
+  //  }
+  //  ret = cur_dict->load(_dict_set_path, _in_mem, version_path);
+  //} else {
+  //  ret = cur_dict->load(_dict_path, _in_mem, version_path);
+  //}
 
-  if (ret != 0) {
-    LOG(WARNING) << "init: load dict data failed err=" << ret
-                 << ". starting service with empty data.";
-  } else {
-    LOG(INFO) << "load dict from " << _dict_path << version_path << " done";
-  }
+  //if (ret != 0) {
+  //  LOG(WARNING) << "init: load dict data failed err=" << ret
+  //               << ". starting service with empty data.";
+  //} else {
+  // LOG(INFO) << "load dict from " << _dict_path << version_path << " done";
+  //}
 
-  _status = Status::F_RUNNING;
+  //_status = Status::F_RUNNING;
 
   return 0;
 }
@@ -108,7 +108,7 @@ int Framework::destroy() {
   return 0;
 }
 
-void Framework::init_dict(uint32_t dict_split) {
+void Framework::init_dict(std::string dict_name, uint32_t dict_split) {
   _dict_split = dict_split;
 
   if (_dict_split <= 1) {
@@ -121,16 +121,12 @@ void Framework::init_dict(uint32_t dict_split) {
 }
 
 VirtualDict* Framework::create_dict() {
-  if (_dict_split > 1) {
-    return new (std::nothrow) DictSet(_dict_split);
-  } else {
     return new (std::nothrow) Dict();
-  }
 }
 
 void Framework::release(VirtualDict* dict) { dict->atom_dec_seek_num(); }
 
-int Framework::status(Document* res) {
+int Framework::status(std::string dict_name, Document* res) {
   res->SetObject();
   Document::AllocatorType& allocator = res->GetAllocator();
   Value cur_version;
@@ -145,7 +141,10 @@ int Framework::status(Document* res) {
 
 int Framework::seek(const DictRequest* req, DictResponse* res) {
   g_request_num << 1;
-  VirtualDict* cur_dict = get_cur_dict();
+  // get table name and cur dict
+  std::string dict_name = req->dict_name;
+  
+  VirtualDict* cur_dict = get_cur_dict(dict_name);
   char* val_buf = new char[_max_val_size];
   g_keys_num << req->keys_size();
   g_total_key_num << req->keys_size();
@@ -178,22 +177,22 @@ int Framework::seek(const DictRequest* req, DictResponse* res) {
   return 0;
 }
 
-int Framework::reload(const std::string& v_path) {
-  int ret = bg_load_base(v_path);
+int Framework::reload(std::string dict_name, const std::string& v_path) {
+  int ret = bg_load_base(dict_name, v_path);
   if (ret != 0) {
     LOG(WARNING) << "background load dict base failed";
   } else {
     LOG(INFO) << "background load dict base succ";
   }
 
-  ret = bg_switch();
+  ret = bg_switch(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "switch background dict failed";
   } else {
     LOG(INFO) << "switch background dict succ";
   }
 
-  ret = bg_unload();
+  ret = bg_unload(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "unload background dict failed";
   } else {
@@ -203,22 +202,22 @@ int Framework::reload(const std::string& v_path) {
   return ret;
 }
 
-int Framework::patch(const std::string& v_path) {
-  int ret = bg_load_patch(v_path);
+int Framework::patch(std::string dict_name, const std::string& v_path) {
+  int ret = bg_load_patch(dict_name, v_path);
   if (ret != 0) {
     LOG(WARNING) << "background load dict patch failed";
   } else {
     LOG(INFO) << "background load dict patch succ";
   }
 
-  ret = bg_switch();
+  ret = bg_switch(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "switch background dict failed";
   } else {
     LOG(INFO) << "switch background dict succ";
   }
 
-  ret = bg_unload();
+  ret = bg_unload(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "unload background dict failed";
   } else {
@@ -228,8 +227,8 @@ int Framework::patch(const std::string& v_path) {
   return ret;
 }
 
-int Framework::bg_load_base(const std::string& v_path) {
-  int ret = bg_unload();
+int Framework::bg_load_base(std::string dict_name, const std::string& v_path) {
+  int ret = bg_unload(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "unload background dict failed";
   }
@@ -242,11 +241,7 @@ int Framework::bg_load_base(const std::string& v_path) {
   }
 
   _status = Status::F_LOADING;
-  if (_dict_split > 1) {
-    ret = bg_dict->load(_dict_set_path, _in_mem, v_path);
-  } else {
-    ret = bg_dict->load(_dict_path, _in_mem, v_path);
-  }
+  ret = bg_dict->load(_dict_path, _in_mem, v_path);
   _status = Status::F_RUNNING;
   if (ret != 0) {
     LOG(WARNING) << "load background dict failed";
@@ -255,14 +250,14 @@ int Framework::bg_load_base(const std::string& v_path) {
     return ret;
   } else {
     LOG(INFO) << "load background dict succ";
-    set_bg_dict(bg_dict);
+    set_bg_dict(dict_name, bg_dict);
   }
 
   return ret;
 }
 
-int Framework::bg_load_patch(const std::string& v_path) {
-  int ret = bg_unload();
+int Framework::bg_load_patch(std::string dict_name, const std::string& v_path) {
+  int ret = bg_unload(dict_name);
   if (ret != 0) {
     LOG(WARNING) << "unload background dict failed";
   }
@@ -293,15 +288,15 @@ int Framework::bg_load_patch(const std::string& v_path) {
     return ret;
   } else {
     LOG(INFO) << "load background dict succ";
-    set_bg_dict(bg_dict);
+    set_bg_dict(dict_name, bg_dict);
   }
   return ret;
 }
 
-int Framework::bg_unload() {
-  VirtualDict* bg_dict = get_bg_dict();
+int Framework::bg_unload(std::string dict_name) {
+  VirtualDict* bg_dict = get_bg_dict(dict_name);
   if (bg_dict != NULL) {
-    set_bg_dict(NULL);
+    set_bg_dict(dict_name, NULL);
     Recycle* recycle = Recycle::get_instance();
     recycle->recycle(bg_dict);
   }
@@ -309,8 +304,10 @@ int Framework::bg_unload() {
   return 0;
 }
 
-int Framework::bg_switch() {
+int Framework::bg_switch(std::string dict_name) {
   _rw_lock.w_lock();
+  int _dict_idx = _dict_idx_map[dict_name];
+  VirtualDict* _dict = _dict_idx_map[dict_name];
   int bg_idx = 1 - _dict_idx;
   if (!_dict[bg_idx]) {
     LOG(WARNING) << "switch dict failed because NULL";
@@ -322,7 +319,7 @@ int Framework::bg_switch() {
   return 0;
 }
 
-int Framework::enable(const std::string& version) {
+int Framework::enable(std::string dict_name, const std::string& version) {
   int ret = 0;
   if (version != "" && version == get_cur_version()) {
     ret = 0;
