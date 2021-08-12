@@ -284,7 +284,7 @@ public class PaddleServingClientExample {
         
         if (args.length < 2) {
             System.out.println("Usage: java -cp <jar> PaddleServingClientExample <test-type> <configPath>.");
-            System.out.println("<test-type>: http_proto grpc bert cube_local yolov4 encrypt");
+            System.out.println("<test-type>: http_proto http_json grpc bert cube_local yolov4 encrypt");
             return;
         }
         String testType = args[0];
