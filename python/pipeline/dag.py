@@ -176,7 +176,7 @@ class DAGExecutor(object):
                              "in_channel must be Channel type, but get {}".
                              format(type(in_channel)))
             os._exit(-1)
-        in_channel.add_producer(self.name)
+
         self._in_channel = in_channel
         _LOGGER.info("[DAG] set in channel succ, name [{}]".format(self.name))
 
@@ -669,14 +669,14 @@ class DAG(object):
                                              out_degree_ops)
         dag_views = list(reversed(dag_views))
         if not self._build_dag_each_worker:
-            _LOGGER.debug("================== DAG ====================")
+            _LOGGER.info("================== DAG ====================")
             for idx, view in enumerate(dag_views):
-                _LOGGER.debug("(VIEW {})".format(idx))
+                _LOGGER.info("(VIEW {})".format(idx))
                 for op in view:
-                    _LOGGER.debug("  [{}]".format(op.name))
+                    _LOGGER.info("  [{}]".format(op.name))
                     for out_op in out_degree_ops[op.name]:
-                        _LOGGER.debug("    - {}".format(out_op.name))
-            _LOGGER.debug("-------------------------------------------")
+                        _LOGGER.info("    - {}".format(out_op.name))
+            _LOGGER.info("-------------------------------------------")
 
         # create channels and virtual ops
         virtual_op_name_gen = NameGenerator("vir")
@@ -719,6 +719,7 @@ class DAG(object):
                 channel = self._gen_channel(channel_name_gen)
                 channels.append(channel)
                 op.add_input_channel(channel)
+                _LOGGER.info("op:{} add input channel.".format(op.name))
                 pred_ops = pred_op_of_next_view_op[op.name]
                 if v_idx == 0:
                     input_channel = channel
@@ -726,6 +727,8 @@ class DAG(object):
                     # if pred_op is virtual op, it will use ancestors as producers to channel
                     for pred_op in pred_ops:
                         pred_op.add_output_channel(channel)
+                        _LOGGER.info("pred_op:{} add output channel".format(
+                            pred_op.name))
                 processed_op.add(op.name)
                 # find same input op to combine channel
                 for other_op in actual_next_view[o_idx + 1:]:
@@ -745,6 +748,7 @@ class DAG(object):
         output_channel = self._gen_channel(channel_name_gen)
         channels.append(output_channel)
         last_op.add_output_channel(output_channel)
+        _LOGGER.info("last op:{} add output channel".format(last_op.name))
 
         pack_func, unpack_func = None, None
         pack_func = response_op.pack_response_package
@@ -752,7 +756,11 @@ class DAG(object):
         actual_ops = virtual_ops
         for op in used_ops:
             if len(op.get_input_ops()) == 0:
+                #set special features of the request op. 
+                #1.set unpack function.
+                #2.set output channel. 
                 unpack_func = op.unpack_request_package
+                op.add_output_channel(input_channel)
                 continue
             actual_ops.append(op)
 

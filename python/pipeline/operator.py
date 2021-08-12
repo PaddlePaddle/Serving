@@ -58,13 +58,15 @@ class Op(object):
                  retry=0,
                  batch_size=None,
                  auto_batching_timeout=None,
-                 local_service_handler=None):
+                 local_service_handler=None,
+                 jump_to_ops=[]):
         # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
+        self.set_jump_to_ops(jump_to_ops)
 
         self._local_service_handler = local_service_handler
         self._server_endpoints = server_endpoints
@@ -99,9 +101,7 @@ class Op(object):
             conf: config.yaml
 
         Returns:
-            None
         """
-        # init op
         if self.concurrency is None:
             self.concurrency = conf["concurrency"]
         if self._retry is None:
@@ -372,6 +372,79 @@ class Op(object):
                 os._exit(-1)
             self._input_ops.append(op)
 
+    def get_jump_to_ops(self):
+        return self._jump_to_ops
+
+    def set_jump_to_ops(self, ops):
+        """
+        Set jump to ops, then, this op can send channeldata to output channel.
+
+        Args:
+            ops: op list to be jumpped
+
+        Returns:
+            None.
+        """
+        if not isinstance(ops, list):
+            ops = [] if ops is None else [ops]
+
+        self._jump_to_ops = []
+        for op in ops:
+            if not isinstance(op, Op):
+                _LOGGER.critical(
+                    self._log("Failed to set input_ops: input op "
+                              "must be Op type, not {}".format(type(op))))
+                os._exit(-1)
+            self._jump_to_ops.append(op)
+
+    def is_jump_op(self):
+        """
+        The op has _jump_to_ops members or not.
+
+        Args:
+            None
+
+        Returns:
+            True or False
+        """
+        return len(self._jump_to_ops) > 0
+
+    def check_jumping(self, input_data):
+        """
+        Check whether to send data to jump ops.WhileOp needs to rewrite 
+        this interface. this function returns False default.
+     
+        Args:
+            input_data: input data to be preprocessed
+
+        Returns:
+            True, send data to the output channel of jump ops
+            False, send data to output channel.
+        """
+        return False
+
+    def get_output_channels_of_jump_ops(self):
+        """
+        Get output channels of jump ops
+
+        Args:
+            None
+
+        Returns:
+            list of channels
+        """
+        channels = []
+        if self.is_jump_op() is False:
+            return channels
+        for op in self._jump_to_ops:
+            _LOGGER.info("op:{} extend op._get_output_channels:{}".format(
+                op.name, op._get_output_channels()))
+            channels.extend(op._get_output_channels())
+
+        _LOGGER.info("get_output_channels_of_jump_ops, channels:{}".format(
+            channels))
+        return channels
+
     def add_input_channel(self, channel):
         """
         Adding one input channel to the Op. Each op have many front op,
@@ -410,6 +483,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
+        _LOGGER.info("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -424,7 +498,7 @@ class Op(object):
 
         Args:
             input_dicts: input data to be preprocessed
-            data_id: inner unique id, 0 default
+            data_id: inner unique id, increase auto
             log_id: global unique id for RTT, 0 default
 
         Return:
@@ -484,12 +558,13 @@ class Op(object):
         '''
         return call_result
 
-    def postprocess(self, input_data, fetch_data, log_id=0):
+    def postprocess(self, input_data, fetch_data, data_id=0, log_id=0):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
             input_data: data returned in preprocess stage, dict(for single predict) or list(for batch predict)
             fetch_data: data returned in process stage, dict(for single predict) or list(for batch predict)
+            data_id: inner unique id, increase auto
             log_id: logid, 0 default
 
         Returns: 
@@ -593,7 +668,8 @@ class Op(object):
                       self.device_type, self.devices, self.mem_optim,
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
-                      self.mkldnn_bf16_op_list))
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops()))
             p.daemon = True
             p.start()
             process.append(p)
@@ -629,7 +705,8 @@ class Op(object):
                       self.device_type, self.devices, self.mem_optim,
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
-                      self.mkldnn_bf16_op_list))
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops()))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -954,7 +1031,7 @@ class Op(object):
             prod_errcode, prod_errinfo = None, None
             try:
                 postped_data, prod_errcode, prod_errinfo = self.postprocess(
-                    parsed_data_dict[data_id], midped_data,
+                    parsed_data_dict[data_id], midped_data, data_id,
                     logid_dict.get(data_id))
             except Exception as e:
                 error_info = "(data_id={} log_id={}) {} Failed to postprocess: {}".format(
@@ -1100,7 +1177,8 @@ class Op(object):
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
              device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
-             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list):
+             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
+             is_jump_op, output_channels_of_jump_ops):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1127,6 +1205,8 @@ class Op(object):
             mkldnn_cache_capacity: cache capacity of mkldnn, 0 means no limit.
             mkldnn_op_list: OP list optimized by mkldnn, None default.
             mkldnn_bf16_op_list: OP list optimized by mkldnn bf16, None default.
+            is_jump_op: OP has jump op list or not, False default.
+            output_channels_of_jump_ops: all output channels of jump ops.
 
         Returns:
             None
@@ -1267,27 +1347,46 @@ class Op(object):
                 break
             if len(postped_data_dict) == 0:
                 continue
+
             # push data to channel (if run succ)
             start = int(round(_time() * 1000000))
             try:
                 profile_str = profiler.gen_profile_str()
-                for data_id, postped_data in postped_data_dict.items():
-                    if self._server_use_profile:
-                        sys.stderr.write(profile_str)
-                    self._push_to_output_channels(
-                        data=postped_data,
-                        channels=output_channels,
-                        profile_str=profile_str,
-                        client_need_profile=need_profile_dict[data_id],
-                        profile_set=profile_dict[data_id])
-                    after_outchannel_time = _time()
-                    _LOGGER.debug(
-                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
-                        format(data_id, self.name, (after_outchannel_time -
-                                                    after_postp_time) * 1000))
-                    _LOGGER.debug(
-                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push data:{}".
-                        format(data_id, self.name, postped_data.get_all_data()))
+                if self.is_jump_op() is True and self.check_jumping(
+                        postped_data_dict) is True:
+                    # push data to output channel of ops to be jumped 
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels_of_jump_ops,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL OF JUMP OPs! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
+                else:
+                    # push data to output channel.
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
             except ChannelStopError:
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
@@ -1410,7 +1509,7 @@ class RequestOp(Op):
         for idx, key in enumerate(request.key):
             dict_data[key] = request.value[idx]
         log_id = request.logid
-        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+        _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
             name:{}, method:{}".format(log_id, request.clientip, request.name,
                                        request.method))
 

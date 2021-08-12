@@ -38,18 +38,19 @@ func GetDoneFileInfo(addr string) (version dict.DictVersionInfo, err error) {
 		Wget(addr, donefileAddr)
 		addr = donefileAddr
 	}
-
-	baseDonefile := addr + "/base.txt"
-	fmt.Printf("[trigrer]donefile path:%v \n", baseDonefile)
-	logex.Noticef("[trigrer]base donefile path:%v", baseDonefile)
-	contents, err := ioutil.ReadFile(baseDonefile)
 	VersionLen := len(Dict.CurrentVersionInfo)
 	version.DictName = Dict.DictName
-	if err != nil {
-		fmt.Printf("[trigrer]read files err:%v \n", err)
-		logex.Fatalf("[trigrer]read files err:%v ", err)
+        fmt.Printf("get into mode check here\n")
+        if Dict.DictMode == dict.BASE_ONLY {
+          baseDonefile := addr + "/base.txt"
+          fmt.Printf("[trigrer]donefile path:%v \n", baseDonefile)
+          logex.Noticef("[trigrer]base donefile path:%v", baseDonefile)
+          contents, err_0 := ioutil.ReadFile(baseDonefile)
+	  if err_0 != nil {
+		fmt.Printf("[trigrer]read files err:%v \n", err_0)
+		logex.Fatalf("[trigrer]read files err:%v ", err_0)
 		return
-	} else {
+	  } else {
 		contentss := string(contents)
 		lines := strings.Split(contentss, "\n")
 		index := len(lines) - 1
@@ -80,19 +81,21 @@ func GetDoneFileInfo(addr string) (version dict.DictVersionInfo, err error) {
 			version.Mode = dict.BASE
 			return
 		}
-	}
-	if Dict.DictMode == dict.BASR_DELTA && VersionLen > 0 {
+	  }
+        }
+	if Dict.DictMode == dict.BASR_DELTA {
 		patchDonefile := addr + "/patch.txt"
 		fmt.Printf("[trigrer]patchDonefile path:%v \n", patchDonefile)
 		logex.Noticef("[trigrer]patch donefile path:%v", patchDonefile)
-		contents, err = ioutil.ReadFile(patchDonefile)
-		if err != nil {
-			fmt.Printf("read files err:%v \n", err)
+		contents, err_0 := ioutil.ReadFile(patchDonefile)
+		if err_0 != nil {
+			fmt.Printf("[trigrer]read files err:%v \n", err_0)
+                        logex.Fatalf("[trigrer]read files err:%v ", err_0)
 			return
 		} else {
 			contentss := string(contents)
 			lines := strings.Split(contentss, "\n")
-
+                        fmt.Printf("[trigger]get patch lines here\n")
 			for index := 0; index < len(lines)-1; index++ {
 				if len(lines[index]) < 3 {
 					logex.Noticef("[trigrer]get patch donfile info error")
@@ -106,14 +109,15 @@ func GetDoneFileInfo(addr string) (version dict.DictVersionInfo, err error) {
 				logex.Noticef("[trigrer]donfile info:%v", donefileInfo)
 				newId, _ := strconv.Atoi(donefileInfo.Id)
 				newKey, _ := strconv.Atoi(donefileInfo.Key)
-				if newId > Dict.CurrentVersionInfo[VersionLen-1].Id && newKey == Dict.CurrentVersionInfo[VersionLen-1].Key {
+                                fmt.Printf("[trigger]read patch id: %d, key: %d\n", newId, newKey)
+				if VersionLen == 0 || newId > Dict.CurrentVersionInfo[VersionLen-1].Id {
 					version.Id = newId
 					version.Key, _ = strconv.Atoi(donefileInfo.Key)
 					version.Input = donefileInfo.Input
 					deployVersion := int(time.Now().Unix())
 					version.CreateTime = deployVersion
 					version.Version = deployVersion
-					version.Depend = Dict.CurrentVersionInfo[VersionLen-1].Depend
+                                        version.Depend = deployVersion
 					version.Mode = dict.DELTA
 					return
 				}

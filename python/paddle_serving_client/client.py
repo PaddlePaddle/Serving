@@ -337,8 +337,6 @@ class Client(object):
         string_shape = []
         fetch_names = []
 
-        counter = 0
-
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)

@@ -19,6 +19,7 @@ import cv2
 from paddle_serving_app.reader import *
 import base64
 
+
 class PPYoloMbvOp(Op):
     def init_op(self):
         self.img_preprocess = Sequential([
@@ -38,23 +39,31 @@ class PPYoloMbvOp(Op):
             im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             im = self.img_preprocess(im)
             imgs.append({
-              "image": im[np.newaxis,:],
-              "im_shape": np.array(list(im.shape[1:])).reshape(-1)[np.newaxis,:],
-              "scale_factor": np.array([1.0, 1.0]).reshape(-1)[np.newaxis,:],
+                "image": im[np.newaxis, :],
+                "im_shape":
+                np.array(list(im.shape[1:])).reshape(-1)[np.newaxis, :],
+                "scale_factor": np.array([1.0, 1.0]).reshape(-1)[np.newaxis, :],
             })
 
         feed_dict = {
-            "image": np.concatenate([x["image"] for x in imgs], axis=0),
-            "im_shape": np.concatenate([x["im_shape"] for x in imgs], axis=0),
-            "scale_factor": np.concatenate([x["scale_factor"] for x in imgs], axis=0)
+            "image": np.concatenate(
+                [x["image"] for x in imgs], axis=0),
+            "im_shape": np.concatenate(
+                [x["im_shape"] for x in imgs], axis=0),
+            "scale_factor": np.concatenate(
+                [x["scale_factor"] for x in imgs], axis=0)
         }
         for key in feed_dict.keys():
             print(key, feed_dict[key].shape)
         return feed_dict, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         #print(fetch_dict)
-        res_dict = {"bbox_result": str(self.img_postprocess(fetch_dict, visualize=False))}
+        res_dict = {
+            "bbox_result":
+            str(self.img_postprocess(
+                fetch_dict, visualize=False))
+        }
         return res_dict, None, ""
 
 
