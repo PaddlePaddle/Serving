@@ -87,6 +87,7 @@ go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
 go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
 go get -u google.golang.org/grpc@v1.33.0
+go env -w GO111MODULE=auto
 ```
 
 
