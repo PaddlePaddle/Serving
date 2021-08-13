@@ -457,8 +457,8 @@ class GeneralClient(object):
         # 当数据区长度大于512字节时才压缩.
         try:
             if self.try_request_gzip and self.total_data_number > 512:
-                origin_data = postData
-                if http_proto:
+
+                if self.http_proto:
                     postData = gzip.compress(postData)
                 else:
                     postData = gzip.compress(bytes(postData, 'utf-8'))
@@ -469,7 +469,6 @@ class GeneralClient(object):
         except:
             print("compress error, we will use the no-compress data")
             headers.pop("Content-Encoding", "nokey")
-            postData = origin_data
         # requests支持自动识别解压
         try:
             result = self.requests_session.post(
