@@ -575,7 +575,7 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 4 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 8 > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
