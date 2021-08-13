@@ -73,7 +73,7 @@ def data_bytes_number(datalist):
 # 可以直接调用需要的http_client_predict/grpc_client_predict
 # 例如，如果想使用GRPC方式，set_use_grpc_client(True)
 # 或者直接调用grpc_client_predict()
-class GeneralClient(object):
+class HttpClient(object):
     def __init__(self,
                  ip="0.0.0.0",
                  port="9393",
