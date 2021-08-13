@@ -49,7 +49,7 @@ class ImagenetOp(Op):
         input_imgs = np.concatenate(imgs, axis=0)
         return {"image": input_imgs}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         score_list = fetch_dict["save_infer_model/scale_0.tmp_1"]
         result = {"label": [], "prob": []}
         for score in score_list:

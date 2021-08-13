@@ -42,7 +42,7 @@ class ImagenetOp(Op):
         img = self.seq(im)
         return {"image": img[np.newaxis, :].copy()}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         print(fetch_dict)
         score_list = fetch_dict["score"]
         result = {"label": [], "prob": []}

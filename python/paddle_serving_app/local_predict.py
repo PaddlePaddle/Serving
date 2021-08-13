@@ -127,7 +127,8 @@ class LocalPredictor(object):
 
         for i, var in enumerate(model_conf.fetch_var):
             self.fetch_names_to_idx_[var.alias_name] = i
-            self.fetch_names_to_type_[var.alias_name] = var.fetch_type
+            self.fetch_types_[var.alias_name] = var.fetch_type
+            self.fetch_names_to_type_[var.alias_name] = var.shape
 
         # set precision of inference.
         precision_type = paddle_infer.PrecisionType.Float32
@@ -253,8 +254,27 @@ class LocalPredictor(object):
                 feed[name] = feed[name].astype("float32")
             elif self.feed_types_[name] == 2:
                 feed[name] = feed[name].astype("int32")
+            elif self.feed_types_[name] == 3:
+                feed[name] = feed[name].astype("float64")
+            elif self.feed_types_[name] == 4:
+                feed[name] = feed[name].astype("int16")
+            elif self.feed_types_[name] == 5:
+                feed[name] = feed[name].astype("float16")
+            elif self.feed_types_[name] == 6:
+                feed[name] = feed[name].astype("uint16")
+            elif self.feed_types_[name] == 7:
+                feed[name] = feed[name].astype("uint8")
+            elif self.feed_types_[name] == 8:
+                feed[name] = feed[name].astype("int8")
+            elif self.feed_types_[name] == 9:
+                feed[name] = feed[name].astype("bool")
+            elif self.feed_types_[name] == 10:
+                feed[name] = feed[name].astype("complex64")
+            elif self.feed_types_[name] == 11:
+                feed[name] = feed[name].astype("complex128")
             else:
                 raise ValueError("local predictor receives wrong data type")
+
             input_tensor_handle = self.predictor.get_input_handle(name)
             if "{}.lod".format(name) in feed:
                 input_tensor_handle.set_lod([feed["{}.lod".format(name)]])
