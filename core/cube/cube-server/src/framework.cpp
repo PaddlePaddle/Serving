@@ -109,13 +109,12 @@ int Framework::destroy() {
 }
 
 void Framework::init_dict(std::string dict_name, uint32_t dict_split) {
-  _dict_split = dict_split;
-
+  std::vector<VirtualDict*> _dict = _dict_map[dict_name];
+  _dict_split = dict_split;  
   if (_dict_split <= 1) {
+    _dict_map[dict_name] = {nullptr, nullptr};
+    _dict = _dict_map[dict_name];
     _dict[0] = new (std::nothrow) Dict();
-    _dict[1] = NULL;
-  } else {
-    _dict[0] = new (std::nothrow) DictSet(_dict_split);
     _dict[1] = NULL;
   }
 }
@@ -127,15 +126,15 @@ VirtualDict* Framework::create_dict() {
 void Framework::release(VirtualDict* dict) { dict->atom_dec_seek_num(); }
 
 int Framework::status(std::string dict_name, Document* res) {
-  res->SetObject();
+  //res->SetObject();
   Document::AllocatorType& allocator = res->GetAllocator();
-  Value cur_version;
-  Value bg_version;
-  cur_version.SetString(StringRef(get_cur_version().c_str()));
-  bg_version.SetString(StringRef((get_bg_version().c_str())));
-  res->AddMember("cur_version", cur_version, allocator);
-  res->AddMember("bg_version", bg_version, allocator);
-  res->AddMember("status", _status.load(), allocator);
+  //Value cur_version;
+  //Value bg_version;
+  //cur_version.SetString(StringRef(get_cur_version().c_str()));
+  //bg_version.SetString(StringRef((get_bg_version().c_str())));
+  //res->AddMember("cur_version", cur_version, allocator);
+  //res->AddMember("bg_version", bg_version, allocator);
+  //res->AddMember("status", _status.load(), allocator);
   return 0;
 }
 
@@ -233,7 +232,7 @@ int Framework::bg_load_base(std::string dict_name, const std::string& v_path) {
     LOG(WARNING) << "unload background dict failed";
   }
 
-  VirtualDict* bg_dict = create_dict();
+  VirtualDict* bg_dict = create_dict(dict_name);
 
   if (!bg_dict) {
     LOG(ERROR) << "create Dict failed";
@@ -262,7 +261,9 @@ int Framework::bg_load_patch(std::string dict_name, const std::string& v_path) {
     LOG(WARNING) << "unload background dict failed";
   }
 
-  VirtualDict* bg_dict = create_dict();
+  VirtualDict* bg_dict = create_dict(dict_name);
+  int _dict_idx =  _dict_idx_map[dict_name];
+  std::vector<VirtualDict*> _dict = _dict_map[dict_name];
 
   if (!bg_dict) {
     LOG(ERROR) << "create Dict failed";
@@ -314,7 +315,7 @@ int Framework::bg_switch(std::string dict_name) {
     _rw_lock.unlock();
     return -1;
   }
-  _dict_idx = bg_idx;
+  _dict_idx_map[dict_name] = bg_idx;
   _rw_lock.unlock();
   return 0;
 }
@@ -324,7 +325,7 @@ int Framework::enable(std::string dict_name, const std::string& version) {
   if (version != "" && version == get_cur_version()) {
     ret = 0;
   } else if (version == get_bg_version()) {
-    ret = bg_switch();
+    ret = bg_switch(dict_name);
   } else {
     LOG(WARNING) << "bg dict version not matched";
     ret = -1;

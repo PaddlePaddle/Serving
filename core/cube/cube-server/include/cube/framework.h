@@ -17,7 +17,7 @@
 #include <atomic>
 #include <string>
 #include <vector>
-
+#include <unordered_map>
 #include "butil/third_party/rapidjson/document.h"
 #include "butil/third_party/rapidjson/prettywriter.h"
 #include "butil/third_party/rapidjson/stringbuffer.h"
@@ -65,7 +65,7 @@ class Framework {
   int enable(std::string dict_name, const std::string& version);
 
  private:
-  void init_dict(uint32_t dict_split);
+  void init_dict(std::string dict_name, uint32_t dict_split);
 
   VirtualDict* create_dict();
 
@@ -73,7 +73,7 @@ class Framework {
   VirtualDict* get_cur_dict(std::string dict_name) {
     _rw_lock.r_lock();
     int _dict_idx = _dict_idx_map[dict_name];
-    VirtualDict* _dict = _dict_idx_map[dict_name];
+    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
     VirtualDict* dict = _dict[_dict_idx];
     dict->atom_inc_seek_num();
     _rw_lock.unlock();
@@ -83,7 +83,7 @@ class Framework {
   std::string get_cur_version(std::string dict_name) {
     _rw_lock.r_lock();
     int _dict_idx = _dict_idx_map[dict_name];
-    VirtualDict* _dict = _dict_idx_map[dict_name];
+    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
     VirtualDict* dict = _dict[_dict_idx];
     std::string version = dict->version();
     _rw_lock.unlock();
@@ -91,15 +91,15 @@ class Framework {
   }
 
   VirtualDict* get_bg_dict(std::string dict_name) const { 
-    int _dict_idx = _dict_idx_map[dict_name];
-    VirtualDict* _dict = _dict_idx_map[dict_name]
+    int _dict_idx = _dict_idx_map.at(dict_name);
+    std::vector<VirtualDict*> _dict = _dict_map.at(dict_name);
     return _dict[1 - _dict_idx]; 
   }
 
   std::string get_bg_version(std::string dict_name) {
     _bg_rw_lock.r_lock();
-    int _dict_idx = _dict_idx_map[dict_name];
-    VirtualDict* _dict = _dict_idx_map[dict_name];
+    int _dict_idx = _dict_idx_map.at(dict_name);
+    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
     VirtualDict* dict = _dict[1 - _dict_idx];
     std::string version = "";
     if (dict) {
@@ -112,7 +112,7 @@ class Framework {
   void set_bg_dict(std::string dict_name, VirtualDict* dict) {
     _bg_rw_lock.w_lock();
     int _dict_idx = _dict_idx_map[dict_name];
-    VirtualDict* _dict = _dict_idx_map[dict_name];
+    std::vector<VirtualDict*>& _dict = _dict_map[dict_name];
     _dict[1 - _dict_idx] = dict;
     _bg_rw_lock.unlock();
   }
@@ -120,12 +120,12 @@ class Framework {
   void release(VirtualDict* dict);
 
  private:
-  Framework() : _dict_idx(0) {}
+  Framework() {}
   Framework(const Framework&) {}
 
  private:
   //VirtualDict* _dict[2]{nullptr, nullptr};
-  std::unordered_map<std::string, VirtualDict*> _dict_map;
+  std::unordered_map<std::string, std::vector<VirtualDict*>> _dict_map;
   std::unordered_map<std::string, int> _dict_idx_map;
   std::unordered_map<std::string, bool> _in_mem_map;
   std::unordered_map<std::string, uint32_t> _max_val_size_map;
