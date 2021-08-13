@@ -345,68 +345,69 @@ class Client(object):
             raise ValueError(
                 "Fetch names should not be empty or out of saved fetch list.")
 
-        feed_i = feed_batch[0]
-        for key in feed_i:
+        feed_dict = feed_batch[0]
+        for key in feed_dict:
             if ".lod" not in key and key not in self.feed_names_:
                 raise ValueError("Wrong feed name: {}.".format(key))
             if ".lod" in key:
                 continue
 
-            self.shape_check(feed_i, key)
+            self.shape_check(feed_dict, key)
             if self.feed_types_[key] in int_type:
                 int_feed_names.append(key)
                 shape_lst = []
                 if batch == False:
-                    feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
                         1, axis=0)
-                if isinstance(feed_i[key], np.ndarray):
-                    shape_lst.extend(list(feed_i[key].shape))
+                if isinstance(feed_dict[key], np.ndarray):
+                    shape_lst.extend(list(feed_dict[key].shape))
                     int_shape.append(shape_lst)
                 else:
                     int_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    int_lod_slot_batch.append(feed_i["{}.lod".format(key)])
+                if "{}.lod".format(key) in feed_dict:
+                    int_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
                 else:
                     int_lod_slot_batch.append([])
 
-                if isinstance(feed_i[key], np.ndarray):
-                    int_slot.append(np.ascontiguousarray(feed_i[key]))
+                if isinstance(feed_dict[key], np.ndarray):
+                    int_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.has_numpy_input = True
                 else:
-                    int_slot.append(np.ascontiguousarray(feed_i[key]))
+                    int_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.all_numpy_input = False
 
             elif self.feed_types_[key] in float_type:
                 float_feed_names.append(key)
                 shape_lst = []
                 if batch == False:
-                    feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
                         1, axis=0)
-                if isinstance(feed_i[key], np.ndarray):
-                    shape_lst.extend(list(feed_i[key].shape))
+                if isinstance(feed_dict[key], np.ndarray):
+                    shape_lst.extend(list(feed_dict[key].shape))
                     float_shape.append(shape_lst)
                 else:
                     float_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    float_lod_slot_batch.append(feed_i["{}.lod".format(key)])
+                if "{}.lod".format(key) in feed_dict:
+                    float_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
                 else:
                     float_lod_slot_batch.append([])
 
-                if isinstance(feed_i[key], np.ndarray):
-                    float_slot.append(np.ascontiguousarray(feed_i[key]))
+                if isinstance(feed_dict[key], np.ndarray):
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.has_numpy_input = True
                 else:
-                    float_slot.append(np.ascontiguousarray(feed_i[key]))
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.all_numpy_input = False
             #if input is string, feed is not numpy.
             elif self.feed_types_[key] in string_type:
                 string_feed_names.append(key)
                 string_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    string_lod_slot_batch.append(feed_i["{}.lod".format(key)])
+                if "{}.lod".format(key) in feed_dict:
+                    string_lod_slot_batch.append(feed_dict["{}.lod".format(
+                        key)])
                 else:
                     string_lod_slot_batch.append([])
-                string_slot.append(feed_i[key])
+                string_slot.append(feed_dict[key])
                 self.has_numpy_input = True
 
         self.profile_.record('py_prepro_1')

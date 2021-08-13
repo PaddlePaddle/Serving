@@ -13,24 +13,41 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_client.httpclient import HttpClient
+from paddle_serving_client.httpclient import GeneralClient
 import sys
 import numpy as np
 import time
 
-client = HttpClient()
+client = GeneralClient()
 client.load_client_config(sys.argv[1])
-# if you want to enable Encrypt Module,uncommenting the following line
-# client.use_key("./key")
-client.set_response_compress(True)
-client.set_request_compress(True)
-fetch_list = client.get_fetch_names()
+''' 
+if you want use GRPC-client, set_use_grpc_client(True)
+or you can directly use client.grpc_client_predict(...)
+as for HTTP-client,set_use_grpc_client(False)(which is default)
+or you can directly use client.http_client_predict(...)
+'''
+#client.set_use_grpc_client(True)
+'''
+if you want to enable Encrypt Module,uncommenting the following line
+'''
+#client.use_key("./key")
+'''
+if you want to compress,uncommenting the following line
+'''
+#client.set_response_compress(True)
+#client.set_request_compress(True)
+'''
+we recommend use Proto data format in HTTP-body, set True(which is default)
+if you want use JSON data format in HTTP-body, set False
+'''
+#client.set_http_proto(True)
+
 import paddle
 test_reader = paddle.batch(
     paddle.reader.shuffle(
         paddle.dataset.uci_housing.test(), buf_size=500),
     batch_size=1)
-
+fetch_list = client.get_fetch_names()
 for data in test_reader():
     new_data = np.zeros((1, 13)).astype("float32")
     new_data[0] = data[0][0]

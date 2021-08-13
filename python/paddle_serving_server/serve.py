@@ -107,9 +107,13 @@ def is_gpu_mode(unformatted_gpus):
 def serve_args():
     parser = argparse.ArgumentParser("serve")
     parser.add_argument(
-        "--thread", type=int, default=2, help="Concurrency of server")
+        "--thread",
+        type=int,
+        default=4,
+        help="Concurrency of server,[4,1024]",
+        choices=range(4, 1025))
     parser.add_argument(
-        "--port", type=int, default=9292, help="Port of the starting gpu")
+        "--port", type=int, default=9393, help="Port of the starting gpu")
     parser.add_argument(
         "--device", type=str, default="cpu", help="Type of device")
     parser.add_argument(

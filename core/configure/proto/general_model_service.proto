@@ -13,11 +13,8 @@
 // limitations under the License.
 
 syntax = "proto2";
-import "pds_option.proto";
-import "builtin_format.proto";
 package baidu.paddle_serving.predictor.general_model;
-
-option cc_generic_services = true;
+option java_multiple_files = true;
 
 message Tensor {
   repeated string data = 1;
@@ -50,7 +47,6 @@ message ModelOutput {
 }
 
 service GeneralModelService {
-  rpc inference(Request) returns (Response);
-  rpc debug(Request) returns (Response);
-  option (pds.options).generate_impl = true;
+  rpc inference(Request) returns (Response) {}
+  rpc debug(Request) returns (Response) {}
 };
