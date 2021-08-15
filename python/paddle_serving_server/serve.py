@@ -62,6 +62,8 @@ def serve_args():
         action="store_true",
         help="Use TensorRT Calibration")
     parser.add_argument(
+        "--encryption_rpc_port", type=int, required=False, default=9292, help="Port of encryption model, only valid for arg.use_encryption_model")
+    parser.add_argument(
         "--mem_optim_off",
         default=False,
         action="store_true",
@@ -114,6 +116,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     max_body_size = args.max_body_size
     use_mkl = args.use_mkl
     use_encryption_model = args.use_encryption_model
+    encryption_rpc_port = args.encryption_rpc_port
     use_multilang = args.use_multilang
 
     if model == "":
@@ -160,6 +163,7 @@ def start_standard_model(serving_port):  # pylint: disable=doc-string-missing
     server.set_precision(args.precision)
     server.set_use_calib(args.use_calib)
     server.use_encryption_model(use_encryption_model)
+    server.encryption_rpc_port(encryption_rpc_port)
     if args.product_name != None:
         server.set_product_name(args.product_name)
     if args.container_id != None:
@@ -246,7 +250,8 @@ def start_gpu_card_model(index, gpuid, port, args):  # pylint: disable=doc-strin
         workdir=workdir,
         port=port,
         device=device,
-        use_encryption_model=args.use_encryption_model)
+        use_encryption_model=args.use_encryption_model,
+        encryption_rpc_port=args.encryption_rpc_port)
     if gpuid >= 0:
         server.set_gpuid(gpuid)
     server.run_server()
@@ -293,7 +298,8 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
 
 class MainService(BaseHTTPRequestHandler):
     def get_available_port(self):
-        default_port = 12000
+        global encryption_rpc_port
+        default_port = encryption_rpc_port
         for i in range(1000):
             if port_is_available(default_port + i):
                 return default_port + i
@@ -381,6 +387,7 @@ if __name__ == "__main__":
     if args.name == "None":
         from .web_service import port_is_available
         if args.use_encryption_model:
+            encryption_rpc_port = args.encryption_rpc_port
             p_flag = False
             p = None
             serving_port = 0
