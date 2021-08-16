@@ -430,6 +430,7 @@ class Server(object):
                        port=9292,
                        device="cpu",
                        use_encryption_model=False,
+                       encryption_rpc_port=9293,
                        cube_conf=None):
         if workdir == None:
             workdir = "./tmp"
@@ -442,7 +443,7 @@ class Server(object):
 
         if not self.port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
-
+        print("set brpc port here: {}".format(port))
         self.set_port(port)
         self._prepare_resource(workdir, cube_conf)
         self._prepare_engine(self.model_config_paths, device,
@@ -588,6 +589,9 @@ class MultiLangServer(object):
     def use_encryption_model(self, flag=False):
         self.encryption_model = flag
 
+    def encryption_rpc_port(self, port=9293):
+        self.encryption_rpc_port=port
+
     def set_port(self, port):
         self.gport_ = port
 
@@ -673,16 +677,22 @@ class MultiLangServer(object):
                        port=9292,
                        device="cpu",
                        use_encryption_model=False,
+                       encryption_rpc_port=9293,
                        cube_conf=None):
         if not self._port_is_available(port):
             raise SystemExit("Port {} is already used".format(port))
-        default_port = 12000
-        self.port_list_ = []
-        for i in range(1000):
-            if default_port + i != port and self._port_is_available(default_port
-                                                                    + i):
-                self.port_list_.append(default_port + i)
-                break
+        if use_encryption_model is True and self._port_is_available(encryption_rpc_port) is False:
+            raise SystemExit("Encryption Rpc Port {} is already used".format(encryption_rpc_port))
+        if use_encryption_model is False:   
+            default_port = 12000
+            self.port_list_ = []
+            for i in range(1000):
+                if default_port + i != port and self._port_is_available(default_port + i):
+                    self.port_list_.append(default_port + i)
+                    break
+        else:
+            self.port_list_ = []
+            self.port_list_.append(encryption_rpc_port)
         self.bserver_.prepare_server(
             workdir=workdir,
             port=self.port_list_[0],
