@@ -1,4 +1,3 @@
-# encoding=utf-8
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
-from paddle_serving_client import HttpClient
-from paddle_serving_app.reader import LACReader
 import sys
-import os
-import io
-import numpy as np
+from paddle_serving_client import HttpClient
+from paddle_serving_app.reader import Sequential, URL2Image, Resize
+from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
+import time
 
-client = HttpClient(ip='127.0.0.1', port='9393')
+client = HttpClient(ip='127.0.0.1', port='9696')
 client.load_client_config(sys.argv[1])
 #client.set_ip('127.0.0.1')
 #client.set_port('9292')
@@ -47,25 +44,28 @@ if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
 
-reader = LACReader()
-for line in sys.stdin:
-    if len(line) <= 0:
-        continue
-    feed_data = reader.process(line)
-    if len(feed_data) <= 0:
-        continue
-    print(feed_data)
-    #fetch_map = client.predict(feed={"words": np.array(feed_data).reshape(len(feed_data), 1), "words.lod": [0, len(feed_data)]}, fetch=["crf_decode"], batch=True)
+label_dict = {}
+label_idx = 0
+with open("imagenet.label") as fin:
+    for line in fin:
+        label_dict[label_idx] = line.strip()
+        label_idx += 1
+
+seq = Sequential([
+    URL2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
+    Div(255), Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True)
+])
+
+start = time.time()
+image_file = "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"
+for i in range(10):
+    img = seq(image_file)
     fetch_map = client.predict(
-        feed={
-            "words": np.array(feed_data + feed_data).reshape(
-                len(feed_data) * 2, 1),
-            "words.lod": [0, len(feed_data), 2 * len(feed_data)]
-        },
-        fetch=["crf_decode"],
-        batch=True)
-    print(fetch_map)
-    begin = fetch_map['crf_decode.lod'][0]
-    end = fetch_map['crf_decode.lod'][1]
-    segs = reader.parse_result(line, fetch_map["crf_decode"][begin:end])
-    print("word_seg: " + "|".join(str(words) for words in segs))
+        feed={"image": img}, fetch=["score"], batch=False)
+    prob = max(fetch_map["score"][0])
+    label = label_dict[fetch_map["score"][0].tolist().index(prob)].strip(
+    ).replace(",", "")
+    print("prediction: {}, probability: {}".format(label, prob))
+
+end = time.time()
+print(end - start)

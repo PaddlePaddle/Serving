@@ -20,6 +20,8 @@ import time
 
 client = HttpClient()
 client.load_client_config(sys.argv[1])
+#client.set_ip('127.0.0.1')
+#client.set_port('9393')
 ''' 
 if you want use GRPC-client, set_use_grpc_client(True)
 or you can directly use client.grpc_client_predict(...)

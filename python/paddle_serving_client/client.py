@@ -304,16 +304,20 @@ class Client(object):
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, list):
-            # if input is a list and the number of feed_var is 1.
-            # create a temp_dict { key = feed_var_name, value = list}
-            # put the temp_dict into the feed_batch.
-            if len(self.feed_names_) != 1:
-                raise ValueError(
-                    "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
-                )
-            temp_dict = {}
-            temp_dict[self.feed_names_[0]] = feed
-            feed_batch.append(temp_dict)
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_batch = feed
+            else:
+                # if input is a list and the number of feed_var is 1.
+                # create a temp_dict { key = feed_var_name, value = list}
+                # put the temp_dict into the feed_batch.
+                if len(self.feed_names_) != 1:
+                    raise ValueError(
+                        "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
+                    )
+                temp_dict = {}
+                temp_dict[self.feed_names_[0]] = feed
+                feed_batch.append(temp_dict)
         else:
             raise ValueError("Feed only accepts dict and list of dict")
 

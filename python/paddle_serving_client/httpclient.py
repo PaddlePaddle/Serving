@@ -84,7 +84,7 @@ class HttpClient(object):
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.timeout_s = 20
+        self.timeout_ms = 20000
         self.ip = ip
         self.port = port
         self.server_port = port
@@ -168,11 +168,18 @@ class HttpClient(object):
         self.max_body_size = max_body_size
         self.init_grpc_stub()
 
-    def set_timeout_s(self, timeout_s):
-        if not isinstance(timeout_s, int):
-            raise ValueError("timeout_s must be int type.")
+    def set_timeout_ms(self, timeout_ms):
+        if not isinstance(timeout_ms, int):
+            raise ValueError("timeout_ms must be int type.")
         else:
-            self.timeout_s = timeout_s
+            self.timeout_ms = timeout_ms
+
+    def set_max_retries(self, retry_times=3):
+        if not isinstance(retry_times, int):
+            raise ValueError("retry_times must be int type.")
+        else:
+            self.requests_session.mount(
+                'http://', HTTPAdapter(max_retries=retry_times))
 
     def set_ip(self, ip):
         self.ip = ip
@@ -209,7 +216,8 @@ class HttpClient(object):
             req = json.dumps({"key": base64.b64encode(self.key).decode()})
         else:
             req = json.dumps({})
-        with requests.post(encrypt_url, data=req, timeout=self.timeout_s) as r:
+        with requests.post(
+                encrypt_url, data=req, timeout=self.timeout_ms / 1000) as r:
             result = r.json()
             if "endpoint_list" not in result:
                 raise ValueError("server not ready")
@@ -253,6 +261,10 @@ class HttpClient(object):
         if isinstance(feed, dict):
             feed_dict = feed
         elif isinstance(feed, (list, str, tuple)):
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_dict = feed[0]
+                return feed_dict
             # if input is a list or str or tuple, and the number of feed_var is 1.
             # create a feed_dict { key = feed_var_name, value = list}
             if len(self.feed_names_) == 1:
@@ -475,7 +487,8 @@ class HttpClient(object):
                 url=web_url,
                 headers=headers,
                 data=postData,
-                timeout=self.timeout_s)
+                timeout=self.timeout_ms / 1000)
+            result.raise_for_status()
         except:
             print("http post error")
             return None
@@ -504,7 +517,8 @@ class HttpClient(object):
         postData = self.process_proto_data(feed_dict, fetch_list, batch, log_id)
 
         try:
-            resp = self.stub_.inference(postData, timeout=self.timeout_s)
+            resp = self.stub_.inference(
+                postData, timeout=self.timeout_ms / 1000)
         except:
             print("Grpc inference error occur")
             return None
