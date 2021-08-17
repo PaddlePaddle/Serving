@@ -21,7 +21,7 @@ import os
 import io
 import numpy as np
 
-client = HttpClient(ip='127.0.0.1', port='9393')
+client = HttpClient(ip='127.0.0.1', port='9292')
 client.load_client_config(sys.argv[1])
 #client.set_ip('127.0.0.1')
 #client.set_port('9292')
