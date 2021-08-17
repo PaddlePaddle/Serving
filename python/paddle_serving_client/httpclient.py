@@ -75,7 +75,7 @@ def data_bytes_number(datalist):
 # 或者直接调用grpc_client_predict()
 class HttpClient(object):
     def __init__(self,
-                 ip="0.0.0.0",
+                 ip="127.0.0.1",
                  port="9393",
                  service_name="/GeneralModelService/inference"):
         self.feed_names_ = []

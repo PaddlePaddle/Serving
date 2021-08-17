@@ -98,7 +98,7 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 ### 注意事项
 
-1.在示例中，端口号都是9393，ip默认设置为了0.0.0.0表示本机，注意ip和port需要与Server端对应。
+1.在示例中，端口号都是9393，ip默认设置为了127.0.0.1表示本机，注意ip和port需要与Server端对应。
 
 2.目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
 
