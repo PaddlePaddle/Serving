@@ -59,4 +59,4 @@ for line in sys.stdin:
     #print(feed)
     fetch = ["prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch, batch=True)
-    print("{} {}".format(fetch_map["prediction"][0], label[0]))
+    print(fetch_map)

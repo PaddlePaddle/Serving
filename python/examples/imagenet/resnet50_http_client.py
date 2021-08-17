@@ -62,10 +62,7 @@ for i in range(10):
     img = seq(image_file)
     fetch_map = client.predict(
         feed={"image": img}, fetch=["score"], batch=False)
-    prob = max(fetch_map["score"][0])
-    label = label_dict[fetch_map["score"][0].tolist().index(prob)].strip(
-    ).replace(",", "")
-    print("prediction: {}, probability: {}".format(label, prob))
+    print(fetch_map)
 
 end = time.time()
 print(end - start)
