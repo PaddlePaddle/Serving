@@ -24,7 +24,7 @@ docker pull registry.baidubce.com/paddlepaddle/serving:latest-devel
 ### Create container
 
 ```bash
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-devel bash
 docker exec -it test bash
 ```
 
@@ -52,7 +52,7 @@ docker pull registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-de
 ### Create container
 
 ```bash
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel bash
 nvidia-docker exec -it test bash
 ```
 
