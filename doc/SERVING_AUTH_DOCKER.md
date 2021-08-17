@@ -10,6 +10,8 @@
 
 本文档的作用，就以 Uci 房价预测服务为例，来介绍如何强化预测服务API接口安全。API网关作为流量入口，对接口进行统一管理。但API网关可以提供流量加密和鉴权等安全功能。
 
+更多的示例可以参照 [Paddle Serving安全网关示例文档](https://paddle-serving.bj.bcebos.com/doc/auth_serving_demo.pdf)
+
 ## Docker部署
 
 可以使用docker-compose来部署安全网关。这个示例的步骤就是 [部署本地Serving容器] - [部署本地安全网关] - [通过安全网关访问Serving]
@@ -30,7 +32,7 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 665fd8a34e15        redis:latest                                                                    "docker-entrypoint.s…"   About an hour ago   Up About an hour             0.0.0.0:6379->6379/tcp                                                                               anquan_redis_1 
 ```
 
-其中我们之前serving容器 以 9393端口暴露，KONG网关的端口是8443， KONG的Web控制台的端口是8001。接下来我们在浏览器访问 `https://$IP_ADDR:8001`, 其中 IP_ADDR就是宿主机的IP。
+其中我们之前serving容器 以 9393端口暴露，KONG网关的端口是8443， KONG的Web控制台的端口是8001。接下来我们在浏览器访问 `https://$IP_ADDR:8005`, 其中 IP_ADDR就是宿主机的IP。
 
 <img src="kong-dashboard.png">
 可以看到在注册结束后，登陆，看到了 DASHBOARD，我们先看SERVICES，可以看到`serving_service`，这意味着我们端口在9393的Serving服务已经在KONG当中被注册。
