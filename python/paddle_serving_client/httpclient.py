@@ -403,7 +403,7 @@ class HttpClient(object):
             # 由于输入比较特殊，shape保持原feedvar中不变
             data_value = []
             data_value.append(feed_dict[key])
-            if isinstance(feed_dict[key], str):
+            if isinstance(feed_dict[key], (str, bytes)):
                 if self.feed_types_[key] != bytes_type:
                     raise ValueError(
                         "feedvar is not string-type,feed can`t be a single string."
@@ -411,7 +411,7 @@ class HttpClient(object):
             else:
                 if self.feed_types_[key] == bytes_type:
                     raise ValueError(
-                        "feedvar is string-type,feed, feed can`t be a single int or others."
+                        "feedvar is string-type,feed can`t be a single int or others."
                     )
         # 如果不压缩，那么不需要统计数据量。
         if self.try_request_gzip:
