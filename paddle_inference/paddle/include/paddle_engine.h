@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <dirent.h>
 #include <pthread.h>
 #include <fstream>
 #include <map>
@@ -67,6 +68,35 @@ PrecisionType GetPrecision(const std::string& precision_data) {
     return PrecisionType::kHalf;
   }
   return PrecisionType::kFloat32;
+}
+
+const std::string& getFileBySuffix(
+    const std::string& path, const std::vector<std::string>& suffixVector) {
+  DIR* dp = nullptr;
+  std::string fileName = "";
+  struct dirent* dirp = nullptr;
+  if ((dp = opendir(path.c_str())) == nullptr) {
+    return fileName;
+  }
+  while ((dirp = readdir(dp)) != nullptr) {
+    if (dirp->d_type == DT_REG) {
+      for (int idx = 0; idx < suffixVector.size(); ++idx) {
+        if (suffixVector[idx].compare("*") == 0) {
+          fileName = static_cast<std::string>(dirp->d_name);
+          break;
+        } else {
+          if (std::string(dirp->d_name).find(suffixVector[idx]) !=
+              std::string::npos) {
+            fileName = static_cast<std::string>(dirp->d_name);
+            break;
+          }
+        }
+      }
+    }
+    if (fileName.length() != 0) break;
+  }
+  closedir(dp);
+  return fileName;
 }
 
 // Engine Base
@@ -147,16 +177,19 @@ class PaddleInferenceEngine : public EngineCore {
                             real_model_buffer.size(),
                             &real_params_buffer[0],
                             real_params_buffer.size());
-    } else if (engine_conf.has_combined_model()) {
-      if (!engine_conf.combined_model()) {
-        config.SetModel(model_path);
-      } else {
-        config.SetParamsFile(model_path + "/__params__");
-        config.SetProgFile(model_path + "/__model__");
-      }
+    } else if (engine_conf.has_combined_model() &&
+               (!engine_conf.combined_model())) {
+      config.SetModel(model_path);
     } else {
-      config.SetParamsFile(model_path + "/__params__");
-      config.SetProgFile(model_path + "/__model__");
+      std::vector<std::string> suffixParaVector = {".pdiparams", "__params__"};
+      std::vector<std::string> suffixModelVector = {".pdmodel", "__model__"};
+      std::string paraFileName = getFileBySuffix(model_path, suffixParaVector);
+      std::string modelFileName =
+          getFileBySuffix(model_path, suffixModelVector);
+      if (paraFileName.length() != 0 && modelFileName.length() != 0) {
+        config.SetParamsFile(model_path + "/" + paraFileName);
+        config.SetProgFile(model_path + "/" + modelFileName);
+      }
     }
 
     config.SwitchSpecifyInputNames(true);
