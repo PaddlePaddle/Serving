@@ -25,7 +25,7 @@ DEFINE_int32(port, 8010, "");
 DEFINE_string(workflow_path, "./conf", "");
 DEFINE_string(workflow_file, "workflow.prototxt", "");
 DEFINE_string(inferservice_path, "./conf", "");
-DEFINE_string(inferservice_file, "service.prototxt", "");
+DEFINE_string(inferservice_file, "infer_service.prototxt", "");
 DEFINE_string(logger_path, "./conf", "");
 DEFINE_string(logger_file, "log.conf", "");
 DEFINE_string(resource_path, "./conf", "");
