@@ -81,15 +81,10 @@ const std::string& getFileBySuffix(
   while ((dirp = readdir(dp)) != nullptr) {
     if (dirp->d_type == DT_REG) {
       for (int idx = 0; idx < suffixVector.size(); ++idx) {
-        if (suffixVector[idx].compare("*") == 0) {
+        if (std::string(dirp->d_name).find(suffixVector[idx]) !=
+            std::string::npos) {
           fileName = static_cast<std::string>(dirp->d_name);
           break;
-        } else {
-          if (std::string(dirp->d_name).find(suffixVector[idx]) !=
-              std::string::npos) {
-            fileName = static_cast<std::string>(dirp->d_name);
-            break;
-          }
         }
       }
     }
