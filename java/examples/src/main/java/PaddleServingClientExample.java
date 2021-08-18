@@ -25,7 +25,7 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -49,7 +49,7 @@ public class PaddleServingClientExample {
         
         Client client = new Client();
         //注意：跨docker，需要设置--net-host或直接访问另一个docker的ip
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.set_http_proto(false);
         client.loadClientConfig(model_config_path);
@@ -73,7 +73,7 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         client.set_use_grpc_client(true);
@@ -97,7 +97,7 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         client.use_key(keyFilePath);
@@ -125,7 +125,7 @@ public class PaddleServingClientExample {
         List<String> fetch = Arrays.asList("price");
         
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         client.set_request_compress(true);
@@ -176,7 +176,7 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -198,7 +198,7 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("pooled_output");
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -268,7 +268,7 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("prob");
         Client client = new Client();
-        client.setIP("0.0.0.0");
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);

@@ -1,4 +1,5 @@
-# encoding=utf-8
+# coding:utf-8
+# pylint: disable=doc-string-missing
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +13,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# pylint: disable=doc-string-missing
 
-from paddle_serving_client import HttpClient
-from paddle_serving_app.reader import LACReader
 import sys
-import os
-import io
+from paddle_serving_client import HttpClient
+from paddle_serving_client.utils import benchmark_args
+from paddle_serving_app.reader import ChineseBertReader
 import numpy as np
+args = benchmark_args()
+
+reader = ChineseBertReader({"max_seq_len": 128})
+fetch = ["pooled_output"]
 
 client = HttpClient(ip='127.0.0.1', port='9292')
-client.load_client_config(sys.argv[1])
+client.load_client_config(args.model)
 #client.set_ip('127.0.0.1')
 #client.set_port('9292')
 ''' 
@@ -47,21 +50,10 @@ if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
 
-reader = LACReader()
 for line in sys.stdin:
-    if len(line) <= 0:
-        continue
-    feed_data = reader.process(line)
-    if len(feed_data) <= 0:
-        continue
-    print(feed_data)
-    #fetch_map = client.predict(feed={"words": np.array(feed_data).reshape(len(feed_data), 1), "words.lod": [0, len(feed_data)]}, fetch=["crf_decode"], batch=True)
-    fetch_map = client.predict(
-        feed={
-            "words": np.array(feed_data + feed_data).reshape(
-                len(feed_data) * 2, 1),
-            "words.lod": [0, len(feed_data), 2 * len(feed_data)]
-        },
-        fetch=["crf_decode"],
-        batch=True)
-    print(fetch_map)
+    feed_dict = reader.process(line)
+    for key in feed_dict.keys():
+        feed_dict[key] = np.array(feed_dict[key]).reshape((128, 1))
+    #print(feed_dict)
+    result = client.predict(feed=feed_dict, fetch=fetch, batch=False)
+print(result)

@@ -73,9 +73,9 @@ def data_bytes_number(datalist):
 # 可以直接调用需要的http_client_predict/grpc_client_predict
 # 例如，如果想使用GRPC方式，set_use_grpc_client(True)
 # 或者直接调用grpc_client_predict()
-class GeneralClient(object):
+class HttpClient(object):
     def __init__(self,
-                 ip="0.0.0.0",
+                 ip="127.0.0.1",
                  port="9393",
                  service_name="/GeneralModelService/inference"):
         self.feed_names_ = []
@@ -84,7 +84,7 @@ class GeneralClient(object):
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.timeout_ms = 200000
+        self.timeout_ms = 20000
         self.ip = ip
         self.port = port
         self.server_port = port
@@ -96,6 +96,17 @@ class GeneralClient(object):
         self.http_proto = True
         self.max_body_size = 512 * 1024 * 1024
         self.use_grpc_client = False
+        # 使用连接池能够不用反复建立连接
+        self.requests_session = requests.session()
+        # 初始化grpc_stub
+        options = [('grpc.max_receive_message_length', self.max_body_size),
+                   ('grpc.max_send_message_length', self.max_body_size)]
+
+        endpoints = [self.ip + ":" + self.server_port]
+        g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
+        self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
+        self.stub_ = general_model_service_pb2_grpc.GeneralModelServiceStub(
+            self.channel_)
 
     def load_client_config(self, model_config_path_list):
         if isinstance(model_config_path_list, str):
@@ -155,6 +166,7 @@ class GeneralClient(object):
 
     def set_max_body_size(self, max_body_size):
         self.max_body_size = max_body_size
+        self.init_grpc_stub()
 
     def set_timeout_ms(self, timeout_ms):
         if not isinstance(timeout_ms, int):
@@ -162,14 +174,23 @@ class GeneralClient(object):
         else:
             self.timeout_ms = timeout_ms
 
+    def set_max_retries(self, retry_times=3):
+        if not isinstance(retry_times, int):
+            raise ValueError("retry_times must be int type.")
+        else:
+            self.requests_session.mount(
+                'http://', HTTPAdapter(max_retries=retry_times))
+
     def set_ip(self, ip):
         self.ip = ip
+        self.init_grpc_stub()
 
     def set_service_name(self, service_name):
         self.service_name = service_name
 
     def set_port(self, port):
         self.port = port
+        self.init_grpc_stub()
 
     def set_request_compress(self, try_request_gzip):
         self.try_request_gzip = try_request_gzip
@@ -195,13 +216,14 @@ class GeneralClient(object):
             req = json.dumps({"key": base64.b64encode(self.key).decode()})
         else:
             req = json.dumps({})
-        r = requests.post(encrypt_url, req)
-        result = r.json()
-        if "endpoint_list" not in result:
-            raise ValueError("server not ready")
-        else:
-            self.server_port = str(result["endpoint_list"][0])
-            print("rpc port is ", self.server_port)
+        with requests.post(
+                encrypt_url, data=req, timeout=self.timeout_ms / 1000) as r:
+            result = r.json()
+            if "endpoint_list" not in result:
+                raise ValueError("server not ready")
+            else:
+                self.server_port = str(result["endpoint_list"][0])
+                print("rpc port is ", self.server_port)
 
     def get_feed_names(self):
         return self.feed_names_
@@ -239,6 +261,10 @@ class GeneralClient(object):
         if isinstance(feed, dict):
             feed_dict = feed
         elif isinstance(feed, (list, str, tuple)):
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_dict = feed[0]
+                return feed_dict
             # if input is a list or str or tuple, and the number of feed_var is 1.
             # create a feed_dict { key = feed_var_name, value = list}
             if len(self.feed_names_) == 1:
@@ -443,8 +469,11 @@ class GeneralClient(object):
         # 当数据区长度大于512字节时才压缩.
         try:
             if self.try_request_gzip and self.total_data_number > 512:
-                origin_data = postData
-                postData = gzip.compress(bytes(postData, 'utf-8'))
+
+                if self.http_proto:
+                    postData = gzip.compress(postData)
+                else:
+                    postData = gzip.compress(bytes(postData, 'utf-8'))
                 headers["Content-Encoding"] = "gzip"
             if self.try_response_gzip:
                 headers["Accept-encoding"] = "gzip"
@@ -452,11 +481,14 @@ class GeneralClient(object):
         except:
             print("compress error, we will use the no-compress data")
             headers.pop("Content-Encoding", "nokey")
-            postData = origin_data
-
         # requests支持自动识别解压
         try:
-            result = requests.post(url=web_url, headers=headers, data=postData)
+            result = self.requests_session.post(
+                url=web_url,
+                headers=headers,
+                data=postData,
+                timeout=self.timeout_ms / 1000)
+            result.raise_for_status()
         except:
             print("http post error")
             return None
@@ -484,6 +516,16 @@ class GeneralClient(object):
 
         postData = self.process_proto_data(feed_dict, fetch_list, batch, log_id)
 
+        try:
+            resp = self.stub_.inference(
+                postData, timeout=self.timeout_ms / 1000)
+        except:
+            print("Grpc inference error occur")
+            return None
+        else:
+            return resp
+
+    def init_grpc_stub(self):
         # https://github.com/tensorflow/serving/issues/1382
         options = [('grpc.max_receive_message_length', self.max_body_size),
                    ('grpc.max_send_message_length', self.max_body_size)]
@@ -493,10 +535,7 @@ class GeneralClient(object):
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = general_model_service_pb2_grpc.GeneralModelServiceStub(
             self.channel_)
-        try:
-            resp = self.stub_.inference(postData, timeout=self.timeout_ms)
-        except:
-            print("Grpc inference error occur")
-            return None
-        else:
-            return resp
+
+    def __del__(self):
+        self.requests_session.close()
+        self.channel_.close()

@@ -134,7 +134,7 @@ public class Client {
         feedTensorLen_ = null;
         feedNameToIndex_ = null;
         timeoutS_ = 200000;
-        ip = "0.0.0.0";
+        ip = "127.0.0.1";
         port = "9393";
         serverPort = "9393";
         serviceName = "/GeneralModelService/inference";

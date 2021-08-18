@@ -13,13 +13,15 @@
 # limitations under the License.
 # pylint: disable=doc-string-missing
 
-from paddle_serving_client.httpclient import GeneralClient
+from paddle_serving_client.httpclient import HttpClient
 import sys
 import numpy as np
 import time
 
-client = GeneralClient()
+client = HttpClient()
 client.load_client_config(sys.argv[1])
+#client.set_ip('127.0.0.1')
+#client.set_port('9393')
 ''' 
 if you want use GRPC-client, set_use_grpc_client(True)
 or you can directly use client.grpc_client_predict(...)
