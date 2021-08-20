@@ -7,8 +7,8 @@
 为了方便用户使用java进行开发，我们提供了编译好的Serving工程放置在java镜像当中，获取镜像并进入开发环境的方式是
 
 ```
-docker pull registry.baidubce.com/paddlepaddle/serving:0.5.0-java
-docker run --rm -dit --name java_serving registry.baidubce.com/paddlepaddle/serving:0.5.0-java
+docker pull registry.baidubce.com/paddlepaddle/serving:0.6.0-java
+docker run --rm -dit --name java_serving registry.baidubce.com/paddlepaddle/serving:0.6.0-java
 docker exec -it java_serving bash
 cd Serving/java
 ```
@@ -29,7 +29,7 @@ mvn install
 
 ## 请求BRPC-Server
 
-###服务端启动
+### 服务端启动
 
 以fit_a_line模型为例，服务端启动与常规BRPC-Server端启动命令一样。
 
@@ -39,7 +39,7 @@ sh get_data.sh
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
 
-###客户端预测
+### 客户端预测
 客户端目前支持多种请求方式，目前支持HTTP（数据为JSON格式）、HTTP（数据为PROTO格式）、GRPC
 
 推荐您使用HTTP（数据为PROTO格式），此时数据体为PROTO格式，传输的数据量小，速度快，目前已经帮用户实现了HTTP/GRPC的数据体（JSON/PROTO）的封装函数,详见[Client.java](./src/main/java/io/paddle/serving/client/Client.java)
@@ -47,14 +47,14 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 cd ../../../java/examples/target
 java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PaddleServingClientExample http_proto <configPath>
 ```
-**注意  <configPath>为客户端配置文件，一般是名为serving_client_conf.prototxt的文件。**
+**注意  `<configPath>`为客户端配置文件，一般是名为serving_client_conf.prototxt的文件。**
 
 更多示例详见[PaddleServingClientExample.java](./examples/src/main/java/PaddleServingClientExample.java)
 
 
 ## 请求Pipeline-Server
 
-###服务端启动
+### 服务端启动
 
 对于input data type = string类型，以IMDB model ensemble模型为例，服务端启动
 
@@ -66,14 +66,14 @@ python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.
 python test_pipeline_server.py &>pipeline.log &
 ```
 
-客户端预测(同步)
+### 客户端预测(同步)
 
 ```
 cd ../../../java/examples/target
 java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar PipelineClientExample string_imdb_predict
 ```
 
-客户端预测(异步)
+### 客户端预测(异步)
 
 ```
 cd ../../../java/examples/target
@@ -81,7 +81,7 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 ```
 
 
-对于input data type = INDArray类型，以Simple Pipeline WebService中的uci_housing_model模型为例，服务端启动
+### 对于input data type = INDArray类型，以Simple Pipeline WebService中的uci_housing_model模型为例，服务端启动
 
 ```
 cd ../../python/examples/pipeline/simple_web_service
@@ -89,7 +89,7 @@ sh get_data.sh
 python web_service_java.py &>log.txt &
 ```
 
-客户端预测(同步)
+### 客户端预测(同步)
 
 ```
 cd ../../../java/examples/target
