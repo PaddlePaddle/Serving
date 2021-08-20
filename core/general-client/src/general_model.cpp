@@ -168,8 +168,6 @@ int PredictorClient::numpy_predict(
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
 
-  int fetch_name_num = fetch_name.size();
-
   _api.thrd_initialize();
   std::string variant_tag;
   _predictor = _api.fetch_predictor("general_model", &variant_tag);
@@ -329,10 +327,12 @@ int PredictorClient::numpy_predict(
       auto output = res.outputs(m_idx);
       ModelRes model;
       model.set_engine_name(output.engine_name());
-
-      int idx = 0;
-      for (auto &name : fetch_name) {
+      // 在ResponseOp处，已经按照fetch_name对输出数据进行了处理
+      // 所以，输出的数据与fetch_name是严格对应的，按顺序处理即可。
+      for (int idx = 0; idx < output.tensor_size(); ++idx) {
         // int idx = _fetch_name_to_idx[name];
+        const std::string name = output.tensor(idx).alias_name();
+        model._tensor_alias_names.push_back(name);
         int shape_size = output.tensor(idx).shape_size();
         VLOG(2) << "fetch var " << name << " index " << idx << " shape size "
                 << shape_size;
@@ -347,13 +347,7 @@ int PredictorClient::numpy_predict(
             model._lod_map[name][i] = output.tensor(idx).lod(i);
           }
         }
-        idx += 1;
-      }
 
-      idx = 0;
-
-      for (auto &name : fetch_name) {
-        // int idx = _fetch_name_to_idx[name];
         if (_fetch_name_to_type[name] == P_INT64) {
           VLOG(2) << "ferch var " << name << "type int64";
           int size = output.tensor(idx).int64_data_size();
@@ -373,7 +367,6 @@ int PredictorClient::numpy_predict(
               output.tensor(idx).int_data().begin(),
               output.tensor(idx).int_data().begin() + size);
         }
-        idx += 1;
       }
       predict_res_batch.add_model_res(std::move(model));
     }
