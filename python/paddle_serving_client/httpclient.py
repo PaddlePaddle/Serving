@@ -93,9 +93,13 @@ class HttpClient(object):
         self.try_request_gzip = False
         self.try_response_gzip = False
         self.total_data_number = 0
+        self.headers = {}
         self.http_proto = True
+        self.headers["Content-Type"] = "application/proto"
         self.max_body_size = 512 * 1024 * 1024
         self.use_grpc_client = False
+        self.url = None
+
         # 使用连接池能够不用反复建立连接
         self.requests_session = requests.session()
         # 初始化grpc_stub
@@ -190,7 +194,20 @@ class HttpClient(object):
 
     def set_port(self, port):
         self.port = port
+        self.server_port = port
         self.init_grpc_stub()
+
+    def set_url(self, url):
+        if isinstance(url, str):
+            self.url = url
+        else:
+            print("url must be str")
+
+    def add_http_headers(self, headers):
+        if isinstance(headers, dict):
+            self.headers.update(headers)
+        else:
+            print("headers must be a dict")
 
     def set_request_compress(self, try_request_gzip):
         self.try_request_gzip = try_request_gzip
@@ -200,6 +217,10 @@ class HttpClient(object):
 
     def set_http_proto(self, http_proto):
         self.http_proto = http_proto
+        if self.http_proto:
+            self.headers["Content-Type"] = "application/proto"
+        else:
+            self.headers["Content-Type"] = "application/json"
 
     def set_use_grpc_client(self, use_grpc_client):
         self.use_grpc_client = use_grpc_client
@@ -232,31 +253,26 @@ class HttpClient(object):
         return self.fetch_names_
 
     def get_legal_fetch(self, fetch):
-        if fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction")
 
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, (list, tuple)):
             fetch_list = fetch
+        elif fetch == None:
+            pass
         else:
-            raise ValueError("Fetch only accepts string and list of string")
+            raise ValueError("Fetch only accepts string/list/tuple of string")
 
         fetch_names = []
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
-
-        if len(fetch_names) == 0:
-            raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.")
-            return {}
         return fetch_names
 
     def get_feedvar_dict(self, feed):
         if feed is None:
-            raise ValueError("You should specify feed and fetch for prediction")
+            raise ValueError("You should specify feed for prediction")
         feed_dict = {}
         if isinstance(feed, dict):
             feed_dict = feed
@@ -402,17 +418,19 @@ class HttpClient(object):
             # 此时先统一处理为一个list
             # 由于输入比较特殊，shape保持原feedvar中不变
             data_value = []
-            data_value.append(feed_dict[key])
             if isinstance(feed_dict[key], (str, bytes)):
                 if self.feed_types_[key] != bytes_type:
                     raise ValueError(
                         "feedvar is not string-type,feed can`t be a single string."
                     )
+                if isinstance(feed_dict[key], bytes):
+                    feed_dict[key] = feed_dict[key].decode()
             else:
                 if self.feed_types_[key] == bytes_type:
                     raise ValueError(
                         "feedvar is string-type,feed can`t be a single int or others."
                     )
+            data_value.append(feed_dict[key])
         # 如果不压缩，那么不需要统计数据量。
         if self.try_request_gzip:
             self.total_data_number = self.total_data_number + data_bytes_number(
@@ -453,20 +471,25 @@ class HttpClient(object):
 
         feed_dict = self.get_feedvar_dict(feed)
         fetch_list = self.get_legal_fetch(fetch)
-        headers = {}
         postData = ''
 
         if self.http_proto == True:
             postData = self.process_proto_data(feed_dict, fetch_list, batch,
                                                log_id).SerializeToString()
-            headers["Content-Type"] = "application/proto"
+
         else:
             postData = self.process_json_data(feed_dict, fetch_list, batch,
                                               log_id)
-            headers["Content-Type"] = "application/json"
 
         web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
+        if self.url != None:
+            if "http" not in self.url:
+                self.url = "http://" + self.url
+            if "self.service_name" not in self.url:
+                self.url = self.url + self.service_name
+            web_url = self.url
         # 当数据区长度大于512字节时才压缩.
+        self.headers.pop("Content-Encoding", "nokey")
         try:
             if self.try_request_gzip and self.total_data_number > 512:
 
@@ -474,20 +497,21 @@ class HttpClient(object):
                     postData = gzip.compress(postData)
                 else:
                     postData = gzip.compress(bytes(postData, 'utf-8'))
-                headers["Content-Encoding"] = "gzip"
+                self.headers["Content-Encoding"] = "gzip"
             if self.try_response_gzip:
-                headers["Accept-encoding"] = "gzip"
+                self.headers["Accept-encoding"] = "gzip"
         # 压缩异常，使用原始数据
         except:
             print("compress error, we will use the no-compress data")
-            headers.pop("Content-Encoding", "nokey")
+            self.headers.pop("Content-Encoding", "nokey")
         # requests支持自动识别解压
         try:
             result = self.requests_session.post(
                 url=web_url,
-                headers=headers,
+                headers=self.headers,
                 data=postData,
-                timeout=self.timeout_ms / 1000)
+                timeout=self.timeout_ms / 1000,
+                verify=False)
             result.raise_for_status()
         except:
             print("http post error")

@@ -74,10 +74,19 @@ int GeneralResponseOp::inference() {
   // and the order of Output is the same as the prototxt FetchVar.
   // otherwise, you can only get the Output by the corresponding of
   // Name -- Alias_name.
-  fetch_index.resize(req->fetch_var_names_size());
-  for (int i = 0; i < req->fetch_var_names_size(); ++i) {
-    fetch_index[i] =
-        model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
+  if (req->fetch_var_names_size() > 0) {
+    fetch_index.resize(req->fetch_var_names_size());
+    for (int i = 0; i < req->fetch_var_names_size(); ++i) {
+      fetch_index[i] =
+          model_config->_fetch_alias_name_to_index[req->fetch_var_names(i)];
+    }
+  } else {
+    fetch_index.resize(model_config->_fetch_alias_name.size());
+    for (int i = 0; i < model_config->_fetch_alias_name.size(); ++i) {
+      fetch_index[i] =
+          model_config
+              ->_fetch_alias_name_to_index[model_config->_fetch_alias_name[i]];
+    }
   }
 
   for (uint32_t pi = 0; pi < pre_node_names.size(); ++pi) {
@@ -105,7 +114,7 @@ int GeneralResponseOp::inference() {
     // fetch_index is the real index in FetchVar of Fetchlist
     // for example, FetchVar = {0:A, 1:B, 2:C}
     // FetchList = {0:C,1:A}, at this situation.
-    // fetch_index = [2,0], C`index = 2 and A`index = 0 
+    // fetch_index = [2,0], C`index = 2 and A`index = 0
     for (auto &idx : fetch_index) {
       Tensor *tensor = output->add_tensor();
       tensor->set_name(in->at(idx).name);
