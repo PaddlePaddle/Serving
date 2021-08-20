@@ -40,6 +40,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
+from .pipeline_client import PipelineClient as PPClient
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -330,9 +331,8 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        # 待测试完成后，使用brpc-http替代。
-        # elif self.client_type == 'grpc':
-        #   client = MultiLangClient()
+        elif self.client_type == 'pipeline_grpc':
+            client = PPClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
@@ -531,32 +531,72 @@ class Op(object):
         Returns:
             call_result: predict result
         """
-        err, err_info = ChannelData.check_batch_npdata(feed_batch)
-        if err != 0:
-            _LOGGER.critical(
-                self._log("Failed to run process: {}. Please override "
-                          "preprocess func.".format(err_info)))
-            os._exit(-1)
+
+        call_result = None
+        err_code = ChannelDataErrcode.OK.value
+        err_info = ""
+
         if self.client_type == "local_predictor":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for local_predictor mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
+
             call_result = self.client.predict(
                 feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        else:
+
+        elif self.client_type == "brpc":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for brpc mode.".format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
             call_result = self.client.predict(
-                feed=feed_batch,
+                feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        # 后续用HttpClient替代
-        '''
-        if isinstance(self.client, MultiLangClient):
-            if call_result is None or call_result["serving_status_code"] != 0:
-                return None
-            call_result.pop("serving_status_code")
-        '''
-        return call_result
+
+        elif self.client_type == "pipeline_grpc":
+            err, err_info = ChannelData.check_dictdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                       npdata in process for pipeline_grpc mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be dict"
+
+            call_result = self.client.predict(
+                feed_dict=feed_batch[0],
+                fetch=self._fetch_names,
+                asyn=False,
+                profile=False)
+            if call_result is None:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. call_result is None."))
+                return call_result, ChannelDataErrcode.UNKNOW.value, "pipeline_grpc error"
+            if call_result.err_no != 0:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. err_no:{}, err_info:{}".
+                              format(call_result.err_no, call_result.err_msg)))
+                return call_result, ChannelDataErrcode(
+                    call_result.err_no).value, call_result.err_msg
+
+            new_dict = {}
+            err_code = ChannelDataErrcode(call_result.err_no).value
+            err_info = call_result.err_msg
+            for idx, key in enumerate(call_result.key):
+                new_dict[key] = [call_result.value[idx]]
+            call_result = new_dict
+
+        return call_result, err_code, err_info
 
     def postprocess(self, input_data, fetch_data, data_id=0, log_id=0):
         """
@@ -891,16 +931,20 @@ class Op(object):
 
         midped_batch = None
         error_code = ChannelDataErrcode.OK.value
+        error_info = ""
         if self._timeout <= 0:
             # No retry
             try:
                 if batch_input is False:
-                    midped_batch = self.process(feed_batch, typical_logid)
+                    midped_batch, error_code, error_info = self.process(
+                        feed_batch, typical_logid)
                 else:
                     midped_batch = []
                     for idx in range(len(feed_batch)):
-                        predict_res = self.process([feed_batch[idx]],
-                                                   typical_logid)
+                        predict_res, error_code, error_info = self.process(
+                            [feed_batch[idx]], typical_logid)
+                        if error_code != ChannelDataErrcode.OK.value:
+                            break
                         midped_batch.append(predict_res)
             except Exception as e:
                 error_code = ChannelDataErrcode.UNKNOW.value
@@ -913,14 +957,14 @@ class Op(object):
                 try:
                     # time out for each process
                     if batch_input is False:
-                        midped_batch = func_timeout.func_timeout(
+                        midped_batch, error_code, error_info = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
                     else:
                         midped_batch = []
                         for idx in range(len(feed_batch)):
-                            predict_res = func_timeout.func_timeout(
+                            predict_res, error_code, error_info = func_timeout.func_timeout(
                                 self._timeout,
                                 self.process,
                                 args=([feed_batch[idx]], typical_logid))
