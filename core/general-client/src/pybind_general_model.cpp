@@ -69,7 +69,10 @@ PYBIND11_MODULE(serving_client, m) {
            })
       .def("variant_tag", [](PredictorRes &self) { return self.variant_tag(); })
       .def("get_engine_names",
-           [](PredictorRes &self) { return self.get_engine_names(); });
+           [](PredictorRes &self) { return self.get_engine_names(); })
+      .def("get_tensor_alias_names", [](PredictorRes &self, int model_idx) {
+        return self.get_tensor_alias_names(model_idx);
+      });
 
   py::class_<PredictorClient>(m, "PredictorClient", py::buffer_protocol())
       .def(py::init())
