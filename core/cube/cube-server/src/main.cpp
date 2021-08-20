@@ -82,7 +82,8 @@ int run(int argc, char** argv) {
   LOG(INFO) << "Succ initialize logger";
 
   Framework* framework = Framework::instance();
-  ret = framework->init(FLAGS_dict_split, FLAGS_in_mem);
+  ret = 0;
+  //framework->init(FLAGS_dict_split, FLAGS_in_mem);
   if (ret != 0) {
     LOG(ERROR) << "init predict framework failed";
     return ret;

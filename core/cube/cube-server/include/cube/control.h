@@ -40,21 +40,21 @@ class Control : public ControlService {
   int handle_status(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
                     BUTIL_RAPIDJSON_NAMESPACE::Document* res);
 
-  int handle_reload_base(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
+  int handle_reload_base(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name,
                          const std::string& v_path);
-  int handle_reload_patch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
+  int handle_reload_patch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name,
                           const std::string& v_path);
 
-  int handle_bg_load_base(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
+  int handle_bg_load_base(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name,
                           const std::string& v_path);
-  int handle_bg_load_patch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
+  int handle_bg_load_patch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name,
                            const std::string& v_path);
 
-  int handle_bg_unload(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd);
+  int handle_bg_unload(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name);
 
-  int handle_bg_switch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd);
+  int handle_bg_switch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name);
 
-  int handle_enable(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd);
+  int handle_enable(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name);
 
   std::mutex _cmd_mutex;
 };  // class Control

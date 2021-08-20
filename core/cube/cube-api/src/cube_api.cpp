@@ -139,7 +139,7 @@ int CubeAPI::seek(const std::string& dict_name,
   int shard_id = key % info->shard_num;
   DictRequest req;
   DictResponse res;
-
+  req.set_dict_name(dict_name);
   req.add_keys(key);
 
   ::brpc::Channel* chan = info->cube_conn[shard_id];
@@ -222,6 +222,7 @@ int CubeAPI::seek(const std::string& dict_name,
 
   for (size_t i = 0; i < keys.size(); ++i) {
     uint64_t shard_id = keys[i] % shard_num;
+    rpc_data->sub_reqs[shard_id].set_dict_name(dict_name);
     rpc_data->sub_reqs[shard_id].add_keys(keys[i]);
     offset[shard_id].push_back(i);
   }

@@ -80,7 +80,7 @@ int Dict::load_index(const std::string& dict_path, const std::string& v_path) {
   std::string index_n_path(dict_path);
   index_n_path.append(v_path);
   index_n_path.append("/index.n");
-  
+  LOG(INFO) << "dict_path: " << dict_path << " , v_path: " << v_path; 
   uint32_t cur_block_id = 0;
   if (_base_dict) cur_block_id = _base_dict->_block_set.size(); 
   LOG(INFO) << "index file path: " << index_n_path;

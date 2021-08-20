@@ -77,9 +77,12 @@ void Recycle::recycle(Dict* dict) {
 */
 
 void Recycle::recycle(VirtualDict* dict) {
+  LOG(INFO) << "wait for recycle lock";
   lock();
+  LOG(INFO) << "get recycle lock";
   _recycle_list.push(dict);
   unlock();
+  LOG(INFO) << "release recycle lock";
 }
 
 void Recycle::lock() { pthread_mutex_lock(&_recycle_mutex); }

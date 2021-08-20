@@ -19,8 +19,9 @@ package rec.mcube;
 option cc_generic_services = true;
 
 message DictRequest {
-  repeated uint64 keys = 1;
-  optional bool version_required = 2 [ default = false ];
+  required string dict_name = 1;
+  repeated uint64 keys = 2;
+  optional bool version_required = 3 [ default = false ];
 };
 
 message DictValue {

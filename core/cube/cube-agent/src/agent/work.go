@@ -451,7 +451,7 @@ func (work *Work) Reload() (err error) {
 		work.ActiveVersionList = "[]"
 	}
 	for i := 0; i < RELOAD_RETRY_TIMES; i++ {
-		reloadCmd := fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"%s\",\"version_path\":\"/%s\"}' http://127.0.0.1:%s/ControlService/cmd", bgLoadCmd, versionPath, work.Port)
+		reloadCmd := fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"%s\",\"version_path\":\"/%s\", \"dict_name\":\"%s\"}' http://127.0.0.1:%s/ControlService/cmd", bgLoadCmd, versionPath,  work.DictName, work.Port)
 		fmt.Println("reload: ", reloadCmd)
 		stdout, _, _ = RetryCmd(reloadCmd, 1)
 		fmt.Println("reload stdout: ", stdout)
@@ -480,7 +480,7 @@ func (work *Work) Clear() (err error) {
 	var stdout string
 	var clearCmd string
 	for i := 0; i < RETRY_TIMES; i++ {
-		clearCmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"clear\",\"table_name\":\"%s\"}' http://127.0.0.1:%s/NodeControlService/cmd", work.DictName, work.Port)
+		clearCmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"clear\",\"dict_name\":\"%s\"}' http://127.0.0.1:%s/NodeControlService/cmd", work.DictName, work.Port)
 		fmt.Println("clear: ", clearCmd)
 		stdout, _, _ = RetryCmd(clearCmd, 1)
 		fmt.Println("clear stdout: ", stdout)
@@ -579,7 +579,7 @@ func (work *Work) Enable() (err error) {
 			cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"reload_model\",\"version\":\"%s-%s\",\"dict_name\":\"%s\"}' http://127.0.0.1:%s/ControlService/cmd",
 				versionPath, work.DictName, work.DictName, work.Port)
 		} else {
-			cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"enable\",\"version\":\"%s\"}' http://127.0.0.1:%s/ControlService/cmd", versionPath, work.Port)
+			cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"enable\",\"version\":\"%s\", \"dict_name\":\"%s\"}' http://127.0.0.1:%s/ControlService/cmd", versionPath, work.DictName, work.Port)
 		}
 		stdout, _, _ = RetryCmd(cmd, 1)
 
@@ -599,7 +599,7 @@ func (work *Work) Enable() (err error) {
 	}
 
 	if work.Service == "" {
-		cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"bg_unload\"}' http://127.0.0.1:%s/ControlService/cmd", work.Port)
+		cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"bg_unload\", \"dict_name\":\"%s\"}' http://127.0.0.1:%s/ControlService/cmd", work.DictName, work.Port)
 		stdout, _, _ = RetryCmd(cmd, RETRY_TIMES)
 		if strings.TrimSpace(stdout) == "200" {
 			logex.Debugf("unload return succ")
@@ -620,7 +620,7 @@ func (work *Work) Pop() (err error) {
 		work.ActiveVersionList = "[]"
 	}
 	for i := 0; i < RELOAD_RETRY_TIMES; i++ {
-		cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"pop\",\"table_name\":\"%s\",\"active_versions\":%v}' http://127.0.0.1:%s/NodeControlService/cmd", work.DictName, work.ActiveVersionList, work.Port)
+		cmd = fmt.Sprintf("curl -o /dev/null -s -w %%{http_code} -d '{\"cmd\":\"pop\",\"dict_name\":\"%s\",\"active_versions\":%v}' http://127.0.0.1:%s/NodeControlService/cmd", work.DictName, work.ActiveVersionList, work.Port)
 		fmt.Println("pop: ", cmd)
 		stdout, _, _ = RetryCmd(cmd, 1)
 		fmt.Println("pop stdout: ", stdout)

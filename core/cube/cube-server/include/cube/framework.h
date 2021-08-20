@@ -22,7 +22,9 @@
 #include "butil/third_party/rapidjson/prettywriter.h"
 #include "butil/third_party/rapidjson/stringbuffer.h"
 
+
 #include "core/cube/cube-server/cube.pb.h"
+#include "core/cube/cube-server/include/cube/dict.h"
 #include "core/cube/cube-server/include/cube/rw_lock.h"
 #include "core/cube/cube-server/include/cube/virtual_dict.h"
 
@@ -32,6 +34,99 @@ namespace mcube {
 struct Status {
   enum StatusCode { F_RUNNING = 0, F_LOADING };
 };
+/*std::unordered_map<std::string, int> _dict_idx_map;
+  std::unordered_map<std::string, bool> _in_mem_map;
+  std::unordered_map<std::string, uint32_t> _max_val_size_map;
+  std::unordered_map<std::string, std::string> _dict_path_map;*/
+
+class DoubleBufDict 
+{
+ public:
+  void init_dict() {
+    _dict[0] = new (std::nothrow) Dict();
+    _dict[1] = nullptr;
+  }
+
+  VirtualDict* get_dict(int idx) {
+    return _dict[idx];
+  }
+  void set_dict(VirtualDict* dict, int idx) {
+    _dict[idx] = dict;
+  }
+  VirtualDict* get_cur_dict() {
+    _rw_lock.r_lock();
+    VirtualDict* dict = get_dict(_dict_idx);
+    dict->atom_inc_seek_num();
+    _rw_lock.unlock();
+    return dict;
+  }
+  std::string get_cur_version() {
+    _rw_lock.r_lock();
+    VirtualDict* dict = get_cur_dict();
+    std::string version = dict->version();
+    _rw_lock.unlock();
+    return version;
+  }
+  VirtualDict* get_bg_dict() {
+    return _dict[1 - _dict_idx]; 
+  }
+  
+  std::string get_bg_version() {
+    _bg_rw_lock.r_lock();
+    VirtualDict* dict = _dict[1 - _dict_idx];
+    std::string version = "";
+    if (dict) {
+      version = dict->guard_version();
+    }
+    _bg_rw_lock.unlock();
+    return version;
+  }
+  
+  void set_bg_dict(VirtualDict* dict) {
+    _bg_rw_lock.w_lock();
+    _dict[1 - _dict_idx] = dict;
+    _bg_rw_lock.unlock();
+  }
+  
+  int bg_switch() {
+   _rw_lock.w_lock();
+   int bg_idx = 1 - _dict_idx;
+   if (!_dict[bg_idx]) {
+     LOG(WARNING) << "switch dict failed because nullptr";
+     _rw_lock.unlock();
+     return -1;
+   }
+   _dict_idx = bg_idx;
+   _rw_lock.unlock();
+   return 0;
+  }
+  
+  void set_dict_path(std::string dict_path) {
+    _dict_path = dict_path;
+  }  
+
+  std::string get_dict_path() {
+    return _dict_path;
+  }
+
+  void set_in_mem(bool in_mem) {
+    _in_mem = in_mem;
+  }
+  bool get_in_mem() {
+    return _in_mem;
+  }
+
+
+ private:
+  VirtualDict* _dict[2]{nullptr, nullptr};
+  int _dict_idx;
+  bool _in_mem;
+  uint32_t _max_val_size;
+  RWLock _rw_lock;
+  RWLock _bg_rw_lock;
+  std::string _dict_path;
+};
+
 
 class Framework {
  public:
@@ -44,7 +139,7 @@ class Framework {
 
   int destroy();
 
-  int status(std::string dict_name, BUTIL_RAPIDJSON_NAMESPACE::Document* res);
+  int status(BUTIL_RAPIDJSON_NAMESPACE::Document* res);
 
   int seek(const DictRequest* req, DictResponse* res);
 
@@ -58,9 +153,9 @@ class Framework {
   // load dict patch
   int bg_load_patch(std::string dict_name, const std::string& v_path);
 
-  int bg_unload();
+  int bg_unload(std::string dict_name);
 
-  int bg_switch();
+  int bg_switch(std::string dict_name);
 
   int enable(std::string dict_name, const std::string& version);
 
@@ -71,50 +166,36 @@ class Framework {
 
  private:
   VirtualDict* get_cur_dict(std::string dict_name) {
-    _rw_lock.r_lock();
-    int _dict_idx = _dict_idx_map[dict_name];
-    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
-    VirtualDict* dict = _dict[_dict_idx];
-    dict->atom_inc_seek_num();
-    _rw_lock.unlock();
-    return dict;
+    if (_dict_map.find(dict_name) != _dict_map.end()) {
+      DoubleBufDict* ddict = _dict_map.at(dict_name);
+      return ddict->get_cur_dict();
+    } else {
+      return nullptr;
+    }
   }
 
   std::string get_cur_version(std::string dict_name) {
-    _rw_lock.r_lock();
-    int _dict_idx = _dict_idx_map[dict_name];
-    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
-    VirtualDict* dict = _dict[_dict_idx];
-    std::string version = dict->version();
-    _rw_lock.unlock();
-    return version;
+    DoubleBufDict* ddict = _dict_map.at(dict_name);
+    return ddict->get_cur_version();
   }
 
-  VirtualDict* get_bg_dict(std::string dict_name) const { 
-    int _dict_idx = _dict_idx_map.at(dict_name);
-    std::vector<VirtualDict*> _dict = _dict_map.at(dict_name);
-    return _dict[1 - _dict_idx]; 
+  VirtualDict* get_bg_dict(std::string dict_name) const {
+    if (_dict_map.find(dict_name) != _dict_map.end()) {
+      DoubleBufDict* ddict = _dict_map.at(dict_name);
+      return ddict->get_bg_dict(); 
+    } else {
+      return nullptr;
+    }
   }
 
   std::string get_bg_version(std::string dict_name) {
-    _bg_rw_lock.r_lock();
-    int _dict_idx = _dict_idx_map.at(dict_name);
-    std::vector<VirtualDict*> _dict = _dict_map[dict_name];
-    VirtualDict* dict = _dict[1 - _dict_idx];
-    std::string version = "";
-    if (dict) {
-      version = dict->guard_version();
-    }
-    _bg_rw_lock.unlock();
-    return version;
+    DoubleBufDict* ddict = _dict_map.at(dict_name);
+    return ddict->get_bg_version();
   }
 
   void set_bg_dict(std::string dict_name, VirtualDict* dict) {
-    _bg_rw_lock.w_lock();
-    int _dict_idx = _dict_idx_map[dict_name];
-    std::vector<VirtualDict*>& _dict = _dict_map[dict_name];
-    _dict[1 - _dict_idx] = dict;
-    _bg_rw_lock.unlock();
+    DoubleBufDict* ddict = _dict_map.at(dict_name);
+    ddict->set_bg_dict(dict);    
   }
 
   void release(VirtualDict* dict);
@@ -125,20 +206,14 @@ class Framework {
 
  private:
   //VirtualDict* _dict[2]{nullptr, nullptr};
-  std::unordered_map<std::string, std::vector<VirtualDict*>> _dict_map;
+  std::unordered_map<std::string, DoubleBufDict*> _dict_map;
   std::unordered_map<std::string, int> _dict_idx_map;
   std::unordered_map<std::string, bool> _in_mem_map;
-  std::unordered_map<std::string, uint32_t> _max_val_size_map;
+  uint32_t _max_val_size;
   std::unordered_map<std::string, std::string> _dict_path_map;
-  //int _dict_idx{0};
-  //std::string _dict_path{""};
-  //bool _in_mem{true};
-  //std::atomic_int _status;
-  RWLock _rw_lock;
-  RWLock _bg_rw_lock;
-  //uint32_t _max_val_size{0};
   uint32_t _dict_split{0};
   std::vector<std::string> _dict_set_path;
+  std::atomic_int _status;
 };  // class Framework
 
 }  // namespace mcube

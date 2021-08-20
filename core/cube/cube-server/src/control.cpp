@@ -53,7 +53,7 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
                   ::google::protobuf::Closure* done) {
   ClosureGuard done_guard(done);
   Controller* cntl = static_cast<Controller*>(cntl_base);
-  // Sample Req: '{"cmd":"bg_load_base","version_path":"/1628762211", "table_name": "test_dict"}'
+  // Sample Req: '{"cmd":"bg_load_base","version_path":"/1628762211", "dict_name": "test_dict"}'
   std::string cmd_str = cntl->request_attachment().to_string();
   Document cmd;
   cmd.Parse(cmd_str.c_str());
@@ -75,9 +75,9 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
   if (cmd.HasMember("version_path") && cmd["version_path"].IsString()) {
     version_path = cmd["version_path"].GetString();
   }
-  std::string table_name = "";
-  if (cmd.HasMember("table_name") && cmd["table_name"].IsString()) {
-    table_name = cmd["table_name"].GetString();
+  std::string dict_name = "";
+  if (cmd.HasMember("dict_name") && cmd["dict_name"].IsString()) {
+    dict_name = cmd["dict_name"].GetString();
   }
 
   int ret = 0;
@@ -86,19 +86,19 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
     ret = handle_status(cmd, &response);
   } else if (_cmd_mutex.try_lock()) {
     if (cmd_name.compare("reload_base") == 0) {
-      ret = handle_reload_base(cmd, table_name, version_path);
+      ret = handle_reload_base(cmd, dict_name, version_path);
     } else if (cmd_name.compare("reload_patch") == 0) {
-      ret = handle_reload_patch(cmd, table_name, version_path);
+      ret = handle_reload_patch(cmd, dict_name, version_path);
     } else if (cmd_name.compare("bg_load_base") == 0) {
-      ret = handle_bg_load_base(cmd, table_name, version_path);
+      ret = handle_bg_load_base(cmd, dict_name, version_path);
     } else if (cmd_name.compare("bg_load_patch") == 0) {
-      ret = handle_bg_load_patch(cmd, table_name, version_path);
+      ret = handle_bg_load_patch(cmd, dict_name, version_path);
     } else if (cmd_name.compare("bg_unload") == 0) {
-      ret = handle_bg_unload(cmd, table_name);
+      ret = handle_bg_unload(cmd, dict_name);
     } else if (cmd_name.compare("bg_switch") == 0) {
-      ret = handle_bg_switch(cmd, table_name);
+      ret = handle_bg_switch(cmd, dict_name);
     } else if (cmd_name.compare("enable") == 0) {
-      ret = handle_enable(cmd, table_name);
+      ret = handle_enable(cmd, dict_name);
     } else {
       ret = -1;
       LOG(ERROR) << "unknown cmd: " << cmd_name;
@@ -117,7 +117,7 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
         brpc::HTTP_STATUS_INTERNAL_SERVER_ERROR);
   }
 
-  LOG(INFO) << "CMD DONE: " << cmd_str;
+  LOG(INFO) << "CMD DONE: " << cmd_str << " , ret code: " << ret;
   return;
 }
 
@@ -126,46 +126,46 @@ int Control::handle_status(const Document& /*cmd*/, Document* res) {
   return framework->status(res);
 }
 
-int Control::handle_reload_patch(const Document& /*cmd*/, std::string table_name,
+int Control::handle_reload_patch(const Document& /*cmd*/, std::string dict_name,
                                  const std::string& v_path) {
   Framework* framework = Framework::instance();
-  return framework->patch(table_name, v_path);
+  return framework->patch(dict_name, v_path);
 }
 
-int Control::handle_reload_base(const Document& /*cmd*/, std::string table_name,
+int Control::handle_reload_base(const Document& /*cmd*/, std::string dict_name,
                                 const std::string& v_path) {
   Framework* framework = Framework::instance();
-  return framework->reload(table_name, v_path);
+  return framework->reload(dict_name, v_path);
 }
 
-int Control::handle_bg_load_patch(const Document& /*cmd*/, std::string table_name,
+int Control::handle_bg_load_patch(const Document& /*cmd*/, std::string dict_name,
                                   const std::string& v_path) {
   Framework* framework = Framework::instance();
-  return framework->bg_load_patch(table_name, v_path);
+  return framework->bg_load_patch(dict_name, v_path);
 }
 
-int Control::handle_bg_load_base(const Document& /*cmd*/, std::string table_name,
+int Control::handle_bg_load_base(const Document& /*cmd*/, std::string dict_name,
                                  const std::string& v_path) {
   Framework* framework = Framework::instance();
-  return framework->bg_load_base(table_name, v_path);
+  return framework->bg_load_base(dict_name, v_path);
 }
 
-int Control::handle_bg_unload(const Document& /*cmd*/, std::string table_name) {
+int Control::handle_bg_unload(const Document& /*cmd*/, std::string dict_name) {
   Framework* framework = Framework::instance();
-  return framework->bg_unload(table_name);
+  return framework->bg_unload(dict_name);
 }
 
-int Control::handle_bg_switch(const Document& /*cmd*/, std::string table_name) {
+int Control::handle_bg_switch(const Document& /*cmd*/, std::string dict_name) {
   Framework* framework = Framework::instance();
-  return framework->bg_switch(table_name);
+  return framework->bg_switch(dict_name);
 }
 
-int Control::handle_enable(const Document& cmd, std::string table_name) {
+int Control::handle_enable(const Document& cmd, std::string dict_name) {
   if (!cmd.HasMember("version") || !cmd["version"].IsString()) {
     return -1;
   }
   Framework* framework = Framework::instance();
-  return framework->enable(table_name, cmd["version"].GetString());
+  return framework->enable(dict_name, cmd["version"].GetString());
 }
 
 }  // namespace mcube
