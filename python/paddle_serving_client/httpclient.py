@@ -257,12 +257,12 @@ class HttpClient(object):
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
-        elif isinstance(fetch, list):
+        elif isinstance(fetch, (list, tuple)):
             fetch_list = fetch
         elif fetch == None:
             pass
         else:
-            raise ValueError("Fetch only accepts string or list of string")
+            raise ValueError("Fetch only accepts string/list/tuple of string")
 
         fetch_names = []
         for key in fetch_list:
