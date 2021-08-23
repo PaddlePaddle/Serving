@@ -113,7 +113,7 @@ int GeneralDistKVInferOp::inference() {
     }
   }
   rm_dup_keys.resize(rm_dup_keys_count);
-  VLOG(2) << "(logid=" << log_id << ") cube number of keys to look up: " << key_len << " after rm dup keys: "<< rm_dup_keys_count;
+  VLOG(1) << "(logid=" << log_id << ") cube number of keys to look up: " << key_len << " uniq keys: "<< rm_dup_keys_count;
   rec::mcube::CubeAPI *cube = rec::mcube::CubeAPI::instance();
   std::vector<std::string> table_names = cube->get_table_names();
   if (table_names.size() == 0) {
@@ -176,8 +176,8 @@ int GeneralDistKVInferOp::inference() {
 	 ++cube_val_idx;
          continue;
       }
-      //VLOG(3) << "(logid=" << log_id << ") cube key found: " << keys[cube_val_idx];
-      memcpy(data_ptr, values[cube_val_idx].buff.data()+10, values[cube_val_idx].buff.size()-10);
+      VLOG(2) << "(logid=" << log_id << ") key: " << keys[cube_val_idx]  << " , cube value len:" << cur_val->buff.size();
+      memcpy(data_ptr, cur_val->buff.data()+10, cur_val->buff.size()-10);
       //VLOG(3) <<  keys[cube_val_idx] << ":" << data_ptr[0] << ", " << data_ptr[1] << ", " <<data_ptr[2] << ", " <<data_ptr[3] << ", " <<data_ptr[4] << ", " <<data_ptr[5] << ", " <<data_ptr[6] << ", " <<data_ptr[7] << ", " <<data_ptr[8];
       ++cube_key_found;
       ++cube_val_idx;
