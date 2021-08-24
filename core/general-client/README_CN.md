@@ -25,10 +25,9 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 更多示例详见[simple_client.cpp](./example/simple_client.cpp)
 
-<center>
 | Argument                                       | Type | Default                              | Description                                           |
 | ---------------------------------------------- | ---- | ------------------------------------ | ----------------------------------------------------- |
 | `client_conf`                                  | str  | `"serving_client_conf.prototxt"`     | Path of client conf                                   |
 | `server_port`                                  | str  | `"127.0.0.1:9393"`                   | Exposed ip:port of server                             |
-| `test_type`                                    | str  | `"brpc"`                             | Mode of request "brpc"                        |
+| `test_type`                                    | str  | `"brpc"`                             | Mode of request "brpc"                                |
 | `sample_type`                                  | str  | `"fit_a_line"`                       | Type of sample include "fit_a_line,bert"              |
