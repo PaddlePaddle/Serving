@@ -43,12 +43,12 @@ sh get_data.sh
 ### 启动预测服务（支持BRPC-Client、GRPC-Client、HTTP-Client三种方式访问）
 启动cpu预测服务，执行
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #启动cpu预测服务
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #启动cpu预测服务
 
 ```
 或者，启动gpu预测服务，执行
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #在gpu 0上启动gpu预测服务
 
 ```
 
@@ -56,13 +56,13 @@ python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --g
 
 执行预测前需要安装paddle_serving_app，模块中提供了BERT模型的数据预处理方法。
 ```
-pip install paddle_serving_app
+pip3 install paddle_serving_app
 ```
 
 #### BRPC-Client
 执行
 ```
-head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
+head data-c.txt | python3 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
 
 ```
 启动client读取data-c.txt中的数据进行预测，预测结果为文本的向量表示（由于数据较多，脚本中没有将输出进行打印），server端的地址在脚本中修改。
@@ -70,7 +70,7 @@ head data-c.txt | python bert_client.py --model bert_seq128_client/serving_clien
 #### GRPC-Client/HTTP-Client
 执行
 ```
-head data-c.txt | python bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt
+head data-c.txt | python3 bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt
 
 ```
 

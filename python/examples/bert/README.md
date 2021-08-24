@@ -45,22 +45,22 @@ this script will download Chinese Dictionary File vocab.txt and Chinese Sample D
 ### Inference Service(Support BRPC-Client、GRPC-Client、Http-Client)
 start cpu inference service,Run
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #cpu inference service
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #cpu inference service
 ```
 Or,start gpu inference service,Run
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
 ```
 
 ### BRPC-Client Inference
 
 before prediction we should install paddle_serving_app. This module provides data preprocessing for BERT model.
 ```
-pip install paddle_serving_app
+pip3 install paddle_serving_app
 ```
 Run
 ```
-head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
+head data-c.txt | python3 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
 ```
 
 the client reads data from data-c.txt and send prediction request, the prediction is given by word vector. (Due to massive data in the word vector, we do not print it).
@@ -68,7 +68,7 @@ the client reads data from data-c.txt and send prediction request, the predictio
 #### GRPC-Client/HTTP-Client
 Run
 ```
-head data-c.txt | python bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt
+head data-c.txt | python3 bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt
 
 ```
 

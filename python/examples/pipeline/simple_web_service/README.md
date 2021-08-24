@@ -10,7 +10,7 @@ sh get_data.sh
 ## Start server
 
 ```
-python web_service.py &>log.txt &
+python3 web_service.py &>log.txt &
 ```
 
 ## Http test
