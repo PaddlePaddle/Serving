@@ -15,22 +15,22 @@ sh get_data.sh
 ### Start server
 
 ```shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
 
 ## Client prediction
 
 ### RPC Client
-The `paddlepaddle` package is used in `test_client.py`, and you may need to download the corresponding package(`pip install paddlepaddle`).
+The `paddlepaddle` package is used in `test_client.py`, and you may need to download the corresponding package(`pip3 install paddlepaddle`).
 
 ``` shell
-python test_client.py uci_housing_client/serving_client_conf.prototxt
+python3 test_client.py uci_housing_client/serving_client_conf.prototxt
 ```
 
 ### Http Client
 
 ``` shell
-python test_httpclient.py uci_housing_client/serving_client_conf.prototxt
+python3 test_httpclient.py uci_housing_client/serving_client_conf.prototxt
 ```
 
 

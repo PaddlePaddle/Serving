@@ -13,14 +13,14 @@ export FLAGS_profile_server=1 #开启server端各阶段时间打点
 
 使用时先将client的输出保存到文件，以profile为例。
 ```
-python show_profile.py profile ${thread_num}
+python3 show_profile.py profile ${thread_num}
 ```
 这里thread_num参数为client运行时的进程数，脚本将按照这个参数来计算各阶段的平均耗时。
 
 脚本将计算各阶段的耗时，并除以线程数做平均，打印到标准输出。
 
 ```
-python timeline_trace.py profile trace
+python3 timeline_trace.py profile trace
 ```
 脚本将日志中的时间打点信息转换成json格式保存到trace文件，trace文件可以通过chrome浏览器的tracing功能进行可视化。
 

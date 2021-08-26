@@ -10,12 +10,12 @@ sh get_data.sh
 
 ### 启动服务
 ```
-python -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_id 0
+python3 -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_id 0
 ```
 
 ### 执行预测
 ```
-python test_client.py
+python3 test_client.py
 ```
 
 客户端已经为图片做好了后处理，在`output`文件夹下存放各个框的json格式信息还有后处理结果图片。

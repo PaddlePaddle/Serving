@@ -3,7 +3,7 @@
 ## Get Model
 
 ```
-python -m paddle_serving_app.package --get_model unet
+python3 -m paddle_serving_app.package --get_model unet
 tar -xzvf unet.tar.gz
 ```
 
@@ -12,11 +12,11 @@ tar -xzvf unet.tar.gz
 ### Start Service
 
 ```
-python -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 9494
+python3 -m paddle_serving_server.serve --model unet_model --gpu_ids 0 --port 9494
 ```
 
 ### Client Prediction
 
 ```
-python seg_client.py
+python3 seg_client.py
 ```

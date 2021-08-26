@@ -3,16 +3,16 @@
 
 ## 获取模型文件
 ```
-python -m paddle_serving_app.package --get_model senta_bilstm
-python -m paddle_serving_app.package --get_model lac
+python3 -m paddle_serving_app.package --get_model senta_bilstm
+python3 -m paddle_serving_app.package --get_model lac
 tar -xzvf lac.tar.gz
 tar -xzvf senta_bilstm.tar.gz
 ```
 
 ## 启动HTTP服务
 ```
-python -m paddle_serving_server.serve --model lac_model --port 9300
-python senta_web_service.py
+python3 -m paddle_serving_server.serve --model lac_model --port 9300
+python3 senta_web_service.py
 ```
 中文情感分类任务中需要先通过[LAC任务](../lac)进行中文分词。
 示例中将LAC任务放在情感分类任务的HTTP预测服务的预处理部分。
