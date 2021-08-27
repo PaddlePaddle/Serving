@@ -165,6 +165,8 @@ class ReloadableInferEngine : public InferEngine {
   // Need to align batch_size in inferring
   bool _infer_batch_align;
 
+  // allow to split request in inferring
+  bool _allow_split_request;
   // model version
   uint64_t _version;
 };

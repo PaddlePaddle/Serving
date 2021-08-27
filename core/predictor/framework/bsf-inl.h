@@ -26,8 +26,89 @@
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/memory.h"
 
+// this file is included by bsf.h
 namespace im {
 namespace bsf {
+
+template <typename InItemT, typename OutItemT>
+bool Task<InItemT, OutItemT>::task_fetch_init(BatchTasks<TaskT>& baskTask) {
+  // 双检锁，减少加锁的粒度
+  if (!fetch_init) {
+    if (taskmeta_num > 1) {
+      // 对于task被拆分为多个taskmeta,需要加锁。
+      AutoMutex lock(task_mut);
+      task_fetch_create(baskTask);
+    } else {
+      // 对于task只有1个taskmeta,不需要加锁。
+      task_fetch_create(baskTask);
+    }
+  }
+  return true;
+}
+
+template <typename InItemT, typename OutItemT>
+bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& baskTask) {
+  if (!fetch_init) {
+    vector_fetch_lod_index = baskTask.vector_fetch_lod_index;
+    set_fetch_nobatch_index = baskTask.set_fetch_nobatch_index;
+    OutVectorT taskMetaOutLodTensor;
+    size_t fetchvar_num = baskTask._batch_out.size();
+    for (size_t fetchvar_index = 0; fetchvar_index < fetchvar_num;
+         ++fetchvar_index) {
+      size_t fetchvar_bytesize_index =
+          baskTask.fetchvar_bytesize(fetchvar_index);
+      size_t fetchvar_batch = 0;
+      // 1. nobatch fetchvar情况
+      if (set_fetch_nobatch_index.size() > 0 &&
+          set_fetch_nobatch_index.find(fetchvar_index) !=
+              set_fetch_nobatch_index.end()) {
+        fetchvar_batch = 1;
+      } else if (vector_fetch_lod_index.size() > 0 &&
+                 std::find(vector_fetch_lod_index.begin(),
+                           vector_fetch_lod_index.end(),
+                           fetchvar_index) != vector_fetch_lod_index.end()) {
+        // lod fetchvar情况，此时无法确定总的shape[0]
+        // 根据task中的task_num总数开辟task_num个临时空间
+        // 每个lod型的fetchvar拷贝到对应的临时空间中
+        // 最后再计算临时空间的总量，合并fetchvar和lod
+        fetchvar_batch = 0;
+
+      } else {
+        // 普通fetchvar情况，此时该Task总的fetchvar_batch =
+        // 输入的总的batch_size()
+        fetchvar_batch = batch_size();
+      }
+      paddle::PaddleTensor tensor_out;
+      tensor_out.name = baskTask._batch_out[fetchvar_index].name;
+      tensor_out.dtype =
+          paddle::PaddleDType(baskTask._batch_out[fetchvar_index].dtype);
+      tensor_out.shape = baskTask._batch_out[fetchvar_index].shape;
+      tensor_out.shape[0] = fetchvar_batch;
+      if (fetchvar_batch != 0) {
+        // 此时 lod 为空。
+        tensor_out.lod = baskTask._batch_out[fetchvar_index].lod;
+        // resize all batch memory at one time
+        size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
+        tensor_out.data.Resize(databuf_size);
+      } else {
+        // 当taskmeta_num = 1时，由于同时只有一个taskMeta操作task
+        // 不涉及线程安全问题，所以此时可以直接由taskMeta->task->resize->copy
+
+        // 当task被分为多个taskMeta时，需要临时对象记录
+        // 收齐后再一起合并
+        if (taskmeta_num > 1) {
+          taskMetaOutLodTensor.push_back(tensor_out);
+        }
+      }
+      outVectorT_ptr->push_back(tensor_out);
+    }
+    // outLodTensorVector实际是一个双层vector
+    // shape为taskmeta_num * vector_fetch_lod_index.size();
+    outLodTensorVector.resize(taskmeta_num, taskMetaOutLodTensor);
+    fetch_init = true;
+  }
+  return true;
+}
 
 template <typename TaskT>
 void* TaskExecutor<TaskT>::thread_entry(void* args) {
@@ -156,9 +237,11 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
 
   task->inVectorT_ptr = (const InVectorT*)inVectorT_ptr;
   task->outVectorT_ptr = (OutVectorT*)outVectorT_ptr;
+  if (!task->task_init()) {
+    LOG(ERROR) << "task->init() failed";
+  }
   task->rem = task->batch_size();
   task->index.store(0, butil::memory_order_relaxed);
-
   AutoMutex lock(_mut);
   _task_queue.push_back(task);
   THREAD_COND_SIGNAL(&_cond);
@@ -168,11 +251,12 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
 
 // this function is accessed by multi thread.
 // so AutoMutex at first.
-// so batch.append_task is thread safe.
+// so batchTask.append_task is thread safe.
 // you dont need to add extra lock in append_task()
+// task is already init.
 template <typename TaskT>
 bool TaskExecutor<TaskT>::move_task_to_batch(
-    BatchTasks<TaskT>& batch) {  // NOLINT
+    BatchTasks<TaskT>& batchTask) {  // NOLINT
   AutoMutex lock(_mut);
   while (_task_queue.empty()) {
     THREAD_COND_WAIT(&_cond, &_mut);
@@ -183,9 +267,45 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     return false;
   }
 
+  TaskT* previous_task = nullptr;
   while (!_task_queue.empty()) {
     TaskT* task = _task_queue.front();
-    size_t rem = batch.append_task(task);
+
+    // 由于无法确定fetchVar是否为lod，故单个task不能拆分放到多个batchTask中，否则后续组装很难完成。
+    // 所以，task不能被拆分，即用户的请求可以合并一起预测，但不能拆分两个小部分去预测。
+    // 难点：预测前，能够知道被拆成了几个taskmeta,但只有预测后，才知道有多少个fetchvar,多少个lod的fetchvar
+    // 所以，task中想要创建taskmeta_num* lod的fetchvar num* PaddleBuf（以及Lod）
+    // 只能在notify_task中，用taskmeta->task去创建,需要在task中加锁。
+    // 原子操作不可行，因为多个线程必须等待创建好上述的PaddleBuf后才能继续。
+
+    // 对于普通的fetch，也需要加锁去创建PaddleTensor，后续才能往里拷贝。
+
+    // _batch_align为false时，即使空间小，也会全放入一个完整的Task，允许临时超限。
+    // _allow_split_request == false，则每个task不会被拆分。
+    // 默认为true，允许拆分task从而使得空间利用率最大。
+    if (!batchTask.get_allow_split_request()) {
+      if (task->batch_size() > batchTask.get_rem_size() &&
+          batchTask.get_batch_align()) {
+        break;
+      }
+    }
+
+    // combine_task_valid负责判断是否能够合并
+    // 除最外层的shape外，内层shape应一致才能合并。
+    // 否则跳出循环,放入下一个batchTask中。
+    // 以此保证batch.append_task(task)中的task的内层shape相同。
+
+    // 对于Shape[0] = 1 而!=batch的情况，因为合并时，取其中一个的值
+    // 所以要求该feedvar必须相等，才能合并。
+    // 否则跳出循环,放入下一个batchTask中。
+    // 目前没有PaddleTensor和PaddleBuff没有重载==，所以只能比较内存.
+    if (previous_task != nullptr) {
+      if (!task->combine_task_valid(previous_task)) {
+        break;
+      }
+    }
+    size_t rem = batchTask.append_task(task);
+    previous_task = task;
     if (task->rem <= 0) {
       _task_queue.pop_front();
     }
@@ -201,11 +321,12 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
 // TaskT is from the SingleTon TaskExecutor`s _task_queue
 // although TaskMeta is a local variable, but several TaskMeta may points to
 // the same TaskT which is get from the SingleTon TaskExecutor`s _task_queue.
-// put TaskMeta to the local variable BatchTasks<TaskT> batch.
+// put TaskMeta to the local variable BatchTasks<TaskT> batchTask.
 
-// batch.merge_tasks() and batch.notify_tasks() has no lock.
-// BatchTasks<TaskT> batch itself is a local variable, it`s thread safe.
-// If batch.merge_tasks() and batch.notify_tasks() do something to TaskMeta
+// batchTask.merge_tasks() and batchTask.notify_tasks() has no lock.
+// BatchTasks<TaskT> batchTask itself is a local variable, it`s thread safe.
+// If batchTask.merge_tasks() and batchTask.notify_tasks() do something to
+// TaskMeta
 // you need to pay attention to that.
 // Multi-Thread deal with different TaskMeta(cause it`s created as local
 // variable)
@@ -242,11 +363,24 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
       return -1;
     }
 
-    BatchTasks<TaskT> batch(_batch_size, _batch_align);
-    if (move_task_to_batch(batch)) {
-      batch.merge_tasks();
-      _fn(&batch.in(), &batch.out());
-      batch.notify_tasks();
+    // move_task_to_batch() take the original task from the `_task_queue`
+    // put the original task into its own Vector<taskmeta>
+    // the capacity of its own Vector<taskmeta> is decided by `_batch_size` or
+    // `_batch_align`
+
+    // merge_tasks() move the imput-data into `_batch_in` from its own
+    // Vector<taskmeta>.
+    // because the predictor`s input is the `_batch_in`
+
+    // notify_tasks() move the output-data into every single taskmeta from
+    // `_batch_out`.
+    // because the predictor`s output is the `_batch_out`
+    BatchTasks<TaskT> batchTask(
+        _batch_size, _batch_align, _allow_split_request);
+    if (move_task_to_batch(batchTask)) {
+      batchTask.merge_tasks();
+      _fn(&batchTask.in(), &batchTask.out());
+      batchTask.notify_tasks();
     }
   }
 

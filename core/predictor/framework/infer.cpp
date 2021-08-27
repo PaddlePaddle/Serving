@@ -26,6 +26,7 @@ int ReloadableInferEngine::proc_initialize_impl(
   _infer_thread_num = conf.runtime_thread_num();
   _infer_batch_size = conf.batch_infer_size();
   _infer_batch_align = conf.enable_batch_align();
+  _allow_split_request = conf.allow_split_request();
 
   _conf = conf;
 
@@ -60,9 +61,6 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
       .set_thread_init_fn(
           boost::bind(&InferEngine::thrd_initialize_impl, this));
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
-      .set_thread_init_fn(
-          boost::bind(&InferEngine::thrd_initialize_impl, this));
-  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
       .set_thread_reset_fn(boost::bind(&InferEngine::thrd_clear_impl, this));
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
       .set_thread_callback_fn(
@@ -71,6 +69,8 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
       _infer_batch_size);
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_align(
       _infer_batch_align);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_allow_split_request(_allow_split_request);
   if (im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].start(
           _infer_thread_num) != 0) {
     LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
@@ -79,7 +79,8 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
 
   LOG(WARNING) << "Enable batch schedule framework, thread_num:"
                << _infer_thread_num << ", batch_size:" << _infer_batch_size
-               << ", enable_batch_align:" << _infer_batch_align;
+               << ", enable_batch_align:" << _infer_batch_align
+               << ", allow_split_request:" << _allow_split_request;
   return 0;
 }
 
