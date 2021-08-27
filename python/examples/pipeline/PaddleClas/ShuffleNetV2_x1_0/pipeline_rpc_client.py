@@ -11,10 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-try:
-    from paddle_serving_server_gpu.pipeline import PipelineClient
-except ImportError:
-    from paddle_serving_server.pipeline import PipelineClient
+from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 import requests
 import json

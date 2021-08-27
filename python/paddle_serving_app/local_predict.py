@@ -22,6 +22,7 @@ import argparse
 from .proto import general_model_config_pb2 as m_config
 import paddle.inference as paddle_infer
 import logging
+import glob
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("LocalPredictor")
@@ -50,6 +51,23 @@ class LocalPredictor(object):
         self.feed_names_to_idx_ = {}
         self.fetch_names_to_idx_ = {}
         self.fetch_names_to_type_ = {}
+
+    def search_suffix_files(self, model_path, target_suffix):
+        """
+        Find all files with the suffix xxx in the specified directory.
+
+        Args:
+            model_path: model directory, not None.
+            target_suffix: filenames with target suffix, not None. e.g: *.pdmodel
+
+        Returns:
+            file_list, None, [] or [path, ] . 
+        """
+        if model_path is None or target_suffix is None:
+            return None
+
+        file_list = glob.glob(os.path.join(model_path, target_suffix))
+        return file_list
 
     def load_model_config(self,
                           model_path,
@@ -97,11 +115,30 @@ class LocalPredictor(object):
         f = open(client_config, 'r')
         model_conf = google.protobuf.text_format.Merge(
             str(f.read()), model_conf)
+
+        # Init paddle_infer config
+        # Paddle's model files and parameter files have multiple naming rules:
+        #   1) __model__, __params__
+        #   2) *.pdmodel, *.pdiparams
+        #   3) __model__, conv2d_1.w_0, conv2d_2.w_0, fc_1.w_0, conv2d_1.b_0, ... 
+        pdmodel_file_list = self.search_suffix_files(model_path, "*.pdmodel")
+        pdiparams_file_list = self.search_suffix_files(model_path,
+                                                       "*.pdiparams")
         if os.path.exists(os.path.join(model_path, "__params__")):
+            # case 1) initializing
             config = paddle_infer.Config(
                 os.path.join(model_path, "__model__"),
                 os.path.join(model_path, "__params__"))
+        elif pdmodel_file_list and len(
+                pdmodel_file_list) > 0 and pdiparams_file_list and len(
+                    pdiparams_file_list) > 0:
+            # case 2) initializing
+            logger.info("pdmodel_file_list:{}, pdiparams_file_list:{}".format(
+                pdmodel_file_list, pdiparams_file_list))
+            config = paddle_infer.Config(pdmodel_file_list[0],
+                                         pdiparams_file_list[0])
         else:
+            # case 3) initializing.
             config = paddle_infer.Config(model_path)
 
         logger.info(
@@ -201,8 +238,9 @@ class LocalPredictor(object):
         Run model inference by Paddle Inference API.
 
         Args:
-            feed: feed var
-            fetch: fetch var
+            feed: feed var list, None is not allowed.
+            fetch: fetch var list, None allowed. when it is None, all fetch 
+                   vars are returned. Otherwise, return fetch specified result.
             batch: batch data or not, False default.If batch is False, a new
                    dimension is added to header of the shape[np.newaxis].
             log_id: for logging
@@ -210,16 +248,8 @@ class LocalPredictor(object):
         Returns:
             fetch_map: dict 
         """
-        if feed is None or fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction.\
-                log_id:{}".format(log_id))
-        fetch_list = []
-        if isinstance(fetch, str):
-            fetch_list = [fetch]
-        elif isinstance(fetch, list):
-            fetch_list = fetch
-        else:
-            raise ValueError("Fetch only accepts string and list of string.\
+        if feed is None:
+            raise ValueError("You should specify feed vars for prediction.\
                 log_id:{}".format(log_id))
 
         feed_batch = []
@@ -231,18 +261,20 @@ class LocalPredictor(object):
             raise ValueError("Feed only accepts dict and list of dict.\
                 log_id:{}".format(log_id))
 
-        fetch_names = []
+        fetch_list = []
+        if fetch is not None:
+            if isinstance(fetch, str):
+                fetch_list = [fetch]
+            elif isinstance(fetch, list):
+                fetch_list = fetch
+
         # Filter invalid fetch names
+        fetch_names = []
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        if len(fetch_names) == 0:
-            raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.\
-                    log_id:{}".format(log_id))
-
-        # Assemble the input data of paddle predictor 
+        # Assemble the input data of paddle predictor, and filter invalid inputs. 
         input_names = self.predictor.get_input_names()
         for name in input_names:
             if isinstance(feed[name], list):
@@ -282,11 +314,15 @@ class LocalPredictor(object):
                 input_tensor_handle.copy_from_cpu(feed[name][np.newaxis, :])
             else:
                 input_tensor_handle.copy_from_cpu(feed[name])
+
+        # set output tensor handlers
         output_tensor_handles = []
+        output_name_to_index_dict = {}
         output_names = self.predictor.get_output_names()
-        for output_name in output_names:
+        for i, output_name in enumerate(output_names):
             output_tensor_handle = self.predictor.get_output_handle(output_name)
             output_tensor_handles.append(output_tensor_handle)
+            output_name_to_index_dict[output_name] = i
 
         # Run inference 
         self.predictor.run()
@@ -296,10 +332,43 @@ class LocalPredictor(object):
         for output_tensor_handle in output_tensor_handles:
             output = output_tensor_handle.copy_to_cpu()
             outputs.append(output)
+        outputs_len = len(outputs)
+
+        # Copy fetch vars. If fetch is None, it will copy all results from output_tensor_handles. 
+        # Otherwise, it will copy the fields specified from output_tensor_handles.
         fetch_map = {}
-        for i, name in enumerate(fetch):
-            fetch_map[name] = outputs[i]
-            if len(output_tensor_handles[i].lod()) > 0:
-                fetch_map[name + ".lod"] = np.array(output_tensor_handles[i]
-                                                    .lod()[0]).astype('int32')
+        if fetch is None:
+            for i, name in enumerate(output_names):
+                fetch_map[name] = outputs[i]
+                if len(output_tensor_handles[i].lod()) > 0:
+                    fetch_map[name + ".lod"] = np.array(output_tensor_handles[
+                        i].lod()[0]).astype('int32')
+        else:
+            # Because the save_inference_model interface will increase the scale op 
+            # in the network, the name of fetch_var is different from that in prototxt. 
+            # Therefore, it is compatible with v0.6.x and the previous model save format,
+            # and here is compatible with the results that do not match.
+            fetch_match_num = 0
+            for i, name in enumerate(fetch):
+                output_index = output_name_to_index_dict.get(name)
+                if output_index is None:
+                    continue
+
+                fetch_map[name] = outputs[output_index]
+                fetch_match_num += 1
+                if len(output_tensor_handles[output_index].lod()) > 0:
+                    fetch_map[name + ".lod"] = np.array(output_tensor_handles[
+                        output_index].lod()[0]).astype('int32')
+
+            # Compatible with v0.6.x and lower versions model saving formats.
+            if fetch_match_num == 0:
+                logger.debug("fetch match num is 0. Retrain the model please!")
+                for i, name in enumerate(fetch):
+                    if i >= outputs_len:
+                        break
+                    fetch_map[name] = outputs[i]
+                    if len(output_tensor_handles[i].lod()) > 0:
+                        fetch_map[name + ".lod"] = np.array(
+                            output_tensor_handles[i].lod()[0]).astype('int32')
+
         return fetch_map

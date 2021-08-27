@@ -32,13 +32,13 @@ Here, the sparse parameter is loaded by cube sparse parameter indexing service C
 ### Start RPC Predictor, the number of serving thread is 4（configurable in test_server.py）
 
 ```
-python test_server.py ctr_serving_model_kv 
+python3 test_server.py ctr_serving_model_kv 
 ```
 
 ### Run Prediction
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
+python3 test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 ```
 
 ### Benchmark

@@ -10,10 +10,10 @@ sh get_model.sh
 ## Start server
 
 ```
-python resnet50_web_service.py &>log.txt &
+python3 resnet50_web_service.py &>log.txt &
 ```
 
 ## RPC test
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```

@@ -67,7 +67,6 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
     }
     config = model_conf.GeneralModelConfig()
 
-    #int64 = 0; float32 = 1; int32 = 2;
     for key in feed_var_dict:
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
@@ -127,7 +126,6 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
 def var_type_conversion(dtype):
     """
     Variable type conversion
-
     Args:
         dtype: type of core.VarDesc.VarType.xxxxx
         (https://github.com/PaddlePaddle/Paddle/blob/release/2.1/python/paddle/framework/dtype.py) 
@@ -184,7 +182,9 @@ def save_model(server_model_folder,
                main_program=None,
                encryption=False,
                key_len=128,
-               encrypt_conf=None):
+               encrypt_conf=None,
+               model_filename=None,
+               params_filename=None):
     executor = Executor(place=CPUPlace())
 
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
@@ -194,15 +194,27 @@ def save_model(server_model_folder,
         target_vars.append(fetch_var_dict[key])
         target_var_names.append(key)
 
+    if not os.path.exists(server_model_folder):
+        os.makedirs(server_model_folder)
     if not encryption:
-        save_inference_model(
-            server_model_folder,
-            feed_var_names,
-            target_vars,
-            executor,
-            model_filename="__model__",
-            params_filename="__params__",
-            main_program=main_program)
+        if not model_filename:
+            model_filename = "model.pdmodel"
+        if not params_filename:
+            params_filename = "params.pdiparams"
+
+        new_model_path = os.path.join(server_model_folder, model_filename)
+        new_params_path = os.path.join(server_model_folder, params_filename)
+
+        with open(new_model_path, "wb") as new_model_file:
+            new_model_file.write(main_program.desc.serialize_to_string())
+
+        paddle.static.save_vars(
+            executor=executor,
+            dirname=server_model_folder,
+            main_program=main_program,
+            vars=None,
+            predicate=paddle.static.io.is_persistable,
+            filename=params_filename)
     else:
         if encrypt_conf == None:
             aes_cipher = CipherFactory.create_cipher()
@@ -296,7 +308,8 @@ def inference_model_to_serving(dirname,
     }
     fetch_dict = {x.name: x for x in fetch_targets}
     save_model(serving_server, serving_client, feed_dict, fetch_dict,
-               inference_program, encryption, key_len, encrypt_conf)
+               inference_program, encryption, key_len, encrypt_conf,
+               model_filename, params_filename)
     feed_names = feed_dict.keys()
     fetch_names = fetch_dict.keys()
     return feed_names, fetch_names

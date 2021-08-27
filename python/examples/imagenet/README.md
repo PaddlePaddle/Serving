@@ -12,7 +12,7 @@ sh get_model.sh
 ### Install preprocess module
 
 ```
-pip install paddle_serving_app
+pip3 install paddle_serving_app
 ```
 
 
@@ -20,22 +20,22 @@ pip install paddle_serving_app
 
 launch server side
 ```
-python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 #cpu inference service
+python3 -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 #cpu inference service
 ```
 
 ```
-python -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu inference service
+python3 -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 #gpu inference service
 ```
 
 ### BRPC-Client
 client send inference request
 ```
-python resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
+python3 resnet50_rpc_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```
 *the port of server side in this example is 9696
 
 ### GRPC-Client/Http-Client
 client send inference request
 ```
-python resnet50_http_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
+python3 resnet50_http_client.py ResNet50_vd_client_config/serving_client_conf.prototxt
 ```

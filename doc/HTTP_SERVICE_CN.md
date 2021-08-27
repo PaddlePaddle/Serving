@@ -12,7 +12,7 @@ BRPC-Server会尝试去JSON字符串中再去反序列化出Proto格式的数据
 
 ### Http+protobuf方式
 各种语言都提供了对ProtoBuf的支持，如果您对此比较熟悉，您也可以先将数据使用ProtoBuf序列化，再将序列化后的数据放入Http请求数据体中，然后指定Content-Type: application/proto，从而使用http/h2+protobuf二进制串访问服务。
-实测随着数据量的增大，使用JSON方式的Http的数据量和反序列化的耗时会大幅度增加，推荐当您的数据量较大时，使用Http+protobuf方式，后续我们会在框架的HttpClient中增加该功能，目前暂没有支持。
+实测随着数据量的增大，使用JSON方式的Http的数据量和反序列化的耗时会大幅度增加，推荐当您的数据量较大时，使用Http+protobuf方式，目前已经在Java和Python的Client端提供了支持。
 
 **理论上讲，序列化/反序列化的性能从高到底排序为：protobuf > http/h2+protobuf > http**
 

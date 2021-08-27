@@ -10,7 +10,7 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/
 ### Start the service
 ```
 tar xf faster_rcnn_hrnetv2p_w18_1x.tar
-python -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_ids 0
+python3 -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_ids 0
 ```
 
 This model support TensorRT, if you want a faster inference, please use `--use_trt`. But you need to do some extra work.
@@ -19,5 +19,5 @@ Please reference to https://github.com/PaddlePaddle/Paddle-Inference-Demo/blob/m
 
 ### Prediction
 ```
-python test_client.py 000000570688.jpg
+python3 test_client.py 000000570688.jpg
 ```

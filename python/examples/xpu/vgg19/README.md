@@ -26,5 +26,5 @@ python3 -m paddle_serving_server.serve --model serving_server --port 7702 --use_
 ### Client Prediction
 
 ```
-python vgg19_client.py
+python3 vgg19_client.py
 ```
