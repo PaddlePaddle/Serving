@@ -17,9 +17,16 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <memory>
 
 namespace baidu {
 namespace paddle_serving {
+namespace predictor {
+  namespace general_model {
+    class Request;
+    class Response;
+  }
+}
 namespace client {
 
 class PredictorInputs;
@@ -127,14 +134,7 @@ class PredictorData {
     return &_lod_map;
   };
 
-  virtual std::string print() {
-    std::string res;
-    res.append(map2string<std::string, float>(_float_data_map));
-    res.append(map2string<std::string, int64_t>(_int64_data_map));
-    res.append(map2string<std::string, int32_t>(_int32_data_map));
-    res.append(map2string<std::string, std::string>(_string_data_map));
-    return res;
-  }
+  virtual std::string print();
 
  private:
   template<typename T1, typename T2>
@@ -195,6 +195,11 @@ class PredictorInputs : public PredictorData {
  public:
   PredictorInputs() {};
   virtual ~PredictorInputs() {};
+
+  static int gen_proto(const PredictorInputs& inputs,
+                      const std::map<std::string, int>& feed_name_to_idx,
+                      const std::vector<std::string>& feed_name,
+                      predictor::general_model::Request& req);
 };
 
 class PredictorOutputs {
@@ -207,31 +212,29 @@ class PredictorOutputs {
   PredictorOutputs() {};
   virtual ~PredictorOutputs() {};
 
-  virtual std::vector<PredictorOutputs::PredictorOutput>& datas() {
+  virtual std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>& datas() {
     return _datas;
   };
 
-  virtual std::vector<PredictorOutputs::PredictorOutput>* mutable_datas() {
+  virtual std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>* mutable_datas() {
     return &_datas;
   };
 
-  virtual void add_data(PredictorOutputs::PredictorOutput&& data) {
-    _datas.emplace_back(data);
+  virtual void add_data(const std::shared_ptr<PredictorOutputs::PredictorOutput>& data) {
+    _datas.push_back(data);
   };
 
-  virtual std::string print() {
-    std::string res = "";
-    for (size_t i = 0; i < _datas.size(); ++i) {
-      res.append(_datas[i].engine_name);
-      res.append(":");
-      res.append(_datas[i].data.print());
-      res.append("\n");
-    }
-    return res;
-  }
+  virtual std::string print();
+
+  virtual void clear();
+
+  static int parse_proto(const predictor::general_model::Response& res,
+                        const std::vector<std::string>& fetch_name,
+                        std::map<std::string, int>& fetch_name_to_type,
+                        PredictorOutputs& outputs);
 
  protected:
-  std::vector<PredictorOutputs::PredictorOutput> _datas;
+  std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>> _datas;
 };
 
 }  // namespace client
