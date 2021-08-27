@@ -128,8 +128,8 @@ static int pre_process(const PredictorInputs& inputs,
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
-    google::protobuf::RepeatedField<float> data(float_data.begin(), float_data.end());
-    tensor->mutable_float_data()->Swap(&data);
+    tensor->mutable_float_data()->Resize(total_number, 0);
+    memcpy(tensor->mutable_float_data()->mutable_data(), float_data.data(), total_number * sizeof(float));
   }
 
   for (std::map<std::string, std::vector<int64_t>>::const_iterator iter = int64_feed_map.begin();
@@ -158,8 +158,8 @@ static int pre_process(const PredictorInputs& inputs,
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
-    google::protobuf::RepeatedField<google::protobuf::int64> data(int64_data.begin(), int64_data.end());
-    tensor->mutable_int64_data()->Swap(&data);
+    tensor->mutable_int64_data()->Resize(total_number, 0);
+    memcpy(tensor->mutable_int64_data()->mutable_data(), int64_data.data(), total_number * sizeof(int64_t));
   }
 
   for (std::map<std::string, std::vector<int32_t>>::const_iterator iter = int32_feed_map.begin();
@@ -176,6 +176,7 @@ static int pre_process(const PredictorInputs& inputs,
     }
     int idx = feed_name_to_idx.at(name);
     Tensor *tensor = req.add_tensor();
+    int total_number = int32_data.size();
 
     for (uint32_t j = 0; j < int32_shape.size(); ++j) {
       tensor->add_shape(int32_shape[j]);
@@ -187,8 +188,8 @@ static int pre_process(const PredictorInputs& inputs,
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
-    google::protobuf::RepeatedField<google::protobuf::int32> data(int32_data.begin(), int32_data.end());
-    tensor->mutable_int_data()->Swap(&data);
+    tensor->mutable_int_data()->Resize(total_number, 0);
+    memcpy(tensor->mutable_int_data()->mutable_data(), int32_data.data(), total_number * sizeof(int32_t));
   }
 
   for (std::map<std::string, std::string>::const_iterator iter = string_feed_map.begin();
