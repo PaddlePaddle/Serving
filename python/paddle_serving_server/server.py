@@ -228,7 +228,7 @@ class Server(object):
             engine.batch_infer_size = self.op_max_batch[index %
                                                         len(self.op_max_batch)]
 
-            engine.enable_batch_align = 1
+            engine.enable_overrun = 1
             engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization

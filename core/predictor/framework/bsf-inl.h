@@ -277,7 +277,8 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
 
     // 复杂的处理方法是允许拆分Task，无论是否包含lod.
     // 难点：预测前，能够知道被拆成了几个taskmeta,但只有预测后，才知道有多少个fetchvar,多少个lod的fetchvar
-    // 所以，task中先要创建taskmeta_num* fetchvar num（lod类型的）个临时PaddleTensor（存储data及Lod）
+    // 所以，task中先要创建taskmeta_num* fetchvar
+    // num（lod类型的）个临时PaddleTensor（存储data及Lod）
     // 由于多线程调度的单位是taskmeta，故只能在notify_task中，用taskmeta->task去创建
     // 此时由于多个taskmeta对应一个task，存在多线程竞争，所以需要在task中加锁。
     // 原子操作不可行，因为多个线程必须等待创建好上述的PaddleTensor后才能继续。
@@ -289,8 +290,10 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     // 对于模型本身有最大Batch限制的情况，应将该值设为false，默认为false。
     // 对于模型本身无最大Batch限制，但自己设置了BatchTasks的最大Batch，可以考虑设置为True。
 
-    // _allow_split_request == true，则允许拆分task.BatchTasks剩下1-batch，则会从下一个Task中拆出1-Batch
-    // _allow_split_request == false，则每个task不会被拆分。BatchTasks剩下1-batch会被浪费
+    // _allow_split_request ==
+    // true，则允许拆分task.BatchTasks剩下1-batch，则会从下一个Task中拆出1-Batch
+    // _allow_split_request ==
+    // false，则每个task不会被拆分。BatchTasks剩下1-batch会被浪费
     // 默认为true，允许拆分task从而使得空间利用率最大。
     if (!batchTask.get_allow_split_request()) {
       if (task->batch_size() > batchTask.get_rem_size() &&
@@ -385,8 +388,7 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     // notify_tasks() move the output-data into every single taskmeta from
     // `_batch_out`.
     // because the predictor`s output is the `_batch_out`
-    BatchTasks<TaskT> batchTask(
-        _batch_size, _overrun, _allow_split_request);
+    BatchTasks<TaskT> batchTask(_batch_size, _overrun, _allow_split_request);
     if (move_task_to_batch(batchTask)) {
       batchTask.merge_tasks();
       _fn(&batchTask.in(), &batchTask.out());
