@@ -217,7 +217,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
   }
 
   /*
-  if (!BatchTasks<TaskT>::check_valid(in, out, _batch_align)) {
+  if (!BatchTasks<TaskT>::check_valid(in, out, _overrun)) {
     LOG(ERROR) << "Invalid input & output";
     return TaskHandler<TaskT>::valid_handle();
   }
@@ -271,21 +271,30 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
   while (!_task_queue.empty()) {
     TaskT* task = _task_queue.front();
 
-    // 由于无法确定fetchVar是否为lod，故单个task不能拆分放到多个batchTask中，否则后续组装很难完成。
-    // 所以，task不能被拆分，即用户的请求可以合并一起预测，但不能拆分两个小部分去预测。
-    // 难点：预测前，能够知道被拆成了几个taskmeta,但只有预测后，才知道有多少个fetchvar,多少个lod的fetchvar
-    // 所以，task中想要创建taskmeta_num* lod的fetchvar num* PaddleBuf（以及Lod）
-    // 只能在notify_task中，用taskmeta->task去创建,需要在task中加锁。
-    // 原子操作不可行，因为多个线程必须等待创建好上述的PaddleBuf后才能继续。
+    // 由于无法确定fetchVar是否为lod（即使输入是非lod，输出也可能是lod）
+    // 简单的处理方法是：task不能被拆分，即用户的请求可以合并一起预测，但不能拆分两个小部分去预测。
+    // 只需要设置engine的属性allow_split_request = false即可。
 
+    // 复杂的处理方法是允许拆分Task，无论是否包含lod.
+    // 难点：预测前，能够知道被拆成了几个taskmeta,但只有预测后，才知道有多少个fetchvar,多少个lod的fetchvar
+    // 所以，task中先要创建taskmeta_num* fetchvar num（lod类型的）个临时PaddleTensor（存储data及Lod）
+    // 由于多线程调度的单位是taskmeta，故只能在notify_task中，用taskmeta->task去创建
+    // 此时由于多个taskmeta对应一个task，存在多线程竞争，所以需要在task中加锁。
+    // 原子操作不可行，因为多个线程必须等待创建好上述的PaddleTensor后才能继续。
     // 对于普通的fetch，也需要加锁去创建PaddleTensor，后续才能往里拷贝。
 
-    // _batch_align为false时，即使空间小，也会全放入一个完整的Task，允许临时超限。
-    // _allow_split_request == false，则每个task不会被拆分。
+    // _overrun表示，异步BatchTasks是否允许单次临时超过限制。
+    // _overrun为true时，即使BatchTasks剩下1-batch，也会全放入一个完整的Task，允许临时超限。
+    // _overrun为false时，不允许。
+    // 对于模型本身有最大Batch限制的情况，应将该值设为false，默认为false。
+    // 对于模型本身无最大Batch限制，但自己设置了BatchTasks的最大Batch，可以考虑设置为True。
+
+    // _allow_split_request == true，则允许拆分task.BatchTasks剩下1-batch，则会从下一个Task中拆出1-Batch
+    // _allow_split_request == false，则每个task不会被拆分。BatchTasks剩下1-batch会被浪费
     // 默认为true，允许拆分task从而使得空间利用率最大。
     if (!batchTask.get_allow_split_request()) {
       if (task->batch_size() > batchTask.get_rem_size() &&
-          batchTask.get_batch_align()) {
+          !batchTask.get_overrun()) {
         break;
       }
     }
@@ -299,6 +308,7 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     // 所以要求该feedvar必须相等，才能合并。
     // 否则跳出循环,放入下一个batchTask中。
     // 目前没有PaddleTensor和PaddleBuff没有重载==，所以只能比较内存.
+    // TODO(HexToString): 可以考虑后期支持AutoPadding.
     if (previous_task != nullptr) {
       if (!task->combine_task_valid(previous_task)) {
         break;
@@ -366,7 +376,7 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     // move_task_to_batch() take the original task from the `_task_queue`
     // put the original task into its own Vector<taskmeta>
     // the capacity of its own Vector<taskmeta> is decided by `_batch_size` or
-    // `_batch_align`
+    // `_overrun`
 
     // merge_tasks() move the imput-data into `_batch_in` from its own
     // Vector<taskmeta>.
@@ -376,7 +386,7 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
     // `_batch_out`.
     // because the predictor`s output is the `_batch_out`
     BatchTasks<TaskT> batchTask(
-        _batch_size, _batch_align, _allow_split_request);
+        _batch_size, _overrun, _allow_split_request);
     if (move_task_to_batch(batchTask)) {
       batchTask.merge_tasks();
       _fn(&batchTask.in(), &batchTask.out());

@@ -163,7 +163,7 @@ class ReloadableInferEngine : public InferEngine {
   uint32_t _infer_batch_size;
 
   // Need to align batch_size in inferring
-  bool _infer_batch_align;
+  bool _infer_overrun;
 
   // allow to split request in inferring
   bool _allow_split_request;

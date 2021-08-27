@@ -444,11 +444,11 @@ class BatchTasks {
   friend TaskT;
 
   explicit BatchTasks(size_t batch_size,
-                      bool batch_align = true,
+                      bool overrun = false,
                       bool allow_split_request = true)
       : _batch_size(batch_size),
         _rem_size(batch_size),
-        _batch_align(batch_align),
+        _overrun(overrun),
         _allow_split_request(allow_split_request) {
     _batch_in.clear();
     _batch_in_offset.clear();
@@ -484,10 +484,10 @@ class BatchTasks {
   // 能进到此函数的task都是同类task，在该函数之前已保证了这点。
   size_t append_task(TaskT* task) {
     size_t add = std::min(task->rem, _rem_size);
-    // when _batch_align == false, it means always take a whole task as TaskMeta
+    // when _overrun == true, it means always take a whole task as TaskMeta
     // we can temporary breakthrough the limit of BatchTask`s capacity
     // BatchTask`s capacity is _batch_size or _rem_size
-    if (!_batch_align) {
+    if (_overrun) {
       add = task->rem;
     }
     int start_index = task->batch_size() - task->rem;
@@ -883,7 +883,7 @@ class BatchTasks {
 
   const size_t get_rem_size() { return _rem_size; }
 
-  bool get_batch_align() { return _batch_align; }
+  bool get_overrun() { return _overrun; }
 
   bool get_allow_split_request() { return _allow_split_request; }
 
@@ -905,7 +905,7 @@ class BatchTasks {
 
   size_t _rem_size;
   size_t _batch_size;
-  bool _batch_align;
+  bool _overrun;
   bool _allow_split_request;
 };
 
@@ -991,7 +991,7 @@ class TaskExecutor {
         _thread_reset_fn(NULL),
         _user_thread_contexts(NULL),
         _batch_size(DEFAULT_BATCH_SIZE),
-        _batch_align(false),
+        _overrun(false),
         _fn(NULL) {
     THREAD_MUTEX_INIT(&_mut, NULL);
     THREAD_COND_INIT(&_cond, NULL);
@@ -1012,7 +1012,7 @@ class TaskExecutor {
 
   void set_batch_size(size_t batch_size) { _batch_size = batch_size; }
 
-  void set_batch_align(bool batch_align) { _batch_align = batch_align; }
+  void set_overrun(bool overrun) { _overrun = overrun; }
 
   void set_allow_split_request(bool allow_split_request) {
     _allow_split_request = allow_split_request;
@@ -1068,7 +1068,7 @@ class TaskExecutor {
   std::vector<ThreadContext<TaskT>*> _thread_contexts;
 
   size_t _batch_size;
-  bool _batch_align;
+  bool _overrun;
   bool _allow_split_request;
 
   boost::function<void(const void*, void*)> _fn;

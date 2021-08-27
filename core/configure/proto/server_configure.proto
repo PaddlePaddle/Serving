@@ -23,8 +23,8 @@ message EngineDesc {
   required string model_dir = 5;
   repeated int32 gpu_ids = 6;
   optional int32 runtime_thread_num = 7 [ default = 0 ];
-  optional int32 batch_infer_size = 8 [ default = 0 ];
-  optional bool enable_batch_align = 9 [ default = true ];
+  optional int32 batch_infer_size = 8 [ default = 32 ];
+  optional bool enable_overrun = 9 [ default = false ];
   optional bool allow_split_request = 10 [ default = true ];
   optional string version_file = 11;
   optional string version_type = 12;
