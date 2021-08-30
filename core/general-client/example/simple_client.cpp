@@ -43,66 +43,31 @@ int prepare_fit_a_line(PredictorInputs& input, std::vector<std::string>& fetch_n
 }
 
 int prepare_bert(PredictorInputs& input, std::vector<std::string>& fetch_name) {
-  float input_mask[] = {
-      1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-  long position_ids[] = {
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0};
-  long input_ids[] = {
-      101, 0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0,    0, 0,
-      0,   0,    0,    0,   0,    0,    0,    0,    0,    0,    0};
-  long segment_ids[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   {
-    std::vector<float> float_feed(std::begin(input_mask), std::end(input_mask));
+    std::vector<float> float_feed(128, 0.0f);
+    float_feed[0] = 1.0f;
     std::vector<int> float_shape = {1, 128, 1};
     std::string feed_name = "input_mask";
     std::vector<int> lod;
     input.add_float_data(float_feed, feed_name, float_shape, lod);
   }
   {
-    std::vector<int64_t> feed(std::begin(position_ids), std::end(position_ids));
+    std::vector<int64_t> feed(128, 0);
     std::vector<int> shape = {1, 128, 1};
     std::string feed_name = "position_ids";
     std::vector<int> lod;
     input.add_int64_data(feed, feed_name, shape, lod);
   }
   {
-    std::vector<int64_t> feed(std::begin(input_ids), std::end(input_ids));
+    std::vector<int64_t> feed(128, 0);
+    feed[0] = 101;
     std::vector<int> shape = {1, 128, 1};
     std::string feed_name = "input_ids";
     std::vector<int> lod;
     input.add_int64_data(feed, feed_name, shape, lod);
   }
   {
-    std::vector<int64_t> feed(std::begin(segment_ids), std::end(segment_ids));
+    std::vector<int64_t> feed(128, 0);
     std::vector<int> shape = {1, 128, 1};
     std::string feed_name = "segment_ids";
     std::vector<int> lod;
