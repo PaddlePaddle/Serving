@@ -4,9 +4,9 @@
 
 ## 获取模型
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 ## 获取数据集（可选）
@@ -22,16 +22,16 @@ tar xf test_imgs.tar
 ```
 #根据CPU/GPU设备选择一种启动方式
 #for cpu user
-python -m paddle_serving_server.serve --model ocr_det_model --port 9293
-python ocr_web_server.py cpu
+python3 -m paddle_serving_server.serve --model ocr_det_model --port 9293
+python3 ocr_web_server.py cpu
 #for gpu user
-python -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_ids 0
-python ocr_web_server.py gpu
+python3 -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_ids 0
+python3 ocr_web_server.py gpu
 ```
 
 ### 启动客户端
 ```
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 
 如果用户需要更快的执行速度，请尝试LocalPredictor版Web服务
@@ -39,14 +39,14 @@ python ocr_web_client.py
 ```
 #根据CPU/GPU设备选择一种启动方式
 #for cpu user
-python ocr_debugger_server.py cpu
+python3 ocr_debugger_server.py cpu
 #for gpu user
-python ocr_debugger_server.py gpu
+python3 ocr_debugger_server.py gpu
 ```
 
 ## 启动客户端
 ```
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 
 ## 性能指标
@@ -69,34 +69,34 @@ GPU: Nvidia Tesla V100单卡
 ### 启动检测服务
 
 ```
-python det_web_server.py cpu #for cpu user
-python det_web_server.py gpu #for gpu user
+python3 det_web_server.py cpu #for cpu user
+python3 det_web_server.py gpu #for gpu user
 #or
-python det_debugger_server.py cpu #for cpu user
-python det_debugger_server.py gpu #for gpu user
+python3 det_debugger_server.py cpu #for cpu user
+python3 det_debugger_server.py gpu #for gpu user
 ```
 
 ### 检测服务客户端
 
 ```
 # also use ocr_web_client.py
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 
 ### 启动识别服务
 
 ```
-python rec_web_server.py cpu #for cpu user
-python rec_web_server.py gpu #for gpu user
+python3 rec_web_server.py cpu #for cpu user
+python3 rec_web_server.py gpu #for gpu user
 #or
-python rec_debugger_server.py cpu #for cpu user
-python rec_debugger_server.py gpu #for gpu user
+python3 rec_debugger_server.py cpu #for cpu user
+python3 rec_debugger_server.py gpu #for gpu user
 ```
 
 ### 识别服务客户端
 
 ```
-python rec_web_client.py
+python3 rec_web_client.py
 ```
 ## C++ OCR Service服务
 
@@ -108,9 +108,9 @@ python rec_web_client.py
 通过--model后，指定多个模型文件的文件夹路径来启动多模型串联的预测服务。
 ```
 #for cpu user
-python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
 #for gpu user
-python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_ids 0
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_ids 0
 ```
 
 ### 启动客户端
@@ -122,5 +122,5 @@ python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port
 
 通过在客户端启动后加入多个client模型的client配置文件夹路径，启动client进行预测。
 ```
-python ocr_cpp_client.py ocr_det_client ocr_rec_client
+python3 ocr_cpp_client.py ocr_det_client ocr_rec_client
 ```

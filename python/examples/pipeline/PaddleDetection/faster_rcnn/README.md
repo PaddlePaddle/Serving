@@ -8,11 +8,11 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/
 ### Start the service
 ```
 tar xf faster_rcnn_r50_fpn_1x_coco.tar
-python web_service.py
+python3 web_service.py
 ```
 
 ### Perform prediction
 
 ```
-python pipeline_http_client.py
+python3 pipeline_http_client.py
 ```

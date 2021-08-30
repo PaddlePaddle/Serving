@@ -15,21 +15,21 @@ sh get_data.sh
 ### 开启服务端
 
 ``` shell
-python test_server.py uci_housing_model/
+python3 test_server.py uci_housing_model/
 ```
 
 也可以通过下面的一行代码开启默认RPC服务：
 
 ```shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
 ```
 
 ### 客户端预测
 
-`test_client.py`中使用了`paddlepaddle`包，需要进行下载（`pip install paddlepaddle`）。
+`test_client.py`中使用了`paddlepaddle`包，需要进行下载（`pip3 install paddlepaddle`）。
 
 ``` shell
-python test_client.py uci_housing_client/serving_client_conf.prototxt
+python3 test_client.py uci_housing_client/serving_client_conf.prototxt
 ```
 
 ## HTTP服务
@@ -39,7 +39,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 通过下面的一行代码开启默认web服务：
 
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim --name uci
 ```
 
 ### 客户端预测

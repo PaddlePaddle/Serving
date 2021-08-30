@@ -5,19 +5,19 @@
 ## Get Model
 
 ```
-python -m paddle_serving_app.package --get_model yolov4
+python3 -m paddle_serving_app.package --get_model yolov4
 tar -xzvf yolov4.tar.gz
 ```
 
 ## Start RPC Service
 
 ```
-python -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0
+python3 -m paddle_serving_server.serve --model yolov4_model --port 9393 --gpu_ids 0
 ```
 
 ## Prediction
 
 ```
-python test_client.py 000000570688.jpg
+python3 test_client.py 000000570688.jpg
 ```
 After the prediction is completed, a json file to save the prediction result and a picture with the detection result box will be generated in the `./outpu folder.
