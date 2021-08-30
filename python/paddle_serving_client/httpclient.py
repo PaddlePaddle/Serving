@@ -22,6 +22,7 @@ import gzip
 from collections import Iterable
 import base64
 import sys
+import re
 
 import grpc
 from .proto import general_model_service_pb2
@@ -98,7 +99,7 @@ class HttpClient(object):
         self.headers["Content-Type"] = "application/proto"
         self.max_body_size = 512 * 1024 * 1024
         self.use_grpc_client = False
-        self.url = None
+        self.http_s = "http://"
 
         # 使用连接池能够不用反复建立连接
         self.requests_session = requests.session()
@@ -170,7 +171,6 @@ class HttpClient(object):
 
     def set_max_body_size(self, max_body_size):
         self.max_body_size = max_body_size
-        self.init_grpc_stub()
 
     def set_timeout_ms(self, timeout_ms):
         if not isinstance(timeout_ms, int):
@@ -183,25 +183,46 @@ class HttpClient(object):
             raise ValueError("retry_times must be int type.")
         else:
             self.requests_session.mount(
-                'http://', HTTPAdapter(max_retries=retry_times))
-
-    def set_ip(self, ip):
-        self.ip = ip
-        self.init_grpc_stub()
+                self.http_s, HTTPAdapter(max_retries=retry_times))
 
     def set_service_name(self, service_name):
         self.service_name = service_name
 
-    def set_port(self, port):
-        self.port = port
-        self.server_port = port
-        self.init_grpc_stub()
-
-    def set_url(self, url):
+    def connect(self, url=None, encryption=False):
+        if isinstance(url, (list, tuple)):
+            if len(url) > 1:
+                raise ValueError("HttpClient only support 1 endpoint")
+            else:
+                url = url[0]
         if isinstance(url, str):
-            self.url = url
+            if url.startswith("https://"):
+                url = url[8:]
+                self.http_s = "https://"
+            if url.startswith("http://"):
+                url = url[7:]
+                self.http_s = "http://"
+            url_parts = url.split(':')
+            if len(url_parts) != 2 or check_ip(url_parts[0]) == False:
+                raise ValueError(
+                    "url not right, it should be like 127.0.0.1:9393 or http://127.0.0.1:9393"
+                )
+            else:
+                self.ip = url_parts[0]
+                self.port = url_parts[1]
+                self.server_port = url_parts[1]
+        if encryption:
+            self.get_serving_port()
+        if self.use_grpc_client:
+            self.init_grpc_stub()
+
+    def check_ip(ipAddr):
+        compile_ip = re.compile(
+            '^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$'
+        )
+        if compile_ip.match(ipAddr):
+            return True
         else:
-            print("url must be str")
+            return False
 
     def add_http_headers(self, headers):
         if isinstance(headers, dict):
@@ -229,10 +250,9 @@ class HttpClient(object):
     def use_key(self, key_filename):
         with open(key_filename, "rb") as f:
             self.key = f.read()
-            self.get_serving_port()
 
     def get_serving_port(self):
-        encrypt_url = "http://" + str(self.ip) + ":" + str(self.port)
+        encrypt_url = self.http_s + str(self.ip) + ":" + str(self.port)
         if self.key is not None:
             req = json.dumps({"key": base64.b64encode(self.key).decode()})
         else:
@@ -481,13 +501,7 @@ class HttpClient(object):
             postData = self.process_json_data(feed_dict, fetch_list, batch,
                                               log_id)
 
-        web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
-        if self.url != None:
-            if "http" not in self.url:
-                self.url = "http://" + self.url
-            if "self.service_name" not in self.url:
-                self.url = self.url + self.service_name
-            web_url = self.url
+        web_url = self.http_s + self.ip + ":" + self.server_port + self.service_name
         # 当数据区长度大于512字节时才压缩.
         self.headers.pop("Content-Encoding", "nokey")
         try:
