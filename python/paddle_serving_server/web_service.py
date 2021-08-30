@@ -50,7 +50,7 @@ class WebService(object):
     def get_pipeline_response(self, read_op):
         return None
 
-    def prepare_pipeline_config(self, yaml_file):
+    def prepare_pipeline_config(self, yml_file=None, yml_dict=None):
         # build dag
         read_op = pipeline.RequestOp()
         last_op = self.get_pipeline_response(read_op)
@@ -60,7 +60,7 @@ class WebService(object):
                              "`get_pipeline_response`.")
         response_op = pipeline.ResponseOp(input_ops=[last_op])
         self._server.set_response_op(response_op)
-        self._server.prepare_server(yaml_file)
+        self._server.prepare_server(yml_file=yml_file, yml_dict=yml_dict)
 
     def run_service(self):
         self._server.run_server()
