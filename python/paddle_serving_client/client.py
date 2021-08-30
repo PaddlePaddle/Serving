@@ -289,6 +289,7 @@ class Client(object):
                 log_id=0):
         self.profile_.record('py_prepro_0')
 
+        # fetch 可以为空，此时会取所有的输出结果
         if feed is None:
             raise ValueError("You should specify feed for prediction")
 
@@ -297,6 +298,7 @@ class Client(object):
             fetch_list = [fetch]
         elif isinstance(fetch, list):
             fetch_list = fetch
+        # fetch 可以为空，此时会取所有的输出结果
         elif fetch == None:
             pass
         else:
@@ -442,6 +444,7 @@ class Client(object):
         model_engine_names = result_batch_handle.get_engine_names()
         for mi, engine_name in enumerate(model_engine_names):
             result_map = {}
+            # fetch 为空，则会取所有的输出结果
             if len(fetch_names) == 0:
                 fetch_names = result_batch_handle.get_tensor_alias_names(mi)
             # result map needs to be a numpy array

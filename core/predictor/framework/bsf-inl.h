@@ -324,7 +324,8 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     }
     if (rem <= 0) break;
   }
-
+  LOG(INFO) << "Number of tasks remaining in _task_queue is"
+            << _task_queue.size();
   return true;
 }
 
