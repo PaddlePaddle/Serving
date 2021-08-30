@@ -215,7 +215,7 @@ class HttpClient(object):
         if self.use_grpc_client:
             self.init_grpc_stub()
 
-    def check_ip(ipAddr):
+    def check_ip(self, ipAddr):
         compile_ip = re.compile(
             '^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$'
         )
