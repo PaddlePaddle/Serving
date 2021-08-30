@@ -11,9 +11,9 @@ sh get_data.sh
 ```
 
 ## 模型加密
-本示例中使用了`paddlepaddle`包中的模块，需要进行下载（`pip install paddlepaddle`）。
+本示例中使用了`paddlepaddle`包中的模块，需要进行下载（`pip3 install paddlepaddle`）。
 
-运行[python encrypt.py](./encrypt.py)进行模型加密
+运行[python3 encrypt.py](./encrypt.py)进行模型加密
 
 [//file]:#encrypt.py
 ``` python
@@ -36,14 +36,14 @@ def serving_encryption():
 ## 启动加密预测服务
 CPU预测服务
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
+python3 -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model
 ```
 GPU预测服务
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
+python3 -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model --gpu_ids 0
 ```
 
 ## 预测
 ```
-python test_client.py encrypt_client/
+python3 test_client.py encrypt_client/serving_client_conf.prototxt
 ```

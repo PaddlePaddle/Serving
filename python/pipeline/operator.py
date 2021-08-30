@@ -16,7 +16,7 @@ from time import time as _time
 import time
 import threading
 import multiprocessing
-from paddle_serving_client import MultiLangClient, Client
+from paddle_serving_client import Client
 from concurrent import futures
 import logging
 import func_timeout
@@ -40,6 +40,7 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
+from .pipeline_client import PipelineClient as PPClient
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -58,13 +59,15 @@ class Op(object):
                  retry=0,
                  batch_size=None,
                  auto_batching_timeout=None,
-                 local_service_handler=None):
+                 local_service_handler=None,
+                 jump_to_ops=[]):
         # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
+        self.set_jump_to_ops(jump_to_ops)
 
         self._local_service_handler = local_service_handler
         self._server_endpoints = server_endpoints
@@ -99,9 +102,7 @@ class Op(object):
             conf: config.yaml
 
         Returns:
-            None
         """
-        # init op
         if self.concurrency is None:
             self.concurrency = conf["concurrency"]
         if self._retry is None:
@@ -330,8 +331,8 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        elif self.client_type == 'grpc':
-            client = MultiLangClient()
+        elif self.client_type == 'pipeline_grpc':
+            client = PPClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
@@ -371,6 +372,79 @@ class Op(object):
                 os._exit(-1)
             self._input_ops.append(op)
 
+    def get_jump_to_ops(self):
+        return self._jump_to_ops
+
+    def set_jump_to_ops(self, ops):
+        """
+        Set jump to ops, then, this op can send channeldata to output channel.
+
+        Args:
+            ops: op list to be jumpped
+
+        Returns:
+            None.
+        """
+        if not isinstance(ops, list):
+            ops = [] if ops is None else [ops]
+
+        self._jump_to_ops = []
+        for op in ops:
+            if not isinstance(op, Op):
+                _LOGGER.critical(
+                    self._log("Failed to set input_ops: input op "
+                              "must be Op type, not {}".format(type(op))))
+                os._exit(-1)
+            self._jump_to_ops.append(op)
+
+    def is_jump_op(self):
+        """
+        The op has _jump_to_ops members or not.
+
+        Args:
+            None
+
+        Returns:
+            True or False
+        """
+        return len(self._jump_to_ops) > 0
+
+    def check_jumping(self, input_data):
+        """
+        Check whether to send data to jump ops.WhileOp needs to rewrite 
+        this interface. this function returns False default.
+     
+        Args:
+            input_data: input data to be preprocessed
+
+        Returns:
+            True, send data to the output channel of jump ops
+            False, send data to output channel.
+        """
+        return False
+
+    def get_output_channels_of_jump_ops(self):
+        """
+        Get output channels of jump ops
+
+        Args:
+            None
+
+        Returns:
+            list of channels
+        """
+        channels = []
+        if self.is_jump_op() is False:
+            return channels
+        for op in self._jump_to_ops:
+            _LOGGER.info("op:{} extend op._get_output_channels:{}".format(
+                op.name, op._get_output_channels()))
+            channels.extend(op._get_output_channels())
+
+        _LOGGER.info("get_output_channels_of_jump_ops, channels:{}".format(
+            channels))
+        return channels
+
     def add_input_channel(self, channel):
         """
         Adding one input channel to the Op. Each op have many front op,
@@ -409,6 +483,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
+        _LOGGER.info("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -423,7 +498,7 @@ class Op(object):
 
         Args:
             input_dicts: input data to be preprocessed
-            data_id: inner unique id, 0 default
+            data_id: inner unique id, increase auto
             log_id: global unique id for RTT, 0 default
 
         Return:
@@ -456,36 +531,80 @@ class Op(object):
         Returns:
             call_result: predict result
         """
-        err, err_info = ChannelData.check_batch_npdata(feed_batch)
-        if err != 0:
-            _LOGGER.critical(
-                self._log("Failed to run process: {}. Please override "
-                          "preprocess func.".format(err_info)))
-            os._exit(-1)
+
+        call_result = None
+        err_code = ChannelDataErrcode.OK.value
+        err_info = ""
+
         if self.client_type == "local_predictor":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for local_predictor mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
+
             call_result = self.client.predict(
                 feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        else:
+
+        elif self.client_type == "brpc":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for brpc mode.".format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
             call_result = self.client.predict(
-                feed=feed_batch,
+                feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        if isinstance(self.client, MultiLangClient):
-            if call_result is None or call_result["serving_status_code"] != 0:
-                return None
-            call_result.pop("serving_status_code")
-        return call_result
 
-    def postprocess(self, input_data, fetch_data, log_id=0):
+        elif self.client_type == "pipeline_grpc":
+            err, err_info = ChannelData.check_dictdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                       npdata in process for pipeline_grpc mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be dict"
+
+            call_result = self.client.predict(
+                feed_dict=feed_batch[0],
+                fetch=self._fetch_names,
+                asyn=False,
+                profile=False)
+            if call_result is None:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. call_result is None."))
+                return call_result, ChannelDataErrcode.UNKNOW.value, "pipeline_grpc error"
+            if call_result.err_no != 0:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. err_no:{}, err_info:{}".
+                              format(call_result.err_no, call_result.err_msg)))
+                return call_result, ChannelDataErrcode(
+                    call_result.err_no).value, call_result.err_msg
+
+            new_dict = {}
+            err_code = ChannelDataErrcode(call_result.err_no).value
+            err_info = call_result.err_msg
+            for idx, key in enumerate(call_result.key):
+                new_dict[key] = [call_result.value[idx]]
+            call_result = new_dict
+
+        return call_result, err_code, err_info
+
+    def postprocess(self, input_data, fetch_data, data_id=0, log_id=0):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
             input_data: data returned in preprocess stage, dict(for single predict) or list(for batch predict)
             fetch_data: data returned in process stage, dict(for single predict) or list(for batch predict)
+            data_id: inner unique id, increase auto
             log_id: logid, 0 default
 
         Returns: 
@@ -589,7 +708,8 @@ class Op(object):
                       self.device_type, self.devices, self.mem_optim,
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
-                      self.mkldnn_bf16_op_list))
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops()))
             p.daemon = True
             p.start()
             process.append(p)
@@ -625,7 +745,8 @@ class Op(object):
                       self.device_type, self.devices, self.mem_optim,
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
-                      self.mkldnn_bf16_op_list))
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops()))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -810,16 +931,20 @@ class Op(object):
 
         midped_batch = None
         error_code = ChannelDataErrcode.OK.value
+        error_info = ""
         if self._timeout <= 0:
             # No retry
             try:
                 if batch_input is False:
-                    midped_batch = self.process(feed_batch, typical_logid)
+                    midped_batch, error_code, error_info = self.process(
+                        feed_batch, typical_logid)
                 else:
                     midped_batch = []
                     for idx in range(len(feed_batch)):
-                        predict_res = self.process([feed_batch[idx]],
-                                                   typical_logid)
+                        predict_res, error_code, error_info = self.process(
+                            [feed_batch[idx]], typical_logid)
+                        if error_code != ChannelDataErrcode.OK.value:
+                            break
                         midped_batch.append(predict_res)
             except Exception as e:
                 error_code = ChannelDataErrcode.UNKNOW.value
@@ -832,14 +957,14 @@ class Op(object):
                 try:
                     # time out for each process
                     if batch_input is False:
-                        midped_batch = func_timeout.func_timeout(
+                        midped_batch, error_code, error_info = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
                     else:
                         midped_batch = []
                         for idx in range(len(feed_batch)):
-                            predict_res = func_timeout.func_timeout(
+                            predict_res, error_code, error_info = func_timeout.func_timeout(
                                 self._timeout,
                                 self.process,
                                 args=([feed_batch[idx]], typical_logid))
@@ -950,7 +1075,7 @@ class Op(object):
             prod_errcode, prod_errinfo = None, None
             try:
                 postped_data, prod_errcode, prod_errinfo = self.postprocess(
-                    parsed_data_dict[data_id], midped_data,
+                    parsed_data_dict[data_id], midped_data, data_id,
                     logid_dict.get(data_id))
             except Exception as e:
                 error_info = "(data_id={} log_id={}) {} Failed to postprocess: {}".format(
@@ -1096,7 +1221,8 @@ class Op(object):
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
              device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
-             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list):
+             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
+             is_jump_op, output_channels_of_jump_ops):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1123,6 +1249,8 @@ class Op(object):
             mkldnn_cache_capacity: cache capacity of mkldnn, 0 means no limit.
             mkldnn_op_list: OP list optimized by mkldnn, None default.
             mkldnn_bf16_op_list: OP list optimized by mkldnn bf16, None default.
+            is_jump_op: OP has jump op list or not, False default.
+            output_channels_of_jump_ops: all output channels of jump ops.
 
         Returns:
             None
@@ -1263,27 +1391,46 @@ class Op(object):
                 break
             if len(postped_data_dict) == 0:
                 continue
+
             # push data to channel (if run succ)
             start = int(round(_time() * 1000000))
             try:
                 profile_str = profiler.gen_profile_str()
-                for data_id, postped_data in postped_data_dict.items():
-                    if self._server_use_profile:
-                        sys.stderr.write(profile_str)
-                    self._push_to_output_channels(
-                        data=postped_data,
-                        channels=output_channels,
-                        profile_str=profile_str,
-                        client_need_profile=need_profile_dict[data_id],
-                        profile_set=profile_dict[data_id])
-                    after_outchannel_time = _time()
-                    _LOGGER.debug(
-                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
-                        format(data_id, self.name, (after_outchannel_time -
-                                                    after_postp_time) * 1000))
-                    _LOGGER.debug(
-                        "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push data:{}".
-                        format(data_id, self.name, postped_data.get_all_data()))
+                if self.is_jump_op() is True and self.check_jumping(
+                        postped_data_dict) is True:
+                    # push data to output channel of ops to be jumped 
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels_of_jump_ops,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL OF JUMP OPs! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
+                else:
+                    # push data to output channel.
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
             except ChannelStopError:
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
@@ -1406,7 +1553,7 @@ class RequestOp(Op):
         for idx, key in enumerate(request.key):
             dict_data[key] = request.value[idx]
         log_id = request.logid
-        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+        _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
             name:{}, method:{}".format(log_id, request.clientip, request.name,
                                        request.method))
 

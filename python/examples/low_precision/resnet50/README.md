@@ -11,15 +11,15 @@ Firstly, download the [Resnet50 int8 model](https://paddle-inference-dist.bj.bce
 wget https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz
 tar zxvf ResNet50_quant.tar.gz
 
-python -m paddle_serving_client.convert --dirname ResNet50_quant
+python3 -m paddle_serving_client.convert --dirname ResNet50_quant
 ```
 Start RPC service, specify the GPU id and precision mode
 ```
-python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 
+python3 -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 
 ```
 Request the serving service with Client
 ```
-python resnet50_client.py
+python3 resnet50_client.py
 ```
 
 ## Reference

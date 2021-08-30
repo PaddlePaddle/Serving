@@ -10,12 +10,12 @@ If you want to have more detection models, please refer to [Paddle Detection Mod
 
 ### Start the service
 ```
-python -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_id 0
+python3 -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_id 0
 ```
 
 ### Perform prediction
 ```
-python test_client.py 
+python3 test_client.py 
 ```
 
 Image with bounding boxes and json result would be saved in `output` folder.

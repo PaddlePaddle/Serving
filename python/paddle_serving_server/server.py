@@ -16,10 +16,9 @@ import os
 import tarfile
 import socket
 import paddle_serving_server as paddle_serving_server
-from paddle_serving_server.rpc_service import MultiLangServerServiceServicer
+from paddle_serving_server.serve import format_gpu_to_strlist
 from .proto import server_configure_pb2 as server_sdk
 from .proto import general_model_config_pb2 as m_config
-from .proto import multi_lang_general_model_service_pb2_grpc
 import google.protobuf.text_format
 import time
 from .version import version_tag, version_suffix, device_type
@@ -32,7 +31,6 @@ if sys.platform.startswith('win') is False:
 import shutil
 import platform
 import numpy as np
-import grpc
 import sys
 import collections
 import subprocess
@@ -41,6 +39,8 @@ from multiprocessing import Pool, Process
 from concurrent import futures
 
 
+# The whole file is about to be discarded.
+# We will use default config-file to start C++Server.
 class Server(object):
     def __init__(self):
         """
@@ -81,8 +81,11 @@ class Server(object):
         self.use_local_bin = False
         self.mkl_flag = False
         self.device = "cpu"
-        self.gpuid = 0
+        self.gpuid = []
+        self.op_num = [0]
+        self.op_max_batch = [32]
         self.use_trt = False
+        self.gpu_multi_stream = False
         self.use_lite = False
         self.use_xpu = False
         self.model_config_paths = collections.OrderedDict()
@@ -137,11 +140,13 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
+    # Multi-Server does not have this Function.
     def set_product_name(self, product_name=None):
         if product_name == None:
             raise ValueError("product_name can't be None.")
         self.product_name = product_name
 
+    # Multi-Server does not have this Function.
     def set_container_id(self, container_id):
         if container_id == None:
             raise ValueError("container_id can't be None.")
@@ -163,11 +168,20 @@ class Server(object):
     def set_device(self, device="cpu"):
         self.device = device
 
-    def set_gpuid(self, gpuid=0):
-        self.gpuid = gpuid
+    def set_gpuid(self, gpuid):
+        self.gpuid = format_gpu_to_strlist(gpuid)
+
+    def set_op_num(self, op_num):
+        self.op_num = op_num
+
+    def set_op_max_batch(self, op_max_batch):
+        self.op_max_batch = op_max_batch
 
     def set_trt(self):
         self.use_trt = True
+
+    def set_gpu_multi_stream(self):
+        self.gpu_multi_stream = True
 
     def set_lite(self):
         self.use_lite = True
@@ -176,8 +190,32 @@ class Server(object):
         self.use_xpu = True
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
+        self.device = device
         if self.model_toolkit_conf == None:
             self.model_toolkit_conf = []
+
+        # Generally, self.gpuid = str[] or [].
+        # when len(self.gpuid) means no gpuid is specified.
+        # if self.device == "gpu" or self.use_trt:
+        # we assume you forget to set gpuid, so set gpuid = ['0'];
+        if len(self.gpuid) == 0 or self.gpuid == ["-1"]:
+            if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
+                self.gpuid = ["0"]
+                self.device = "gpu"
+            else:
+                self.gpuid = ["-1"]
+
+        if isinstance(self.op_num, int):
+            self.op_num = [self.op_num]
+        if len(self.op_num) == 0:
+            self.op_num.append(0)
+
+        if isinstance(self.op_max_batch, int):
+            self.op_max_batch = [self.op_max_batch]
+        if len(self.op_max_batch) == 0:
+            self.op_max_batch.append(32)
+
+        index = 0
 
         for engine_name, model_config_path in model_config_paths.items():
             engine = server_sdk.EngineDesc()
@@ -186,18 +224,39 @@ class Server(object):
             engine.reloadable_meta = model_config_path + "/fluid_time_file"
             os.system("touch {}".format(engine.reloadable_meta))
             engine.reloadable_type = "timestamp_ne"
-            engine.runtime_thread_num = 0
-            engine.batch_infer_size = 0
-            engine.enable_batch_align = 0
+            engine.runtime_thread_num = self.op_num[index % len(self.op_num)]
+            engine.batch_infer_size = self.op_max_batch[index %
+                                                        len(self.op_max_batch)]
+
+            engine.enable_batch_align = 1
             engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
             engine.use_trt = self.use_trt
+            engine.gpu_multi_stream = self.gpu_multi_stream
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
             engine.use_gpu = False
-            if self.device == "gpu":
+
+            if len(self.gpuid) == 0:
+                raise ValueError("CPU: self.gpuid = -1, GPU: must set it ")
+            op_gpu_list = self.gpuid[index % len(self.gpuid)].split(",")
+            for ids in op_gpu_list:
+                engine.gpu_ids.extend([int(ids)])
+
+            if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
                 engine.use_gpu = True
+                # this is for Mixed use of GPU and CPU
+                # if model-1 use GPU and set the device="gpu"
+                # but gpuid[1] = "-1" which means use CPU in Model-2
+                # so config about GPU should be False.
+                # op_gpu_list = gpuid[index].split(",")
+                # which is the gpuid for each engine.
+                if len(op_gpu_list) == 1:
+                    if int(op_gpu_list[0]) == -1:
+                        engine.use_gpu = False
+                        engine.gpu_multi_stream = False
+                        engine.use_trt = False
 
             if os.path.exists('{}/__params__'.format(model_config_path)):
                 engine.combined_model = True
@@ -208,6 +267,7 @@ class Server(object):
             engine.type = "PADDLE_INFER"
             self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
             self.model_toolkit_conf[-1].engines.extend([engine])
+            index = index + 1
 
     def _prepare_infer_service(self, port):
         if self.infer_service_conf == None:
@@ -332,7 +392,11 @@ class Server(object):
         self.mkl_flag = flag
 
     def check_avx(self):
-        p = subprocess.Popen(['cat /proc/cpuinfo | grep avx 2>/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(
+            ['cat /proc/cpuinfo | grep avx 2>/dev/null'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True)
         out, err = p.communicate()
         if err == b'' and len(out) > 0:
             return True
@@ -373,7 +437,6 @@ class Server(object):
 
     def download_bin(self):
         os.chdir(self.module_path)
-        need_download = False
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
@@ -428,9 +491,17 @@ class Server(object):
     def prepare_server(self,
                        workdir=None,
                        port=9292,
-                       device="cpu",
+                       device=None,
                        use_encryption_model=False,
                        cube_conf=None):
+        # if `device` is not set, use self.device
+        # self.device may not be changed.
+        # or self.device may have changed by set_device.
+        if device == None:
+            device = self.device
+        # if `device` is set, let self.device = device.
+        else:
+            self.device = device
         if workdir == None:
             workdir = "./tmp"
             os.system("mkdir -p {}".format(workdir))
@@ -466,7 +537,7 @@ class Server(object):
     def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
+            result = sock.connect_ex(('127.0.0.1', port))
         if result != 0:
             return True
         else:
@@ -484,237 +555,39 @@ class Server(object):
         else:
             print("Use local bin : {}".format(self.bin_path))
         #self.check_cuda()
-        # Todo: merge CPU and GPU code, remove device to model_toolkit
-        if self.device == "cpu" or self.device == "arm":
-            command = "{} " \
-                      "-enable_model_toolkit " \
-                      "-inferservice_path {} " \
-                      "-inferservice_file {} " \
-                      "-max_concurrency {} " \
-                      "-num_threads {} " \
-                      "-port {} " \
-                      "-precision {} " \
-                      "-use_calib {} " \
-                      "-reload_interval_s {} " \
-                      "-resource_path {} " \
-                      "-resource_file {} " \
-                      "-workflow_path {} " \
-                      "-workflow_file {} " \
-                      "-bthread_concurrency {} " \
-                      "-max_body_size {} ".format(
-                          self.bin_path,
-                          self.workdir,
-                          self.infer_service_fn,
-                          self.max_concurrency,
-                          self.num_threads,
-                          self.port,
-                          self.precision,
-                          self.use_calib,
-                          self.reload_interval_s,
-                          self.workdir,
-                          self.resource_fn,
-                          self.workdir,
-                          self.workflow_fn,
-                          self.num_threads,
-                          self.max_body_size)
-        else:
-            command = "{} " \
-                      "-enable_model_toolkit " \
-                      "-inferservice_path {} " \
-                      "-inferservice_file {} " \
-                      "-max_concurrency {} " \
-                      "-num_threads {} " \
-                      "-port {} " \
-                      "-precision {} " \
-                      "-use_calib {} " \
-                      "-reload_interval_s {} " \
-                      "-resource_path {} " \
-                      "-resource_file {} " \
-                      "-workflow_path {} " \
-                      "-workflow_file {} " \
-                      "-bthread_concurrency {} " \
-                      "-gpuid {} " \
-                      "-max_body_size {} ".format(
-                          self.bin_path,
-                          self.workdir,
-                          self.infer_service_fn,
-                          self.max_concurrency,
-                          self.num_threads,
-                          self.port,
-                          self.precision,
-                          self.use_calib,
-                          self.reload_interval_s,
-                          self.workdir,
-                          self.resource_fn,
-                          self.workdir,
-                          self.workflow_fn,
-                          self.num_threads,
-                          self.gpuid,
-                          self.max_body_size)
+        command = "{} " \
+                    "-enable_model_toolkit " \
+                    "-inferservice_path {} " \
+                    "-inferservice_file {} " \
+                    "-max_concurrency {} " \
+                    "-num_threads {} " \
+                    "-port {} " \
+                    "-precision {} " \
+                    "-use_calib {} " \
+                    "-reload_interval_s {} " \
+                    "-resource_path {} " \
+                    "-resource_file {} " \
+                    "-workflow_path {} " \
+                    "-workflow_file {} " \
+                    "-bthread_concurrency {} " \
+                    "-max_body_size {} ".format(
+                        self.bin_path,
+                        self.workdir,
+                        self.infer_service_fn,
+                        self.max_concurrency,
+                        self.num_threads,
+                        self.port,
+                        self.precision,
+                        self.use_calib,
+                        self.reload_interval_s,
+                        self.workdir,
+                        self.resource_fn,
+                        self.workdir,
+                        self.workflow_fn,
+                        self.num_threads,
+                        self.max_body_size)
+
         print("Going to Run Comand")
         print(command)
 
         os.system(command)
-
-
-class MultiLangServer(object):
-    def __init__(self):
-        self.bserver_ = Server()
-        self.worker_num_ = 4
-        self.body_size_ = 64 * 1024 * 1024
-        self.concurrency_ = 100000
-        self.is_multi_model_ = False  # for model ensemble, which is not useful right now.
-
-    def set_max_concurrency(self, concurrency):
-        self.concurrency_ = concurrency
-        self.bserver_.set_max_concurrency(concurrency)
-
-    def set_device(self, device="cpu"):
-        self.device = device
-
-    def set_num_threads(self, threads):
-        self.worker_num_ = threads
-        self.bserver_.set_num_threads(threads)
-
-    def set_max_body_size(self, body_size):
-        self.bserver_.set_max_body_size(body_size)
-        if body_size >= self.body_size_:
-            self.body_size_ = body_size
-        else:
-            print(
-                "max_body_size is less than default value, will use default value in service."
-            )
-
-    def use_encryption_model(self, flag=False):
-        self.encryption_model = flag
-
-    def set_port(self, port):
-        self.gport_ = port
-
-    def set_precision(self, precision="fp32"):
-        self.precision = precision
-
-    def set_use_calib(self, use_calib=False):
-        self.use_calib = use_calib
-
-    def set_reload_interval(self, interval):
-        self.bserver_.set_reload_interval(interval)
-
-    def set_op_sequence(self, op_seq):
-        self.bserver_.set_op_sequence(op_seq)
-
-    def set_op_graph(self, op_graph):
-        self.bserver_.set_op_graph(op_graph)
-
-    def use_mkl(self, flag):
-        self.bserver_.use_mkl(flag)
-
-    def set_memory_optimize(self, flag=False):
-        self.bserver_.set_memory_optimize(flag)
-
-    def set_ir_optimize(self, flag=False):
-        self.bserver_.set_ir_optimize(flag)
-
-    def set_gpuid(self, gpuid=0):
-        self.bserver_.set_gpuid(gpuid)
-
-    def load_model_config(self,
-                          server_config_dir_paths,
-                          client_config_path=None):
-        if isinstance(server_config_dir_paths, str):
-            server_config_dir_paths = [server_config_dir_paths]
-        elif isinstance(server_config_dir_paths, list):
-            pass
-        else:
-            raise Exception("The type of model_config_paths must be str or list"
-                            ", not {}.".format(type(server_config_dir_paths)))
-
-        for single_model_config in server_config_dir_paths:
-            if os.path.isdir(single_model_config):
-                pass
-            elif os.path.isfile(single_model_config):
-                raise ValueError(
-                    "The input of --model should be a dir not file.")
-
-        self.bserver_.load_model_config(server_config_dir_paths)
-        if client_config_path is None:
-            #now dict is not useful.
-            if isinstance(server_config_dir_paths, dict):
-                self.is_multi_model_ = True
-                client_config_path = []
-                for server_config_path_items in list(
-                        server_config_dir_paths.items()):
-                    client_config_path.append(server_config_path_items[1])
-            elif isinstance(server_config_dir_paths, list):
-                self.is_multi_model_ = False
-                client_config_path = server_config_dir_paths
-            else:
-                raise Exception(
-                    "The type of model_config_paths must be str or list or "
-                    "dict({op: model_path}), not {}.".format(
-                        type(server_config_dir_paths)))
-        if isinstance(client_config_path, str):
-            client_config_path = [client_config_path]
-        elif isinstance(client_config_path, list):
-            pass
-        else:  # dict is not support right now.
-            raise Exception(
-                "The type of client_config_path must be str or list or "
-                "dict({op: model_path}), not {}.".format(
-                    type(client_config_path)))
-        if len(client_config_path) != len(server_config_dir_paths):
-            raise Warning(
-                "The len(client_config_path) is {}, != len(server_config_dir_paths) {}."
-                .format(len(client_config_path), len(server_config_dir_paths)))
-        self.bclient_config_path_list = client_config_path
-
-    def prepare_server(self,
-                       workdir=None,
-                       port=9292,
-                       device="cpu",
-                       use_encryption_model=False,
-                       cube_conf=None):
-        if not self._port_is_available(port):
-            raise SystemExit("Port {} is already used".format(port))
-        default_port = 12000
-        self.port_list_ = []
-        for i in range(1000):
-            if default_port + i != port and self._port_is_available(default_port
-                                                                    + i):
-                self.port_list_.append(default_port + i)
-                break
-        self.bserver_.prepare_server(
-            workdir=workdir,
-            port=self.port_list_[0],
-            device=device,
-            use_encryption_model=use_encryption_model,
-            cube_conf=cube_conf)
-        self.set_port(port)
-
-    def _launch_brpc_service(self, bserver):
-        bserver.run_server()
-
-    def _port_is_available(self, port):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
-        return result != 0
-
-    def run_server(self):
-        p_bserver = Process(
-            target=self._launch_brpc_service, args=(self.bserver_, ))
-        p_bserver.start()
-        options = [('grpc.max_send_message_length', self.body_size_),
-                   ('grpc.max_receive_message_length', self.body_size_)]
-        server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=self.worker_num_),
-            options=options,
-            maximum_concurrent_rpcs=self.concurrency_)
-        multi_lang_general_model_service_pb2_grpc.add_MultiLangGeneralModelServiceServicer_to_server(
-            MultiLangServerServiceServicer(
-                self.bclient_config_path_list, self.is_multi_model_,
-                ["0.0.0.0:{}".format(self.port_list_[0])]), server)
-        server.add_insecure_port('[::]:{}'.format(self.gport_))
-        server.start()
-        p_bserver.join()
-        server.wait_for_termination()

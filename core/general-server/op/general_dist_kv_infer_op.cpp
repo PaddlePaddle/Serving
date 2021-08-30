@@ -34,10 +34,11 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
+// DistKV Infer Op: seek cube and then call paddle inference
+// op seq: general_reader-> dist_kv_infer -> general_response
 int GeneralDistKVInferOp::inference() { 
   VLOG(2) << "Going to run inference";
   const std::vector<std::string> pre_node_names = pre_names();
@@ -52,14 +53,14 @@ int GeneralDistKVInferOp::inference() {
   const GeneralBlob *input_blob = get_depend_argument<GeneralBlob>(pre_name);
   if (!input_blob) {
     LOG(ERROR) << "input_blob is nullptr,error";
-      return -1;
+    return -1;
   }
   uint64_t log_id = input_blob->GetLogId();
   VLOG(2) << "(logid=" << log_id << ") Get precedent op name: " << pre_name;
 
   GeneralBlob *output_blob = mutable_data<GeneralBlob>();
   if (!output_blob) {
-    LOG(ERROR) << "output_blob is nullptr,error";
+    LOG(ERROR) <<  "(logid=" << log_id << ") output_blob is nullptr,error";
       return -1;
   }
   output_blob->SetLogId(log_id);
@@ -77,8 +78,8 @@ int GeneralDistKVInferOp::inference() {
   std::vector<uint64_t> unique_keys;
   std::unordered_map<uint64_t, rec::mcube::CubeValue*> key_map;
   std::vector<rec::mcube::CubeValue> values;
-  int sparse_count = 0;
-  int dense_count = 0;
+  int sparse_count = 0; // sparse inputs counts, sparse would seek cube
+  int dense_count = 0; // dense inputs counts, dense would directly call paddle infer
   std::vector<std::pair<int64_t *, size_t>> dataptr_size_pairs;
   size_t key_len = 0;
   for (size_t i = 0; i < in->size(); ++i) {
@@ -97,6 +98,7 @@ int GeneralDistKVInferOp::inference() {
   }
   keys.resize(key_len);
   unique_keys.resize(key_len);
+
   int key_idx = 0;
   for (size_t i = 0; i < dataptr_size_pairs.size(); ++i) {
     std::copy(dataptr_size_pairs[i].first,
@@ -120,6 +122,7 @@ int GeneralDistKVInferOp::inference() {
     LOG(ERROR) << "cube init error or cube config not given.";
     return -1;
   }
+
   int64_t seek_start = timeline.TimeStampUS();
   int ret = cube->seek(table_names[0], unique_keys, &values);
   int64_t seek_end = timeline.TimeStampUS();
@@ -131,7 +134,7 @@ int GeneralDistKVInferOp::inference() {
     LOG(ERROR) << "cube value return null";
   }
   //size_t EMBEDDING_SIZE = values[0].buff.size() / sizeof(float);
-  size_t EMBEDDING_SIZE = 9;
+  size_t EMBEDDING_SIZE = (values[0].buff.size() - 10) / sizeof(float);
   TensorVector sparse_out;
   sparse_out.resize(sparse_count);
   TensorVector dense_out;
@@ -145,6 +148,7 @@ int GeneralDistKVInferOp::inference() {
   std::shared_ptr<PaddleGeneralModelConfig> model_config = resource.get_general_model_config().front();
   int cube_key_found = 0;
   int cube_key_miss = 0; 
+
   for (size_t i = 0; i < in->size(); ++i) {
     if (in->at(i).dtype != paddle::PaddleDType::INT64) {
       dense_out[dense_idx] = in->at(i);
@@ -194,6 +198,7 @@ int GeneralDistKVInferOp::inference() {
   VLOG(2) << "(logid=" << log_id << ") sparse tensor load success.";
   timeline.Pause();
   VLOG(2) << "dist kv, cube and datacopy time: " << timeline.ElapsedUS();
+
   TensorVector infer_in;
   infer_in.insert(infer_in.end(), dense_out.begin(), dense_out.end());
   infer_in.insert(infer_in.end(), sparse_out.begin(), sparse_out.end());
@@ -201,10 +206,10 @@ int GeneralDistKVInferOp::inference() {
   output_blob->_batch_size = batch_size;
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
-
+  // call paddle inference here
   if (InferManager::instance().infer(
           engine_name().c_str(), &infer_in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name();
+    LOG(ERROR) << "(logid=" << log_id << ") Failed do infer in fluid model: " << engine_name();
     return -1;
   }
   int64_t end = timeline.TimeStampUS();

@@ -93,13 +93,19 @@ class PipelineClient(object):
     def _unpack_response_package(self, resp, fetch):
         return resp
 
-    def predict(self, feed_dict, fetch=None, asyn=False, profile=False):
+    def predict(self,
+                feed_dict,
+                fetch=None,
+                asyn=False,
+                profile=False,
+                log_id=0):
         if not isinstance(feed_dict, dict):
             raise TypeError(
                 "feed must be dict type with format: {name: value}.")
         if fetch is not None and not isinstance(fetch, list):
             raise TypeError("fetch must be list type with format: [name].")
         req = self._pack_request_package(feed_dict, profile)
+        req.logid = log_id
         if not asyn:
             resp = self._stub.inference(req)
             return self._unpack_response_package(resp, fetch)

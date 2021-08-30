@@ -39,11 +39,11 @@ INCLUDE_DIRECTORIES(${BRPC_INCLUDE_DIR})
 set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog")
 
 if(WITH_LITE)
-    set(BRPC_REPO "https://github.com/zhangjun/incubator-brpc.git")
-    set(BRPC_TAG "master")
+    set(BRPC_REPO "https://github.com/apache/incubator-brpc")
+    set(BRPC_TAG "1.0.0-rc01")
 else()
-    set(BRPC_REPO "https://github.com/wangjiawei04/brpc")
-    set(BRPC_TAG "6d79e0b17f25107c35b705ea58d888083f59ff47")
+    set(BRPC_REPO "https://github.com/apache/incubator-brpc")
+    set(BRPC_TAG "1.0.0-rc01")
 endif()
 
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF

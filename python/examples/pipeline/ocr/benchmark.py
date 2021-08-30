@@ -19,10 +19,8 @@ import yaml
 import requests
 import time
 import json
-try:
-    from paddle_serving_server_gpu.pipeline import PipelineClient
-except ImportError:
-    from paddle_serving_server.pipeline import PipelineClient
+
+from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args, show_latency

@@ -12,9 +12,9 @@ sh get_data.sh
 
 ## Encrypt Model
 
-The `paddlepaddle` package is used in this example, you may need to download the corresponding package(`pip install paddlepaddle`).
+The `paddlepaddle` package is used in this example, you may need to download the corresponding package(`pip3 install paddlepaddle`).
 
-[python encrypt.py](./encrypt.py)
+[python3 encrypt.py](./encrypt.py)
 
 [//file]:#encrypt.py
 ``` python
@@ -35,14 +35,14 @@ client-side configuration file are stored in the `encrypt_client` directory.
 ## Start Encryption Service
 CPU Service
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model
+python3 -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model
 ```
 GPU Service
 ```
-python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_encryption_model --gpu_ids 0
+python3 -m paddle_serving_server.serve --model encrypt_server/ --port 9393 --use_encryption_model --gpu_ids 0
 ```
 
 ## Prediction
 ```
-python test_client.py encrypt_client/serving_client_conf.prototxt
+python3 test_client.py encrypt_client/serving_client_conf.prototxt
 ```

@@ -53,6 +53,9 @@ class ModelRes {
                             res._int32_value_map.end());
     _shape_map.insert(res._shape_map.begin(), res._shape_map.end());
     _lod_map.insert(res._lod_map.begin(), res._lod_map.end());
+    _tensor_alias_names.insert(_tensor_alias_names.end(),
+                               res._tensor_alias_names.begin(),
+                               res._tensor_alias_names.end());
   }
   ModelRes(ModelRes&& res) {
     _engine_name = std::move(res._engine_name);
@@ -69,6 +72,10 @@ class ModelRes {
                       std::make_move_iterator(std::end(res._shape_map)));
     _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
                     std::make_move_iterator(std::end(res._lod_map)));
+    _tensor_alias_names.insert(
+        _tensor_alias_names.end(),
+        std::make_move_iterator(std::begin(res._tensor_alias_names)),
+        std::make_move_iterator(std::end(res._tensor_alias_names)));
   }
   ~ModelRes() {}
   const std::vector<int64_t>& get_int64_by_name(const std::string& name) {
@@ -105,6 +112,10 @@ class ModelRes {
     _engine_name = engine_name;
   }
   const std::string& engine_name() { return _engine_name; }
+
+  const std::vector<std::string>& tensor_alias_names() {
+    return _tensor_alias_names;
+  }
   ModelRes& operator=(ModelRes&& res) {
     if (this != &res) {
       _engine_name = std::move(res._engine_name);
@@ -121,6 +132,10 @@ class ModelRes {
                         std::make_move_iterator(std::end(res._shape_map)));
       _lod_map.insert(std::make_move_iterator(std::begin(res._lod_map)),
                       std::make_move_iterator(std::end(res._lod_map)));
+      _tensor_alias_names.insert(
+          _tensor_alias_names.end(),
+          std::make_move_iterator(std::begin(res._tensor_alias_names)),
+          std::make_move_iterator(std::end(res._tensor_alias_names)));
     }
     return *this;
   }
@@ -132,6 +147,7 @@ class ModelRes {
   std::map<std::string, std::vector<int32_t>> _int32_value_map;
   std::map<std::string, std::vector<int>> _shape_map;
   std::map<std::string, std::vector<int>> _lod_map;
+  std::vector<std::string> _tensor_alias_names;
 };
 
 class PredictorRes {
@@ -193,11 +209,16 @@ class PredictorRes {
   }
   const std::string& variant_tag() { return _variant_tag; }
   const std::vector<std::string>& get_engine_names() { return _engine_names; }
+  const std::vector<std::string>& get_tensor_alias_names(const int model_idx) {
+    _tensor_alias_names = _models[model_idx].tensor_alias_names();
+    return _tensor_alias_names;
+  }
 
  private:
   std::vector<ModelRes> _models;
   std::string _variant_tag;
   std::vector<std::string> _engine_names;
+  std::vector<std::string> _tensor_alias_names;
 };
 
 class PredictorClient {
@@ -207,7 +228,7 @@ class PredictorClient {
 
   void init_gflags(std::vector<std::string> argv);
 
-  int init(const std::vector<std::string> &client_conf);
+  int init(const std::vector<std::string>& client_conf);
 
   void set_predictor_conf(const std::string& conf_path,
                           const std::string& conf_file);
@@ -218,23 +239,22 @@ class PredictorClient {
 
   int destroy_predictor();
 
-  int numpy_predict(
-      const std::vector<std::vector<py::array_t<float>>>& float_feed_batch,
-      const std::vector<std::string>& float_feed_name,
-      const std::vector<std::vector<int>>& float_shape,
-      const std::vector<std::vector<int>>& float_lod_slot_batch,
-      const std::vector<std::vector<py::array_t<int64_t>>>& int_feed_batch,
-      const std::vector<std::string>& int_feed_name,
-      const std::vector<std::vector<int>>& int_shape,
-      const std::vector<std::vector<int>>& int_lod_slot_batch,
-      const std::vector<std::vector<std::string>>& string_feed_batch,
-      const std::vector<std::string>& string_feed_name,
-      const std::vector<std::vector<int>>& string_shape,
-      const std::vector<std::vector<int>>& string_lod_slot_batch,
-      const std::vector<std::string>& fetch_name,
-      PredictorRes& predict_res_batch,  // NOLINT
-      const int& pid,
-      const uint64_t log_id);
+  int numpy_predict(const std::vector<py::array_t<float>>& float_feed,
+                    const std::vector<std::string>& float_feed_name,
+                    const std::vector<std::vector<int>>& float_shape,
+                    const std::vector<std::vector<int>>& float_lod_slot_batch,
+                    const std::vector<py::array_t<int64_t>>& int_feed,
+                    const std::vector<std::string>& int_feed_name,
+                    const std::vector<std::vector<int>>& int_shape,
+                    const std::vector<std::vector<int>>& int_lod_slot_batch,
+                    const std::vector<std::string>& string_feed,
+                    const std::vector<std::string>& string_feed_name,
+                    const std::vector<std::vector<int>>& string_shape,
+                    const std::vector<std::vector<int>>& string_lod_slot_batch,
+                    const std::vector<std::string>& fetch_name,
+                    PredictorRes& predict_res_batch,  // NOLINT
+                    const int& pid,
+                    const uint64_t log_id);
 
  private:
   PredictorApi _api;
@@ -243,6 +263,7 @@ class PredictorClient {
   std::string _predictor_path;
   std::string _conf_file;
   std::map<std::string, int> _feed_name_to_idx;
+  std::vector<std::string> _feed_name;
   std::map<std::string, int> _fetch_name_to_idx;
   std::map<std::string, std::string> _fetch_name_to_var_name;
   std::map<std::string, int> _fetch_name_to_type;

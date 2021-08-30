@@ -13,10 +13,8 @@
 # limitations under the License.
 import sys
 from paddle_serving_app.reader import Sequential, URL2Image, Resize, CenterCrop, RGB2BGR, Transpose, Div, Normalize, Base64ToImage
-try:
-    from paddle_serving_server_gpu.web_service import WebService, Op
-except ImportError:
-    from paddle_serving_server.web_service import WebService, Op
+
+from paddle_serving_server.web_service import WebService, Op
 import logging
 import numpy as np
 import base64, cv2
@@ -49,7 +47,7 @@ class ImagenetOp(Op):
         input_imgs = np.concatenate(imgs, axis=0)
         return {"inputs": input_imgs}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         score_list = fetch_dict["save_infer_model/scale_0.tmp_0"]
         result = {"label": [], "prob": []}
         for score in score_list:

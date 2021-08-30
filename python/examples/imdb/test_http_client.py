@@ -12,19 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=doc-string-missing
-from paddle_serving_client import MultiLangClient as Client
+from paddle_serving_client import HttpClient
 from paddle_serving_app.reader.imdb_reader import IMDBDataset
 import sys
 import numpy as np
 
-client = Client()
-client.connect(["127.0.0.1:9393"])
+client = HttpClient(ip='127.0.0.1', port='9292')
+client.load_client_config(sys.argv[1])
+#client.set_ip('127.0.0.1')
+#client.set_port('9292')
+''' 
+if you want use GRPC-client, set_use_grpc_client(True)
+or you can directly use client.grpc_client_predict(...)
+as for HTTP-client,set_use_grpc_client(False)(which is default)
+or you can directly use client.http_client_predict(...)
+'''
+#client.set_use_grpc_client(True)
+'''
+if you want to enable Encrypt Module,uncommenting the following line
+'''
+#client.use_key("./key")
+'''
+if you want to compress,uncommenting the following line
+'''
+#client.set_response_compress(True)
+#client.set_request_compress(True)
+'''
+we recommend use Proto data format in HTTP-body, set True(which is default)
+if you want use JSON data format in HTTP-body, set False
+'''
+#client.set_http_proto(True)
 
 # you can define any english sentence or dataset here
 # This example reuses imdb reader in training, you
 # can define your own data preprocessing easily.
 imdb_dataset = IMDBDataset()
-imdb_dataset.load_resource('imdb.vocab')
+imdb_dataset.load_resource(sys.argv[2])
 
 for line in sys.stdin:
     word_ids, label = imdb_dataset.get_words_and_label(line)
@@ -33,10 +56,7 @@ for line in sys.stdin:
         "words": np.array(word_ids).reshape(word_len, 1),
         "words.lod": [0, word_len]
     }
+    #print(feed)
     fetch = ["prediction"]
     fetch_map = client.predict(feed=feed, fetch=fetch, batch=True)
-    if fetch_map["serving_status_code"] == 0:
-        print(fetch_map)
-    else:
-        print(fetch_map["serving_status_code"])
-    #print("{} {}".format(fetch_map["prediction"][0], label[0]))
+    print(fetch_map)

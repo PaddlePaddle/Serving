@@ -14,11 +14,13 @@
 
 #pragma once
 
+#include <dirent.h>
 #include <pthread.h>
 #include <fstream>
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include "core/configure/include/configure_parser.h"
 #include "core/configure/inferencer_configure.pb.h"
@@ -68,6 +70,30 @@ PrecisionType GetPrecision(const std::string& precision_data) {
   return PrecisionType::kFloat32;
 }
 
+const std::string getFileBySuffix(
+    const std::string& path, const std::vector<std::string>& suffixVector) {
+  DIR* dp = nullptr;
+  std::string fileName = "";
+  struct dirent* dirp = nullptr;
+  if ((dp = opendir(path.c_str())) == nullptr) {
+    return fileName;
+  }
+  while ((dirp = readdir(dp)) != nullptr) {
+    if (dirp->d_type == DT_REG) {
+      for (int idx = 0; idx < suffixVector.size(); ++idx) {
+        if (std::string(dirp->d_name).find(suffixVector[idx]) !=
+            std::string::npos) {
+          fileName = static_cast<std::string>(dirp->d_name);
+          break;
+        }
+      }
+    }
+    if (fileName.length() != 0) break;
+  }
+  closedir(dp);
+  return fileName;
+}
+
 // Engine Base
 class EngineCore {
  public:
@@ -96,7 +122,7 @@ class EngineCore {
     return true;
   }
 
-  virtual int create(const configure::EngineDesc& conf) = 0;
+  virtual int create(const configure::EngineDesc& conf, int gpu_id) = 0;
 
   virtual int clone(void* predictor) {
     if (predictor == NULL) {
@@ -121,7 +147,7 @@ class EngineCore {
 // Paddle Inference Engine
 class PaddleInferenceEngine : public EngineCore {
  public:
-  int create(const configure::EngineDesc& engine_conf) {
+  int create(const configure::EngineDesc& engine_conf, int gpu_id) {
     std::string model_path = engine_conf.model_dir();
     if (access(model_path.c_str(), F_OK) == -1) {
       LOG(ERROR) << "create paddle predictor failed, path not exits: "
@@ -130,9 +156,21 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     Config config;
-    // todo, auto config(zhangjun)
-    if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
+    std::vector<std::string> suffixParaVector = {".pdiparams", "__params__"};
+    std::vector<std::string> suffixModelVector = {".pdmodel", "__model__"};
+    std::string paraFileName = getFileBySuffix(model_path, suffixParaVector);
+    std::string modelFileName = getFileBySuffix(model_path, suffixModelVector);
+
+    std::string encryParaPath = model_path + "/encrypt_model";
+    std::string encryModelPath = model_path + "/encrypt_params";
+    std::string encryKeyPath = model_path + "/key";
+
+    // encrypt model
+    if (access(encryParaPath.c_str(), F_OK) != -1 &&
+        access(encryModelPath.c_str(), F_OK) != -1 &&
+        access(encryKeyPath.c_str(), F_OK) != -1) {
       // decrypt model
+
       std::string model_buffer, params_buffer, key_buffer;
       predictor::ReadBinaryFile(model_path + "/encrypt_model", &model_buffer);
       predictor::ReadBinaryFile(model_path + "/encrypt_params", &params_buffer);
@@ -146,23 +184,22 @@ class PaddleInferenceEngine : public EngineCore {
                             real_model_buffer.size(),
                             &real_params_buffer[0],
                             real_params_buffer.size());
-    } else if (engine_conf.has_combined_model()) {
-      if (!engine_conf.combined_model()) {
-        config.SetModel(model_path);
-      } else {
-        config.SetParamsFile(model_path + "/__params__");
-        config.SetProgFile(model_path + "/__model__");
-      }
+    } else if (paraFileName.length() != 0 && modelFileName.length() != 0) {
+      config.SetParamsFile(model_path + "/" + paraFileName);
+      config.SetProgFile(model_path + "/" + modelFileName);
     } else {
-      config.SetParamsFile(model_path + "/__params__");
-      config.SetProgFile(model_path + "/__model__");
+      config.SetModel(model_path);
     }
 
     config.SwitchSpecifyInputNames(true);
     config.SetCpuMathLibraryNumThreads(1);
     if (engine_conf.has_use_gpu() && engine_conf.use_gpu()) {
       // 2000MB GPU memory
-      config.EnableUseGpu(2000, FLAGS_gpuid);
+      config.EnableUseGpu(50, gpu_id);
+      if (engine_conf.has_gpu_multi_stream() &&
+          engine_conf.gpu_multi_stream()) {
+        config.EnableGpuMultiStream();
+      }
     }
     precision_type = GetPrecision(FLAGS_precision);
 
@@ -174,8 +211,13 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
+      config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
-        config.EnableUseGpu(2000, FLAGS_gpuid);
+        config.EnableUseGpu(50, gpu_id);
+        if (engine_conf.has_gpu_multi_stream() &&
+            engine_conf.gpu_multi_stream()) {
+          config.EnableGpuMultiStream();
+        }
       }
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
@@ -203,7 +245,7 @@ class PaddleInferenceEngine : public EngineCore {
       if (precision_type == PrecisionType::kInt8) {
         config.EnableMkldnnQuantizer();
         auto quantizer_config = config.mkldnn_quantizer_config();
-        // TODO: warmup data
+        // TODO(somebody): warmup data
         // quantizer_config -> SetWarmupData();
         // quantizer_config -> SetWarmupBatchSize();
         // quantizer_config -> SetEnabledOpTypes(4);

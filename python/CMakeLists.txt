@@ -81,7 +81,6 @@ if (SERVER)
   if(WITH_LITE)
     set(VERSION_SUFFIX 2)
   endif()
-
   add_custom_command(
     OUTPUT ${PADDLE_SERVING_BINARY_DIR}/.timestamp
     COMMAND cp -r

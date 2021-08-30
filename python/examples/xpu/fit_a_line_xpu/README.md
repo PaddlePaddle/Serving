@@ -13,15 +13,15 @@ sh get_data.sh
 ### Start server
 You can use the following code to start the RPC service 
 ```shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim
 ```
 
 ### Client prediction
 
-The `paddlepaddle` package is used in `test_client.py`, and you may need to download the corresponding package(`pip install paddlepaddle`).
+The `paddlepaddle` package is used in `test_client.py`, and you may need to download the corresponding package(`pip3 install paddlepaddle`).
 
 ``` shell
-python test_client.py uci_housing_client/serving_client_conf.prototxt
+python3 test_client.py uci_housing_client/serving_client_conf.prototxt
 ```
 
 ## HTTP service
@@ -30,7 +30,7 @@ python test_client.py uci_housing_client/serving_client_conf.prototxt
 
 Start a web service with default web service hosting modules:
 ``` shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --use_lite --use_xpu --ir_optim --name uci
 ```
 
 ### Client prediction

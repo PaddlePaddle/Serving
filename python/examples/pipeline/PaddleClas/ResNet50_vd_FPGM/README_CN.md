@@ -10,11 +10,10 @@ sh get_model.sh
 ## 启动服务
 
 ```
-python resnet50_web_service.py &>log.txt &
+python3 resnet50_web_service.py &>log.txt &
 ```
 
 ## 测试
 ```
-python pipeline_rpc_client.py
+python3 pipeline_rpc_client.py
 ```
-

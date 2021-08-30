@@ -19,13 +19,13 @@ mv models/ctr_serving_model .
 ### 启动RPC预测服务
 
 ```
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
+python3 -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #启动CPU预测服务
+python3 -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #在GPU 0上启动预测服务
 ```
 
 ### 执行预测
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
+python3 test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
 ```
 预测完毕会输出预测过程的耗时。
