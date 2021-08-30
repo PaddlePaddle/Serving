@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ int ServingBrpcClient::connect(const std::string server_port) {
 }
 
 std::string ServingBrpcClient::gen_desc(const std::string server_port) {
+  // default config for brpc
   SDKConf sdk_conf;
 
   Predictor* predictor = sdk_conf.add_predictors();
@@ -83,13 +84,14 @@ std::string ServingBrpcClient::gen_desc(const std::string server_port) {
 
 int ServingBrpcClient::predict(const PredictorInputs& inputs,
                                PredictorOutputs& outputs,
-                               std::vector<std::string>& fetch_name,
+                               const std::vector<std::string>& fetch_name,
                                const uint64_t log_id) {
   Timer timeline;
   int64_t preprocess_start = timeline.TimeStampUS();
-
+  // thread initialize for StubTLS
   _api.thrd_initialize();
   std::string variant_tag;
+  // predictor is bound to request with brpc::Controller
   _predictor = _api.fetch_predictor("general_model", &variant_tag);
   if (_predictor == NULL) {
     LOG(ERROR) << "Failed fetch predictor so predict error!";
@@ -105,7 +107,7 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
     req.add_fetch_var_names(name);
   }
 
-  if (PredictorInputs::gen_proto(inputs, _feed_name_to_idx, _feed_name, req) != 0) {
+  if (PredictorInputs::GenProto(inputs, _feed_name_to_idx, _feed_name, req) != 0) {
     LOG(ERROR) << "Failed to preprocess req!";
     return -1;
   }
@@ -132,7 +134,7 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
 
   client_infer_end = timeline.TimeStampUS();
   postprocess_start = client_infer_end;
-  if (PredictorOutputs::parse_proto(res, fetch_name, _fetch_name_to_type, outputs) != 0) {
+  if (PredictorOutputs::ParseProto(res, fetch_name, _fetch_name_to_type, outputs) != 0) {
     LOG(ERROR) << "Failed to post_process res!";
     return -1;
   }
@@ -160,6 +162,7 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
     fprintf(stderr, "%s\n", oss.str().c_str());
   }
 
+  // release predictor
   _api.thrd_clear();
 
   return 0;

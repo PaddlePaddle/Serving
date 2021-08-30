@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,17 +17,16 @@
 
 #include "core/general-client/include/brpc_client.h"
 
-using namespace std;  // NOLINT
-
 using baidu::paddle_serving::client::ServingClient;
 using baidu::paddle_serving::client::ServingBrpcClient;
 using baidu::paddle_serving::client::PredictorInputs;
 using baidu::paddle_serving::client::PredictorOutputs;
 
-DEFINE_string(server_port, "127.0.0.1:9292", "");
-DEFINE_string(client_conf, "serving_client_conf.prototxt", "");
-DEFINE_string(test_type, "brpc", "");
-DEFINE_string(sample_type, "fit_a_line", "");
+DEFINE_string(server_port, "127.0.0.1:9292", "ip:port");
+DEFINE_string(client_conf, "serving_client_conf.prototxt", "Path of client conf");
+DEFINE_string(test_type, "brpc", "brpc");
+// fit_a_line, bert
+DEFINE_string(sample_type, "fit_a_line", "List: fit_a_line, bert");
 
 namespace {
 int prepare_fit_a_line(PredictorInputs& input, std::vector<std::string>& fetch_name) {

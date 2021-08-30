@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class ServingClient {
 
   virtual int predict(const PredictorInputs& inputs,
                       PredictorOutputs& outputs,
-                      std::vector<std::string>& fetch_name,
+                      const std::vector<std::string>& fetch_name,
                       const uint64_t log_id) = 0;
 
  protected:
@@ -66,75 +66,75 @@ class PredictorData {
   PredictorData() {};
   virtual ~PredictorData() {};
 
-  virtual void add_float_data(const std::vector<float>& data,
-                              const std::string& name,
-                              const std::vector<int>& shape,
-                              const std::vector<int>& lod);
+  void add_float_data(const std::vector<float>& data,
+                      const std::string& name,
+                      const std::vector<int>& shape,
+                      const std::vector<int>& lod);
 
-  virtual void add_int64_data(const std::vector<int64_t>& data,
-                              const std::string& name,
-                              const std::vector<int>& shape,
-                              const std::vector<int>& lod);
+  void add_int64_data(const std::vector<int64_t>& data,
+                      const std::string& name,
+                      const std::vector<int>& shape,
+                      const std::vector<int>& lod);
 
-  virtual void add_int32_data(const std::vector<int32_t>& data,
-                              const std::string& name,
-                              const std::vector<int>& shape,
-                              const std::vector<int>& lod);
+  void add_int32_data(const std::vector<int32_t>& data,
+                      const std::string& name,
+                      const std::vector<int>& shape,
+                      const std::vector<int>& lod);
 
-  virtual void add_string_data(const std::string& data,
-                               const std::string& name,
-                               const std::vector<int>& shape,
-                               const std::vector<int>& lod);
+  void add_string_data(const std::string& data,
+                       const std::string& name,
+                       const std::vector<int>& shape,
+                       const std::vector<int>& lod);
 
-  virtual const std::map<std::string, std::vector<float>>& float_data_map() const {
+  const std::map<std::string, std::vector<float>>& float_data_map() const {
     return _float_data_map;
   };
 
-  virtual std::map<std::string, std::vector<float>>* mutable_float_data_map() {
+  std::map<std::string, std::vector<float>>* mutable_float_data_map() {
     return &_float_data_map;
   };
 
-  virtual const std::map<std::string, std::vector<int64_t>>& int64_data_map() const {
+  const std::map<std::string, std::vector<int64_t>>& int64_data_map() const {
     return _int64_data_map;
   };
 
-  virtual std::map<std::string, std::vector<int64_t>>* mutable_int64_data_map() {
+  std::map<std::string, std::vector<int64_t>>* mutable_int64_data_map() {
     return &_int64_data_map;
   };
 
-  virtual const std::map<std::string, std::vector<int32_t>>& int_data_map() const {
+  const std::map<std::string, std::vector<int32_t>>& int_data_map() const {
     return _int32_data_map;
   };
 
-  virtual std::map<std::string, std::vector<int32_t>>* mutable_int_data_map() {
+  std::map<std::string, std::vector<int32_t>>* mutable_int_data_map() {
     return &_int32_data_map;
   };
 
-  virtual const std::map<std::string, std::string>& string_data_map() const {
+  const std::map<std::string, std::string>& string_data_map() const {
     return _string_data_map;
   };
 
-  virtual std::map<std::string, std::string>* mutable_string_data_map() {
+  std::map<std::string, std::string>* mutable_string_data_map() {
     return &_string_data_map;
   };
 
-  virtual const std::map<std::string, std::vector<int>>& shape_map() const {
+  const std::map<std::string, std::vector<int>>& shape_map() const {
     return _shape_map;
   };
 
-  virtual std::map<std::string, std::vector<int>>* mutable_shape_map() {
+  std::map<std::string, std::vector<int>>* mutable_shape_map() {
     return &_shape_map;
   };
 
-  virtual const std::map<std::string, std::vector<int>>& lod_map() const {
+  const std::map<std::string, std::vector<int>>& lod_map() const {
     return _lod_map;
   };
 
-  virtual std::map<std::string, std::vector<int>>* mutable_lod_map() {
+  std::map<std::string, std::vector<int>>* mutable_lod_map() {
     return &_lod_map;
   };
 
-  virtual std::string print();
+  std::string print();
 
  private:
   template<typename T1, typename T2>
@@ -196,7 +196,7 @@ class PredictorInputs : public PredictorData {
   PredictorInputs() {};
   virtual ~PredictorInputs() {};
 
-  static int gen_proto(const PredictorInputs& inputs,
+  static int GenProto(const PredictorInputs& inputs,
                       const std::map<std::string, int>& feed_name_to_idx,
                       const std::vector<std::string>& feed_name,
                       predictor::general_model::Request& req);
@@ -212,23 +212,23 @@ class PredictorOutputs {
   PredictorOutputs() {};
   virtual ~PredictorOutputs() {};
 
-  virtual std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>& datas() {
+  const std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>& datas() {
     return _datas;
   };
 
-  virtual std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>* mutable_datas() {
+  std::vector<std::shared_ptr<PredictorOutputs::PredictorOutput>>* mutable_datas() {
     return &_datas;
   };
 
-  virtual void add_data(const std::shared_ptr<PredictorOutputs::PredictorOutput>& data) {
+  void add_data(const std::shared_ptr<PredictorOutputs::PredictorOutput>& data) {
     _datas.push_back(data);
   };
 
-  virtual std::string print();
+  std::string print();
 
-  virtual void clear();
+  void clear();
 
-  static int parse_proto(const predictor::general_model::Response& res,
+  static int ParseProto(const predictor::general_model::Response& res,
                         const std::vector<std::string>& fetch_name,
                         std::map<std::string, int>& fetch_name_to_type,
                         PredictorOutputs& outputs);

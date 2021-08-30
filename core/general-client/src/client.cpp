@@ -1,4 +1,4 @@
-// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ int ServingClient::init(const std::vector<std::string>& client_conf,
     return -1;
   }
 
+  // pure virtual func, subclass implementation
   if (connect(server_port) != 0) {
     LOG(ERROR) << "Failed to connect";
     return -1;
@@ -148,7 +149,7 @@ std::string PredictorData::print() {
   return res;
 }
 
-int PredictorInputs::gen_proto(const PredictorInputs& inputs,
+int PredictorInputs::GenProto(const PredictorInputs& inputs,
                               const std::map<std::string, int>& feed_name_to_idx,
                               const std::vector<std::string>& feed_name,
                               Request& req) {
@@ -317,7 +318,7 @@ void PredictorOutputs::clear() {
   _datas.clear();
 }
 
-int PredictorOutputs::parse_proto(const Response& res,
+int PredictorOutputs::ParseProto(const Response& res,
                                   const std::vector<std::string>& fetch_name,
                                   std::map<std::string, int>& fetch_name_to_type,
                                   PredictorOutputs& outputs) {
