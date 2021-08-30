@@ -289,18 +289,16 @@ class Client(object):
                 log_id=0):
         self.profile_.record('py_prepro_0')
 
-        if feed is None:
-            raise ValueError("You should specify feed for prediction")
+        if feed is None or fetch is None:
+            raise ValueError("You should specify feed and fetch for prediction")
 
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, list):
             fetch_list = fetch
-        elif fetch == None:
-            pass
         else:
-            raise ValueError("Fetch only accepts string or list of string")
+            raise ValueError("Fetch only accepts string and list of string")
 
         feed_batch = []
         if isinstance(feed, dict):
@@ -341,7 +339,6 @@ class Client(object):
         string_feed_names = []
         string_lod_slot_batch = []
         string_shape = []
-
         fetch_names = []
 
         for key in fetch_list:
@@ -442,8 +439,6 @@ class Client(object):
         model_engine_names = result_batch_handle.get_engine_names()
         for mi, engine_name in enumerate(model_engine_names):
             result_map = {}
-            if len(fetch_names) == 0:
-                fetch_names = result_batch_handle.get_tensor_alias_names(mi)
             # result map needs to be a numpy array
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int64_type:
