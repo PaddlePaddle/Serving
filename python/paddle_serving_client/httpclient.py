@@ -202,7 +202,7 @@ class HttpClient(object):
                 url = url[7:]
                 self.http_s = "http://"
             url_parts = url.split(':')
-            if len(url_parts) != 2 or check_ip(url_parts[0]) == False:
+            if len(url_parts) != 2 or self.check_ip(url_parts[0]) == False:
                 raise ValueError(
                     "url not right, it should be like 127.0.0.1:9393 or http://127.0.0.1:9393"
                 )
