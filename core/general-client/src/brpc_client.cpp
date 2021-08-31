@@ -29,7 +29,6 @@ using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
 
 using configure::SDKConf;
 using configure::VariantConf;

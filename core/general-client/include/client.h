@@ -69,22 +69,26 @@ class PredictorData {
   void add_float_data(const std::vector<float>& data,
                       const std::string& name,
                       const std::vector<int>& shape,
-                      const std::vector<int>& lod);
+                      const std::vector<int>& lod,
+                      const int datatype = 1);
 
   void add_int64_data(const std::vector<int64_t>& data,
                       const std::string& name,
                       const std::vector<int>& shape,
-                      const std::vector<int>& lod);
+                      const std::vector<int>& lod,
+                      const int datatype = 0);
 
   void add_int32_data(const std::vector<int32_t>& data,
                       const std::string& name,
                       const std::vector<int>& shape,
-                      const std::vector<int>& lod);
+                      const std::vector<int>& lod,
+                      const int datatype = 2);
 
   void add_string_data(const std::string& data,
                        const std::string& name,
                        const std::vector<int>& shape,
-                       const std::vector<int>& lod);
+                       const std::vector<int>& lod,
+                       const int datatype = 3);
 
   const std::map<std::string, std::vector<float>>& float_data_map() const {
     return _float_data_map;
@@ -133,6 +137,8 @@ class PredictorData {
   std::map<std::string, std::vector<int>>* mutable_lod_map() {
     return &_lod_map;
   };
+
+  int get_datatype(std::string name) const;
 
   std::string print();
 
@@ -189,6 +195,7 @@ class PredictorData {
   std::map<std::string, std::string> _string_data_map;
   std::map<std::string, std::vector<int>> _shape_map;
   std::map<std::string, std::vector<int>> _lod_map;
+  std::map<std::string, int> _datatype_map;
 };
 
 class PredictorInputs : public PredictorData {

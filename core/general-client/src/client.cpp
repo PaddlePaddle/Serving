@@ -107,37 +107,53 @@ int ServingClient::load_client_config(const std::vector<std::string> &conf_file)
 void PredictorData::add_float_data(const std::vector<float>& data,
                                     const std::string& name,
                                     const std::vector<int>& shape,
-                                    const std::vector<int>& lod) {
+                                    const std::vector<int>& lod,
+                                    const int datatype) {
   _float_data_map[name] = data;
   _shape_map[name] = shape;
   _lod_map[name] = lod;
+  _datatype_map[name] = datatype;
 }
 
 void PredictorData::add_int64_data(const std::vector<int64_t>& data,
                                     const std::string& name,
                                     const std::vector<int>& shape,
-                                    const std::vector<int>& lod) {
+                                    const std::vector<int>& lod,
+                                    const int datatype) {
   _int64_data_map[name] = data;
   _shape_map[name] = shape;
   _lod_map[name] = lod;
+  _datatype_map[name] = datatype;
 }
 
 void PredictorData::add_int32_data(const std::vector<int32_t>& data,
                                     const std::string& name,
                                     const std::vector<int>& shape,
-                                    const std::vector<int>& lod) {
+                                    const std::vector<int>& lod,
+                                    const int datatype) {
   _int32_data_map[name] = data;
   _shape_map[name] = shape;
   _lod_map[name] = lod;
+  _datatype_map[name] = datatype;
 }
 
 void PredictorData::add_string_data(const std::string& data,
                                     const std::string& name,
                                     const std::vector<int>& shape,
-                                    const std::vector<int>& lod) {
+                                    const std::vector<int>& lod,
+                                    const int datatype) {
   _string_data_map[name] = data;
   _shape_map[name] = shape;
   _lod_map[name] = lod;
+  _datatype_map[name] = datatype;
+}
+
+int PredictorData::get_datatype(std::string name) const {
+  std::map<std::string, int>::const_iterator it = _datatype_map.find(name);
+  if (it != _datatype_map.end()) {
+    return it->second;
+  }
+  return 0;
 }
 
 std::string PredictorData::print() {
@@ -173,6 +189,8 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     const std::vector<float>& float_data = iter->second;
     const std::vector<int>& float_shape = shape_map.at(name);
     const std::vector<int>& float_lod = lod_map.at(name);
+    // default datatype = P_FLOAT32
+    int datatype = inputs.get_datatype(name);
     std::map<std::string, int>::const_iterator feed_name_it = feed_name_to_idx.find(name);
     if (feed_name_it == feed_name_to_idx.end()) {
       LOG(ERROR) << "Do not find [" << name << "] in feed_map!";
@@ -191,7 +209,7 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     for (uint32_t j = 0; j < float_lod.size(); ++j) {
       tensor->add_lod(float_lod[j]);
     }
-    tensor->set_elem_type(P_FLOAT32);
+    tensor->set_elem_type(datatype);
 
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
@@ -207,6 +225,8 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     const std::vector<int64_t>& int64_data = iter->second;
     const std::vector<int>& int64_shape = shape_map.at(name);
     const std::vector<int>& int64_lod = lod_map.at(name);
+    // default datatype = P_INT64
+    int datatype = inputs.get_datatype(name);
     std::map<std::string, int>::const_iterator feed_name_it = feed_name_to_idx.find(name);
     if (feed_name_it == feed_name_to_idx.end()) {
       LOG(ERROR) << "Do not find [" << name << "] in feed_map!";
@@ -222,7 +242,7 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     for (uint32_t j = 0; j < int64_lod.size(); ++j) {
       tensor->add_lod(int64_lod[j]);
     }
-    tensor->set_elem_type(P_INT64);
+    tensor->set_elem_type(datatype);
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
@@ -237,6 +257,8 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     const std::vector<int32_t>& int32_data = iter->second;
     const std::vector<int>& int32_shape = shape_map.at(name);
     const std::vector<int>& int32_lod = lod_map.at(name);
+    // default datatype = P_INT32
+    int datatype = inputs.get_datatype(name);
     std::map<std::string, int>::const_iterator feed_name_it = feed_name_to_idx.find(name);
     if (feed_name_it == feed_name_to_idx.end()) {
       LOG(ERROR) << "Do not find [" << name << "] in feed_map!";
@@ -252,7 +274,7 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     for (uint32_t j = 0; j < int32_lod.size(); ++j) {
       tensor->add_lod(int32_lod[j]);
     }
-    tensor->set_elem_type(P_INT32);
+    tensor->set_elem_type(datatype);
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
@@ -267,6 +289,8 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     const std::string& string_data = iter->second;
     const std::vector<int>& string_shape = shape_map.at(name);
     const std::vector<int>& string_lod = lod_map.at(name);
+    // default datatype = P_STRING
+    int datatype = inputs.get_datatype(name);
     std::map<std::string, int>::const_iterator feed_name_it = feed_name_to_idx.find(name);
     if (feed_name_it == feed_name_to_idx.end()) {
       LOG(ERROR) << "Do not find [" << name << "] in feed_map!";
@@ -281,7 +305,7 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     for (uint32_t j = 0; j < string_lod.size(); ++j) {
       tensor->add_lod(string_lod[j]);
     }
-    tensor->set_elem_type(P_STRING);
+    tensor->set_elem_type(datatype);
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
