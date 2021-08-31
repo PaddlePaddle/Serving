@@ -45,6 +45,23 @@ from .pipeline_client import PipelineClient as PPClient
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
 
+# data type of tensor to numpy_data
+_TENSOR_DTYPE_2_NUMPY_DATA_DTYPE = {
+    0: "int64",  # VarType.INT64
+    1: "float32",  # VarType.FP32
+    2: "int32",  # VarType.INT32
+    3: "float64",  # VarType.FP64
+    4: "int16",  # VarType.int16
+    5: "float16",  # VarType.FP32
+    6: "uint16",  # VarType.BF16
+    7: "uint8",  # VarType.UINT8
+    8: "int8",  # VarType.INT8
+    9: "bool",  # VarType.BOOL
+    10: "complex64",  # VarType.COMPLEX64
+    11: "complex128",  # VarType.COMPLEX128
+    12: "string",  # dismatch with numpy
+}
+
 
 class Op(object):
     def __init__(self,
@@ -84,6 +101,9 @@ class Op(object):
 
         self._server_use_profile = False
         self._tracer = None
+
+        # for grpc_pipeline predict mode. False, string key/val; True, tensor format.
+        self._pack_tensor_format = False
 
         # only for thread op
         self._for_init_op_lock = threading.Lock()
@@ -372,6 +392,9 @@ class Op(object):
                 os._exit(-1)
             self._input_ops.append(op)
 
+    def set_pack_tensor_format(self, is_tensor_format=False):
+        self._pack_tensor_format = is_tensor_format
+
     def get_jump_to_ops(self):
         return self._jump_to_ops
 
@@ -577,6 +600,7 @@ class Op(object):
                 feed_dict=feed_batch[0],
                 fetch=self._fetch_names,
                 asyn=False,
+                pack_tensor_format=self._pack_tensor_format,
                 profile=False)
             if call_result is None:
                 _LOGGER.error(
@@ -1530,6 +1554,85 @@ class RequestOp(Op):
             _LOGGER.critical("Op(Request) Failed to init: {}".format(e))
             os._exit(-1)
 
+    def proto_tensor_2_numpy(self, tensor):
+        """
+        Convert proto tensor to numpy array, The supported types are as follows:
+                INT64
+                FP32
+		INT32
+		FP64
+		INT16
+		FP16
+		BF16
+		UINT8
+		INT8
+		BOOL
+        Unsupported type:
+                COMPLEX64
+                COMPLEX128
+                STRING
+
+        Args:
+            tensor: one tensor in request.tensors.
+
+        Returns:
+            np.ndnumpy
+        """
+        if tensor is None or tensor.elem_type is None or tensor.name is None:
+            _LOGGER.error("input params of tensor is wrong. tensor: {}".format(
+                tensor))
+            return None
+
+        dims = []
+        if tensor.shape is None:
+            dims.append(1)
+        else:
+            for one_dim in tensor.shape:
+                dims.append(one_dim)
+
+        np_data = None
+        _LOGGER.info("proto_to_numpy, name:{}, type:{}, dims:{}".format(
+            tensor.name, tensor.elem_type, dims))
+        if tensor.elem_type == 0:
+            # VarType: INT64
+            np_data = np.array(tensor.int64_data).astype(int64).reshape(dims)
+        elif tensor.elem_type == 1:
+            # VarType: FP32
+            np_data = np.array(tensor.float_data).astype(float32).reshape(dims)
+        elif tensor.elem_type == 2:
+            # VarType: INT32
+            np_data = np.array(tensor.int_data).astype(int32).reshape(dims)
+        elif tensor.elem_type == 3:
+            # VarType: FP64
+            np_data = np.array(tensor.float64_data).astype(float64).reshape(
+                dims)
+        elif tensor.elem_type == 4:
+            # VarType: INT16
+            np_data = np.array(tensor.int_data).astype(int16).reshape(dims)
+        elif tensor.elem_type == 5:
+            # VarType: FP16
+            np_data = np.array(tensor.float_data).astype(float16).reshape(dims)
+        elif tensor.elem_type == 6:
+            # VarType: BF16
+            np_data = np.array(tensor.uint32_data).astype(uint16).reshape(dims)
+        elif tensor.elem_type == 7:
+            # VarType: UINT8
+            np_data = np.array(tensor.uint32_data).astype(uint8).reshape(dims)
+        elif tensor.elem_type == 8:
+            # VarType: INT8
+            np_data = np.array(tensor.int_data).astype(int8).reshape(dims)
+        elif tensor.elem_type == 9:
+            # VarType: BOOL
+            np_data = np.array(tensor.bool_data).astype(bool).reshape(dims)
+        else:
+            _LOGGER.error("Sorry, the type {} of tensor {} is not supported.".
+                          format(tensor.elem_type, tensor.name))
+            raise ValueError(
+                "Sorry, the type {} of tensor {} is not supported.".format(
+                    tensor.elem_type, tensor.name))
+
+        return np_data
+
     def unpack_request_package(self, request):
         """
         Unpack request package by gateway.proto
@@ -1550,9 +1653,43 @@ class RequestOp(Op):
             _LOGGER.critical("request is None")
             raise ValueError("request is None")
 
+        # unpack key/value string list
         for idx, key in enumerate(request.key):
             dict_data[key] = request.value[idx]
         log_id = request.logid
+
+        # unpack proto.tensors data.
+        for one_tensor in request.tensors:
+            name = one_tensor.name
+            elem_type = one_tensor.elem_type
+
+            if one_tensor.name is None:
+                _LOGGER.error("Tensor name is None.")
+                raise ValueError("Tensor name is None.")
+
+            numpy_dtype = _TENSOR_DTYPE_2_NUMPY_DATA_DTYPE.get(elem_type)
+            if numpy_dtype is None:
+                _LOGGER.error(
+                    "elem_type:{} is dismatch in unpack_request_package.",
+                    format(elem_type))
+                raise ValueError("elem_type:{} error".format(elem_type))
+
+            if numpy_dtype == "string":
+                new_string = ""
+                if one_tensor.str_data is None:
+                    _LOGGER.error(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                    raise ValueError(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                for one_str in one_tensor.str_data:
+                    new_string += one_str
+
+                dict_data[name] = new_string
+            else:
+                dict_data[name] = self.proto_tensor_2_numpy(one_tensor)
+
         _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
             name:{}, method:{}".format(log_id, request.clientip, request.name,
                                        request.method))
@@ -1574,6 +1711,7 @@ class ResponseOp(Op):
         """
         super(ResponseOp, self).__init__(
             name="@DAGExecutor", input_ops=input_ops)
+
         # init op
         try:
             self.init_op()
@@ -1581,6 +1719,12 @@ class ResponseOp(Op):
             _LOGGER.critical("Op(ResponseOp) Failed to init: {}".format(
                 e, exc_info=True))
             os._exit(-1)
+
+        # init ResponseOp
+        self.is_pack_tensor = False
+
+    def set_pack_format(self, isTensor=False):
+        self.is_pack_tensor = isTensor
 
     def pack_response_package(self, channeldata):
         """

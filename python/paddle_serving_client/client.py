@@ -341,7 +341,6 @@ class Client(object):
         string_feed_names = []
         string_lod_slot_batch = []
         string_shape = []
-
         fetch_names = []
 
         for key in fetch_list:
