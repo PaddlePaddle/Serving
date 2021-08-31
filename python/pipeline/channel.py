@@ -45,7 +45,9 @@ class ChannelDataErrcode(enum.Enum):
     CLOSED_ERROR = 6
     NO_SERVICE = 7
     UNKNOW = 8
-    PRODUCT_ERROR = 9
+    INPUT_PARAMS_ERROR = 9
+
+    PRODUCT_ERROR = 100
 
 
 class ProductErrCode(enum.Enum):
