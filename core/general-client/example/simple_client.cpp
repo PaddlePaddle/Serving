@@ -90,6 +90,8 @@ int main(int argc, char* argv[]) {
             << "test_type = " << test_type
             << "sample_type = " << sample_type;
   std::unique_ptr<ServingClient> client;
+  // default type is brpc
+  // will add grpc&http in the future
   if (test_type == "brpc") {
     client.reset(new ServingBrpcClient());
   } else {
