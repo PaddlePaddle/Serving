@@ -319,6 +319,7 @@ struct Task {
       for (size_t index = 0; index < vector_fetch_lod_index.size(); ++index) {
         size_t data_length = 0;
         size_t lod_length = 0;
+        size_t total_shape0 = 0;
         size_t feedvar_index = vector_fetch_lod_index[index];
         // 由于PaddleTensor的resize实现，是每次都会清空，所以必须先统计总长度。
         for (size_t taskmeta_index = 0; taskmeta_index < taskmeta_num;
@@ -326,6 +327,7 @@ struct Task {
           data_length +=
               outLodTensorVector[taskmeta_index][index].data.length();
           lod_length += outLodTensorVector[taskmeta_index][index].lod[0].size();
+          total_shape0 += outLodTensorVector[taskmeta_index][index].shape[0];
         }
         // 一次性扩容PaddleTensor中的data和lod
         paddle::PaddleTensor& fetchVarTensor = (*outVectorT_ptr)[feedvar_index];
@@ -368,8 +370,8 @@ struct Task {
     return true;
   }
 
-  bool task_fetch_init(BatchTasks<TaskT>& baskTask);
-  bool task_fetch_create(BatchTasks<TaskT>& baskTask);
+  bool task_fetch_init(BatchTasks<TaskT>& batchTask);
+  bool task_fetch_create(BatchTasks<TaskT>& batchTask);
 };
 
 // `Several Task` or `part of batch in Task` can be a TaskMeta.
@@ -788,6 +790,7 @@ class BatchTasks {
             paddle::PaddleTensor& fetchVarTensor =
                 task->outLodTensorVector[taskmeta_index][fetch_lod_index];
             size_t length = fetchvar_bytesize_index * shape0_length;
+            fetchVarTensor.shape[0] = shape0_length;
             fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +
@@ -813,6 +816,7 @@ class BatchTasks {
             paddle::PaddleTensor& fetchVarTensor =
                 (*task->outVectorT_ptr)[fetchvar_index];
             size_t length = fetchvar_bytesize_index * shape0_length;
+            fetchVarTensor.shape[0] = shape0_length;
             fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +

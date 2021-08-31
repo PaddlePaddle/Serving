@@ -31,32 +31,32 @@ namespace im {
 namespace bsf {
 
 template <typename InItemT, typename OutItemT>
-bool Task<InItemT, OutItemT>::task_fetch_init(BatchTasks<TaskT>& baskTask) {
+bool Task<InItemT, OutItemT>::task_fetch_init(BatchTasks<TaskT>& batchTask) {
   // 双检锁，减少加锁的粒度
   if (!fetch_init) {
     if (taskmeta_num > 1) {
       // 对于task被拆分为多个taskmeta,需要加锁。
       AutoMutex lock(task_mut);
-      task_fetch_create(baskTask);
+      task_fetch_create(batchTask);
     } else {
       // 对于task只有1个taskmeta,不需要加锁。
-      task_fetch_create(baskTask);
+      task_fetch_create(batchTask);
     }
   }
   return true;
 }
 
 template <typename InItemT, typename OutItemT>
-bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& baskTask) {
+bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
   if (!fetch_init) {
-    vector_fetch_lod_index = baskTask.vector_fetch_lod_index;
-    set_fetch_nobatch_index = baskTask.set_fetch_nobatch_index;
+    vector_fetch_lod_index = batchTask.vector_fetch_lod_index;
+    set_fetch_nobatch_index = batchTask.set_fetch_nobatch_index;
     OutVectorT taskMetaOutLodTensor;
-    size_t fetchvar_num = baskTask._batch_out.size();
+    size_t fetchvar_num = batchTask._batch_out.size();
     for (size_t fetchvar_index = 0; fetchvar_index < fetchvar_num;
          ++fetchvar_index) {
       size_t fetchvar_bytesize_index =
-          baskTask.fetchvar_bytesize(fetchvar_index);
+          batchTask.fetchvar_bytesize(fetchvar_index);
       size_t fetchvar_batch = 0;
       // 1. nobatch fetchvar情况
       if (set_fetch_nobatch_index.size() > 0 &&
@@ -79,14 +79,14 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& baskTask) {
         fetchvar_batch = batch_size();
       }
       paddle::PaddleTensor tensor_out;
-      tensor_out.name = baskTask._batch_out[fetchvar_index].name;
+      tensor_out.name = batchTask._batch_out[fetchvar_index].name;
       tensor_out.dtype =
-          paddle::PaddleDType(baskTask._batch_out[fetchvar_index].dtype);
-      tensor_out.shape = baskTask._batch_out[fetchvar_index].shape;
+          paddle::PaddleDType(batchTask._batch_out[fetchvar_index].dtype);
+      tensor_out.shape = batchTask._batch_out[fetchvar_index].shape;
       tensor_out.shape[0] = fetchvar_batch;
       if (fetchvar_batch != 0) {
         // 此时 lod 为空。
-        tensor_out.lod = baskTask._batch_out[fetchvar_index].lod;
+        tensor_out.lod = batchTask._batch_out[fetchvar_index].lod;
         // resize all batch memory at one time
         size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
         tensor_out.data.Resize(databuf_size);
