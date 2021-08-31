@@ -37,6 +37,7 @@ class ServingBrpcClient : public ServingClient {
               const uint64_t log_id);
 
  private:
+  // generate default SDKConf
   std::string gen_desc(const std::string server_port);
 
  private:

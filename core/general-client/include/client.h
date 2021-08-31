@@ -143,6 +143,7 @@ class PredictorData {
   std::string print();
 
  private:
+  // used to print vector data map e.g. _float_data_map
   template<typename T1, typename T2>
   std::string map2string(const std::map<T1, std::vector<T2>>& map) {
     std::ostringstream oss;
@@ -171,6 +172,7 @@ class PredictorData {
     return oss.str();
   };
 
+  // used to print data map without vector e.g. _string_data_map
   template<typename T1, typename T2>
   std::string map2string(const std::map<T1, T2>& map) {
     std::ostringstream oss;
@@ -203,6 +205,9 @@ class PredictorInputs : public PredictorData {
   PredictorInputs() {};
   virtual ~PredictorInputs() {};
 
+  // generate proto from inputs
+  // feed_name_to_idx: mapping alias name to idx
+  // feed_name: mapping idx to name
   static int GenProto(const PredictorInputs& inputs,
                       const std::map<std::string, int>& feed_name_to_idx,
                       const std::vector<std::string>& feed_name,
@@ -235,6 +240,9 @@ class PredictorOutputs {
 
   void clear();
 
+  // Parse proto to outputs
+  // fetch_name: name of data to be output
+  // fetch_name_to_type: mapping of fetch_name to datatype
   static int ParseProto(const predictor::general_model::Response& res,
                         const std::vector<std::string>& fetch_name,
                         std::map<std::string, int>& fetch_name_to_type,

@@ -386,7 +386,7 @@ int PredictorOutputs::ParseProto(const Response& res,
     for (auto &name : fetch_name) {
       // int idx = _fetch_name_to_idx[name];
       if (fetch_name_to_type[name] == P_INT64) {
-        VLOG(2) << "ferch var " << name << "type int64";
+        VLOG(2) << "fetch var " << name << "type int64";
         int size = output.tensor(idx).int64_data_size();
         int64_data_map[name] = std::vector<int64_t>(
             output.tensor(idx).int64_data().begin(),
