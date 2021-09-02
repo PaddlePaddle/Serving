@@ -135,6 +135,17 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 
   if (FLAGS_enable_model_toolkit) {
     size_t model_toolkit_num = resource_conf.model_toolkit_path_size();
+    // 此处暂时认为，每个model_toolkit仅包含一个engine
+    // 故认为 model_toolkit_num == engine总数
+    // 若以后出现model_toolkit仅包含多个engine
+    // 则应先for循环统计engine总数,再set_taskexecutor_num
+    // 切不可动态im::bsf::TaskExecutorVector<TaskT>::instance().resize
+    // TaskExecutor是线程池，内含锁，在engine进程初始化时已开始work加锁循环运行了
+    // 之后再resize内存搬运，会导致work使用原锁，而搬运后的TaskExecutor的锁内存已改变
+    if (InferManager::instance().set_taskexecutor_num(model_toolkit_num) != 0) {
+      LOG(ERROR) << "failed set_taskexecutor_num";
+      return -1;
+    }
     std::shared_ptr<int> engine_index_ptr(new int(0));
     for (size_t mi = 0; mi < model_toolkit_num; ++mi) {
       std::string model_toolkit_path = resource_conf.model_toolkit_path(mi);

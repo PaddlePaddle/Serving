@@ -602,6 +602,8 @@ class InferManager {
                       const char* file,
                       std::shared_ptr<int> engine_index_ptr);
 
+  int set_taskexecutor_num(size_t total_engine_num);
+
   int thrd_initialize();
 
   int thrd_clear();
