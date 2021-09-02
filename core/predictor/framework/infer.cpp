@@ -25,7 +25,8 @@ int ReloadableInferEngine::proc_initialize_impl(
   _model_dir = conf.model_dir();
   _infer_thread_num = conf.runtime_thread_num();
   _infer_batch_size = conf.batch_infer_size();
-  _infer_batch_align = conf.enable_batch_align();
+  _infer_overrun = conf.enable_overrun();
+  _allow_split_request = conf.allow_split_request();
 
   _conf = conf;
 
@@ -60,17 +61,16 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
       .set_thread_init_fn(
           boost::bind(&InferEngine::thrd_initialize_impl, this));
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
-      .set_thread_init_fn(
-          boost::bind(&InferEngine::thrd_initialize_impl, this));
-  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
       .set_thread_reset_fn(boost::bind(&InferEngine::thrd_clear_impl, this));
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
       .set_thread_callback_fn(
           boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
   im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_size(
       _infer_batch_size);
-  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_align(
-      _infer_batch_align);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_overrun(
+      _infer_overrun);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_allow_split_request(_allow_split_request);
   if (im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].start(
           _infer_thread_num) != 0) {
     LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
@@ -79,7 +79,8 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
 
   LOG(WARNING) << "Enable batch schedule framework, thread_num:"
                << _infer_thread_num << ", batch_size:" << _infer_batch_size
-               << ", enable_batch_align:" << _infer_batch_align;
+               << ", enable_overrun:" << _infer_overrun
+               << ", allow_split_request:" << _allow_split_request;
   return 0;
 }
 
@@ -382,6 +383,11 @@ int VersionedInferEngine::task_infer_impl(const void* in,
   return -1;
 }
 
+int InferManager::set_taskexecutor_num(size_t total_engine_num) {
+  im::bsf::TaskExecutorVector<TaskT>::instance().resize(total_engine_num);
+  return 0;
+}
+
 int InferManager::proc_initialize(const char* path,
                                   const char* file,
                                   std::shared_ptr<int> engine_index_ptr) {
@@ -391,8 +397,6 @@ int InferManager::proc_initialize(const char* path,
     return -1;
   }
   uint32_t engine_num = model_toolkit_conf.engines_size();
-  im::bsf::TaskExecutorVector<TaskT>::instance().resize(*engine_index_ptr +
-                                                        engine_num);
   for (uint32_t ei = 0; ei < engine_num; ++ei) {
     LOG(INFO) << "model_toolkit_conf.engines(" << ei
               << ").name: " << model_toolkit_conf.engines(ei).name();

@@ -18,10 +18,8 @@ from paddle_serving_app.reader import Sequential, URL2Image, Resize
 from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize
 import time
 
-client = HttpClient(ip='127.0.0.1', port='9696')
+client = HttpClient()
 client.load_client_config(sys.argv[1])
-#client.set_ip('127.0.0.1')
-#client.set_port('9292')
 ''' 
 if you want use GRPC-client, set_use_grpc_client(True)
 or you can directly use client.grpc_client_predict(...)
@@ -43,6 +41,7 @@ we recommend use Proto data format in HTTP-body, set True(which is default)
 if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
+client.connect(["127.0.0.1:9696"])
 
 label_dict = {}
 label_idx = 0
