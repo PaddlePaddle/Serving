@@ -25,7 +25,23 @@ using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
+// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8
+// will support: INT8, FLOAT16
+enum ProtoDataType {
+  P_INT64 = 0,
+  P_FLOAT32,
+  P_INT32,
+  P_FP64,
+  P_INT16,
+  P_FP16,
+  P_BF16,
+  P_UINT8,
+  P_INT8,
+  P_BOOL,
+  P_COMPLEX64,
+  P_COMPLEX128,
+  P_STRING,
+};
 std::once_flag gflags_init_flag;
 namespace py = pybind11;
 
