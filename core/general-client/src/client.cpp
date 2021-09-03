@@ -23,8 +23,8 @@ using configure::GeneralModelConfig;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8
-// will support: INT8, FLOAT16
+// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8, INT8
+// will support: FLOAT16
 enum ProtoDataType {
   P_INT64 = 0,
   P_FLOAT32,
@@ -38,7 +38,7 @@ enum ProtoDataType {
   P_BOOL,
   P_COMPLEX64,
   P_COMPLEX128,
-  P_STRING,
+  P_STRING = 20,
 };
 
 int ServingClient::init(const std::vector<std::string>& client_conf,

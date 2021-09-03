@@ -25,8 +25,8 @@ using baidu::paddle_serving::Timer;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8
-// will support: INT8, FLOAT16
+// paddle inference support: FLOAT32, INT64, INT32, UINT8, INT8
+// will support: FLOAT16
 enum ProtoDataType {
   P_INT64 = 0,
   P_FLOAT32,
@@ -40,7 +40,7 @@ enum ProtoDataType {
   P_BOOL,
   P_COMPLEX64,
   P_COMPLEX128,
-  P_STRING,
+  P_STRING = 20,
 };
 std::once_flag gflags_init_flag;
 namespace py = pybind11;
@@ -278,12 +278,43 @@ int PredictorClient::numpy_predict(
     vec_idx++;
   }
 
+  // Add !P_STRING feed data of string_input to tensor_content
+  // UINT8 INT8 FLOAT16
   vec_idx = 0;
   for (auto &name : string_feed_name) {
     int idx = _feed_name_to_idx[name];
     if (idx >= tensor_vec.size()) {
       LOG(ERROR) << "idx > tensor_vec.size()";
       return -1;
+    }
+    if (_type[idx] == P_STRING) {
+      continue;
+    }
+    Tensor *tensor = tensor_vec[idx];
+
+    for (uint32_t j = 0; j < string_shape[vec_idx].size(); ++j) {
+      tensor->add_shape(string_shape[vec_idx][j]);
+    }
+    for (uint32_t j = 0; j < string_lod_slot_batch[vec_idx].size(); ++j) {
+      tensor->add_lod(string_lod_slot_batch[vec_idx][j]);
+    }
+    tensor->set_elem_type(_type[idx]);
+    tensor->set_name(_feed_name[idx]);
+    tensor->set_alias_name(name);
+
+    tensor->set_tensor_content(string_feed[vec_idx]);
+    vec_idx++;
+  }
+
+  vec_idx = 0;
+  for (auto &name : string_feed_name) {
+    int idx = _feed_name_to_idx[name];
+    if (idx >= tensor_vec.size()) {
+      LOG(ERROR) << "idx > tensor_vec.size()";
+      return -1;
+    }
+    if (_type[idx] != P_STRING) {
+      continue;
     }
     Tensor *tensor = tensor_vec[idx];
 
@@ -382,6 +413,15 @@ int PredictorClient::numpy_predict(
           model._int32_value_map[name] = std::vector<int32_t>(
               output.tensor(idx).int_data().begin(),
               output.tensor(idx).int_data().begin() + size);
+        } else if (_fetch_name_to_type[name] == P_UINT8) {
+          VLOG(2) << "fetch var " << name << "type uint8";
+          model._string_value_map[name] = output.tensor(idx).tensor_content();
+        } else if (_fetch_name_to_type[name] == P_INT8) {
+          VLOG(2) << "fetch var " << name << "type int8";
+          model._string_value_map[name] = output.tensor(idx).tensor_content();
+        } else if (_fetch_name_to_type[name] == P_FP16) {
+          VLOG(2) << "fetch var " << name << "type float16";
+          model._string_value_map[name] = output.tensor(idx).tensor_content();
         }
       }
       predict_res_batch.add_model_res(std::move(model));

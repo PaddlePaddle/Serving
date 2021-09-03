@@ -49,6 +49,19 @@ PYBIND11_MODULE(serving_client, m) {
              });
              return py::array(ptr->size(), ptr->data(), capsule);
            })
+      .def("get_int32_by_name",
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             std::vector<int32_t> *ptr = new std::vector<int32_t>(
+                 std::move(self.get_int32_by_name_with_rv(model_idx, name)));
+             auto capsule = py::capsule(ptr, [](void *p) {
+               delete reinterpret_cast<std::vector<int32_t> *>(p);
+             });
+             return py::array(ptr->size(), ptr->data(), capsule);
+           })
+      .def("get_string_by_name",
+           [](PredictorRes &self, int model_idx, std::string &name) {
+             return self.get_string_by_name_with_rv(model_idx, name);
+           })
       .def("get_shape",
            [](PredictorRes &self, int model_idx, std::string &name) {
              std::vector<int> *ptr = new std::vector<int>(

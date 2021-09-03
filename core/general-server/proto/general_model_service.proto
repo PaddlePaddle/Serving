@@ -62,7 +62,7 @@ message Tensor {
   //   9 => BOOL
   //  10 => COMPLEX64
   //  11 => COMPLEX128
-  //  12 => STRING
+  //  20 => STRING
   int32 elem_type = 10;
 
   // Shape of the tensor, including batch dimensions.
