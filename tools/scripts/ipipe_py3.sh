@@ -40,9 +40,9 @@ go env -w GO111MODULE=auto
 
 build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
-lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
+lac_rpc_asyn cnn_rpc_asyn bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
-faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service)
+faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service ocr_c++_service_asyn)
 http_model_list=(fit_a_line_http lac_http imdb_http_proto imdb_http_json imdb_grpc ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
@@ -492,7 +492,7 @@ function ResNet101_rpc() {
     kill_server_process
 }
 
-function cnn_rpc() {
+function cnn_rpc_asyn() {
     dir=${log_dir}rpc_model/cnn_rpc/
     check_dir ${dir}
     unsetproxy
@@ -500,8 +500,9 @@ function cnn_rpc() {
     data_dir=${data}imdb/
     link_data ${data_dir}
     sed -i 's/9292/8865/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 > ${dir}server_log.txt 2>&1 &
-    check_result server 5
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 --op_num 4 --thread 10 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
     head test_data/part-0 | ${py_version} test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
     check_result client "cnn_CPU_RPC server test completed"
     kill_server_process
@@ -537,7 +538,7 @@ function lstm_rpc() {
     kill_server_process
 }
 
-function lac_rpc() {
+function lac_rpc_asyn() {
     dir=${log_dir}rpc_model/lac_rpc/
     check_dir ${dir}
     unsetproxy
@@ -545,8 +546,9 @@ function lac_rpc() {
     data_dir=${data}lac/
     link_data ${data_dir}
     sed -i 's/9292/8868/g' lac_client.py
-    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 8868 > ${dir}server_log.txt 2>&1 &
-    check_result server 5
+    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 8868 --gpu_ids 0 --op_num 2 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
     echo "我爱北京天安门" | ${py_version} lac_client.py lac_client/serving_client_conf.prototxt lac_dict/ > ${dir}client_log.txt 2>&1
     check_result client "lac_CPU_RPC server test completed"
     kill_server_process
@@ -912,6 +914,23 @@ function ocr_c++_service() {
     sed -i '7,8d' ocr_det_client/serving_client_conf.prototxt
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC server started${RES}"
     $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"
+    echo "------------------first:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client
+    echo "------------------second:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client > ${dir}client_log.txt 2>&1
+    check_result client "OCR_C++_Service_GPU_RPC server test completed"
+    kill_server_process
+}
+
+function ocr_c++_service_asyn() {
+    dir=${log_dir}rpc_model/ocr_c++_serving/
+    cd ${build_path}/python/examples/ocr
+    check_dir ${dir}
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC asyn_server started${RES}"
+    $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 --op_num 4 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     check_gpu_memory 0
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"
