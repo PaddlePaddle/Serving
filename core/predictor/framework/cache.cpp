@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
-#include "core/predictor/framework/cache.h"
 #include <dirent.h>
-#include <sys/stat.h>
 #include <fstream>
 #include <string>
+#include <sys/stat.h>
+#include <utility>
+#include "core/predictor/framework/cache.h"
 #include "core/cube/cube-builder/include/cube-builder/seqfile_reader.h"
 
 namespace baidu {
