@@ -25,6 +25,7 @@
 #include <vector>
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/bsf.h"
+#include "core/predictor/framework/cache.h"
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
 #include "core/predictor/framework/memory.h"
@@ -35,6 +36,7 @@ namespace predictor {
 
 using configure::ModelToolkitConf;
 
+// Auto mutex lock
 class AutoLock {
  public:
   explicit AutoLock(pthread_mutex_t& mutex) : _mut(mutex) {
@@ -46,6 +48,7 @@ class AutoLock {
   pthread_mutex_t& _mut;
 };
 
+// Gloabl singleton mutex lock
 class GlobalCreateMutex {
  public:
   pthread_mutex_t& mutex() { return _mut; }
@@ -60,6 +63,7 @@ class GlobalCreateMutex {
   pthread_mutex_t _mut;
 };
 
+// InferEngine
 class InferEngine {
  public:
   virtual ~InferEngine() {}
@@ -90,11 +94,13 @@ class InferEngine {
                          void* out,
                          uint32_t batch_size = -1) = 0;
   virtual int task_infer_impl(const void* in, void* out) = 0;  // NOLINT
+  virtual CubeCache* get_cube_cache() = 0;
 
  protected:
   uint32_t _model_index;
   // end: framework inner call
 };
+
 typedef im::bsf::Task<paddle::PaddleTensor, paddle::PaddleTensor> TaskT;
 class ReloadableInferEngine : public InferEngine {
  public:
@@ -169,12 +175,12 @@ class ReloadableInferEngine : public InferEngine {
   uint64_t _version;
 };
 
-// Lock free switching two models
+// Lock free switching two models and cube caches
 template <typename EngineCore>
 struct ModelData {
   ModelData() : current_idx(1) {
-    cores[0] = NULL;
-    cores[1] = NULL;
+    cores[0] = nullptr;
+    cores[1] = nullptr;
   }
 
   ~ModelData() {
@@ -182,9 +188,12 @@ struct ModelData {
     delete cores[1];
   }
 
-  void* get() { return cores[current_idx]->get(); }
+  void* get_core() { return cores[current_idx]->get(); }
+
+  CubeCache* get_cache() { return &caches[current_idx]; }
 
   EngineCore* cores[2];
+  CubeCache caches[2];
   uint32_t current_idx;
 };
 
@@ -196,7 +205,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   int proc_initialize(const configure::EngineDesc& conf, bool version) {
     THREAD_KEY_CREATE(&_skey, NULL);
     THREAD_MUTEX_INIT(&_mutex, NULL);
-    gpu_index = 0;
+    _gpu_index = 0;
     return ReloadableInferEngine::proc_initialize(conf, version);
   }
 
@@ -209,7 +218,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     if (_reload_vec.empty()) {
       return 0;
     }
-    gpu_index = 0;
+    _gpu_index = 0;
     for (uint32_t ti = 0; ti < _reload_vec.size(); ++ti) {
       if (load_data(_reload_vec[ti], conf) != 0) {
         LOG(ERROR) << "Failed reload engine model: " << ti;
@@ -224,26 +233,41 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
   virtual int load_data(ModelData<EngineCore>* md,
                         const configure::EngineDesc& conf) {
     uint32_t next_idx = (md->current_idx + 1) % 2;
+
+    // reload engine core
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
     }
-
     md->cores[next_idx] = new (std::nothrow) EngineCore;
-
-    // params.dump();
     size_t gpu_ids_num = conf.gpu_ids_size();
     im::bsf::AutoMutex lock(_mutex);
     int gpu_id = -1;
     if (gpu_ids_num > 0) {
-      gpu_id = conf.gpu_ids(gpu_index % gpu_ids_num);
+      gpu_id = conf.gpu_ids(_gpu_index % gpu_ids_num);
     }
     if (!md->cores[next_idx] ||
         md->cores[next_idx]->create(conf, gpu_id) != 0) {
       LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
     }
-    gpu_index++;
+    _gpu_index++;
+    LOG(WARNING) << "Reload EngineCore[" << next_idx << "] finish.";
+
+    // reload cube cache
+    std::string model_path = conf.model_dir();
+    if (access(model_path.c_str(), F_OK) == 0) {
+      std::string cube_cache_path = model_path + "cube_cache";
+      int reload_cache_ret = md->caches[next_idx].reload_data(cube_cache_path);
+      LOG(WARNING) << "Reload cube cache[" << next_idx << "] finish.";
+    } else {
+      LOG(ERROR) << "model_path " << model_path
+                 << " is not exits. Ignore cube cache!";
+    }
+
     md->current_idx = next_idx;
+    LOG(WARNING)
+        << "Reload model and cube cache done. switching to current_idx["
+        << next_idx << "]";
     return 0;
   }
 
@@ -309,11 +333,25 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     return md->cores[md->current_idx];
   }
 
+  CubeCache* get_cube_cache() {
+    ModelData<EngineCore>* md =
+        (ModelData<EngineCore>*)THREAD_GETSPECIFIC(_skey);
+    if (!md) {
+      LOG(ERROR) << "Failed get thread specific data";
+      return NULL;
+    }
+    return md->get_cache();
+  }
+
  protected:
   THREAD_KEY_T _skey;
   THREAD_MUTEX_T _mutex;
+
+  // vector of all model engines
   std::vector<ModelData<EngineCore>*> _reload_vec;
-  int gpu_index = 0;
+
+  // gpu card id
+  int _gpu_index = 0;
 };
 
 // 多个EngineCore共用同一份模型数据
@@ -347,41 +385,42 @@ class CloneDBReloadableInferEngine
     im::bsf::AutoMutex lock(DBReloadableInferEngine<EngineCore>::_mutex);
     int gpu_id = -1;
     if (gpu_ids_num > 0) {
-      gpu_id = conf.gpu_ids(DBReloadableInferEngine<EngineCore>::gpu_index %
+      gpu_id = conf.gpu_ids(DBReloadableInferEngine<EngineCore>::_gpu_index %
                             gpu_ids_num);
     } else {
       gpu_ids_num = 1;
     }
-    // gpu_index will be set to be 0, when load() or proc_initial() is called.
-    // gpu_index < gpu_ids_num, means there are predictors still not create
+    // _gpu_index will be set to be 0, when load() or proc_initial() is called.
+    // _gpu_index < gpu_ids_num, means there are predictors still not create
     // on some GPU card.
     // so we need to create the predictor.
-    // gpu_index >= gpu_ids_num, means each GPU card has already create one.
+    // _gpu_index >= gpu_ids_num, means each GPU card has already create one.
     // so we need to clone the predictor.
-    if (DBReloadableInferEngine<EngineCore>::gpu_index < gpu_ids_num) {
+    if (DBReloadableInferEngine<EngineCore>::_gpu_index < gpu_ids_num) {
       if (!md->cores[next_idx] ||
           md->cores[next_idx]->create(conf, gpu_id) != 0) {
         LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
         return -1;
       }
-      DBReloadableInferEngine<EngineCore>::gpu_index++;
+      DBReloadableInferEngine<EngineCore>::_gpu_index++;
       md->current_idx = next_idx;
       if (_cloneTemplate.size() <
-          DBReloadableInferEngine<EngineCore>::gpu_index) {
+          DBReloadableInferEngine<EngineCore>::_gpu_index) {
         _cloneTemplate.push_back(md);
       } else {
-        _cloneTemplate[DBReloadableInferEngine<EngineCore>::gpu_index - 1] = md;
+        _cloneTemplate[DBReloadableInferEngine<EngineCore>::_gpu_index - 1] =
+            md;
       }
     } else {
-      int template_index = DBReloadableInferEngine<EngineCore>::gpu_index %
+      int template_index = DBReloadableInferEngine<EngineCore>::_gpu_index %
                            _cloneTemplate.size();
       if (!md->cores[next_idx] ||
-          md->cores[next_idx]->clone(_cloneTemplate[template_index]->get()) !=
-              0) {
+          md->cores[next_idx]->clone(
+              _cloneTemplate[template_index]->get_core()) != 0) {
         LOG(ERROR) << "Failed clone model from core";
         return -1;
       }
-      DBReloadableInferEngine<EngineCore>::gpu_index++;
+      DBReloadableInferEngine<EngineCore>::_gpu_index++;
       md->current_idx = next_idx;
       LOG(WARNING) << "core clone model succ, cur_idx[" << md->current_idx
                    << "].";
@@ -532,6 +571,10 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
   int task_infer_impl(const void* in, void* out) {  // NOLINT
     return infer_impl(in, out);
   }
+
+  CubeCache* get_cube_cache() {
+    return DBReloadableInferEngine<EngineCore>::get_cube_cache();
+  }
 };
 
 typedef FactoryPool<InferEngine> StaticInferFactory;
@@ -564,6 +607,8 @@ class VersionedInferEngine : public InferEngine {
 
   template <typename T>
   T* get_core();
+
+  CubeCache* get_cube_cache();
 
   // versioned inference interface
   int infer(const void* in, void* out, uint32_t batch_size, uint64_t version);
@@ -616,8 +661,12 @@ class InferManager {
             void* out,
             uint32_t batch_size = -1);
 
+  // get engine core
   template <typename T>
   T* get_core(const char* model_name);
+
+  // get cube cache
+  CubeCache* get_cube_cache(const char* model_name);
 
   // Versioned inference interface
   int infer(const char* model_name,
@@ -626,9 +675,11 @@ class InferManager {
             uint32_t batch_size,
             uint64_t version);
 
+  // Versioned get engine core
   template <typename T>
   T* get_core(const char* model_name, uint64_t version);
 
+  // query model version
   int query_version(const std::string& model, uint64_t& version);
 
  private:
