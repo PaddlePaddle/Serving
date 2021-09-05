@@ -169,8 +169,10 @@ class ReloadableInferEngine : public InferEngine {
   uint32_t _infer_batch_size;
 
   // Need to align batch_size in inferring
-  bool _infer_batch_align;
+  bool _infer_overrun;
 
+  // allow to split request in inferring
+  bool _allow_split_request;
   // model version
   uint64_t _version;
 };
@@ -644,6 +646,8 @@ class InferManager {
   int proc_initialize(const char* path,
                       const char* file,
                       std::shared_ptr<int> engine_index_ptr);
+
+  int set_taskexecutor_num(size_t total_engine_num);
 
   int thrd_initialize();
 
