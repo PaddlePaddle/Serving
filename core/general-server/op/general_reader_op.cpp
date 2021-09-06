@@ -130,11 +130,11 @@ int GeneralReaderOp::inference() {
       data_len = tensor.tensor_content().size();
       src_ptr = tensor.tensor_content().data();
     } else if (elem_type == P_FP16) {
-      // paddle inference will support FLOAT16
-      // elem_size = 1;
-      // paddleTensor.dtype = paddle::PaddleDType::FLOAT16;
-      // data_len = tensor.tensor_content().size();
-      // src_ptr = tensor.tensor_content().data();
+      // copy bytes from tensor content to TensorVector
+      elem_size = 1;
+      paddleTensor.dtype = paddle::PaddleDType::FLOAT16;
+      data_len = tensor.tensor_content().size();
+      src_ptr = tensor.tensor_content().data();
     } else if (elem_type == P_STRING) {
       // use paddle::PaddleDType::UINT8 as for String.
       elem_size = sizeof(char);
