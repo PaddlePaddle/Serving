@@ -31,8 +31,7 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8, INT8
-// will support: FLOAT16
+// support: FLOAT32, INT64, INT32, UINT8, INT8, FLOAT16
 enum ProtoDataType {
   P_INT64 = 0,
   P_FLOAT32,
