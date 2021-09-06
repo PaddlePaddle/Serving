@@ -417,7 +417,10 @@ class Client(object):
                         key)])
                 else:
                     string_lod_slot_batch.append([])
-                string_slot.append(feed_dict[key].tostring())
+                if type(feed_dict[key]) is np.ndarray:
+                    string_slot.append(feed_dict[key].tostring())
+                else:
+                    string_slot.append(feed_dict[key])
                 self.has_numpy_input = True
 
         self.profile_.record('py_prepro_1')
