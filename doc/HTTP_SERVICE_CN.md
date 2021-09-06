@@ -52,7 +52,9 @@ Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClien
 
 如果不能满足您的需求，您也可以在此基础上添加一些功能。
 
-如需支持https或者自定义Response的Status Code等,则需要对C++端brpc-Server进行一定的二次开发，请参考https://github.com/apache/incubator-brpc/blob/master/docs/cn/http_service.md，后续如果需求很大，我们也会将这部分功能加入到Server中，尽情期待。
+如需支持https或者自定义Response的Status Code等,则需要对C++端brpc-Server进行一定的二次开发，请参考https://github.com/apache/incubator-brpc/blob/master/docs/cn/http_service.md
+
+后续如果需求很大，我们也会将这部分功能加入到Server中，尽情期待。
 
 
 ### curl方式发送Http请求(基本原理)

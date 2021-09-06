@@ -23,11 +23,9 @@ args = benchmark_args()
 
 reader = ChineseBertReader({"max_seq_len": 128})
 fetch = ["pooled_output"]
-
-client = HttpClient(ip='127.0.0.1', port='9292')
+endpoint_list = ['127.0.0.1:9292']
+client = HttpClient()
 client.load_client_config(args.model)
-#client.set_ip('127.0.0.1')
-#client.set_port('9292')
 ''' 
 if you want use GRPC-client, set_use_grpc_client(True)
 or you can directly use client.grpc_client_predict(...)
@@ -49,6 +47,7 @@ we recommend use Proto data format in HTTP-body, set True(which is default)
 if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
+client.connect(endpoint_list)
 
 for line in sys.stdin:
     feed_dict = reader.process(line)
