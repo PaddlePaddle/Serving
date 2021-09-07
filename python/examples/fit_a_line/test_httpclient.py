@@ -20,8 +20,6 @@ import time
 
 client = HttpClient()
 client.load_client_config(sys.argv[1])
-#client.set_ip('127.0.0.1')
-#client.set_port('9393')
 ''' 
 if you want use GRPC-client, set_use_grpc_client(True)
 or you can directly use client.grpc_client_predict(...)
@@ -43,13 +41,14 @@ we recommend use Proto data format in HTTP-body, set True(which is default)
 if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
+client.connect(["127.0.0.1:9393"])
+fetch_list = client.get_fetch_names()
 
 import paddle
 test_reader = paddle.batch(
     paddle.reader.shuffle(
         paddle.dataset.uci_housing.test(), buf_size=500),
     batch_size=1)
-fetch_list = client.get_fetch_names()
 for data in test_reader():
     new_data = np.zeros((1, 13)).astype("float32")
     new_data[0] = data[0][0]
