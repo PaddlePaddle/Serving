@@ -181,7 +181,7 @@ int GeneralDistKVInferOp::inference() {
          continue;
       }
       VLOG(2) << "(logid=" << log_id << ") key: " << keys[cube_val_idx]  << " , cube value len:" << cur_val->buff.size();
-      memcpy(data_ptr, cur_val->buff.data(), cur_val->buff.size());
+      memcpy(data_ptr, cur_val->buff.data() + 10, sizeof(float) * EMBEDDING_SIZE);
       //VLOG(3) <<  keys[cube_val_idx] << ":" << data_ptr[0] << ", " << data_ptr[1] << ", " <<data_ptr[2] << ", " <<data_ptr[3] << ", " <<data_ptr[4] << ", " <<data_ptr[5] << ", " <<data_ptr[6] << ", " <<data_ptr[7] << ", " <<data_ptr[8];
       ++cube_key_found;
       ++cube_val_idx;
