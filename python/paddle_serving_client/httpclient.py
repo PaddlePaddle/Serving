@@ -38,7 +38,12 @@ float32_type = 1
 int32_type = 2
 bytes_type = 20
 # this is corresponding to the proto
-proto_data_key_list = ["int64_data", "float_data", "int_data", "data"]
+proto_data_key_list = {
+    0: "int64_data",
+    1: "float_data",
+    2: "int_data",
+    20: "data"
+}
 
 
 def list_flatten(items, ignore_types=(str, bytes)):
