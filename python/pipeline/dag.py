@@ -63,6 +63,7 @@ class DAGExecutor(object):
         self._retry = dag_conf["retry"]
         self._server_use_profile = dag_conf["use_profile"]
         channel_size = dag_conf["channel_size"]
+        channel_recv_frist_arrive = dag_conf["channel_recv_frist_arrive"]
         self._is_thread_op = dag_conf["is_thread_op"]
 
         tracer_conf = dag_conf["tracer"]
@@ -79,7 +80,7 @@ class DAGExecutor(object):
 
         self._dag = DAG(self.name, response_op, self._server_use_profile,
                         self._is_thread_op, channel_size, build_dag_each_worker,
-                        self._tracer)
+                        self._tracer, channel_recv_frist_arrive)
         (in_channel, out_channel, pack_rpc_func,
          unpack_rpc_func) = self._dag.build()
         self._dag.start()
@@ -480,7 +481,8 @@ class DAG(object):
     """
 
     def __init__(self, request_name, response_op, use_profile, is_thread_op,
-                 channel_size, build_dag_each_worker, tracer):
+                 channel_size, build_dag_each_worker, tracer,
+                 channel_recv_frist_arrive):
         self._request_name = request_name
         self._response_op = response_op
         self._use_profile = use_profile
@@ -488,6 +490,7 @@ class DAG(object):
         self._channel_size = channel_size
         self._build_dag_each_worker = build_dag_each_worker
         self._tracer = tracer
+        self._channel_recv_frist_arrive = channel_recv_frist_arrive
         if not self._is_thread_op:
             self._manager = PipelineProcSyncManager()
         _LOGGER.info("[DAG] Succ init")
@@ -543,10 +546,15 @@ class DAG(object):
         channel = None
         if self._is_thread_op:
             channel = ThreadChannel(
-                name=name_gen.next(), maxsize=self._channel_size)
+                name=name_gen.next(),
+                maxsize=self._channel_size,
+                channel_recv_frist_arrive=self._channel_recv_frist_arrive)
         else:
             channel = ProcessChannel(
-                self._manager, name=name_gen.next(), maxsize=self._channel_size)
+                self._manager,
+                name=name_gen.next(),
+                maxsize=self._channel_size,
+                channel_recv_frist_arrive=self._channel_recv_frist_arrive)
         _LOGGER.debug("[DAG] Generate channel: {}".format(channel.name))
         return channel
 
