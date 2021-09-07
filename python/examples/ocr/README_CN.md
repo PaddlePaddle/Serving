@@ -118,7 +118,7 @@ python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --por
 
 即`ocr_det_client/serving_client_conf.prototxt`中`feed_var`字段
 
-对于本示例而言，`feed_type`应修改为3(数据类型为string),`shape`为1.
+对于本示例而言，`feed_type`应修改为20(数据类型为string),`shape`为1.
 
 通过在客户端启动后加入多个client模型的client配置文件夹路径，启动client进行预测。
 ```
