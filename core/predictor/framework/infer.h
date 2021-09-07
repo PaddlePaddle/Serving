@@ -15,6 +15,7 @@
 #pragma once
 #include <pthread.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <functional>
@@ -169,8 +170,10 @@ class ReloadableInferEngine : public InferEngine {
   uint32_t _infer_batch_size;
 
   // Need to align batch_size in inferring
-  bool _infer_batch_align;
+  bool _infer_overrun;
 
+  // allow to split request in inferring
+  bool _allow_split_request;
   // model version
   uint64_t _version;
 };
@@ -181,19 +184,23 @@ struct ModelData {
   ModelData() : current_idx(1) {
     cores[0] = nullptr;
     cores[1] = nullptr;
+    caches[0] = nullptr;
+    caches[1] = nullptr;
   }
 
   ~ModelData() {
     delete cores[0];
     delete cores[1];
+    delete caches[0];
+    delete caches[1];
   }
 
   void* get_core() { return cores[current_idx]->get(); }
 
-  CubeCache* get_cache() { return &caches[current_idx]; }
+  CubeCache* get_cache() { return caches[current_idx]; }
 
   EngineCore* cores[2];
-  CubeCache caches[2];
+  CubeCache* caches[2];
   uint32_t current_idx;
 };
 
@@ -239,31 +246,46 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
       delete md->cores[next_idx];
     }
     md->cores[next_idx] = new (std::nothrow) EngineCore;
+    if (nullptr == md->cores[next_idx]) {
+      LOG(ERROR) << "Allocating memory failed. ";
+      return -1;
+    }
     size_t gpu_ids_num = conf.gpu_ids_size();
     im::bsf::AutoMutex lock(_mutex);
     int gpu_id = -1;
     if (gpu_ids_num > 0) {
       gpu_id = conf.gpu_ids(_gpu_index % gpu_ids_num);
     }
+    LOG(WARNING) << "Loading EngineCore[" << next_idx << "] ...";
     if (!md->cores[next_idx] ||
         md->cores[next_idx]->create(conf, gpu_id) != 0) {
       LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
       return -1;
     }
     _gpu_index++;
-    LOG(WARNING) << "Reload EngineCore[" << next_idx << "] finish.";
+    LOG(WARNING) << "Loading EngineCore[" << next_idx << "] done.";
 
     // reload cube cache
+    if (nullptr == md->caches[next_idx]) {
+      md->caches[next_idx] = new (std::nothrow) CubeCache;
+    }
+
+    if (nullptr == md->caches[next_idx]) {
+      LOG(ERROR) << "Allocating memory failed.";
+      return -1;
+    }
+    LOG(WARNING) << "Loading cube cache[" << next_idx << "] ...";
     std::string model_path = conf.model_dir();
     if (access(model_path.c_str(), F_OK) == 0) {
       std::string cube_cache_path = model_path + "cube_cache";
-      int reload_cache_ret = md->caches[next_idx].reload_data(cube_cache_path);
-      LOG(WARNING) << "Reload cube cache[" << next_idx << "] finish.";
+      int reload_cache_ret = md->caches[next_idx]->reload_data(cube_cache_path);
+      LOG(WARNING) << "Loading cube cache[" << next_idx << "] done.";
     } else {
       LOG(ERROR) << "model_path " << model_path
                  << " is not exits. Ignore cube cache!";
     }
 
+    // switch current_idx
     md->current_idx = next_idx;
     LOG(WARNING)
         << "Reload model and cube cache done. switching to current_idx["
@@ -369,12 +391,20 @@ class CloneDBReloadableInferEngine
 
   virtual int load_data(ModelData<EngineCore>* md,
                         const configure::EngineDesc& conf) {
+    int tid = syscall(SYS_gettid);
     uint32_t next_idx = (md->current_idx + 1) % 2;
     if (md->cores[next_idx]) {
       delete md->cores[next_idx];
     }
     md->cores[next_idx] = new (std::nothrow) EngineCore;
 
+    if (nullptr == md->caches[next_idx]) {
+      md->caches[next_idx] = new (std::nothrow) CubeCache;
+    }
+    if (nullptr == md->cores[next_idx] || nullptr == md->caches[next_idx]) {
+      LOG(ERROR) << "Allocating memory fail.";
+      return -1;
+    }
     // params.dump();
     // gpu_ids_num > 0 is always true.
     // if use CPU, gpu_ids = [-1].
@@ -390,20 +420,34 @@ class CloneDBReloadableInferEngine
     } else {
       gpu_ids_num = 1;
     }
+
     // _gpu_index will be set to be 0, when load() or proc_initial() is called.
     // _gpu_index < gpu_ids_num, means there are predictors still not create
     // on some GPU card.
     // so we need to create the predictor.
     // _gpu_index >= gpu_ids_num, means each GPU card has already create one.
     // so we need to clone the predictor.
+    LOG(WARNING) << "tid:" << tid << " Loading clone model ...";
     if (DBReloadableInferEngine<EngineCore>::_gpu_index < gpu_ids_num) {
-      if (!md->cores[next_idx] ||
-          md->cores[next_idx]->create(conf, gpu_id) != 0) {
+      // create cores
+      if (md->cores[next_idx]->create(conf, gpu_id) != 0) {
         LOG(ERROR) << "Failed create model, path: " << conf.model_dir();
         return -1;
       }
+      // create caches
+      std::string model_path = conf.model_dir();
+      if (access(model_path.c_str(), F_OK) == 0) {
+        std::string cube_cache_path = model_path + "cube_cache";
+        int reload_cache_ret =
+            md->caches[next_idx]->reload_data(cube_cache_path);
+        LOG(WARNING) << "create cube cache[" << next_idx << "] done.";
+      } else {
+        LOG(WARNING) << "model_path " << model_path
+                     << " is not exits. Ignore cube cache!";
+      }
+
       DBReloadableInferEngine<EngineCore>::_gpu_index++;
-      md->current_idx = next_idx;
+      // md->current_idx = next_idx;
       if (_cloneTemplate.size() <
           DBReloadableInferEngine<EngineCore>::_gpu_index) {
         _cloneTemplate.push_back(md);
@@ -414,17 +458,26 @@ class CloneDBReloadableInferEngine
     } else {
       int template_index = DBReloadableInferEngine<EngineCore>::_gpu_index %
                            _cloneTemplate.size();
-      if (!md->cores[next_idx] ||
-          md->cores[next_idx]->clone(
+
+      // clone cores
+      if (md->cores[next_idx]->clone(
               _cloneTemplate[template_index]->get_core()) != 0) {
         LOG(ERROR) << "Failed clone model from core";
         return -1;
       }
+      // clone caches
+      md->caches[next_idx] = _cloneTemplate[template_index]->get_cache();
+      LOG(WARNING) << "tid:" << tid << " clone caches done";
+
       DBReloadableInferEngine<EngineCore>::_gpu_index++;
-      md->current_idx = next_idx;
-      LOG(WARNING) << "core clone model succ, cur_idx[" << md->current_idx
-                   << "].";
     }
+
+    // switch current_idx
+    md->current_idx = next_idx;
+    LOG(WARNING)
+        << "[" << tid
+        << "] Reload clone model and cube cache done. switching to current_idx["
+        << next_idx << "]";
 
     return 0;
   }
@@ -644,6 +697,8 @@ class InferManager {
   int proc_initialize(const char* path,
                       const char* file,
                       std::shared_ptr<int> engine_index_ptr);
+
+  int set_taskexecutor_num(size_t total_engine_num);
 
   int thrd_initialize();
 

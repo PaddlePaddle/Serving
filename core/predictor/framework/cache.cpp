@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
+#include "core/predictor/framework/cache.h"
 #include <dirent.h>
+#include <sys/stat.h>
 #include <fstream>
 #include <string>
-#include <sys/stat.h>
 #include <utility>
-#include "core/predictor/framework/cache.h"
 #include "core/cube/cube-builder/include/cube-builder/seqfile_reader.h"
 
 namespace baidu {
@@ -30,8 +30,9 @@ int CubeCache::clear() {
       delete (it->second);
       it->second = nullptr;
     }
-    _map_cache.clear();
   }
+  _map_cache.clear();
+
   return 0;
 }
 
@@ -44,6 +45,7 @@ rec::mcube::CubeValue* CubeCache::get_data(uint64_t key) {
 }
 
 int CubeCache::reload_data(const std::string& cache_path) {
+  LOG(INFO) << "cube cache is loading data, path: " << cache_path;
   DIR* dp = nullptr;
   struct dirent* dirp = nullptr;
   struct stat st;
@@ -71,7 +73,7 @@ int CubeCache::reload_data(const std::string& cache_path) {
     }
     // Match the file whose name prefix is ​​'part-'
     if (std::string(dirp->d_name).find("part-") != std::string::npos) {
-      SequenceFileRecordReader reader(dirp->d_name);
+      SequenceFileRecordReader reader(cache_path + "/" + dirp->d_name);
 
       if (reader.open() != 0) {
         LOG(ERROR) << "open file failed! " << dirp->d_name;
@@ -97,7 +99,7 @@ int CubeCache::reload_data(const std::string& cache_path) {
         }
         rec::mcube::CubeValue* new_value = new rec::mcube::CubeValue();
         new_value->error = 0;
-        new_value->buff = record.value;
+        new_value->buff.swap(record.value);
         _map_cache.insert(std::make_pair(key, new_value));
       }
 
