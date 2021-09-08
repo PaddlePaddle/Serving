@@ -23,7 +23,23 @@ using configure::GeneralModelConfig;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
+// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8, INT8
+// will support: FLOAT16
+enum ProtoDataType {
+  P_INT64 = 0,
+  P_FLOAT32,
+  P_INT32,
+  P_FP64,
+  P_INT16,
+  P_FP16,
+  P_BF16,
+  P_UINT8,
+  P_INT8,
+  P_BOOL,
+  P_COMPLEX64,
+  P_COMPLEX128,
+  P_STRING = 20,
+};
 
 int ServingClient::init(const std::vector<std::string>& client_conf,
            const std::string server_port) {
@@ -154,6 +170,10 @@ int PredictorData::get_datatype(std::string name) const {
     return it->second;
   }
   return 0;
+}
+
+void PredictorData::set_datatype(std::string name, int type) {
+  _datatype_map[name] = type;
 }
 
 std::string PredictorData::print() {
@@ -309,20 +329,25 @@ int PredictorInputs::GenProto(const PredictorInputs& inputs,
     tensor->set_name(feed_name[idx]);
     tensor->set_alias_name(name);
 
-    const int string_shape_size = string_shape.size();
-    // string_shape[vec_idx] = [1];cause numpy has no datatype of string.
-    // we pass string via vector<vector<string> >.
-    if (string_shape_size != 1) {
-      LOG(ERROR) << "string_shape_size should be 1-D, but received is : "
-                 << string_shape_size;
-      return -1;
-    }
-    switch (string_shape_size) {
-      case 1: {
-        tensor->add_data(string_data);
-        break;
+    if (datatype == P_STRING) {
+      const int string_shape_size = string_shape.size();
+      // string_shape[vec_idx] = [1];cause numpy has no datatype of string.
+      // we pass string via vector<vector<string> >.
+      if (string_shape_size != 1) {
+        LOG(ERROR) << "string_shape_size should be 1-D, but received is : "
+                   << string_shape_size;
+        return -1;
       }
+      switch (string_shape_size) {
+        case 1: {
+          tensor->add_data(string_data);
+          break;
+        }
+      }
+    } else {
+      tensor->set_tensor_content(string_data);
     }
+    
   }
   return 0;
 }
@@ -355,6 +380,8 @@ int PredictorOutputs::ParseProto(const Response& res,
     std::shared_ptr<PredictorOutputs::PredictorOutput> predictor_output =
         std::make_shared<PredictorOutputs::PredictorOutput>();
     predictor_output->engine_name = output.engine_name();
+
+    PredictorData& predictor_data = predictor_output->data;
     std::map<std::string, std::vector<float>>& float_data_map = *predictor_output->data.mutable_float_data_map();
     std::map<std::string, std::vector<int64_t>>& int64_data_map = *predictor_output->data.mutable_int64_data_map();
     std::map<std::string, std::vector<int32_t>>& int32_data_map = *predictor_output->data.mutable_int_data_map();
@@ -403,7 +430,13 @@ int PredictorOutputs::ParseProto(const Response& res,
         int32_data_map[name] = std::vector<int32_t>(
             output.tensor(idx).int_data().begin(),
             output.tensor(idx).int_data().begin() + size);
+      } else if (fetch_name_to_type[name] == P_UINT8
+                || fetch_name_to_type[name] == P_INT8) {
+        VLOG(2) << "fetch var [" << name << "]type="
+                << fetch_name_to_type[name];
+        string_data_map[name] = output.tensor(idx).tensor_content();
       }
+      predictor_data.set_datatype(name, output.tensor(idx).elem_type());
       idx += 1;
     }
     outputs.add_data(predictor_output);

@@ -32,13 +32,18 @@ from .proto import general_model_service_pb2_grpc
 #param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
 #param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
 #param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
-#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
+#param 'type'(which is in feed_var or fetch_var) = 20 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
-bytes_type = 3
+bytes_type = 20
 # this is corresponding to the proto
-proto_data_key_list = ["int64_data", "float_data", "int_data", "data"]
+proto_data_key_list = {
+    0: "int64_data",
+    1: "float_data",
+    2: "int_data",
+    20: "data"
+}
 
 
 def list_flatten(items, ignore_types=(str, bytes)):

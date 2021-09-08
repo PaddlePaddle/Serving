@@ -31,15 +31,21 @@ sys.path.append(
 #param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
 #param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
 #param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
-#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
+#param 'type'(which is in feed_var or fetch_var) = 5 means dataType is float16
+#param 'type'(which is in feed_var or fetch_var) = 7 means dataType is uint8
+#param 'type'(which is in feed_var or fetch_var) = 8 means dataType is int8
+#param 'type'(which is in feed_var or fetch_var) = 20 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
-bytes_type = 3
+float16_type = 5
+uint8_type = 7
+int8_type = 8
+bytes_type = 20
 #int_type,float_type,string_type are the set of each subdivision classes.
 int_type = set([int64_type, int32_type])
 float_type = set([float32_type])
-string_type = set([bytes_type])
+string_type = set([bytes_type, float16_type, uint8_type, int8_type])
 
 
 class _NOPProfiler(object):
@@ -411,7 +417,10 @@ class Client(object):
                         key)])
                 else:
                     string_lod_slot_batch.append([])
-                string_slot.append(feed_dict[key])
+                if type(feed_dict[key]) is np.ndarray:
+                    string_slot.append(feed_dict[key].tostring())
+                else:
+                    string_slot.append(feed_dict[key])
                 self.has_numpy_input = True
 
         self.profile_.record('py_prepro_1')
@@ -481,6 +490,38 @@ class Client(object):
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int32_by_name(
                         mi, name)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == uint8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.uint8)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == int8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.int8)
                     if result_map[name].size == 0:
                         raise ValueError(
                             "Failed to fetch, maybe the type of [{}]"

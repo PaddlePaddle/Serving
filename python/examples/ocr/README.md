@@ -119,7 +119,7 @@ The pre-processing and post-processing is in the C + + server part, the image's 
 
 so the value of parameter `feed_var` which is in the file `ocr_det_client/serving_client_conf.prototxt` should be changed.
 
-for this case, `feed_type` should be 3(which means the data type is string),`shape` should be 1.
+for this case, `feed_type` should be 20(which means the data type is string),`shape` should be 1.
 
 By passing in multiple client folder paths, the client can be started for multi model prediction.
 ```
