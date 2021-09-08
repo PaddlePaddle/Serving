@@ -533,7 +533,30 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
                  paddle::PaddleDType::INT32) {
         int32_t* data = static_cast<int32_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                 paddle::PaddleDType::UINT8) {
+        uint8_t* data = static_cast<uint8_t*>(origin_data);
+        lod_tensor_in->CopyFromCpu(data);
+      } else if ((*tensorVector_in_pointer)[i].dtype ==
+                 paddle::PaddleDType::INT8) {
+        int8_t* data = static_cast<int8_t*>(origin_data);
+        lod_tensor_in->CopyFromCpu(data);
+      } else {
+        LOG(ERROR) << "Inference not support type["
+                   << (*tensorVector_in_pointer)[i].dtype
+                   << "],name[" << (*tensorVector_in_pointer)[i].name
+                   << "]" << " copy into core failed!";
       }
+      // Paddle inference will support FP16 in next version.
+      // else if ((*tensorVector_in_pointer)[i].dtype ==
+      //          paddle::PaddleDType::FLOAT16) {
+      //   paddle::platform::float16* data =
+      //       static_cast<paddle::platform::float16*>(origin_data);
+      //   lod_tensor_in->CopyFromCpu(data);
+      // }
+      VLOG(2) << "Tensor:name=" << (*tensorVector_in_pointer)[i].name
+              << ";in_dtype=" << (*tensorVector_in_pointer)[i].dtype
+              << ";tensor_dtype=" << lod_tensor_in->type();
     }
     // After the input data is passed in,
     // call 'core->Run()' perform the prediction process.
@@ -598,7 +621,41 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
         int32_t* data_out = reinterpret_cast<int32_t*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
+      } else if (dataType == paddle::PaddleDType::UINT8) {
+        databuf_size = out_num * sizeof(uint8_t);
+        databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        if (!databuf_data) {
+          LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+          return -1;
+        }
+        uint8_t* data_out = reinterpret_cast<uint8_t*>(databuf_data);
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_char = reinterpret_cast<char*>(data_out);
+      } else if (dataType == paddle::PaddleDType::INT8) {
+        databuf_size = out_num * sizeof(int8_t);
+        databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+        if (!databuf_data) {
+          LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+          return -1;
+        }
+        int8_t* data_out = reinterpret_cast<int8_t*>(databuf_data);
+        lod_tensor_out->CopyToCpu(data_out);
+        databuf_char = reinterpret_cast<char*>(data_out);
       }
+      // Inference will support FP16 in next version
+      //  else if (dataType == paddle::PaddleDType::FLOAT16) {
+      //   using float16 = paddle::platform::float16;
+      //   databuf_size = out_num * sizeof(float16);
+      //   databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+      //   if (!databuf_data) {
+      //     LOG(ERROR) << "Malloc failed, size: " << databuf_size;
+      //     return -1;
+      //   }
+      //   float16* data_out = reinterpret_cast<float16*>(databuf_data);
+      //   lod_tensor_out->CopyToCpu(data_out);
+      //   databuf_char = reinterpret_cast<char*>(data_out);
+      // }
+
       // Because task scheduling requires OPs to use 'Channel'
       // (which is a data structure) to transfer data between OPs.
       // We need to copy the processed data to the 'Channel' for the next OP.
