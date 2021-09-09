@@ -506,7 +506,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
-        _LOGGER.info("op:{} add output_channel {}".format(self.name, channel))
+        _LOGGER.debug("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -1333,6 +1333,8 @@ class Op(object):
                 break
             end = int(round(_time() * 1000000))
             in_time = end - start
+            _LOGGER.debug("op:{} in_time_end:{}".format(op_info_prefix,
+                                                        time.time()))
 
             # parse channeldata batch
             try:
@@ -1346,6 +1348,8 @@ class Op(object):
             if len(parsed_data_dict) == 0:
                 # data in the whole batch is all error data
                 continue
+            _LOGGER.debug("op:{} parse_end:{}".format(op_info_prefix,
+                                                      time.time()))
 
             # print
             front_cost = int(round(_time() * 1000000)) - start
@@ -1360,6 +1364,8 @@ class Op(object):
                     = self._run_preprocess(parsed_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
             prep_time = end - start
+            _LOGGER.debug("op:{} preprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), prep_time))
             try:
                 # put error requests into output channel, skip process and postprocess stage
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -1381,6 +1387,8 @@ class Op(object):
                     = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
             midp_time = end - start
+            _LOGGER.debug("op:{} process_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), midp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1402,6 +1410,8 @@ class Op(object):
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
             after_postp_time = _time()
+            _LOGGER.debug("op:{} postprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), postp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1690,9 +1700,10 @@ class RequestOp(Op):
             else:
                 dict_data[name] = self.proto_tensor_2_numpy(one_tensor)
 
-        _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
-            name:{}, method:{}".format(log_id, request.clientip, request.name,
-                                       request.method))
+        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+            name:{}, method:{}, time:{}"
+                     .format(log_id, request.clientip, request.name,
+                             request.method, time.time()))
 
         return dict_data, log_id, None, ""
 

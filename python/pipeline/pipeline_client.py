@@ -14,6 +14,7 @@
 # pylint: disable=doc-string-missing
 import grpc
 import sys
+import time
 import numpy as np
 from numpy import *
 import logging
@@ -168,10 +169,11 @@ class PipelineClient(object):
                 "feed must be dict type with format: {name: value}.")
         if fetch is not None and not isinstance(fetch, list):
             raise TypeError("fetch must be list type with format: [name].")
-
+        print("PipelineClient::predict pack_data time:{}".format(time.time()))
         req = self._pack_request_package(feed_dict, pack_tensor_format, profile)
         req.logid = log_id
         if not asyn:
+            print("PipelineClient::predict before time:{}".format(time.time()))
             resp = self._stub.inference(req)
             return self._unpack_response_package(resp, fetch)
         else:
