@@ -48,6 +48,12 @@ message Tensor {
   // VarType: STRING
   repeated string str_data = 9;
 
+  // VarType: BYTES, is suitable for big data. No need to save data types and
+  // dimensions
+  // pack method: pack by BytesIO, saved by np.save
+  // unpack method: load by np.load, unpack by BytesIO.
+  bytes byte_data = 10;
+
   // Element types:
   //   0 => INT64
   //   1 => FP32
@@ -62,17 +68,18 @@ message Tensor {
   //  10 => COMPLEX64
   //  11 => COMPLEX128
   //  12 => STRING
-  int32 elem_type = 10;
+  //  13 => BYTES
+  int32 elem_type = 20;
 
   // Shape of the tensor, including batch dimensions.
-  repeated int32 shape = 11;
+  repeated int32 shape = 21;
 
   // Level of data(LOD), support variable length data, only for fetch tensor
   // currently.
-  repeated int32 lod = 12;
+  repeated int32 lod = 22;
 
   // Correspond to the variable 'name' in the model description prototxt.
-  string name = 13;
+  string name = 23;
 };
 
 // The structure of the service request. The input data can be repeated string

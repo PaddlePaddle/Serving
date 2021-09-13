@@ -349,7 +349,7 @@ T* VersionedInferEngine::get_core() {
 }
 
 template <typename T>
-T* VersionedInferEngine::get_core(uint64_t version) {
+T* VersionedInferEngine::get_core(const uint64_t version) {
   auto iter = _versions.find(version);
   if (iter == _versions.end()) {
     LOG(ERROR) << "Not found version engine: " << version;
@@ -539,7 +539,7 @@ int InferManager::infer(const char* model_name,
 }
 
 template <typename T>
-T* InferManager::get_core(const char* model_name, uint64_t version) {
+T* InferManager::get_core(const char* model_name, const uint64_t version) {
   auto it = _map.find(model_name);
   if (it == _map.end()) {
     LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
