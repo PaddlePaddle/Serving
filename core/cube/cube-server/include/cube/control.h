@@ -38,7 +38,7 @@ class Control : public ControlService {
 
  private:
   int handle_status(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd,
-                    BUTIL_RAPIDJSON_NAMESPACE::Document* res);
+                    BUTIL_RAPIDJSON_NAMESPACE::Document* res, std::string dict_name);
 
   int handle_reload_base(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name,
                          const std::string& v_path);

@@ -83,7 +83,7 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
   int ret = 0;
   Document response;
   if (cmd_name.compare("status") == 0) {
-    ret = handle_status(cmd, &response);
+    ret = handle_status(cmd, &response, dict_name);
   } else if (_cmd_mutex.try_lock()) {
     if (cmd_name.compare("reload_base") == 0) {
       ret = handle_reload_base(cmd, dict_name, version_path);
@@ -121,9 +121,9 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
   return;
 }
 
-int Control::handle_status(const Document& /*cmd*/, Document* res) {
+int Control::handle_status(const Document& /*cmd*/, Document* res, std::string dict_name) {
   Framework* framework = Framework::instance();
-  return framework->status(res);
+  return framework->status(res, dict_name);
 }
 
 int Control::handle_reload_patch(const Document& /*cmd*/, std::string dict_name,

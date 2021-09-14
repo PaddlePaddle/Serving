@@ -21,8 +21,10 @@
 #include "butil/third_party/rapidjson/document.h"
 #include "butil/third_party/rapidjson/prettywriter.h"
 #include "butil/third_party/rapidjson/stringbuffer.h"
-
-
+#include <stdlib.h>
+#include <time.h>
+#include <fstream>
+#include <sstream>
 #include "core/cube/cube-server/cube.pb.h"
 #include "core/cube/cube-server/include/cube/dict.h"
 #include "core/cube/cube-server/include/cube/rw_lock.h"
@@ -34,17 +36,122 @@ namespace mcube {
 struct Status {
   enum StatusCode { F_RUNNING = 0, F_LOADING };
 };
-/*std::unordered_map<std::string, int> _dict_idx_map;
-  std::unordered_map<std::string, bool> _in_mem_map;
-  std::unordered_map<std::string, uint32_t> _max_val_size_map;
-  std::unordered_map<std::string, std::string> _dict_path_map;*/
+struct Record {
+  int32_t id;
+  int32_t version;
+  int64_t key;
+  std::string path;
+  std::string cmd;
+  std::string timestamp;
+};
+class VersionTable {
+public:
+  VersionTable(std::string dict_name) {
+    _record_file = "./data/" + dict_name+ "/version.txt";
+    _cur_version = 0;
+    _cur_id = 0;
+  }
+  std::vector<Record> load_records() {
+    std::vector<Record> records;
+    std::ifstream fs;
+    LOG(INFO) << "Versiontable read records";
+    fs.open(this->_record_file);
+    while (!fs.eof()) {
+      char cstr[100];
+      fs.getline(cstr, 100);
+      std::string str(cstr);
+      LOG(INFO) << "load record: " << str;
+      std::vector<std::string> result;
+      std::stringstream ss(str);
+      while(ss.good())
+      {
+        std::string substr;
+        getline(ss, substr, '|');
+        result.push_back(substr);
+      }
+      if (result.size() == 6) {
+        Record rec;
+        rec.id = stoi(result[0]);
+        rec.version = stoi(result[1]);
+        rec.key = stol(result[2]);
+        rec.path = result[3];
+        rec.cmd = result[4];
+        rec.timestamp = result[5];
+        records.push_back(rec);
+      LOG(INFO) << "finish load record: " << str;
+      }
+    } 
+    _records = records;
+    return records;     
+  }
+  void save_records() {
+    std::ofstream fs;
+    fs.open(this->_record_file, std::ios::ate|std::ios::out);
+    std::string content = "";
+    for (const Record& rec: this->_records) {
+      LOG(INFO) << "save record: " << std::to_string(rec.id) << ", " << std::to_string(rec.version) << ", " << std::to_string(rec.key) << ", " <<rec.path << ", " << rec.cmd; 
+      content += std::to_string(rec.id)+ "|";
+      content += std::to_string(rec.version)+ "|";
+      content += std::to_string(rec.key) + "|";
+      content += rec.path + "|";
+      content += rec.cmd + "|";
+      content += rec.timestamp + "\n";
+      fs.write(content.c_str(), content.size());
+    }
+    fs.close();
+  }
+  void add_record(int64_t key, std::string path, std::string cmd) {
+    std::ofstream fs;
+    fs.open(this->_record_file, std::ios_base::app);
+    std::string content = "";
+    int32_t this_id = ++_cur_id;
+    int32_t this_version = ++_cur_version;
+    int64_t this_key = key;
+    std::string this_cmd = cmd;
+    std::string this_timestamp = get_ts();
+    std::string this_path = path;
+    Record rec;
+    rec.id = this_id;
+    rec.version = this_version;
+    rec.key = this_key;
+    rec.path = this_path;
+    rec.cmd = this_cmd;
+    rec.timestamp = this_timestamp;
+    _records.push_back(rec);
+    content += std::to_string(rec.id)+ "|";
+    content += std::to_string(rec.version)+ "|";
+    content += std::to_string(rec.key) + "|";
+    content += rec.path + "|";
+    content += rec.cmd + "|";
+    content += rec.timestamp + "\n";
+    fs.write(content.c_str(), content.size());
+    fs.close();
+  }
+private:
+  std::string get_ts() {
+    char date[20];
+    time_t t = time(0);
+    struct tm *tm;
+
+    tm = gmtime(&t);
+    strftime(date, sizeof(date), "%Y%m%dT%T", tm);
+    std::string ss(date);
+    return ss;
+  }
+  std::string _record_file;
+  std::vector<Record> _records;
+  int32_t _cur_version;
+  int32_t _cur_id;
+};
 
 class DoubleBufDict 
 {
  public:
-  void init_dict() {
+  void init_dict(std::string dict_name) {
     _dict[0] = new (std::nothrow) Dict();
     _dict[1] = nullptr;
+    this->_version_table = new VersionTable(dict_name);
+    this->_dict_name = dict_name;
   }
 
   VirtualDict* get_dict(int idx) {
@@ -115,7 +222,7 @@ class DoubleBufDict
   bool get_in_mem() {
     return _in_mem;
   }
-
+  VersionTable* _version_table;
 
  private:
   VirtualDict* _dict[2]{nullptr, nullptr};
@@ -125,6 +232,7 @@ class DoubleBufDict
   RWLock _rw_lock;
   RWLock _bg_rw_lock;
   std::string _dict_path;
+  std::string _dict_name;
 };
 
 
@@ -135,11 +243,12 @@ class Framework {
  public:
   ~Framework();
 
-  int init(std::string dict_name, uint32_t dict_split, bool in_mem);
+  //int init(std::string dict_name, uint32_t dict_split, bool in_mem);
+  int init();
 
   int destroy();
 
-  int status(BUTIL_RAPIDJSON_NAMESPACE::Document* res);
+  int status(BUTIL_RAPIDJSON_NAMESPACE::Document* res, std::string dict_name);
 
   int seek(const DictRequest* req, DictResponse* res);
 
@@ -210,7 +319,6 @@ class Framework {
   std::unordered_map<std::string, int> _dict_idx_map;
   std::unordered_map<std::string, bool> _in_mem_map;
   uint32_t _max_val_size;
-  std::unordered_map<std::string, std::string> _dict_path_map;
   uint32_t _dict_split{0};
   std::vector<std::string> _dict_set_path;
   std::atomic_int _status;

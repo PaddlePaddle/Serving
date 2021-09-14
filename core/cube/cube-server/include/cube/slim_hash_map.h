@@ -241,7 +241,8 @@ class slim_hash_map {
     m_nNextEntry = rhs.m_nNextEntry;
     m_nSize = rhs.m_nSize;
     m_fileLens = rhs.m_fileLens;
-
+    
+    LOG(INFO) << "key 2, val:" << (*this)[2] << " , key 7, val: " << (*this)[7];
     return 0;
   }
 
@@ -271,7 +272,7 @@ class slim_hash_map {
       node_cnt++;
       node = get_node(node->next);
     }
-    LOG(INFO) << "key: " << key << " , found count: " << node_cnt;  
+    //LOG(INFO) << "key: " << key << " , found count: " << node_cnt;  
     if (node == NULL) {
       return end();
     }
@@ -429,7 +430,7 @@ class slim_hash_map {
         (*this)[key] = value;
       }
     }
-
+    LOG(INFO) << "key 2, val:" << (*this)[2] << " , key 7, val: " << (*this)[7];
     if (err) {
       clear();
     }

@@ -21,7 +21,9 @@
 #include "core/cube/cube-server/include/cube/dict_set.h"
 #include "core/cube/cube-server/include/cube/framework.h"
 #include "core/cube/cube-server/include/cube/recycle.h"
-
+#include <dirent.h>
+#include <utility>
+#include <sys/stat.h>
 using BUTIL_RAPIDJSON_NAMESPACE::Document;
 using BUTIL_RAPIDJSON_NAMESPACE::Value;
 using BUTIL_RAPIDJSON_NAMESPACE::StringRef;
@@ -43,64 +45,71 @@ Framework* Framework::instance() {
 
 Framework::~Framework() {}
 
-int Framework::init(std::string dict_name, uint32_t dict_split, bool in_mem) {
+int Framework::init() {
   Recycle* rec = Recycle::get_instance();
   int ret = rec->init();
   if (ret != 0) {
     LOG(ERROR) << "init recycle failed";
     return ret;
   }
-  LOG(INFO) << "will not init here.";
-  /*
-  _dict[0] = new (std::nothrow) Dict();
-  _dict[1] = nullptr;
-  */
-  //init_dict(dict_split);
-  //VirtualDict* cur_dict = _dict[_dict_idx];
-  _dict_map[dict_name] = new DoubleBufDict();
-  DoubleBufDict* dict = _dict_map[dict_name];
-  dict->set_dict_path("./data");
-  dict->set_in_mem(in_mem);
 
   _max_val_size = 1024;
-  
-  //_in_mem = in_mem;
 
-  //std::string version_file = _dict_path + "/VERSION";
-  //std::string version_path = "";
-  //std::ifstream input(version_file.c_str());
-  //if (!std::getline(input, version_path)) {
-  //  version_path = "";
-  //} else {
-  //  version_path = "/" + version_path;
- // }
-  //input.close();
+  DIR* dp = nullptr;
+  struct dirent* dirp = nullptr;
+  struct stat st;
 
-  //LOG(INFO) << "load dict from" << _dict_path << version_path;
-  //if (_dict_split > 1) {
-  //  _dict_set_path.clear();
-  //  _dict_set_path.resize(_dict_split);
-  //  std::stringstream dict_set_path_buf;
-  //  for (size_t i = 0; i < _dict_split; ++i) {
-  //    dict_set_path_buf.str(std::string());
-  //    dict_set_path_buf.clear();
-  //    dict_set_path_buf << _dict_path << "/" << i;
-  //    _dict_set_path[i] = dict_set_path_buf.str();
-  //  }
-  //  ret = cur_dict->load(_dict_set_path, _in_mem, version_path);
-  //} else {
-  //  ret = cur_dict->load(_dict_path, _in_mem, version_path);
-  //}
+  if (stat("data", &st) < 0 || !S_ISDIR(st.st_mode)) {
+    LOG(ERROR) << "the folder \"data\" not exist ";
+    return -1;
+  }
+  dp = opendir("data"); 
+  if (dp == nullptr) {
+    LOG(ERROR) << "opendir \"data\" fail.";
+    return -1;
+  }
+  LOG(INFO) << "dir data exist, traverse dict folder";
+  while ((dirp = readdir(dp)) != nullptr) {
+    // filtering by file type.i
+    LOG(INFO) << "we are reading dir: " << std::string(dirp->d_name);  
+    if (dirp->d_type == DT_REG) {
+      LOG(INFO) << " is regular file, continue";
+      continue;
+    }
+    if ((!strncmp(dirp->d_name, ".", 1)) || (!strncmp(dirp->d_name, "..", 2))) {
+      continue;
+    }
 
-  //if (ret != 0) {
-  //  LOG(WARNING) << "init: load dict data failed err=" << ret
-  //               << ". starting service with empty data.";
-  //} else {
-  // LOG(INFO) << "load dict from " << _dict_path << version_path << " done";
-  //}
-
-  //_status = Status::F_RUNNING;
-
+    // open data/dict
+    std::string dict_path = "data/" + std::string(dirp->d_name);
+    std::string dict_version_path = "data/" + std::string(dirp->d_name) + "/version.txt";
+    std::ifstream fs(dict_version_path);
+    if (!fs.good()) {
+      LOG(WARNING) << "dict \""<< dirp->d_name << "\" not exist, skip.";
+      continue;
+    }
+    LOG(INFO) << "dict \""<< dirp->d_name << "\" exist, read.";
+    std::string dict_name(dirp->d_name);  
+    _dict_map[dict_name] = new DoubleBufDict();
+    DoubleBufDict* dict = _dict_map[dict_name];
+    dict->init_dict(dict_name);
+    dict->set_dict_path("./data/" + dict_name);
+    dict->set_in_mem(true);
+    std::vector<Record> records = dict->_version_table->load_records();
+    LOG(INFO) << "dict \""<< dict_name << "\" version file read succ.";
+    for (const Record& rec: records) {
+      std::string content = rec.path + "|" + rec.cmd;
+      if (rec.cmd == "base") {
+        bg_load_base(dict_name, rec.path);
+        bg_switch(dict_name);
+        LOG(INFO) << "init, resume " << content;
+      } else if(rec.cmd == "patch") {
+        bg_load_patch(dict_name, rec.path);
+        bg_switch(dict_name);
+        LOG(INFO) << "init, resume " << content;
+      }
+    }  
+  }
   return 0;
 }
 
@@ -115,8 +124,8 @@ int Framework::destroy() {
 
 void Framework::init_dict(std::string dict_name, uint32_t dict_split) {
   DoubleBufDict* dict = _dict_map[dict_name];
-  dict->init_dict();
-  dict->set_dict_path("./data");
+  dict->init_dict(dict_name);
+  dict->set_dict_path("./data/" + dict_name);
 }
 
 VirtualDict* Framework::create_dict() {
@@ -125,20 +134,21 @@ VirtualDict* Framework::create_dict() {
 
 void Framework::release(VirtualDict* dict) { dict->atom_dec_seek_num(); }
 
-int Framework::status(Document* res) {
+int Framework::status(Document* res, std::string dict_name) {
   res->SetObject();
   Document::AllocatorType& allocator = res->GetAllocator();
-  for (auto it = _dict_map.begin(); it != _dict_map.end(); ++it) {
-    Value dict_value;
-    Value cur_version;
-    Value bg_version;
-    cur_version.SetString(StringRef(get_cur_version(it->first).c_str()));
-    bg_version.SetString(StringRef((get_bg_version(it->first).c_str())));
-    dict_value.AddMember("cur_version", cur_version, allocator);
-    dict_value.AddMember("bg_version", bg_version, allocator);
-    dict_value.AddMember("status", _status.load(), allocator);
-    res->AddMember(StringRef(it->first.c_str()), dict_value, allocator);
-  } 
+  Value cur_version;
+  Value bg_version;
+  char* cur_ver = const_cast<char*>(get_cur_version(dict_name).c_str());
+  char* bg_ver = const_cast<char*>(get_bg_version(dict_name).c_str());
+  LOG(INFO) << "status: dict name: " << dict_name << ", " << cur_ver << " "<< bg_ver << " " << _status.load();
+  //cur_version.SetString(StringRef(get_cur_version(dict_name).c_str()));
+  //bg_version.SetString(StringRef(get_bg_version(dict_name).c_str()));
+  cur_version.SetString(StringRef(cur_ver));
+  bg_version.SetString(StringRef(bg_ver));
+  res->AddMember("cur_version", cur_version, allocator);
+  res->AddMember("bg_version", bg_version, allocator);
+  res->AddMember("status", _status.load(), allocator);
   return 0;
 }
 
@@ -146,7 +156,7 @@ int Framework::seek(const DictRequest* req, DictResponse* res) {
   g_request_num << 1;
   // get table name and cur dict
   std::string dict_name = req->dict_name();
-  std::cout << "dict name: " << dict_name << std::endl; 
+  LOG(INFO) << "dict name: " << dict_name; 
   VirtualDict* cur_dict = get_cur_dict(dict_name);
   if (!cur_dict) {
     LOG(WARNING) << "error seek, dict: "<< dict_name << " not exist";
@@ -169,6 +179,7 @@ int Framework::seek(const DictRequest* req, DictResponse* res) {
       val->set_status(0);
       val->set_value(val_buf, val_size);
     } else {
+      LOG(INFO) << "No value after seek";
       val->set_status(-1);
       val->set_value("");
     }
@@ -239,8 +250,9 @@ int Framework::bg_load_base(std::string dict_name, const std::string& v_path) {
   if (_dict_map.find(dict_name) == _dict_map.end()) {
     LOG(INFO) << "dict name: "<< dict_name << " not exist, create one.";
     _dict_map[dict_name] = new DoubleBufDict();
-    _dict_map[dict_name]->init_dict();
-    _dict_map[dict_name]->set_dict_path("./data");
+    _dict_map[dict_name]->init_dict(dict_name);
+    _dict_map[dict_name]->set_in_mem(true);
+    _dict_map[dict_name]->set_dict_path("./data/" + dict_name);
   }
   int ret = bg_unload(dict_name);
   if (ret != 0) {
@@ -256,6 +268,7 @@ int Framework::bg_load_base(std::string dict_name, const std::string& v_path) {
 
   _status = Status::F_LOADING;
   ret = bg_dict->load(dict->get_dict_path(), dict->get_in_mem(), v_path);
+  dict->_version_table->add_record(1, v_path, "base");
   _status = Status::F_RUNNING;
   if (ret != 0) {
     LOG(WARNING) << "load background dict failed";
@@ -274,7 +287,8 @@ int Framework::bg_load_patch(std::string dict_name, const std::string& v_path) {
   if (_dict_map.find(dict_name) == _dict_map.end()) {
     LOG(WARNING) << "dict name: "<< dict_name << " not exist, create one.";
     _dict_map[dict_name] = new DoubleBufDict();
-    _dict_map[dict_name]->init_dict();
+    _dict_map[dict_name]->init_dict(dict_name);
+    _dict_map[dict_name]->set_dict_path("./data/" + dict_name);
   }
   int ret = bg_unload(dict_name);
   if (ret != 0) {
@@ -294,6 +308,7 @@ int Framework::bg_load_patch(std::string dict_name, const std::string& v_path) {
   }
 
   ret = bg_dict->load(dict->get_dict_path(), dict->get_in_mem(), v_path);
+  dict->_version_table->add_record(1, v_path, "patch");
   _status = Status::F_RUNNING;
   if (ret != 0) {
     LOG(WARNING) << "load background dict failed";
@@ -328,9 +343,12 @@ int Framework::bg_switch(std::string dict_name) {
 
 int Framework::enable(std::string dict_name, const std::string& version) {
   int ret = 0;
+  LOG(INFO) << "dict name: " << dict_name << " , version: " << version;
   if (version != "" && version == get_cur_version(dict_name)) {
+    LOG(INFO) << "cur version: " << get_cur_version(dict_name);
     ret = 0;
   } else if (version == get_bg_version(dict_name)) {
+    LOG(INFO) << "cur version: " << get_bg_version(dict_name);
     ret = bg_switch(dict_name);
   } else {
     LOG(WARNING) << "bg dict version not matched";

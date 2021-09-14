@@ -118,6 +118,7 @@ func (work *Work) DoWork() error {
 
 func GetDownloadDirs(dictName, service, version, depend, deployPath string, shardSeq,
 	split int) ([]string, error) {
+        // /cube/cube_data/0/1629874412/dict_part0.tar
 	dirs := make([]string, 0, split)
 	if deployPath == "" {
 		return dirs, errors.New("Invalid Deploy path")

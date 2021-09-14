@@ -84,6 +84,7 @@ int run(int argc, char** argv) {
   Framework* framework = Framework::instance();
   ret = 0;
   //framework->init(FLAGS_dict_split, FLAGS_in_mem);
+  framework->init();
   if (ret != 0) {
     LOG(ERROR) << "init predict framework failed";
     return ret;

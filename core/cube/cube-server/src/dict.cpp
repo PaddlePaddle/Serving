@@ -82,7 +82,10 @@ int Dict::load_index(const std::string& dict_path, const std::string& v_path) {
   index_n_path.append("/index.n");
   LOG(INFO) << "dict_path: " << dict_path << " , v_path: " << v_path; 
   uint32_t cur_block_id = 0;
-  if (_base_dict) cur_block_id = _base_dict->_block_set.size(); 
+  if (_base_dict) {
+    cur_block_id = _base_dict->_block_set.size(); 
+    LOG(INFO) << "base dict exist, size: " << _base_dict->_block_set.size();
+  }
   LOG(INFO) << "index file path: " << index_n_path;
   //ERR HERE
   std::unique_ptr<FILE, decltype(&fclose)> pf(fopen(index_n_path.c_str(), "rb"),
@@ -371,7 +374,13 @@ int Dict::destroy() {
 
 void Dict::set_version(const std::string& v_path) {
   _rw_lock.w_lock();
-  _version = (v_path == "") ? "" : v_path.substr(1);
+  if (v_path == "") {
+    _version = "";
+  } else {
+    LOG(INFO) << "set version: "<< v_path;
+    _version = v_path;
+  }
+  //_version = (v_path == "") ? "" : v_path.substr(1);
   _rw_lock.unlock();
 }
 
@@ -387,12 +396,14 @@ std::string Dict::guard_version() {
 bool Dict::seek(uint64_t key, char* buff, uint64_t* buff_size) {
   slim_hash_map<uint64_t, uint64_t>::iterator it = _slim_table.find(key);
   if (it.get_node() == NULL) {
+    LOG(INFO) << "nullptr in slim map";
     *(reinterpret_cast<uint32_t*>(buff)) = 0;
     *buff_size = sizeof(uint32_t);
     g_unfound_key_num << 1;
     return false;
   }
   if (it == _slim_table.end()) {
+    LOG(INFO) << "no key found in slim map";
     *(reinterpret_cast<uint32_t*>(buff)) = 0;
     *buff_size = sizeof(uint32_t);
     return false;
@@ -401,16 +412,16 @@ bool Dict::seek(uint64_t key, char* buff, uint64_t* buff_size) {
   uint64_t flag = it->second;
   uint32_t id = (uint32_t)(flag >> 32);
   uint64_t addr = (uint32_t)(flag);
-  LOG(INFO) << "search key: " << id << " , addr: " << addr;
+  LOG(INFO) << "search key: " << key << ", mem id: " << id << " , addr: " << addr << " , block size: " << _block_set.size();
   if (_block_set.size() > id) {
     uint32_t block_size = _block_set[id].size;
     char* block_data = NULL;
     block_data = _block_set[id].s_data.get();
     if (block_data && addr + sizeof(uint32_t) <= block_size) {
       uint32_t len = *(reinterpret_cast<uint32_t*>(block_data + addr));
+      LOG(INFO) << "len: " << len;
       if (addr + len <= block_size && len >= sizeof(uint32_t)) {
         uint64_t default_buffer_size = *buff_size;
-
         *buff_size = len - sizeof(uint32_t);
         if (*buff_size > default_buffer_size) {
           g_long_value_num << 1;
@@ -419,7 +430,7 @@ bool Dict::seek(uint64_t key, char* buff, uint64_t* buff_size) {
                      << default_buffer_size;
           return false;
         }
-        LOG(INFO) << "seek key: " << key << " , addr: " << addr;
+        //LOG(INFO) << "seek key: " << key << " , addr: " << addr;
         memcpy(buff,
                (block_data + addr + sizeof(uint32_t)),
                len - sizeof(uint32_t));

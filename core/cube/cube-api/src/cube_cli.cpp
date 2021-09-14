@@ -34,7 +34,7 @@ std::atomic<int> g_concurrency(0);
 
 std::vector<std::vector<uint64_t>> time_list;
 std::vector<uint64_t> request_list;
-int turns = 1000;
+int turns = 5;
 
 namespace {
 inline uint64_t time_diff(const struct timeval& start_time,
