@@ -26,6 +26,7 @@ import collections
 import numpy as np
 import json
 from numpy import *
+from io import BytesIO
 if sys.version_info.major == 2:
     import Queue
 elif sys.version_info.major == 3:
@@ -59,7 +60,8 @@ _TENSOR_DTYPE_2_NUMPY_DATA_DTYPE = {
     9: "bool",  # VarType.BOOL
     10: "complex64",  # VarType.COMPLEX64
     11: "complex128",  # VarType.COMPLEX128
-    12: "string",  # dismatch with numpy
+    12: "string",  # load by numpy
+    13: "bytes",  # load by numpy
 }
 
 
@@ -1577,10 +1579,11 @@ class RequestOp(Op):
 		UINT8
 		INT8
 		BOOL
+                BYTES
         Unsupported type:
+                STRING
                 COMPLEX64
                 COMPLEX128
-                STRING
 
         Args:
             tensor: one tensor in request.tensors.
@@ -1634,6 +1637,10 @@ class RequestOp(Op):
         elif tensor.elem_type == 9:
             # VarType: BOOL
             np_data = np.array(tensor.bool_data).astype(bool).reshape(dims)
+        elif tensor.elem_type == 13:
+            # VarType: BYTES
+            byte_data = BytesIO(tensor.byte_data)
+            np_data = np.load(byte_data, allow_pickle=True)
         else:
             _LOGGER.error("Sorry, the type {} of tensor {} is not supported.".
                           format(tensor.elem_type, tensor.name))

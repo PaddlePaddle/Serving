@@ -277,7 +277,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     LOG(WARNING) << "Loading cube cache[" << next_idx << "] ...";
     std::string model_path = conf.model_dir();
     if (access(model_path.c_str(), F_OK) == 0) {
-      std::string cube_cache_path = model_path + "cube_cache";
+      std::string cube_cache_path = model_path + "/" + "cube_cache";
       int reload_cache_ret = md->caches[next_idx]->reload_data(cube_cache_path);
       LOG(WARNING) << "Loading cube cache[" << next_idx << "] done.";
     } else {
@@ -543,9 +543,9 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
         lod_tensor_in->CopyFromCpu(data);
       } else {
         LOG(ERROR) << "Inference not support type["
-                   << (*tensorVector_in_pointer)[i].dtype
-                   << "],name[" << (*tensorVector_in_pointer)[i].name
-                   << "]" << " copy into core failed!";
+                   << (*tensorVector_in_pointer)[i].dtype << "],name["
+                   << (*tensorVector_in_pointer)[i].name << "]"
+                   << " copy into core failed!";
       }
       // Paddle inference will support FP16 in next version.
       // else if ((*tensorVector_in_pointer)[i].dtype ==
@@ -724,7 +724,7 @@ class VersionedInferEngine : public InferEngine {
   int infer(const void* in, void* out, uint32_t batch_size, uint64_t version);
 
   template <typename T>
-  T* get_core(uint64_t version);
+  T* get_core(const uint64_t version);
 
   int proc_initialize_impl(const configure::EngineDesc& conf, bool);
 
@@ -789,7 +789,7 @@ class InferManager {
 
   // Versioned get engine core
   template <typename T>
-  T* get_core(const char* model_name, uint64_t version);
+  T* get_core(const char* model_name, const uint64_t version);
 
   // query model version
   int query_version(const std::string& model, uint64_t& version);
