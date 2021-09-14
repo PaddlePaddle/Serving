@@ -44,6 +44,14 @@ DEFINE_bool(enable_cube, false, "enable cube");
 DEFINE_string(general_model_path, "./conf", "");
 DEFINE_string(general_model_file, "general_model.prototxt", "");
 DEFINE_bool(enable_general_model, true, "enable general model");
+// parallel env
+DEFINE_int32(paddle_trainer_id, 0, "");
+DEFINE_int32(paddle_trainers_num, 0, "");
+DEFINE_string(serving_selected_gpus, "", "");
+DEFINE_string(serving_selected_xpus, "", "");
+DEFINE_string(paddle_trainer_endpoints, "", "");
+DEFINE_string(paddle_current_endpoint, "", "");
+DEFINE_int32(nccl_nrings, 0, "");
 
 const char* START_OP_NAME = "startup_op";
 }  // namespace predictor

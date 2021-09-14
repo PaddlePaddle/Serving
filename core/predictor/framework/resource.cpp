@@ -20,6 +20,11 @@
 #ifdef BCLOUD
 #include "aipe_sec_client.h"  // NOLINT
 #endif
+// #define PADDLE_WITH_NCCL 1
+// #define PADDLE_WITH_CUDA
+// #include "paddle/fluid/imperative/nccl_context.h"
+// #include "paddle/fluid/imperative/bkcl_context.h"
+#include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -82,6 +87,71 @@ void Resource::print_general_model_config(
     oss.str("");
   }
 }
+
+namespace {
+//字符串分割到数组
+void split(const std::string& src,
+           const std::string& separator,
+           std::vector<std::string>& dest)  
+{
+  std::string str = src;
+  std::string substring;
+  std::string::size_type start = 0, index;
+  dest.clear();
+  index = str.find_first_of(separator, start);
+  do {
+    if (index != std::string::npos) {
+      substring = str.substr(start, index - start);
+      dest.push_back(substring);
+      start = index + separator.size();
+      index = str.find(separator, start);
+      if (start == std::string::npos) break;
+    }
+  } while (index != std::string::npos);
+
+  // the last part
+  substring = str.substr(start);
+  dest.push_back(substring);
+}
+
+int init_parallel_env() {
+  int rank = FLAGS_paddle_trainer_id;
+  int world_size = FLAGS_paddle_trainers_num;
+  std::string str_selected_gpus = FLAGS_serving_selected_gpus;
+  std::string str_selected_xpus = FLAGS_serving_selected_xpus;
+  std::string str_trainer_endpoints = FLAGS_paddle_trainer_endpoints;
+  std::string current_endpoint = FLAGS_paddle_current_endpoint;
+  int nrings = FLAGS_nccl_nrings;
+  if (nrings <=0 || nrings >= 9) {
+    LOG(ERROR) << "nccl_nrings must be an integer greater than 0"
+               << "or less than 9, which is enough in most scenarios."
+               << "Now nccl_nrings=" << nrings;
+    return -1;
+  }
+  if (world_size < 2) {
+    LOG(ERROR) << "Currently not a parallel execution environment,"
+               << "init_parallel_env will do nothing.";
+    return -1;
+  }
+  std::vector<std::string> vec_selected_gpus;
+  std::vector<std::string> vec_selected_xpus;
+  std::vector<std::string> vec_trainer_endpoints;
+  split(str_selected_gpus, ",", vec_selected_gpus);
+  split(str_selected_xpus, ",", vec_selected_xpus);
+  split(str_trainer_endpoints, ",", vec_trainer_endpoints);
+  std::vector<int> selected_gpus;
+  for (int i = 0; i < vec_selected_gpus.size(); ++i) {
+    selected_gpus.push_back(atoi(vec_selected_gpus[i].c_str()));
+  }
+  return paddle_infer::init_parallel_env(rank,
+                                         world_size,
+                                         selected_gpus,
+                                         vec_trainer_endpoints,
+                                         current_endpoint,
+                                         nrings);
+}
+
+} // namespace
 
 int Resource::initialize(const std::string& path, const std::string& file) {
   ResourceConf resource_conf;
@@ -189,6 +259,11 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     } else {
       LOG(INFO) << "cube quant mode ON, quant bits: " << this->_cube_quant_bits;
     }
+  }
+
+  // init paddle parallel env
+  if (FLAGS_use_parallel_infer_service) {
+    init_parallel_env();
   }
 
   THREAD_SETSPECIFIC(_tls_bspec_key, NULL);
@@ -307,6 +382,8 @@ int Resource::thread_initialize() {
     LOG(ERROR) << "Failed thrd initialized infer manager";
     return -1;
   }
+
+  
 
   return 0;
 }

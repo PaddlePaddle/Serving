@@ -43,6 +43,15 @@ DECLARE_bool(enable_model_toolkit);
 DECLARE_string(enable_protocol_list);
 DECLARE_bool(enable_cube);
 DECLARE_bool(enable_general_model);
+// parallel env
+DECLARE_int32(paddle_trainer_id);
+DECLARE_int32(paddle_trainers_num);
+DECLARE_string(serving_selected_gpus);
+DECLARE_string(serving_selected_xpus);
+DECLARE_string(paddle_trainer_endpoints);
+DECLARE_string(paddle_current_endpoint);
+DECLARE_int32(nccl_nrings);
+
 
 // STATIC Variables
 extern const char* START_OP_NAME;
