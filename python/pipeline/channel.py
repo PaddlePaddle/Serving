@@ -127,7 +127,6 @@ class ChannelData(object):
 
     def get_size(self):
         size = 0
-        dict_data = None
         if isinstance(self.dictdata, dict):
             for k in self.dictdata:
                 size += sys.getsizeof(self.dictdata[k]) + sys.getsizeof(k)
