@@ -909,7 +909,7 @@ function ocr_c++_service() {
     cp -r ocr_det_client/ ./ocr_det_client_cp
     rm -rf ocr_det_client
     mv ocr_det_client_cp ocr_det_client
-    sed -i "s/feed_type: 1/feed_type: 3/g" ocr_det_client/serving_client_conf.prototxt
+    sed -i "s/feed_type: 1/feed_type: 20/g" ocr_det_client/serving_client_conf.prototxt
     sed -i "s/shape: 3/shape: 1/g" ocr_det_client/serving_client_conf.prototxt
     sed -i '7,8d' ocr_det_client/serving_client_conf.prototxt
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC server started${RES}"

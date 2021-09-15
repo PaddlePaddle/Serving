@@ -14,6 +14,7 @@
 # pylint: disable=doc-string-missing
 import grpc
 import sys
+import time
 import numpy as np
 from numpy import *
 import logging
@@ -24,6 +25,7 @@ from .channel import ChannelDataErrcode
 from .proto import pipeline_service_pb2
 from .proto import pipeline_service_pb2_grpc
 import six
+from io import BytesIO
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -46,7 +48,8 @@ class PipelineClient(object):
         self._stub = pipeline_service_pb2_grpc.PipelineServiceStub(
             self._channel)
 
-    def _pack_request_package(self, feed_dict, pack_tensor_format, profile):
+    def _pack_request_package(self, feed_dict, pack_tensor_format,
+                              use_tensor_bytes, profile):
         req = pipeline_service_pb2.Request()
 
         logid = feed_dict.get("logid")
@@ -98,11 +101,9 @@ class PipelineClient(object):
                 one_tensor = req.tensors.add()
                 one_tensor.name = key
 
-                if (sys.version_info.major == 2 and
-                        isinstance(value, (str, unicode)) or
-                    ((sys.version_info.major == 3) and isinstance(value, str))):
+                if isinstance(value, str):
                     one_tensor.string_data.add(value)
-                    one_tensor.elem_type = 12  #12 => string
+                    one_tensor.elem_type = 12  #12 => string in proto
                     continue
 
                 if isinstance(value, np.ndarray):
@@ -110,6 +111,13 @@ class PipelineClient(object):
                     _LOGGER.info("value shape is {}".format(value.shape))
                     for one_dim in value.shape:
                         one_tensor.shape.append(one_dim)
+
+                    # packed into bytes
+                    if use_tensor_bytes is True:
+                        np_bytes = BytesIO()
+                        np.save(np_bytes, value, allow_pickle=True)
+                        one_tensor.byte_data = np_bytes.getvalue()
+                        one_tensor.elem_type = 13  #13 => bytes in proto
 
                     flat_value = value.flatten().tolist()
                     # copy data
@@ -161,6 +169,7 @@ class PipelineClient(object):
                 fetch=None,
                 asyn=False,
                 pack_tensor_format=False,
+                use_tensor_bytes=False,
                 profile=False,
                 log_id=0):
         if not isinstance(feed_dict, dict):
@@ -168,10 +177,12 @@ class PipelineClient(object):
                 "feed must be dict type with format: {name: value}.")
         if fetch is not None and not isinstance(fetch, list):
             raise TypeError("fetch must be list type with format: [name].")
-
-        req = self._pack_request_package(feed_dict, pack_tensor_format, profile)
+        print("PipelineClient::predict pack_data time:{}".format(time.time()))
+        req = self._pack_request_package(feed_dict, pack_tensor_format,
+                                         use_tensor_bytes, profile)
         req.logid = log_id
         if not asyn:
+            print("PipelineClient::predict before time:{}".format(time.time()))
             resp = self._stub.inference(req)
             return self._unpack_response_package(resp, fetch)
         else:

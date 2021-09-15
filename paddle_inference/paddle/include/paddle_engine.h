@@ -94,7 +94,9 @@ const std::string getFileBySuffix(
   return fileName;
 }
 
-// Engine Base
+// Engine Core is the base class of inference engines, which can be derived from
+// paddle Inference Engine, or inference engines of other machine learning
+// platforms
 class EngineCore {
  public:
   virtual ~EngineCore() {}
@@ -141,6 +143,11 @@ class EngineCore {
   virtual void* get() { return _predictor.get(); }
 
  protected:
+  // _predictor is a prediction instance of Paddle Inference.
+  // when inferring on the CPU, _predictor is bound to a model.
+  // when inferring on the GPU, _predictor is bound to a model and a GPU card.
+  // Therefore, when using GPU multi-card inference, you need to create multiple
+  // EngineCore.
   std::shared_ptr<Predictor> _predictor;
 };
 

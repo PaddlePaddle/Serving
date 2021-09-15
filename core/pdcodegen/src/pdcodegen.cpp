@@ -1492,11 +1492,6 @@ class PdsCodeGenerator : public CodeGenerator {
       const FieldDescriptor* fd = in_shared_fields[si];
       std::string field_name = fd->name();
       printer->Print("\n/////$field_name$\n", "field_name", field_name);
-      if (fd->is_optional()) {
-        printer->Print(
-            "if (req->has_$field_name$()) {\n", "field_name", field_name);
-        printer->Indent();
-      }
       if (fd->cpp_type() ==
               google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE ||
           fd->is_repeated()) {
@@ -1508,10 +1503,6 @@ class PdsCodeGenerator : public CodeGenerator {
         printer->Print("sub_req->set_$field_name$(req->$field_name$());\n",
                        "field_name",
                        field_name);
-      }
-      if (fd->is_optional()) {
-        printer->Outdent();
-        printer->Print("}\n");
       }
     }
 

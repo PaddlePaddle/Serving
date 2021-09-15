@@ -88,7 +88,7 @@ class PredictorData {
                        const std::string& name,
                        const std::vector<int>& shape,
                        const std::vector<int>& lod,
-                       const int datatype = 3);
+                       const int datatype = 20);
 
   const std::map<std::string, std::vector<float>>& float_data_map() const {
     return _float_data_map;
@@ -140,6 +140,8 @@ class PredictorData {
 
   int get_datatype(std::string name) const;
 
+  void set_datatype(std::string name, int type);
+
   std::string print();
 
  private:
@@ -159,6 +161,7 @@ class PredictorData {
       oss << "{";
       oss << it->first << key_seg;
       const std::vector<T2>& v = it->second;
+      oss << v.size() << key_seg;
       for (size_t i = 0; i < v.size(); ++i) {
         if (i != v.size() - 1) {
           oss << v[i] << val_seg;
@@ -184,7 +187,9 @@ class PredictorData {
     typename std::map<T1, T2>::const_iterator itEnd = map.end();
     for (; it != itEnd; it++) {
       oss << "{";
-      oss << it->first << key_seg << it->second;
+      oss << it->first << key_seg
+          << "size=" << it->second.size() << key_seg
+          << "type=" << this->get_datatype(it->first);
       oss << "}";
     }
     return oss.str();

@@ -26,6 +26,7 @@ import collections
 import numpy as np
 import json
 from numpy import *
+from io import BytesIO
 if sys.version_info.major == 2:
     import Queue
 elif sys.version_info.major == 3:
@@ -59,7 +60,8 @@ _TENSOR_DTYPE_2_NUMPY_DATA_DTYPE = {
     9: "bool",  # VarType.BOOL
     10: "complex64",  # VarType.COMPLEX64
     11: "complex128",  # VarType.COMPLEX128
-    12: "string",  # dismatch with numpy
+    12: "string",  # load by numpy
+    13: "bytes",  # load by numpy
 }
 
 
@@ -506,7 +508,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
-        _LOGGER.info("op:{} add output_channel {}".format(self.name, channel))
+        _LOGGER.debug("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -1333,6 +1335,8 @@ class Op(object):
                 break
             end = int(round(_time() * 1000000))
             in_time = end - start
+            _LOGGER.debug("op:{} in_time_end:{}".format(op_info_prefix,
+                                                        time.time()))
 
             # parse channeldata batch
             try:
@@ -1346,6 +1350,8 @@ class Op(object):
             if len(parsed_data_dict) == 0:
                 # data in the whole batch is all error data
                 continue
+            _LOGGER.debug("op:{} parse_end:{}".format(op_info_prefix,
+                                                      time.time()))
 
             # print
             front_cost = int(round(_time() * 1000000)) - start
@@ -1360,6 +1366,8 @@ class Op(object):
                     = self._run_preprocess(parsed_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
             prep_time = end - start
+            _LOGGER.debug("op:{} preprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), prep_time))
             try:
                 # put error requests into output channel, skip process and postprocess stage
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -1381,6 +1389,8 @@ class Op(object):
                     = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
             midp_time = end - start
+            _LOGGER.debug("op:{} process_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), midp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1402,6 +1412,8 @@ class Op(object):
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
             after_postp_time = _time()
+            _LOGGER.debug("op:{} postprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), postp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1567,10 +1579,11 @@ class RequestOp(Op):
 		UINT8
 		INT8
 		BOOL
+                BYTES
         Unsupported type:
+                STRING
                 COMPLEX64
                 COMPLEX128
-                STRING
 
         Args:
             tensor: one tensor in request.tensors.
@@ -1624,6 +1637,10 @@ class RequestOp(Op):
         elif tensor.elem_type == 9:
             # VarType: BOOL
             np_data = np.array(tensor.bool_data).astype(bool).reshape(dims)
+        elif tensor.elem_type == 13:
+            # VarType: BYTES
+            byte_data = BytesIO(tensor.byte_data)
+            np_data = np.load(byte_data, allow_pickle=True)
         else:
             _LOGGER.error("Sorry, the type {} of tensor {} is not supported.".
                           format(tensor.elem_type, tensor.name))
@@ -1690,9 +1707,10 @@ class RequestOp(Op):
             else:
                 dict_data[name] = self.proto_tensor_2_numpy(one_tensor)
 
-        _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
-            name:{}, method:{}".format(log_id, request.clientip, request.name,
-                                       request.method))
+        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+            name:{}, method:{}, time:{}"
+                     .format(log_id, request.clientip, request.name,
+                             request.method, time.time()))
 
         return dict_data, log_id, None, ""
 

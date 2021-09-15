@@ -168,7 +168,24 @@ int GeneralResponseOp::inference() {
         google::protobuf::RepeatedField<int32_t> tmp_data(data_ptr,
                                                           data_ptr + cap);
         output->mutable_tensor(var_idx)->mutable_int_data()->Swap(&tmp_data);
-      }
+      } else if (dtype == paddle::PaddleDType::UINT8) {
+        tensor->set_elem_type(7);
+        VLOG(2) << "(logid=" << log_id << ")Prepare uint8 var ["
+                << model_config->_fetch_name[idx] << "].";
+        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      } else if (dtype == paddle::PaddleDType::INT8) {
+        tensor->set_elem_type(8);
+        VLOG(2) << "(logid=" << log_id << ")Prepare int8 var ["
+                << model_config->_fetch_name[idx] << "].";
+        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      } 
+      // inference will support fp16
+      //   else if (dtype == paddle::PaddleDType::FLOAT16) {
+      //   tensor->set_elem_type(5);
+      //   VLOG(2) << "(logid=" << log_id << ")Prepare float16 var ["
+      //           << model_config->_fetch_name[idx] << "].";
+      //   tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      // }
 
       VLOG(2) << "(logid=" << log_id << ") fetch var ["
               << model_config->_fetch_name[idx] << "] ready";

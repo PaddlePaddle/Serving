@@ -349,7 +349,7 @@ T* VersionedInferEngine::get_core() {
 }
 
 template <typename T>
-T* VersionedInferEngine::get_core(uint64_t version) {
+T* VersionedInferEngine::get_core(const uint64_t version) {
   auto iter = _versions.find(version);
   if (iter == _versions.end()) {
     LOG(ERROR) << "Not found version engine: " << version;
@@ -362,6 +362,15 @@ T* VersionedInferEngine::get_core(uint64_t version) {
   }
   LOG(WARNING) << "fail to get core for " << version;
   return NULL;
+}
+
+CubeCache* VersionedInferEngine::get_cube_cache() {
+  InferEngine* engine = default_engine();
+  if (!engine) {
+    LOG(WARNING) << "fail to get default engine";
+    return nullptr;
+  }
+  return engine->get_cube_cache();
 }
 
 int VersionedInferEngine::proc_initialize_impl(
@@ -506,6 +515,15 @@ T* InferManager::get_core(const char* model_name) {
   return NULL;
 }
 
+CubeCache* InferManager::get_cube_cache(const char* model_name) {
+  auto it = _map.find(model_name);
+  if (it == _map.end()) {
+    LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
+    return nullptr;
+  }
+  return it->second->get_cube_cache();
+}
+
 // Versioned inference interface
 int InferManager::infer(const char* model_name,
                         const void* in,
@@ -521,7 +539,7 @@ int InferManager::infer(const char* model_name,
 }
 
 template <typename T>
-T* InferManager::get_core(const char* model_name, uint64_t version) {
+T* InferManager::get_core(const char* model_name, const uint64_t version) {
   auto it = _map.find(model_name);
   if (it == _map.end()) {
     LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;

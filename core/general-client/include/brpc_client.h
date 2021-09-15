@@ -35,9 +35,9 @@ using configure::Predictor;
 using configure::VariantConf;
 class ServingBrpcClient : public ServingClient {
  public:
-  ServingBrpcClient(){}
+  ServingBrpcClient() {}
 
-  ~ServingBrpcClient(){}
+  ~ServingBrpcClient() {}
 
   virtual int connect(const std::string server_port);
 

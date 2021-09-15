@@ -75,11 +75,14 @@ message ResourceConf {
   repeated string model_toolkit_file = 2;
   repeated string general_model_path = 3;
   repeated string general_model_file = 4;
-  optional string cube_config_path = 5;
-  optional string cube_config_file = 6;
-  optional int32 cube_quant_bits = 7; // set 0 if no quant.
-  optional string auth_product_name = 8;
-  optional string auth_container_id = 9;
+
+  optional string cube_config_path = 10;
+  optional string cube_config_file = 11;
+  optional int32 cube_quant_bits = 12;
+  optional string cube_cache_path = 13;
+
+  optional string auth_product_name = 20;
+  optional string auth_container_id = 21;
 };
 
 // DAG node depency info
