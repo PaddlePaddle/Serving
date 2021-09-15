@@ -14,6 +14,7 @@
 
 #pragma once
 #include <map>
+#include <memory>
 #include <string>
 #include "core/sdk-cpp/include/config_manager.h"
 #include "core/sdk-cpp/include/endpoint.h"
@@ -25,6 +26,8 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
+using configure::SDKConf;
+
 class PredictorApi {
  public:
   PredictorApi() {}
@@ -34,6 +37,10 @@ class PredictorApi {
   int create(const std::string& sdk_desc_str);
 
   int create(const char* path, const char* file);
+
+  int create(std::shared_ptr<SDKConf> sdk_shared_ptr);
+
+  int create_init();
 
   int thrd_initialize();
 

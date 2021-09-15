@@ -13,10 +13,10 @@
 // limitations under the License.
 
 #include "core/general-client/include/brpc_client.h"
-#include "core/sdk-cpp/include/common.h"
-#include "core/util/include/timer.h"
 #include "core/sdk-cpp/builtin_format.pb.h"
 #include "core/sdk-cpp/general_model_service.pb.h"
+#include "core/sdk-cpp/include/common.h"
+#include "core/util/include/timer.h"
 DEFINE_bool(profile_client, false, "");
 DEFINE_bool(profile_server, false, "");
 #define BRPC_MAX_BODY_SIZE 512 * 1024 * 1024
@@ -24,16 +24,6 @@ DEFINE_bool(profile_server, false, "");
 namespace baidu {
 namespace paddle_serving {
 namespace client {
-
-using baidu::paddle_serving::Timer;
-using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::Response;
-using baidu::paddle_serving::predictor::general_model::Tensor;
-
-using configure::SDKConf;
-using configure::VariantConf;
-using configure::Predictor;
-using configure::VariantConf;
 
 int ServingBrpcClient::connect(const std::string server_port) {
   brpc::fLU64::FLAGS_max_body_size = BRPC_MAX_BODY_SIZE;
@@ -45,21 +35,24 @@ int ServingBrpcClient::connect(const std::string server_port) {
   return 0;
 }
 
-std::string ServingBrpcClient::gen_desc(const std::string server_port) {
+std::shared_ptr<SDKConf> ServingBrpcClient::gen_desc(
+    const std::string server_port) {
   // default config for brpc
-  SDKConf sdk_conf;
+  std::shared_ptr<SDKConf> sdk_conf_sharedptr = std::make_shared<SDKConf>();
 
-  Predictor* predictor = sdk_conf.add_predictors();
+  Predictor* predictor = sdk_conf_sharedptr->add_predictors();
   predictor->set_name("general_model");
-  predictor->set_service_name("baidu.paddle_serving.predictor.general_model.GeneralModelService");
+  predictor->set_service_name(
+      "baidu.paddle_serving.predictor.general_model.GeneralModelService");
   predictor->set_endpoint_router("WeightedRandomRender");
-  predictor->mutable_weighted_random_render_conf()->set_variant_weight_list("100");
+  predictor->mutable_weighted_random_render_conf()->set_variant_weight_list(
+      "100");
   VariantConf* predictor_var = predictor->add_variants();
   predictor_var->set_tag("default_tag_1");
   std::string cluster = "list://" + server_port;
   predictor_var->mutable_naming_conf()->set_cluster(cluster);
 
-  VariantConf* var = sdk_conf.mutable_default_variant_conf();
+  VariantConf* var = sdk_conf_sharedptr->mutable_default_variant_conf();
   var->set_tag("default");
   var->mutable_connection_conf()->set_connect_timeout_ms(2000);
   var->mutable_connection_conf()->set_rpc_timeout_ms(200000);
@@ -78,7 +71,7 @@ std::string ServingBrpcClient::gen_desc(const std::string server_port) {
   var->mutable_rpc_parameter()->set_protocol("baidu_std");
   var->mutable_rpc_parameter()->set_max_channel_per_request(3);
 
-  return sdk_conf.SerializePartialAsString();
+  return sdk_conf_sharedptr;
 }
 
 int ServingBrpcClient::predict(const PredictorInputs& inputs,
@@ -102,11 +95,12 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
   req.set_log_id(log_id);
-  for (auto &name : fetch_name) {
+  for (auto& name : fetch_name) {
     req.add_fetch_var_names(name);
   }
 
-  if (PredictorInputs::GenProto(inputs, _feed_name_to_idx, _feed_name, req) != 0) {
+  if (PredictorInputs::GenProto(inputs, _feed_name_to_idx, _feed_name, req) !=
+      0) {
     LOG(ERROR) << "Failed to preprocess req!";
     return -1;
   }
@@ -133,7 +127,8 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
 
   client_infer_end = timeline.TimeStampUS();
   postprocess_start = client_infer_end;
-  if (PredictorOutputs::ParseProto(res, fetch_name, _fetch_name_to_type, outputs) != 0) {
+  if (PredictorOutputs::ParseProto(
+          res, fetch_name, _fetch_name_to_type, outputs) != 0) {
     LOG(ERROR) << "Failed to post_process res!";
     return -1;
   }
@@ -167,6 +162,6 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
   return 0;
 }
 
-}  // namespace general_model
+}  // namespace client
 }  // namespace paddle_serving
 }  // namespace baidu

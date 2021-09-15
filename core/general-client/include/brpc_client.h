@@ -13,6 +13,8 @@
 // limitations under the License.
 #pragma once
 
+#include <memory>
+#include <vector>
 #include "core/general-client/include/client.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
 using baidu::paddle_serving::sdk_cpp::Predictor;
@@ -22,12 +24,20 @@ namespace baidu {
 namespace paddle_serving {
 namespace client {
 
+using baidu::paddle_serving::Timer;
+using baidu::paddle_serving::predictor::general_model::Request;
+using baidu::paddle_serving::predictor::general_model::Response;
+using baidu::paddle_serving::predictor::general_model::Tensor;
+
+using configure::SDKConf;
+using configure::VariantConf;
+using configure::Predictor;
+using configure::VariantConf;
 class ServingBrpcClient : public ServingClient {
  public:
+  ServingBrpcClient(){}
 
-  ServingBrpcClient() {};
-
-  ~ServingBrpcClient() {};
+  ~ServingBrpcClient(){}
 
   virtual int connect(const std::string server_port);
 
@@ -38,7 +48,7 @@ class ServingBrpcClient : public ServingClient {
 
  private:
   // generate default SDKConf
-  std::string gen_desc(const std::string server_port);
+  std::shared_ptr<SDKConf> gen_desc(const std::string server_port);
 
  private:
   PredictorApi _api;
