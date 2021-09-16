@@ -108,7 +108,9 @@ class PipelineClient(object):
 
                 if isinstance(value, np.ndarray):
                     # copy shape
-                    _LOGGER.info("value shape is {}".format(value.shape))
+                    _LOGGER.debug(
+                        "key:{}, use_tensor_bytes:{}, value.shape:{}, value.dtype:{}".
+                        format(key, use_tensor_bytes, value.shape, value.dtype))
                     for one_dim in value.shape:
                         one_tensor.shape.append(one_dim)
 
@@ -118,6 +120,7 @@ class PipelineClient(object):
                         np.save(np_bytes, value, allow_pickle=True)
                         one_tensor.byte_data = np_bytes.getvalue()
                         one_tensor.elem_type = 13  #13 => bytes in proto
+                        continue
 
                     flat_value = value.flatten().tolist()
                     # copy data
