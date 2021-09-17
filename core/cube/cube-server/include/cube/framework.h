@@ -127,6 +127,18 @@ public:
     fs.write(content.c_str(), content.size());
     fs.close();
   }
+  std::string to_string() {
+    std::string content = "";
+    for (const Record& rec: this->_records) {
+      content += std::to_string(rec.id)+ "|";
+      content += std::to_string(rec.version)+ "|";
+      content += std::to_string(rec.key) + "|";
+      content += rec.path + "|";
+      content += rec.cmd + "|";
+      content += rec.timestamp + "\n";
+    }
+    return content;
+  }
 private:
   std::string get_ts() {
     char date[20];

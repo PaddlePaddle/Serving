@@ -137,18 +137,25 @@ void Framework::release(VirtualDict* dict) { dict->atom_dec_seek_num(); }
 int Framework::status(Document* res, std::string dict_name) {
   res->SetObject();
   Document::AllocatorType& allocator = res->GetAllocator();
+  if (_dict_map.find(dict_name) == _dict_map.end()) {
+    return 0;
+  } 
   Value cur_version;
   Value bg_version;
-  char* cur_ver = const_cast<char*>(get_cur_version(dict_name).c_str());
-  char* bg_ver = const_cast<char*>(get_bg_version(dict_name).c_str());
-  LOG(INFO) << "status: dict name: " << dict_name << ", " << cur_ver << " "<< bg_ver << " " << _status.load();
-  //cur_version.SetString(StringRef(get_cur_version(dict_name).c_str()));
-  //bg_version.SetString(StringRef(get_bg_version(dict_name).c_str()));
-  cur_version.SetString(StringRef(cur_ver));
-  bg_version.SetString(StringRef(bg_ver));
+  Value record;
+  //char* cur_ver = const_cast<char*>(get_cur_version(dict_name).c_str());
+  //char* bg_ver = const_cast<char*>(get_bg_version(dict_name).c_str());
+  //LOG(INFO) << "status: dict name: " << dict_name << ", " << cur_ver << " "<< bg_ver << " " << _status.load();
+  cur_version.SetString(StringRef(get_cur_version(dict_name).c_str()), get_cur_version(dict_name).size(), allocator);
+  bg_version.SetString(StringRef(get_bg_version(dict_name).c_str())), get_bg_version(dict_name).size(), allocator;
+  std::string record_str = _dict_map.at(dict_name)->_version_table->to_string();
+  record.SetString(StringRef(record_str.c_str()), record_str.size(), allocator);
+  //cur_version.SetString(StringRef(cur_ver));
+  //bg_version.SetString(StringRef(bg_ver));
   res->AddMember("cur_version", cur_version, allocator);
   res->AddMember("bg_version", bg_version, allocator);
   res->AddMember("status", _status.load(), allocator);
+  res->AddMember("record", record, allocator);
   return 0;
 }
 
@@ -201,6 +208,8 @@ int Framework::reload(std::string dict_name, const std::string& v_path) {
     LOG(WARNING) << "background load dict base failed";
   } else {
     LOG(INFO) << "background load dict base succ";
+    DoubleBufDict* dict = _dict_map.at(dict_name);
+    dict->_version_table->add_record(1, v_path, "base");
   }
 
   ret = bg_switch(dict_name);
@@ -226,6 +235,8 @@ int Framework::patch(std::string dict_name, const std::string& v_path) {
     LOG(WARNING) << "background load dict patch failed";
   } else {
     LOG(INFO) << "background load dict patch succ";
+    DoubleBufDict* dict = _dict_map.at(dict_name);
+    dict->_version_table->add_record(1, v_path, "patch");
   }
 
   ret = bg_switch(dict_name);
@@ -268,7 +279,6 @@ int Framework::bg_load_base(std::string dict_name, const std::string& v_path) {
 
   _status = Status::F_LOADING;
   ret = bg_dict->load(dict->get_dict_path(), dict->get_in_mem(), v_path);
-  dict->_version_table->add_record(1, v_path, "base");
   _status = Status::F_RUNNING;
   if (ret != 0) {
     LOG(WARNING) << "load background dict failed";
@@ -308,7 +318,6 @@ int Framework::bg_load_patch(std::string dict_name, const std::string& v_path) {
   }
 
   ret = bg_dict->load(dict->get_dict_path(), dict->get_in_mem(), v_path);
-  dict->_version_table->add_record(1, v_path, "patch");
   _status = Status::F_RUNNING;
   if (ret != 0) {
     LOG(WARNING) << "load background dict failed";
