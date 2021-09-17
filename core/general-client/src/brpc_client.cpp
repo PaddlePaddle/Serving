@@ -119,10 +119,8 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
   int64_t postprocess_start = 0;
   int64_t postprocess_end = 0;
 
-  if (FLAGS_profile_client) {
-    if (FLAGS_profile_server) {
-      req.set_profile_server(true);
-    }
+  if (FLAGS_profile_server) {
+    req.set_profile_server(true);
   }
 
   res.Clear();
@@ -163,6 +161,34 @@ int ServingBrpcClient::predict(const PredictorInputs& inputs,
 
   // release predictor
   _api.thrd_clear();
+
+  std::ostringstream oss;
+  oss << "[client]"
+      << "logid=" << log_id <<",";
+  if (FLAGS_profile_client) {
+    double pre_cost = (preprocess_end - preprocess_start) / 1000.0;
+    double infer_cost = (client_infer_end - client_infer_start) / 1000.0;
+    double post_cost = (postprocess_end - postprocess_start) / 1000.0;
+    oss << "client_pre_cost=" << pre_cost << "ms,"
+        << "client_infer_cost=" << infer_cost << "ms,"
+        << "client_post_cost=" << post_cost << "ms,";
+  }
+  double client_cost = (postprocess_end - preprocess_start) / 1000.0;
+  oss << "client_cost=" << client_cost << "ms,";
+
+  int op_num = res.profile_time_size() / 2;
+  if (FLAGS_profile_server) {
+    for (int i = 0; i < op_num - 1; ++i) {
+      double t = (res.profile_time(i * 2 + 1)
+                 - res.profile_time(i * 2)) / 1000.0;
+      oss << "op" << i << "=" << t << "ms,";
+    }
+  }
+  int i = op_num - 1;
+  double server_cost = (res.profile_time(i * 2 + 1)
+               - res.profile_time(i * 2)) / 1000.0;
+  oss << "server_cost=" << server_cost << "ms.";
+  LOG(INFO) << oss.str();
 
   return 0;
 }

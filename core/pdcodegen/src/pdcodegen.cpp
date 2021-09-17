@@ -326,6 +326,8 @@ class PdsCodeGenerator : public CodeGenerator {
           inference_body += "  oss << \"cost=\" << total_time << \"ms.\";\n";
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << oss.str();\n";
+          inference_body += "  response->add_profile_time(start);\n";
+          inference_body += "  response->add_profile_time(end);\n";
         } else {
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT
@@ -1091,6 +1093,8 @@ class PdsCodeGenerator : public CodeGenerator {
           inference_body += "  oss << \"cost=\" << total_time << \"ms.\";\n";
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << oss.str();\n";
+          inference_body += "  response->add_profile_time(start);\n";
+          inference_body += "  response->add_profile_time(end);\n";
         } else {
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT
