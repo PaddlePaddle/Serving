@@ -95,7 +95,8 @@ message DAGNodeDependency {
 message DAGNode {
   required string name = 1;
   required string type = 2;
-  repeated DAGNodeDependency dependencies = 3;
+  optional string address = 3;
+  repeated DAGNodeDependency dependencies = 4;
 };
 
 // workflow entry

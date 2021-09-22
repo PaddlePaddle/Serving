@@ -129,6 +129,9 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
     node->id = i + 1;  // 0 is reserved for begginer-op
     node->name = conf.nodes(i).name();
     node->type = conf.nodes(i).type();
+    if (conf.nodes(i).has_address()) {
+      node->address = conf.nodes(i).address();
+    }
     uint32_t depend_size = conf.nodes(i).dependencies_size();
     for (uint32_t j = 0; j < depend_size; j++) {
       const configure::DAGNodeDependency& depend =

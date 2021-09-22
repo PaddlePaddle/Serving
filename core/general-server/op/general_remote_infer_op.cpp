@@ -98,7 +98,7 @@ int GeneralRemoteInferOp::inference() {
   timeline.Start();
   VLOG(2) << "Going to run inference";
   if (!inited) {
-    connect(IP_PORT);
+    connect(address());
   }
   const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() > 1) {
