@@ -19,7 +19,7 @@ import numpy as np
 
 client = Client()
 client.load_client_config(sys.argv[1])
-client.connect(["127.0.0.1:9393"])
+client.connect(["127.0.0.1:9292"])
 fetch_list = client.get_fetch_names()
 import paddle
 test_reader = paddle.batch(
@@ -33,3 +33,4 @@ for data in test_reader():
     fetch_map = client.predict(
         feed={"x": new_data}, fetch=fetch_list, batch=True)
     print(fetch_map)
+    break

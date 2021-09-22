@@ -3,7 +3,7 @@ include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api utils)
+add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api utils sdk-cpp)
 
 if (WITH_GPU)
     add_dependencies(serving paddle_inference_engine)
@@ -30,6 +30,7 @@ target_link_libraries(serving protobuf)
 target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
+target_link_libraries(serving sdk-cpp)
 
 
 if(WITH_GPU)

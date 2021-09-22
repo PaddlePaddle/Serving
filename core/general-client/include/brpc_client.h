@@ -14,25 +14,21 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 #include "core/general-client/include/client.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
-using baidu::paddle_serving::sdk_cpp::Predictor;
+
 using baidu::paddle_serving::sdk_cpp::PredictorApi;
 
 namespace baidu {
 namespace paddle_serving {
 namespace client {
 
-using baidu::paddle_serving::Timer;
-using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::Response;
-using baidu::paddle_serving::predictor::general_model::Tensor;
-
 using configure::SDKConf;
 using configure::VariantConf;
 using configure::Predictor;
-using configure::VariantConf;
+
 class ServingBrpcClient : public ServingClient {
  public:
   ServingBrpcClient() {}
@@ -52,7 +48,7 @@ class ServingBrpcClient : public ServingClient {
 
  private:
   PredictorApi _api;
-  Predictor* _predictor;
+  baidu::paddle_serving::sdk_cpp::Predictor* _predictor;
 };
 
 }  // namespace client

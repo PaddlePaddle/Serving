@@ -25,6 +25,10 @@ int Workflow::init(const configure::Workflow& conf) {
   const std::string& name = conf.name();
   _type = conf.workflow_type();
   _name = name;
+  if (conf.has_repeat_time()) {
+    _repeat_time = conf.repeat_time();
+  }
+
   if (_dag.init(conf, name) != 0) {
     LOG(ERROR) << "Failed initialize dag: " << _name;
     return -1;

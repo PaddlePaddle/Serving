@@ -13,43 +13,28 @@
 // limitations under the License.
 
 #pragma once
-#include <memory>
 #include <string>
 #include <vector>
 #include "core/general-server/general_model_service.pb.h"
-#include "core/sdk-cpp/builtin_format.pb.h"
-#include "core/sdk-cpp/general_model_service.pb.h"
-#include "core/sdk-cpp/include/common.h"
-#include "core/sdk-cpp/include/predictor_sdk.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
+// 原理上，GeneralSingleOutOp是通用类型的OP
+// 适用于无论多少个前置依赖OP，只取一个而不合并的情况。
+// 后续其实该OP可以通过OP中带更多的属性设置+动态类型推断（或直接取消GeneralBlob）
+// 从而与GeneralResponse合并在一起。
 
-using baidu::paddle_serving::sdk_cpp::PredictorApi;
-using configure::SDKConf;
-using configure::VariantConf;
-using configure::Predictor;
-using configure::VariantConf;
-
-class GeneralRemoteInferOp
+// 目前它必须跟在GeneralRemoteInferOp后面
+// 主要作用是：只取其中一个输出结果，而不合并。
+// 所以注册该OP时的模板参数是Response
+class GeneralSingleOutOp
     : public baidu::paddle_serving::predictor::OpWithChannel<
           baidu::paddle_serving::predictor::general_model::Response> {
  public:
-  DECLARE_OP(GeneralRemoteInferOp);
+  DECLARE_OP(GeneralSingleOutOp);
 
   int inference();
-
-  std::shared_ptr<SDKConf> gen_desc(const std::string server_port);
-
-  int connect(const std::string server_port);
-
-  virtual ~GeneralRemoteInferOp();
-
- private:
-  PredictorApi _api;
-  baidu::paddle_serving::sdk_cpp::Predictor* _predictor;
-  bool inited = false;
 };
 
 }  // namespace serving

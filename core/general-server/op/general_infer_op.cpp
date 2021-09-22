@@ -58,6 +58,7 @@ int GeneralInferOp::inference() {
     LOG(ERROR) << "output_blob is nullptr,error";
     return -1;
   }
+  output_blob->Clear();
   output_blob->SetLogId(log_id);
 
   if (!input_blob) {

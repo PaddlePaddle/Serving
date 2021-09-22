@@ -24,6 +24,10 @@ DEFINE_bool(profile_server, false, "");
 namespace baidu {
 namespace paddle_serving {
 namespace client {
+using baidu::paddle_serving::Timer;
+using baidu::paddle_serving::predictor::general_model::Request;
+using baidu::paddle_serving::predictor::general_model::Response;
+using baidu::paddle_serving::predictor::general_model::Tensor;
 
 int ServingBrpcClient::connect(const std::string server_port) {
   brpc::fLU64::FLAGS_max_body_size = BRPC_MAX_BODY_SIZE;
@@ -61,7 +65,6 @@ std::shared_ptr<SDKConf> ServingBrpcClient::gen_desc(
   var->mutable_connection_conf()->set_hedge_request_timeout_ms(-1);
   var->mutable_connection_conf()->set_hedge_fetch_retry_count(2);
   var->mutable_connection_conf()->set_connection_type("pooled");
-  var->mutable_connection_conf()->set_connect_timeout_ms(2000);
 
   var->mutable_naming_conf()->set_cluster_filter_strategy("Default");
   var->mutable_naming_conf()->set_load_balance_strategy("la");

@@ -49,12 +49,15 @@ class Workflow {
 
   const std::string& full_name() { return _name; }
 
+  int get_repeat_time() { return _repeat_time; }
+
   void regist_metric(const std::string& service_name);
 
  private:
   Dag _dag;
   std::string _type;
   std::string _name;
+  int _repeat_time = 0;
 };
 
 }  // namespace predictor

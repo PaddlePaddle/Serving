@@ -13,43 +13,26 @@
 // limitations under the License.
 
 #pragma once
-#include <memory>
 #include <string>
 #include <vector>
 #include "core/general-server/general_model_service.pb.h"
-#include "core/sdk-cpp/builtin_format.pb.h"
-#include "core/sdk-cpp/general_model_service.pb.h"
-#include "core/sdk-cpp/include/common.h"
-#include "core/sdk-cpp/include/predictor_sdk.h"
 
 namespace baidu {
 namespace paddle_serving {
 namespace serving {
 
-using baidu::paddle_serving::sdk_cpp::PredictorApi;
-using configure::SDKConf;
-using configure::VariantConf;
-using configure::Predictor;
-using configure::VariantConf;
-
-class GeneralRemoteInferOp
+// GeneralMiddleOp是专门用来处理分布式千亿模型的特制OP
+// 它必须跟在GeneralRemoteInferOp后面
+// 主要作用是：1、将远程预测OP的输出Response(FetchVar) + FeedVar
+// 2、将Response转换为Request
+// 所以注册该OP时的模板参数是Request
+class GeneralMiddleOp
     : public baidu::paddle_serving::predictor::OpWithChannel<
-          baidu::paddle_serving::predictor::general_model::Response> {
+          baidu::paddle_serving::predictor::general_model::Request> {
  public:
-  DECLARE_OP(GeneralRemoteInferOp);
+  DECLARE_OP(GeneralMiddleOp);
 
   int inference();
-
-  std::shared_ptr<SDKConf> gen_desc(const std::string server_port);
-
-  int connect(const std::string server_port);
-
-  virtual ~GeneralRemoteInferOp();
-
- private:
-  PredictorApi _api;
-  baidu::paddle_serving::sdk_cpp::Predictor* _predictor;
-  bool inited = false;
 };
 
 }  // namespace serving
