@@ -171,10 +171,13 @@ SET_PROPERTY(TARGET xxhash PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/thir
 ADD_LIBRARY(cryptopp STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET cryptopp PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/cryptopp/lib/libcryptopp.a)
 
+ADD_LIBRARY(gloo STATIC IMPORTED GLOBAL)
+SET_PROPERTY(TARGET gloo PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/gloo/lib/libgloo.a)
+
 LIST(APPEND external_project_dependencies paddle)
 
 LIST(APPEND paddle_depend_libs
-        xxhash cryptopp)
+        xxhash cryptopp gloo)
 
 if(WITH_LITE)
     LIST(APPEND paddle_depend_libs paddle_full_api_shared)
