@@ -142,7 +142,8 @@ if (NOT WITH_MKLML)
 endif()
 
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
+SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
+# SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
 
 if (WITH_TRT)
     ADD_LIBRARY(nvinfer SHARED IMPORTED GLOBAL)
