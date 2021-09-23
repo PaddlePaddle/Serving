@@ -39,21 +39,28 @@ using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
 int GeneralResponseOp::inference() {
+  Timer timeline;
+  // double response_time = 0.0;
+  // timeline.Start();
+  int64_t start = timeline.TimeStampUS();
   const std::vector<std::string> pre_node_names = pre_names();
   VLOG(2) << "pre node names size: " << pre_node_names.size();
+  const Request *req = dynamic_cast<const Request *>(get_request_message());
+  Response *res = mutable_data<Response>();
+  res->Clear();
+
+  // TODO(HexToString) 支持动态类型识别前面的op的Channel类型，来处理
+  // 如果前面是远程预测OP，前面输出的Channel应该就是Response类型，那么直接合并多个Response即可。
+  // 如果前面是本地预测OP，前面输出的Channel应该就是GeneralBlob类型，那么按原来处理。
+  // 更甚至，可以直接取消GeneralBlob，统一用Proto中的数据装，反正最后往Predictor中都是传连续的指针。
+  // 好处：1、能够不用做数据类型拷贝和转换。
+  // 2、各种消息类型之间不用做区别。
+  // 改造成本略大：涉及到目前的异步框架、同步框架、Channel、OP等等.
   const GeneralBlob *input_blob = nullptr;
   int var_idx = 0;
   int cap = 1;
   uint64_t log_id =
       get_depend_argument<GeneralBlob>(pre_node_names[0])->GetLogId();
-
-  const Request *req = dynamic_cast<const Request *>(get_request_message());
-  Response *res = mutable_data<Response>();
-
-  Timer timeline;
-  // double response_time = 0.0;
-  // timeline.Start();
-  int64_t start = timeline.TimeStampUS();
 
   VLOG(2) << "(logid=" << log_id
           << ") start to call load general model_conf op";
@@ -172,19 +179,22 @@ int GeneralResponseOp::inference() {
         tensor->set_elem_type(7);
         VLOG(2) << "(logid=" << log_id << ")Prepare uint8 var ["
                 << model_config->_fetch_name[idx] << "].";
-        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+        tensor->set_tensor_content(in->at(idx).data.data(),
+                                   in->at(idx).data.length());
       } else if (dtype == paddle::PaddleDType::INT8) {
         tensor->set_elem_type(8);
         VLOG(2) << "(logid=" << log_id << ")Prepare int8 var ["
                 << model_config->_fetch_name[idx] << "].";
-        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
-      } 
+        tensor->set_tensor_content(in->at(idx).data.data(),
+                                   in->at(idx).data.length());
+      }
       // inference will support fp16
       //   else if (dtype == paddle::PaddleDType::FLOAT16) {
       //   tensor->set_elem_type(5);
       //   VLOG(2) << "(logid=" << log_id << ")Prepare float16 var ["
       //           << model_config->_fetch_name[idx] << "].";
-      //   tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      //   tensor->set_tensor_content(in->at(idx).data.data(),
+      //   in->at(idx).data.length());
       // }
 
       VLOG(2) << "(logid=" << log_id << ") fetch var ["

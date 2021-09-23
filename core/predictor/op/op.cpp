@@ -36,12 +36,14 @@ int Op::init(Bus* bus,
              const std::string& name,
              const std::string& type,
              void* conf,
+             const std::string& address,
              const uint64_t log_id) {
   _bus = bus;
   _dag = dag;
   _id = id;
   _name = name;
   _type = type;
+  _address = address;
   set_config(conf);
 
   _timer = butil::get_object<TimerFlow>();

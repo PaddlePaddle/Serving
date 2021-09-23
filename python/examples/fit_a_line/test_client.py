@@ -33,3 +33,4 @@ for data in test_reader():
     fetch_map = client.predict(
         feed={"x": new_data}, fetch=fetch_list, batch=True)
     print(fetch_map)
+    break

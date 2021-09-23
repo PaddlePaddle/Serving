@@ -1,4 +1,4 @@
-// Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,46 +11,47 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
 
+#pragma once
 #include <memory>
 #include <string>
 #include <vector>
-#include "core/general-client/include/client.h"
+#include "core/general-server/general_model_service.pb.h"
+#include "core/sdk-cpp/builtin_format.pb.h"
+#include "core/sdk-cpp/general_model_service.pb.h"
+#include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/predictor_sdk.h"
-
-using baidu::paddle_serving::sdk_cpp::PredictorApi;
 
 namespace baidu {
 namespace paddle_serving {
-namespace client {
+namespace serving {
 
+using baidu::paddle_serving::sdk_cpp::PredictorApi;
 using configure::SDKConf;
 using configure::VariantConf;
 using configure::Predictor;
+using configure::VariantConf;
 
-class ServingBrpcClient : public ServingClient {
+class GeneralRemoteInferOp
+    : public baidu::paddle_serving::predictor::OpWithChannel<
+          baidu::paddle_serving::predictor::general_model::Response> {
  public:
-  ServingBrpcClient() {}
+  DECLARE_OP(GeneralRemoteInferOp);
 
-  ~ServingBrpcClient() {}
+  int inference();
 
-  virtual int connect(const std::string server_port);
-
-  int predict(const PredictorInputs& inputs,
-              PredictorOutputs& outputs,
-              const std::vector<std::string>& fetch_name,
-              const uint64_t log_id);
-
- private:
-  // generate default SDKConf
   std::shared_ptr<SDKConf> gen_desc(const std::string server_port);
+
+  int connect(const std::string server_port);
+
+  virtual ~GeneralRemoteInferOp();
 
  private:
   PredictorApi _api;
   baidu::paddle_serving::sdk_cpp::Predictor* _predictor;
+  bool inited = false;
 };
 
-}  // namespace client
+}  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu

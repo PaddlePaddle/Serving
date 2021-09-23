@@ -24,8 +24,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
 
-using configure::SDKConf;
-
 int EndpointConfigManager::create(const std::string& sdk_desc_str) {
   if (load(sdk_desc_str) != 0) {
     LOG(ERROR) << "Failed reload endpoint config";
@@ -47,47 +45,30 @@ int EndpointConfigManager::create(const char* path, const char* file) {
   return 0;
 }
 
+int EndpointConfigManager::create(std::shared_ptr<SDKConf> sdk_shared_ptr) {
+  if (load(sdk_shared_ptr) != 0) {
+    LOG(ERROR) << "Failed reload endpoint config";
+    return -1;
+  }
+
+  return 0;
+}
+
 int EndpointConfigManager::load(const std::string& sdk_desc_str) {
+  int result = -1;
   try {
     SDKConf sdk_conf;
     sdk_conf.ParseFromString(sdk_desc_str);
-    VariantInfo default_var;
-    if (init_one_variant(sdk_conf.default_variant_conf(), default_var) != 0) {
-      LOG(ERROR) << "Failed read default var conf";
-      return -1;
-    }
-
-    uint32_t ep_size = sdk_conf.predictors_size();
-    for (uint32_t ei = 0; ei < ep_size; ++ei) {
-      EndpointInfo ep;
-      if (init_one_endpoint(sdk_conf.predictors(ei), ep, default_var) != 0) {
-        LOG(ERROR) << "Failed read endpoint info at: " << ei;
-        return -1;
-      }
-
-      std::map<std::string, EndpointInfo>::iterator it;
-      if (_ep_map.find(ep.endpoint_name) != _ep_map.end()) {
-        LOG(ERROR) << "Cannot insert duplicated endpoint"
-                   << ", ep name: " << ep.endpoint_name;
-      }
-
-      std::pair<std::map<std::string, EndpointInfo>::iterator, bool> r =
-          _ep_map.insert(std::make_pair(ep.endpoint_name, ep));
-      if (!r.second) {
-        LOG(ERROR) << "Failed insert endpoint, name" << ep.endpoint_name;
-        return -1;
-      }
-    }
+    result = load_init(sdk_conf);
   } catch (std::exception& e) {
     LOG(ERROR) << "Failed load configure" << e.what();
     return -1;
   }
-  VLOG(2) << "Success reload endpoint config file, id: "
-          << _current_endpointmap_id;
-  return 0;
+  return result;
 }
 
 int EndpointConfigManager::load() {
+  int result = -1;
   try {
     SDKConf sdk_conf;
     if (configure::read_proto_conf(_endpoint_config_path.c_str(),
@@ -99,37 +80,54 @@ int EndpointConfigManager::load() {
       return -1;
     }
 
-    VariantInfo default_var;
-    if (init_one_variant(sdk_conf.default_variant_conf(), default_var) != 0) {
-      LOG(ERROR) << "Failed read default var conf";
-      return -1;
-    }
-
-    uint32_t ep_size = sdk_conf.predictors_size();
-    for (uint32_t ei = 0; ei < ep_size; ++ei) {
-      EndpointInfo ep;
-      if (init_one_endpoint(sdk_conf.predictors(ei), ep, default_var) != 0) {
-        LOG(ERROR) << "Failed read endpoint info at: " << ei;
-        return -1;
-      }
-
-      std::map<std::string, EndpointInfo>::iterator it;
-      if (_ep_map.find(ep.endpoint_name) != _ep_map.end()) {
-        LOG(ERROR) << "Cannot insert duplicated endpoint"
-                   << ", ep name: " << ep.endpoint_name;
-      }
-
-      std::pair<std::map<std::string, EndpointInfo>::iterator, bool> r =
-          _ep_map.insert(std::make_pair(ep.endpoint_name, ep));
-      if (!r.second) {
-        LOG(ERROR) << "Failed insert endpoint, name" << ep.endpoint_name;
-        return -1;
-      }
-    }
+    result = load_init(sdk_conf);
   } catch (std::exception& e) {
     LOG(ERROR) << "Failed load configure" << e.what();
     return -1;
   }
+  return result;
+}
+
+int EndpointConfigManager::load(std::shared_ptr<SDKConf> sdk_shared_ptr) {
+  int result = -1;
+  try {
+    result = load_init(*sdk_shared_ptr);
+  } catch (std::exception& e) {
+    LOG(ERROR) << "Failed load configure" << e.what();
+    return -1;
+  }
+  return result;
+}
+
+int EndpointConfigManager::load_init(const SDKConf& sdk_conf) {
+  VariantInfo default_var;
+  if (init_one_variant(sdk_conf.default_variant_conf(), default_var) != 0) {
+    LOG(ERROR) << "Failed read default var conf";
+    return -1;
+  }
+
+  uint32_t ep_size = sdk_conf.predictors_size();
+  for (uint32_t ei = 0; ei < ep_size; ++ei) {
+    EndpointInfo ep;
+    if (init_one_endpoint(sdk_conf.predictors(ei), ep, default_var) != 0) {
+      LOG(ERROR) << "Failed read endpoint info at: " << ei;
+      return -1;
+    }
+
+    std::map<std::string, EndpointInfo>::iterator it;
+    if (_ep_map.find(ep.endpoint_name) != _ep_map.end()) {
+      LOG(ERROR) << "Cannot insert duplicated endpoint"
+                 << ", ep name: " << ep.endpoint_name;
+    }
+
+    std::pair<std::map<std::string, EndpointInfo>::iterator, bool> r =
+        _ep_map.insert(std::make_pair(ep.endpoint_name, ep));
+    if (!r.second) {
+      LOG(ERROR) << "Failed insert endpoint, name" << ep.endpoint_name;
+      return -1;
+    }
+  }
+
   VLOG(2) << "Success reload endpoint config file, id: "
           << _current_endpointmap_id;
   return 0;

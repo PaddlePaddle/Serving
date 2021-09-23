@@ -43,34 +43,7 @@ int PredictorApi::create(const std::string& api_desc_str) {
     return -1;
   }
 
-  const std::map<std::string, EndpointInfo>& map = _config_manager.config();
-  std::map<std::string, EndpointInfo>::const_iterator it;
-  for (it = map.begin(); it != map.end(); ++it) {
-    const EndpointInfo& ep_info = it->second;
-    Endpoint* ep = new (std::nothrow) Endpoint();
-    if (ep->initialize(ep_info) != 0) {
-      LOG(ERROR) << "Failed intialize endpoint:" << ep_info.endpoint_name;
-      return -1;
-    }
-
-    if (_endpoints.find(ep_info.endpoint_name) != _endpoints.end()) {
-      LOG(ERROR) << "Cannot insert duplicated endpoint:"
-                 << ep_info.endpoint_name;
-      return -1;
-    }
-
-    std::pair<std::map<std::string, Endpoint*>::iterator, bool> r =
-        _endpoints.insert(std::make_pair(ep_info.endpoint_name, ep));
-    if (!r.second) {
-      LOG(ERROR) << "Failed insert endpoint:" << ep_info.endpoint_name;
-      return -1;
-    }
-
-    VLOG(2) << "Succ create endpoint instance with name: "
-            << ep_info.endpoint_name;
-  }
-
-  return 0;
+  return create_init();
 }
 
 int PredictorApi::create(const char* path, const char* file) {
@@ -85,6 +58,24 @@ int PredictorApi::create(const char* path, const char* file) {
     return -1;
   }
 
+  return create_init();
+}
+
+int PredictorApi::create(std::shared_ptr<SDKConf> sdk_shared_ptr) {
+  if (register_all() != 0) {
+    LOG(ERROR) << "Failed do register all!";
+    return -1;
+  }
+
+  if (_config_manager.create(sdk_shared_ptr) != 0) {
+    LOG(ERROR) << "Failed create config manager from conf:" << sdk_shared_ptr;
+    return -1;
+  }
+
+  return create_init();
+}
+
+int PredictorApi::create_init() {
   const std::map<std::string, EndpointInfo>& map = _config_manager.config();
   std::map<std::string, EndpointInfo>::const_iterator it;
   for (it = map.begin(); it != map.end(); ++it) {
@@ -100,8 +91,6 @@ int PredictorApi::create(const char* path, const char* file) {
                  << ep_info.endpoint_name;
       return -1;
     }
-
-    VLOG(2) << "endpoint name: " << ep_info.endpoint_name;
 
     std::pair<std::map<std::string, Endpoint*>::iterator, bool> r =
         _endpoints.insert(std::make_pair(ep_info.endpoint_name, ep));

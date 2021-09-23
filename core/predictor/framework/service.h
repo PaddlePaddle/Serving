@@ -19,6 +19,7 @@
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/merger.h"
 #include "core/predictor/framework/workflow.h"
+#include "core/sdk-cpp/general_model_service.pb.h"
 
 namespace baidu {
 namespace paddle_serving {
@@ -72,6 +73,12 @@ class InferService {
                         google::protobuf::Message* response,
                         const uint64_t log_id,
                         butil::IOBufBuilder* debug_os);
+
+  int _execute_repeat_workflow(Workflow* workflow,
+                               const google::protobuf::Message* request,
+                               google::protobuf::Message* response,
+                               const uint64_t log_id,
+                               butil::IOBufBuilder* debug_os);
 
   std::vector<Workflow*>* _map_request_to_workflow(
       const google::protobuf::Message* request, const uint64_t log_id);

@@ -65,7 +65,7 @@ int GeneralReaderOp::inference() {
     LOG(ERROR) << "(logid=" << log_id << ") Failed get GeneralBlob";
     return -1;
   }
-
+  res->Clear();
   TensorVector *out = &(res->tensor_vector);
   if (!out) {
     LOG(ERROR) << "(logid=" << log_id << ") Failed get tensor_vector of res";
@@ -94,7 +94,7 @@ int GeneralReaderOp::inference() {
   int64_t elem_type = 0;
   int64_t elem_size = 0;
   int64_t databuf_size = 0;
-  const void* src_ptr = nullptr;
+  const void *src_ptr = nullptr;
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor paddleTensor;
     const Tensor &tensor = req->tensor(i);
@@ -103,7 +103,7 @@ int GeneralReaderOp::inference() {
     elem_size = 0;
     databuf_size = 0;
     elem_type = tensor.elem_type();
-    src_ptr = nullptr ;
+    src_ptr = nullptr;
     if (elem_type == P_INT64) {  // int64
       elem_size = sizeof(int64_t);
       paddleTensor.dtype = paddle::PaddleDType::INT64;
@@ -153,8 +153,8 @@ int GeneralReaderOp::inference() {
             << "dtype=" << paddleTensor.dtype << ";"
             << "data_len=" << data_len;
     if (src_ptr == nullptr) {
-      LOG(ERROR) << "Not support var[" << i << "] with elem_type[" 
-                 << elem_type << "]";
+      LOG(ERROR) << "Not support var[" << i << "] with elem_type[" << elem_type
+                 << "]";
       continue;
     }
     // implement lod tensor here
@@ -187,7 +187,7 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();
     }
-    void* dst_ptr = out->at(i).data.data();
+    void *dst_ptr = out->at(i).data.data();
     if (!dst_ptr) {
       LOG(ERROR) << "dst_ptr is nullptr";
       return -1;

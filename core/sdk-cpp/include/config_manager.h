@@ -14,6 +14,7 @@
 
 #pragma once
 #include <map>
+#include <memory>
 #include <string>
 #include "core/sdk-cpp/include/common.h"
 #include "core/sdk-cpp/include/endpoint_config.h"
@@ -21,6 +22,8 @@
 namespace baidu {
 namespace paddle_serving {
 namespace sdk_cpp {
+
+using configure::SDKConf;
 
 class EndpointConfigManager {
  public:
@@ -39,6 +42,12 @@ class EndpointConfigManager {
   int create(const char* path, const char* file);
 
   int load();
+
+  int create(std::shared_ptr<SDKConf> sdk_shared_ptr);
+
+  int load(std::shared_ptr<SDKConf> sdk_shared_ptr);
+
+  int load_init(const SDKConf& sdk_conf);
 
   bool need_reload() { return false; }
 
