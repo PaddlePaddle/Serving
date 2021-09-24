@@ -32,7 +32,8 @@
 #include "core/predictor/framework/predictor_metric.h"  // PredictorMetric
 #include "core/predictor/framework/resource.h"
 #include "core/predictor/framework/server.h"
-
+#include <iostream>
+#include <chrono>
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -164,7 +165,12 @@ int InferService::inference(const google::protobuf::Message* request,
     LOG(ERROR) << "(logid=" << log_id << ") Failed thread clear whole resource";
     return ERR_INTERNAL_FAILURE;
   }
-
+  if(print_count < 10){
+    std::cout << "log_id = " << log_id << "  print_count = " << print_count <<
+    " req = " << request->DebugString() << std::endl;
+    print_count++;
+  }
+  
   TRACEPRINTF("(logid=%" PRIu64 ") finish to thread clear", log_id);
 
   if (_enable_map_request_to_workflow) {
@@ -322,10 +328,19 @@ int InferService::_execute_repeat_workflow(
   int64_t no_batch_length = ((Request*)request)->tensor(0).shape(1);
   Request* real_input = (Request*)req_channel.data();
 
+  std::cout << "batch_size == " << batch_size << std::endl; 
+  std::cout << "workflow->get_repeat_time() = " << workflow->get_repeat_time() <<std::endl;
+  
   // call actual inference interface
   // 直接每次修改req_channel里的request
   // 再从新执行一遍即可。
   for (int64_t i = 0; i < workflow->get_repeat_time(); ++i) {
+    std::cout << "ysl repeat time = " << i << std::endl;
+    auto start = std::chrono::system_clock::now();
+    if(i < 10){
+      std::cout << "repeat time = " << i << "  and real_input = " << real_input->DebugString() <<std::endl;
+    }
+    
     int errcode = dv->execute(log_id, debug_os);
     if (errcode < 0) {
       LOG(ERROR) << "(logid=" << log_id
@@ -345,9 +360,21 @@ int InferService::_execute_repeat_workflow(
             .tensor(0)
             .int64_data();
     if (output_int64_vector.size() != batch_size) {
-      LOG(ERROR) << "(logid=" << log_id << ") response batch != input batch";
+      LOG(ERROR) << "(logid=" << log_id << ") response batch = " << output_int64_vector.size() << "!= input batch" << batch_size;
+      LOG(ERROR) << "(repeat_time=" << i;
+      if(i < 10){
+        for (int out_num = 0; out_num < output_int64_vector.size(); ++out_num){
+          std::cout << "out_put index = " << out_num << " value = " << output_int64_vector[out_num] << std::endl;
+        }
+      }
       return ERR_INTERNAL_FAILURE;
     }
+    if(i < 10){
+      for (int out_num = 0; out_num < output_int64_vector.size(); ++out_num){
+        std::cout << "out_put index = " << out_num << " value = " << output_int64_vector[out_num] << std::endl;
+      }
+    }
+    
     int64_t total_data_len = 0;
     int64_t elem_size = 0;
     int64_t add_index = 0;
@@ -361,6 +388,7 @@ int InferService::_execute_repeat_workflow(
       if (tensor_ptr->name() == "src_ids") {
         total_data_len = (no_batch_length + 1) * batch_size;
         elem_size = sizeof(int64_t);
+        tensor_ptr->set_shape(1,no_batch_length + 1);
         tensor_ptr->mutable_int64_data()->Resize(total_data_len, 0);
         // 由于不再额外开辟内存，所以需要从后向前拷贝
         for (int64_t k = batch_size - 1; k >= 0; --k) {
@@ -376,6 +404,7 @@ int InferService::_execute_repeat_workflow(
       } else if (tensor_ptr->name() == "pos_ids") {
         total_data_len = (no_batch_length + 1) * batch_size;
         elem_size = sizeof(int64_t);
+        tensor_ptr->set_shape(1,no_batch_length + 1);
         tensor_ptr->mutable_int64_data()->Resize(total_data_len, 0);
         // 由于不再额外开辟内存，所以需要从后向前拷贝
         for (int64_t k = batch_size - 1; k >= 0; --k) {
@@ -395,6 +424,8 @@ int InferService::_execute_repeat_workflow(
         elem_size = sizeof(float);
         int64_t no_batch_matrix_length =
             (no_batch_length + 1) * (no_batch_length + 1);
+        tensor_ptr->set_shape(1,no_batch_length + 1);
+        tensor_ptr->set_shape(2,no_batch_length + 1);
         tensor_ptr->mutable_float_data()->Clear();
         tensor_ptr->mutable_float_data()->Resize(total_data_len, 0);
         int64_t offset = 0;
@@ -417,6 +448,13 @@ int InferService::_execute_repeat_workflow(
       }
     }
     no_batch_length += 1;
+    auto end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if(i < 10){
+      std::cout << "repeat num =  " << i << " and timecost = "
+              << duration.count()  << " ms\n";
+    }
+    
   }
 
   if (!_merger ||
@@ -474,3 +512,4 @@ std::vector<Workflow*>* InferService::_map_request_to_workflow(
 }  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu
+

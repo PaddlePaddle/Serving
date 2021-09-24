@@ -114,6 +114,15 @@ int PredictorImpl<T>::reset(const RpcParameters& options,
 }
 
 template <typename T>
+int PredictorImpl<T>::reset() {  // NOLINT
+  _cntl.Reset();
+  if (_options.compress_type.init) {
+    _cntl.set_request_compress_type(compress_types[_options.compress_type.value]);
+  }
+  return 0;
+}
+
+template <typename T>
 int PredictorImpl<T>::deinit() {
   // do nothing
   _inited = false;
@@ -213,3 +222,4 @@ const char* PredictorImpl<T>::tag() {
 }  // namespace sdk_cpp
 }  // namespace paddle_serving
 }  // namespace baidu
+

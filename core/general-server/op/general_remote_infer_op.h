@@ -44,14 +44,17 @@ class GeneralRemoteInferOp
 
   int connect(const std::string server_port);
 
+  int predictor_init();
   virtual ~GeneralRemoteInferOp();
 
  private:
   PredictorApi _api;
   baidu::paddle_serving::sdk_cpp::Predictor* _predictor;
   bool inited = false;
+  int print_count = 0;
 };
 
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+

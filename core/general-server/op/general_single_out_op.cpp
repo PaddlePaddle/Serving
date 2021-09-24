@@ -58,6 +58,12 @@ int GeneralSingleOutOp::inference() {
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
   VLOG(2) << "(logid=" << log_id << ") read data from client success";
+  if(print_count < 10){
+    std::cout << "MyOpName = " << op_name() <<  " and Response = " << res_out->DebugString() 
+    <<  " and timecost = " << end -start << std::endl;
+    print_count++;
+  }
+  
   return 0;
 }
 
@@ -65,3 +71,4 @@ DEFINE_OP(GeneralSingleOutOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+

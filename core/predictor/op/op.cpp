@@ -112,11 +112,13 @@ int Op::process(const uint64_t log_id, bool debug) {
     return ERR_INTERNAL_FAILURE;
   }
 
+  /*
   if (_has_calc) {
     LOG(INFO) << "(logid=" << log_id << ") Op: " << _name
               << " already processed before";
     return ERR_OK;
   }
+  */
 
   // 1. dependency inference
   /*
@@ -149,8 +151,11 @@ int Op::process(const uint64_t log_id, bool debug) {
   }
 
   // 3. share output to bus
-  Channel* channel = mutable_channel();
-  channel->share_to_bus(_bus, log_id);
+  if (!_has_calc) {
+    Channel* channel = mutable_channel();
+    channel->share_to_bus(_bus, log_id);
+  }
+  
 
   // 4. mark has calculated
   _has_calc = true;
@@ -315,3 +320,4 @@ const google::protobuf::Message* Op::get_request_message() {
 }  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu
+

@@ -92,6 +92,7 @@ class InferService {
   ::butil::FlatMap<std::string, std::vector<Workflow*>>
       _request_to_workflow_map;
   IMerger* _merger;
+  int print_count = 0;
 };
 
 class ParallelInferService : public InferService {
@@ -108,3 +109,4 @@ class ParallelInferService : public InferService {
 }  // namespace predictor
 }  // namespace paddle_serving
 }  // namespace baidu
+

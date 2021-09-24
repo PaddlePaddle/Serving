@@ -90,6 +90,13 @@ int GeneralMiddleOp::inference() {
   timeline.Pause();
   int64_t end = timeline.TimeStampUS();
   VLOG(2) << "(logid=" << log_id << ") read data from client success";
+  if(print_count <10){
+    std::cout << "MyOpName = " << op_name() << "and original_req = " << original_req->DebugString() << 
+    " and Response = " << res->DebugString() << "and ReqOut = " << req_out->DebugString() 
+    << " and timecost = " << end -start << std::endl;
+    print_count++;
+  }
+  
   return 0;
 }
 
@@ -97,3 +104,4 @@ DEFINE_OP(GeneralMiddleOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+

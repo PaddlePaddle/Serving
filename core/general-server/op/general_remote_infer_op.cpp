@@ -37,6 +37,10 @@ int GeneralRemoteInferOp::connect(const std::string server_port) {
     LOG(ERROR) << "Predictor Creation Failed";
     return -1;
   }
+  return predictor_init();
+}
+
+int GeneralRemoteInferOp::predictor_init(){
   // _api.thrd_initialize();
   _api.thrd_initialize();
   std::string variant_tag;
@@ -97,9 +101,13 @@ int GeneralRemoteInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
   VLOG(2) << "Going to run inference";
-  if (!inited) {
+  if(!inited){
     connect(address());
+  }else{
+    predictor_init();
   }
+  
+  
   const std::vector<std::string> pre_node_names = pre_names();
   if (pre_node_names.size() > 1) {
     LOG(ERROR) << "This op(" << op_name()
@@ -137,16 +145,23 @@ int GeneralRemoteInferOp::inference() {
     return -1;
   }
 
+  
   if (_predictor->inference(req, res) != 0) {
-    LOG(ERROR) << "failed call predictor with req: " << req->ShortDebugString();
+    LOG(ERROR) << "failed call predictor with req: " << print_count;
     return -1;
   }
-
+  
   res->set_log_id(log_id);
   res->set_profile_server(req->profile_server());
   int64_t end = timeline.TimeStampUS();
   res->add_profile_time(start);
   res->add_profile_time(end);
+  if(print_count < 10){
+    std::cout << "MyOpName = " << op_name() << "and Request = " << req->DebugString() << 
+    " and Response = " << res->DebugString() <<  " and timecost = " << end -start << std::endl;
+  }
+  print_count++;
+  
   return 0;
 }
 
@@ -156,3 +171,4 @@ DEFINE_OP(GeneralRemoteInferOp);
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+

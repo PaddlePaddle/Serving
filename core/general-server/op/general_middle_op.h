@@ -33,8 +33,10 @@ class GeneralMiddleOp
   DECLARE_OP(GeneralMiddleOp);
 
   int inference();
+  int print_count = 0;
 };
 
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+

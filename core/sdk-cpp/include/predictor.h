@@ -118,7 +118,7 @@ class Predictor {
                              google::protobuf::Message* res) = 0;
   virtual int recv_inference() = 0;
   virtual void cancel_inference() = 0;
-
+  virtual int reset() = 0;
   virtual const char* tag() = 0;
 
   virtual const google::protobuf::Service* service() = 0;
@@ -159,6 +159,7 @@ class PredictorImpl : public Predictor {
 
   int reset(const RpcParameters& options, brpc::Controller& cntl);  // NOLINT
 
+  int reset();
   int deinit();
 
   bool is_inited() { return _inited; }
@@ -215,3 +216,4 @@ class PredictorImpl : public Predictor {
 }  // namespace baidu
 
 #include "predictor.hpp"
+

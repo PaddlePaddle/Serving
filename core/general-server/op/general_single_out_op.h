@@ -35,8 +35,10 @@ class GeneralSingleOutOp
   DECLARE_OP(GeneralSingleOutOp);
 
   int inference();
+  int print_count = 0;
 };
 
 }  // namespace serving
 }  // namespace paddle_serving
 }  // namespace baidu
+
