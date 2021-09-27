@@ -449,10 +449,12 @@ int PredictorClient::numpy_predict(
       oss << "op" << i << "=" << t << "ms,";
     }
   }
-  int i = op_num - 1;
-  double server_cost = (res.profile_time(i * 2 + 1)
-               - res.profile_time(i * 2)) / 1000.0;
-  oss << "server_cost=" << server_cost << "ms.";
+  if (op_num > 0) {
+    int i = op_num - 1;
+    double server_cost = (res.profile_time(i * 2 + 1)
+                 - res.profile_time(i * 2)) / 1000.0;
+    oss << "server_cost=" << server_cost << "ms.";
+  }
   LOG(INFO) << oss.str();
   return 0;
 }
