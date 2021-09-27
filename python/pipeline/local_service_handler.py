@@ -127,7 +127,7 @@ class LocalServiceHandler(object):
             # Kunlun XPU
             self._device_name = "arm"
             devices = [int(x) for x in devices.split(",")]
-            self._use_lite = True
+            # self._use_lite = True
             self._use_xpu = True
         else:
             _LOGGER.error(
@@ -280,6 +280,10 @@ class LocalServiceHandler(object):
                 server.set_gpuid(gpuid)
             # TODO: support arm or arm + xpu later
             server.set_device(self._device_name)
+            if self._use_xpu:
+                server.set_xpu()
+            if self._use_lite:
+                server.set_lite()
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)
