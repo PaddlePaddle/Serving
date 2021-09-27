@@ -266,6 +266,7 @@ class PaddleInferenceEngine : public EngineCore {
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
+      config.SetXpuDeviceId(gpu_id);
     }
 
     if (engine_conf.has_enable_memory_optimization() &&
