@@ -20,10 +20,6 @@
 #ifdef BCLOUD
 #include "aipe_sec_client.h"  // NOLINT
 #endif
-// #define PADDLE_WITH_NCCL 1
-// #define PADDLE_WITH_CUDA
-// #include "paddle/fluid/imperative/nccl_context.h"
-// #include "paddle/fluid/imperative/bkcl_context.h"
 #include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {

@@ -226,12 +226,58 @@ class PaddleInferenceEngine : public EngineCore {
           config.EnableGpuMultiStream();
         }
       }
-      config.EnableTensorRtEngine(1 << 20,
+      config.EnableTensorRtEngine(1 << 30,
                                   max_batch,
                                   min_subgraph_size,
                                   precision_type,
-                                  false,
+                                  true,
                                   FLAGS_use_calib);
+      // set trt dynamic shape
+      {
+        int bsz = 1;
+        int max_seq_len = 512;
+        std::map<std::string, std::vector<int>> min_input_shape;
+        std::map<std::string, std::vector<int>> max_input_shape;
+        std::map<std::string, std::vector<int>> optim_input_shape;
+        int hidden_size = 0;
+
+        min_input_shape["stack_0.tmp_0"] = {1, 16, 1, 1};
+        min_input_shape["stack_1.tmp_0"] = {1, 2, 1, 1};
+        min_input_shape["input_mask"] = {1, 1, 1};
+        min_input_shape["_generated_var_63"] = {1, 1, 12288};
+        min_input_shape["tmp_127"] = {1, 1, 12288};
+        min_input_shape["_generated_var_87"] = {1, 1, 768};
+        min_input_shape["tmp_175"] = {1, 1, 768};
+
+        max_input_shape["stack_0.tmp_0"] = {bsz, 16, max_seq_len, max_seq_len};
+        max_input_shape["stack_1.tmp_0"] = {bsz, 2, max_seq_len, max_seq_len};
+        max_input_shape["input_mask"] = {bsz, max_seq_len, max_seq_len};
+        max_input_shape["_generated_var_63"] = {bsz, max_seq_len, 12288};
+        max_input_shape["tmp_127"] = {bsz, max_seq_len, 12288};
+        max_input_shape["_generated_var_87"] = {bsz, max_seq_len, 768};
+        max_input_shape["tmp_175"] = {bsz, max_seq_len, 768};
+
+        for (int i = 0; i < 44; ++i) {
+          if (i >= 32) {
+            hidden_size = 768;
+          } else {
+            hidden_size = 12288;
+          }
+          int i1 = 3 * i;
+          int i2 = 3 * i + 1;
+          int i3 = 3 * i + 2;
+          char name[256];
+          for (int j = 0; j < 3; ++j) {
+            snprintf(name, 256, "c_identity_%d.tmp_0", 3 * i + j);
+            min_input_shape[name] = {1, 1, hidden_size};
+            max_input_shape[name] = {bsz, max_seq_len, hidden_size};
+          }
+        }
+        optim_input_shape = max_input_shape;
+        config.SetTRTDynamicShapeInfo(
+            min_input_shape, max_input_shape, optim_input_shape);
+        config.Exp_DisableTensorRtOPs({"layer_norm"});
+      }
       LOG(INFO) << "create TensorRT predictor";
     }
 
