@@ -39,14 +39,14 @@ func (server *CubeServer) SplitKeys(keys []uint64) (splited_keys map[uint64]Inpu
 	splited_keys = make(map[uint64]Input)
 
 	offset = make(map[uint64][]uint64)
-	for _, key := range keys {
+	for i, key := range keys {
 		shard_id := key % server.Shard
 		temp_split, _ := splited_keys[shard_id]
 		temp_split.Keys = append(temp_split.Keys, key)
 		splited_keys[shard_id] = temp_split
 
 		temp_offset, _ := offset[shard_id]
-		temp_offset = append(temp_offset, key)
+		temp_offset = append(temp_offset, uint64(i))
 		offset[shard_id] = temp_offset
 	}
 
@@ -73,9 +73,7 @@ func (server *CubeServer) Seek(input string, output_path string) (err error) {
 		key_nums := len(temp_input.Keys)
 		var output Output
 		output.Values = make([]SingleValue, key_nums+1)
-
 		splited_keys, offset := server.SplitKeys(temp_input.Keys)
-
 		for shard_id, keys := range splited_keys {
 			cur_output, _ := server.Post(shard_id, keys)
 			for index, single_value := range cur_output.Values {
