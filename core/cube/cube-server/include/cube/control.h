@@ -54,6 +54,8 @@ class Control : public ControlService {
 
   int handle_bg_switch(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name);
 
+  int handle_switch_version(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name, std::string version);
+
   int handle_enable(const BUTIL_RAPIDJSON_NAMESPACE::Document& cmd, std::string dict_name);
 
   std::mutex _cmd_mutex;

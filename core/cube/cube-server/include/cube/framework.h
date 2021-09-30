@@ -116,6 +116,10 @@ public:
     rec.key = this_key;
     rec.path = this_path;
     rec.cmd = this_cmd;
+    if (this_id == 0) { 
+      LOG(INFO) << "new base model loading...";
+    } 
+
     rec.timestamp = this_timestamp;
     _records.push_back(rec);
     content += std::to_string(rec.id)+ "|";
@@ -125,6 +129,13 @@ public:
     content += rec.cmd + "|";
     content += rec.timestamp + "\n";
     fs.write(content.c_str(), content.size());
+    fs.close();
+  }
+  void clear_record() {
+    std::ofstream fs;
+    fs.open(this->_record_file, std::ios_base::app);
+    _cur_id = -1;
+    _cur_version = -1;
     fs.close();
   }
   std::string to_string() {
@@ -139,6 +150,7 @@ public:
     }
     return content;
   }
+  std::vector<Record> _records;
 private:
   std::string get_ts() {
     char date[20];
@@ -151,7 +163,6 @@ private:
     return ss;
   }
   std::string _record_file;
-  std::vector<Record> _records;
   int32_t _cur_version;
   int32_t _cur_id;
 };
@@ -277,6 +288,8 @@ class Framework {
   int bg_unload(std::string dict_name);
 
   int bg_switch(std::string dict_name);
+
+  int switch_version(std::string dict_name, std::string version);
 
   int enable(std::string dict_name, const std::string& version);
 

@@ -350,6 +350,46 @@ int Framework::bg_switch(std::string dict_name) {
   return 0;
 }
 
+int Framework::switch_version(std::string dict_name, std::string version) {
+  DoubleBufDict* ddict = _dict_map.at(dict_name);
+  int version_id = std::stod(version);
+  std::vector<Record> records = ddict->_version_table->_records;
+  std::vector<int> version_path;
+  for (int i = 0; i < version_id; ++i) {
+    if (records[i].cmd == "base") {
+      version_path.push_back(i);
+    } else if (records[i].cmd == "patch") {
+      version_path.push_back(i);
+    } else if (records[i].cmd == "switch_version") {
+      int switch_version = std::stoi(records[i].path);
+      for (int j = 0; j < version_path.size(); ++j) {
+        if (version_path[j] == switch_version) {
+          version_path.erase(version_path.begin() + j+1, version_path.end());
+        }
+      }
+    } else {
+      LOG(ERROR) << "unknown error in switch version";
+    }
+  }
+  int ret = bg_unload(dict_name);
+  VirtualDict* bg_dict = create_dict();
+  if (!bg_dict) {
+    LOG(ERROR) << "create Dict failed during version switch";
+    return -1;
+  }
+  for (int i = 0; i < version_path.size(); ++i) {
+    std::string cmd = records[version_path[i]].cmd;
+    std::string path = records[version_path[i]].path;
+    ret = bg_dict->load(ddict->get_dict_path(), ddict->get_in_mem(), path); 
+    if (ret != 0) {
+      LOG(WARNING) << "load background dict failed during version switch";
+      delete bg_dict;
+      bg_dict = nullptr;
+      return ret;
+    }
+  }
+}
+
 int Framework::enable(std::string dict_name, const std::string& version) {
   int ret = 0;
   LOG(INFO) << "dict name: " << dict_name << " , version: " << version;

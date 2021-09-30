@@ -79,6 +79,10 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
   if (cmd.HasMember("dict_name") && cmd["dict_name"].IsString()) {
     dict_name = cmd["dict_name"].GetString();
   }
+  std::string version = "";
+  if (cmd.HasMember("version") && cmd["version"].IsString()) {
+    version = cmd["version"].GetString();
+  }
 
   int ret = 0;
   Document response;
@@ -97,6 +101,8 @@ void Control::cmd(::google::protobuf::RpcController* cntl_base,
       ret = handle_bg_unload(cmd, dict_name);
     } else if (cmd_name.compare("bg_switch") == 0) {
       ret = handle_bg_switch(cmd, dict_name);
+    } else if (cmd_name.compare("switch_version") == 0) {
+      ret = handle_switch_version(cmd, dict_name, version);
     } else if (cmd_name.compare("enable") == 0) {
       ret = handle_enable(cmd, dict_name);
     } else {
@@ -158,6 +164,10 @@ int Control::handle_bg_unload(const Document& /*cmd*/, std::string dict_name) {
 int Control::handle_bg_switch(const Document& /*cmd*/, std::string dict_name) {
   Framework* framework = Framework::instance();
   return framework->bg_switch(dict_name);
+}
+int handle_switch_version(const Document& /*cmd*/, std::string dict_name, std::string version) {
+  Framework* framework = Framework:: instance();
+  return framework->switch_version(dict_name, version);
 }
 
 int Control::handle_enable(const Document& cmd, std::string dict_name) {
