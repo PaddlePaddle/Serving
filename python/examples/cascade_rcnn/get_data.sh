@@ -1,2 +1,3 @@
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/cascade_rcnn_r50_fpx_1x_serving.tar.gz
-tar xf cascade_rcnn_r50_fpx_1x_serving.tar.gz
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/cascade_mask_rcnn_r50_vd_fpn_ssld_2x_coco_serving.tar.gz
+tar xf cascade_mask_rcnn_r50_vd_fpn_ssld_2x_coco_serving.tar.gz
+
