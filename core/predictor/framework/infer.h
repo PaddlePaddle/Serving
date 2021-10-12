@@ -277,7 +277,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     LOG(WARNING) << "Loading cube cache[" << next_idx << "] ...";
     std::string model_path = conf.model_dir();
     if (access(model_path.c_str(), F_OK) == 0) {
-      std::string cube_cache_path = model_path + "/" + "cube_cache";
+      std::string cube_cache_path = model_path + "/cube_cache";
       int reload_cache_ret = md->caches[next_idx]->reload_data(cube_cache_path);
       LOG(WARNING) << "Loading cube cache[" << next_idx << "] done.";
     } else {
@@ -437,7 +437,7 @@ class CloneDBReloadableInferEngine
       // create caches
       std::string model_path = conf.model_dir();
       if (access(model_path.c_str(), F_OK) == 0) {
-        std::string cube_cache_path = model_path + "cube_cache";
+        std::string cube_cache_path = model_path + "/cube_cache";
         int reload_cache_ret =
             md->caches[next_idx]->reload_data(cube_cache_path);
         LOG(WARNING) << "create cube cache[" << next_idx << "] done.";
