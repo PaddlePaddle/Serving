@@ -168,10 +168,14 @@ int PredictorClient::numpy_predict(
     const std::vector<std::string> &float_feed_name,
     const std::vector<std::vector<int>> &float_shape,
     const std::vector<std::vector<int>> &float_lod_slot_batch,
-    const std::vector<py::array_t<int64_t>> &int_feed,
-    const std::vector<std::string> &int_feed_name,
-    const std::vector<std::vector<int>> &int_shape,
-    const std::vector<std::vector<int>> &int_lod_slot_batch,
+    const std::vector<py::array_t<int32_t>> &int32_feed,
+    const std::vector<std::string> &int32_feed_name,
+    const std::vector<std::vector<int>> &int32_shape,
+    const std::vector<std::vector<int>> &int32_lod_slot_batch,
+    const std::vector<py::array_t<int64_t>> &int64_feed,
+    const std::vector<std::string> &int64_feed_name,
+    const std::vector<std::vector<int>> &int64_shape,
+    const std::vector<std::vector<int>> &int64_lod_slot_batch,
     const std::vector<std::string> &string_feed,
     const std::vector<std::string> &string_feed_name,
     const std::vector<std::vector<int>> &string_shape,
@@ -190,7 +194,8 @@ int PredictorClient::numpy_predict(
   predict_res_batch.set_variant_tag(variant_tag);
   VLOG(2) << "fetch general model predictor done.";
   VLOG(2) << "float feed name size: " << float_feed_name.size();
-  VLOG(2) << "int feed name size: " << int_feed_name.size();
+  VLOG(2) << "int feed name size: " << int32_feed_name.size();
+  VLOG(2) << "int feed name size: " << int64_feed_name.size();
   VLOG(2) << "string feed name size: " << string_feed_name.size();
   VLOG(2) << "max body size : " << brpc::fLU64::FLAGS_max_body_size;
   Request req;
@@ -207,7 +212,11 @@ int PredictorClient::numpy_predict(
     tensor_vec.push_back(req.add_tensor());
   }
 
-  for (auto &name : int_feed_name) {
+  for (auto &name : int32_feed_name) {
+    tensor_vec.push_back(req.add_tensor());
+  }
+
+  for (auto &name : int64_feed_name) {
     tensor_vec.push_back(req.add_tensor());
   }
 
@@ -247,34 +256,58 @@ int PredictorClient::numpy_predict(
   }
 
   vec_idx = 0;
-  for (auto &name : int_feed_name) {
+  for (auto &name : int32_feed_name) {
     int idx = _feed_name_to_idx[name];
     if (idx >= tensor_vec.size()) {
       LOG(ERROR) << "idx > tensor_vec.size()";
       return -1;
     }
     Tensor *tensor = tensor_vec[idx];
-    int nbytes = int_feed[vec_idx].nbytes();
-    void *rawdata_ptr = (void *)(int_feed[vec_idx].data(0));
-    int total_number = int_feed[vec_idx].size();
+    int nbytes = int32_feed[vec_idx].nbytes();
+    void *rawdata_ptr = (void *)(int32_feed[vec_idx].data(0));
+    int total_number = int32_feed[vec_idx].size();
 
-    for (uint32_t j = 0; j < int_shape[vec_idx].size(); ++j) {
-      tensor->add_shape(int_shape[vec_idx][j]);
+    for (uint32_t j = 0; j < int32_shape[vec_idx].size(); ++j) {
+      tensor->add_shape(int32_shape[vec_idx][j]);
     }
-    for (uint32_t j = 0; j < int_lod_slot_batch[vec_idx].size(); ++j) {
-      tensor->add_lod(int_lod_slot_batch[vec_idx][j]);
+    for (uint32_t j = 0; j < int32_lod_slot_batch[vec_idx].size(); ++j) {
+      tensor->add_lod(int32_lod_slot_batch[vec_idx][j]);
     }
     tensor->set_elem_type(_type[idx]);
     tensor->set_name(_feed_name[idx]);
     tensor->set_alias_name(name);
 
-    if (_type[idx] == P_INT64) {
-      tensor->mutable_int64_data()->Resize(total_number, 0);
-      memcpy(tensor->mutable_int64_data()->mutable_data(), rawdata_ptr, nbytes);
-    } else {
-      tensor->mutable_int_data()->Resize(total_number, 0);
-      memcpy(tensor->mutable_int_data()->mutable_data(), rawdata_ptr, nbytes);
+    tensor->mutable_int_data()->Resize(total_number, 0);
+    memcpy(tensor->mutable_int_data()->mutable_data(), rawdata_ptr, nbytes);
+    vec_idx++;
+  }
+
+
+  // Individual INT_64 feed data of int_input to tensor_content
+  vec_idx = 0;
+  for (auto &name : int64_feed_name) {
+    int idx = _feed_name_to_idx[name];
+    if (idx >= tensor_vec.size()) {
+      LOG(ERROR) << "idx > tensor_vec.size()";
+      return -1;
     }
+    Tensor *tensor = tensor_vec[idx];
+    int nbytes = int64_feed[vec_idx].nbytes();
+    void *rawdata_ptr = (void *)(int64_feed[vec_idx].data(0));
+    int total_number = int64_feed[vec_idx].size();
+
+    for (uint32_t j = 0; j < int64_shape[vec_idx].size(); ++j) {
+      tensor->add_shape(int64_shape[vec_idx][j]);
+    }
+    for (uint32_t j = 0; j < int64_lod_slot_batch[vec_idx].size(); ++j) {
+      tensor->add_lod(int64_lod_slot_batch[vec_idx][j]);
+    }
+    tensor->set_elem_type(_type[idx]);
+    tensor->set_name(_feed_name[idx]);
+    tensor->set_alias_name(name);
+
+    tensor->mutable_int64_data()->Resize(total_number, 0);
+    memcpy(tensor->mutable_int64_data()->mutable_data(), rawdata_ptr, nbytes);
     vec_idx++;
   }
 
@@ -449,10 +482,12 @@ int PredictorClient::numpy_predict(
       oss << "op" << i << "=" << t << "ms,";
     }
   }
-  int i = op_num - 1;
-  double server_cost = (res.profile_time(i * 2 + 1)
-               - res.profile_time(i * 2)) / 1000.0;
-  oss << "server_cost=" << server_cost << "ms.";
+  if (op_num > 0) {
+    int i = op_num - 1;
+    double server_cost = (res.profile_time(i * 2 + 1)
+                 - res.profile_time(i * 2)) / 1000.0;
+    oss << "server_cost=" << server_cost << "ms.";
+  }
   LOG(INFO) << oss.str();
   return 0;
 }

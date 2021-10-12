@@ -335,10 +335,15 @@ class Client(object):
         if len(feed_batch) != 1:
             raise ValueError("len of feed_batch can only be 1.")
 
-        int_slot = []
-        int_feed_names = []
-        int_shape = []
-        int_lod_slot_batch = []
+        int32_slot = []
+        int32_feed_names = []
+        int32_shape = []
+        int32_lod_slot_batch = []
+
+        int64_slot = []
+        int64_feed_names = []
+        int64_shape = []
+        int64_lod_slot_batch = []
 
         float_slot = []
         float_feed_names = []
@@ -364,27 +369,39 @@ class Client(object):
 
             self.shape_check(feed_dict, key)
             if self.feed_types_[key] in int_type:
-                int_feed_names.append(key)
                 shape_lst = []
                 if batch == False:
                     feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
                         1, axis=0)
-                if isinstance(feed_dict[key], np.ndarray):
-                    shape_lst.extend(list(feed_dict[key].shape))
-                    int_shape.append(shape_lst)
+                # verify different input int_type
+                if(self.feed_types_[key] == int64_type):
+                    int64_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int64_shape.append(shape_lst)
+                        self.has_numpy_input = True
+                    else:
+                        int64_shape.append(self.feed_shapes_[key])
+                        self.all_numpy_input = False
+                    if "{}.lod".format(key) in feed_dict:
+                        int64_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int64_lod_slot_batch.append([])
+                    int64_slot.append(np.ascontiguousarray(feed_dict[key]))
                 else:
-                    int_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_dict:
-                    int_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
-                else:
-                    int_lod_slot_batch.append([])
-
-                if isinstance(feed_dict[key], np.ndarray):
-                    int_slot.append(np.ascontiguousarray(feed_dict[key]))
-                    self.has_numpy_input = True
-                else:
-                    int_slot.append(np.ascontiguousarray(feed_dict[key]))
-                    self.all_numpy_input = False
+                    int32_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int32_shape.append(shape_lst)
+                        self.has_numpy_input = True
+                    else:
+                        int32_shape.append(self.feed_shapes_[key])
+                        self.all_numpy_input = False
+                    if "{}.lod".format(key) in feed_dict:
+                        int32_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int32_lod_slot_batch.append([])
+                    int32_slot.append(np.ascontiguousarray(feed_dict[key]))
 
             elif self.feed_types_[key] in float_type:
                 float_feed_names.append(key)
@@ -430,7 +447,8 @@ class Client(object):
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot, float_feed_names, float_shape, float_lod_slot_batch,
-                int_slot, int_feed_names, int_shape, int_lod_slot_batch,
+                int32_slot, int32_feed_names, int32_shape, int32_lod_slot_batch,
+                int64_slot, int64_feed_names, int64_shape, int64_lod_slot_batch,
                 string_slot, string_feed_names, string_shape,
                 string_lod_slot_batch, fetch_names, result_batch_handle,
                 self.pid, log_id)
