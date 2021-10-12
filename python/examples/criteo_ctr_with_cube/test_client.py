@@ -35,7 +35,7 @@ reader = dataset.infer_reader(test_filelists, batch, buf_size)
 label_list = []
 prob_list = []
 start = time.time()
-for ei in range(1):
+for ei in range(100):
     if py_version == 2:
         data = reader().next()
     else:
@@ -46,16 +46,12 @@ for ei in range(1):
     for i in range(1, 27):
         feed_dict["embedding_{}.tmp_0".format(i - 1)] = np.array(data[0][i]).reshape(len(data[0][i]))
         feed_dict["embedding_{}.tmp_0.lod".format(i - 1)] = [0, len(data[0][i])]
-    for key in feed_dict.keys():
-        if "lod" not in key:
-            print("key: {}, shape: {}".format(key, feed_dict[key].shape))
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"],batch=True)
     print(fetch_map)
     prob_list.append(fetch_map['prob'][0][1])
     label_list.append(data[0][-1][0])
 
 
-print(auc(label_list, prob_list))
 end = time.time()
 print(end - start)
 
