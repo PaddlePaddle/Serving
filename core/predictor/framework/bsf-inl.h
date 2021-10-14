@@ -215,6 +215,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     LOG(ERROR) << "Failed get TaskT from object pool";
     return TaskHandler<TaskT>::valid_handle();
   }
+  task->clear();
 
   /*
   if (!BatchTasks<TaskT>::check_valid(in, out, _overrun)) {
