@@ -4,7 +4,7 @@
 
 ### Get The Faster RCNN HRNet Model
 ```
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn_hrnetv2p_w18_1x.tar
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/faster_rcnn_hrnetv2p_w18_1x.tar.gz
 ```
 
 ### Start the service
