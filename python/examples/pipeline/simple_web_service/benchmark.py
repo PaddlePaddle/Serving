@@ -27,7 +27,7 @@ from paddle_serving_client.utils import benchmark_args, show_latency
 
 def gen_yml():
     fin = open("config.yml", "r")
-    config = yaml.load(fin)
+    config = yaml.load(fin, yaml.FullLoader)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 5}
     with open("config2.yml", "w") as fout:

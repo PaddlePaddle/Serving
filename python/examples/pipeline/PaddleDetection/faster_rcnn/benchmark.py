@@ -33,7 +33,7 @@ def cv2_to_base64(image):
 
 def parse_benchmark(filein, fileout):
     with open(filein, "r") as fin:
-        res = yaml.load(fin)
+        res = yaml.load(fin, yaml.FullLoader)
         del_list = []
         for key in res["DAG"].keys():
             if "call" in key:
@@ -46,7 +46,7 @@ def parse_benchmark(filein, fileout):
 
 def gen_yml(device, gpu_id):
     fin = open("config.yml", "r")
-    config = yaml.load(fin)
+    config = yaml.load(fin, yaml.FullLoader)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 30}
     if device == "gpu":
