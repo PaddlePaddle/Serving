@@ -18,5 +18,5 @@ python3 -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_
 
 ### 执行预测
 ```
-python3 test_client.py 000000570688.jpg
+python3 test_client.py 000000014439.jpg
 ```

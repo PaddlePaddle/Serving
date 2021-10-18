@@ -25,7 +25,7 @@ class FasterRCNNOp(Op):
         self.img_preprocess = Sequential([
             BGR2RGB(), Div(255.0),
             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], False),
-            Resize((640, 640)), Transpose((2, 0, 1))
+            Resize(640, 640), Transpose((2, 0, 1))
         ])
         self.img_postprocess = RCNNPostprocess("label_list.txt", "output")
 

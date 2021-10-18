@@ -27,7 +27,7 @@ preprocess = Sequential([
         PadStride(128)
 ])
 
-postprocess = RCNNPostprocess("label_list.txt", "output")
+postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
 client = Client()
 
 client.load_client_config("serving_client/serving_client_conf.prototxt")
@@ -41,5 +41,6 @@ fetch_map = client.predict(
     },
     fetch=["save_infer_model/scale_0.tmp_1"],
     batch=False)
+print(fetch_map)
 fetch_map["image"] = sys.argv[1]
 postprocess(fetch_map)
