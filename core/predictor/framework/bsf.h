@@ -99,7 +99,40 @@ struct Task {
     outLodTensorVector.clear();
   }
   ~Task() {
+    read_fd = -1;
+    write_fd = -1;
+    owner_tid = -1;
+    inVectorT_ptr = NULL;
+    outVectorT_ptr = NULL;
+    set_feed_lod_index.clear();
+    set_feed_nobatch_index.clear();
+    vector_fetch_lod_index.clear();
+    set_fetch_nobatch_index.clear();
+    rem = -1;
+    total_feed_batch = 0;
+    taskmeta_num = 0;
+    index.store(0, butil::memory_order_relaxed);
     THREAD_MUTEX_DESTROY(&task_mut);
+    fetch_init = false;
+    outLodTensorVector.clear();
+  }
+
+  void clear(){
+    read_fd = -1;
+    write_fd = -1;
+    owner_tid = -1;
+    inVectorT_ptr = NULL;
+    outVectorT_ptr = NULL;
+    set_feed_lod_index.clear();
+    set_feed_nobatch_index.clear();
+    vector_fetch_lod_index.clear();
+    set_fetch_nobatch_index.clear();
+    rem = -1;
+    total_feed_batch = 0;
+    taskmeta_num = 0;
+    index.store(0, butil::memory_order_relaxed);
+    THREAD_MUTEX_INIT(&task_mut, NULL);
+    fetch_init = false;
     outLodTensorVector.clear();
   }
 
@@ -323,7 +356,7 @@ struct Task {
         size_t feedvar_index = vector_fetch_lod_index[index];
         // 由于PaddleTensor的resize实现，是每次都会清空，所以必须先统计总长度。
         for (size_t taskmeta_index = 0; taskmeta_index < taskmeta_num;
-             ++taskmeta_num) {
+             ++taskmeta_index) {
           data_length +=
               outLodTensorVector[taskmeta_index][index].data.length();
           lod_length += outLodTensorVector[taskmeta_index][index].lod[0].size();
@@ -347,7 +380,7 @@ struct Task {
         size_t once_lod_length = 0;
         size_t last_lod_value = fetchVarTensor.lod[0][lod_length_offset];
         for (size_t taskmeta_index = 0; taskmeta_index < taskmeta_num;
-             ++taskmeta_num) {
+             ++taskmeta_index) {
           void* dst_ptr = fetchVarTensor.data.data() + data_length_offset;
           void* source_ptr =
               outLodTensorVector[taskmeta_index][index].data.data();
