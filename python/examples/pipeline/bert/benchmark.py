@@ -54,7 +54,7 @@ from paddle_serving_client.utils import benchmark_args, show_latency
 
 def parse_benchmark(filein, fileout):
     with open(filein, "r") as fin:
-        res = yaml.load(fin)
+        res = yaml.load(fin, yaml.FullLoader)
         del_list = []
         for key in res["DAG"].keys():
             if "call" in key:
@@ -67,7 +67,7 @@ def parse_benchmark(filein, fileout):
 
 def gen_yml(device):
     fin = open("config.yml", "r")
-    config = yaml.load(fin)
+    config = yaml.load(fin, yaml.FullLoader)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 10}
     if device == "gpu":

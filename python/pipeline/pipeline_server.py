@@ -341,7 +341,7 @@ class ServerYamlConfChecker(object):
                              " or yml_dict can be selected as the parameter.")
         if yml_file is not None:
             with io.open(yml_file, encoding='utf-8') as f:
-                conf = yaml.load(f.read())
+                conf = yaml.load(f.read(), yaml.FullLoader)
         elif yml_dict is not None:
             conf = yml_dict
         else:
