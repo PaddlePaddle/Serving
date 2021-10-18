@@ -637,7 +637,7 @@ class Normalize(object):
         self.std = std
         self.is_scale = is_scale
 
-    def __call__(self, im, im_info = False):
+    def __call__(self, im, im_info = None):
         """
         Args:
             im (np.ndarray): image (np.ndarray)
@@ -790,7 +790,7 @@ class PadStride(object):
     def __init__(self, stride=0):
         self.coarsest_stride = stride
 
-    def __call__(self, im, im_info = False):
+    def __call__(self, im, im_info = None):
         """
         Args:
             im (np.ndarray): image (np.ndarray)
@@ -865,7 +865,7 @@ class Transpose(object):
     def __init__(self, transpose_target):
         self.transpose_target = transpose_target
 
-    def __call__(self, im, im_info = False):
+    def __call__(self, im, im_info = None):
         im = F.transpose(im, self.transpose_target)
         return im, im_info
 
