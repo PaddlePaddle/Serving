@@ -16,5 +16,5 @@ This model support TensorRT, if you want a faster inference, please use `--use_t
 
 ### Perform prediction
 ```
-python3 test_client.py 000000570688.jpg
+python3 test_client.py 000000014439.jpg
 ```

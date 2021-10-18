@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from paddle_serving_client import Client
-from paddle_serving_app.reader import *
 import sys
 import numpy as np
-
+from paddle_serving_client import Client
+from paddle_serving_app.reader import *
+import cv2
 preprocess = Sequential([
-    File2Image(), BGR2RGB(), Div(255.0),
-    Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], False),
-    Resize(640, 640), Transpose((2, 0, 1))
+    File2Image(), BGR2RGB(), Resize(
+        (608, 608), interpolation=cv2.INTER_LINEAR), Div(255.0), Transpose(
+            (2, 0, 1))
 ])
 
-postprocess = RCNNPostprocess("label_list.txt", "output")
+postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
 client = Client()
 
 client.load_client_config("serving_client/serving_client_conf.prototxt")
@@ -38,3 +38,5 @@ fetch_map = client.predict(
     fetch=["save_infer_model/scale_0.tmp_1"],
     batch=False)
 print(fetch_map)
+fetch_map["image"] = sys.argv[1]
+postprocess(fetch_map)
