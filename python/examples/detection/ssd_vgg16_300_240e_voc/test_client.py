@@ -18,16 +18,15 @@ from paddle_serving_client import Client
 from paddle_serving_app.reader import *
 import cv2
 
-preprocess = Sequential([
-        File2Image(),
-        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True),
-        Resize(
-        (800, 1333), True, interpolation=cv2.INTER_LINEAR), 
-        Transpose((2,0,1)),
-        PadStride(128)
+preprocess = DetectionSequential([
+        DetectionFile2Image(),
+        DetectionResize(
+        (300, 300), False, interpolation=cv2.INTER_LINEAR), 
+        DetectionNormalize([104.0, 117.0, 123.0], [1.0, 1.0, 1.0], False),
+        DetectionTranspose((2,0,1)),
 ])
 
-postprocess = RCNNPostprocess("label_list.txt", "output", [608, 608])
+postprocess = RCNNPostprocess("label_list.txt", "output")
 client = Client()
 
 client.load_client_config("serving_client/serving_client_conf.prototxt")
@@ -37,6 +36,7 @@ im, im_info = preprocess(sys.argv[1])
 fetch_map = client.predict(
     feed={
         "image": im,
+        "im_shape": np.array(list(im.shape[1:])).reshape(-1),
         "scale_factor": im_info['scale_factor'],
     },
     fetch=["save_infer_model/scale_0.tmp_1"],

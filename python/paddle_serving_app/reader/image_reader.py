@@ -484,6 +484,37 @@ class Sequential(object):
     def __init__(self, transforms):
         self.transforms = transforms
 
+    def __call__(self, img):
+        for t in self.transforms:
+            img = t(img)
+        return img
+
+    def __repr__(self):
+        format_string_ = self.__class__.__name__ + '('
+        for t in self.transforms:
+            format_string_ += '\n'
+            format_string_ += '    {0}'.format(t)
+        format_string_ += '\n)'
+        return format_string_
+
+
+class DetectionSequential(object):
+    """
+    Args:
+        sequence (sequence of ``Transform`` objects): list of transforms to chain.
+
+    This API references some of the design pattern of torchvision
+    Users can simply use this API in training as well
+
+    Example:
+        >>> image_reader.Sequnece([
+        >>>     transforms.CenterCrop(10),
+        >>> ])
+    """
+
+    def __init__(self, transforms):
+        self.transforms = transforms
+
     def __call__(self, im):
         im_info = {
         'scale_factor': np.array(
@@ -518,7 +549,18 @@ class BGR2RGB(object):
     def __init__(self):
         pass
 
-    def __call__(self, img, img_info = False):
+    def __call__(self, img):
+        return img[:, :, ::-1]
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+
+class DetectionBGR2RGB(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img, img_info=None):
         return img[:, :, ::-1], img_info
 
     def __repr__(self):
@@ -542,7 +584,30 @@ class File2Image(object):
     def __init__(self):
         pass
 
-    def __call__(self, img_path, im_info):
+    def __call__(self, img_path):
+        if py_version == 2:
+            fin = open(img_path)
+        else:
+            fin = open(img_path, "rb")
+        sample = fin.read()
+        data = np.fromstring(sample, np.uint8)
+        img = cv2.imdecode(data, cv2.IMREAD_COLOR)
+        '''
+        img = cv2.imread(img_path, -1)
+        channels = img.shape[2]
+        ori_h = img.shape[0]
+        ori_w = img.shape[1]
+        '''
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+class DetectionFile2Image(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, img_path, im_info=None):
         if py_version == 2:
             fin = open(img_path)
         else:
@@ -557,8 +622,9 @@ class File2Image(object):
         ori_h = img.shape[0]
         ori_w = img.shape[1]
         '''
-        im_info['im_shape'] = np.array(img.shape[:2], dtype=np.float32)
-        im_info['scale_factor'] = np.array([1., 1.], dtype=np.float32)
+        if im_info is not None:
+            im_info['im_shape'] = np.array(img.shape[:2], dtype=np.float32)
+            im_info['scale_factor'] = np.array([1., 1.], dtype=np.float32)
         return img, im_info
 
     def __repr__(self):
@@ -600,7 +666,28 @@ class Div(object):
     def __init__(self, value):
         self.value = value
 
-    def __call__(self, img, img_info = False):
+    def __call__(self, img):
+        """
+        Args:
+            img (numpy array): (int8 numpy array)
+
+        Returns:
+            img (numpy array): (float32 numpy array)
+        """
+        img = img.astype('float32') / self.value
+
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "({})".format(self.value)
+
+class DetectionDiv(object):
+    """ divide by some float number """
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, img, img_info=None):
         """
         Args:
             img (numpy array): (int8 numpy array)
@@ -628,6 +715,41 @@ class Normalize(object):
     Args:
         mean (sequence): Sequence of means for each channel.
         std (sequence): Sequence of standard deviations for each channel.
+
+    """
+
+    def __init__(self, mean, std, channel_first=False):
+        self.mean = mean
+        self.std = std
+        self.channel_first = channel_first
+
+    def __call__(self, img):
+        """
+        Args:
+            img (numpy array): (C, H, W) to be normalized.
+
+        Returns:
+            Tensor: Normalized Tensor image.
+        """
+        return F.normalize(img, self.mean, self.std, self.channel_first)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean,
+                                                                      self.std)
+
+
+class DetectionNormalize(object):
+    """Normalize a tensor image with mean and standard deviation.
+    Given mean: ``(M1,...,Mn)`` and std: ``(S1,..,Sn)`` for ``n`` channels, this transform
+    will normalize each channel of the input ``torch.*Tensor`` i.e.
+    ``output[channel] = (input[channel] - mean[channel]) / std[channel]``
+
+    .. note::
+        This transform acts out of place, i.e., it does not mutate the input tensor.
+
+    Args:
+        mean (sequence): Sequence of means for each channel.
+        std (sequence): Sequence of standard deviations for each channel.
         is_scale (bool): whether need im / 255
 
     """
@@ -637,7 +759,7 @@ class Normalize(object):
         self.std = std
         self.is_scale = is_scale
 
-    def __call__(self, im, im_info = None):
+    def __call__(self, im, im_info=None):
         """
         Args:
             im (np.ndarray): image (np.ndarray)
@@ -708,8 +830,33 @@ class CenterCrop(object):
         return self.__class__.__name__ + '(size={0})'.format(self.size)
 
 
-
 class Resize(object):
+    """Resize the input numpy array Image to the given size.
+
+    Args:
+        size (sequence or int): Desired output size. If size is a sequence like
+            (w, h), output size will be matched to this. If size is an int,
+            smaller edge of the image will be matched to this number.
+            i.e, if height > width, then image will be rescaled to
+            (size * height / width, size)
+        interpolation (int, optional): Desired interpolation. Default is
+            ``None``
+    """
+
+    def __init__(self, size, max_size=2147483647, interpolation=None):
+        self.size = size
+        self.max_size = max_size
+        self.interpolation = interpolation
+
+    def __call__(self, img):
+        return F.resize(img, self.size, self.max_size, self.interpolation)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(size={0}, max_size={1}, interpolation={2})'.format(
+            self.size, self.max_size,
+            _cv2_interpolation_to_str[self.interpolation])
+
+class DetectionResize(object):
     """resize image by target_size and max_size
     Args:
         target_size (int): the target size of image
@@ -724,7 +871,7 @@ class Resize(object):
         self.keep_ratio = keep_ratio
         self.interpolation = interpolation
 
-    def __call__(self, im, im_info):
+    def __call__(self, im, im_info=None):
         """
         Args:
             im (np.ndarray): image (np.ndarray)
@@ -744,9 +891,10 @@ class Resize(object):
             fx=im_scale_x,
             fy=im_scale_y,
             interpolation=self.interpolation)
-        im_info['im_shape'] = np.array(im.shape[:2]).astype('float32')
-        im_info['scale_factor'] = np.array(
-            [im_scale_y, im_scale_x]).astype('float32')
+        if im_info is not None:
+            im_info['im_shape'] = np.array(im.shape[:2]).astype('float32')
+            im_info['scale_factor'] = np.array(
+                [im_scale_y, im_scale_x]).astype('float32')
         return im, im_info
 
     def generate_scale(self, im):
@@ -782,6 +930,23 @@ class Resize(object):
 
 
 class PadStride(object):
+    def __init__(self, stride):
+        self.coarsest_stride = stride
+
+    def __call__(self, img):
+        coarsest_stride = self.coarsest_stride
+        if coarsest_stride == 0:
+            return img
+        im_c, im_h, im_w = img.shape
+        pad_h = int(np.ceil(float(im_h) / coarsest_stride) * coarsest_stride)
+        pad_w = int(np.ceil(float(im_w) / coarsest_stride) * coarsest_stride)
+        padding_im = np.zeros((im_c, pad_h, pad_w), dtype=np.float32)
+        padding_im[:, :im_h, :im_w] = img
+        im_info = {}
+        im_info['resize_shape'] = padding_im.shape[1:]
+        return padding_im
+
+class DetectionPadStride(object):
     """ padding image for model with FPN, instead PadBatch(pad_to_stride) in original config
     Args:
         stride (bool): model with FPN need image shape % stride == 0
@@ -790,7 +955,7 @@ class PadStride(object):
     def __init__(self, stride=0):
         self.coarsest_stride = stride
 
-    def __call__(self, im, im_info = None):
+    def __call__(self, im, im_info=None):
         """
         Args:
             im (np.ndarray): image (np.ndarray)
@@ -865,7 +1030,20 @@ class Transpose(object):
     def __init__(self, transpose_target):
         self.transpose_target = transpose_target
 
-    def __call__(self, im, im_info = None):
+    def __call__(self, img):
+        return F.transpose(img, self.transpose_target)
+        return img
+
+    def __repr__(self):
+        format_string = self.__class__.__name__ + \
+                        "({})".format(self.transpose_target)
+        return format_string
+
+class DetectionTranspose(object):
+    def __init__(self, transpose_target):
+        self.transpose_target = transpose_target
+
+    def __call__(self, im, im_info=None):
         im = F.transpose(im, self.transpose_target)
         return im, im_info
 
