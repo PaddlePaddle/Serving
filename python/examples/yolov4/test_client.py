@@ -29,7 +29,7 @@ client = Client()
 client.load_client_config("yolov4_client/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9393'])
 
-im, im_info = preprocess(sys.argv[1])
+im = preprocess(sys.argv[1])
 fetch_map = client.predict(
     feed={
         "image": im,
