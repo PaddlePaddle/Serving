@@ -127,7 +127,7 @@ class LocalServiceHandler(object):
             # Kunlun XPU
             self._device_name = "arm"
             devices = [int(x) for x in devices.split(",")]
-            # self._use_lite = True
+            self._use_lite = True
             self._use_xpu = True
         else:
             _LOGGER.error(
