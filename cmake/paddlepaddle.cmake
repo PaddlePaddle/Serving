@@ -27,7 +27,7 @@ set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/
 
 message( "WITH_GPU = ${WITH_GPU}")
 
-
+message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}" )
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
