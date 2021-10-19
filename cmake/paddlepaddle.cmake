@@ -27,12 +27,12 @@ set(prefix_path "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/
 
 message( "WITH_GPU = ${WITH_GPU}")
 
-
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
 SET(PADDLE_VERSION "2.2.0-rc0")
 if (WITH_GPU)
+    message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}")
     # cuda 11.0 is not supported, 11.2 would be added.
     if(CUDA_VERSION EQUAL 10.1)
         set(CUDA_SUFFIX "x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5")
