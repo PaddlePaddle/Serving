@@ -15,7 +15,7 @@ python3 -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_
 
 ### 执行预测
 ```
-python3 test_client.py
+python3 test_client.py 000000570688.jpg
 ```
 
 客户端已经为图片做好了后处理，在`output`文件夹下存放各个框的json格式信息还有后处理结果图片。
