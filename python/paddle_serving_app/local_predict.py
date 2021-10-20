@@ -220,6 +220,9 @@ class LocalPredictor(object):
             # 2MB l3 cache
             config.enable_xpu(8 * 1024 * 1024)
             config.set_xpu_device_id(gpu_id)
+            # set paddle_lite xpu id
+            if use_lite:
+                os.environ['XPU_VISIBLE_DEVICES'] = "{}".format(gpu_id)
         # set cpu low precision
         if not use_gpu and not use_lite:
             if precision_type == paddle_infer.PrecisionType.Int8:
