@@ -9,7 +9,7 @@ wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/fast
 
 ### Start the service
 ```
-tar xf faster_rcnn_hrnetv2p_w18_1x.tar
+tar xf faster_rcnn_hrnetv2p_w18_1x.tar.gz
 python3 -m paddle_serving_server.serve --model serving_server --port 9494 --gpu_ids 0
 ```
 

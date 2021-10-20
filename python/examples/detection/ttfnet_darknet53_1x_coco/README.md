@@ -4,7 +4,7 @@
 
 ### Get Model
 ```
-wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/ttfnet_darknet53_1x_coco.tar
+wget --no-check-certificate https://paddle-serving.bj.bcebos.com/pddet_demo/ttfnet_darknet53_1x_coco.tar
 ```
 
 ### Start the service

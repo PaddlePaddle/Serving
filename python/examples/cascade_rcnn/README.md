@@ -15,7 +15,7 @@ python3 -m paddle_serving_server.serve --model serving_server --port 9292 --gpu_
 
 ### Perform prediction
 ```
-python3 test_client.py 
+python3 test_client.py 000000570688.jpg
 ```
 
 Image with bounding boxes and json result would be saved in `output` folder.
