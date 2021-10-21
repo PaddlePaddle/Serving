@@ -26,6 +26,7 @@ import collections
 import numpy as np
 import json
 from numpy import *
+from io import BytesIO
 if sys.version_info.major == 2:
     import Queue
 elif sys.version_info.major == 3:
@@ -40,9 +41,28 @@ from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
+from .pipeline_client import PipelineClient as PPClient
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
+
+# data type of tensor to numpy_data
+_TENSOR_DTYPE_2_NUMPY_DATA_DTYPE = {
+    0: "int64",  # VarType.INT64
+    1: "float32",  # VarType.FP32
+    2: "int32",  # VarType.INT32
+    3: "float64",  # VarType.FP64
+    4: "int16",  # VarType.int16
+    5: "float16",  # VarType.FP32
+    6: "uint16",  # VarType.BF16
+    7: "uint8",  # VarType.UINT8
+    8: "int8",  # VarType.INT8
+    9: "bool",  # VarType.BOOL
+    10: "complex64",  # VarType.COMPLEX64
+    11: "complex128",  # VarType.COMPLEX128
+    12: "string",  # load by numpy
+    13: "bytes",  # load by numpy
+}
 
 
 class Op(object):
@@ -83,6 +103,9 @@ class Op(object):
 
         self._server_use_profile = False
         self._tracer = None
+
+        # for grpc_pipeline predict mode. False, string key/val; True, tensor format.
+        self._pack_tensor_format = False
 
         # only for thread op
         self._for_init_op_lock = threading.Lock()
@@ -330,9 +353,8 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        # 待测试完成后，使用brpc-http替代。
-        # elif self.client_type == 'grpc':
-        #   client = MultiLangClient()
+        elif self.client_type == 'pipeline_grpc':
+            client = PPClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
@@ -371,6 +393,9 @@ class Op(object):
                               "must be Op type, not {}".format(type(op))))
                 os._exit(-1)
             self._input_ops.append(op)
+
+    def set_pack_tensor_format(self, is_tensor_format=False):
+        self._pack_tensor_format = is_tensor_format
 
     def get_jump_to_ops(self):
         return self._jump_to_ops
@@ -483,7 +508,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
-        _LOGGER.info("op:{} add output_channel {}".format(self.name, channel))
+        _LOGGER.debug("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -531,32 +556,73 @@ class Op(object):
         Returns:
             call_result: predict result
         """
-        err, err_info = ChannelData.check_batch_npdata(feed_batch)
-        if err != 0:
-            _LOGGER.critical(
-                self._log("Failed to run process: {}. Please override "
-                          "preprocess func.".format(err_info)))
-            os._exit(-1)
+
+        call_result = None
+        err_code = ChannelDataErrcode.OK.value
+        err_info = ""
+
         if self.client_type == "local_predictor":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for local_predictor mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
+
             call_result = self.client.predict(
                 feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        else:
+
+        elif self.client_type == "brpc":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for brpc mode.".format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
             call_result = self.client.predict(
-                feed=feed_batch,
+                feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        # 后续用HttpClient替代
-        '''
-        if isinstance(self.client, MultiLangClient):
-            if call_result is None or call_result["serving_status_code"] != 0:
-                return None
-            call_result.pop("serving_status_code")
-        '''
-        return call_result
+
+        elif self.client_type == "pipeline_grpc":
+            err, err_info = ChannelData.check_dictdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                       npdata in process for pipeline_grpc mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be dict"
+
+            call_result = self.client.predict(
+                feed_dict=feed_batch[0],
+                fetch=self._fetch_names,
+                asyn=False,
+                pack_tensor_format=self._pack_tensor_format,
+                profile=False)
+            if call_result is None:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. call_result is None."))
+                return call_result, ChannelDataErrcode.UNKNOW.value, "pipeline_grpc error"
+            if call_result.err_no != 0:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. err_no:{}, err_info:{}".
+                              format(call_result.err_no, call_result.err_msg)))
+                return call_result, ChannelDataErrcode(
+                    call_result.err_no).value, call_result.err_msg
+
+            new_dict = {}
+            err_code = ChannelDataErrcode(call_result.err_no).value
+            err_info = call_result.err_msg
+            for idx, key in enumerate(call_result.key):
+                new_dict[key] = [call_result.value[idx]]
+            call_result = new_dict
+
+        return call_result, err_code, err_info
 
     def postprocess(self, input_data, fetch_data, data_id=0, log_id=0):
         """
@@ -891,16 +957,20 @@ class Op(object):
 
         midped_batch = None
         error_code = ChannelDataErrcode.OK.value
+        error_info = ""
         if self._timeout <= 0:
             # No retry
             try:
                 if batch_input is False:
-                    midped_batch = self.process(feed_batch, typical_logid)
+                    midped_batch, error_code, error_info = self.process(
+                        feed_batch, typical_logid)
                 else:
                     midped_batch = []
                     for idx in range(len(feed_batch)):
-                        predict_res = self.process([feed_batch[idx]],
-                                                   typical_logid)
+                        predict_res, error_code, error_info = self.process(
+                            [feed_batch[idx]], typical_logid)
+                        if error_code != ChannelDataErrcode.OK.value:
+                            break
                         midped_batch.append(predict_res)
             except Exception as e:
                 error_code = ChannelDataErrcode.UNKNOW.value
@@ -913,14 +983,14 @@ class Op(object):
                 try:
                     # time out for each process
                     if batch_input is False:
-                        midped_batch = func_timeout.func_timeout(
+                        midped_batch, error_code, error_info = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
                     else:
                         midped_batch = []
                         for idx in range(len(feed_batch)):
-                            predict_res = func_timeout.func_timeout(
+                            predict_res, error_code, error_info = func_timeout.func_timeout(
                                 self._timeout,
                                 self.process,
                                 args=([feed_batch[idx]], typical_logid))
@@ -1265,6 +1335,8 @@ class Op(object):
                 break
             end = int(round(_time() * 1000000))
             in_time = end - start
+            _LOGGER.debug("op:{} in_time_end:{}".format(op_info_prefix,
+                                                        time.time()))
 
             # parse channeldata batch
             try:
@@ -1278,6 +1350,8 @@ class Op(object):
             if len(parsed_data_dict) == 0:
                 # data in the whole batch is all error data
                 continue
+            _LOGGER.debug("op:{} parse_end:{}".format(op_info_prefix,
+                                                      time.time()))
 
             # print
             front_cost = int(round(_time() * 1000000)) - start
@@ -1292,6 +1366,8 @@ class Op(object):
                     = self._run_preprocess(parsed_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
             prep_time = end - start
+            _LOGGER.debug("op:{} preprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), prep_time))
             try:
                 # put error requests into output channel, skip process and postprocess stage
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -1313,6 +1389,8 @@ class Op(object):
                     = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
             midp_time = end - start
+            _LOGGER.debug("op:{} process_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), midp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1334,6 +1412,8 @@ class Op(object):
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
             after_postp_time = _time()
+            _LOGGER.debug("op:{} postprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), postp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1486,6 +1566,90 @@ class RequestOp(Op):
             _LOGGER.critical("Op(Request) Failed to init: {}".format(e))
             os._exit(-1)
 
+    def proto_tensor_2_numpy(self, tensor):
+        """
+        Convert proto tensor to numpy array, The supported types are as follows:
+                INT64
+                FP32
+		INT32
+		FP64
+		INT16
+		FP16
+		BF16
+		UINT8
+		INT8
+		BOOL
+                BYTES
+        Unsupported type:
+                STRING
+                COMPLEX64
+                COMPLEX128
+
+        Args:
+            tensor: one tensor in request.tensors.
+
+        Returns:
+            np.ndnumpy
+        """
+        if tensor is None or tensor.elem_type is None or tensor.name is None:
+            _LOGGER.error("input params of tensor is wrong. tensor: {}".format(
+                tensor))
+            return None
+
+        dims = []
+        if tensor.shape is None:
+            dims.append(1)
+        else:
+            for one_dim in tensor.shape:
+                dims.append(one_dim)
+
+        np_data = None
+        _LOGGER.info("proto_to_numpy, name:{}, type:{}, dims:{}".format(
+            tensor.name, tensor.elem_type, dims))
+        if tensor.elem_type == 0:
+            # VarType: INT64
+            np_data = np.array(tensor.int64_data).astype(int64).reshape(dims)
+        elif tensor.elem_type == 1:
+            # VarType: FP32
+            np_data = np.array(tensor.float_data).astype(float32).reshape(dims)
+        elif tensor.elem_type == 2:
+            # VarType: INT32
+            np_data = np.array(tensor.int_data).astype(int32).reshape(dims)
+        elif tensor.elem_type == 3:
+            # VarType: FP64
+            np_data = np.array(tensor.float64_data).astype(float64).reshape(
+                dims)
+        elif tensor.elem_type == 4:
+            # VarType: INT16
+            np_data = np.array(tensor.int_data).astype(int16).reshape(dims)
+        elif tensor.elem_type == 5:
+            # VarType: FP16
+            np_data = np.array(tensor.float_data).astype(float16).reshape(dims)
+        elif tensor.elem_type == 6:
+            # VarType: BF16
+            np_data = np.array(tensor.uint32_data).astype(uint16).reshape(dims)
+        elif tensor.elem_type == 7:
+            # VarType: UINT8
+            np_data = np.array(tensor.uint32_data).astype(uint8).reshape(dims)
+        elif tensor.elem_type == 8:
+            # VarType: INT8
+            np_data = np.array(tensor.int_data).astype(int8).reshape(dims)
+        elif tensor.elem_type == 9:
+            # VarType: BOOL
+            np_data = np.array(tensor.bool_data).astype(bool).reshape(dims)
+        elif tensor.elem_type == 13:
+            # VarType: BYTES
+            byte_data = BytesIO(tensor.byte_data)
+            np_data = np.load(byte_data, allow_pickle=True)
+        else:
+            _LOGGER.error("Sorry, the type {} of tensor {} is not supported.".
+                          format(tensor.elem_type, tensor.name))
+            raise ValueError(
+                "Sorry, the type {} of tensor {} is not supported.".format(
+                    tensor.elem_type, tensor.name))
+
+        return np_data
+
     def unpack_request_package(self, request):
         """
         Unpack request package by gateway.proto
@@ -1506,12 +1670,47 @@ class RequestOp(Op):
             _LOGGER.critical("request is None")
             raise ValueError("request is None")
 
+        # unpack key/value string list
         for idx, key in enumerate(request.key):
             dict_data[key] = request.value[idx]
         log_id = request.logid
-        _LOGGER.debug("RequestOp unpack one request. log_id:{}, clientip:{} \
-            name:{}, method:{}".format(log_id, request.clientip, request.name,
-                                       request.method))
+
+        # unpack proto.tensors data.
+        for one_tensor in request.tensors:
+            name = one_tensor.name
+            elem_type = one_tensor.elem_type
+
+            if one_tensor.name is None:
+                _LOGGER.error("Tensor name is None.")
+                raise ValueError("Tensor name is None.")
+
+            numpy_dtype = _TENSOR_DTYPE_2_NUMPY_DATA_DTYPE.get(elem_type)
+            if numpy_dtype is None:
+                _LOGGER.error(
+                    "elem_type:{} is dismatch in unpack_request_package.",
+                    format(elem_type))
+                raise ValueError("elem_type:{} error".format(elem_type))
+
+            if numpy_dtype == "string":
+                new_string = ""
+                if one_tensor.str_data is None:
+                    _LOGGER.error(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                    raise ValueError(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                for one_str in one_tensor.str_data:
+                    new_string += one_str
+
+                dict_data[name] = new_string
+            else:
+                dict_data[name] = self.proto_tensor_2_numpy(one_tensor)
+
+        _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
+            name:{}, method:{}, time:{}"
+                     .format(log_id, request.clientip, request.name,
+                             request.method, time.time()))
 
         return dict_data, log_id, None, ""
 
@@ -1530,6 +1729,7 @@ class ResponseOp(Op):
         """
         super(ResponseOp, self).__init__(
             name="@DAGExecutor", input_ops=input_ops)
+
         # init op
         try:
             self.init_op()
@@ -1537,6 +1737,12 @@ class ResponseOp(Op):
             _LOGGER.critical("Op(ResponseOp) Failed to init: {}".format(
                 e, exc_info=True))
             os._exit(-1)
+
+        # init ResponseOp
+        self.is_pack_tensor = False
+
+    def set_pack_format(self, isTensor=False):
+        self.is_pack_tensor = isTensor
 
     def pack_response_package(self, channeldata):
         """

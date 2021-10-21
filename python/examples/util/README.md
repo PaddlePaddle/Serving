@@ -13,14 +13,14 @@ In order to show the time consuming of each stage more intuitively, a script is 
 
 When using, first save the output of the client to a file, taking `profile` as an example.
 ```
-python show_profile.py profile ${thread_num}
+python3 show_profile.py profile ${thread_num}
 ```
 Here the `thread_num` parameter is the number of processes when the client is running, and the script will calculate the average time spent in each phase according to this parameter.
 
 The script calculates the time spent in each stage, divides by the number of threads to average, and prints to standard output.
 
 ```
-python timeline_trace.py profile trace
+python3 timeline_trace.py profile trace
 ```
 The script converts the time-dot information in the log into a json format and saves it to a trace file. The trace file can be visualized through the tracing function of the Chrome browser.
 

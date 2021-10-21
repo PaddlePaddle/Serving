@@ -274,7 +274,7 @@ class OpAnalyst(object):
         """
         import yaml
         with open(op_config_yaml) as f:
-            op_config = yaml.load(f)
+            op_config = yaml.load(f, yaml.FullLoader)
 
         # check that each model is deployed on a different card
         card_set = set()

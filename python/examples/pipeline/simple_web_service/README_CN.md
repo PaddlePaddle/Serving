@@ -10,7 +10,7 @@ sh get_data.sh
 ## 启动服务
 
 ```
-python web_service.py &>log.txt &
+python3 web_service.py &>log.txt &
 ```
 
 ## 测试

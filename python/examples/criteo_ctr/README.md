@@ -19,13 +19,13 @@ the directories like `ctr_serving_model` and `ctr_client_conf` will appear.
 ### Start RPC Inference Service
 
 ```
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #CPU RPC Service
-python -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #RPC Service on GPU 0
+python3 -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 #CPU RPC Service
+python3 -m paddle_serving_server.serve --model ctr_serving_model/ --port 9292 --gpu_ids 0 #RPC Service on GPU 0
 ```
 
 ### RPC Infer
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
+python3 test_client.py ctr_client_conf/serving_client_conf.prototxt raw_data/part-0
 ```
 the latency will display in the end.

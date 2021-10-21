@@ -10,15 +10,15 @@
 wget https://paddle-inference-dist.bj.bcebos.com/inference_demo/python/resnet50/ResNet50_quant.tar.gz
 tar zxvf ResNet50_quant.tar.gz
 
-python -m paddle_serving_client.convert --dirname ResNet50_quant
+python3 -m paddle_serving_client.convert --dirname ResNet50_quant
 ```
 启动rpc服务, 设定所选GPU id、部署模型精度
 ```
-python -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 
+python3 -m paddle_serving_server.serve --model serving_server --port 9393 --gpu_ids 0 --use_trt --precision int8 
 ```
 使用client进行请求
 ```
-python resnet50_client.py
+python3 resnet50_client.py
 ```
 
 ## 参考文档

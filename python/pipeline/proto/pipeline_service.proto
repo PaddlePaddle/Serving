@@ -12,25 +12,120 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-syntax = "proto2";
+syntax = "proto3";
 package baidu.paddle_serving.pipeline_serving;
 
+// Tensor structure, consistent with PADDLE variable types.
+// Descriptions of input and output data.
+message Tensor {
+
+  // VarType: INT64
+  repeated int64 int64_data = 1;
+
+  // VarType: FP32, FP16
+  repeated float float_data = 2;
+
+  // VarType: INT32, INT16, INT8
+  repeated int32 int_data = 3;
+
+  // VarType: FP64
+  repeated double float64_data = 4;
+
+  // VarType: BF16, UINT8
+  repeated uint32 uint32_data = 5;
+
+  // VarType: BOOL
+  repeated bool bool_data = 6;
+
+  // (No support)VarType: COMPLEX64, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated float complex64_data = 7;
+
+  // (No support)VarType: COMPLEX128, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated double complex128_data = 8;
+
+  // VarType: STRING
+  repeated string str_data = 9;
+
+  // VarType: BYTES, is suitable for big data. No need to save data types and
+  // dimensions
+  // pack method: pack by BytesIO, saved by np.save
+  // unpack method: load by np.load, unpack by BytesIO.
+  bytes byte_data = 10;
+
+  // Element types:
+  //   0 => INT64
+  //   1 => FP32
+  //   2 => INT32
+  //   3 => FP64
+  //   4 => INT16
+  //   5 => FP16
+  //   6 => BF16
+  //   7 => UINT8
+  //   8 => INT8
+  //   9 => BOOL
+  //  10 => COMPLEX64
+  //  11 => COMPLEX128
+  //  12 => STRING
+  //  13 => BYTES
+  int32 elem_type = 20;
+
+  // Shape of the tensor, including batch dimensions.
+  repeated int32 shape = 21;
+
+  // Level of data(LOD), support variable length data, only for fetch tensor
+  // currently.
+  repeated int32 lod = 22;
+
+  // Correspond to the variable 'name' in the model description prototxt.
+  string name = 23;
+};
+
+// The structure of the service request. The input data can be repeated string
+// pairs or tensors.
 message Request {
+  // The input data are repeated string pairs.
+  // for examples. key is "words", value is the string of words.
   repeated string key = 1;
   repeated string value = 2;
-  optional string name = 3;
-  optional string method = 4;
-  optional int64 logid = 5;
-  optional string clientip = 6;
+
+  // The input data are repeated tensors for complex data structures.
+  // Becase tensors can save more data information and reduce the amount of data
+  // transferred.
+  repeated Tensor tensors = 3;
+
+  // The name field in the RESTful API
+  string name = 4;
+
+  // The method field in the RESTful API
+  string method = 5;
+
+  // For tracing requests and logs
+  int64 logid = 6;
+
+  // For tracking sources
+  string clientip = 7;
 };
 
+// The structure of the service response. The output data can be repeated string
+// pairs or tensors.
 message Response {
-  optional int32 err_no = 1;
-  optional string err_msg = 2;
+  // Error code
+  int32 err_no = 1;
+
+  // Error messages
+  string err_msg = 2;
+
+  // The results of string pairs
   repeated string key = 3;
   repeated string value = 4;
+
+  // The results of tensors
+  repeated Tensor tensors = 5;
 };
 
+// Python pipeline service
 service PipelineService {
   rpc inference(Request) returns (Response) {}
 };

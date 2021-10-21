@@ -4,28 +4,23 @@
 
 ### Get Model
 ```
-python -m paddle_serving_app.package --get_model lac
+python3 -m paddle_serving_app.package --get_model lac
 tar -xzvf lac.tar.gz
 ```
 
-#### Start RPC inference service
+#### Start inference service(Support BRPC-Client/GRPC-Client/Http-Client)
 
 ```
-python -m paddle_serving_server.serve --model lac_model/ --port 9292
+python3 -m paddle_serving_server.serve --model lac_model/ --port 9292
 ```
-### RPC Infer
+### BRPC Infer
 ```
-echo "我爱北京天安门" | python lac_client.py lac_client/serving_client_conf.prototxt
+echo "我爱北京天安门" | python3 lac_client.py lac_client/serving_client_conf.prototxt
 ```
 
 It will get the segmentation result. 
 
-### Start HTTP inference service
+### GRPC/Http Infer
 ```
-python lac_web_service.py lac_model/ lac_workdir 9292
-```
-### HTTP Infer
-
-```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:9292/lac/prediction
+echo "我爱北京天安门" | python3 lac_http_client.py lac_client/serving_client_conf.prototxt
 ```

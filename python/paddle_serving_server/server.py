@@ -228,7 +228,8 @@ class Server(object):
             engine.batch_infer_size = self.op_max_batch[index %
                                                         len(self.op_max_batch)]
 
-            engine.enable_batch_align = 1
+            engine.enable_overrun = False
+            engine.allow_split_request = True
             engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
@@ -537,7 +538,7 @@ class Server(object):
     def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
+            result = sock.connect_ex(('127.0.0.1', port))
         if result != 0:
             return True
         else:
@@ -563,7 +564,7 @@ class Server(object):
                     "-num_threads {} " \
                     "-port {} " \
                     "-precision {} " \
-                    "-use_calib {} " \
+                    "-use_calib={} " \
                     "-reload_interval_s {} " \
                     "-resource_path {} " \
                     "-resource_file {} " \

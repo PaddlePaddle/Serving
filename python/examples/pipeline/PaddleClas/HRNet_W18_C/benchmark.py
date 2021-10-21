@@ -1,3 +1,17 @@
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import os
 import base64
@@ -5,16 +19,16 @@ import yaml
 import requests
 import time
 import json
-try:
-    from paddle_serving_server_gpu.pipeline import PipelineClient
-except ImportError:
-    from paddle_serving_server.pipeline import PipelineClient
+
+from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args, show_latency
+
+
 def parse_benchmark(filein, fileout):
     with open(filein, "r") as fin:
-        res = yaml.load(fin)
+        res = yaml.load(fin, yaml.FullLoader)
         del_list = []
         for key in res["DAG"].keys():
             if "call" in key:
@@ -24,9 +38,10 @@ def parse_benchmark(filein, fileout):
     with open(fileout, "w") as fout:
         yaml.dump(res, fout, default_flow_style=False)
 
+
 def gen_yml(device, gpu_id):
     fin = open("config.yml", "r")
-    config = yaml.load(fin)
+    config = yaml.load(fin, yaml.FullLoader)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 10}
     if device == "gpu":
@@ -34,15 +49,17 @@ def gen_yml(device, gpu_id):
         config["op"]["imagenet"]["local_service_conf"]["devices"] = gpu_id
     else:
         config["op"]["imagenet"]["local_service_conf"]["device_type"] = 0
-    with open("config2.yml", "w") as fout: 
+    with open("config2.yml", "w") as fout:
         yaml.dump(config, fout, default_flow_style=False)
+
 
 def cv2_to_base64(image):
     return base64.b64encode(image).decode('utf8')
 
+
 def run_http(idx, batch_size):
     print("start thread ({})".format(idx))
-    url = "http://127.0.0.1:18080/imagenet/prediction"    
+    url = "http://127.0.0.1:18080/imagenet/prediction"
     start = time.time()
 
     with open(os.path.join(".", "daisy.jpg"), 'rb') as file:
@@ -68,6 +85,7 @@ def run_http(idx, batch_size):
     end = time.time()
     return [[end - start], latency_list, [total_num]]
 
+
 def multithread_http(thread, batch_size):
     multi_thread_runner = MultiThreadRunner()
     start = time.time()
@@ -86,6 +104,7 @@ def multithread_http(thread, batch_size):
     print("AVG QPS: {} samples/s".format(batch_size * total_number /
                                          total_cost))
     show_latency(result[1])
+
 
 def run_rpc(thread, batch_size):
     client = PipelineClient()
@@ -107,11 +126,12 @@ def run_rpc(thread, batch_size):
 
 def multithread_rpc(thraed, batch_size):
     multi_thread_runner = MultiThreadRunner()
-    result = multi_thread_runner.run(run_rpc , thread, batch_size)
+    result = multi_thread_runner.run(run_rpc, thread, batch_size)
+
 
 if __name__ == "__main__":
     if sys.argv[1] == "yaml":
-        mode = sys.argv[2] # brpc/  local predictor
+        mode = sys.argv[2]  # brpc/  local predictor
         thread = int(sys.argv[3])
         device = sys.argv[4]
         if device == "gpu":
@@ -120,7 +140,7 @@ if __name__ == "__main__":
             gpu_id = None
         gen_yml(device, gpu_id)
     elif sys.argv[1] == "run":
-        mode = sys.argv[2] # http/ rpc
+        mode = sys.argv[2]  # http/ rpc
         thread = int(sys.argv[3])
         batch_size = int(sys.argv[4])
         if mode == "http":
@@ -131,4 +151,3 @@ if __name__ == "__main__":
         filein = sys.argv[2]
         fileout = sys.argv[3]
         parse_benchmark(filein, fileout)
-    

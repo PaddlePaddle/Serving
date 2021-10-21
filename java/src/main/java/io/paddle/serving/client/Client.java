@@ -59,9 +59,20 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
  
 
-enum ElementType
-{
-    Int64_type, Float32_type, Int32_type, Bytes_type;
+class ElementType {
+    public static final int Int64_type = 0;
+    public static final int Float32_type = 1;
+    public static final int Int32_type = 2;
+    public static final int String_type = 20;
+    public static final Map<Integer, String> feedTypeToDataKey_;
+    static
+    {
+        feedTypeToDataKey_ = new HashMap<Integer, String>();
+        feedTypeToDataKey_.put(ElementType.Int64_type, "int64_data");
+        feedTypeToDataKey_.put(ElementType.Float32_type, "float_data");
+        feedTypeToDataKey_.put(ElementType.Int32_type, "int_data");
+        feedTypeToDataKey_.put(ElementType.String_type, "data");
+    }
 }
 
 class Profiler {
@@ -104,7 +115,6 @@ public class Client {
     private Map<String, Integer> feedTypes_;
     private Map<String, List<Integer>> feedShapes_;
     private Map<String, Integer> feedNameToIndex_;
-    private Map<Integer, String> feedTypeToDataKey_;
     private List<String> fetchNames_;
     private Map<String, Integer> fetchTypes_;
     private Set<String> lodTensorSet_;
@@ -134,7 +144,7 @@ public class Client {
         feedTensorLen_ = null;
         feedNameToIndex_ = null;
         timeoutS_ = 200000;
-        ip = "0.0.0.0";
+        ip = "127.0.0.1";
         port = "9393";
         serverPort = "9393";
         serviceName = "/GeneralModelService/inference";
@@ -146,12 +156,6 @@ public class Client {
 
         channel_ = null;
         blockingStub_ = null;
-
-        feedTypeToDataKey_ = new HashMap<Integer, String>();
-        feedTypeToDataKey_.put(0, "int64_data");
-        feedTypeToDataKey_.put(1, "float_data");
-        feedTypeToDataKey_.put(2, "int_data");
-        feedTypeToDataKey_.put(3, "data");
 
         profiler_ = new Profiler();
         boolean is_profile = false;
@@ -525,7 +529,7 @@ public class Client {
                     jsonTensor.put("elem_type", element_type);
 
                     // 处理数据与shape
-                    String protoDataKey = feedTypeToDataKey_.get(element_type);
+                    String protoDataKey = ElementType.feedTypeToDataKey_.get(element_type);
                     // 如果是INDArray类型，先转为一维.
                     // 此时shape为INDArray的shape
                     if(objectValue instanceof INDArray){
@@ -535,11 +539,11 @@ public class Client {
                         for(long dim:indarrayShape){
                             shape.add((int)dim);
                         }
-                        if(element_type == ElementType.Int64_type.ordinal()){
+                        if(element_type == ElementType.Int64_type){
                             objectValue = tempIndArray.data().asLong();
-                        }else if(element_type == ElementType.Int32_type.ordinal()){
+                        }else if(element_type == ElementType.Int32_type){
                             objectValue = tempIndArray.data().asInt();
-                        }else if(element_type == ElementType.Float32_type.ordinal()){
+                        }else if(element_type == ElementType.Float32_type){
                             objectValue = tempIndArray.data().asFloat();
                         }else{
                             throw new Exception("INDArray 类型不支持");
@@ -564,11 +568,11 @@ public class Client {
                         // 此时无法获取batch信息，故对shape不处理
                         // 由于Proto中为Repeated,需要把数据包装成list
                         if(objectValue instanceof String){
-                            if(feedTypes_.get(protoDataKey)!= ElementType.Bytes_type.ordinal()){
+                            if(feedTypes_.get(protoDataKey)!= ElementType.String_type){
                                 throw new Exception("feedvar is not string-type,feed can`t be a single string.");
                             }
                         }else{
-                            if(feedTypes_.get(protoDataKey)== ElementType.Bytes_type.ordinal()){
+                            if(feedTypes_.get(protoDataKey)== ElementType.String_type){
                                 throw new Exception("feedvar is string-type,feed, feed can`t be a single int or others.");
                             }
                         }
@@ -662,17 +666,17 @@ public class Client {
                         for(long dim:indarrayShape){
                             shape.add((int)dim);
                         }   
-                        if(element_type == ElementType.Int64_type.ordinal()){
+                        if(element_type == ElementType.Int64_type){
                             
                             List<Long> iter = Arrays.stream(tempIndArray.data().asLong()).boxed().collect(Collectors.toList());
                             tensor_builder.addAllInt64Data(iter);
                             
-                        }else if(element_type == ElementType.Int32_type.ordinal()){
+                        }else if(element_type == ElementType.Int32_type){
                             
                             List<Integer> iter = Arrays.stream(tempIndArray.data().asInt()).boxed().collect(Collectors.toList());
                             tensor_builder.addAllIntData(iter);
                             
-                        }else if(element_type == ElementType.Float32_type.ordinal()){
+                        }else if(element_type == ElementType.Float32_type){
                             List<Float> iter = Arrays.asList(ArrayUtils.toObject(tempIndArray.data().asFloat()));
                             tensor_builder.addAllFloatData(iter);
                             
@@ -684,13 +688,13 @@ public class Client {
                         // 如果是数组类型，则无须处理，直接使用即可。
                         // 且数组无法嵌套，此时batch无法从数据中获取
                         // 默认batch维度为1，或者feedVar的shape信息中已包含batch
-                        if(element_type == ElementType.Int64_type.ordinal()){
+                        if(element_type == ElementType.Int64_type){
                             List<Long> iter = Arrays.stream((long[])objectValue).boxed().collect(Collectors.toList());
                             tensor_builder.addAllInt64Data(iter);
-                        }else if(element_type == ElementType.Int32_type.ordinal()){
+                        }else if(element_type == ElementType.Int32_type){
                             List<Integer> iter = Arrays.stream((int[])objectValue).boxed().collect(Collectors.toList());
                             tensor_builder.addAllIntData(iter);
-                        }else if(element_type == ElementType.Float32_type.ordinal()){
+                        }else if(element_type == ElementType.Float32_type){
                             List<Float> iter = Arrays.asList(ArrayUtils.toObject((float[])objectValue));
                             tensor_builder.addAllFloatData(iter);
                         }else{
@@ -707,11 +711,11 @@ public class Client {
                             // 在index=0处，加上batch
                             shape.add(0, list.size());
                         }
-                        if(element_type == ElementType.Int64_type.ordinal()){
+                        if(element_type == ElementType.Int64_type){
                             tensor_builder.addAllInt64Data((List<Long>)(List)recursiveExtract(objectValue));
-                        }else if(element_type == ElementType.Int32_type.ordinal()){
+                        }else if(element_type == ElementType.Int32_type){
                             tensor_builder.addAllIntData((List<Integer>)(List)recursiveExtract(objectValue));
-                        }else if(element_type == ElementType.Float32_type.ordinal()){
+                        }else if(element_type == ElementType.Float32_type){
                             tensor_builder.addAllFloatData((List<Float>)(List)recursiveExtract(objectValue));
                         }else{
                             // 看接口是String还是Bytes
@@ -723,11 +727,11 @@ public class Client {
                         // 由于Proto中为Repeated,需要把数据包装成list
                         List<Object> tempList = new ArrayList<>();
                         tempList.add(objectValue);
-                        if(element_type == ElementType.Int64_type.ordinal()){
+                        if(element_type == ElementType.Int64_type){
                             tensor_builder.addAllInt64Data((List<Long>)(List)tempList);
-                        }else if(element_type == ElementType.Int32_type.ordinal()){
+                        }else if(element_type == ElementType.Int32_type){
                             tensor_builder.addAllIntData((List<Integer>)(List)tempList);
-                        }else if(element_type == ElementType.Float32_type.ordinal()){
+                        }else if(element_type == ElementType.Float32_type){
                             tensor_builder.addAllFloatData((List<Float>)(List)tempList);
                         }else{
                             // 看接口是String还是Bytes

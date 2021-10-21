@@ -22,6 +22,7 @@ import gzip
 from collections import Iterable
 import base64
 import sys
+import re
 
 import grpc
 from .proto import general_model_service_pb2
@@ -31,13 +32,18 @@ from .proto import general_model_service_pb2_grpc
 #param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
 #param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
 #param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
-#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
+#param 'type'(which is in feed_var or fetch_var) = 20 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
-bytes_type = 3
+bytes_type = 20
 # this is corresponding to the proto
-proto_data_key_list = ["int64_data", "float_data", "int_data", "data"]
+proto_data_key_list = {
+    0: "int64_data",
+    1: "float_data",
+    2: "int_data",
+    20: "data"
+}
 
 
 def list_flatten(items, ignore_types=(str, bytes)):
@@ -73,9 +79,9 @@ def data_bytes_number(datalist):
 # 可以直接调用需要的http_client_predict/grpc_client_predict
 # 例如，如果想使用GRPC方式，set_use_grpc_client(True)
 # 或者直接调用grpc_client_predict()
-class GeneralClient(object):
+class HttpClient(object):
     def __init__(self,
-                 ip="0.0.0.0",
+                 ip="127.0.0.1",
                  port="9393",
                  service_name="/GeneralModelService/inference"):
         self.feed_names_ = []
@@ -84,7 +90,7 @@ class GeneralClient(object):
         self.feed_shapes_ = {}
         self.feed_types_ = {}
         self.feed_names_to_idx_ = {}
-        self.timeout_ms = 200000
+        self.timeout_ms = 20000
         self.ip = ip
         self.port = port
         self.server_port = port
@@ -93,9 +99,24 @@ class GeneralClient(object):
         self.try_request_gzip = False
         self.try_response_gzip = False
         self.total_data_number = 0
+        self.headers = {}
         self.http_proto = True
+        self.headers["Content-Type"] = "application/proto"
         self.max_body_size = 512 * 1024 * 1024
         self.use_grpc_client = False
+        self.http_s = "http://"
+
+        # 使用连接池能够不用反复建立连接
+        self.requests_session = requests.session()
+        # 初始化grpc_stub
+        options = [('grpc.max_receive_message_length', self.max_body_size),
+                   ('grpc.max_send_message_length', self.max_body_size)]
+
+        endpoints = [self.ip + ":" + self.server_port]
+        g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
+        self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
+        self.stub_ = general_model_service_pb2_grpc.GeneralModelServiceStub(
+            self.channel_)
 
     def load_client_config(self, model_config_path_list):
         if isinstance(model_config_path_list, str):
@@ -162,14 +183,57 @@ class GeneralClient(object):
         else:
             self.timeout_ms = timeout_ms
 
-    def set_ip(self, ip):
-        self.ip = ip
+    def set_max_retries(self, retry_times=3):
+        if not isinstance(retry_times, int):
+            raise ValueError("retry_times must be int type.")
+        else:
+            self.requests_session.mount(
+                self.http_s, HTTPAdapter(max_retries=retry_times))
 
     def set_service_name(self, service_name):
         self.service_name = service_name
 
-    def set_port(self, port):
-        self.port = port
+    def connect(self, url=None, encryption=False):
+        if isinstance(url, (list, tuple)):
+            if len(url) > 1:
+                raise ValueError("HttpClient only support 1 endpoint")
+            else:
+                url = url[0]
+        if isinstance(url, str):
+            if url.startswith("https://"):
+                url = url[8:]
+                self.http_s = "https://"
+            if url.startswith("http://"):
+                url = url[7:]
+                self.http_s = "http://"
+            url_parts = url.split(':')
+            if len(url_parts) != 2 or self.check_ip(url_parts[0]) == False:
+                raise ValueError(
+                    "url not right, it should be like 127.0.0.1:9393 or http://127.0.0.1:9393"
+                )
+            else:
+                self.ip = url_parts[0]
+                self.port = url_parts[1]
+                self.server_port = url_parts[1]
+        if encryption:
+            self.get_serving_port()
+        if self.use_grpc_client:
+            self.init_grpc_stub()
+
+    def check_ip(self, ipAddr):
+        compile_ip = re.compile(
+            '^(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|[1-9])\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)\.(1\d{2}|2[0-4]\d|25[0-5]|[1-9]\d|\d)$'
+        )
+        if compile_ip.match(ipAddr):
+            return True
+        else:
+            return False
+
+    def add_http_headers(self, headers):
+        if isinstance(headers, dict):
+            self.headers.update(headers)
+        else:
+            print("headers must be a dict")
 
     def set_request_compress(self, try_request_gzip):
         self.try_request_gzip = try_request_gzip
@@ -179,6 +243,10 @@ class GeneralClient(object):
 
     def set_http_proto(self, http_proto):
         self.http_proto = http_proto
+        if self.http_proto:
+            self.headers["Content-Type"] = "application/proto"
+        else:
+            self.headers["Content-Type"] = "application/json"
 
     def set_use_grpc_client(self, use_grpc_client):
         self.use_grpc_client = use_grpc_client
@@ -187,21 +255,21 @@ class GeneralClient(object):
     def use_key(self, key_filename):
         with open(key_filename, "rb") as f:
             self.key = f.read()
-            self.get_serving_port()
 
     def get_serving_port(self):
-        encrypt_url = "http://" + str(self.ip) + ":" + str(self.port)
+        encrypt_url = self.http_s + str(self.ip) + ":" + str(self.port)
         if self.key is not None:
             req = json.dumps({"key": base64.b64encode(self.key).decode()})
         else:
             req = json.dumps({})
-        r = requests.post(encrypt_url, req)
-        result = r.json()
-        if "endpoint_list" not in result:
-            raise ValueError("server not ready")
-        else:
-            self.server_port = str(result["endpoint_list"][0])
-            print("rpc port is ", self.server_port)
+        with requests.post(
+                encrypt_url, data=req, timeout=self.timeout_ms / 1000) as r:
+            result = r.json()
+            if "endpoint_list" not in result:
+                raise ValueError("server not ready")
+            else:
+                self.server_port = str(result["endpoint_list"][0])
+                print("rpc port is ", self.server_port)
 
     def get_feed_names(self):
         return self.feed_names_
@@ -210,35 +278,34 @@ class GeneralClient(object):
         return self.fetch_names_
 
     def get_legal_fetch(self, fetch):
-        if fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction")
 
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, (list, tuple)):
             fetch_list = fetch
+        elif fetch == None:
+            pass
         else:
-            raise ValueError("Fetch only accepts string and list of string")
+            raise ValueError("Fetch only accepts string/list/tuple of string")
 
         fetch_names = []
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
-
-        if len(fetch_names) == 0:
-            raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.")
-            return {}
         return fetch_names
 
     def get_feedvar_dict(self, feed):
         if feed is None:
-            raise ValueError("You should specify feed and fetch for prediction")
+            raise ValueError("You should specify feed for prediction")
         feed_dict = {}
         if isinstance(feed, dict):
             feed_dict = feed
         elif isinstance(feed, (list, str, tuple)):
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_dict = feed[0]
+                return feed_dict
             # if input is a list or str or tuple, and the number of feed_var is 1.
             # create a feed_dict { key = feed_var_name, value = list}
             if len(self.feed_names_) == 1:
@@ -376,17 +443,19 @@ class GeneralClient(object):
             # 此时先统一处理为一个list
             # 由于输入比较特殊，shape保持原feedvar中不变
             data_value = []
-            data_value.append(feed_dict[key])
-            if isinstance(feed_dict[key], str):
+            if isinstance(feed_dict[key], (str, bytes)):
                 if self.feed_types_[key] != bytes_type:
                     raise ValueError(
                         "feedvar is not string-type,feed can`t be a single string."
                     )
+                if isinstance(feed_dict[key], bytes):
+                    feed_dict[key] = feed_dict[key].decode()
             else:
                 if self.feed_types_[key] == bytes_type:
                     raise ValueError(
-                        "feedvar is string-type,feed, feed can`t be a single int or others."
+                        "feedvar is string-type,feed can`t be a single int or others."
                     )
+            data_value.append(feed_dict[key])
         # 如果不压缩，那么不需要统计数据量。
         if self.try_request_gzip:
             self.total_data_number = self.total_data_number + data_bytes_number(
@@ -427,36 +496,42 @@ class GeneralClient(object):
 
         feed_dict = self.get_feedvar_dict(feed)
         fetch_list = self.get_legal_fetch(fetch)
-        headers = {}
         postData = ''
 
         if self.http_proto == True:
             postData = self.process_proto_data(feed_dict, fetch_list, batch,
                                                log_id).SerializeToString()
-            headers["Content-Type"] = "application/proto"
+
         else:
             postData = self.process_json_data(feed_dict, fetch_list, batch,
                                               log_id)
-            headers["Content-Type"] = "application/json"
 
-        web_url = "http://" + self.ip + ":" + self.server_port + self.service_name
+        web_url = self.http_s + self.ip + ":" + self.server_port + self.service_name
         # 当数据区长度大于512字节时才压缩.
+        self.headers.pop("Content-Encoding", "nokey")
         try:
             if self.try_request_gzip and self.total_data_number > 512:
-                origin_data = postData
-                postData = gzip.compress(bytes(postData, 'utf-8'))
-                headers["Content-Encoding"] = "gzip"
+
+                if self.http_proto:
+                    postData = gzip.compress(postData)
+                else:
+                    postData = gzip.compress(bytes(postData, 'utf-8'))
+                self.headers["Content-Encoding"] = "gzip"
             if self.try_response_gzip:
-                headers["Accept-encoding"] = "gzip"
+                self.headers["Accept-encoding"] = "gzip"
         # 压缩异常，使用原始数据
         except:
             print("compress error, we will use the no-compress data")
-            headers.pop("Content-Encoding", "nokey")
-            postData = origin_data
-
+            self.headers.pop("Content-Encoding", "nokey")
         # requests支持自动识别解压
         try:
-            result = requests.post(url=web_url, headers=headers, data=postData)
+            result = self.requests_session.post(
+                url=web_url,
+                headers=self.headers,
+                data=postData,
+                timeout=self.timeout_ms / 1000,
+                verify=False)
+            result.raise_for_status()
         except:
             print("http post error")
             return None
@@ -484,6 +559,16 @@ class GeneralClient(object):
 
         postData = self.process_proto_data(feed_dict, fetch_list, batch, log_id)
 
+        try:
+            resp = self.stub_.inference(
+                postData, timeout=self.timeout_ms / 1000)
+        except:
+            print("Grpc inference error occur")
+            return None
+        else:
+            return resp
+
+    def init_grpc_stub(self):
         # https://github.com/tensorflow/serving/issues/1382
         options = [('grpc.max_receive_message_length', self.max_body_size),
                    ('grpc.max_send_message_length', self.max_body_size)]
@@ -493,10 +578,7 @@ class GeneralClient(object):
         self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
         self.stub_ = general_model_service_pb2_grpc.GeneralModelServiceStub(
             self.channel_)
-        try:
-            resp = self.stub_.inference(postData, timeout=self.timeout_ms)
-        except:
-            print("Grpc inference error occur")
-            return None
-        else:
-            return resp
+
+    def __del__(self):
+        self.requests_session.close()
+        self.channel_.close()

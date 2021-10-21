@@ -30,13 +30,13 @@ sh cube_prepare.sh &
 ### 启动RPC预测服务，服务端线程数为4（可在test_server.py配置）
 
 ```
-python test_server.py ctr_serving_model_kv 
+python3 test_server.py ctr_serving_model_kv 
 ```
 
 ### 执行预测
 
 ```
-python test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
+python3 test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 ```
 
 ### Benchmark

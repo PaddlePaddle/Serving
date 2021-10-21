@@ -3,7 +3,7 @@
 ## 获取模型
 
 ```
-python -m paddle_serving_app.package --get_model mobilenet_v2_imagenet
+python3 -m paddle_serving_app.package --get_model mobilenet_v2_imagenet
 tar -xzvf mobilenet_v2_imagenet.tar.gz
 ```
 
@@ -12,11 +12,11 @@ tar -xzvf mobilenet_v2_imagenet.tar.gz
 ### 启动服务端
 
 ```
-python -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 9393
+python3 -m paddle_serving_server.serve --model mobilenet_v2_imagenet_model --gpu_ids 0 --port 9393
 ```
 
 ### 客户端预测
 
 ```
-python mobilenet_tutorial.py
+python3 mobilenet_tutorial.py
 ```
