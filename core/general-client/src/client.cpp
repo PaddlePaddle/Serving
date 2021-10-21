@@ -23,8 +23,7 @@ using configure::GeneralModelConfig;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Tensor;
-// paddle inference 2.1 support: FLOAT32, INT64, INT32, UINT8, INT8
-// will support: FLOAT16
+// support: FLOAT32, INT64, INT32, UINT8, INT8, FLOAT16
 enum ProtoDataType {
   P_INT64 = 0,
   P_FLOAT32,
@@ -431,7 +430,8 @@ int PredictorOutputs::ParseProto(const Response& res,
             output.tensor(idx).int_data().begin(),
             output.tensor(idx).int_data().begin() + size);
       } else if (fetch_name_to_type[name] == P_UINT8
-                || fetch_name_to_type[name] == P_INT8) {
+                || fetch_name_to_type[name] == P_INT8
+                || fetch_name_to_type[name] == P_FP16) {
         VLOG(2) << "fetch var [" << name << "]type="
                 << fetch_name_to_type[name];
         string_data_map[name] = output.tensor(idx).tensor_content();
