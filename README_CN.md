@@ -187,7 +187,7 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 | `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
 | `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
 | `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
+| `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
 
 #### 异步模型的说明

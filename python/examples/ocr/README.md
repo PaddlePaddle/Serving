@@ -4,9 +4,9 @@
 
 ## Get Model
 ```
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
@@ -23,16 +23,16 @@ tar xf test_imgs.tar
 ```
 #choose one of cpu/gpu commands as following
 #for cpu user
-python -m paddle_serving_server.serve --model ocr_det_model --port 9293
-python ocr_web_server.py cpu
+python3 -m paddle_serving_server.serve --model ocr_det_model --port 9293
+python3 ocr_web_server.py cpu
 #for gpu user
-python -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_ids 0
-python ocr_web_server.py gpu
+python3 -m paddle_serving_server.serve --model ocr_det_model --port 9293 --gpu_ids 0
+python3 ocr_web_server.py gpu
 ```
 
 ### Client Prediction
 ```
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 If you want a faster web service, please try Web LocalPredictor Service
 
@@ -40,14 +40,14 @@ If you want a faster web service, please try Web LocalPredictor Service
 ```
 #choose one of cpu/gpu commands as following
 #for cpu user
-python ocr_debugger_server.py cpu
+python3 ocr_debugger_server.py cpu
 #for gpu user
-python ocr_debugger_server.py gpu 
+python3 ocr_debugger_server.py gpu 
 ```
 
 ## Web LocalPredictor Client Prediction
 ```
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 
 ## Benchmark
@@ -69,34 +69,34 @@ if you are going to detect images not recognize it or directly recognize the wor
 ### Det Server 
 
 ```
-python det_web_server.py cpu #for cpu user
-python det_web_server.py gpu #for gpu user
+python3 det_web_server.py cpu #for cpu user
+python3 det_web_server.py gpu #for gpu user
 #or
-python det_debugger_server.py cpu #for cpu user
-python det_debugger_server.py gpu #for gpu user
+python3 det_debugger_server.py cpu #for cpu user
+python3 det_debugger_server.py gpu #for gpu user
 ```
 
 ### Det Client
 
 ```
 # also use ocr_web_client.py
-python ocr_web_client.py
+python3 ocr_web_client.py
 ```
 
 ### Rec Server
 
 ```
-python rec_web_server.py cpu #for cpu user
-python rec_web_server.py gpu #for gpu user
+python3 rec_web_server.py cpu #for cpu user
+python3 rec_web_server.py gpu #for gpu user
 #or
-python rec_debugger_server.py cpu #for cpu user
-python rec_debugger_server.py gpu #for gpu user
+python3 rec_debugger_server.py cpu #for cpu user
+python3 rec_debugger_server.py gpu #for gpu user
 ```
 
 ### Rec Client
 
 ```
-python rec_web_client.py
+python3 rec_web_client.py
 ```
 
 ## C++ OCR Service
@@ -109,9 +109,9 @@ Select a startup mode according to CPU / GPU device
 After the -- model parameter, the folder path of multiple model files is passed in to start the prediction service of multiple model concatenation.
 ```
 #for cpu user
-python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
 #for gpu user
-python -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_ids 0
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_ids 0
 ```
 
 ### Client Prediction
@@ -119,9 +119,9 @@ The pre-processing and post-processing is in the C + + server part, the image's 
 
 so the value of parameter `feed_var` which is in the file `ocr_det_client/serving_client_conf.prototxt` should be changed.
 
-for this case, `feed_type` should be 3(which means the data type is string),`shape` should be 1.
+for this case, `feed_type` should be 20(which means the data type is string),`shape` should be 1.
 
 By passing in multiple client folder paths, the client can be started for multi model prediction.
 ```
-python ocr_cpp_client.py ocr_det_client ocr_rec_client
+python3 ocr_cpp_client.py ocr_det_client ocr_rec_client
 ```

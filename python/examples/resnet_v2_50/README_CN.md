@@ -3,7 +3,7 @@
 ## 获取模型
 
 ```
-python -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
+python3 -m paddle_serving_app.package --get_model resnet_v2_50_imagenet
 tar -xzvf resnet_v2_50_imagenet.tar.gz
 ```
 
@@ -12,11 +12,11 @@ tar -xzvf resnet_v2_50_imagenet.tar.gz
 ### 启动服务端
 
 ```
-python -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 9393
+python3 -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --gpu_ids 0 --port 9393
 ```
 
 ### 客户端预测
 
 ```
-python resnet50_v2_tutorial.py
+python3 resnet50_v2_tutorial.py
 ```

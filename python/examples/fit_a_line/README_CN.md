@@ -9,28 +9,26 @@ sh get_data.sh
 ```
 
 
-
-
-## 开启服务端
+## 开启服务端（支持BRPC-Client/GRPC Client/Http-Client）
 
 ```shell
-python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
 
 ## 客户端预测
 
-### 客户端RPC
+### BRPC-Client
 
-`test_client.py`中使用了`paddlepaddle`包，需要进行下载（`pip install paddlepaddle`）。
+`test_client.py`中使用了`paddlepaddle`包，需要进行下载（`pip3 install paddlepaddle`）。
 
 ``` shell
-python test_client.py uci_housing_client/serving_client_conf.prototxt
+python3 test_client.py uci_housing_client/serving_client_conf.prototxt
 ```
 
-### 客户端Http预测
+### GRPC-Client/Http-Client
 
 ``` shell
-python test_httpclient.py uci_housing_client/serving_client_conf.prototxt
+python3 test_httpclient.py uci_housing_client/serving_client_conf.prototxt
 ```
 
 

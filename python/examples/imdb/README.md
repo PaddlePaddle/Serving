@@ -9,24 +9,20 @@ sh get_data.sh
 ```
 the package downloaded contains cnn, lstm and bow model config along with their test_data and train_data.
 
-### Start RPC inference service
+### Start inference service(Support BRPC-Client/GRPC-Client/Http-Client)
 
 ```
-python -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292
+python3 -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292
 ```
-### RPC Infer
+### BRPC-Client Infer
 ```
-head test_data/part-0 | python test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab
+head test_data/part-0 | python3 test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab
 ```
 
 it will get predict results of the first 10 test cases.
 
-### Start HTTP inference service
-```
-python text_classify_service.py imdb_cnn_model/ workdir/ 9292 imdb.vocab
-```
-### HTTP Infer
 
+### GRPC-Client/Http-Client Infer
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:9292/imdb/prediction
+head test_data/part-0 | python3 test_http_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab
 ```

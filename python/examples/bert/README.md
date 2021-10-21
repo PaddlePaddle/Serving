@@ -1,4 +1,4 @@
-## Bert as service
+Http## Bert as service
 
 ([简体中文](./README_CN.md)|English)
 
@@ -42,48 +42,36 @@ sh get_data.sh
 ```
 this script will download Chinese Dictionary File vocab.txt and Chinese Sample Data data-c.txt
 
-### RPC Inference Service
+### Inference Service(Support BRPC-Client、GRPC-Client、Http-Client)
 start cpu inference service,Run
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #cpu inference service
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292  #cpu inference service
 ```
 Or,start gpu inference service,Run
 ```
-python -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
+python3 -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 #launch gpu inference service at GPU 0
 ```
 
-### RPC Inference
+### BRPC-Client Inference
 
 before prediction we should install paddle_serving_app. This module provides data preprocessing for BERT model.
 ```
-pip install paddle_serving_app
+pip3 install paddle_serving_app
 ```
 Run
 ```
-head data-c.txt | python bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
+head data-c.txt | python3 bert_client.py --model bert_seq128_client/serving_client_conf.prototxt
 ```
 
 the client reads data from data-c.txt and send prediction request, the prediction is given by word vector. (Due to massive data in the word vector, we do not print it).
 
-### HTTP Inference Service
-start cpu HTTP inference service,Run
+#### GRPC-Client/HTTP-Client
+Run
 ```
- python bert_web_service.py bert_seq128_model/ 9292 #launch cpu inference service
-```
-
-Or,start gpu HTTP inference service,Run
-```
- export CUDA_VISIBLE_DEVICES=0,1
-```
-set environmental variable to specify which gpus are used, the command above means gpu 0 and gpu 1 is used.
-```
- python bert_web_service_gpu.py bert_seq128_model/ 9292 #launch gpu inference service
-```
-### HTTP Inference 
+head data-c.txt | python3 bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt
 
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:9292/bert/prediction
-```
+
 
 ## Benchmark
 ``` shell

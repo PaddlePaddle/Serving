@@ -19,10 +19,8 @@ import yaml
 import requests
 import time
 import json
-try:
-    from paddle_serving_server_gpu.pipeline import PipelineClient
-except ImportError:
-    from paddle_serving_server.pipeline import PipelineClient
+
+from paddle_serving_server.pipeline import PipelineClient
 import numpy as np
 from paddle_serving_client.utils import MultiThreadRunner
 from paddle_serving_client.utils import benchmark_args, show_latency
@@ -30,7 +28,7 @@ from paddle_serving_client.utils import benchmark_args, show_latency
 
 def parse_benchmark(filein, fileout):
     with open(filein, "r") as fin:
-        res = yaml.load(fin)
+        res = yaml.load(fin, yaml.FullLoader)
         del_list = []
         for key in res["DAG"].keys():
             if "call" in key:
@@ -43,7 +41,7 @@ def parse_benchmark(filein, fileout):
 
 def gen_yml(device):
     fin = open("config.yml", "r")
-    config = yaml.load(fin)
+    config = yaml.load(fin, yaml.FullLoader)
     fin.close()
     config["dag"]["tracer"] = {"interval_s": 10}
     if device == "gpu":

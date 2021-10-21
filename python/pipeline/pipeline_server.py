@@ -22,6 +22,7 @@ from contextlib import closing
 import multiprocessing
 import yaml
 import io
+import time
 
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
@@ -47,8 +48,9 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
-        _LOGGER.info("(log_id={}) inference request name:{} self.name:{}".
-                     format(request.logid, request.name, self._name))
+        _LOGGER.info(
+            "(log_id={}) inference request name:{} self.name:{} time:{}".format(
+                request.logid, request.name, self._name, time.time()))
         if request.name != "" and request.name != self._name:
             _LOGGER.error("(log_id={}) name dismatch error. request.name:{},"
                           "server.name={}".format(request.logid, request.name,
@@ -339,7 +341,7 @@ class ServerYamlConfChecker(object):
                              " or yml_dict can be selected as the parameter.")
         if yml_file is not None:
             with io.open(yml_file, encoding='utf-8') as f:
-                conf = yaml.load(f.read())
+                conf = yaml.load(f.read(), yaml.FullLoader)
         elif yml_dict is not None:
             conf = yml_dict
         else:
@@ -469,6 +471,7 @@ class ServerYamlConfChecker(object):
             "channel_size": 0,
             "is_thread_op": True,
             "tracer": {},
+            "channel_recv_frist_arrive": False,
         }
 
         conf_type = {
@@ -477,6 +480,7 @@ class ServerYamlConfChecker(object):
             "use_profile": bool,
             "channel_size": int,
             "is_thread_op": bool,
+            "channel_recv_frist_arrive": bool,
         }
 
         conf_qualification = {
