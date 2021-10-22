@@ -53,7 +53,7 @@ if [[ $SERVING_VERSION == "0.5.0" ]]; then
     fi
     client_release="paddle-serving-client==$SERVING_VERSION"
     app_release="paddle-serving-app==0.3.1"
-elif [[ $SERVING_VERSION == "0.6.0" ]]; then 
+else 
     if [[ "$RUN_ENV" == "cpu" ]];then
         server_release="https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-$SERVING_VERSION-py3-none-any.whl"
         serving_bin="https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-$SERVING_VERSION.tar.gz"
@@ -80,10 +80,10 @@ if [[ "$RUN_ENV" == "cpu" ]];then
     python$PYTHON_VERSION -m pip install $paddle_whl
     cd /usr/local/
     wget $serving_bin 
-    tar xf serving-cpu-noavx-openblas-${SERVING_VERSION}.tar.gz
-    mv $PWD/serving-cpu-noavx-openblas-${SERVING_VERSION} $PWD/serving_bin
+    tar xf serving-cpu-avx-mkl-${SERVING_VERSION}.tar.gz
+    mv $PWD/serving-cpu-avx-mkl-${SERVING_VERSION} $PWD/serving_bin
     echo "export SERVING_BIN=$PWD/serving_bin/serving">>/root/.bashrc
-    rm -rf serving-cpu-noavx-openblas-${SERVING_VERSION}.tar.gz
+    rm -rf serving-cpu-avx-mkl-${SERVING_VERSION}.tar.gz
     cd -
 elif [[ "$RUN_ENV" == "cuda10.1" ]];then
     python$PYTHON_VERSION -m pip install $client_release $app_release $server_release
