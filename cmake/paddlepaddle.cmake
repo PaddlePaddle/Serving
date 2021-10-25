@@ -52,7 +52,6 @@ if (WITH_GPU)
 else()
     set(WITH_TRT OFF)
 endif()  
-#https://paddle-inference-lib.bj.bcebos.com/2.2.0-rc0/cxx_c/Linux/XPU/arm64_gcc7.3_openblas/paddle_inference_install_dir.tar.gz
 if (WITH_GPU)
     SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}/cxx_c/Linux/GPU/${CUDA_SUFFIX}")
 elseif (WITH_LITE)
