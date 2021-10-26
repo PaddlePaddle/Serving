@@ -178,14 +178,12 @@ int GeneralResponseOp::inference() {
         VLOG(2) << "(logid=" << log_id << ")Prepare int8 var ["
                 << model_config->_fetch_name[idx] << "].";
         tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
-      } 
-      // inference will support fp16
-      //   else if (dtype == paddle::PaddleDType::FLOAT16) {
-      //   tensor->set_elem_type(5);
-      //   VLOG(2) << "(logid=" << log_id << ")Prepare float16 var ["
-      //           << model_config->_fetch_name[idx] << "].";
-      //   tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
-      // }
+      } else if (dtype == paddle::PaddleDType::FLOAT16) {
+        tensor->set_elem_type(5);
+        VLOG(2) << "(logid=" << log_id << ")Prepare float16 var ["
+                << model_config->_fetch_name[idx] << "].";
+        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      }
 
       VLOG(2) << "(logid=" << log_id << ") fetch var ["
               << model_config->_fetch_name[idx] << "] ready";
