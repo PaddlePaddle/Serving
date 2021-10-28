@@ -31,6 +31,9 @@ elif sys.version_info.major == 3:
 
 from contextlib import closing
 import socket
+from paddle_serving_server.env import CONF_HOME
+import signal
+from paddle_serving_server.util import *
 
 
 # web_service.py is still used by Pipeline.
@@ -106,6 +109,7 @@ def is_gpu_mode(unformatted_gpus):
 
 def serve_args():
     parser = argparse.ArgumentParser("serve")
+    parser.add_argument("server", type=str, default="start",nargs="?", help="stop or start PaddleServing")
     parser.add_argument(
         "--thread",
         type=int,
@@ -366,16 +370,82 @@ class MainService(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode())
 
 
+def stop_serving(command : str, port : int = None):
+    '''
+    Stop PaddleServing by port.
+
+    Args:
+        command(str): stop->SIGINT, kill->SIGKILL
+        port(int): Default to None, kill all processes in ProcessInfo.json.
+                   Not None, kill the specific process relating to port
+
+    Returns:
+         True if stop serving successfully.
+         False if error occured
+
+    Examples:
+    ..  code-block:: python
+
+        stop_serving("stop", 9494)
+    '''
+    filepath = os.path.join(CONF_HOME, "ProcessInfo.json")
+    infoList = load_pid_file(filepath)
+    if infoList is False:
+        return False
+    lastInfo = infoList[-1]
+    for info in infoList:
+        storedPort = info["port"]
+        pid = info["pid"]
+        model = info["model"]
+        start_time = info["start_time"]
+        if port is not None:
+            if port in storedPort:
+                kill_stop_process_by_pid(command ,pid)
+                infoList.remove(info)
+                if len(infoList):
+                    with open(filepath, "w") as fp:
+                        json.dump(infoList, fp)
+                else:
+                    os.remove(filepath)
+                return True
+            else:
+                if lastInfo == info:
+                     raise ValueError(
+                         "Please confirm the port [%s] you specified is correct." %
+                         port)
+                else:
+                    pass
+        else:
+            kill_stop_process_by_pid(command ,pid)
+            if lastInfo == info:
+                os.remove(filepath)
+    return True
+
 if __name__ == "__main__":
     # args.device is not used at all.
     # just keep the interface.
     # so --device should not be recommended at the HomePage.
     args = serve_args()
+    if args.server == "stop" or args.server == "kill":
+        result = 0
+        if "--port" in sys.argv:
+            result = stop_serving(args.server, args.port)
+        else:
+            result = stop_serving(args.server)
+        if result == 0:
+            os._exit(0)
+        else:
+            os._exit(-1)
+    
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
         elif os.path.isfile(single_model_config):
             raise ValueError("The input of --model should be a dir not file.")
+
+    if port_is_available(args.port):
+        portList = [args.port]
+        dump_pid_file(portList, args.model)
 
     if args.use_encryption_model:
         p_flag = False
