@@ -272,6 +272,7 @@ python3 pipeline_rpc_client.py
 <h3 align="center">关闭Serving/Pipeline服务</h3>
 方式一：Ctrl+C关停服务
 方式二：在启动Serving/Pipeline服务路径(该路径下存在文件ProcessInfo.json)
+
 ```
 python3 -m paddle_serving_server.serve stop/kill [--port 9494]
 ```
