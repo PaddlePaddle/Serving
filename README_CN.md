@@ -276,7 +276,7 @@ python3 pipeline_rpc_client.py
 **方式二** ：在启动Serving/Pipeline服务路径或者环境变量SERVING_HOME路径下(该路径下存在文件ProcessInfo.json)
 
 ```
-python3 -m paddle_serving_server.serve stop/kill
+python3 -m paddle_serving_server.serve stop
 ```
 
 <h2 align="center">文档</h2>
