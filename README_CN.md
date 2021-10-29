@@ -269,6 +269,13 @@ python3 pipeline_rpc_client.py
 {'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
 ```
 
+<h3 align="center">关闭Serving/Pipeline服务</h3>
+方式一：Ctrl+C关停服务
+方式二：在启动Serving/Pipeline服务路径(该路径下存在文件ProcessInfo.json)
+```
+python3 -m paddle_serving_server.serve stop/kill [--port 9494]
+```
+
 <h2 align="center">文档</h2>
 
 ### 新手教程
