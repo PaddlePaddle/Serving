@@ -30,7 +30,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.2.0-rc0")
+SET(PADDLE_VERSION "2.2.0")
 if (WITH_GPU)
     message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}")
     # cuda 11.0 is not supported, 11.2 would be added.
@@ -57,7 +57,7 @@ if (WITH_GPU)
 elseif (WITH_LITE)
     message("cpu arch: ${CMAKE_SYSTEM_PROCESSOR}")
     if (WITH_XPU)
-        if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86-64")
+        if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
             SET(PADDLE_LIB_VERSION "x86-64_gcc8.2_avx_mkl")
         elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
             SET(PADDLE_LIB_VERSION "arm64_gcc7.3_openblas")
