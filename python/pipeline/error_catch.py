@@ -23,6 +23,7 @@ class Singleton(object):
         return Singleton._instance
 
     def set_exception_response(self, error_code, error_info):
+        
         self.resp = pipeline_service_pb2.Response()
         self.resp.err_no = error_code
         self.resp.err_msg = error_info.replace("\n", " ").replace("\t", " ")[2:]
@@ -44,11 +45,13 @@ class CustomExceptionCode(enum.Enum):
     PARAMETER_INVALID = 4
 
 class CustomException(Exception):
-    def __init__(self, exceptionCode, errorMsg):
+    def __init__(self, exceptionCode, errorMsg, isSendToUser):
         super().__init__(self)
         self.error_info = "\n\texception_code: {}\n"\
                           "\texception_type: {}\n"\
-                          "\terror_msg: {}".format(exceptionCode.value, CustomExceptionCode(exceptionCode).name, errorMsg)
+                          "\terror_msg: {}"\
+                          "\tis_send_to_user: {}".format(exceptionCode.value,
+                          CustomExceptionCode(exceptionCode).name, errorMsg, isSendToUser)
     
     def __str__(self):
         return self.error_info
@@ -64,8 +67,13 @@ class ErrorCatch():
                     _LOGGER.error("{}\tFunctionName: {}{}".format(traceback.format_exc(), func.__name__, args))
                     split_list = re.split("\n|\t|:", str(e))
                     error_code = int(split_list[3])
-                    error_info = "{}\n\tFunctionName: {}".format(str(e), func.__name__)
-                    self.record_error_info(error_code, error_info)
+                    error_info = "{}\n\tClassName: {} FunctionName: {}".format(str(e), func.__class__ ,func.__name__)
+                    is_send_to_user = split_list[-1]
+                    if is_send_to_user == True:
+                        self.record_error_info(error_code, error_info)
+                    else:
+                        raise("server error occur")
+
             return wrapper
     
     def record_error_info(self, error_code, error_info):
