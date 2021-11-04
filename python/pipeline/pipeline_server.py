@@ -24,7 +24,7 @@ import yaml
 import io
 import time
 import os
-
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
 from . import dag
@@ -40,14 +40,21 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
     """
     Pipeline Servicer entrance.
     """
-
     def __init__(self, name, response_op, dag_conf, worker_idx=-1):
-        super(PipelineServicer, self).__init__()
-        self._name = name
 
-        # init dag executor
-        self._dag_executor = dag.DAGExecutor(response_op, dag_conf, worker_idx)
-        self._dag_executor.start()
+        @ErrorCatch
+        @ParamChecker
+        def init_helper(self, name, response_op, 
+          dag_conf: dict,
+          worker_idx=-1):
+           self._name = name
+           self._dag_executor = dag.DAGExecutor(response_op, dag_conf, worker_idx)
+           self._dag_executor.start()
+            
+        super(PipelineServicer, self).__init__()
+        init_res = init_helper(self, name, response_op, dag_conf, worker_idx)
+        if init_res[1].err_no is not 200:
+            raise CustomException(CustomExceptionCode.INTERNAL_EXCEPTION, "pipeline server init error")
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):

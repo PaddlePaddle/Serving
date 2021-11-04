@@ -15,6 +15,7 @@
 import os
 import logging
 import multiprocessing
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode
 #from paddle_serving_server import OpMaker, OpSeqMaker
 #from paddle_serving_server import Server as GpuServer
 #from paddle_serving_server import Server as CpuServer
