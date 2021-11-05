@@ -60,6 +60,7 @@ option(WITH_TRT             "Compile Paddle Serving with TRT"                   
 option(PADDLE_ON_INFERENCE  "Compile for encryption"                             ON)
 option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                    OFF)
 option(WITH_ROCM	    "Compile Paddle Serving with ROCM"                    OFF)
+option(WITH_ASCEND_CL       "Compile PaddlePaddle with ASCEND CL"               OFF)
 
 if(NOT DEFINED VERSION_TAG)
   set(VERSION_TAG "0.0.0")

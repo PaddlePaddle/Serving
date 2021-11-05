@@ -86,6 +86,7 @@ class LocalServiceHandler(object):
         self._use_trt = False
         self._use_lite = False
         self._use_xpu = False
+        self._use_ascend_cl = False
         self._use_mkldnn = False
         self._mkldnn_cache_capacity = 0
         self._mkldnn_op_list = None
@@ -129,6 +130,12 @@ class LocalServiceHandler(object):
             devices = [int(x) for x in devices.split(",")]
             self._use_lite = True
             self._use_xpu = True
+        elif device_type == 5:
+            # Ascend 310 ARM CPU
+            self._device_name = "arm"
+            devices = [int(x) for x in devices.split(",")]
+            self._use_lite = True
+            self._use_ascend_cl = True
         else:
             _LOGGER.error(
                 "LocalServiceHandler initialization fail. device_type={}"
@@ -163,13 +170,14 @@ class LocalServiceHandler(object):
             "mem_optim:{}, ir_optim:{}, use_profile:{}, thread_num:{}, "
             "client_type:{}, fetch_names:{}, precision:{}, use_mkldnn:{}, "
             "mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
-            "mkldnn_bf16_op_list:{}".format(
+            "mkldnn_bf16_op_list:{}, use_ascend_cl:{}".format(
                 model_config, self._device_name, self._use_gpu, self._use_trt,
                 self._use_lite, self._use_xpu, device_type, self._devices,
                 self._mem_optim, self._ir_optim, self._use_profile,
                 self._thread_num, self._client_type, self._fetch_names,
                 self._precision, self._use_mkldnn, self._mkldnn_cache_capacity,
-                self._mkldnn_op_list, self._mkldnn_bf16_op_list))
+                self._mkldnn_op_list, self._mkldnn_bf16_op_list,
+                self._use_ascend_cl))
 
     def get_fetch_list(self):
         return self._fetch_names
@@ -225,7 +233,8 @@ class LocalServiceHandler(object):
                 use_mkldnn=self._use_mkldnn,
                 mkldnn_cache_capacity=self._mkldnn_cache_capacity,
                 mkldnn_op_list=self._mkldnn_op_list,
-                mkldnn_bf16_op_list=self._mkldnn_bf16_op_list)
+                mkldnn_bf16_op_list=self._mkldnn_bf16_op_list,
+                use_ascend_cl=self._use_ascend_cl)
         return self._local_predictor_client
 
     def get_client_config(self):
@@ -284,6 +293,8 @@ class LocalServiceHandler(object):
                 server.set_xpu()
             if self._use_lite:
                 server.set_lite()
+            if self._use_ascend_cl:
+                server.set_ascend_cl()
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)

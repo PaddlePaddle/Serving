@@ -41,6 +41,9 @@ using paddle_infer::CreatePredictor;
 DECLARE_int32(gpuid);
 DECLARE_string(precision);
 DECLARE_bool(use_calib);
+DECLARE_string(nnadapter_device_names);
+DECLARE_string(nnadapter_context_properties);
+DECLARE_string(nnadapter_model_cache_dir);
 
 static const int max_batch = 32;
 static const int min_subgraph_size = 3;
@@ -237,6 +240,7 @@ class PaddleInferenceEngine : public EngineCore {
 
     if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
       config.EnableLiteEngine(precision_type, true);
+      config.SwitchIrOptim(true);
     }
 
     if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
@@ -267,6 +271,29 @@ class PaddleInferenceEngine : public EngineCore {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
       config.SetXpuDeviceId(gpu_id);
+    }
+
+    if (engine_conf.has_use_ascend_cl() &&
+        engine_conf.use_ascend_cl()) {
+      if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
+        FLAGS_nnadapter_device_names = "huawei_ascend_npu";
+        FLAGS_nnadapter_context_properties =
+                "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS=" +
+                std::to_string(gpu_id);
+        FLAGS_nnadapter_model_cache_dir = "";
+        config.NNAdapter()
+        .Enable()
+        .SetDeviceNames({FLAGS_nnadapter_device_names})
+        .SetContextProperties(FLAGS_nnadapter_context_properties)
+        .SetModelCacheDir(FLAGS_nnadapter_model_cache_dir);
+        LOG(INFO) << "Enable Lite NNAdapter for Ascend,"
+                  << "nnadapter_device_names="
+                  << FLAGS_nnadapter_device_names
+                  << ",nnadapter_context_properties="
+                  << FLAGS_nnadapter_context_properties
+                  << ",nnadapter_model_cache_dir="
+                  << FLAGS_nnadapter_model_cache_dir;
+      }
     }
 
     if (engine_conf.has_enable_memory_optimization() &&

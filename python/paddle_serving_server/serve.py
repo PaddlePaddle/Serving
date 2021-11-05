@@ -182,6 +182,8 @@ def serve_args():
     parser.add_argument(
         "--use_xpu", default=False, action="store_true", help="Use XPU")
     parser.add_argument(
+        "--use_ascend_cl", default=False, action="store_true", help="Use Ascend CL")
+    parser.add_argument(
         "--product_name",
         type=str,
         default=None,
@@ -272,13 +274,15 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     server.set_device(device)
     if args.use_xpu:
         server.set_xpu()
+    if args.use_ascend_cl:
+        server.set_ascend_cl()
 
     if args.product_name != None:
         server.set_product_name(args.product_name)
     if args.container_id != None:
         server.set_container_id(args.container_id)
 
-    if gpu_mode == True:
+    if gpu_mode == True or args.use_xpu or args.use_ascend_cl:
         server.set_gpuid(args.gpu_ids)
     server.load_model_config(model)
     server.prepare_server(

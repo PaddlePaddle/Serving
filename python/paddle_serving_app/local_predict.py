@@ -86,7 +86,8 @@ class LocalPredictor(object):
                           mkldnn_cache_capacity=0,
                           mkldnn_op_list=None,
                           mkldnn_bf16_op_list=None,
-                          use_feed_fetch_ops=False):
+                          use_feed_fetch_ops=False,
+                          use_ascend_cl=False):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -108,6 +109,7 @@ class LocalPredictor(object):
             mkldnn_op_list: op list accelerated using MKLDNN, None default.
             mkldnn_bf16_op_list: op list accelerated using MKLDNN bf16, None default.
             use_feed_fetch_ops: use feed/fetch ops, False default.
+            use_ascend_cl: run predict on Huawei Ascend, False default
         """
         gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -146,11 +148,12 @@ class LocalPredictor(object):
             "gpu_id:{}, use_profile:{}, thread_num:{}, mem_optim:{}, ir_optim:{}, "
             "use_trt:{}, use_lite:{}, use_xpu:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
-            "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, ".format(
+            "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, "
+            "use_ascend_cl:{} ".format(
                 model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
                 ir_optim, use_trt, use_lite, use_xpu, precision, use_calib,
                 use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
-                mkldnn_bf16_op_list, use_feed_fetch_ops))
+                mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -215,11 +218,24 @@ class LocalPredictor(object):
                 zero_copy=True,
                 passes_filter=[],
                 ops_filter=[])
+            config.switch_ir_optim(True)
         # set xpu
         if use_xpu:
             # 2MB l3 cache
             config.enable_xpu(8 * 1024 * 1024)
             config.set_xpu_device_id(gpu_id)
+        # set ascend cl
+        if use_ascend_cl:
+            if use_lite:
+                nnadapter_device_names = "huawei_ascend_npu"
+                nnadapter_context_properties = \
+                    "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS={}".format(gpu_id)
+                nnadapter_model_cache_dir = ""
+                config.nnadapter() \
+                .enable() \
+                .set_device_names([nnadapter_device_names]) \
+                .set_context_properties(nnadapter_context_properties) \
+                .set_model_cache_dir(nnadapter_model_cache_dir)
         # set cpu low precision
         if not use_gpu and not use_lite:
             if precision_type == paddle_infer.PrecisionType.Int8:
