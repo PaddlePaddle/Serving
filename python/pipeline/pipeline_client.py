@@ -98,6 +98,12 @@ class PipelineClient(object):
         else:
             # pack tensor format
             for key, value in feed_dict.items():
+
+                # skipping the lod feed_var.
+                # The declare of lod feed_var must be hebind the feed_var.
+                if ".lod" in key:
+                    continue
+
                 one_tensor = req.tensors.add()
                 one_tensor.name = key
 
@@ -113,6 +119,13 @@ class PipelineClient(object):
                         format(key, use_tensor_bytes, value.shape, value.dtype))
                     for one_dim in value.shape:
                         one_tensor.shape.append(one_dim)
+
+                    # set lod info, must be list type.
+                    lod_key = key + ".lod"
+                    if lod_key in feed_dict:
+                        lod_list = feed_dict.get(lod_key)
+                        if lod_list is not None:
+                            one_tensor.lod.extend(lod_list)
 
                     # packed into bytes
                     if use_tensor_bytes is True:
