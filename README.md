@@ -273,6 +273,10 @@ output
 
 **Method Two** ：In the path where starting the Serving/Pipeline service or the path which environment variable SERVING_HOME set (the file named ProcessInfo.json exists in this path)
 
+```
+python3 -m paddle_serving_server.serve stop
+```
+
 <h2 align="center">Document</h2>
 
 ### New to Paddle Serving
