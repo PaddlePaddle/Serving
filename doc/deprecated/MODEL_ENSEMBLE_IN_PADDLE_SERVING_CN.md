@@ -10,7 +10,7 @@
 
 该样例中（见下图），Server端在一项服务中并行预测相同输入的BOW和CNN模型，Client端获取两个模型的预测结果并进行后处理，得到最终的预测结果。
 
-![simple example](../model_ensemble_example.png)
+![simple example](../images/model_ensemble_example.png)
 
 需要注意的是，目前只支持在同一个服务中使用多个相同格式输入输出的模型。在该例子中，CNN模型和BOW模型的输入输出格式是相同的。
 

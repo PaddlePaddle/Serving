@@ -18,7 +18,7 @@
   
 使用gRPC接口，Client端可以在Win/Linux/MacOS平台上调用不同语言。gRPC 接口实现结构如下：
 
-![](https://github.com/PaddlePaddle/Serving/blob/develop/doc/grpc_impl.png)
+![](images/grpc_impl.png)
 
 ## 1.与bRPC接口对比
 
