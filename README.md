@@ -272,6 +272,7 @@ output
 **Method one** ：Ctrl+C to quit
 
 **Method Two** ：In the path where starting the Serving/Pipeline service or the path which environment variable SERVING_HOME set (the file named ProcessInfo.json exists in this path)
+<<<<<<< HEAD
 
 ```
 python3 -m paddle_serving_server.serve stop
