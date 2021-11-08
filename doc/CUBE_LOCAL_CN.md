@@ -91,7 +91,7 @@ cd cube
 
 如果执行成功，会看到如下结果
 <p align="center">
-    <img src="cube-cli.png" width="700">
+    <img src="images/cube-cli.png" width="700">
 </p>
 
 

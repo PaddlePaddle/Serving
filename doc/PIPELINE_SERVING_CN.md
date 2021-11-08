@@ -20,7 +20,7 @@ Paddle Serving提供了用户友好的多模型组合服务编程框架，Pipeli
 Server端基于<b>RPC服务层</b>和<b>图执行引擎</b>构建，两者的关系如下图所示。
 
 <div align=center>
-<img src='pipeline_serving-image1.png' height = "250" align="middle"/>
+<img src='images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </div>
 
 </n>
@@ -65,7 +65,7 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - 对于 OP 之间需要传输过大数据的情况，可以考虑 RAM DB 外存进行全局存储，通过在 Channel 中传递索引的 Key 来进行数据传输
 
 <div align=center>
-<img src='pipeline_serving-image2.png' height = "300" align="middle"/>
+<img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </div>
 
 
@@ -84,7 +84,7 @@ Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`
 - 下图为图执行引擎中 Channel 的设计，采用 input buffer 和 output buffer 进行多 OP 输入或多 OP 输出的数据对齐，中间采用一个 Queue 进行缓冲
 
 <div align=center>
-<img src='pipeline_serving-image3.png' height = "500" align="middle"/>
+<img src='images/pipeline_serving-image3.png' height = "500" align="middle"/>
 </div>
 
 #### <b>1.2.3 预测类型的设计</b>
@@ -328,7 +328,7 @@ class ResponseOp(Op):
 以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
 
 <div align=center>
-<img src='pipeline_serving-image4.png' height = "200" align="middle"/>
+<img src='images/pipeline_serving-image4.png' height = "200" align="middle"/>
 </div>
 
 ### 3.1 Pipeline部署需要的文件

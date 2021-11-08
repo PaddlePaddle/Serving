@@ -18,7 +18,7 @@ Paddle Serving provides a user-friendly programming framework for multi-model co
 The Server side is built based on <b>RPC Service</b> and <b>graph execution engine</b>. The relationship between them is shown in the following figure.
 
 <div align=center>
-<img src='pipeline_serving-image1.png' height = "250" align="middle"/>
+<img src='images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </div>
 
 ### 1.1 RPC Service
@@ -61,7 +61,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - For cases where large data needs to be transferred between OPs, consider RAM DB external memory for global storage and data transfer by passing index keys in Channel.
 
 <div align=center>
-<img src='pipeline_serving-image2.png' height = "300" align="middle"/>
+<img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </div>
 
 
@@ -80,7 +80,7 @@ The graph execution engine consists of OPs and Channels, and the connected OPs s
 - The following illustration shows the design of Channel in the graph execution engine, using input buffer and output buffer to align data between multiple OP inputs and multiple OP outputs, with a queue in the middle to buffer.
 
 <div align=center>
-<img src='pipeline_serving-image3.png' height = "500" align="middle"/>
+<img src='images/pipeline_serving-image3.png' height = "500" align="middle"/>
 </div>
 
 
@@ -323,7 +323,7 @@ All examples of pipelines are in [examples/pipeline/](../python/examples/pipelin
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 
 <div align=center>
-<img src='pipeline_serving-image4.png' height = "200" align="middle"/>
+<img src='images/pipeline_serving-image4.png' height = "200" align="middle"/>
 </div>
 
 ### 3.1 Files required for pipeline deployment
