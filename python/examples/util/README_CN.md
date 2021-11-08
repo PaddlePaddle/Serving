@@ -28,4 +28,4 @@ python3 timeline_trace.py profile trace
 
 效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
 
-![timeline](../../../doc/timeline-example.png)
+![timeline](../../../doc/images/timeline-example.png)

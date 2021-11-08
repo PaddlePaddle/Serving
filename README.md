@@ -2,7 +2,7 @@
 
 <p align="center">
     <br>
-<img src='doc/serving_logo.png' width = "600" height = "130">
+<img src='doc/images/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
@@ -47,7 +47,7 @@ We consider deploying deep learning inference service online to be a user-facing
 [Serving Examples](./python/examples/).
 
 <p align="center">
-    <img src="doc/demo.gif" width="700">
+    <img src="doc/images/demo.gif" width="700">
 </p>
 
 

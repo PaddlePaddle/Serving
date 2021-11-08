@@ -2,7 +2,7 @@
 
 <p align="center">
     <br>
-<img src='doc/serving_logo.png' width = "600" height = "130">
+<img src='doc/images/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
@@ -48,7 +48,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 - 提供丰富多彩的前后处理，方便用户在训练、部署等各阶段复用相关代码，弥合AI开发者和应用开发者之间的鸿沟，详情参考[模型示例](./python/examples/)。
 
 <p align="center">
-    <img src="doc/demo.gif" width="700">
+    <img src="doc/images/demo.gif" width="700">
 </p>
 
 <h2 align="center">教程</h2>

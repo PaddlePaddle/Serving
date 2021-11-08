@@ -28,4 +28,4 @@ Specific operation: Open the chrome browser, enter `chrome://tracing/` in the ad
 
 The data visualization output is shown as follow, it uses [bert as service example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert) GPU inference service. The server starts 4 GPU prediction, the client starts 4 `processes`, and the timeline of each stage when the batch size is 1. Among them, `bert_pre` represents the data preprocessing stage of the client, and `client_infer` represents the stage where the client completes sending and receiving prediction requests. `process` represents the process number of the client, and the second line of each process shows the timeline of each op of the server.
 
-![timeline](../../../doc/timeline-example.png)
+![timeline](../../../doc/images/timeline-example.png)

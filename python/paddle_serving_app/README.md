@@ -149,7 +149,7 @@ The server side starts service with 4 GPU cards, the client side starts 4 proces
 In the figure, bert_pre represents the data pre-processing stage of the client, and client_infer represents the stage where the client completes the sending of the prediction request to the receiving result.
 The process in the figure represents the process number of the client, and the second line of each process shows the timeline of each op of the server.
 
-![timeline](../../doc/timeline-example.png)
+![timeline](../../doc/images/timeline-example.png)
 
 ## Debug tools
 

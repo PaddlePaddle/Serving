@@ -39,7 +39,7 @@ Paddle Serving provides RPC and HTTP protocol for users. For HTTP service, we re
 
 <p align="center">
     <br>
-<img src='user_groups.png' width = "700" height = "470">
+<img src='images/user_groups.png' width = "700" height = "470">
     <br>
 <p>
 
@@ -96,7 +96,7 @@ Distributed Sparse Parameter Indexing is commonly seen in advertising and recomm
 
 <p align="center">
     <br>
-<img src='cube_eng.png' width = "450" height = "230">
+<img src='images/cube_eng.png' width = "450" height = "230">
     <br>
 <p>
 
@@ -116,7 +116,7 @@ The core execution engine of Paddle Serving is a Directed acyclic graph(DAG). In
 
 <p align="center">
     <br>
-<img src='design_doc.png'">
+<img src='images/design_doc.png'">
     <br>
 <p>
 
@@ -132,7 +132,7 @@ After sufficient offline evaluation of the model, online A/B test is usually nee
 
 <p align="center">
     <br>
-<img src='abtest.png' width = "345" height = "230">
+<img src='images/abtest.png' width = "345" height = "230">
     <br>
 <p>
 
@@ -188,7 +188,7 @@ the end-to-end deep learning model can not solve all the problems at present. Us
 ### 5.1 Network Communication Mechanism
 The network framework of Pipeline Serving uses gRPC and gPRC gateway. The gRPC service receives the RPC request, and the gPRC gateway receives the RESTful API request and forwards the request to the gRPC Service through the reverse proxy server. Therefore, the network layer of Pipeline Serving receives both RPC and RESTful API.
 <center>
-<img src='pipeline_serving-image1.png' height = "250" align="middle"/>
+<img src='images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </center>
 
 ### 5.2 Core Design And Use Cases
@@ -196,7 +196,7 @@ The network framework of Pipeline Serving uses gRPC and gPRC gateway. The gRPC s
 The core design of Pipeline Serving is a graph execution engine, and the basic processing units are OP and Channel. A set of directed acyclic graphs can be realized through combination. Reference for design and use documents《[Pipeline Serving](PIPELINE_SERVING.md)》
 
 <center>
-<img src='pipeline_serving-image2.png' height = "300" align="middle"/>
+<img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
 
 ----
