@@ -42,7 +42,7 @@ Paddle Serving面向的用户提供RPC和HTTP两种访问协议。对于HTTP协�
 
 <p align="center">
     <br>
-<img src='user_groups.png' width = "700" height = "470">
+<img src='images/user_groups.png' width = "700" height = "470">
     <br>
 <p>
 
@@ -99,7 +99,7 @@ fetch_var {
 为什么要使用Paddle Serving提供的分布式稀疏参数索引服务？1）在一些推荐场景中，模型的输入特征规模通常可以达到上千亿，单台机器无法支撑T级别模型在内存的保存，因此需要进行分布式存储。2）Paddle Serving提供的分布式稀疏参数索引服务，具有并发请求多个节点的能力，从而以较低的延时完成预估服务。
 <p align="center">
     <br>
-<img src='cube_eng.png' width = "450" height = "230">
+<img src='images/cube.png' width = "450" height = "230">
     <br>
 <p>
 分布式稀疏参数索引通常在广告推荐中出现，并与分布式训练配合形成完整的离线-在线一体化部署。下图解释了其中的流程，产品的在线服务接受用户请求后将请求发送给预估服务，同时系统会记录用户的请求以进行相应的训练日志处理和拼接。离线分布式训练系统会针对流式产出的训练日志进行模型增量训练，而增量产生的模型会配送至分布式稀疏参数索引服务，同时对应的稠密的模型参数也会配送至在线的预估服务。在线服务由两部分组成，一部分是针对用户的请求提取特征后，将需要进行模型的稀疏参数索引的特征发送请求给分布式稀疏参数索引服务，针对分布式稀疏参数索引服务返回的稀疏参数再进行后续深度学习模型的计算流程，从而完成预估。
@@ -118,7 +118,7 @@ C++ Serving采用[better-rpc](https://github.com/apache/incubator-brpc)进行底
 C++ Serving的核心执行引擎是一个有向无环图，图中的每个节点代表预估服务的一个环节，例如计算模型预测打分就是其中一个环节。有向无环图有利于可并发节点充分利用部署实例内的计算资源，缩短延时。一个例子，当同一份输入需要送入两个不同的模型进行预估，并将两个模型预估的打分进行加权求和时，两个模型的打分过程即可以通过有向无环图的拓扑关系并发。
 <p align="center">
     <br>
-<img src='design_doc.png'">
+<img src='images/design_doc.png'">
     <br>
 <p>
 
@@ -136,7 +136,7 @@ Paddle Serving采用对称加密算法对模型进行加密，在服务加载模
 
 <p align="center">
     <br>
-<img src='abtest.png' width = "345" height = "230">
+<img src='images/abtest.png' width = "345" height = "230">
     <br>
 <p>
 
@@ -189,13 +189,13 @@ imdb_service.run_server()
 ### 5.1 网络框架
 Pipeline Serving的网络框架采用gRPC和gPRC gateway。gRPC service接收RPC请求，gPRC gateway接收RESTful API请求通过反向代理服务器将请求转发给gRPC Service。即，Pipeline Serving的网络层同时接收RPC和RESTful API。
 <center>
-<img src='pipeline_serving-image1.png' height = "250" align="middle"/>
+<img src='images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </center>
 
 ### 5.2 核心设计与使用用例
 Pipeline Serving核心设计是图执行引擎，基本处理单元是OP和Channel，通过组合实现一套有向无环图，设计与使用文档参考《[Pipeline Serving设计与实现](PIPELINE_SERVING_CN.md)》
 <center>
-<img src='pipeline_serving-image2.png' height = "300" align="middle"/>
+<img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
 ----
 

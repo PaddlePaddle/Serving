@@ -1589,19 +1589,26 @@ class RequestOp(Op):
             tensor: one tensor in request.tensors.
 
         Returns:
-            np.ndnumpy
+            np_data: np.ndnumpy, the tensor data is converted to numpy.
+            lod_info: np.ndnumpy, lod info of the tensor data, None default.
         """
         if tensor is None or tensor.elem_type is None or tensor.name is None:
             _LOGGER.error("input params of tensor is wrong. tensor: {}".format(
                 tensor))
             return None
 
+        # Set dim shape
         dims = []
         if tensor.shape is None:
             dims.append(1)
         else:
             for one_dim in tensor.shape:
                 dims.append(one_dim)
+
+        # Set up 2-d lod tensor
+        np_lod = None
+        if len(tensor.lod) > 0:
+            np_lod = np.array(tensor.lod).astype(int32).reshape(2, -1)
 
         np_data = None
         _LOGGER.info("proto_to_numpy, name:{}, type:{}, dims:{}".format(
@@ -1648,7 +1655,7 @@ class RequestOp(Op):
                 "Sorry, the type {} of tensor {} is not supported.".format(
                     tensor.elem_type, tensor.name))
 
-        return np_data
+        return np_data, np_lod
 
     def unpack_request_package(self, request):
         """
@@ -1705,7 +1712,10 @@ class RequestOp(Op):
 
                 dict_data[name] = new_string
             else:
-                dict_data[name] = self.proto_tensor_2_numpy(one_tensor)
+                np_data, np_lod = self.proto_tensor_2_numpy(one_tensor)
+                dict_data[name] = np_data
+                if np_lod is not None:
+                    dict_data[name + ".lod"] = np_lod
 
         _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
             name:{}, method:{}, time:{}"
