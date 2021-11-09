@@ -4,7 +4,7 @@
 
 该文档将会用一个基于IMDB数据集的文本分类任务的例子，介绍如何使用Paddle Serving搭建A/B Test框架，例中的Client端、Server端结构如下图所示。
 
-<img src="abtest.png" style="zoom:33%;" />
+<img src="images/abtest.png" style="zoom:33%;" />
 
 需要注意的是：A/B Test只适用于RPC模式，不适用于WEB模式。
 

@@ -88,7 +88,7 @@ this step is not necessary, but it can help you to verify if the model is ready.
 ```
 if you succeed, you will see this
 <p align="center">
-    <img src="cube-cli.png" width="700">
+    <img src="images/cube-cli.png" width="700">
 </p>
 
 If you see that each key has a corresponding value output, it means that the delivery was successful. This file can also be used by Serving to perform cube query in general kv infer op in Serving.

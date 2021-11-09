@@ -32,17 +32,17 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 
 其中我们之前serving容器 以 9393端口暴露，KONG网关的端口是8443， KONG的Web控制台的端口是8001。接下来我们在浏览器访问 `https://$IP_ADDR:8001`, 其中 IP_ADDR就是宿主机的IP。
 
-<img src="kong-dashboard.png">
+<img src="images/kong-dashboard.png">
 可以看到在注册结束后，登陆，看到了 DASHBOARD，我们先看SERVICES，可以看到`serving_service`，这意味着我们端口在9393的Serving服务已经在KONG当中被注册。
 
-<img src="kong-services.png">
-<img src="kong-routes.png">
+<img src="images/kong-services.png">
+<img src="images/kong-routes.png">
 
 然后在ROUTES中，我们可以看到 serving 被链接到了 `/serving-uci`。
 
 最后我们点击 CONSUMERS - default_user - Credentials - API KEYS ，我们可以看到 `Api Keys` 下看到很多key
 
-<img src="kong-api_keys.png">
+<img src="images/kong-api_keys.png">
 
 接下来可以通过curl访问
 
@@ -194,6 +194,3 @@ credentials:
 curl -H "Content-Type:application/json" -H "apikey:ZGVmYXVsdC1hcGlrZXkK" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' https://$IP:$PORT/foo/uci/prediction -k
 ```
 我们可以看到 apikey 已经加入到了curl请求的header当中。
-
-
-
