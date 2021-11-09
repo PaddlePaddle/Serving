@@ -48,7 +48,7 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 
 Python的HttpClient使用示例见[`python/examples/fit_a_line/test_httpclient.py`](../python/examples/fit_a_line/test_httpclient.py)，接口详见[`python/paddle_serving_client/httpclient.py`](../python/paddle_serving_client/httpclient.py)。
 
-Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/Client.java`](../java/src/main/java/io/paddle/serving/client/HttpClient.java)。
+Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/Client.java`](../java/src/main/java/io/paddle/serving/client/Client.java)。
 
 如果不能满足您的需求，您也可以在此基础上添加一些功能。
 
