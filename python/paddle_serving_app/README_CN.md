@@ -60,7 +60,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
     - words（str）：原始文本
     - crf_decode（np.array）：模型预测结果中的CRF编码
 
-  [参考示例](../examples/lac/lac_web_service.py)
+  [参考示例](../examples/lac/lac_http_client.py)
 
 - class SentaReader
 
