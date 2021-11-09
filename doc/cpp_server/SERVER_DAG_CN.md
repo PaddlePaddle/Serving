@@ -9,7 +9,7 @@
 深度神经网络通常在输入数据上有一些预处理步骤，而在模型推断分数上有一些后处理步骤。 由于深度学习框架现在非常灵活，因此可以在训练计算图之外进行预处理和后处理。 如果要在服务器端进行输入数据预处理和推理结果后处理，则必须在服务器上添加相应的计算逻辑。 此外，如果用户想在多个模型上使用相同的输入进行推理，则最好的方法是在仅提供一个客户端请求的情况下在服务器端同时进行推理，这样我们可以节省一些网络计算开销。 由于以上两个原因，自然而然地将有向无环图（DAG）视为服务器推理的主要计算方法。 DAG的一个示例如下：
 
 <center>
-<img src='server_dag.png' width = "450" height = "500" align="middle"/>
+<img src='images/server_dag.png' width = "450" height = "500" align="middle"/>
 </center>
 
 ## 如何定义节点
@@ -18,7 +18,7 @@
 
 PaddleServing在框架中具有一些预定义的计算节点。 一种非常常用的计算图是简单的reader-infer-response模式，可以涵盖大多数单一模型推理方案。 示例图和相应的DAG定义代码如下。
 <center>
-<img src='simple_dag.png' width = "260" height = "370" align="middle"/>
+<img src='images/simple_dag.png' width = "260" height = "370" align="middle"/>
 </center>
 
 ``` python
@@ -50,7 +50,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 在[Paddle Serving中的集成预测](./deprecated/MODEL_ENSEMBLE_IN_PADDLE_SERVING_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
 
 <center>
-<img src='complex_dag.png' width = "480" height = "400" align="middle"/>
+<img src='images/complex_dag.png' width = "480" height = "400" align="middle"/>
 </center>
 
 ```python

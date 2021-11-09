@@ -59,16 +59,19 @@ def kill_stop_process_by_pid(command : str, pid : int):
     if not pid_is_exist(pid):
         print("Process [%s]  has been stopped."%pid)
         return
-    try:
-         if command == "stop":
-             os.killpg(pid, signal.SIGINT)
-         elif command == "kill":
-             os.killpg(pid, signal.SIGKILL)
-    except ProcessLookupError:
-         if command == "stop":
-             os.kill(pid, signal.SIGINT)
-         elif command == "kill":
-             os.kill(pid, signal.SIGKILL)
+    if platform.system() == "Windows":
+        os.kill(pid, signal.SIGINT)   
+    else:
+        try:
+             if command == "stop":
+                 os.killpg(pid, signal.SIGINT)
+             elif command == "kill":
+                 os.killpg(pid, signal.SIGKILL)
+        except ProcessLookupError:
+             if command == "stop":
+                 os.kill(pid, signal.SIGINT)
+             elif command == "kill":
+                 os.kill(pid, signal.SIGKILL)
 
 def dump_pid_file(portList, model):
     '''

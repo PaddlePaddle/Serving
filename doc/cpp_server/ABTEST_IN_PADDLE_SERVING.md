@@ -4,7 +4,7 @@
 
 This document will use an example of text classification task based on IMDB dataset to show how to build a A/B Test framework using Paddle Serving. The structure relationship between the client and servers in the example is shown in the figure below.
 
-<img src="abtest.png" style="zoom:25%;" />
+<img src="images/abtest.png" style="zoom:25%;" />
 
 Note that:  A/B Test is only applicable to RPC mode, not web mode.
 

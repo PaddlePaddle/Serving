@@ -2,7 +2,7 @@
 
 <p align="center">
     <br>
-<img src='doc/serving_logo.png' width = "600" height = "130">
+<img src='doc/images/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
@@ -47,7 +47,7 @@ We consider deploying deep learning inference service online to be a user-facing
 [Serving Examples](./python/examples/).
 
 <p align="center">
-    <img src="doc/demo.gif" width="700">
+    <img src="doc/images/demo.gif" width="700">
 </p>
 
 
@@ -267,6 +267,15 @@ output
 {'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
 ```
 
+<h3 align="center">Stop Serving/Pipeline service</h3>
+
+**Method one** ：Ctrl+C to quit
+
+**Method Two** ：In the path where starting the Serving/Pipeline service or the path which environment variable SERVING_HOME set (the file named ProcessInfo.json exists in this path)
+
+```
+python3 -m paddle_serving_server.serve stop
+```
 
 <h2 align="center">Document</h2>
 

@@ -47,11 +47,11 @@ PaddlePaddle是百度开源的机器学习框架，广泛支持各种深度学�
 
 ### 3.4 Server Inferface
 
-![Server Interface](server_interface.png)
+![Server Interface](images/server_interface.png)
 
 ### 3.5 Client Interface
 
-<img src='client_inferface.png' width = "600" height = "200">
+<img src='images/client_inferface.png' width = "600" height = "200">
 
 ### 3.6 训练过程中使用的Client io
 
@@ -68,7 +68,7 @@ def save_model(server_model_folder,
 
 ## 4. Paddle Serving底层框架
 
-![Paddle-Serging总体框图](framework.png)
+![Paddle-Serging总体框图](images/framework.png)
 
 **模型管理框架**：对接多种机器学习平台的模型文件，向上提供统一的inference接口
 **业务调度框架**：对各种不同预测模型的计算逻辑进行抽象，提供通用的DAG调度框架，通过DAG图串联不同的算子，共同完成一次预测服务。该抽象模型使用户可以方便的实现自己的计算逻辑，同时便于算子共用。（用户搭建自己的预测服务，很大一部分工作是搭建DAG和提供算子的实现）
@@ -104,18 +104,18 @@ class FluidFamilyCore {
 
 参考TF框架的模型计算的抽象思想，将业务逻辑抽象成DAG图，由配置驱动，生成workflow，跳过C++代码编译。业务的每个具体步骤，对应一个具体的OP，OP可配置自己依赖的上游OP。OP之间消息传递统一由线程级Bus和channel机制实现。例如，一个简单的预测服务的服务过程，可以抽象成读请求数据->调用预测接口->写回预测结果等3个步骤，相应的实现到3个OP: ReaderOp->ClassifyOp->WriteOp
 
-![预测服务Service](predict-service.png)
+![预测服务Service](images/predict-service.png)
 
 关于OP之间的依赖关系，以及通过OP组建workflow，可以参考[从零开始写一个预测服务](CREATING.md)的相关章节
 
 服务端实例透视图
 
-![服务端实例透视图](server-side.png)
+![服务端实例透视图](images/server-side.png)
 
 
 #### 4.2.2 Paddle Serving的多服务机制
 
-![Paddle Serving的多服务机制](multi-service.png)
+![Paddle Serving的多服务机制](images/multi-service.png)
 
 Paddle Serving实例可以同时加载多个模型，每个模型用一个Service（以及其所配置的workflow）承接服务。可以参考[Demo例子中的service配置文件](../tools/cpp_examples/demo-serving/conf/service.prototxt)了解如何为serving实例配置多个service
 
@@ -123,12 +123,12 @@ Paddle Serving实例可以同时加载多个模型，每个模型用一个Servic
 
 从客户端看，一个Paddle Serving service从顶向下可分为Service, Endpoint, Variant等3个层级
 
-![调用层级关系](multi-variants.png)
+![调用层级关系](images/multi-variants.png)
 
 一个Service对应一个预测模型，模型下有1个endpoint。模型的不同版本，通过endpoint下多个variant概念实现：
 同一个模型预测服务，可以配置多个variant，每个variant有自己的下游IP列表。客户端代码可以对各个variant配置相对权重，以达到调节流量比例的关系（参考[客户端配置](CLIENT_CONFIGURE.md)第3.2节中关于variant_weight_list的说明）。
 
-![Client端proxy功能](client-side-proxy.png)
+![Client端proxy功能](images/client-side-proxy.png)
 
 ## 5. 用户接口
 

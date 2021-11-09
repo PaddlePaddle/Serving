@@ -2,7 +2,7 @@
 
 <p align="center">
     <br>
-<img src='doc/serving_logo.png' width = "600" height = "130">
+<img src='doc/images/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
 
@@ -48,7 +48,7 @@ Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务�
 - 提供丰富多彩的前后处理，方便用户在训练、部署等各阶段复用相关代码，弥合AI开发者和应用开发者之间的鸿沟，详情参考[模型示例](./python/examples/)。
 
 <p align="center">
-    <img src="doc/demo.gif" width="700">
+    <img src="doc/images/demo.gif" width="700">
 </p>
 
 <h2 align="center">教程</h2>
@@ -267,6 +267,16 @@ python3 pipeline_rpc_client.py
 输出
 ```
 {'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
+```
+
+<h3 align="center">关闭Serving/Pipeline服务</h3>
+
+**方式一** ：Ctrl+C关停服务
+
+**方式二** ：在启动Serving/Pipeline服务路径或者环境变量SERVING_HOME路径下(该路径下存在文件ProcessInfo.json)
+
+```
+python3 -m paddle_serving_server.serve stop
 ```
 
 <h2 align="center">文档</h2>
