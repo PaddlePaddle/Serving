@@ -175,8 +175,8 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
 | `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
 | `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
 | `port`                                         | int  | `9292`  | Exposed port of current service to users              |
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
@@ -195,8 +195,8 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
     异步模式有助于提高Service服务的吞吐（QPS），但对于单次请求而言，时延会有少量增加。
     异步模式中，每个模型会启动您指定个数的N个线程，每个线程中包含一个模型实例，换句话说每个模型相当于包含N个线程的线程池，从线程池的任务队列中取任务来执行。
     异步模式中，各个RPC Server的线程只负责将Request请求放入模型线程池的任务队列中，等任务被执行完毕后，再从任务队列中取出已完成的任务。
-    上表中通过 --thread 10 指定的是RPC Server的线程数量，默认值为2，--op_num 指定的是各个模型的线程池中线程数N，默认值为0，表示不使用异步模式。
-    --op_max_batch 指定的各个模型的batch数量，默认值为32，该参数只有当--op_num不为0时才生效。
+    上表中通过 --thread 10 指定的是RPC Server的线程数量，默认值为2，--runtime_thread_num 指定的是各个模型的线程池中线程数N，默认值为0，表示不使用异步模式。
+    --batch_infer_size 指定的各个模型的batch数量，默认值为32，该参数只有当--runtime_thread_num不为0时才生效。
     
 #### 当您的某个模型想使用多张GPU卡部署时.
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
@@ -205,7 +205,7 @@ python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_m
 #### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡部署时.
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
 #### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡，且需要异步模式每个模型指定不同的并发数时.
-python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --op_num 4 8
+python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --runtime_thread_num 4 8
 
 </center>
 
