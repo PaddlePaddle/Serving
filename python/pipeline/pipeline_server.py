@@ -23,12 +23,15 @@ import multiprocessing
 import yaml
 import io
 import time
+import os
 
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
 from . import dag
 from . import util
 from . import channel
+from paddle_serving_server.env import CONF_HOME
+from paddle_serving_server.util import dump_pid_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,7 +80,6 @@ def _reserve_port(port):
         yield sock.getsockname()[1]
     finally:
         sock.close()
-
 
 class PipelineServer(object):
     """
@@ -198,7 +200,14 @@ class PipelineServer(object):
                         self._http_port):
                     raise SystemExit("Failed to prepare_server: http_port({}) "
                                      "is already used".format(self._http_port))
-
+        # write the port info into ProcessInfo.json
+        portList = []
+        if self._http_port is not None:
+            portList.append(self._rpc_port)
+        if self._rpc_port is not None:
+            portList.append(self._http_port)
+        if len(portList):
+            dump_pid_file(portList, "pipline")
         self._worker_num = conf["worker_num"]
         self._build_dag_each_worker = conf["build_dag_each_worker"]
         self._init_ops(conf["op"])

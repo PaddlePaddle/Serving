@@ -25,7 +25,7 @@ set(BOOST_PROJECT       "extern_boost")
 
 set(BOOST_VER           "1.74.0")
 set(BOOST_TAR "boost_1_74_0" CACHE STRING "" FORCE)
-set(BOOST_URL "http://paddlepaddledeps.cdn.bcebos.com/${BOOST_TAR}.tar.gz" CACHE STRING "" FORCE)
+set(BOOST_URL "http://paddlepaddledeps.bj.bcebos.com/${BOOST_TAR}.tar.gz" CACHE STRING "" FORCE)
 
 MESSAGE(STATUS "BOOST_TAR: ${BOOST_TAR}, BOOST_URL: ${BOOST_URL}")
 
