@@ -109,7 +109,12 @@ def is_gpu_mode(unformatted_gpus):
 
 def serve_args():
     parser = argparse.ArgumentParser("serve")
-    parser.add_argument("server", type=str, default="start",nargs="?", help="stop or start PaddleServing")
+    parser.add_argument(
+        "server",
+        type=str,
+        default="start",
+        nargs="?",
+        help="stop or start PaddleServing")
     parser.add_argument(
         "--thread",
         type=int,
@@ -123,9 +128,13 @@ def serve_args():
     parser.add_argument(
         "--gpu_ids", type=str, default="", nargs="+", help="gpu ids")
     parser.add_argument(
-        "--op_num", type=int, default=0, nargs="+", help="Number of each op")
+        "--runtime_thread_num",
+        type=int,
+        default=0,
+        nargs="+",
+        help="Number of each op")
     parser.add_argument(
-        "--op_max_batch",
+        "--batch_infer_size",
         type=int,
         default=32,
         nargs="+",
@@ -251,11 +260,11 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     if args.gpu_multi_stream and device == "gpu":
         server.set_gpu_multi_stream()
 
-    if args.op_num:
-        server.set_op_num(args.op_num)
+    if args.runtime_thread_num:
+        server.set_runtime_thread_num(args.runtime_thread_num)
 
-    if args.op_max_batch:
-        server.set_op_max_batch(args.op_max_batch)
+    if args.batch_infer_size:
+        server.set_batch_infer_size(args.batch_infer_size)
 
     if args.use_lite:
         server.set_lite()
@@ -370,7 +379,7 @@ class MainService(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode())
 
 
-def stop_serving(command : str, port : int = None):
+def stop_serving(command: str, port: int=None):
     '''
     Stop PaddleServing by port.
 
@@ -400,7 +409,7 @@ def stop_serving(command : str, port : int = None):
         start_time = info["start_time"]
         if port is not None:
             if port in storedPort:
-                kill_stop_process_by_pid(command ,pid)
+                kill_stop_process_by_pid(command, pid)
                 infoList.remove(info)
                 if len(infoList):
                     with open(filepath, "w") as fp:
@@ -410,16 +419,17 @@ def stop_serving(command : str, port : int = None):
                 return True
             else:
                 if lastInfo == info:
-                     raise ValueError(
-                         "Please confirm the port [%s] you specified is correct." %
-                         port)
+                    raise ValueError(
+                        "Please confirm the port [%s] you specified is correct."
+                        % port)
                 else:
                     pass
         else:
-            kill_stop_process_by_pid(command ,pid)
+            kill_stop_process_by_pid(command, pid)
             if lastInfo == info:
                 os.remove(filepath)
     return True
+
 
 if __name__ == "__main__":
     # args.device is not used at all.
@@ -436,7 +446,7 @@ if __name__ == "__main__":
             os._exit(0)
         else:
             os._exit(-1)
-    
+
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
