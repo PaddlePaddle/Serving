@@ -40,7 +40,7 @@ op:
             fetch_list: ["concat_1.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
+            devices: "0"
 
             #use_mkldnn
             #use_mkldnn: True
@@ -75,7 +75,7 @@ op:
             device_type: 1
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
+            devices: "0"
 
             #use_mkldnn
             #use_mkldnn: True
