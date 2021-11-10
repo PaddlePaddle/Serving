@@ -63,3 +63,7 @@ install(FILES
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
 endif()
+
+if (WITH_ROCM)
+    target_link_libraries(serving ${ROCM_HIPRTC_LIB})
+endif()

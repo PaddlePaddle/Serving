@@ -435,6 +435,8 @@ class Server(object):
                 device_version = "gpu-cuda" + version_suffix
         elif device_type == "2":
             device_version = "xpu-" + platform.machine()
+        elif device_type == "3":
+            device_version = "rocm-" + platform.machine()
         return device_version
 
     def download_bin(self):
