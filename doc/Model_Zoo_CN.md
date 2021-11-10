@@ -20,7 +20,7 @@
 | ResNet50_vd_PACT | PaddleClas | [多模型](../examples/pipeline/PaddleClas/ResNet50_vd_PACT) | [.tar](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd_PACT.tar) |Pipeline Serving|
 | ResNeXt101_vd_64x4d | PaddleClas | [多模型](../examples/pipeline/PaddleClas/ResNeXt101_vd_64x4d) | [.tar](https://paddle-serving.bj.bcebos.com/model/ResNeXt101_vd_64x4d.tar) |Pipeline Serving|
 | HRNet_W18_C | PaddleClas | [多模型](../examples/pipeline/PaddleClas/HRNet_W18_C) | [.tar](https://paddle-serving.bj.bcebos.com/model/HRNet_W18_C.tar) |Pipeline Serving|
-| ShuffleNetV2_x1_0 | PaddleClas | [多模型](../examples/pipeline/PaddleClas/ShuffleNetV2_x1_0)) | [.tar](https://paddle-serving.bj.bcebos.com/model/ShuffleNetV2_x1_0.tar) |Pipeline Serving|
+| ShuffleNetV2_x1_0 | PaddleClas | [多模型](../examples/pipeline/PaddleClas/ShuffleNetV2_x1_0) | [.tar](https://paddle-serving.bj.bcebos.com/model/ShuffleNetV2_x1_0.tar) |Pipeline Serving|
 | bert_chinese_L-12_H-768_A-12 | PaddleNLP | [单模型](../examples/PaddleNLP/bert)/[多模型](../examples/pipeline/bert) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz) |Pipeline Serving, C++ Serving|
 | senta_bilstm | PaddleNLP | [单模型](../examples/PaddleNLP/senta) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/senta_bilstm.tar.gz) |C++ Serving|
 | lac | PaddleNLP | [单模型](../examples/PaddleNLP/lac) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/lac.tar.gz) | C++ Serving|
@@ -36,7 +36,6 @@
 | faster_rcnn_r50_fpn_1x_coco | PaddleDetection | [单模型](../examples/PaddleDetection/faster_rcnn_r50_fpn_1x_coco)/[多模型](../examples/pipeline/PaddleDetection/faster_rcnn) | [.tar](https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/faster_rcnn_r50_fpn_1x_coco.tar) |Pipeline Serving, C++ Serving |
 | ppyolo_r50vd_dcn_1x_coco | PaddleDetection |  [单模型](../examples/PaddleDetection/ppyolo_r50vd_dcn_1x_coco) | [.tar](https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/ppyolo_r50vd_dcn_1x_coco.tar) |C++ Serving |
 | ppyolo_mbv3_large_coco | PaddleDetection |  [多模型](../examples/pipeline/PaddleDetection/ppyolo_mbv3) | [.tar](https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/ppyolo_mbv3_large_coco.tar) |Pipeline Serving |
-| ppyolo_r50vd_dcn_1x_coco | PaddleDetection |  [单模型](../examples/PaddleDetection/ppyolo_r50vd_dcn_1x_coco) | [.tar](https://paddle-serving.bj.bcebos.com/pddet_demo/2.0/ppyolo_r50vd_dcn_1x_coco.tar) |C++ Serving |
 | ttfnet_darknet53_1x_coco | PaddleDetection | [单模型](../examples/PaddleDetection/ttfnet_darknet53_1x_coco) | [.tar](https://paddle-serving.bj.bcebos.com/pddet_demo/ttfnet_darknet53_1x_coco.tar) |C++ Serving |
 | ocr_rec | PaddleOCR | [单模型](../examples/PaddleOCR/ocr_rec_det)/[多模型](../examples/pipeline/ocr) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/ocr_rec.tar.gz) |Pipeline Serving, C++ Serving |
 | ocr_det | PaddleOCR | [单模型](../examples/PaddleOCR/ocr_rec_det)/[多模型](../examples/pipeline/ocr) | [.tar.gz](https://paddle-serving.bj.bcebos.com/ocr/ocr_det.tar.gz) |Pipeline Serving, C++ Serving |
