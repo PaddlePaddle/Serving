@@ -26,7 +26,7 @@ import os
 import logging
 import collections
 import json
-
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
                       ChannelDataErrcode, ChannelDataType, ChannelStopError,
@@ -42,7 +42,6 @@ class DAGExecutor(object):
     """
     DAG Executor, the service entrance of DAG.
     """
-
     def __init__(self, response_op, server_conf, worker_idx):
         """
         Initialize DAGExecutor.
@@ -114,6 +113,7 @@ class DAGExecutor(object):
         self._client_profile_key = "pipeline.profile"
         self._client_profile_value = "1"
 
+    @ErrorCatch
     def start(self):
         """
         Starting one thread for receiving data from the last channel background.
@@ -479,20 +479,35 @@ class DAG(object):
     """
     Directed Acyclic Graph(DAG) engine, builds one DAG topology.
     """
-
     def __init__(self, request_name, response_op, use_profile, is_thread_op,
                  channel_size, build_dag_each_worker, tracer,
                  channel_recv_frist_arrive):
-        self._request_name = request_name
-        self._response_op = response_op
-        self._use_profile = use_profile
-        self._is_thread_op = is_thread_op
-        self._channel_size = channel_size
-        self._build_dag_each_worker = build_dag_each_worker
-        self._tracer = tracer
-        self._channel_recv_frist_arrive = channel_recv_frist_arrive
-        if not self._is_thread_op:
-            self._manager = PipelineProcSyncManager()
+        _LOGGER.info("{}, {}, {}, {}, {} ,{} ,{} ,{}".format(request_name, response_op, use_profile, is_thread_op,
+                         channel_size, build_dag_each_worker, tracer,
+                                          channel_recv_frist_arrive))
+        @ErrorCatch
+        @ParamChecker
+        def init_helper(self, request_name: str,
+                         response_op, 
+                         use_profile: [bool, None], 
+                         is_thread_op: bool,
+                         channel_size, 
+                         build_dag_each_worker: [bool, None],
+                         tracer: [dict, None],
+                        channel_recv_frist_arrive):
+            self._request_name = request_name
+            self._response_op = response_op
+            self._use_profile = use_profile
+            self._is_thread_op = is_thread_op
+            self._channel_size = channel_size
+            self._build_dag_each_worker = build_dag_each_worker
+            self._tracer = tracer
+            self._channel_recv_frist_arrive = channel_recv_frist_arrive
+            if not self._is_thread_op:
+                self._manager = PipelineProcSyncManager()
+        init_helper(self, request_name, response_op, use_profile, is_thread_op,
+                    channel_size, build_dag_each_worker, tracer,
+                    channel_recv_frist_arrive)
         _LOGGER.info("[DAG] Succ init")
 
     @staticmethod
