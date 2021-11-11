@@ -4,11 +4,11 @@
 
 ### Introduction
 
-PaddleDetection flying paddle target detection development kit is designed to help developers complete the whole development process of detection model formation, training, optimization and deployment faster and better. For details, see [Github](https://github.com/PaddlePaddle/PaddleDetection/tree/master/dygraph)
+PaddleDetection flying paddle target detection development kit is designed to help developers complete the whole development process of detection model formation, training, optimization and deployment faster and better. For details, see [Github](https://github.com/PaddlePaddle/PaddleDetection/tree/master)
 
 This article mainly introduces the deployment of Paddle Detection's dynamic graph model on Serving.
 
-Paddle Detection provides a large number of [Model Zoo](https://github.com/PaddlePaddle/PaddleDetection/blob/master/dygraph/docs/MODEL_ZOO_cn.md), these model libraries can be used in Paddle Serving with export tools Model. For the export tutorial, please refer to [Paddle Detection Export Model Tutorial (Simplified Chinese)](https://github.com/PaddlePaddle/PaddleDetection/blob/master/dygraph/deploy/EXPORT_MODEL.md).
+Paddle Detection provides a large number of [Model Zoo](https://github.com/PaddlePaddle/PaddleDetection/blob/master/docs/MODEL_ZOO_cn.md), these model libraries can be used in Paddle Serving with export tools Model. For the export tutorial, please refer to [Paddle Detection Export Model Tutorial (Simplified Chinese)](https://github.com/PaddlePaddle/PaddleDetection/blob/master/deploy/EXPORT_MODEL.md).
 
 ### Serving example
 Several examples of PaddleDetection models used in Serving are given in this folder

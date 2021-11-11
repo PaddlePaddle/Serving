@@ -91,6 +91,7 @@ def dump_pid_file(portList, model):
        dump_pid_file([9494, 10082], 'serve')
     '''
     pid = os.getpid()
+    gid = os.getpgid(pid)
     pidInfoList = []
     filepath = os.path.join(CONF_HOME, "ProcessInfo.json")
     if os.path.exists(filepath):
@@ -105,7 +106,7 @@ def dump_pid_file(portList, model):
                         pidInfoList.remove(info)
 
     with open(filepath, "w") as fp:
-        info ={"pid": pid, "port" : portList, "model" : str(model), "start_time" : time.time()}
+        info ={"pid": gid, "port" : portList, "model" : str(model), "start_time" : time.time()}
         pidInfoList.append(info)
         json.dump(pidInfoList, fp)
 
