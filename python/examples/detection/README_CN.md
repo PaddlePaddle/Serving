@@ -4,13 +4,13 @@
 
 ### 简介
 
-PaddleDetection飞桨目标检测开发套件，旨在帮助开发者更快更好地完成检测模型的组建、训练、优化及部署等全开发流程。详情参见[Github](https://github.com/PaddlePaddle/PaddleDetection/tree/master/dygraph)
+PaddleDetection飞桨目标检测开发套件，旨在帮助开发者更快更好地完成检测模型的组建、训练、优化及部署等全开发流程。详情参见[Github](https://github.com/PaddlePaddle/PaddleDetection/tree/master)
 
 本文主要是介绍Paddle Detection的动态图模型在Serving上的部署。
 
 ### 导出模型
 
-Paddle Detection提供了大量的[模型库](https://github.com/PaddlePaddle/PaddleDetection/blob/master/dygraph/docs/MODEL_ZOO_cn.md), 这些模型库配合导出工具都可以得到可以用于Paddle Serving的模型。导出教程参见[Paddle Detection模型导出教程](https://github.com/PaddlePaddle/PaddleDetection/blob/master/dygraph/deploy/EXPORT_MODEL.md)。
+Paddle Detection提供了大量的[模型库](https://github.com/PaddlePaddle/PaddleDetection/blob/master/docs/MODEL_ZOO_cn.md), 这些模型库配合导出工具都可以得到可以用于Paddle Serving的模型。导出教程参见[Paddle Detection模型导出教程](https://github.com/PaddlePaddle/PaddleDetection/blob/master/deploy/EXPORT_MODEL.md)。
 
 ### Serving示例
 本文件夹下给出了多个PaddleDetection模型用于Serving的范例

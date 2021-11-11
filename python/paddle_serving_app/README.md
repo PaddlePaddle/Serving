@@ -67,7 +67,7 @@ Preprocessing for Chinese word segmentation task.
     - words（st ）：Original text input.
     - crf_decode（np.array）：CRF code predicted by model.
 
-  [example](../examples/lac/lac_web_service.py)
+  [example](../examples/lac/lac_http_client.py)
 
 - class SentaReader
 
