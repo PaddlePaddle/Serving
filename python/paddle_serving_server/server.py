@@ -82,8 +82,8 @@ class Server(object):
         self.mkl_flag = False
         self.device = "cpu"
         self.gpuid = []
-        self.op_num = [0]
-        self.op_max_batch = [32]
+        self.runtime_thread_num = [0]
+        self.batch_infer_size = [32]
         self.use_trt = False
         self.gpu_multi_stream = False
         self.use_lite = False
@@ -171,11 +171,11 @@ class Server(object):
     def set_gpuid(self, gpuid):
         self.gpuid = format_gpu_to_strlist(gpuid)
 
-    def set_op_num(self, op_num):
-        self.op_num = op_num
+    def set_runtime_thread_num(self, runtime_thread_num):
+        self.runtime_thread_num = runtime_thread_num
 
-    def set_op_max_batch(self, op_max_batch):
-        self.op_max_batch = op_max_batch
+    def set_batch_infer_size(self, batch_infer_size):
+        self.batch_infer_size = batch_infer_size
 
     def set_trt(self):
         self.use_trt = True
@@ -205,15 +205,15 @@ class Server(object):
             else:
                 self.gpuid = ["-1"]
 
-        if isinstance(self.op_num, int):
-            self.op_num = [self.op_num]
-        if len(self.op_num) == 0:
-            self.op_num.append(0)
+        if isinstance(self.runtime_thread_num, int):
+            self.runtime_thread_num = [self.runtime_thread_num]
+        if len(self.runtime_thread_num) == 0:
+            self.runtime_thread_num.append(0)
 
-        if isinstance(self.op_max_batch, int):
-            self.op_max_batch = [self.op_max_batch]
-        if len(self.op_max_batch) == 0:
-            self.op_max_batch.append(32)
+        if isinstance(self.batch_infer_size, int):
+            self.batch_infer_size = [self.batch_infer_size]
+        if len(self.batch_infer_size) == 0:
+            self.batch_infer_size.append(32)
 
         index = 0
 
@@ -224,9 +224,10 @@ class Server(object):
             engine.reloadable_meta = model_config_path + "/fluid_time_file"
             os.system("touch {}".format(engine.reloadable_meta))
             engine.reloadable_type = "timestamp_ne"
-            engine.runtime_thread_num = self.op_num[index % len(self.op_num)]
-            engine.batch_infer_size = self.op_max_batch[index %
-                                                        len(self.op_max_batch)]
+            engine.runtime_thread_num = self.runtime_thread_num[index % len(
+                self.runtime_thread_num)]
+            engine.batch_infer_size = self.batch_infer_size[index % len(
+                self.batch_infer_size)]
 
             engine.enable_overrun = False
             engine.allow_split_request = True
