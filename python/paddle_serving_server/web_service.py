@@ -28,6 +28,7 @@ import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 from paddle_serving_server.serve import format_gpu_to_strlist
+from paddle_serving_server.util import dump_pid_file
 
 
 def port_is_available(port):
@@ -260,7 +261,6 @@ class WebService(object):
         self.gpu_multi_stream = gpu_multi_stream
         self.runtime_thread_num = runtime_thread_num
         self.batch_infer_size = batch_infer_size
-
         # record port and pid info for stopping process
         dump_pid_file([self.port], "web_service")
         # if gpuid != None, we will use gpuid first.
