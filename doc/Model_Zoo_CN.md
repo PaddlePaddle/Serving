@@ -28,7 +28,6 @@
 | criteo_ctr | PaddleRec | [单模型](../examples/PaddleRec/criteo_ctr) | [.tar.gz](https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz) | C++ Serving |
 | criteo_ctr_with_cube | PaddleRec | [单模型](../examples/PaddleRec/criteo_ctr_with_cube) | [.tar.gz](https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz) |C++ Serving|
 | wide&deep | PaddleRec | [单模型](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/doc/serving.md) | [model](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/models/rank/wide_deep/README.md) |C++ Serving|
-| criteo_ctr_with_cube | PaddleRec | [单模型](../examples/PaddleRec/criteo_ctr_with_cube) | [.tar.gz](https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz) |C++ Serving|
 | blazeface | PaddleDetection | [单模型](../examples/PaddleDetection/blazeface) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ObjectDetection/blazeface.tar.gz) |C++ Serving|
 | cascade_mask_rcnn_r50_vd_fpn_ssld_2x_coco | PaddleDetection | [单模型](../examples/PaddleDetection/cascade_rcnn) | [.tar.gz](https://paddle-serving.bj.bcebos.com/pddet_demo/cascade_mask_rcnn_r50_vd_fpn_ssld_2x_coco_serving.tar.gz) |C++ Serving|
 | yolov4 | PaddleDetection | [单模型](../examples/PaddleDetection/yolov4) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ObjectDetection/yolov4.tar.gz) |C++ Serving|
