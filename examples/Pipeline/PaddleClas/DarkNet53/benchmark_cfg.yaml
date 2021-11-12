@@ -1,0 +1,29 @@
+cuda_version: "10.1"
+cudnn_version: "7.6"
+trt_version: "6.0"
+python_version: "3.7"
+gcc_version: "8.2"
+paddle_version: "2.0.1"
+
+cpu: "Intel(R) Xeon(R) Gold 5117 CPU @ 2.00GHz X12"
+gpu: "T4"
+xpu: "None"
+api: ""
+owner: "cuicheng01"
+
+model_name: "imagenet"
+model_type: "static"
+model_source: "PaddleClas"
+model_url: ""
+
+batch_size: 1
+num_of_samples: 1000
+input_shape: "3,224,224"
+
+runtime_device: "cpu"
+ir_optim: true
+enable_memory_optim: true
+enable_tensorrt: false
+precision: "fp32"
+enable_mkldnn: false
+cpu_math_library_num_threads: ""
