@@ -1,160 +1,242 @@
-# Serving Side Configuration
+# Serving Configuration
 
+## 简介
 
-Paddle Serving配置文件格式采用明文格式的protobuf文件，配置文件的每个字段都需要事先在configure/proto/目录下相关.proto定义中定义好，才能被protobuf读取和解析到。
+本文主要介绍C++ Server以及Python Server的各项配置:
 
-Serving端的所有配置均在configure/proto/server_configure.proto文件中。
+- [模型配置文件](#模型配置文件): 转换模型时自动生成，描述模型输入输出信息
+- [C++ Server](#c-server): 用于高性能场景，介绍了快速启动以及自定义配置方法
+- [Python Server](#python-server): 用于单算子多模型组合场景
 
-## 1. service.prototxt
-Serving端service 配置的入口是service.prototxt，用于配置Paddle Serving实例挂载的service列表。他的protobuf格式可参考`configure/server_configure.protobuf`的`InferServiceConf`类型。(至于具体的磁盘文件路径可通过--inferservice_path与--inferservice_file 命令行选项修改)，样例如下：
+## 模型配置文件
 
-```JSON
-port: 8010
-services {
-  name: "ImageClassifyService"
-  workflows: "workflow1"
+在开始介绍Server配置之前，先来介绍一下模型配置文件。我们在将模型转换为PaddleServing模型时，会生成对应的serving_client_conf.prototxt以及serving_server_conf.prototxt，两者内容一致，为模型输入输出的参数信息，方便用户拼装参数。该配置文件用于Server以及Client，并不需要用户自行修改。转换方法参考文档《[怎样保存用于Paddle Serving的模型](SAVE_CN.md)》。protobuf格式可参考`core/configure/proto/general_model_config.proto`。
+样例如下：
+
+```
+feed_var {
+  name: "x"
+  alias_name: "x"
+  is_lod_tensor: false
+  feed_type: 1
+  shape: 13
+}
+fetch_var {
+  name: "fc_0.tmp_1"
+  alias_name: "price"
+  is_lod_tensor: false
+  fetch_type: 1
+  shape: 1
 }
 ```
 
 其中
 
-- port: 该字段标明本机serving实例启动的监听端口。默认为8010。还可以通过--port=8010命令行参数指定。
-- services: 可以配置多个services。Paddle Serving被设计为单个Serving实例可以同时承载多个预测服务，服务间通过service name进行区分。例如以下代码配置2个预测服务：
-```JSON
+- feed_var为输入变量，fetch_var为输出变量
+- 具体配置：name（名称）、alias_name（别名，与名称对应，用于输出）、is_lod_tensor（是否为lod）、feed_type/fetch_type（数据类型）、shape（数据维度）
+
+## C++ Server
+
+### 1.快速启动
+
+可以通过配置模型及端口号快速启动服务，启动命令如下：
+
+```BASH
+python3 -m paddle_serving_server.serve --model serving_model --port 9393
+```
+
+该命令会自动生成配置文件，并使用生成的配置文件启动C++ Server。例如上述启动命令会自动生成workdir_9393目录，其结构如下
+
+```
+workdir_9393
+├── general_infer_0
+│   ├── fluid_time_file
+│   ├── general_model.prototxt
+│   └── model_toolkit.prototxt
+├── infer_service.prototxt
+├── resource.prototxt
+└── workflow.prototxt
+```
+
+更多启动参数详见下表：
+| Argument                                       | Type | Default | Description                                           |
+| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
+| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
+| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
+| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
+| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
+| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
+| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
+| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
+| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
+| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
+| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
+| `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
+| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+
+#### 当您的某个模型想使用多张GPU卡部署时.
+```BASH
+python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 9292 --gpu_ids 0,1,2
+```
+#### 当您的一个服务包含两个模型部署时.
+```BASH
+python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
+```
+
+### 2.自定义配置启动
+
+Serving支持自定义配置方式启动，可以使用自行定义的配置文件启动服务。这些配置文件包括service.prototxt、workflow.prototxt、resource.prototxt、model_toolkit.prototxt、proj.conf。启动命令如下:
+```BASH
+/bin/serving --flagfile=proj.conf
+```
+
+#### 2.1 proj.conf
+
+proj.conf用于传入服务参数，并指定了其他相关配置文件的路径
+```
+# for paddle inference
+--precision=fp32
+--use_calib=False
+--reload_interval_s=10
+# for brpc
+--max_concurrency=0
+--num_threads=10
+--bthread_concurrency=10
+--max_body_size=536870912
+# default path
+--inferservice_path=conf
+--inferservice_file=infer_service.prototxt
+--resource_path=conf
+--resource_file=resource.prototxt
+--workflow_path=conf
+--workflow_file=workflow.prototxt
+```
+各项参数的描述及默认值详见下表：
+| name | Default | Description |
+|------|--------|------|
+|precision|"fp32"|Precision Mode, support FP32, FP16, INT8|
+|use_calib|False|Only for deployment with TensorRT|
+|reload_interval_s|10|Reload interval|
+|max_concurrency|0|Limit of request processing in parallel, 0: unlimited|
+|num_threads|10|Number of brpc service thread|
+|bthread_concurrency|10|Number of bthread|
+|max_body_size|536870912|Max size of brpc message|
+|inferservice_path|"conf"|Path of inferservice conf|
+|inferservice_file|"infer_service.prototxt"|Filename of inferservice conf|
+|resource_path|"conf"|Path of resource conf|
+|resource_file|"resource.prototxt"|Filename of resource conf|
+|workflow_path|"conf"|Path of workflow conf|
+|workflow_file|"workflow.prototxt"|Filename of workflow conf|
+
+#### 2.2 service.prototxt
+
+service.prototxt用于配置Paddle Serving实例挂载的service列表。通过`--inferservice_path`和`--inferservice_file`指定加载路径。protobuf格式可参考`core/configure/server_configure.protobuf`的`InferServiceConf`。示例如下：
+
+```
 port: 8010
 services {
-  name: "ImageClassifyService"
+  name: "GeneralModelService"
   workflows: "workflow1"
 }
-services {
-  name: "BuiltinEchoService"
-  workflows: "workflow2"
-}
 ```
 
-- service.name: 请填写serving/proto/xx.proto文件的service名称，例如，在serving/proto/image_class.proto中，service名称如下声明：
-```JSON
-service ImageClassifyService {
-  rpc inference(Request) returns (Response);
-  rpc debug(Request) returns (Response);
-  option (pds.options).generate_impl = true;
-};
+其中：
+- port: 用于配置Serving实例监听的端口号。
+- services: 使用默认配置即可，不可修改。name指定service名称，workflow1的具体定义在workflow.prototxt
+
+#### 2.3 workflow.prototxt
+
+workflow.prototxt用来描述具体的workflow。通过`--workflow_path`和`--workflow_file`指定加载路径。protobuf格式可参考`configure/server_configure.protobuf`的`Workflow`类型。示例如下：
+
 ```
-则service name就是`ImageClassifyService`
-
-- service.workflows: 用于指定该service下所配的workflow列表。可以配置多个workflow。在本例中，为`ImageClassifyService`配置了一个workflow：`workflow1`。`workflow1`的具体定义在workflow.prototxt
-
-## 2. workflow.prototxt
-
-workflow.prototxt用来描述每一个具体的workflow，他的protobuf格式可参考`configure/server_configure.protobuf`的`Workflow`类型。具体的磁盘文件路径可通过`--workflow_path`和`--workflow_file`指定。一个例子如下：
-
-```JSON
 workflows {
   name: "workflow1"
   workflow_type: "Sequence"
   nodes {
-    name: "image_reader_op"
-    type: "ReaderOp"
+    name: "general_reader_0"
+    type: "GeneralReaderOp"
   }
   nodes {
-    name: "image_classify_op"
-    type: "ClassifyOp"
+    name: "general_infer_0"
+    type: "GeneralInferOp"
     dependencies {
-      name: "image_reader_op"
+      name: "general_reader_0"
       mode: "RO"
     }
   }
   nodes {
-    name: "write_json_op"
-    type: "WriteJsonOp"
+    name: "general_response_0"
+    type: "GeneralResponseOp"
     dependencies {
-      name: "image_classify_op"
+      name: "general_infer_0"
       mode: "RO"
     }
-  }
-}
-
-workflows {
-  name: "workflow2"
-  workflow_type: "Sequence"
-  nodes {
-    name: "echo_op"
-    type: "CommonEchoOp"
   }
 }
 ```
-以上样例配置了2个workflow：`workflow1`和`workflow2`。以`workflow1`为例：
+其中：
 
 - name: workflow名称，用于从service.prototxt索引到具体的workflow
-- workflow_type: 可选"Sequence", "Parallel"，表示本workflow下节点所代表的OP是否可并行。**当前只支持Sequence类型，如配置了Parallel类型，则该workflow不会被执行**
+- workflow_type: 只支持"Sequence"
 - nodes: 用于串联成workflow的所有节点，可配置多个nodes。nodes间通过配置dependencies串联起来
-- node.name: 随意，建议取一个能代表当前node所执行OP的类
+- node.name: 与node.type一一对应，具体可参考`python/paddle_serving_server/dag.py`
 - node.type: 当前node所执行OP的类名称，与serving/op/下每个具体的OP类的名称对应
 - node.dependencies: 依赖的上游node列表
 - node.dependencies.name: 与workflow内节点的name保持一致
 - node.dependencies.mode: RO-Read Only, RW-Read Write
 
-# 3. resource.prototxt
+#### 2.4 resource.prototxt
 
-Serving端resource配置的入口是resource.prototxt，用于配置模型信息。它的protobuf格式参考`configure/proto/server_configure.proto`的ResourceConf。具体的磁盘文件路径可用`--resource_path`和`--resource_file`指定。样例如下：
+resource.prototxt，用于指定模型配置文件。通过`--resource_path`和`--resource_file`指定加载路径。它的protobuf格式参考`core/configure/proto/server_configure.proto`的`ResourceConf`。示例如下：
 
-```JSON
-model_toolkit_path: "./conf"
-model_toolkit_file: "model_toolkit.prototxt"
-cube_config_file: "./conf/cube.conf"
+```
+model_toolkit_path: "conf"
+model_toolkit_file: "general_infer_0/model_toolkit.prototxt"
+general_model_path: "conf"
+general_model_file: "general_infer_0/general_model.prototxt"
 ```
 
 其中：
 
 - model_toolkit_path:用来指定model_toolkit.prototxt所在的目录
 - model_toolkit_file: 用来指定model_toolkit.prototxt所在的文件名
-- cube_config_file: 用来指定cube配置文件所在路径与文件名
+- general_model_path: 用来指定general_model.prototxt所在的目录
+- general_model_file: 用来指定general_model.prototxt所在的文件名
 
-Cube是Paddle Serving中用于大规模稀疏参数的组件。
+#### 2.5 model_toolkit.prototxt
 
-# 4. model_toolkit.prototxt
+用来配置模型信息和预测引擎。它的protobuf格式参考`core/configure/proto/server_configure.proto`的ModelToolkitConf。model_toolkit.protobuf的磁盘路径不能通过命令行参数覆盖。示例如下：
 
-用来配置模型信息和所用的预测引擎。它的protobuf格式参考`configure/proto/server_configure.proto`的ModelToolkitConf。model_toolkit.protobuf的磁盘路径不能通过命令行参数覆盖。样例如下：
-
-```JSON
+```
 engines {
-  name: "image_classification_resnet"
-  type: "FLUID_CPU_NATIVE_DIR"
-  reloadable_meta: "./data/model/paddle/fluid_time_file"
+  name: "general_infer_0"
+  type: "PADDLE_INFER"
+  reloadable_meta: "uci_housing_model/fluid_time_file"
   reloadable_type: "timestamp_ne"
-  model_data_path: "./data/model/paddle/fluid/SE_ResNeXt50_32x4d"
-  runtime_thread_num: 0
-  batch_infer_size: 0
-  enable_batch_align: 0
-  sparse_param_service_type: LOCAL
-  sparse_param_service_table_name: "local_kv"
+  model_dir: "uci_housing_model"
+  gpu_ids: -1
   enable_memory_optimization: true
-  static_optimization: false
-  force_update_static_cache: false
+  enable_ir_optimization: false
+  use_trt: false
+  use_lite: false
+  use_xpu: false
+  use_gpu: false
+  combined_model: false
+  gpu_multi_stream: false
+  runtime_thread_num: 0
+  batch_infer_size: 32
+  enable_overrun: false
+  allow_split_request: true
 }
 ```
 
 其中
 
-- name: 模型名称。InferManager通过此名称，找到要使用的模型和预测引擎。可参考serving/op/classify_op.h与serving/op/classify_op.cpp的InferManager::instance().infer()方法的参数来了解。
-- type: 预测引擎的类型。可在inferencer-fluid-cpu/src/fluid_cpu_engine.cpp找到当前注册的预测引擎列表
-
-|预测引擎|含义|
-|--------|----|
-|FLUID_CPU_ANALYSIS|使用fluid Analysis API；模型所有参数保存在一个文件|
-|FLUID_CPU_ANALYSIS_DIR|使用fluid Analysis API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
-|FLUID_CPU_NATIVE|使用fluid Native API；模型所有参数保存在一个文件|
-|FLUID_CPU_NATIVE_DIR|使用fluid Native API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
-|FLUID_GPU_ANALYSIS|GPU预测，使用fluid Analysis API；模型所有参数保存在一个文件|
-|FLUID_GPU_ANALYSIS_DIR|GPU预测，使用fluid Analysis API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
-|FLUID_GPU_NATIVE|GPU预测，使用fluid Native API；模型所有参数保存在一个文件|
-|FLUID_GPU_NATIVE_DIR|GPU预测，使用fluid Native API；模型所有参数分开保存为独立的文件，整个模型放到一个目录中|
-
-
-**fluid Analysis API和fluid Native API的区别**
-
-Analysis API在模型加载过程中，会对模型计算逻辑进行多种优化，包括但不限于zero copy tensor，相邻OP的fuse等。**但优化逻辑不是一定对所有模型都有加速作用，有时甚至会有反作用，请以实测结果为准**。
-
+- name: 引擎名称，与workflow.prototxt中的node.name以及所在目录名称对应
+- type: 预测引擎的类型。当前只支持”PADDLE_INFER“
 - reloadable_meta: 目前实际内容无意义，用来通过对该文件的mtime判断是否超过reload时间阈值
 - reloadable_type: 检查reload条件：timestamp_ne/timestamp_gt/md5sum/revision/none
 
@@ -165,61 +247,188 @@ Analysis API在模型加载过程中，会对模型计算逻辑进行多种优�
 |md5sum|目前无用，配置后永远不reload|
 |revision|目前无用，配置后用于不reload|
 
-- model_data_path: 模型文件路径
-- runtime_thread_num: 若大于0， 则启用bsf多线程调度框架，在每个预测bthread worker内启动多线程预测。要注意的是，当启用worker内多线程预测，workflow中OP需要用Serving框架的BatchTensor类做预测的输入和输出 (predictor/framework/infer_data.h, `class BatchTensor`)。
-- batch_infer_size: 启用bsf多线程预测时，每个预测线程的batch size
-- enable_batch_align:
-- sparse_param_service_type: 枚举类型，可选参数，大规模稀疏参数服务类型
+- model_dir: 模型文件路径
+- gpu_ids: 引擎运行时使用的GPU device id，支持指定多个
+- enable_memory_optimization: 是否开启memory优化
+- enable_ir_optimization: 是否开启ir优化
+- use_trt: 是否开启TensorRT，需同时开启use_gpu
+- use_lite: 是否开启PaddleLite
+- use_xpu: 是否使用昆仑XPU
+- use_gpu:是否使用GPU
+- combined_model: 是否使用组合模型文件
+- gpu_multi_stream: 是否开启gpu多流模式
+- runtime_thread_num: 若大于0， 则启用Async异步模式，并创建对应数量的predictor实例。
+- batch_infer_size: Async异步模式下的最大batch数
+- enable_overrun: Async异步模式下总是将整个任务放入任务队列
+- allow_split_request: Async异步模式下允许拆分任务
 
-|sparse_param_service_type|含义|
-|-------------------------|--|
-|NONE|不使用大规模稀疏参数服务|
-|LOCAL|单机本地大规模稀疏参数服务，以rocksdb作为引擎|
-|REMOTE|分布式大规模稀疏参数服务，以Cube作为引擎|
+#### 2.6 general_model.prototxt
 
-- sparse_param_service_table_name: 可选参数，大规模稀疏参数服务承载本模型所用参数的表名。
-- enable_memory_optimization: bool类型，可选参数，是否启用内存优化。只在使用fluid Analysis预测API时有意义。需要说明的是，在GPU预测时，会执行显存优化
-- static_optimization: bool类型，是否执行静态优化。只有当启用内存优化时有意义。
-- force_update_static_cache: bool类型，是否强制更新静态优化cache。只有当启用内存优化时有意义。
-
-## 5. 命令行配置参数
-
-以下是serving端支持的gflag配置选项列表，并提供了默认值。
-
-| name | 默认值 | 含义 |
-|------|--------|------|
-|workflow_path|./conf|workflow配置目录名|
-|workflow_file|workflow.prototxt|workflow配置文件名|
-|inferservice_path|./conf|service配置目录名|
-|inferservice_file|service.prototxt|service配置文件名|
-|resource_path|./conf|资源管理器目录名|
-|resource_file|resource.prototxt|资源管理器文件名|
-|reload_interval_s|10|重载线程间隔时间(s)|
-|enable_model_toolkit|true|模型管理|
-|enable_protocol_list|baidu_std|brpc 通信协议列表|
-|log_dir|./log|log dir|
-|num_threads||brpc server使用的系统线程数，默认为CPU核数|
-|port|8010|Serving进程接收请求监听端口|
-|gpuid|0|GPU预测时指定Serving进程使用的GPU device id。只允许绑定1张GPU卡|
-|bthread_concurrency|9|BRPC底层bthread的concurrency。在使用GPU预测引擎时，为了限制并发worker数，可使用此参数|
-|bthread_min_concurrency|4|BRPC底层bthread的min concurrency。在使用GPU预测引擎时，为限制并发worker数，可使用此参数。与bthread_concurrency结合使用|
-
-可以通过在serving/conf/gflags.conf覆盖默认值，例如
+general_model.prototxt内容与模型配置serving_server_conf.prototxt相同，用了描述模型输入输出参数信息。示例如下：
 ```
---log_dir=./serving_log/
-```
-将指定日志目录到./serving_log目录下
-
-### 5.1 gflags.conf
-
-可以将命令行配置参数写到配置文件中，该文件路径默认为`conf/gflags.conf`。如果`conf/gflags.conf`存在，则serving端会尝试解析其中的gflags命令。例如
-```shell
---enable_model_toolkit
---port=8011
+feed_var {
+  name: "x"
+  alias_name: "x"
+  is_lod_tensor: false
+  feed_type: 1
+  shape: 13
+}
+fetch_var {
+  name: "fc_0.tmp_1"
+  alias_name: "price"
+  is_lod_tensor: false
+  fetch_type: 1
+  shape: 1
+}
 ```
 
-可用以下命令指定另外的命令行参数配置文件
+## Python Server
 
-```shell
-bin/serving --g=true --flagfile=conf/gflags.conf.new
+Python Server提供了用户友好的多模型组合服务编程框架，适用于多模型组合应用的场景。
+其配置文件为YAML格式，一般默认为config.yaml。示例如下：
+```YAML
+#rpc端口, rpc_port和http_port不允许同时为空。当rpc_port为空且http_port不为空时，会自动将rpc_port设置为http_port+1
+rpc_port: 18090
+
+#http端口, rpc_port和http_port不允许同时为空。当rpc_port可用且http_port为空时，不自动生成http_port
+http_port: 9999
+
+#worker_num, 最大并发数。当build_dag_each_worker=True时, 框架会创建worker_num个进程，每个进程内构建grpcSever和DAG
+##当build_dag_each_worker=False时，框架会设置主线程grpc线程池的max_workers=worker_num
+worker_num: 20
+
+#build_dag_each_worker, False，框架在进程内创建一条DAG；True，框架会每个进程内创建多个独立的DAG
+build_dag_each_worker: false
+
+dag:
+    #op资源类型, True, 为线程模型；False，为进程模型
+    is_thread_op: False
+
+    #重试次数
+    retry: 1
+
+    #使用性能分析, True，生成Timeline性能数据，对性能有一定影响；False为不使用
+    use_profile: false
+    tracer:
+        interval_s: 10
+
+op:
+    det:
+        #并发数，is_thread_op=True时，为线程并发；否则为进程并发
+        concurrency: 6
+
+        #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
+        local_service_conf:
+            #client类型，包括brpc, grpc和local_predictor.local_predictor不启动Serving服务，进程内预测
+            client_type: local_predictor
+
+            #det模型路径
+            model_config: ocr_det_model
+
+            #Fetch结果列表，以client_config中fetch_var的alias_name为准
+            fetch_list: ["concat_1.tmp_0"]
+
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
+
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            device_type: 0
+
+            #use_mkldnn
+            #use_mkldnn: True
+
+            #thread_num
+            thread_num: 2
+
+            #ir_optim
+            ir_optim: True
+    rec:
+        #并发数，is_thread_op=True时，为线程并发；否则为进程并发
+        concurrency: 3
+
+        #超时时间, 单位ms
+        timeout: -1
+
+        #Serving交互重试次数，默认不重试
+        retry: 1
+
+        #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
+        local_service_conf:
+
+            #client类型，包括brpc, grpc和local_predictor。local_predictor不启动Serving服务，进程内预测
+            client_type: local_predictor
+
+            #rec模型路径
+            model_config: ocr_rec_model
+
+            #Fetch结果列表，以client_config中fetch_var的alias_name为准
+            fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
+
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
+
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            device_type: 0
+
+            #use_mkldnn
+            #use_mkldnn: True
+
+            #thread_num
+            thread_num: 2
+
+            #ir_optim
+            ir_optim: True
+```
+
+### 单机多卡
+
+单机多卡推理，M个OP进程与N个GPU卡绑定，需要在config.ymal中配置3个参数。首先选择进程模式，这样并发数即进程数，然后配置devices。绑定方法是进程启动时遍历GPU卡ID，例如启动7个OP进程，设置了0，1，2三个device id，那么第1、4、7个启动的进程与0卡绑定，第2、5进程与1卡绑定，3、6进程与卡2绑定。
+```YAML
+#op资源类型, True, 为线程模型；False，为进程模型
+is_thread_op: False
+
+#并发数，is_thread_op=True时，为线程并发；否则为进程并发
+concurrency: 7
+
+devices: "0,1,2"
+```
+
+### 异构硬件
+
+Python Server除了支持CPU、GPU之外，还支持多种异构硬件部署。在config.yaml中由device_type和devices控制。优先使用device_type指定，当其空缺时根据devices自动判断类型。device_type描述如下：
+- CPU(Intel) : 0
+- GPU : 1
+- TensorRT : 2
+- CPU(Arm) : 3
+- XPU : 4
+
+config.yml中硬件配置：
+```YAML
+#计算硬件类型: 空缺时由devices决定(CPU/GPU)，0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+device_type: 0
+#计算硬件ID，优先由device_type决定硬件类型。devices为""或空缺时为CPU预测；当为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+devices: "" # "0,1"
+```
+
+### 低精度推理
+
+Python Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下所示：
+- CPU
+  - fp32(default)
+  - fp16
+  - bf16(mkldnn)
+- GPU
+  - fp32(default)
+  - fp16
+  - int8
+- Tensor RT
+  - fp32(default)
+  - fp16
+  - int8 
+
+```YAML
+#precsion, 预测精度，降低预测精度可提升预测速度
+#GPU 支持: "fp32"(default), "fp16", "int8"；
+#CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
+precision: "fp32"
 ```
