@@ -10,7 +10,7 @@
 | --- | --- | --- | ---- |
 | resnet_v2_50_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/resnet_v2_50)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet_V2_50) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/resnet_v2_50_imagenet.tar.gz) | Pipeline Serving, C++ Serving|
 | mobilenet_v2_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/mobilenet) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/mobilenet_v2_imagenet.tar.gz) |
-| resnet50_vd | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/imagenet)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd) | [.tar.gz](https://paddle-serving.bj.bcebos.com/ResNet50_vd.tar) |
+| resnet50_vd | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/imagenet)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd) | [.tar.gz](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd.tar) |
 | ResNet50_vd_KL | PaddleClas | [Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd_KL) | [.tar](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd_KL.tar) |
 | ResNet50_vd_FPGM | PaddleClas | [Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd_FPGM) | [.tar](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd_FPGM.tar) |
 | ResNet50_vd_PACT | PaddleClas | [Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd_PACT) | [.tar](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd_PACT.tar) |
