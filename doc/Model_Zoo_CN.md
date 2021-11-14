@@ -57,3 +57,13 @@
 
 - 更多Paddle Serving支持的部署模型请参考[wholechain](https://www.paddlepaddle.org.cn/wholechain)
 
+
+- 最新模型可参考
+  - [PaddleDetection](https://github.com/PaddlePaddle/PaddleDetection)
+  - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 
+  - [PaddleClas](https://github.com/PaddlePaddle/PaddleClas)
+  - [PaddleNLP](https://github.com/PaddlePaddle/PaddleNLP)
+  - [PaddleRec](https://github.com/PaddlePaddle/PaddleRec)
+  - [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)
+  - [PaddleGAN](https://github.com/PaddlePaddle/PaddleGAN)
+
