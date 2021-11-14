@@ -1,4 +1,4 @@
- # 如何编译PaddleServing
+# 如何编译PaddleServing
 
 (简体中文|[English](./COMPILE.md))
 
