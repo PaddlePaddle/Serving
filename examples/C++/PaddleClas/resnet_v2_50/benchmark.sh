@@ -46,7 +46,7 @@ do
     awk 'BEGIN {max = 0} {if(NR>1){if ($1 > max) max=$1}} END {print "MAX_GPU_MEMORY:", max}' gpu_memory_use.log >> profile_log_$1
     awk -F" " '{sum+=$1} END {print "GPU_UTILIZATION:", sum/NR, sum, NR }' gpu_utilization.log.tmp >> profile_log_$1
     rm -rf gpu_memory_use.log gpu_utilization.log gpu_utilization.log.tmp
-    python3.6 ../util/show_profile.py profile $thread_num >> profile_log_$1
+    python3.6 ../../../util/show_profile.py profile $thread_num >> profile_log_$1
     tail -n 10 profile >> profile_log_$1
     echo "" >> profile_log_$1
 done
