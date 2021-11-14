@@ -133,8 +133,8 @@ class WebService(object):
                             use_calib=False,
                             use_trt=False,
                             gpu_multi_stream=False,
-                            op_num=None,
-                            op_max_batch=None):
+                            runtime_thread_num=None,
+                            batch_infer_size=None):
 
         device = "cpu"
         server = Server()
@@ -187,11 +187,11 @@ class WebService(object):
         if gpu_multi_stream and device == "gpu":
             server.set_gpu_multi_stream()
 
-        if op_num:
-            server.set_op_num(op_num)
+        if runtime_thread_num:
+            server.set_runtime_thread_num(runtime_thread_num)
 
-        if op_max_batch:
-            server.set_op_max_batch(op_max_batch)
+        if batch_infer_size:
+            server.set_batch_infer_size(batch_infer_size)
 
         if use_lite:
             server.set_lite()
@@ -225,8 +225,8 @@ class WebService(object):
                 use_calib=self.use_calib,
                 use_trt=self.use_trt,
                 gpu_multi_stream=self.gpu_multi_stream,
-                op_num=self.op_num,
-                op_max_batch=self.op_max_batch))
+                runtime_thread_num=self.runtime_thread_num,
+                batch_infer_size=self.batch_infer_size))
 
     def prepare_server(self,
                        workdir,
@@ -241,8 +241,8 @@ class WebService(object):
                        mem_optim=True,
                        use_trt=False,
                        gpu_multi_stream=False,
-                       op_num=None,
-                       op_max_batch=None,
+                       runtime_thread_num=None,
+                       batch_infer_size=None,
                        gpuid=None):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
@@ -259,9 +259,9 @@ class WebService(object):
         self.port_list = []
         self.use_trt = use_trt
         self.gpu_multi_stream = gpu_multi_stream
-        self.op_num = op_num
-        self.op_max_batch = op_max_batch
-       
+        self.runtime_thread_num = runtime_thread_num
+        self.batch_infer_size = batch_infer_size
+
         # record port and pid info for stopping process
         dump_pid_file([self.port], "web_service")
         # if gpuid != None, we will use gpuid first.
