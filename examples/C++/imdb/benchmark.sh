@@ -30,7 +30,7 @@ do
     echo "model_name:$1" >> profile_log_$1
     echo "batch_size:$batch_size" >> profile_log_$1
     job_et=`date '+%Y%m%d%H%M%S'`
-    $PYTHONROOT/bin/python3 ../util/show_profile.py profile $thread_num >> profile_log_$1
+    $PYTHONROOT/bin/python3 ../../util/show_profile.py profile $thread_num >> profile_log_$1
     $PYTHONROOT/bin/python3 cpu_utilization.py >> profile_log_$1
     tail -n 8 profile >> profile_log_$1
     echo "" >> profile_log_$1
