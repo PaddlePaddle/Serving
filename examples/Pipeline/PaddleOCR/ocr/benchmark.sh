@@ -34,7 +34,7 @@ do
     awk -F' ' '{sum+=$1} END {print "GPU_UTILIZATION:", sum/NR, sum, NR }' gpu_utilization.log.tmp >> profile_log_$modelname
 
     # Show profiles
-    python3 ../../util/show_profile.py profile $thread_num >> profile_log_$modelname
+    python3 ../../../util/show_profile.py profile $thread_num >> profile_log_$modelname
     tail -n 8 profile >> profile_log_$modelname
     echo '' >> profile_log_$modelname
   done
@@ -78,7 +78,7 @@ do
     awk -F" " '{sum+=$1} END {print "GPU_UTILIZATION:", sum/NR, sum, NR }' gpu_utilization.log.tmp >> profile_log_$modelname
 
     # Show profiles
-    python3 ../../util/show_profile.py profile $thread_num >> profile_log_$modelname
+    python3 ../../../util/show_profile.py profile $thread_num >> profile_log_$modelname
     tail -n 8 profile >> profile_log_$modelname
     echo "" >> profile_log_$modelname
   done
