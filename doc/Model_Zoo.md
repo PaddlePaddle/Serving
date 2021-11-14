@@ -1,5 +1,7 @@
 # Model Zoo
 
+(English|[简体中文](./Model_Zoo_CN.md)）
+
 This page lists model archives that are pre-trained and pre-packaged, ready to be served for inference with PaddleServing. 
  To propose a model for inclusion, please submit [pull request](https://github.com/PaddlePaddle/Serving/pulls)
 
