@@ -41,7 +41,7 @@ Server端的核心是一个由项目代码编译产生的名称为serving的二�
 <img src='../images/syn_mode.png' width = "350" height = "300">
 <p>
 异步模型主要适用于模型支持多batch(最大batch数M可通过配置选项指定),单个Request请求的batch较小(batch << M)，单次预测时间较长的情况。
-异步模型下，Server端N个线程只负责接收Request请求，实际调用预测引擎是在异步框架的线程中，异步框架的线程数可以由配置选项来指定。为了方便理解，我们假设每个Request请求的batch均为1，此时异步框架会尽可能多得从请求池中取n(n≤M)个Request并将其拼装为1个Request(batch=n)，调用1次预测引擎，得到1个Response(batch = n)，再将其对应拆分为n个Response作为返回结果。
+异步模型下，Server端N个线程只负责接收Request请求，实际调用预测引擎是在异步框架的线程池中，异步框架的线程数可以由配置选项来指定。为了方便理解，我们假设每个Request请求的batch均为1，此时异步框架会尽可能多得从请求池中取n(n≤M)个Request并将其拼装为1个Request(batch=n)，调用1次预测引擎，得到1个Response(batch = n)，再将其对应拆分为n个Response作为返回结果。
 <p align="center">
 <img src='../images/asyn_mode.png'">
 <p>
