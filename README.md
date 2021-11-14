@@ -108,7 +108,7 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 </center>
 
-For more model examples, read [Model Library](doc/Model_Zoo_CN.md)
+For more model examples, read [Model zoo](doc/Model_Zoo.md)
 
 <center class="half">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/> <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>

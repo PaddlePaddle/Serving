@@ -1,4 +1,4 @@
-<h2 align="center">Paddle Serving 快速开始示例</h2>
+## Paddle Serving 快速开始示例
 
 ([English](./QuickStart.md)|简体中文)
 
