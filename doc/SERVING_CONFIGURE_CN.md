@@ -1,6 +1,6 @@
 # Serving Configuration
 
-(简体中文|[English](SERVING_CONFIGURATION.md))
+(简体中文|[English](SERVING_CONFIGURE.md))
 
 ## 简介
 
