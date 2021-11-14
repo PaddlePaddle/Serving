@@ -53,5 +53,5 @@
 
 - 请参考 [example](../examples) 查看详情
 
-- 更Paddle Serving支持的部署模型请参考[wholechain](https://www.paddlepaddle.org.cn/wholechain)
+- 更多Paddle Serving支持的部署模型请参考[wholechain](https://www.paddlepaddle.org.cn/wholechain)
 
