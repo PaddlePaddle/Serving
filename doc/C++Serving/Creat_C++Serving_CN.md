@@ -75,9 +75,9 @@ service ImageClassifyService {
 
 #### 2.2.2 示例配置
 
-关于Serving端的配置的详细信息，可以参考[Serving端配置](SERVING_CONFIGURE.md)
+关于Serving端的配置的详细信息，可以参考[Serving端配置](../SERVING_CONFIGURE_CN.md)
 
-以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[设计文档](C++DESIGN_CN.md))
+以下配置文件将ReaderOP, ClassifyOP和WriteJsonOP串联成一个workflow (关于OP/workflow等概念，可参考[OP介绍](OP_CN.md)和[DAG介绍](DAG_CN.md))
 
 - 配置文件示例：
 
@@ -310,7 +310,7 @@ api.thrd_finalize();
 api.destroy();
 ```
 
-具体实现可参考paddle Serving提供的例子sdk-cpp/demo/ximage.cpp
+具体实现可参考C++Serving提供的例子。sdk-cpp/demo/ximage.cpp
 
 ### 3.3 链接
 
@@ -392,4 +392,4 @@ predictors {
   }
 }
 ```
-关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](CLIENT_CONFIGURE.md)
+关于客户端的详细配置选项，可参考[CLIENT CONFIGURATION](Client_Configure_CN.md)

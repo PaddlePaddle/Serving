@@ -1,42 +1,42 @@
-# Paddle Serving中的模型热加载
+# Hot Loading in Paddle Serving
 
-(简体中文|[English](HOT_LOADING_IN_SERVING.md))
+([简体中文](Hot_Loading_CN.md)|English)
 
-## 背景
+## Background
 
-在实际的工业场景下，通常是远端定期不间断产出模型，线上服务端需要在服务不中断的情况下拉取新模型对旧模型进行更新迭代。
+In the industrial scenario, it is usually the remote periodic output model, and the online server needs to pull down the new model to update the old model without service interruption.
 
 ## Server Monitor
 
-Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会拉取新模型更新本地模型，同时更新本地模型文件夹中的时间戳文件`fluid_time_stamp`实现热加载。
+Paddle Serving provides an automatic monitoring script. After the remote address updates the model, the new model will be pulled to update the local model. At the same time, the `fluid_time_stamp` in the local model folder will be updated to realize model hot loading.
 
-目前支持下面几种类型的远端监控Monitor：
+Currently, the following types of Monitors are supported:
 
-| Monitor类型 |                             描述                             |                           特殊选项                           |
-| :---------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|   general   | 远端无认证，可以通过`wget`直接访问下载文件（如无需认证的FTP，BOS等） |                 `general_host` 通用远端host                  |
-|  hdfs/afs(HadoopMonitor)   |        远端为HDFS或AFS，通过Hadoop-Client执行相关命令        | `hadoop_bin` Hadoop二进制的路径<br/>`fs_name` Hadoop fs_name，默认为空<br/>`fs_ugi` Hadoop fs_ugi，默认为空 |
-|     ftp     | 远端为FTP，通过`ftplib`进行相关访问（使用该Monitor，您可能需要执行`pip install ftplib`下载`ftplib`） | `ftp_host` FTP host<br>`ftp_port` FTP port<br>`ftp_username` FTP username，默认为空<br>`ftp_password` FTP password，默认为空 |
+| Monitor Type |                         Description                          |                       Specific options                       |
+| :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|   general    | Without authentication, you can directly access the download file by `wget` (such as FTP and BOS which do not need authentication) |             `general_host` General remote host.              |
+|     hdfs/afs(HadoopMonitor)     | The remote is HDFS or AFS, and relevant commands are executed through Hadoop-client | `hadoop_bin` Path of Hadoop binary file.<br/>`fs_name` Hadoop fs_name. Not used if set in Hadoop-client.<br/>`fs_ugi` Hadoop fs_ugi, Not used if set in Hadoop-client. |
+|     ftp      | The remote is FTP, and relevant commands are executed through `ftplib`(Using this monitor, you need to install `ftplib` with command `pip install ftplib`) | `ftp_host` FTP remote host.<br>`ftp_port` FTP remote port.<br>`ftp_username` FTP username. Not used if anonymous access.<br>`ftp_password` FTP password. Not used if anonymous access. |
 
-|    Monitor通用选项     |                             描述                             |         默认值         |
-| :--------------------: | :----------------------------------------------------------: | :--------------------: |
-|         `type`         |                       指定Monitor类型                        |           无           |
-|     `remote_path`      |                      指定远端的基础路径                      |           无           |
-|  `remote_model_name`   |                   指定远端需要拉取的模型名                   |           无           |
-| `remote_donefile_name` |           指定远端标志模型更新完毕的donefile文件名           |           无           |
-|      `local_path`      |                       指定本地工作路径                       |           无           |
-|   `local_model_name`   |                        指定本地模型名                        |           无           |
-| `local_timestamp_file` | 指定本地用于热加载的时间戳文件，该文件被认为在`local_path/local_model_name`下。 |   `fluid_time_file`    |
-|    `local_tmp_path`    |    指定本地存放临时文件的文件夹路径，若不存在则自动创建。    | `_serving_monitor_tmp` |
-|       `interval`       |                 指定轮询间隔时间，单位为秒。                 |          `10`          |
-|  `unpacked_filename`   | Monitor支持tarfile打包的远程模型。如果远程模型是打包格式，则需要设置该选项来告知Monitor解压后的文件名。 |         `None`         |
-|        `debug`         |       如果添加`--debug`选项，则输出更详细的中间信息。        |    默认不添加该选项    |
+| Monitor Shared options |                         Description                          |               Default                |
+| :--------------------: | :----------------------------------------------------------: | :----------------------------------: |
+|         `type`         |                 Specify the type of monitor                  |                  /                   |
+|     `remote_path`      |             Specify the base path for the remote             |                  /                   |
+|  `remote_model_name`   |     Specify the model name to be pulled from the remote      |                  /                   |
+| `remote_donefile_name` | Specify the donefile name that marks the completion of the remote model update |                  /                   |
+|      `local_path`      |                   Specify local work path                    |                  /                   |
+|   `local_model_name`   |                   Specify local model name                   |                  /                   |
+| `local_timestamp_file` | Specify the timestamp file used locally for hot loading, The file is considered to be placed in the `local_path/local_model_name` folder. |          `fluid_time_file`           |
+|    `local_tmp_path`    | Specify the path of the folder where temporary files are stored locally. If it does not exist, it will be created automatically. |        `_serving_monitor_tmp`        |
+|       `interval`       |           Specify the polling interval in seconds.           |                 `10`                 |
+|  `unpacked_filename`   | Monitor supports the `tarfile` packaged remote model file. If the remote model is in a packaged format, you need to set this option to tell monitor the name of the extracted file. |                `None`                |
+|        `debug`         | If the `--debug` option is added, more detailed intermediate information will be output. | This option is not added by default. |
 
-下面通过HadoopMonitor示例来展示Paddle Serving的模型热加载功能。
+The following is an example of HadoopMonitor to show the model hot loading of Paddle Serving.
 
-## HadoopMonitor示例
+## HadoopMonitor example
 
-示例中在`product_path`中生产模型上传至hdfs，在`server_path`中模拟服务端模型热加载：
+In this example, the production model is uploaded to HDFS in `product_path` folder, and the server hot loads the model in `server_path` folder:
 
 ```shell
 .
@@ -44,9 +44,9 @@ Paddle Serving提供了一个自动监控脚本，远端地址更新模型后会
 └── server_path
 ```
 
-### 生产模型
+### Product model
 
-在`product_path`下运行下面的Python代码生产模型（运行前需要修改hadoop相关的参数），每隔 60 秒会产出 Boston 房价预测模型的打包文件`uci_housing.tar.gz`并上传至hdfs的`/`路径下，上传完毕后更新时间戳文件`donefile`并上传至hdfs的`/`路径下。
+Run the following Python code products model in `product_path` folder(You need to modify Hadoop related parameters before running). Every 60 seconds, the package file of Boston house price prediction model `uci_housing.tar.gz` will be generated and uploaded to the path of HDFS `/`. After uploading, the timestamp file `donefile` will be updated and uploaded to the path of HDFS `/`.
 
 ```python
 import os
@@ -121,7 +121,7 @@ for pass_id in range(30):
     push_to_hdfs(donefile_name, '/')
 ```
 
-hdfs上的文件如下列所示：
+The files on HDFS are as follows:
 
 ```bash
 # hadoop fs -ls /
@@ -130,28 +130,28 @@ Found 2 items
 -rw-r--r--   1 root supergroup       2101 2020-04-02 02:54 /uci_housing.tar.gz
 ```
 
-### 服务端加载模型
+### Server loading model
 
-进入`server_path`文件夹。
+Enter the `server_path` folder.
 
-#### 用初始模型启动Server端
+#### Start server with the initial model
 
-这里使用预训练的 Boston 房价预测模型作为初始模型：
+Here, the trained Boston house price prediction model is used as the initial model:
 
 ```shell
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
 tar -xzf uci_housing.tar.gz
 ```
 
-启动Server端：
+Start Server：
 
 ```shell
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-#### 执行监控程序
+#### Execute monitor
 
-用下面的命令来执行HDFS监控程序：
+Use the following command to execute the HDFSMonitor:
 
 ```shell
 python -m paddle_serving_server.monitor \
@@ -162,9 +162,9 @@ python -m paddle_serving_server.monitor \
 	--local_tmp_path='_tmp' --unpacked_filename='uci_housing_model' --debug
 ```
 
-上面代码通过轮询方式监控远程HDFS地址`/`的时间戳文件`/donefile`，当时间戳变更则认为远程模型已经更新，将远程打包模型`/uci_housing.tar.gz`拉取到本地临时路径`./_tmp/uci_housing.tar.gz`下，解包出模型文件`./_tmp/uci_housing_model`后，更新本地模型`./uci_housing_model`以及Paddle Serving的时间戳文件`./uci_housing_model/fluid_time_file`。
+The above code monitors the remote timestamp file `/donefile` of the remote HDFS address `/` every 10 seconds by polling. When the remote timestamp file changes, the remote model is considered to have been updated. Pull the remote packaging model `/uci_housing.tar.gz` to the local temporary path `./_tmp/uci_housing.tar.gz`. After unpacking to get the model file `./_tmp/uci_housing_model`, update the local model `./uci_housing_model` and the model timestamp file `./uci_housing_model/fluid_time_file` of Paddle Serving.
 
-预计输出如下：
+The expected output is as follows:
 
 ```shell
 2020-04-02 10:12 INFO     [monitor.py:85] _hadoop_bin: /hadoop-3.1.2/bin/hadoop
@@ -197,15 +197,17 @@ python -m paddle_serving_server.monitor \
 2020-04-02 10:12 INFO     [monitor.py:161] sleep 10s.
 ```
 
-#### 查看Server日志
 
-通过下面命令查看Server的运行日志：
+
+#### View server logs
+
+View the running log of the server with the following command:
 
 ```shell
 tail -f log/serving.INFO
 ```
 
-日志中显示模型已经被热加载：
+The log shows that the model has been hot loaded:
 
 ```shell
 I0330 09:38:40.087316  7361 server.cpp:150] Begin reload framework...

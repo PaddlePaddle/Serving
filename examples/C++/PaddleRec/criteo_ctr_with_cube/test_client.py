@@ -44,14 +44,13 @@ for ei in range(100):
     feed_dict['dense_input'] = np.array(data[0][0]).reshape(1, len(data[0][0]))
 
     for i in range(1, 27):
-        feed_dict["embedding_{}.tmp_0".format(i - 1)] = np.array(data[0][i]).reshape(len(data[0][i]))
+        feed_dict["embedding_{}.tmp_0".format(i - 1)] = np.array(data[0][
+            i]).reshape(len(data[0][i]))
         feed_dict["embedding_{}.tmp_0.lod".format(i - 1)] = [0, len(data[0][i])]
-    fetch_map = client.predict(feed=feed_dict, fetch=["prob"],batch=True)
+    fetch_map = client.predict(feed=feed_dict, fetch=["prob"], batch=True)
     print(fetch_map)
     prob_list.append(fetch_map['prob'][0][1])
     label_list.append(data[0][-1][0])
 
-
 end = time.time()
 print(end - start)
-

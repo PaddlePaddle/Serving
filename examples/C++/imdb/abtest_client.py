@@ -1,4 +1,3 @@
-
 # Copyright (c) 2020 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,10 +33,13 @@ with open('processed.data') as f:
             "words.lod": [0, word_len]
         }
         fetch = ["acc", "cost", "prediction"]
-        [fetch_map, tag] = client.predict(feed=feed, fetch=fetch, need_variant_tag=True,batch=True)
-        if (float(fetch_map["prediction"][0][1]) - 0.5) * (float(label[0]) - 0.5) > 0:
+        [fetch_map, tag] = client.predict(
+            feed=feed, fetch=fetch, need_variant_tag=True, batch=True)
+        if (float(fetch_map["prediction"][0][1]) - 0.5) * (float(label[0]) - 0.5
+                                                           ) > 0:
             cnt[tag]['acc'] += 1
         cnt[tag]['total'] += 1
 
     for tag, data in cnt.items():
-        print('[{}](total: {}) acc: {}'.format(tag, data['total'], float(data['acc'])/float(data['total']) ))
+        print('[{}](total: {}) acc: {}'.format(tag, data[
+            'total'], float(data['acc']) / float(data['total'])))

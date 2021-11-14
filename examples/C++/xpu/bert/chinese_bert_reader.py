@@ -49,9 +49,7 @@ class ChineseBertReader(BertBaseReader):
         self.cls_id = self.vocab["[CLS]"]
         self.sep_id = self.vocab["[SEP]"]
         self.mask_id = self.vocab["[MASK]"]
-        self.feed_keys = [
-            "input_ids", "token_type_ids"
-        ]
+        self.feed_keys = ["input_ids", "token_type_ids"]
 
     """
     inner function
@@ -90,7 +88,7 @@ class ChineseBertReader(BertBaseReader):
             batch_text_type_ids,
             max_seq_len=self.max_seq_len,
             pad_idx=self.pad_id)
-        return padded_token_ids,  padded_text_type_ids
+        return padded_token_ids, padded_text_type_ids
 
     """
     process function deals with a raw Chinese string as a sentence

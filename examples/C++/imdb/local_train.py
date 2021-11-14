@@ -23,6 +23,7 @@ logger = logging.getLogger("fluid")
 logger.setLevel(logging.INFO)
 paddle.enable_static()
 
+
 def load_vocab(filename):
     vocab = {}
     with open(filename) as f:

@@ -17,8 +17,7 @@ from paddle_serving_app.reader import Sequential, File2Image, Resize, CenterCrop
 from paddle_serving_app.reader import RGB2BGR, Transpose, Div, Normalize
 
 client = Client()
-client.load_client_config(
-    "serving_client/serving_client_conf.prototxt")
+client.load_client_config("serving_client/serving_client_conf.prototxt")
 client.connect(["127.0.0.1:7702"])
 
 seq = Sequential([
@@ -28,6 +27,7 @@ seq = Sequential([
 
 image_file = "daisy.jpg"
 img = seq(image_file)
-fetch_map = client.predict(feed={"image": img}, fetch=["save_infer_model/scale_0"])
+fetch_map = client.predict(
+    feed={"image": img}, fetch=["save_infer_model/scale_0"])
 #print(fetch_map)
 print(fetch_map["save_infer_model/scale_0"].reshape(-1))

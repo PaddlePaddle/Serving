@@ -1,6 +1,6 @@
 # MOEDL ENCRYPTION INFERENCE
 
-([简体中文](ENCRYPTION_CN.md)|English)
+([简体中文](Encryption_CN.md)|English)
 
 Paddle Serving provides model encryption inference, This document shows the details.
 
@@ -12,7 +12,7 @@ We use symmetric encryption algorithm to encrypt the model. Symmetric encryption
 
 Normal model and parameters can be understood as a string, by using the encryption algorithm (parameter is your key) on them, the normal model and parameters become an encrypted one.
 
-We provide a simple demo to encrypt the model. See the [python/examples/encryption/encrypt.py](../python/examples/encryption/encrypt.py)。
+We provide a simple demo to encrypt the model. See the [examples/C++/encryption/encrypt.py](../../examples/C++/encryption/encrypt.py)。
 
 
 ### Start Encryption Service
@@ -40,5 +40,4 @@ Once the server gets the key, it uses the key to parse the model and starts the 
 
 
 ### Example of Model Encryption Inference
-Example of model encryption inference, See the [`/python/examples/encryption/`](../python/examples/encryption/)。
-
+Example of model encryption inference, See the [examples/C++/encryption/](../../examples/C++/encryption/)。

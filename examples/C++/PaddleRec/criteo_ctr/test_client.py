@@ -21,6 +21,7 @@ from paddle_serving_client.metric import auc
 import numpy as np
 import sys
 
+
 class CriteoReader(object):
     def __init__(self, sparse_feature_dim):
         self.cont_min_ = [0, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -52,6 +53,7 @@ class CriteoReader(object):
 
         return sparse_feature
 
+
 py_version = sys.version_info[0]
 
 client = Client()
@@ -68,8 +70,8 @@ for ei in range(10):
     data = reader.process_line(f.readline())
     feed_dict = {}
     for i in range(1, 27):
-        feed_dict["sparse_{}".format(i - 1)] = np.array(data[i-1]).reshape(-1)
-        feed_dict["sparse_{}.lod".format(i - 1)] = [0, len(data[i-1])]
+        feed_dict["sparse_{}".format(i - 1)] = np.array(data[i - 1]).reshape(-1)
+        feed_dict["sparse_{}.lod".format(i - 1)] = [0, len(data[i - 1])]
     fetch_map = client.predict(feed=feed_dict, fetch=["prob"])
     print(fetch_map)
 end = time.time()

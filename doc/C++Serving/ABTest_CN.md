@@ -1,10 +1,10 @@
 # 如何使用Paddle Serving做ABTEST
 
-(简体中文|[English](./ABTEST_IN_PADDLE_SERVING.md))
+(简体中文|[English](./ABTest_EN.md))
 
 该文档将会用一个基于IMDB数据集的文本分类任务的例子，介绍如何使用Paddle Serving搭建A/B Test框架，例中的Client端、Server端结构如下图所示。
 
-<img src="images/abtest.png" style="zoom:33%;" />
+<img src="../images/abtest.png" style="zoom:33%;" />
 
 需要注意的是：A/B Test只适用于RPC模式，不适用于WEB模式。
 
@@ -24,13 +24,13 @@ pip install Shapely
 ````
 您可以直接运行下面的命令来处理数据。
 
-[python abtest_get_data.py](../python/examples/imdb/abtest_get_data.py)
+[python abtest_get_data.py](../../examples/C++/imdb/abtest_get_data.py)
 
 文件中的Python代码将处理`test_data/part-0`的数据，并将处理后的数据生成并写入`processed.data`文件中。
 
 ### 启动Server端
 
-这里采用[Docker方式](RUN_IN_DOCKER_CN.md)启动Server端服务。
+这里采用[Docker方式](../RUN_IN_DOCKER_CN.md)启动Server端服务。
 
 首先启动BOW Server，该服务启用`8000`端口：
 
@@ -62,7 +62,7 @@ exit
 
 您可以直接使用下面的命令，进行ABTEST预测。
 
-[python abtest_client.py](../python/examples/imdb/abtest_client.py)
+[python abtest_client.py](../../examples/C++/imdb/abtest_client.py)
 
 ```python
 from paddle_serving_client import Client

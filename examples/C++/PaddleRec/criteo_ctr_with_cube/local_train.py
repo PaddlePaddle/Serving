@@ -25,6 +25,8 @@ from network_conf import dnn_model
 dense_feature_dim = 13
 
 paddle.enable_static()
+
+
 def train():
     args = parse_args()
     sparse_only = args.sparse_only

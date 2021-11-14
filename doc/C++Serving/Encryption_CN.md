@@ -1,6 +1,6 @@
 # 加密模型预测
 
-(简体中文|[English](ENCRYPTION.md))
+(简体中文|[English](Encryption_EN.md))
 
 Padle Serving提供了模型加密预测功能，本文档显示了详细信息。
 
@@ -12,7 +12,7 @@ Padle Serving提供了模型加密预测功能，本文档显示了详细信息�
 
 普通的模型和参数可以理解为一个字符串，通过对其使用加密算法（参数是您的密钥），普通模型和参数就变成了一个加密的模型和参数。
 
-我们提供了一个简单的演示来加密模型。请参阅[`python/examples/encryption/encrypt.py`](../python/examples/encryption/encrypt.py)。
+我们提供了一个简单的演示来加密模型。请参阅[examples/C++/encryption/encrypt.py](../../examples/C++/encryption/encrypt.py)。
 
 
 ### 启动加密服务
@@ -40,5 +40,4 @@ python -m paddle_serving_server.serve --model encrypt_server/ --port 9300 --use_
 
 
 ### 模型加密推理示例
-模型加密推理示例, 请参见[`/python/examples/encryption/`](../python/examples/encryption/)。
-
+模型加密推理示例, 请参见[examples/C++/encryption/](../../examples/C++/encryption/)。

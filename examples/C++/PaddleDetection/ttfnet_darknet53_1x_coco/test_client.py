@@ -18,11 +18,10 @@ from paddle_serving_app.reader import *
 import cv2
 
 preprocess = DetectionSequential([
-        DetectionFile2Image(),
-        DetectionResize(
-        (512, 512), False, interpolation=cv2.INTER_LINEAR),
-        DetectionNormalize([123.675, 116.28, 103.53], [58.395, 57.12, 57.375], False),
-        DetectionTranspose((2,0,1))
+    DetectionFile2Image(), DetectionResize(
+        (512, 512), False, interpolation=cv2.INTER_LINEAR), DetectionNormalize(
+            [123.675, 116.28, 103.53], [58.395, 57.12, 57.375], False),
+    DetectionTranspose((2, 0, 1))
 ])
 
 postprocess = RCNNPostprocess("label_list.txt", "output")
@@ -32,7 +31,6 @@ client.load_client_config("serving_client/serving_client_conf.prototxt")
 client.connect(['127.0.0.1:9494'])
 
 im, im_info = preprocess(sys.argv[1])
-
 
 fetch_map = client.predict(
     feed={

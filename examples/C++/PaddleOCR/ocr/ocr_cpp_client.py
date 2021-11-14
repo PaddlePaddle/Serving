@@ -31,14 +31,18 @@ client.connect(["127.0.0.1:9293"])
 import paddle
 test_img_dir = "imgs/"
 
+
 def cv2_to_base64(image):
-    return base64.b64encode(image) #data.tostring()).decode('utf8')
+    return base64.b64encode(image)  #data.tostring()).decode('utf8')
+
 
 for img_file in os.listdir(test_img_dir):
     with open(os.path.join(test_img_dir, img_file), 'rb') as file:
         image_data = file.read()
     image = cv2_to_base64(image_data)
     fetch_map = client.predict(
-        feed={"image": image}, fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"], batch=True)
+        feed={"image": image},
+        fetch=["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"],
+        batch=True)
     #print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
     print(fetch_map)

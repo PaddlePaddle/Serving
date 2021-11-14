@@ -1,10 +1,10 @@
 # ABTEST in Paddle Serving
 
-([简体中文](./ABTEST_IN_PADDLE_SERVING_CN.md)|English)
+([简体中文](./ABTest_CN.md)|English)
 
 This document will use an example of text classification task based on IMDB dataset to show how to build a A/B Test framework using Paddle Serving. The structure relationship between the client and servers in the example is shown in the figure below.
 
-<img src="images/abtest.png" style="zoom:25%;" />
+<img src="../images/abtest.png" style="zoom:25%;" />
 
 Note that:  A/B Test is only applicable to RPC mode, not web mode.
 
@@ -25,13 +25,13 @@ pip install Shapely
 
 You can directly run the following command to process the data.
 
-[python abtest_get_data.py](../python/examples/imdb/abtest_get_data.py)
+[python abtest_get_data.py](../../examples/C++/imdb/abtest_get_data.py)
 
 The Python code in the file will process the data `test_data/part-0` and write to the `processed.data` file.
 
 ### Start Server
 
-Here, we [use docker](RUN_IN_DOCKER.md) to start the server-side service. 
+Here, we [use docker](../RUN_IN_DOCKER.md) to start the server-side service. 
 
 First, start the BOW server, which enables the `8000` port:
 
@@ -63,7 +63,7 @@ Before running, use `pip install paddle-serving-client` to install the paddle-se
 
 You can directly use the following command to make abtest prediction.
 
-[python abtest_client.py](../python/examples/imdb/abtest_client.py)
+[python abtest_client.py](../../examples/C++/imdb/abtest_client.py)
 
 [//file]:#abtest_client.py
 ``` python

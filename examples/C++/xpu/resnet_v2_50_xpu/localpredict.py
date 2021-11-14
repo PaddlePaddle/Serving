@@ -18,7 +18,8 @@ from paddle_serving_app.local_predict import LocalPredictor
 import sys
 
 predictor = LocalPredictor()
-predictor.load_model_config(sys.argv[1], use_lite=True, use_xpu=True, ir_optim=True)
+predictor.load_model_config(
+    sys.argv[1], use_lite=True, use_xpu=True, ir_optim=True)
 
 seq = Sequential([
     File2Image(), Resize(256), CenterCrop(224), RGB2BGR(), Transpose((2, 0, 1)),
