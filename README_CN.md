@@ -28,7 +28,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 - 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
 - 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md)
-- 支持HTTP、gRPC、bRPC等多种[协议](链接protocol文档)；提供C++、Python、Java语言SDK
+- 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
 - 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
 - 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU等多种硬件；集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
 - 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
@@ -70,6 +70,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [低精度推理](doc/Low_Precision_CN.md)
 - [常见模型数据处理](doc/Process_data_CN.md)
 - [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
+  - [协议](doc/C++_Serving/Inference_Protocols_CN.md)
   - [模型热加载](doc/C++_Serving/Hot_Loading_CN.md)
   - [A/B Test](doc/C++_Serving/ABTest_CN.md)
   - [加密模型推理服务](doc/C++_Serving/Encryption_CN.md)
