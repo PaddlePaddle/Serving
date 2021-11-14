@@ -57,3 +57,11 @@ Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/whole
 
 - Refer [wholechain](https://www.paddlepaddle.org.cn/wholechain) for more pre-trained models supported by PaddleServing
 
+- Latest models refer
+  - [PaddleDetection](https://github.com/PaddlePaddle/PaddleDetection)
+  - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 
+  - [PaddleClas](https://github.com/PaddlePaddle/PaddleClas)
+  - [PaddleNLP](https://github.com/PaddlePaddle/PaddleNLP)
+  - [PaddleRec](https://github.com/PaddlePaddle/PaddleRec)
+  - [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)
+  - [PaddleGAN](https://github.com/PaddlePaddle/PaddleGAN)
