@@ -108,7 +108,7 @@ class PipelineClient(object):
                 one_tensor.name = key
 
                 if isinstance(value, str):
-                    one_tensor.string_data.add(value)
+                    one_tensor.str_data.append(value)
                     one_tensor.elem_type = 12  #12 => string in proto
                     continue
 

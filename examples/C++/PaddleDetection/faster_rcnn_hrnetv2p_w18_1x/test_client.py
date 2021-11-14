@@ -19,10 +19,11 @@ from paddle_serving_app.reader import *
 import cv2
 
 preprocess = DetectionSequential([
-    DetectionFile2Image(), DetectionResize(
-        (800, 1333), True, interpolation=2),
-    DetectionNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True),
-    DetectionTranspose((2, 0, 1)), DetectionPadStride(32)
+       DetectionFile2Image(),
+       DetectionResize((800, 1333), True, interpolation=2), 
+       DetectionNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], True),
+       DetectionTranspose((2,0,1)),
+       DetectionPadStride(32)
 ])
 
 postprocess = RCNNPostprocess("label_list.txt", "output")

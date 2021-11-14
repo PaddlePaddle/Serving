@@ -20,8 +20,7 @@ import cv2
 
 preprocess = DetectionSequential([
     DetectionFile2Image(),
-    DetectionResize(
-        (300, 300), False, interpolation=cv2.INTER_LINEAR),
+    DetectionResize((300, 300), False, interpolation=cv2.INTER_LINEAR),
     DetectionNormalize([104.0, 117.0, 123.0], [1.0, 1.0, 1.0], False),
     DetectionTranspose((2, 0, 1)),
 ])

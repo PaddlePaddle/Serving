@@ -1,12 +1,12 @@
 # Model Zoo
 
-本页面展示了Paddle Serving目前支持的预训练模型以及下载链接
-若您想为Paddle Serving提供新的模型，可通过[pull request](https://github.com/PaddlePaddle/Serving/pulls)提交PR
+This page lists model archives that are pre-trained and pre-packaged, ready to be served for inference with PaddleServing. 
+ To propose a model for inclusion, please submit [pull request](https://github.com/PaddlePaddle/Serving/pulls)
 
-特别感谢[Padddle wholechain](https://www.paddlepaddle.org.cn/wholechain)以及[PaddleHub](https://www.paddlepaddle.org.cn/hub)为Paddle Serving提供的部分预训练模型
+Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/wholechain) and [PaddleHub](https://www.paddlepaddle.org.cn/hub) whose Model Zoo and Model Examples were used in generating these model archives
 
 
-| 模型 | 类型 | 示例使用的框架 | 下载 |
+| Model | Type | Framework | Download |
 | --- | --- | --- | ---- |
 | resnet_v2_50_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/resnet_v2_50)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet_V2_50) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/resnet_v2_50_imagenet.tar.gz) | Pipeline Serving, C++ Serving|
 | mobilenet_v2_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/mobilenet) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/mobilenet_v2_imagenet.tar.gz) |
@@ -51,7 +51,7 @@
 | deeplabv3 | PaddleSeg | [C++ Serving](../examples/C++/PaddleSeg/deeplabv3) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/deeplabv3.tar.gz) |
 | unet | PaddleSeg | [C++ Serving](../examples/C++/PaddleSeg/unet_for_image_seg) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/unet.tar.gz) |
 
-- 请参考 [example](../examples) 查看详情
+- Refer [example](../examples) for more details on above models.
 
-- 更多Paddle Serving支持的部署模型请参考[wholechain](https://www.paddlepaddle.org.cn/wholechain)
+- Refer [wholechain](https://www.paddlepaddle.org.cn/wholechain) for more pre-trained models supported by PaddleServing
 
