@@ -57,7 +57,7 @@ Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/whole
 
 - Refer [wholechain](https://www.paddlepaddle.org.cn/wholechain) for more pre-trained models supported by PaddleServing
 
-- 最新模型可参考
+- Latest models refer
   - [PaddleDetection](https://github.com/PaddlePaddle/PaddleDetection)
   - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) 
   - [PaddleClas](https://github.com/PaddlePaddle/PaddleClas)
