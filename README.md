@@ -28,7 +28,7 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 
 
 - Integrate high-performance server-side inference engine paddle Inference and mobile-side engine paddle Lite. Models of other machine learning platforms (Caffe/TensorFlow/ONNX/PyTorch) can be migrated to paddle through [x2paddle](https://github.com/PaddlePaddle/X2Paddle).
-- There are two frameworks, namely high-performance C++ Serving and high-easy-to-use Python pipeline.The C++ Serving is based on the bRPC network framework to create a high-throughput, low-latency inference service, and its performance indicators are ahead of competing products. The Python pipeline is based on the gRPC/gRPC-Gateway network framework and the Python language to build a highly easy-to-use and high-throughput inference service. How to choose which one please see [Techinical Selection]()
+- There are two frameworks, namely high-performance C++ Serving and high-easy-to-use Python pipeline.The C++ Serving is based on the bRPC network framework to create a high-throughput, low-latency inference service, and its performance indicators are ahead of competing products. The Python pipeline is based on the gRPC/gRPC-Gateway network framework and the Python language to build a highly easy-to-use and high-throughput inference service. How to choose which one please see [Techinical Selection](doc/Serving_Design_EN.md)
 - Support multiple [protocols]() such as HTTP, gRPC, bRPC,  and provide C++, Python, Java language SDK.
 - Design and implement a high-performance inference service framework for asynchronous pipelines based on directed acyclic graph (DAG), with features such as multi-model combination, asynchronous scheduling, concurrent inference, dynamic batch, multi-card multi-stream inference, etc.- Adapt to a variety of commonly used computing hardwares, such as x86 (Intel) CPU, ARM CPU, Nvidia GPU, Kunlun XPU, etc.; Integrate acceleration libraries of Intel MKLDNN and  Nvidia TensorRT, and low-precision and quantitative inference.
 - Provide a model security deployment solution, including encryption model deployment, and authentication mechanism, HTTPs security gateway, which is used in practice.
@@ -54,46 +54,46 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 
 This chapter guides you through the installation and deployment steps. It is strongly recommended to use Docker to deploy Paddle Serving. If you do not use docker, ignore the docker-related steps. Paddle Serving can be deployed on cloud servers using Kubernetes, running on many commonly hardwares such as ARM CPU, Intel CPU, Nvidia GPU, Kunlun XPU. The latest development kit of the develop branch is compiled and generated every day for developers to use.
 
-- [Install Paddle Serving using docker](doc/Install.md)
-- [Build Paddle Serving from Source with Docker](doc/COMPILE.md)
-- [Deploy Paddle Serving on Kubernetes](doc/PADDLE_SERVING_ON_KUBERNETES.md)
-- [Deploy Paddle Serving with Security gateway](doc/SERVING_AUTH_DOCKER.md)
-- [Deploy Paddle Serving on more hardwares](doc/BAIDU_KUNLUN_XPU_SERVING.md)
-- [Latest Wheel packages](doc/LATEST_PACKAGES.md)(Update everyday on branch develop)
+- [Install Paddle Serving using docker](doc/Install_EN.md)
+- [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
+- [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_EN.md)
+- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker.md)
+- [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
+- [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
 
 > Use
 
 The first step is to call the model save interface to generate a model parameter configuration file (.prototxt), which will be used on the client and server. The second step, read the configuration and startup parameters and start the service. According to API documents and your case, the third step is to write client requests based on the SDK, and test the inference service.
 
-- [Quick Start](doc/QuickStart.md)
-- [Save a servable model](doc/SAVE.md)
-- [Description of configuration and startup parameters](doc/SERVING_CONFIGURE.md)
-- [Guide for RESTful/gRPC/bRPC APIs](doc/HTTP_SERVICE_CN.md)
-- [Infer on quantizative models](doc/LOW_PRECISION_DEPLOYMENT_CN.md)
-- [Data format of classic models](doc/PROCESS_DATA.md)
-- [C++ Serving](doc/C++Serving/Introduction_EN.md) 
-  - [Hot loading models](doc/C++Serving/Hot_Loading_EN.md)
-  - [A/B Test](doc/C++Serving/ABTest_EN.md)
-  - [Encryption](doc/C++Serving/Encryption_EN.md)
-  - [Analyze and optimize performance(Chinese)](doc/C++Serving/Performance_Tuning_CN.md)
-  - [Benchmark(Chinese)](doc/C++Serving/Benchmark_CN.md)
-- [Python Pipeline](doc/python_server/PIPELINE_SERVING_CN.md)
-  - [Analyze and optimize performance](doc/python_server/PIPELINE_SERVING_CN.md)
-  - [Benchmark(Chinese)](doc/python_server/BENCHMARKING_GPU.md)
-- [Client SDK]()
-  - [Python SDK](doc/PYTHON_SDK_CN.md)
-  - [JAVA SDK](doc/JAVA_SDK.md)
-  - [C++ SDK](doc/C++_SDK_CN.md)
-- [Large-scale sparse parameter server](doc/CUBE_LOCAL_EN.md)
+- [Quick Start](doc/Quick_Start_EN.md)
+- [Save a servable model](doc/Save_EN.md)
+- [Description of configuration and startup parameters](doc/Serving_Configure_EN.md)
+- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Http_Service_EN.md)
+- [Infer on quantizative models](doc/Low_Precision_CN.md)
+- [Data format of classic models](doc/Process_Data_CN.md)
+- [C++ Serving](doc/C++_Serving/Introduction_EN.md) 
+  - [Hot loading models](doc/C++_Serving/Hot_Loading_EN.md)
+  - [A/B Test](doc/C++_Serving/ABTest_EN.md)
+  - [Encryption](doc/C++_Serving/Encryption_EN.md)
+  - [Analyze and optimize performance(Chinese)](doc/C++_Serving/Performance_Tuning_CN.md)
+  - [Benchmark(Chinese)](doc/C++_Serving/Benchmark_CN.md)
+- [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
+  - [Analyze and optimize performance](doc/Python_Pipeline/Pipeline_Design_EN.md)
+  - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
+- Client SDK
+  - [Python SDK(Chinese)](doc/C++_Serving/Http_Service_CN.md)
+  - [JAVA SDK](doc/Java_SDK_EN.md)
+  - [C++ SDK(Chinese)](doc/C++_Serving/Creat_C++Serving_CN.md)
+- [Large-scale sparse parameter server](doc/Cube_Local_EN.md)
 
 <br>
 
 > Developers
 
 For Paddle Serving developers, we provide extended documents such as custom OP, level of detail(LOD) processing.
-- [Custom Operators](doc/OP_EN.md)
+- [Custom Operators](doc/C++_Serving/OP_EN.md)
 - [Processing LOD Data](doc/LOD_EN.md)
-- [FAQ(Chinese)](doc/FAQ.md)
+- [FAQ(Chinese)](doc/FAQ_CN.md)
 
 <h2 align="center">Model Zoo</h2>
 
@@ -108,7 +108,7 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 </center>
 
-For more model examples, read [Model zoo](doc/Model_Zoo.md)
+For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 
 <center class="half">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/> <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
@@ -132,7 +132,7 @@ If you want to communicate with developers and other users? Welcome to join us, 
 
 > Contribution
 
-If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/CONTRIBUTE.md)
+If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/Contribute_EN.md)
 
 - Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
 - Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark

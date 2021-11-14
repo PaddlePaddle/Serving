@@ -27,13 +27,13 @@
 Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving支持RESTful、gRPC、bRPC等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
 - 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
-- 具有高性能C++和高易用Python2个框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型]()
+- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md)
 - 支持HTTP、gRPC、bRPC等多种[协议](链接protocol文档)；提供C++、Python、Java语言SDK
 - 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
 - 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU等多种硬件；集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
 - 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
 - 支持云端部署，提供百度云智能云kubernetes集群部署Paddle Serving案例
-- 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40多个预训练精品模型，更多模型持续扩展
+- 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型，更多模型持续扩展
 - 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频cache等特性、可单机或云端部署
 
 
@@ -54,41 +54,42 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可以下面的文档。每天编译生成develop分支的最新开发包供开发者使用。
 - [使用docker安装Paddle Serving](doc/Install_CN.md)
-- [源码编译安装Paddle Serving](doc/COMPILE_CN.md)
-- [在Kuberntes集群上部署Paddle Serving](doc/PADDLE_SERVING_ON_KUBERNETES.md)
-- [部署Paddle Serving安全网关](doc/SERVING_AUTH_DOCKER.md)
-- [在异构硬件部署Paddle Serving](doc/BAIDU_KUNLUN_XPU_SERVING_CN.md)
-- [最新Wheel开发包](doc/LATEST_PACKAGES.md)(develop分支每日更新)
+- [源码编译安装Paddle Serving](doc/Compile_CN.md)
+- [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes.md)
+- [部署Paddle Serving安全网关](doc/Serving_Auth_Docker.md)
+- [在异构硬件部署Paddle Serving](doc/Run_On_XPU_CN.md)
+- [最新Wheel开发包](doc/Latest_Packages_CN.md)(develop分支每日更新)
 
 > 使用
 
 安装Paddle Serving后，使用快速开始将引导您运行Serving。第一步，调用模型保存接口，生成模型参数配置文件(.prototxt)用以在客户端和服务端使用；第二步，阅读配置和启动参数并启动服务；第三步，根据API和您的使用场景，基于SDK编写客户端请求，并测试推理服务。您想了解跟多特性的使用场景和方法，请详细阅读以下文档。
-- [快速开始](doc/QuickStart_CN.md)
+- [快速开始](doc/Quick_Start_CN.md)
 - [保存用于Paddle Serving的模型和配置](doc/SAVE_CN.md)
-- [配置和启动参数的说明](doc/SERVING_CONFIGURE.md)
-- [RESTful/gRPC/bRPC API指南](doc/HTTP_SERVICE_CN.md)
-- [低精度推理](doc/LOW_PRECISION_DEPLOYMENT_CN.md)
-- [常见模型数据处理](doc/PROCESS_DATA.md)
-- [C++ Serving简介](doc/C++Serving/Introduction_CN.md) 
-  - [模型热加载](doc/C++Serving/Hot_Loading_CN.md)
-  - [A/B Test](doc/C++Serving/ABTest_CN.md)
-  - [加密模型推理服务](doc/C++Serving/Encryption_CN.md)
-  - [性能优化指南](doc/C++Serving/Performance_Tuning_CN.md)
-  - [性能指标](doc/C++Serving/Benchmark_CN.md)
-- [Python Pipeline简介](doc/python_server/PIPELINE_SERVING_CN.md)
-  - [性能优化指南](doc/python_server/PIPELINE_SERVING_CN.md)
-- [客户端SDK]()
-  - [Python SDK](doc/PYTHON_SDK_CN.md)
-  - [JAVA SDK](doc/JAVA_SDK_CN.md)
-  - [C++ SDK](doc/C++_SDK_CN.md)
-- [大规模稀疏参数索引服务](doc/CUBE_LOCAL_CN.md)
+- [配置和启动参数的说明](doc/Serving_Configure_CN.md)
+- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Http_Service_CN.md)
+- [低精度推理](doc/Low_Precision_CN.md)
+- [常见模型数据处理](doc/Process_data_CN.md)
+- [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
+  - [模型热加载](doc/C++_Serving/Hot_Loading_CN.md)
+  - [A/B Test](doc/C++_Serving/ABTest_CN.md)
+  - [加密模型推理服务](doc/C++_Serving/Encryption_CN.md)
+  - [性能优化指南](doc/C++_Serving/Performance_Tuning_CN.md)
+  - [性能指标](doc/C++_Serving/Benchmark_CN.md)
+- [Python Pipeline简介](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [性能优化指南](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
+- 客户端SDK
+  - [Python SDK](doc/C++_Serving/Http_Service_CN.md)
+  - [JAVA SDK](doc/Java_SDK_CN.md)
+  - [C++ SDK](doc/C++_Serving/Creat_C++Serving_CN.md)
+- [大规模稀疏参数索引服务](doc/Cube_Local_CN.md)
 
 > 开发者
 
 为Paddle Serving开发者，提供自定义OP，变长数据处理。
-- [自定义OP](doc/OP_CN.md)
+- [自定义OP](doc/C++_Serving/OP_CN.md)
 - [变长数据(LOD)处理](doc/LOD_CN.md)
-- [常见问答](doc/FAQ.md)
+- [常见问答](doc/FAQ_CN.md)
 
 <h2 align="center">模型库</h2>
 
@@ -126,7 +127,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 > 贡献代码
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/CONTRIBUTE.md)
+如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute.md)
 
 - 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
 - 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本

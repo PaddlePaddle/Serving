@@ -1,8 +1,8 @@
 # 使用Docker安装Paddle Serving
 
-(简体中文|[English](./Install_CN.md))
+(简体中文|[English](./Install_EN.md))
 
-**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](DOCKER_IMAGES_CN.md)。
+**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](Run_In_Docker_CN.md)。更多镜像请查看[Docker镜像列表](Docker_Images_CN.md)。
 
 **提示**：目前paddlepaddle 2.1版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
 
@@ -41,7 +41,7 @@ pip3 install paddle-serving-server-gpu==0.6.2.post11 # GPU with CUDA10.1 + Tenso
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](COMPILE_CN.md)。
+如果需要使用develop分支编译的安装包，请从[最新安装包列表](Latest_Packages_CN.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](Compile_CN.md)。
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
@@ -65,8 +65,8 @@ pip3 install paddlepaddle-gpu==2.1.0
 ```
 pip3 install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
 ```
-由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](TENSOR_RT_CN.md)。
+由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本
 
 如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
 
-对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](WINDOWS_TUTORIAL_CN.md)。
+对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)。
