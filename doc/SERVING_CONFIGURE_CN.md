@@ -91,9 +91,9 @@ workdir_9393
 | `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
 | `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
 | `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
+| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                           |
+| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
+| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
 | `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
 | `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
