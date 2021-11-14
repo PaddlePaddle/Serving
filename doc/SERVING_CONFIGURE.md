@@ -4,11 +4,11 @@
 
 ## Overview
 
-This guide focuses on Paddle C++ Server and Python Server configuration:
+This guide focuses on Paddle C++ Serving and Python Pipeline configuration:
 
 - [Model Configuration](#model-configuration): Auto generated when converting model. Specify model input/output.
-- [C++ Server](#c-server): High-performance scenarios. Specify how to start quickly and start with user-defined configuration.
-- [Python Server](#python-server): Multiple model combined scenarios.
+- [C++ Serving](#c-serving): High-performance scenarios. Specify how to start quickly and start with user-defined configuration.
+- [Python Pipeline](#python-pipeline): Multiple model combined scenarios.
 
 ## Model Configuration
 
@@ -56,13 +56,13 @@ fetch_var {
 
 - shape：tensor shape
 
-## C++ Server
+## C++ Serving
 
 ### 1. Quick start
 
-The easiest way to start c++ server is to provide the `--model` and `--port` flags.
+The easiest way to start c++ serving is to provide the `--model` and `--port` flags.
 
-Example starting c++ server:
+Example starting c++ serving:
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model --port 9393
 ```
@@ -314,9 +314,9 @@ fetch_var {
 }
 ```
 
-## Python Server
+## Python Pipeline
 
-Python Server provides a user-friendly programming framework for multi-model composite services.
+Python Pipeline provides a user-friendly programming framework for multi-model composite services.
 
 Example of config.yaml:
 ```YAML
@@ -441,7 +441,7 @@ devices: "" # "0,1"
 
 ### Low precision inference
 
-Python Server supports low-precision inference. The precision types supported by CPU, GPU and TensoRT are shown in the figure below:
+Python Pipeline supports low-precision inference. The precision types supported by CPU, GPU and TensoRT are shown in the figure below:
 - CPU
   - fp32(default)
   - fp16

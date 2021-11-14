@@ -4,11 +4,11 @@
 
 ## 简介
 
-本文主要介绍C++ Server以及Python Server的各项配置:
+本文主要介绍C++ Serving以及Python Pipeline的各项配置:
 
 - [模型配置文件](#模型配置文件): 转换模型时自动生成，描述模型输入输出信息
-- [C++ Server](#c-server): 用于高性能场景，介绍了快速启动以及自定义配置方法
-- [Python Server](#python-server): 用于单算子多模型组合场景
+- [C++ Serving](#c-serving): 用于高性能场景，介绍了快速启动以及自定义配置方法
+- [Python Pipeline](#python-pipeline): 用于单算子多模型组合场景
 
 ## 模型配置文件
 
@@ -56,7 +56,7 @@ fetch_var {
 
 - shape：数据维度
 
-## C++ Server
+## C++ Serving
 
 ### 1.快速启动
 
@@ -66,7 +66,7 @@ fetch_var {
 python3 -m paddle_serving_server.serve --model serving_model --port 9393
 ```
 
-该命令会自动生成配置文件，并使用生成的配置文件启动C++ Server。例如上述启动命令会自动生成workdir_9393目录，其结构如下
+该命令会自动生成配置文件，并使用生成的配置文件启动C++ Serving。例如上述启动命令会自动生成workdir_9393目录，其结构如下
 
 ```
 workdir_9393
@@ -310,9 +310,9 @@ fetch_var {
 }
 ```
 
-## Python Server
+## Python Pipeline
 
-Python Server提供了用户友好的多模型组合服务编程框架，适用于多模型组合应用的场景。
+Python Pipeline提供了用户友好的多模型组合服务编程框架，适用于多模型组合应用的场景。
 其配置文件为YAML格式，一般默认为config.yaml。示例如下：
 ```YAML
 #rpc端口, rpc_port和http_port不允许同时为空。当rpc_port为空且http_port不为空时，会自动将rpc_port设置为http_port+1
@@ -417,7 +417,7 @@ devices: "0,1,2"
 
 ### 异构硬件
 
-Python Server除了支持CPU、GPU之外，还支持多种异构硬件部署。在config.yaml中由device_type和devices控制。优先使用device_type指定，当其空缺时根据devices自动判断类型。device_type描述如下：
+Python Pipeline除了支持CPU、GPU之外，还支持多种异构硬件部署。在config.yaml中由device_type和devices控制。优先使用device_type指定，当其空缺时根据devices自动判断类型。device_type描述如下：
 - CPU(Intel) : 0
 - GPU : 1
 - TensorRT : 2
@@ -434,7 +434,7 @@ devices: "" # "0,1"
 
 ### 低精度推理
 
-Python Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下所示：
+Python Pipeline支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下所示：
 - CPU
   - fp32(default)
   - fp16
