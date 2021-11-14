@@ -1,4 +1,4 @@
-# 如何编译PaddleServing
+ # 如何编译PaddleServing
 
 (简体中文|[English](./COMPILE.md))
 
@@ -11,7 +11,7 @@
 |           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
 |            cmake             |          3.2.0 and later          |
 |            Python            |          3.6.0 and later          |
-|              Go              |          1.9.2 and later          |
+|              Go              |          1.17.2 and later          |
 |             git              |         2.17.1 and later          |
 |         glibc-static         |               2.17                |
 |        openssl-devel         |              1.0.2k               |
@@ -25,107 +25,136 @@
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](DOCKER_IMAGES_CN.md)。
 
-## 获取代码
+我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn。其中Serving镜像名是 paddlepaddle/serving:${Serving开发镜像Tag}， Paddle开发镜像名是 paddlepaddle/paddle:${Paddle开发镜像Tag}。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
 
-``` python
+Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving，
+
+
+|  环境                         |   Serving开发镜像Tag               | Paddle开发镜像Tag                   |
+| :--------------------------: | :-------------------------------: | :-------------------------------: |
+|  CPU                         | 0.7.0-devel                       | 2.2.0                             |
+|  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       | 无                                |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       | 2.2.0-cuda10.2-cudnn7             |
+|  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       | 无                                |
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       | 2.2.0-cuda11.2-cudnn8             |
+
+我们首先要针对自己所需的环境拉取相关镜像。
+```
+docker pull paddlepaddle/serving:${Serving开发镜像Tag}
+# 如果是GPU镜像
+nvidia-docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
+# 如果是CPU镜像
+docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
+```
+
+```
+docker pull paddlepaddle/paddle:${Paddle开发镜像Tag}
+# 如果是GPU镜像
+nvidia-docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
+# 如果是CPU镜像
+docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
+```
+
+接下来执行相关代码就好，主要的步骤如下。
+- 检查并下载相关依赖
+- 下载代码库
+- 编译paddle-serving-server，paddle-serving-client和paddle-serving-app
+- 安装上述python包
+
+
+## 下载代码库
+**注明： 如果您正在使用Paddle开发镜像，需要在下载代码库后手动运行`bash env_install.sh`(如代码框的第三行所示）**
+```
 git clone https://github.com/PaddlePaddle/Serving
 cd Serving && git submodule update --init --recursive
+
+# Paddle开发镜像需要运行如下命令，Serving开发镜像不需要运行
+bash tools/paddle_env_install.sh
 ```
 
-## PYTHONROOT设置
+## 编译准备
 
-```shell
-# 例如python的路径为/usr/bin/python，可以设置PYTHONROOT
-export PYTHONROOT=/usr
+**设置PYTHON环境变量**
+
+如果您使用的是Serving开发镜像，请按照如下，确定好需要编译的Python版本，设置对应的环境变量，一共需要设置三个环境变量，分别是`PYTHON_INCLUDE_DIR`, `PYTHON_LIBRARIES`, `PYTHON_EXECUTABLE`。以下我们以python 3.7为例，介绍如何设置这三个环境变量。
+
+1) 设置`PYTHON_INCLUDE_DIR`
+
+搜索Python.h 所在的目录
 ```
-
-如果您使用的是Docker开发镜像，请按照如下，确定好需要编译的Python版本，设置对应的环境变量
+find / -name Python.h
 ```
-#Python3.6
-export PYTHONROOT=/usr/local/
-export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.6m
-export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.6m.so
-export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.6
+通常会有类似于`**/include/python3.7/Python.h`出现，我们只需要取它的文件夹目录就好，比如找到`/usr/include/python3.7/Python.h`，那么我们只需要`export PYTHON_INCLUDE_DIR=/usr/include/python3.7/`就好。
+如果没有找到。说明 1）没有安装开发版本的Python，需重新安装 2）权限不足无法查看相关系统目录。
 
-#Python3.7
-export PYTHONROOT=/usr/local/
-export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.7m
-export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.7m.so
-export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.7
+2) 设置`PYTHON_LIBRARIES`
 
-#Python3.8
-export PYTHONROOT=/usr/local/
-export PYTHON_INCLUDE_DIR=$PYTHONROOT/include/python3.8
-export PYTHON_LIBRARIES=$PYTHONROOT/lib/libpython3.8.so
-export PYTHON_EXECUTABLE=$PYTHONROOT/bin/python3.8
+搜索 libpython3.7.so
+```
+find / -name libpython3.7.so
+```
+通常会有类似于`**/lib/libpython3.7.so`或者`**/lib/x86_64-linux-gnu/libpython3.7.so`出现，我们只需要取它的文件夹目录就好，比如找到`/usr/local/lib/libpython3.7.so`，那么我们只需要`export PYTHON_LIBRARIES=/usr/local/lib`就好。
+如果没有找到，说明 1）静态编译Python，需要重新安装动态编译的Python 2）全县不足无法查看相关系统目录。
+
+3) 设置`PYTHON_EXECUTABLE`
+
+直接查看python3.7路径
+```
+which python3.7
+```
+假如结果是`/usr/local/bin/python3.7`，那么直接设置`export PYTHON_EXECUTABLE=/usr/local/bin/python3.7`。
+
+设置好这三个环境变量至关重要，设置完成后，我们便可以执行下列操作（以下是Paddle Cuda 11.2的开发镜像的PYTHON环境，如果是其他镜像，请更改相应的`PYTHON_INCLUDE_DIR`, `PYTHON_LIBRARIES`, `PYTHON_EXECUTABLE`）。
 
 ```
+# 以下三个环境变量是Paddle开发镜像Cuda11.2的环境，如其他镜像可能需要修改
+export PYTHON_INCLUDE_DIR=/usr/include/python3.7m/
+export PYTHON_LIBRARIES=/usr/lib/x86_64-linux-gnu/libpython3.7m.so
+export PYTHON_EXECUTABLE=/usr/bin/python3.7
 
-## 安装Python依赖
-
-```shell
-pip install -r python/requirements.txt -i https://mirror.baidu.com/pypi/simple
-```
-
-如果使用其他Python版本，请使用对应版本的`pip`。
-
-## GOPATH 设置
-
-默认 GOPATH 设置为 `$HOME/go`，您也可以设置为其他值。** 如果是Serving提供的Docker环境，可以不需要设置。**
-```shell
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
-```
 
-## 获取 Go packages
-
-```shell
+python -m install -r python/requirements.txt
+ 
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
-go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
-go get -u google.golang.org/grpc@v1.33.0
+go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
+go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
+go install github.com/golang/protobuf/protoc-gen-go@v1.4.3
+go install google.golang.org/grpc@v1.33.0
 go env -w GO111MODULE=auto
 ```
 
+如果您是GPU用户需要额外执行
 
-## 编译Server部分
-
-### 集成CPU版本Paddle Inference Library
-
-``` shell
-mkdir server-build-cpu && cd server-build-cpu
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DSERVER=ON ..
-make -j10
 ```
-
-可以执行`make install`把目标产出放在`./output`目录下，cmake阶段需添加`-DCMAKE_INSTALL_PREFIX=./output`选项来指定存放路径。
-
-### 集成GPU版本Paddle Inference Library
-
-相比CPU环境，GPU环境需要参考以下表格,
-**需要说明的是，以下表格对非Docker编译环境作为参考，Docker编译环境已经配置好相关参数，无需在cmake过程指定。**
-
-| cmake环境变量         | 含义                                | GPU环境注意事项               | Docker环境是否需要 |
-|-----------------------|-------------------------------------|-------------------------------|--------------------|
-| CUDA_TOOLKIT_ROOT_DIR | cuda安装路径，通常为/usr/local/cuda | 全部环境都需要                | 否(/usr/local/cuda)                 |
-| CUDNN_LIBRARY         | libcudnn.so.*所在目录，通常为/usr/local/cuda/lib64/  | 全部环境都需要                | 否(/usr/local/cuda/lib64/)                 |
-| CUDA_CUDART_LIBRARY   | libcudart.so.*所在目录，通常为/usr/local/cuda/lib64/ | 全部环境都需要                | 否(/usr/local/cuda/lib64/)                 |
-| TENSORRT_ROOT         | libnvinfer.so.*所在目录的上一级目录，取决于TensorRT安装目录 | Cuda 9.0/10.0不需要，其他需要 | 否(/usr)                 |
-
-非Docker环境下，用户可以参考如下执行方式，具体的路径以当时环境为准，代码仅作为参考。TENSORRT_LIBRARY_PATH和TensorRT版本有关，要根据实际情况设置。例如在cuda10.1环境下TensorRT版本是6.0(/usr/local/TensorRT6-cuda10.1-cudnn7/targets/x86_64-linux-gnu/)，在cuda10.2和cuda11.0环境下TensorRT版本是7.1（/usr/local/TensorRT-7.1.3.4/targets/x86_64-linux-gnu/）。
-
-``` shell
 export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
-export TENSORRT_LIBRARY_PATH="/usr/local/TensorRT6-cuda10.1-cudnn7/targets/x86_64-linux-gnu/"
+export TENSORRT_LIBRARY_PATH="/usr/"
+```
 
-mkdir server-build-gpu && cd server-build-gpu
+## 正式编译
+
+我们一共需要编译三个目标，分别是`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`，其中`paddle-serving-server`需要区分CPU或者GPU版本。如果是CPU版本请运行，
+
+```
+mkdir build_server
+cd build_server
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DSERVER=ON \
+    -DWITH_GPU=OFF ..
+make -j20
+cd ..
+```
+
+如果是GPU版本，请运行，
+```
+mkdir build_server
+cd build_server
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
     -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
@@ -135,10 +164,42 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
+make -j20
+cd ..
+``` 
+
+接下来，我们继续编译client和app就可以了，这两个包的编译命令在所有平台通用，不区分CPU和GPU的版本。
+```
+cd build_client
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DCLIENT=ON ..
+make -j20 
+cd ..
+cd build_app
+cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
+    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+    -DAPP=ON ..
 make -j10
+cd ..
 ```
 
-执行`make install`可以把目标产出放在`./output`目录下。
+## 安装相关whl包
+```
+pip3.7 install -r build_server/python/dist/*.whl
+pip3.7 install -r build_client/python/dist/*.whl
+pip3.7 install -r build_app/python/dist/*.whl
+export SERVING_BIN=${PWD}/build_server/core/general-server/serving
+```
+
+## 注意事项
+
+注意到上一小节的最后一行`export SERVING_BIN`，运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
+其中BUILD_DIR为`build_server`的绝对路径。
+可以cd build_server路径下，执行`export SERVING_BIN=${PWD}/core/general-server/serving`
+
 
 ### 开启WITH_OPENCV选项编译C++ Server
 **注意：** 只有当您需要对Paddle Serving C++部分进行二次开发，且新增的代码依赖于OpenCV库时，您才需要这样做。
@@ -148,7 +209,7 @@ make -j10
 以开启WITH_OPENCV选项，编译CPU版本Paddle Inference Library为例，在上述编译命令基础上，加入`DOPENCV_DIR=${OPENCV_DIR}` 和 `DWITH_OPENCV=ON`选项。
 ``` shell
 OPENCV_DIR=your_opencv_dir #`your_opencv_dir`为opencv库的安装路径。
-mkdir server-build-cpu && cd server-build-cpu
+mkdir build_server && cd build_server
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
     -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
@@ -160,48 +221,6 @@ make -j10
 
 **注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
 
-
-## 编译Client部分
-
-``` shell
-mkdir client-build && cd client-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DCLIENT=ON ..
-make -j10
-```
-
-执行`make install`可以把目标产出放在`./output`目录下。
-
-
-
-## 编译App部分
-
-```bash
-mkdir app-build && cd app-build
-cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
-    -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
-    -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DAPP=ON ..
-make
-```
-
-
-
-## 安装wheel包
-
-无论是Client端，Server端还是App部分，编译完成后，安装编译过程临时目录（`server-build-cpu`、`server-build-gpu`、`client-build`、`app-build`）下的`python/dist/` 中的whl包即可。
-例如：cd server-build-cpu/python/dist && pip install -U xxxxx.whl
-
-
-
-
-## 注意事项
-
-运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
-其中BUILD_DIR为server-build-cpu或server-build-gpu的绝对路径。
-可以cd server-build-cpu路径下，执行`export SERVING_BIN=${PWD}/core/general-server/serving`
 
 
 
