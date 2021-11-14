@@ -1,6 +1,6 @@
 # Model Zoo
 
-([English](./Model_Zoo.md)|简体中文）
+([English](./Model_Zoo_EN.md)|简体中文）
 
 本页面展示了Paddle Serving目前支持的预训练模型以及下载链接
 若您想为Paddle Serving提供新的模型，可通过[pull request](https://github.com/PaddlePaddle/Serving/pulls)提交PR
