@@ -39,8 +39,6 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 <h2 align="center">教程</h2>
 
-***
-
 - AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
 - 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
@@ -71,30 +69,28 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [RESTful/gRPC/bRPC API指南](doc/HTTP_SERVICE_CN.md)
 - [低精度推理](doc/LOW_PRECISION_DEPLOYMENT_CN.md)
 - [常见模型数据处理](doc/PROCESS_DATA.md)
-- [C++ Serving简介](doc/C++DESIGN_CN) 
-  - [模型热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
-  - [A/B Test](doc/ABTEST_IN_PADDLE_SERVING_CN.md)
-  - [性能优化指南]()
+- [C++ Serving简介](doc/C++Serving/Introduction_CN.md) 
+  - [模型热加载](doc/C++Serving/Hot_Loading_CN.md)
+  - [A/B Test](doc/C++Serving/ABTest_CN.md)
+  - [加密模型推理服务](doc/C++Serving/Encryption_CN.md)
+  - [性能优化指南](doc/C++Serving/Performance_Tuning_CN.md)
+  - [性能指标](doc/C++Serving/Benchmark_CN.md)
 - [Python Pipeline简介](doc/python_server/PIPELINE_SERVING_CN.md)
-  - [性能优化指南]()
-- [客户端SDK]()   
+  - [性能优化指南](doc/python_server/PIPELINE_SERVING_CN.md)
+- [客户端SDK]()
   - [Python SDK](doc/PYTHON_SDK_CN.md)
   - [JAVA SDK](doc/JAVA_SDK_CN.md)
   - [C++ SDK](doc/C++_SDK_CN.md)
 - [大规模稀疏参数索引服务](doc/CUBE_LOCAL_CN.md)
-- [常见问答](doc/FAQ.md)
 
 > 开发者
 
-为Paddle Serving开发者，提供自定义OP，变长数据处理和性能指标等扩展文档。
-- [自定义OP](doc/NEW_OPERATOR_CN.md)
+为Paddle Serving开发者，提供自定义OP，变长数据处理。
+- [自定义OP](doc/OP_CN.md)
 - [变长数据(LOD)处理](doc/LOD_CN.md)
-- [性能指标](doc/BENCHMARKING_GPU.md)
-
+- [常见问答](doc/FAQ.md)
 
 <h2 align="center">模型库</h2>
-
-***
 
 Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计42个模型。
 <center class="half">
@@ -107,13 +103,14 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
 
 <center class="half">
-  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/> <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/>
+  <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
+  <img src="doc/images/detection.png" width="160"/>
   <img src="https://github.com/PaddlePaddle/PaddleClas/raw/release/2.3/docs/images/recognition.gif" width="213"/>
 </center>
 
 <h2 align="center">社区</h2>
 
-***
 
 您想要同开发者和其他用户沟通吗？欢迎加入我们，通过如下方式加入社群
 

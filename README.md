@@ -39,7 +39,6 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 
 <h2 align="center">Tutorial</h2>
 
-***
 
 - AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
 
@@ -50,7 +49,6 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 
 <h2 align="center">Documentation</h2>
 
-***
 
 > Set up
 
@@ -73,31 +71,32 @@ The first step is to call the model save interface to generate a model parameter
 - [Guide for RESTful/gRPC/bRPC APIs](doc/HTTP_SERVICE_CN.md)
 - [Infer on quantizative models](doc/LOW_PRECISION_DEPLOYMENT_CN.md)
 - [Data format of classic models](doc/PROCESS_DATA.md)
-- [C++ Serving](doc/C++DESIGN_CN) 
-  - [Hot loading models](doc/HOT_LOADING_IN_SERVING_CN.md)
-  - [A/B Test](doc/ABTEST_IN_PADDLE_SERVING_CN.md)
-  - [Analyze and optimize performance]()
+- [C++ Serving](doc/C++Serving/Introduction_EN.md) 
+  - [Hot loading models](doc/C++Serving/Hot_Loading_EN.md)
+  - [A/B Test](doc/C++Serving/ABTest_EN.md)
+  - [Encryption](doc/C++Serving/Encryption_EN.md)
+  - [Analyze and optimize performance(Chinese)](doc/C++Serving/Performance_Tuning_CN.md)
+  - [Benchmark(Chinese)](doc/C++Serving/Benchmark_CN.md)
 - [Python Pipeline](doc/python_server/PIPELINE_SERVING_CN.md)
-  - [Analyze and optimize performance]()
+  - [Analyze and optimize performance](doc/python_server/PIPELINE_SERVING_CN.md)
+  - [Benchmark(Chinese)](doc/python_server/BENCHMARKING_GPU.md)
 - [Client SDK]()
   - [Python SDK](doc/PYTHON_SDK_CN.md)
   - [JAVA SDK](doc/JAVA_SDK.md)
   - [C++ SDK](doc/C++_SDK_CN.md)
-- [Large-scale sparse parameter server](doc/CUBE_LOCAL_CN.md)
-- [FAQ](doc/FAQ.md)
+- [Large-scale sparse parameter server](doc/CUBE_LOCAL_EN.md)
+
 <br>
 
 > Developers
 
-For Paddle Serving developers, we provide extended documents such as custom OP, level of detail(LOD) processing and performance indicators.
-- [Custom Operators](doc/NEW_OPERATOR.md)
-- [Processing LOD Data](doc/LOD_CN.md)
-- [Benchmarks(Chinese)](doc/BENCHMARKING_GPU.md)
-
+For Paddle Serving developers, we provide extended documents such as custom OP, level of detail(LOD) processing.
+- [Custom Operators](doc/OP_EN.md)
+- [Processing LOD Data](doc/LOD_EN.md)
+- [FAQ(Chinese)](doc/FAQ.md)
 
 <h2 align="center">Model Zoo</h2>
 
-***
 
 Paddle Serving works closely with the Paddle model suite, and implements a large number of service deployment examples, including image classification, object detection, language and text recognition, Chinese part of speech, sentiment analysis, content recommendation and other types of examples,  for a total of 42 models.
 
@@ -118,8 +117,6 @@ For more model examples, read [Model Library](doc/Model_Zoo_CN.md)
 
 
 <h2 align="center">Community</h2>
-
-***
 
 If you want to communicate with developers and other users? Welcome to join us, join the community through the following methods below.
 
