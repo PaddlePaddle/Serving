@@ -2,6 +2,18 @@
 
 ([简体中文](./Compile_CN.md)|English)
 
+## Overview
+
+Compiling Paddle Serving is divided into the following steps
+
+- Compilation environment preparation: According to the needs of the model and operating environment, select the most suitable image
+- Download the code library: Download the Serving code library, and perform initialization operations as needed
+- Environment variable preparation: According to the needs of the running environment, determine the various environment variables of Python. For example, the GPU environment also needs to determine the environment variables such as Cuda, Cudnn, TensorRT and so on.
+- Official compilation: Compile `paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app` related whl packages
+- Install related whl packages: install the three compiled whl packages, and set the SERVING_BIN environment variable
+
+In addition, for some C++ secondary development scenarios, we also provide OPENCV binding solutions.
+
 ## Compilation environment requirements
 
 |            module            |              version              |
