@@ -2,7 +2,7 @@
 
 (简体中文|[English](./Install_EN.md))
 
-**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](Run_In_Docker_CN.md)。更多镜像请查看[Docker镜像列表](Docker_Images_CN.md)。
+**强烈建议**您在**Docker内构建**Paddle Serving，更多镜像请查看[Docker镜像列表](Docker_Images_CN.md)。
 
 **提示-1**：本项目仅支持<mark>**Python3.6/3.7/3.8**</mark>，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
 
