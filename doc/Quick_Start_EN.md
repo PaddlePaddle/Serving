@@ -69,7 +69,7 @@ the response is
 ```
 <h3 align="center">Pipeline Service</h3>
 
-Paddle Serving provides industry-leading multi-model tandem services, which strongly supports the actual operating business scenarios of major companies, please refer to [OCR word recognition](./python/examples/pipeline/ocr).
+Paddle Serving provides industry-leading multi-model tandem services, which strongly supports the actual operating business scenarios of major companies, please refer to [OCR word recognition](../examples/Pipeline/PaddleOCR/ocr/r).
 
 we get two models
 ```
