@@ -40,7 +40,7 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 <h2 align="center">Tutorial</h2>
 
 
-- AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
+- AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1975340)
 
 - Video tutorial(Chinese) : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
 <p align="center">
