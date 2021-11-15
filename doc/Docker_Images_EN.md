@@ -78,6 +78,7 @@ Running Images:
 
 Running Images is lighter than Develop Images, and Running Images are made up with serving whl and bin, but without develop tools like cmake because of lower image size. If you want to know about it, plese check the document [Paddle Serving on Kubernetes.](./Run_On_Kubernetes_CN.md).
 
+
 | ENV                                      | Python Version | Tag                         |
 |------------------------------------------|----------------|-----------------------------|
 | cpu                                      | 3.6            | 0.6.2-py36-runtime          |

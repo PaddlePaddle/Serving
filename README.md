@@ -56,8 +56,8 @@ This chapter guides you through the installation and deployment steps. It is str
 
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
-- [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_EN.md)
-- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker.md)
+- [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
+- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
 - [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
 
@@ -68,10 +68,10 @@ The first step is to call the model save interface to generate a model parameter
 - [Quick Start](doc/Quick_Start_EN.md)
 - [Save a servable model](doc/Save_EN.md)
 - [Description of configuration and startup parameters](doc/Serving_Configure_EN.md)
-- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Http_Service_EN.md)
+- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Introduction_CN.md)
 - [Infer on quantizative models](doc/Low_Precision_CN.md)
-- [Data format of classic models](doc/Process_Data_CN.md)
-- [C++ Serving](doc/C++_Serving/Introduction_EN.md) 
+- [Data format of classic models](doc/Process_data_CN.md)
+- [C++ Serving](doc/C++_Serving/Introduction_CN.md) 
   - [protocols](doc/C++_Serving/Inference_Protocols_CN.md)
   - [Hot loading models](doc/C++_Serving/Hot_Loading_EN.md)
   - [A/B Test](doc/C++_Serving/ABTest_EN.md)
@@ -101,20 +101,20 @@ For Paddle Serving developers, we provide extended documents such as custom OP, 
 
 Paddle Serving works closely with the Paddle model suite, and implements a large number of service deployment examples, including image classification, object detection, language and text recognition, Chinese part of speech, sentiment analysis, content recommendation and other types of examples,  for a total of 42 models.
 
-<center class="half">
+<p align="center">
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
 | 8 | 12 | 13 | 2 | 3 | 4 | 
 
-</center>
+</p>
 
 For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 
-<center class="half">
-  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/> <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
-  <img src="https://github.com/PaddlePaddle/PaddleClas/raw/release/2.3/docs/images/recognition.gif" width="213"/>
-</center>
+<p align="center">
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/> 
+  <img src="doc/images/detection.png" width="350">
+</p>
 
 
 <h2 align="center">Community</h2>
@@ -122,10 +122,19 @@ For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 If you want to communicate with developers and other users? Welcome to join us, join the community through the following methods below.
 
 ### Wechat
-- 微信用户请扫码
+- WeChat scavenging
+
+
+<p align="center">
+  <img src="doc/images/wechat_group_1.jpeg" width="250">
+</p>
 
 ### QQ
-- 飞桨推理部署交流群(Group No.：696965088)
+- 飞桨推理部署交流群(Group No.：697765514)
+
+<p align="center">
+  <img src="doc/images/qq_group_1.png" width="200">
+</p>
 
 ### Slack
 
@@ -134,11 +143,12 @@ If you want to communicate with developers and other users? Welcome to join us, 
 > Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/Contribute_EN.md)
-
-- Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
-- Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
-- Special Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark and modifying resize comment error
-- Special Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
+- Thanks to [@loveululu](https://github.com/loveululu) for providing python API of Cube.
+- Thanks to [@EtachGu](https://github.com/EtachGu) in updating run docker codes.
+- Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
+- Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
+- Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark  modifying resize comment error
+- Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
 
 > Feedback
 

@@ -13,6 +13,7 @@
 ## 模型配置文件
 
 在开始介绍Server配置之前，先来介绍一下模型配置文件。我们在将模型转换为PaddleServing模型时，会生成对应的serving_client_conf.prototxt以及serving_server_conf.prototxt，两者内容一致，为模型输入输出的参数信息，方便用户拼装参数。该配置文件用于Server以及Client，并不需要用户自行修改。转换方法参考文档《[怎样保存用于Paddle Serving的模型](./Save_CN.md)》。protobuf格式可参考`core/configure/proto/general_model_config.proto`。
+
 样例如下：
 
 ```
@@ -58,7 +59,7 @@ fetch_var {
 
 ## C++ Serving
 
-### 1.快速启动与关闭
+### 1.快速启动
 
 可以通过配置模型及端口号快速启动服务，启动命令如下：
 
@@ -106,11 +107,6 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
-#### 当您想要关闭Serving服务时.
-```BASH
-python3 -m paddle_serving_server.serve stop
-```
-stop参数发送SIGINT至C++ Serving，若改成kill则发送SIGKILL信号至C++ Serving
 
 ### 2.自定义配置启动
 
@@ -317,20 +313,6 @@ fetch_var {
 
 ## Python Pipeline
 
-### 快速启动与关闭
-Python Pipeline启动命令如下：
-
-```BASH
-python3 web_service.py
-```
-
-当您想要关闭Serving服务时.
-```BASH
-python3 -m paddle_serving_server.serve stop
-```
-stop参数发送SIGINT至Pipeline Serving，若改成kill则发送SIGKILL信号至Pipeline Serving
-
-### 配置文件
 Python Pipeline提供了用户友好的多模型组合服务编程框架，适用于多模型组合应用的场景。
 其配置文件为YAML格式，一般默认为config.yaml。示例如下：
 ```YAML
