@@ -12,7 +12,7 @@ The local mode of Cube is different from distributed Cube, which is designed to 
 This document uses the original model without any compression algorithm. If there is a need for a quantitative model to go online, please read the [Quantization Storage on Cube Sparse Parameter Indexing](./Cube_Quant_EN.md)
 
 ## Example
-in directory python/example/criteo_ctr_with_cube, run
+in directory Serving/examples/C++/PaddleRec/criteo_ctr_with_cube, run
 
 ```
 python local_train.py # train model
