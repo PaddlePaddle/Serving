@@ -1,6 +1,6 @@
 # Hot Loading in Paddle Serving
 
-([简体中文](Hot_Loading_CN.md)|English)
+([简体中文](./Hot_Loading_CN.md)|English)
 
 ## Background
 

@@ -1,6 +1,6 @@
 # 加密模型预测
 
-(简体中文|[English](Encryption_EN.md))
+(简体中文|[English](./Encryption_EN.md))
 
 Padle Serving提供了模型加密预测功能，本文档显示了详细信息。
 

@@ -7,7 +7,7 @@ Paddle serving supports deployment using Baidu Kunlun chips. Currently, it suppo
  the deployment capability on various heterogeneous hardware servers in the future. 
 
 ## Compilation and installation
-Refer to [compile](Compile.md) document to setup the compilation environment. The following is based on FeiTeng FT-2000 +/64 platform.
+Refer to [compile](./Compile_EN.md) document to setup the compilation environment. The following is based on FeiTeng FT-2000 +/64 platform.
 ### Compilatiton
 * Compile the Serving Server
 ```

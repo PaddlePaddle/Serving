@@ -48,7 +48,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ### Nodes with multiple inputs
 
-An example containing multiple input nodes is given in the [Model_Ensemble](Model_Ensemble_EN.md). A example graph and the corresponding DAG definition code is as follows.
+An example containing multiple input nodes is given in the [Model_Ensemble](./Model_Ensemble_EN.md). A example graph and the corresponding DAG definition code is as follows.
 
 <center>
 <img src='../images/complex_dag.png' width = "480" height = "400" align="middle"/>
