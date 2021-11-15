@@ -70,7 +70,7 @@ The first step is to call the model save interface to generate a model parameter
 - [Description of configuration and startup parameters](doc/Serving_Configure_EN.md)
 - [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Introduction_CN.md)
 - [Infer on quantizative models](doc/Low_Precision_CN.md)
-- [Data format of classic models](doc/Process_Data_CN.md)
+- [Data format of classic models](doc/Process_data_CN.md)
 - [C++ Serving](doc/C++_Serving/Introduction_CN.md) 
   - [protocols](doc/C++_Serving/Inference_Protocols_CN.md)
   - [Hot loading models](doc/C++_Serving/Hot_Loading_EN.md)

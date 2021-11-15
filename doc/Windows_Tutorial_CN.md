@@ -1,6 +1,6 @@
 ## Windows平台使用Paddle Serving指导
 
-([English](./Windows_Turtial_EN.md)|简体中文）
+([English](./Windows_Tutorial_EN.md)|简体中文）
 
 ### 综述
 
