@@ -1,6 +1,6 @@
 # Paddle Serving中的模型热加载
 
-(简体中文|[English](Hot_Loading_EN.md))
+(简体中文|[English](./Hot_Loading_EN.md))
 
 ## 背景
 
