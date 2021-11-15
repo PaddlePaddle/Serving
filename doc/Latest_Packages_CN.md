@@ -49,16 +49,16 @@ for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as f
 
 for arm kunlun user
 ```
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_server_xpu-0.7.0.post2-cp36-cp36m-linux_aarch64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_client-0.7.0-cp36-cp36m-linux_aarch64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_app-0.7.0-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_server_xpu-0.7.0.post2-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_client-0.7.0-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_app-0.7.0-cp36-cp36m-linux_aarch64.whl
 ```
  
 for x86 kunlun user
 ``` 
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_server_xpu-0.7.0.post2-cp36-cp36m-linux_x86_64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_client-0.7.0-cp36-cp36m-linux_x86_64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0g/paddle_serving_app-0.7.0-cp36-cp36m-linux_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_server_xpu-0.7.0.post2-cp36-cp36m-linux_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_client-0.7.0-cp36-cp36m-linux_x86_64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_app-0.7.0-cp36-cp36m-linux_x86_64.whl
 ```
 
 
