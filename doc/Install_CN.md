@@ -6,17 +6,9 @@
 
 **强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](Run_In_Docker_CN.md)。更多镜像请查看[Docker镜像列表](Docker_Images_CN.md)。
 
-**提示**：目前paddlepaddle 2.2版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
-
-**提示**：本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。如果您使用Paddle开发镜像，建议直接使用Paddle开发镜像推荐的Python版本，可以直接衔接Paddle Serving。
-
-我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn8。我们提供了Serving开发镜像涵盖以上环境。与此同时，我们也支持Paddle开发镜像。
-
-**如果您是GPU用户，使用Python Pipeline来部署，并需要Nvidia TensorRT来优化预测性能，请使用除Cuda10.2+Cudnn7以外的其他GPU环境镜像。**
-
-其中Serving镜像名是 **paddlepaddle/serving:${Serving开发镜像Tag}** （如果网络不好可以使用**registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag}**）， Paddle开发镜像名是 **paddlepaddle/paddle:${Paddle开发镜像Tag}**。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
-
-Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving。对于上个版本就已经使用Serving用户的开发者来说，Serving开发镜像应该不会感到陌生。但对于熟悉Paddle训练框架生态的开发者，目前应该更熟悉已有的Paddle开发镜像。为了适应所有用户的不同习惯，我们对这两套镜像都做了充分的支持。
+**提示**：
+1) 本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
+2) v0.7.0版本支持在Paddle开发镜像直接部署使用Paddle Serving。
 
 
 |  环境                         |   Serving开发镜像Tag               |    操作系统      | Paddle开发镜像Tag       |  操作系统            |
@@ -26,6 +18,8 @@ Serving开发镜像是Serving套件为了支持各个预测环境提供的用于
 |  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
 |  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+
+**如果您是GPU用户，使用Python Pipeline来部署，并需要Nvidia TensorRT来优化预测性能，请使用除Cuda10.2+Cudnn7以外的其他GPU环境镜像。**
 
 ## 启动开发镜像
 
