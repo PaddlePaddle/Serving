@@ -38,7 +38,7 @@ pip install -r python/requirements_win.txt
 **Run OCR example**:
 
 ```
-cd Serving/python/example/ocr
+cd Serving/examples/C++/PaddleOCR/ocr/
 python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
@@ -70,7 +70,7 @@ class YourWebService(WebService):
 your_service = YourService(name="XXX")
 your_service.load_model_config("your_model_path")
 your_service.prepare_server(workdir="workdir", port=9292)
-# If you are a GPU user, you can refer to the python example under python/examples/ocr
+# If you are a GPU user, you can refer to the python example under Serving/examples/Pipeline/PaddleOCR/ocr
 your_service.run_debugger_service()
 # Windows platform cannot use run_rpc_service() interface
 your_service.run_web_service()

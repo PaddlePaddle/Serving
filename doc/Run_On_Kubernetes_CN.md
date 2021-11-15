@@ -47,12 +47,12 @@ bash tools/generate_runtime_docker.sh --help
 
 #### Pipeline模式：
 
-对于pipeline模式，我们需要确保模型和程序文件、配置文件等各种依赖都能够在镜像中运行。因此可以在`/home/project`下存放我们的执行文件时，我们以`Serving/python/example/pipeline/ocr`为例，这是OCR文字识别任务。
+对于pipeline模式，我们需要确保模型和程序文件、配置文件等各种依赖都能够在镜像中运行。因此可以在`/home/project`下存放我们的执行文件时，我们以`Serving/examples/Pipeline/PaddleOCR/ocr`为例，这是OCR文字识别任务。
 
 ```bash
 #假设您已经拥有Serving运行镜像，假设镜像名为paddle_serving:cuda10.2-py36
 docker run --rm -dit --name pipeline_serving_demo paddle_serving:cuda10.2-py36 bash
-cd Serving/python/example/pipeline/ocr
+cd Serving/examples/Pipeline/PaddleOCR/ocr
 # get models
 python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
@@ -80,12 +80,12 @@ python3.6 web_service.py
 
 #### WebService模式：
 
-web service模式本质上和pipeline模式类似，因此我们以`Serving/python/examples/bert`为例
+web service模式本质上和pipeline模式类似，因此我们以`Serving/examples/C++/PaddleNLP/bert`为例
 
 ```bash
 #假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-py36
 docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py36 bash
-cd Serving/python/examples/bert
+cd Serving/examples/C++/PaddleNLP/bert
 ### download model 
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
 tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz

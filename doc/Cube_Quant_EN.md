@@ -21,7 +21,7 @@ This tool is used to convert the Paddle model into a Sequence File. Here, two mo
 In Serving Directory，train the model in the criteo_ctr_with_cube directory
 
 ```
-cd python/examples/criteo_ctr_with_cube
+cd Serving/examples/C++/PaddleRec/criteo_ctr_with_cube
 python local_train.py # save model
 ```
 Next, you can use quantization and non-quantization to generate Sequence File for Cube sparse parameter indexing.
@@ -34,11 +34,11 @@ This command will convert the sparse parameter file SparseFeatFactors in the ctr
 
 ## Launch Serving by Quantized Model
 
-In Serving, a quantized model is used when using general_dist_kv_quant_infer op to make predictions. See python/examples/criteo_ctr_with_cube/test_server_quant.py for details. No changes are required on the client side.
+In Serving, a quantized model is used when using general_dist_kv_quant_infer op to make predictions. See Serving/examples/C++/PaddleRec/criteo_ctr_with_cube/test_server_quant.py for details. No changes are required on the client side.
 
 In order to make the demo easier for users, the following script is to train the quantized criteo ctr model and launch serving by it.
 ```
-cd python/examples/criteo_ctr_with_cube
+cd Serving/examples/C++/PaddleRec/criteo_ctr_with_cube
 python local_train.py
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/

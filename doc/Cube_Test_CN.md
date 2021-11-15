@@ -2,7 +2,7 @@
 
 ### 背景知识
 
-推荐系统需要大规模稀疏参数索引来帮助分布式部署，可在`python/example/criteo_ctr_with_cube`或是[PaddleRec](https://github.com/paddlepaddle/paddlerec)了解推荐模型。
+推荐系统需要大规模稀疏参数索引来帮助分布式部署，可在`Serving/examples/C++/PaddleRec/criteo_ctr_with_cube`或是[PaddleRec](https://github.com/paddlepaddle/paddlerec)了解推荐模型。
 
 稀疏参数索引的模型格式是SequenceFile，源自Hadoop生态的键值对格式文件。
 
