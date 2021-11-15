@@ -2,7 +2,7 @@
 
 ([简体中文](./Install_CN.md)|English)
 
-**Strongly recommend** you build **Paddle Serving** in Docker, please check [How to run PaddleServing in Docker](Run_In_Docker_CN.md). For more images, please refer to [Docker Image List](Docker_Images_CN.md).
+**Strongly recommend** you build **Paddle Serving** in Docker. For more images, please refer to [Docker Image List](Docker_Images_CN.md).
 
 **Tip-1**: This project only supports <mark>**Python3.6/3.7/3.8**</mark>, all subsequent operations related to Python/Pip need to select the correct Python version.
 
