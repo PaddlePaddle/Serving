@@ -8,7 +8,7 @@
 
 进入到Serving的git目录下，进入到`fit_a_line`例子
 ``` shell
-cd Serving/python/examples/fit_a_line
+cd Serving/examples/C++//fit_a_line
 sh get_data.sh
 ```
 
