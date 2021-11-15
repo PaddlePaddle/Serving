@@ -100,7 +100,7 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 1.在示例中，端口号都是9393，ip默认设置为了127.0.0.1表示本机，注意ip和port需要与Server端对应。
 
-2.目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/PIPELINE_SERVING_CN.md)），面向Java的Pipeline Serving Client已发布。
+2.目前Serving已推出Pipeline模式（原理详见[Pipeline Serving](../doc/Python_Pipeline/Pipeline_Design_CN.md)），面向Java的Pipeline Serving Client已发布。
 
 3.注意PipelineClientExample.java中的ip和port（位于java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），需要与对应Pipeline server的config.yaml文件中配置的ip和port相对应。（以IMDB model ensemble模型为例，位于python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）
 

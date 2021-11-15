@@ -101,7 +101,7 @@ python3 rec_web_client.py
 
 ## C++ OCR Service
 
-**Notice：** If you need to concatenate det model and rec model, and do pre-processing and post-processing in Paddle Serving C++ framework, you need to use the C++ server compiled with WITH_OPENCV option，see the [COMPILE.md](../../../doc/COMPILE.md)
+**Notice：** If you need to concatenate det model and rec model, and do pre-processing and post-processing in Paddle Serving C++ framework, you need to use the C++ server compiled with WITH_OPENCV option，see the [COMPILE.md](../../../doc/Compile_EN.md)
 
 ### Start Service
 Select a startup mode according to CPU / GPU device

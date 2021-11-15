@@ -23,7 +23,7 @@
 |            libSM             |               1.2.2               |
 |          libXrender          |              0.9.10               |
 
-推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](DOCKER_IMAGES_CN.md)。
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](Docker_Images_CN.md)。
 
 ## 获取代码
 
@@ -158,7 +158,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
 make -j10
 ```
 
-**注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
+**注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](#注意事项)。
 
 
 ## 编译Client部分
