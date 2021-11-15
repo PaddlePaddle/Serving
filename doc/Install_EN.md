@@ -1,8 +1,8 @@
 # Install Paddle Serving with Docker
 
-([简体中文](Install_CN.md)|English)
+([简体中文](./Install_CN.md)|English)
 
-We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](Run_In_Docker_EN.md). See the [document](Docker_Images_EN.md) for more docker images.
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](Run_In_Docker_EN.md). See the [document](./Docker_Images_EN.md) for more docker images.
 
 **Attention:**: Currently, the default GPU environment of paddlepaddle 2.1 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
 
