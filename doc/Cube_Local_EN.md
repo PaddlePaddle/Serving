@@ -95,7 +95,7 @@ If you see that each key has a corresponding value output, it means that the del
 
 
 ## Appendix: Configuration
-the config file is cube.config located in python/examples/criteo_ctr_with_cube/cube/conf, this file is used by cube-cli.the Cube Local Mode users do not need to understand that just use it, it would be quite important in Cube Distributed Mode.
+the config file is cube.config located in Serving/examples/C++/PaddleRec/criteo_ctr_with_cube/cube/conf, this file is used by cube-cli.the Cube Local Mode users do not need to understand that just use it, it would be quite important in Cube Distributed Mode.
 
 ```
 [{
