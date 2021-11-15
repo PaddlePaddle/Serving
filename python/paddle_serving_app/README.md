@@ -52,7 +52,7 @@ Preprocessing for Chinese semantic representation task.
 
     - line（st ）：Text input.
 
-  [example](../examples/bert/bert_client.py)
+  [example](../../examples/C++/PaddleNLP/bert/bert_client.py)
 
 - class LACReader 
   
@@ -67,7 +67,7 @@ Preprocessing for Chinese word segmentation task.
     - words（st ）：Original text input.
     - crf_decode（np.array）：CRF code predicted by model.
 
-  [example](../examples/lac/lac_http_client.py)
+  [example](../../examples/C++/PaddleNLP/lac/lac_http_client.py)
 
 - class SentaReader
 
@@ -76,9 +76,9 @@ Preprocessing for Chinese word segmentation task.
   - `process(cols)`
     - cols（st ）：Word segmentation result.
 
-  [example](../examples/senta/senta_web_service.py)
+  [example](../../examples/C++/PaddleNLP/senta/senta_web_service.py)
 
-- The image preprocessing method is more flexible than the above method, and can be combined by the following multiple classes，[example](../examples/imagenet/resnet50_rpc_client.py)
+- The image preprocessing method is more flexible than the above method, and can be combined by the following multiple classes，[example](../../examples/C++/PaddleClas/imagenet/resnet50_rpc_client.py)
 
 - class Sequentia
 
@@ -157,7 +157,7 @@ The inference op of Paddle Serving is implemented based on Paddle inference lib.
 Before deploying the prediction service, you may need to check the input and output of the prediction service or check the resource consumption.
 Therefore, a local prediction tool is built into the paddle_serving_app, which is used in the same way as sending a request to the server through the client.
 
-Taking [fit_a_line prediction service](../examples/fit_a_line) as an example, the following code can be used to run local prediction.
+Taking [fit_a_line prediction service](../../examples/C++/fit_a_line) as an example, the following code can be used to run local prediction.
 
 ```python
 from paddle_serving_app.local_predict import LocalPredictor
