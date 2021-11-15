@@ -30,7 +30,7 @@ pip install Shapely
 
 ### 启动Server端
 
-这里采用[Docker方式](../Run_In_Docker_CN.md)启动Server端服务。
+这里采用[Docker方式](../Install_CN.md)启动Server端服务。
 
 首先启动BOW Server，该服务启用`8000`端口：
 
