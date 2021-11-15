@@ -2,7 +2,7 @@
 
 ([English](./PIPELINE_SERVING_PERFORMANCE_OPTIMIZATION_EN.md)|简体中文）
 
-## 1.性能分析与优化
+## 1. 性能分析与优化
 
 
 ### 1.1 如何通过 Timeline 工具进行优化
