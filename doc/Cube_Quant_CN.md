@@ -22,7 +22,7 @@
 在Serving主目录下，到criteo_ctr_with_cube目录下训练出模型
 
 ```
-cd python/examples/criteo_ctr_with_cube
+cd Serving/examples/C++/PaddleRec/criteo_ctr_with_cube
 python local_train.py # 生成模型
 ```
 接下来可以使用量化和非量化两种方式去生成Sequence File用于Cube稀疏参数索引。
@@ -34,11 +34,11 @@ seq_generator ctr_serving_model/SparseFeatFactors ./cube_model/feature 8 #量化
 
 ## 用量化模型启动Serving
 
-在Serving当中，使用general_dist_kv_quant_infer op来进行预测时使用量化模型。具体详见  python/examples/criteo_ctr_with_cube/test_server_quant.py。客户端部分不需要做任何改动。
+在Serving当中，使用general_dist_kv_quant_infer op来进行预测时使用量化模型。具体详见  Serving/examples/C++/PaddleRec/criteo_ctr_with_cube/test_server_quant.py。客户端部分不需要做任何改动。
 
 为方便用户做demo，我们给出了从0开始启动量化模型Serving。
 ```
-cd python/examples/criteo_ctr_with_cube
+cd Serving/examples/C++/PaddleRec/criteo_ctr_with_cube
 python local_train.py
 cp ../../../build_server/core/predictor/seq_generator seq_generator
 cp ../../../build_server/output/bin/cube* ./cube/
