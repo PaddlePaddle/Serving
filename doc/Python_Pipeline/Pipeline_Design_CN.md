@@ -325,7 +325,7 @@ class ResponseOp(Op):
 - [ocr](../../examples/Pipeline/PaddleOCR/ocr)
 - [simple_web_service](../../examples/Pipeline/simple_web_service)
 
-以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
+以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `Serving/examples/Pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
 
 <div align=center>
 <img src='../images/pipeline_serving-image4.png' height = "200" align="middle"/>
@@ -352,13 +352,13 @@ class ResponseOp(Op):
 ### 3.2 获取模型文件
 
 ```shell
-cd python/examples/pipeline/imdb_model_ensemble
+cd Serving/examples/Pipeline/imdb_model_ensemble
 sh get_data.sh
 python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
 python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
 ```
 
-PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `python/examples/pipeline/ocr` 下的例子。
+PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `Serving/examples/Pipeline/PaddleOCR/ocr` 下的例子。
 
 ### 3.3 创建config.yaml
 本示例采用了brpc的client连接类型，还可以选择grpc或local_predictor。
@@ -700,7 +700,7 @@ Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型
   - fp16
   - int8 
 
-参考[simple_web_service](../python/examples/pipeline/simple_web_service)示例
+参考[simple_web_service](../../examples/Pipeline/simple_web_service)示例
 ***
 
 ## 5.日志追踪

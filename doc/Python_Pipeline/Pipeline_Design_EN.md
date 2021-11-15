@@ -320,7 +320,7 @@ All examples of pipelines are in [examples/pipeline/](../../examples/Pipeline) d
 - [ocr](../../examples/Pipeline/PaddleOCR/ocr)
 - [simple_web_service](../../examples/Pipeline/simple_web_service)
 
-Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
+Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `Serving/examples/Pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 
 <div align=center>
 <img src='../images/pipeline_serving-image4.png' height = "200" align="middle"/>
@@ -348,13 +348,13 @@ Five types of files are needed, of which model files, configuration files, and s
 ### 3.2 Get model files
 
 ```shell
-cd python/examples/pipeline/imdb_model_ensemble
+cd Serving/examples/Pipeline/imdb_model_ensemble
 sh get_data.sh
 python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
 python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
 ```
 
-PipelineServing also supports local automatic startup of PaddleServingService. Please refer to the example `python/examples/pipeline/ocr`.
+PipelineServing also supports local automatic startup of PaddleServingService. Please refer to the example `Serving/examples/Pipeline/PaddleOCR/ocr`.
 
 
 ### 3.3 Create config.yaml
@@ -705,7 +705,7 @@ Pipeline Serving supports low-precision inference. The precision types supported
   - fp16
   - int8 
 
-Reference the example [simple_web_service](../python/examples/pipeline/simple_web_service).
+Reference the example [simple_web_service](../../examples/Pipeline/simple_web_service).
 
 ***
  

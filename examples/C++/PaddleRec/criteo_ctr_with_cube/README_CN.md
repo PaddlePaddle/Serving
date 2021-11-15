@@ -2,7 +2,7 @@
 (简体中文|[English](./README.md))
 
 ### 获取样例数据
-进入目录 `python/examples/criteo_ctr_with_cube`
+进入目录 `examples/C++/PaddleRec/criteo_ctr_with_cube`
 ```
 sh get_data.sh
 ```
@@ -43,7 +43,7 @@ python3 test_client.py ctr_client_conf/serving_client_conf.prototxt ./raw_data
 
 设备 ：Intel(R) Xeon(R) CPU 6148 @ 2.40GHz 
 
-模型 ：[Criteo CTR](https://github.com/PaddlePaddle/Serving/blob/develop/python/examples/criteo_ctr_with_cube/network_conf.py)
+模型 ：[Criteo CTR](./network_conf.py)
 
 server core/thread num ： 4/8
 
