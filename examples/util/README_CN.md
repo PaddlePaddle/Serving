@@ -26,6 +26,6 @@ python3 timeline_trace.py profile trace
 
 具体操作：打开chrome浏览器，在地址栏输入chrome://tracing/，跳转至tracing页面，点击load按钮，打开保存的trace文件，即可将预测服务的各阶段时间信息可视化。
 
-效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
+效果如下图，图中展示了使用[bert示例](../C++/PaddleNLP/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline，其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送和接收结果的阶段，图中的process代表的是client的进程号，每个进进程的第二行展示的是server各个op的timeline。
 
 ![timeline](../../doc/images/timeline-example.png)
