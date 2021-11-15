@@ -40,7 +40,7 @@ pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + Tensor
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
 
-If you need install modules compiled with develop branch, please download packages from [latest packages list](Latest_Package_CN.md) and install with `pip install` command. If you want to compile by yourself, please refer to [How to compile Paddle Serving?](Compile_EN.md)
+If you need install modules compiled with develop branch, please download packages from [latest packages list](./Latest_Packages_CN.md) and install with `pip install` command. If you want to compile by yourself, please refer to [How to compile Paddle Serving?](Compile_EN.md)
 
 Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 
