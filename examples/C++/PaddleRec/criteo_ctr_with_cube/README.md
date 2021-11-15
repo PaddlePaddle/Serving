@@ -65,8 +65,8 @@ bash benchmark.sh
 
 the average latency of threads
 
-![avg cost](../../../doc/images/criteo-cube-benchmark-avgcost.png)
+![avg cost](../../../../doc/images/criteo-cube-benchmark-avgcost.png)
 
 The QPS is 
 
-![qps](../../../doc/images/criteo-cube-benchmark-qps.png)
+![qps](../../../../doc/images/criteo-cube-benchmark-qps.png)

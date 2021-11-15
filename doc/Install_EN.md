@@ -1,8 +1,8 @@
 # Install Paddle Serving with Docker
 
-([简体中文](Install_CN.md)|English)
+([简体中文](./Install_CN.md)|English)
 
-We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](Run_In_Docker_EN.md). See the [document](Docker_Images_EN.md) for more docker images.
+We **highly recommend** you to **run Paddle Serving in Docker**, please visit [Run in Docker](Run_In_Docker_EN.md). See the [document](./Docker_Images_EN.md) for more docker images.
 
 **Attention:**: Currently, the default GPU environment of paddlepaddle 2.1 is Cuda 10.2, so the sample code of GPU Docker is based on Cuda 10.2. We also provides docker images and whl packages for other GPU environments. If users use other environments, they need to carefully check and select the appropriate version.
 
@@ -40,7 +40,7 @@ pip install paddle-serving-server-gpu==0.6.0.post11 # GPU with CUDA10.1 + Tensor
 
 You may need to use a domestic mirror source (in China, you can use the Tsinghua mirror source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to pip command) to speed up the download.
 
-If you need install modules compiled with develop branch, please download packages from [latest packages list](Latest_Package_CN.md) and install with `pip install` command. If you want to compile by yourself, please refer to [How to compile Paddle Serving?](Compile_EN.md)
+If you need install modules compiled with develop branch, please download packages from [latest packages list](./Latest_Packages_CN.md) and install with `pip install` command. If you want to compile by yourself, please refer to [How to compile Paddle Serving?](Compile_EN.md)
 
 Packages of paddle-serving-server and paddle-serving-server-gpu support Centos 6/7, Ubuntu 16/18, Windows 10.
 

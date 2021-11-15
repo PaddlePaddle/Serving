@@ -63,7 +63,7 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 
 ### Step 1：启动Serving服务
 
-我们仍然以 [Uci房价预测](../python/examples/fit_a_line)服务作为例子，这里省略了镜像制作的过程，详情可以参考 [在Kubernetes集群上部署Paddle Serving](./Run_On_Kubernetes.md)。
+我们仍然以 [Uci房价预测](../examples/C++/fit_a_line/)服务作为例子，这里省略了镜像制作的过程，详情可以参考 [在Kubernetes集群上部署Paddle Serving](./Run_On_Kubernetes_CN.md)。
 
 在这里我们直接执行 
 ```
