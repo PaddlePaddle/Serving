@@ -12,6 +12,8 @@
 
 我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn8。我们提供了Serving开发镜像涵盖以上环境。与此同时，我们也支持Paddle开发镜像。
 
+**如果您是GPU用户，使用Python Pipeline来部署，并需要Nvidia TensorRT来优化预测性能，请使用除Cuda10.2+Cudnn7以外的其他GPU环境镜像。**
+
 其中Serving镜像名是 **paddlepaddle/serving:${Serving开发镜像Tag}** （如果网络不好可以使用**registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag}**）， Paddle开发镜像名是 **paddlepaddle/paddle:${Paddle开发镜像Tag}**。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
 
 Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving。对于上个版本就已经使用Serving用户的开发者来说，Serving开发镜像应该不会感到陌生。但对于熟悉Paddle训练框架生态的开发者，目前应该更熟悉已有的Paddle开发镜像。为了适应所有用户的不同习惯，我们对这两套镜像都做了充分的支持。
@@ -106,7 +108,9 @@ pip3 install paddlepaddle==2.2.0
 pip3 install paddlepaddle-gpu==2.2.0
 ```
 
-**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)
+**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)，或者[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)。
+
+**如果您是GPU用户并想用Python Pipeline部署，TensorRT加速，由于目前没有发布Cuda10.2+Cudnn7的Python预测库，所以请选择其他环境。**
 
 选择相应的GPU环境的url链接并进行安装，例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`linux-cuda10.1-cudnn7.6-trt6-gcc8.2`对应的url，复制下来并执行
 ```
