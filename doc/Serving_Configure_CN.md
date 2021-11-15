@@ -12,7 +12,7 @@
 
 ## 模型配置文件
 
-在开始介绍Server配置之前，先来介绍一下模型配置文件。我们在将模型转换为PaddleServing模型时，会生成对应的serving_client_conf.prototxt以及serving_server_conf.prototxt，两者内容一致，为模型输入输出的参数信息，方便用户拼装参数。该配置文件用于Server以及Client，并不需要用户自行修改。转换方法参考文档《[怎样保存用于Paddle Serving的模型](SAVE_CN.md)》。protobuf格式可参考`core/configure/proto/general_model_config.proto`。
+在开始介绍Server配置之前，先来介绍一下模型配置文件。我们在将模型转换为PaddleServing模型时，会生成对应的serving_client_conf.prototxt以及serving_server_conf.prototxt，两者内容一致，为模型输入输出的参数信息，方便用户拼装参数。该配置文件用于Server以及Client，并不需要用户自行修改。转换方法参考文档《[怎样保存用于Paddle Serving的模型](Save_CN.md)》。protobuf格式可参考`core/configure/proto/general_model_config.proto`。
 样例如下：
 
 ```
@@ -39,7 +39,7 @@ fetch_var {
 - fetch_var：模型输出
 - name：名称
 - alias_name：别名，与名称对应
-- is_lod_tensor：是否为lod，具体可参考《[Lod字段说明](LOD_CN.md)》
+- is_lod_tensor：是否为lod，具体可参考《[Lod字段说明](./LOD_CN.md)》
 - feed_type：数据类型
 
 |feed_type|类型|
