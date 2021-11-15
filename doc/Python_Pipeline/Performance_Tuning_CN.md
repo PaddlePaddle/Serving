@@ -1,6 +1,6 @@
 # Pipeline Serving 性能优化
 
-([English](./PIPELINE_SERVING_PERFORMANCE_OPTIMIZATION_EN.md)|简体中文）
+([English](./Performance_Tuning_EN.md)|简体中文）
 
 ## 1. 性能分析与优化
 
