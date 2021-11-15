@@ -183,7 +183,6 @@ make -j20
 cd ..
 ```
 
-
 ### Compile paddle-serving-client and paddle-serving-app
 
 Next, we can continue to compile the client and app. The compilation commands for these two packages are common on all platforms, and do not distinguish between CPU and GPU versions.
