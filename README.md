@@ -123,12 +123,15 @@ If you want to communicate with developers and other users? Welcome to join us, 
 
 ### Wechat
 - WeChat scavenging
+
+
 <center class="half">
   <img src="doc/images/wechat_group_1.jpeg" width="250">
 </center>
 
 ### QQ
 - 飞桨推理部署交流群(Group No.：697765514)
+
 <center class="half">
   <img src="doc/images/qq_group_1.png" width="200">
 </center>
