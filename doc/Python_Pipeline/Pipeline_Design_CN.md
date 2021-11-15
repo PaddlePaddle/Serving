@@ -316,14 +316,14 @@ class ResponseOp(Op):
 ***
 
 ## 3.典型示例
-所有Pipeline示例在[examples/Pipeline/](../examples/Pipeline) 目录下，目前有7种类型模型示例：
-- [PaddleClas](../examples/Pipeline/PaddleClas) 
-- [Detection](../examples/Pipeline/PaddleDetection)  
-- [bert](../examples/Pipeline/bert)
-- [imagenet](../examples/Pipeline/PaddleClas/imagenet)
-- [imdb_model_ensemble](../examples/Pipeline/imdb_model_ensemble)
-- [ocr](../examples/Pipeline/PaddleOCR/ocr)
-- [simple_web_service](../examples/Pipeline/simple_web_service)
+所有Pipeline示例在[examples/Pipeline/](../../examples/Pipeline) 目录下，目前有7种类型模型示例：
+- [PaddleClas](../../examples/Pipeline/PaddleClas) 
+- [Detection](../../examples/Pipeline/PaddleDetection)  
+- [bert](../../examples/Pipeline/bert)
+- [imagenet](../../examples/Pipeline/PaddleClas/imagenet)
+- [imdb_model_ensemble](../../examples/Pipeline/imdb_model_ensemble)
+- [ocr](../../examples/Pipeline/PaddleOCR/ocr)
+- [simple_web_service](../../examples/Pipeline/simple_web_service)
 
 以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `python/examples/pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
 
