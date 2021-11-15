@@ -9,7 +9,7 @@
 以fit_a_line模型为例，服务端启动与常规BRPC-Server端启动命令一样。
 
 ```
-cd ../../python/examples/fit_a_line
+cd ../../examples/C++/fit_a_line
 sh get_data.sh
 python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393
 ```
