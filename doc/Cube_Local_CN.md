@@ -96,7 +96,7 @@ cd cube
 
 
 ## 注： 配置文件
-以python/examples/criteo_ctr_with_cube/cube/conf下的cube.conf示例，此文件被上述的cube-cli所使用，单机版用户可以直接使用不用关注此部分，它在分布式部署中更为重要。
+以Serving/examples/C++/PaddleRec/criteo_ctr_with_cube/cube/conf下的cube.conf示例，此文件被上述的cube-cli所使用，单机版用户可以直接使用不用关注此部分，它在分布式部署中更为重要。
 
 ```
 [{
