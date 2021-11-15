@@ -63,8 +63,8 @@ bash benchmark.sh
 
 平均每个线程耗时图如下
 
-![avg cost](../../../doc/images/criteo-cube-benchmark-avgcost.png)
+![avg cost](../../../../doc/images/criteo-cube-benchmark-avgcost.png)
 
 每个线程QPS耗时如下
 
-![qps](../../../doc/images/criteo-cube-benchmark-qps.png)
+![qps](../../../../doc/images/criteo-cube-benchmark-qps.png)

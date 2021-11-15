@@ -97,7 +97,7 @@ r = requests.post(url=url, headers=headers, data=json.dumps(data))
 print(r.json())
 ```
 
-The user only needs to follow the above instructions and implement the relevant content in the corresponding function. For more information, please refer to [How to develop a new Web Service? ](./C++_Serving/Http_Service_EN.md)
+The user only needs to follow the above instructions and implement the relevant content in the corresponding function. For more information, please refer to [How to develop a new Web Service? ](./C++_Serving/Http_Service_CN.md)
 
 Execute after development
 

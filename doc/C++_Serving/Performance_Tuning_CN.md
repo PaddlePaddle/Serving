@@ -1,7 +1,7 @@
 # C++ Serving性能分析与优化
 # 1.背景知识介绍
-1) 首先，应确保您知道C++ Serving常用的一些[功能特点](Introduction_CN.md)和[C++ Serving 参数配置和启动的详细说明](../SERVING_CONFIGURE_CN.md。
-2) 关于C++ Serving框架本身的性能分析和介绍，请参考[C++ Serving框架性能测试](Frame_Performance_CN.md)。
+1) 首先，应确保您知道C++ Serving常用的一些[功能特点](./Introduction_CN.md)和[C++ Serving 参数配置和启动的详细说明](../Serving_Configure_CN.md)。
+2) 关于C++ Serving框架本身的性能分析和介绍，请参考[C++ Serving框架性能测试](./Frame_Performance_CN.md)。
 3) 您需要对您使用的模型、机器环境、需要部署上线的业务有一些了解，例如，您使用CPU还是GPU进行预测；是否可以开启TRT进行加速；你的机器CPU是多少core的；您的业务包含几个模型；每个模型的输入和输出需要做些什么处理；您业务的最大线上流量是多少；您的模型支持的最大输入batch是多少等等.
 
 # 2.Server线程数
@@ -14,7 +14,7 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 
 ## 2.1 最大并发请求量M
 
-根据最大并发请求量来设置Server端线程数N，根据[C++ Serving框架性能测试](Frame_Performance_CN.md)中的数据来看，此时<mark>**线程数N应等于或略小于最大并发请求量M**</mark>，此时平均处理时延最小。
+根据最大并发请求量来设置Server端线程数N，根据[C++ Serving框架性能测试](./Frame_Performance_CN.md)中的数据来看，此时<mark>**线程数N应等于或略小于最大并发请求量M**</mark>，此时平均处理时延最小。
 
 这也很容易理解，举个极端的例子，如果您每次只有1个请求，那此时Server端线程数设置1是最合理的，因为此时没有任何线程切换的开销。如果您设置线程数为任何大于1的数，必然就带来了线程切换的开销。
 
@@ -31,7 +31,7 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 # 3.异步模式
 当<mark>**大部分用户的Request请求batch数<<模型最大支持的Batch数**</mark>时，采用异步模式的收益是明显的。
 
-异步模型的原理是将模型预测阶段与RPC线程脱离，模型单独开辟一个线程数可指定的线程池，RPC收到Request后将请求数据放入模型的线程池中的Task队列中，线程池中的线程从Task中取出数据合并Batch后进行预测，从而提升QPS，更多详细的介绍见[C++Serving功能简介](Introduction_CN.md)，同步模式与异步模式的数据对比见[C++ Serving vs TensorFlow Serving 性能对比](Benchmark_CN.md)，在上述测试的条件下，异步模型比同步模式快百分50%。
+异步模型的原理是将模型预测阶段与RPC线程脱离，模型单独开辟一个线程数可指定的线程池，RPC收到Request后将请求数据放入模型的线程池中的Task队列中，线程池中的线程从Task中取出数据合并Batch后进行预测，从而提升QPS，更多详细的介绍见[C++Serving功能简介](./Introduction_CN.md)，同步模式与异步模式的数据对比见[C++ Serving vs TensorFlow Serving 性能对比](./Benchmark_CN.md)，在上述测试的条件下，异步模型比同步模式快百分50%。
 
 
 异步模式的开启有以下两种方式。
@@ -46,7 +46,7 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 此时通过修改`model_toolkit.prototxt`中的`runtime_thread_num`字段和`batch_infer_size`字段同样能达到上述效果。
 
 # 4.多模型组合
-当<mark>**您的业务中需要调用多个模型进行预测**</mark>时，如果您追求极致的性能，您可以考虑使用C++Serving[自定义OP](OP_CN.md)和[自定义DAG图](DAG_CN.md)的方式来实现上述需求。
+当<mark>**您的业务中需要调用多个模型进行预测**</mark>时，如果您追求极致的性能，您可以考虑使用C++Serving[自定义OP](./OP_CN.md)和[自定义DAG图](./DAG_CN.md)的方式来实现上述需求。
 
 ## 4.1 优点
 由于在一个服务中做模型的组合，节省了网络IO的时间和序列化反序列化的时间，尤其当数据量比较大时，收益十分明显(实测单次传输40MB数据时，RPC耗时为160-170ms)。
@@ -57,4 +57,4 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 3) 需要重新编译Server端代码。
 
 ## 4.3 示例
-请参考[examples/C++/PaddleOCR/ocr/README_CN.md](../../examples/C++/PaddleOCR/ocr/README_CN.md)中`C++ OCR Service服务章节`和[Paddle Serving中的集成预测](Model_Ensemble_CN.md)中的例子。
+请参考[examples/C++/PaddleOCR/ocr/README_CN.md](../../examples/C++/PaddleOCR/ocr/README_CN.md)中`C++ OCR Service服务章节`和[Paddle Serving中的集成预测](./Model_Ensemble_CN.md)中的例子。

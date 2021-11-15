@@ -1,6 +1,6 @@
 # Server端的计算图
 
-(简体中文|[English](DAG_EN.md))
+(简体中文|[English](./DAG_EN.md))
 
 本文档显示了Server端上计算图的概念。 如何使用PaddleServing内置运算符定义计算图。 还显示了一些顺序执行逻辑的示例。
 
@@ -47,7 +47,7 @@ python -m paddle_serving_server.serve --model uci_housing_model --thread 10 --po
 
 ### 包含多个输入的节点
 
-在[Paddle Serving中的集成预测](Model_Ensemble_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
+在[Paddle Serving中的集成预测](./Model_Ensemble_CN.md)文档中给出了一个包含多个输入节点的样例，示意图和代码如下。
 
 <center>
 <img src='../images/complex_dag.png' width = "480" height = "400" align="middle"/>

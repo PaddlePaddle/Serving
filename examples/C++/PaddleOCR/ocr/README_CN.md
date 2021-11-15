@@ -100,7 +100,7 @@ python3 rec_web_client.py
 ```
 ## C++ OCR Service服务
 
-**注意：** 若您需要使用Paddle Serving C++框架串联det模型和rec模型，并进行前后处理，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../doc/COMPILE.md)
+**注意：** 若您需要使用Paddle Serving C++框架串联det模型和rec模型，并进行前后处理，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
 
 ### 启动服务
 根据CPU/GPU设备选择一种启动方式
