@@ -10,7 +10,7 @@ pipeline客户端只做很简单的处理，他们把自然输入转化成可以
 
 #### 1）字符串/数字
 
-字符串和数字在这个阶段都以字符串的形式存在。我们以[房价预测](../python/examples/pipeline/simple_web_service)作为例子。房价预测的输入是13个维度的浮点数去描述一个住房的特征。在客户端阶段就可以直接如下所示
+字符串和数字在这个阶段都以字符串的形式存在。我们以[房价预测](../examples/Pipeline/simple_web_service)作为例子。房价预测的输入是13个维度的浮点数去描述一个住房的特征。在客户端阶段就可以直接如下所示
 
 ```
 curl -X POST -k http://localhost:18082/uci/prediction -d '{"key": ["x"], "value": ["0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332"]}'
@@ -24,11 +24,11 @@ curl -X POST -k http://localhost:18082/uci/prediction -d '{"key": ["x"], "value"
 curl -X POST -k http://localhost:18082/bert/prediction -d '{"key": ["x"], "value": ["hello world"]}'
 ```
 
-当然，复杂的处理也可以把这个curl转换成python语言，详情参见[Bert Pipeline示例](../python/examples/pipeline/bert). 
+当然，复杂的处理也可以把这个curl转换成python语言，详情参见[Bert Pipeline示例](../examples/Pipeline/PaddleNLP/bert). 
 
 #### 2）图片
 
-图片在Paddle的输入通常需要转换成numpy array，但是在客户端阶段，不需要转换成numpy array，因为那样比较耗费空间，在这个阶段我们用base64 string来传输就可以了，到了服务端的前处理再去解读base64转换成numpy array。详情参见[图像分类pipeline示例](../python/examples/pipeline/PaddleClas/DarkNet53/pipeline_http_client.py)，我们也贴出部分代码
+图片在Paddle的输入通常需要转换成numpy array，但是在客户端阶段，不需要转换成numpy array，因为那样比较耗费空间，在这个阶段我们用base64 string来传输就可以了，到了服务端的前处理再去解读base64转换成numpy array。详情参见[图像分类pipeline示例](../examples/Pipeline/PaddleClas/DarkNet53/pipeline_http_client.py)，我们也贴出部分代码
 
 ```python
 def cv2_to_base64(image):
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
 #### 1）字符串/数字
 
-刚才提到的房价预测示例，[服务端程序](../python/examples/pipeline/simple_web_service/web_service.py)在这里。
+刚才提到的房价预测示例，[服务端程序](../examples/Pipeline/simple_web_service/web_service.py)在这里。
 
 ```python
     def init_op(self):
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
 #### 2）图片处理
 
-图像的前处理阶段，前面提到的图像处理程序，[服务端程序](../python/examples/pipeline/PaddleClas/DarkNet53/resnet50_web_service.py)如下。
+图像的前处理阶段，前面提到的图像处理程序，[服务端程序](../examples/Pipeline/PaddleClas/DarkNet53/resnet50_web_service.py)如下。
 
 ```python
     def init_op(self):
