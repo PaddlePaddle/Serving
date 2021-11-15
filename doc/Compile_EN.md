@@ -183,7 +183,6 @@ make -j20
 cd ..
 ```
 
-**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](Compile_EN.md#Note).
 
 ### Compile paddle-serving-client and paddle-serving-app
 
