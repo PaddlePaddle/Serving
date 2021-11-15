@@ -112,8 +112,8 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 
 <center class="half">
-  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/> <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
-  <img src="https://github.com/PaddlePaddle/PaddleClas/raw/release/2.3/docs/images/recognition.gif" width="213"/>
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/> 
+  <img src="doc/images/detection.png" width="350">
 </center>
 
 
@@ -122,10 +122,16 @@ For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 If you want to communicate with developers and other users? Welcome to join us, join the community through the following methods below.
 
 ### Wechat
-- 微信用户请扫码
+- WeChat scavenging
+<center class="half">
+  <img src="doc/images/wechat_group_1.jpeg" width="250">
+</center>
 
 ### QQ
-- 飞桨推理部署交流群(Group No.：696965088)
+- 飞桨推理部署交流群(Group No.：697765514)
+<center class="half">
+  <img src="doc/images/qq_group_1.png" width="200">
+</center>
 
 ### Slack
 
@@ -134,11 +140,12 @@ If you want to communicate with developers and other users? Welcome to join us, 
 > Contribution
 
 If you want to contribute code to Paddle Serving, please reference [Contribution Guidelines](doc/Contribute_EN.md)
-
-- Special Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
-- Special Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
-- Special Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark and modifying resize comment error
-- Special Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
+- Thanks to [@loveululu](https://github.com/loveululu) for providing python API of Cube.
+- Thanks to [@EtachGu](https://github.com/EtachGu) in updating run docker codes.
+- Thanks to [@BeyondYourself](https://github.com/BeyondYourself) in complementing the gRPC tutorial, updating the FAQ doc and modifying the mdkir command
+- Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
+- Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark  modifying resize comment error
+- Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
 
 > Feedback
 
