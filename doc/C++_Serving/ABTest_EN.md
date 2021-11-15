@@ -31,7 +31,7 @@ The Python code in the file will process the data `test_data/part-0` and write t
 
 ### Start Server
 
-Here, we [use docker](../RUN_IN_DOCKER.md) to start the server-side service. 
+Here, we [use docker](../Run_In_Docker_EN.md) to start the server-side service. 
 
 First, start the BOW server, which enables the `8000` port:
 
