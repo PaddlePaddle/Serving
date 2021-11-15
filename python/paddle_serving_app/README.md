@@ -144,7 +144,7 @@ This tool is convenient to analyze the proportion of time occupancy in the predi
 Load the trace file generated in the previous step through the load button, you can
 Visualize the time information of each stage of the forecast service.
 
-As shown in next figure, the figure shows the timeline of GPU prediction service using [bert example](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert).
+As shown in next figure, the figure shows the timeline of GPU prediction service using [bert example](../../examples/C++/PaddleNLP/bert).
 The server side starts service with 4 GPU cards, the client side starts 4 processes to request, and the batch size is 1.
 In the figure, bert_pre represents the data pre-processing stage of the client, and client_infer represents the stage where the client completes the sending of the prediction request to the receiving result.
 The process in the figure represents the process number of the client, and the second line of each process shows the timeline of each op of the server.
