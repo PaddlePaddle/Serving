@@ -95,21 +95,21 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 <h2 align="center">模型库</h2>
 
 Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计42个模型。
-<center class="half">
+
+<p align="center">
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
 | 8 | 12 | 13 | 2 | 3 | 4 | 
 
-</center>
+</p>
 
 更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
 
-<center class="half">
+<p align="center">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
   <img src="doc/images/detection.png" width="350">
-  
-</center>
+</p>
 
 <h2 align="center">社区</h2>
 
@@ -118,15 +118,17 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 ### 微信
 - 微信用户请扫码
-<center class="half">
+
+<p align="center">
   <img src="doc/images/wechat_group_1.jpeg" width="250">
-</center
+</p>
 
 ### QQ
 - 飞桨推理部署交流群(Group No.：697765514)
-<center class="half">
+
+<p align="center">
   <img src="doc/images/qq_group_1.png" width="200">
-</center>
+</p>
 
 ### Slack
 - [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
