@@ -1,6 +1,6 @@
 # Pipeline Serving Performance Optimization
 
-(English|[简体中文](./PIPELINE_SERVING_PERFORMANCE_OPTIMIZATION_CN.md))
+(English|[简体中文](./Performance_Tuning_CN.md))
 
 
 ## 1. Performance analysis and optimization
