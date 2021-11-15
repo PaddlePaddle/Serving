@@ -54,7 +54,7 @@ Hwvideoframe provides a variety of data preprocessing methods for photo preproce
 
 ## Quick start
 
-[After compiling from code](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE.md)，this project will be stored in reader。
+[After compiling from code](../../../doc/Compile_EN.md)，this project will be stored in reader。
 
 ## How to Test
 
