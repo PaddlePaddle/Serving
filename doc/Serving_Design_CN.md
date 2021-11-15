@@ -55,7 +55,7 @@ Paddle Serving从做顶层设计时考虑到不同团队在工业级场景中会
 > 跨平台运行
 
 跨平台是不依赖于操作系统，也不依赖硬件环境。一个操作系统下开发的应用，放到另一个操作系统下依然可以运行。因此，设计上既要考虑开发语言、组件是跨平台的，同时也要考虑不同系统上编译器的解释差异。
-Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](./Docker_Images_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](./Run_In_Dokcer_CN.md)》。目前，Python webservice模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](./Windows_Tutorial_CN.md)》
+Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](./Docker_Images_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](./Install_CN.md)》。目前，Python webservice模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](./Windows_Tutorial_CN.md)》
 
 > 支持多种开发语言SDK
 
@@ -132,7 +132,7 @@ Paddle Serving采用对称加密算法对模型进行加密，在服务加载模
 
 ### 3.5 A/B Test
 
-在对模型进行充分的离线评估后，通常需要进行在线A/B测试，来决定是否大规模上线服务。下图为使用Paddle Serving做A/B测试的基本结构，Client端做好相应的配置后，自动将流量分发给不同的Server，从而完成A/B测试。具体例子请参考《[如何使用Paddle Serving做ABTEST](./C++_Serving/ABTEST_CN.md)》。
+在对模型进行充分的离线评估后，通常需要进行在线A/B测试，来决定是否大规模上线服务。下图为使用Paddle Serving做A/B测试的基本结构，Client端做好相应的配置后，自动将流量分发给不同的Server，从而完成A/B测试。具体例子请参考《[如何使用Paddle Serving做ABTEST](./C++_Serving/ABTest_CN.md)》。
 
 <p align="center">
     <br>
