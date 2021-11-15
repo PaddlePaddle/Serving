@@ -58,7 +58,7 @@ fetch_var {
 
 ## C++ Serving
 
-### 1.快速启动
+### 1.快速启动与关闭
 
 可以通过配置模型及端口号快速启动服务，启动命令如下：
 
@@ -106,6 +106,11 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
+#### 当您想要关闭Serving服务时.
+```BASH
+python3 -m paddle_serving_server.serve stop
+```
+stop参数发送SIGINT至C++ Serving，若改成kill则发送SIGKILL信号至C++ Serving
 
 ### 2.自定义配置启动
 
@@ -312,6 +317,20 @@ fetch_var {
 
 ## Python Pipeline
 
+### 快速启动与关闭
+Python Pipeline启动命令如下：
+
+```BASH
+python3 web_service.py
+```
+
+当您想要关闭Serving服务时.
+```BASH
+python3 -m paddle_serving_server.serve stop
+```
+stop参数发送SIGINT至Pipeline Serving，若改成kill则发送SIGKILL信号至Pipeline Serving
+
+### 配置文件
 Python Pipeline提供了用户友好的多模型组合服务编程框架，适用于多模型组合应用的场景。
 其配置文件为YAML格式，一般默认为config.yaml。示例如下：
 ```YAML
