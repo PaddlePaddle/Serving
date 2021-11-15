@@ -70,7 +70,7 @@ Develop Images:
 |    CPU   | >=0.5.0 | 0.7.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
 | Cuda10.1 | >=0.5.0 | 0.7.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
-|          | <=0.4.0 | 0.7.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
+|          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
 | Cuda10.2+Cudnn7 | >=0.5.0 | 0.7.0-cuda10.2-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
 | Cuda10.2+Cudnn8 | >=0.5.0 | 0.7.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
