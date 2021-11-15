@@ -2,7 +2,22 @@
 
 (简体中文|[English](./Compile_EN.md))
 
-## 编译环境设置
+## 总体概述
+
+编译Paddle Serving一共分以下几步
+
+- 编译环境准备：根据模型和运行环境的需要，选择最合适的镜像
+- 下载代码库：下载Serving代码库，按需要执行初始化操作
+- 环境变量准备：根据运行环境的需要，确定Python各个环境变量，如GPU环境还需要确定Cuda，Cudnn，TensorRT等环境变量。
+- 正式编译： 编译`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`相关whl包
+- 安装相关whl包：安装编译出的三个whl包，并设置SERVING_BIN环境变量
+
+此外，针对某些C++二次开发场景，我们也提供了OPENCV的联编方案。
+
+
+
+
+## 编译环境准备
 
 |             组件             |             版本要求              |
 | :--------------------------: | :-------------------------------: |
@@ -25,41 +40,43 @@
 
 推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](DOCKER_IMAGES_CN.md)。
 
-我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn。其中Serving镜像名是 paddlepaddle/serving:${Serving开发镜像Tag}， Paddle开发镜像名是 paddlepaddle/paddle:${Paddle开发镜像Tag}。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
+我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn8。我们提供了Serving开发镜像涵盖以上环境。与此同时，我们也支持Paddle开发镜像。
 
-Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving，
+其中Serving镜像名是 **paddlepaddle/serving:${Serving开发镜像Tag}**， Paddle开发镜像名是 **paddlepaddle/paddle:${Paddle开发镜像Tag}**。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
+
+Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving。对于上个版本就已经使用Serving用户的开发者来说，Serving开发镜像应该不会感到陌生。但对于熟悉Paddle训练框架生态的开发者，目前应该更熟悉已有的Paddle开发镜像。为了适应所有用户的不同习惯，我们对这两套镜像都做了充分的支持。
 
 
-|  环境                         |   Serving开发镜像Tag               | Paddle开发镜像Tag                   |
-| :--------------------------: | :-------------------------------: | :-------------------------------: |
-|  CPU                         | 0.7.0-devel                       | 2.2.0                             |
-|  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       | 无                                |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       | 2.2.0-cuda10.2-cudnn7             |
-|  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       | 无                                |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       | 2.2.0-cuda11.2-cudnn8             |
+|  环境                         |   Serving开发镜像Tag               |    操作系统      | Paddle开发镜像Tag       |  操作系统            |
+| :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
+|  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
+|  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                     | 无                 |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
-我们首先要针对自己所需的环境拉取相关镜像。
+我们首先要针对自己所需的环境拉取相关镜像。上表**环境**一列下，除了CPU，其余（Cuda**+Cudnn**）都属于GPU环境。
+您可以使用Serving开发镜像。
 ```
 docker pull paddlepaddle/serving:${Serving开发镜像Tag}
+
 # 如果是GPU镜像
 nvidia-docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
+
 # 如果是CPU镜像
 docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
 ```
 
+也可以使用Paddle开发镜像。
 ```
 docker pull paddlepaddle/paddle:${Paddle开发镜像Tag}
-# 如果是GPU镜像
+
+# 如果是GPU镜像，需要使用nvidia-docker
 nvidia-docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
+
 # 如果是CPU镜像
 docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
 ```
-
-接下来执行相关代码就好，主要的步骤如下。
-- 检查并下载相关依赖
-- 下载代码库
-- 编译paddle-serving-server，paddle-serving-client和paddle-serving-app
-- 安装上述python包
 
 
 ## 下载代码库
@@ -72,7 +89,7 @@ cd Serving && git submodule update --init --recursive
 bash tools/paddle_env_install.sh
 ```
 
-## 编译准备
+## 环境变量准备
 
 **设置PYTHON环境变量**
 
@@ -126,18 +143,29 @@ go install google.golang.org/grpc@v1.33.0
 go env -w GO111MODULE=auto
 ```
 
-如果您是GPU用户需要额外执行
-
+如果您是GPU用户需要额外设置`CUDA_PATH`, `CUDNN_LIBRARY`, `CUDA_CUDART_LIBRARY`和`TENSORRT_LIBRARY_PATH`。
 ```
 export CUDA_PATH='/usr/local/cuda'
 export CUDNN_LIBRARY='/usr/local/cuda/lib64/'
 export CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/"
 export TENSORRT_LIBRARY_PATH="/usr/"
 ```
+环境变量的含义如下表所示。
+
+| cmake环境变量         | 含义                                | GPU环境注意事项               | Docker环境是否需要 |
+|-----------------------|-------------------------------------|-------------------------------|--------------------|
+| CUDA_TOOLKIT_ROOT_DIR | cuda安装路径，通常为/usr/local/cuda | 全部GPU环境都需要                | 否(/usr/local/cuda)                 |
+| CUDNN_LIBRARY         | libcudnn.so.*所在目录，通常为/usr/local/cuda/lib64/  | 全部GPU环境都需要                | 否(/usr/local/cuda/lib64/)                 |
+| CUDA_CUDART_LIBRARY   | libcudart.so.*所在目录，通常为/usr/local/cuda/lib64/ | 全部GPU环境都需要                | 否(/usr/local/cuda/lib64/)                 |
+| TENSORRT_ROOT         | libnvinfer.so.*所在目录的上一级目录，取决于TensorRT安装目录 | 全部GPU环境都需要 | 否(/usr)                 |
+
+
 
 ## 正式编译
 
 我们一共需要编译三个目标，分别是`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`，其中`paddle-serving-server`需要区分CPU或者GPU版本。如果是CPU版本请运行，
+
+### 编译paddle-serving-server
 
 ```
 mkdir build_server
@@ -168,15 +196,22 @@ make -j20
 cd ..
 ``` 
 
+### 编译paddle-serving-client 和 paddle-serving-app
+
 接下来，我们继续编译client和app就可以了，这两个包的编译命令在所有平台通用，不区分CPU和GPU的版本。
 ```
+# 编译paddle-serving-client
+mkdir build_client
 cd build_client
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
     -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DCLIENT=ON ..
-make -j20 
+make -j10
 cd ..
+
+# 编译paddle-serving-app
+mkdir build_app
 cd build_app
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
@@ -201,7 +236,8 @@ export SERVING_BIN=${PWD}/build_server/core/general-server/serving
 可以cd build_server路径下，执行`export SERVING_BIN=${PWD}/core/general-server/serving`
 
 
-### 开启WITH_OPENCV选项编译C++ Server
+## 开启WITH_OPENCV选项编译C++ Server
+
 **注意：** 只有当您需要对Paddle Serving C++部分进行二次开发，且新增的代码依赖于OpenCV库时，您才需要这样做。
 
 编译Serving C++ Server部分，开启WITH_OPENCV选项时，需要已安装的OpenCV库，若尚未安装，可参考本文档后面的说明编译安装OpenCV库。
@@ -224,13 +260,8 @@ make -j10
 
 
 
-## 如何验证
 
-请使用 `python/examples` 下的例子进行验证。
-
-
-
-## CMake选项说明
+## 附：CMake选项说明
 
 |     编译选项     |                    说明                    | 默认 |
 | :--------------: | :----------------------------------------: | :--: |
@@ -271,11 +302,11 @@ Paddle Serving通过PaddlePaddle预测库支持在GPU上做预测。WITH_GPU选�
 | post102  |  10.2   | CuDNN 8.0.5  | 7.1.3    |
 | post11   |  11.0   | CuDNN 8.0.4  | 7.1.3    |
 
-### 如何让Paddle Serving编译系统探测到CuDNN库
+### 附：如何让Paddle Serving编译系统探测到CuDNN库
 
 从NVIDIA developer官网下载对应版本CuDNN并在本地解压后，在cmake编译命令中增加`-DCUDNN_LIBRARY`参数，指定CuDNN库所在路径。
 
-## 编译安装OpenCV库
+## 附：编译安装OpenCV库
 **注意：** 只有当您需要在C++代码中引入OpenCV库时，您才需要这样做。
 
 * 首先需要从OpenCV官网上下载在Linux环境下源码编译的包，以OpenCV3.4.7为例，下载命令如下。
