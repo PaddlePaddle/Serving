@@ -12,7 +12,7 @@
 
 
 ## 示例
-在python/example/criteo_ctr_with_cube下执行
+在Serving/examples/C++/PaddleRec/criteo_ctr_with_cube/下执行
 ```
 python local_train.py # 训练模型
 cp ../../../build_server/core/predictor/seq_generator seq_generator #复制Sequence File模型生成工具
