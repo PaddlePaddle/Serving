@@ -8,7 +8,7 @@ This quick start example is mainly for those users who already have a model to d
 
 get into the Serving git directory, and change dir to `fit_a_line`
 ``` shell
-cd Serving/examples/C++//fit_a_line
+cd Serving/examples/C++/fit_a_line
 sh get_data.sh
 ```
 
