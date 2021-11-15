@@ -38,7 +38,7 @@ pip install -r python/requirements_win.txt
 **运行OCR示例**：
 
 ```
-cd Serving/python/example/ocr
+cd Serving/examples/C++/PaddleOCR/ocr/
 python -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
 python -m paddle_serving_app.package --get_model ocr_det
