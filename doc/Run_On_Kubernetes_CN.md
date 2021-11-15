@@ -80,12 +80,12 @@ python3.6 web_service.py
 
 #### WebService模式：
 
-web service模式本质上和pipeline模式类似，因此我们以`Serving/python/examples/bert`为例
+web service模式本质上和pipeline模式类似，因此我们以`Serving/examples/C++/PaddleNLP/bert`为例
 
 ```bash
 #假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.6.0-cuda10.2-py36
 docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.6.0-cpu-py36 bash
-cd Serving/python/examples/bert
+cd Serving/examples/C++/PaddleNLP/bert
 ### download model 
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
 tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
