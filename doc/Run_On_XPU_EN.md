@@ -109,8 +109,8 @@ print(fetch_map)
 Some examples are provided below, and other models can be modifed with reference to these examples.
 | sample name | sample links                                                |
 | :---------- | :---------------------------------------------------------- |
-| fit_a_line  | [fit_a_line_xpu](../python/examples/xpu/fit_a_line_xpu)     |
-| resnet      | [resnet_v2_50_xpu](../python/examples/xpu/resnet_v2_50_xpu) |
+| fit_a_line  | [fit_a_line_xpu](../examples/C++/xpu/fit_a_line_xpu)     |
+| resnet      | [resnet_v2_50_xpu](../examples/C++/xpu/resnet_v2_50_xpu) |
 
 Note：Supported model lists refer to [doc](https://paddlelite.paddlepaddle.org.cn/introduction/support_model_list.html). There are differences in the adaptation of different models, and there may be some unsupported cases. If you have any problem，please submit [Github issue](https://github.com/PaddlePaddle/Serving/issues), and we will follow up in real time.
 
