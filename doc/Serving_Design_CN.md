@@ -55,14 +55,14 @@ Paddle Serving从做顶层设计时考虑到不同团队在工业级场景中会
 > 跨平台运行
 
 跨平台是不依赖于操作系统，也不依赖硬件环境。一个操作系统下开发的应用，放到另一个操作系统下依然可以运行。因此，设计上既要考虑开发语言、组件是跨平台的，同时也要考虑不同系统上编译器的解释差异。
-Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](Docker_Images_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](Run_In_Dokcer_CN.md)》。目前，Python webservice模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)》
+Docker 是一个开源的应用容器引擎，让开发者可以打包他们的应用以及依赖包到一个可移植的容器中，然后发布到任何流行的Linux机器或Windows机器上。我们将Paddle Serving框架打包了多种Docker镜像，镜像列表参考《[Docker镜像](./Docker_Images_CN.md)》，根据用户的使用场景选择镜像。为方便用户使用Docker，我们提供了帮助文档《[如何在Docker中运行PaddleServing](./Run_In_Dokcer_CN.md)》。目前，Python webservice模式可在原生系统Linux和Windows双系统上部署运行。《[Windows平台使用Paddle Serving指导](./Windows_Tutorial_CN.md)》
 
 > 支持多种开发语言SDK
 
 Paddle Serving提供了3种开发语言SDK，包括Python、C++、Java。Golang SDK在建设中，有兴趣的开源开发者可以提交PR。
 + Python，参考python/examples下client示例 或 4.2 web服务示例
-+ C++，参考《[从零开始写一个预测服务](C++_Serving/Creat_C++Serving_CN.md)》
-+ Java，参考《[Paddle Serving Client Java SDK](Java_SDK_CN.md)》
++ C++，参考《[从零开始写一个预测服务](./C++_Serving/Creat_C++Serving_CN.md)》
++ Java，参考《[Paddle Serving Client Java SDK](./Java_SDK_CN.md)》
 
 
 > 支持多种硬件设备
@@ -76,7 +76,7 @@ Paddle Serving提供了3种开发语言SDK，包括Python、C++、Java。Golang 
 
 以IMDB评论情感分析任务为例通过9步展示，Paddle Serving从模型的训练到部署预测服务的全流程《[AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)》
 
-由于无法直接查看模型文件中feed和fetch参数信息，不方便用户拼装参数。因此，Paddle Serving开发一个工具将Paddle模型转成Serving的格式，生成包含feed和fetch参数信息的prototxt文件。下图是uci_housing示例的生成的prototxt文件，更多转换方法参考文档《[怎样保存用于Paddle Serving的模型](Save_CN.md)》。
+由于无法直接查看模型文件中feed和fetch参数信息，不方便用户拼装参数。因此，Paddle Serving开发一个工具将Paddle模型转成Serving的格式，生成包含feed和fetch参数信息的prototxt文件。下图是uci_housing示例的生成的prototxt文件，更多转换方法参考文档《[怎样保存用于Paddle Serving的模型](./Save_CN.md)》。
 ```
 feed_var {
   name: "x"
@@ -124,15 +124,15 @@ C++ Serving的核心执行引擎是一个有向无环图，图中的每个节点
 
 ### 3.3 模型管理与热加载
 
-Paddle Serving的C++引擎支持模型管理功能，支持多种模型和模型不同版本的管理。为了保证在模型更换期间推理服务的可用性，需要在服务不中断的情况下对模型进行热加载。Paddle Serving对该特性进行了支持，并提供了一个监控产出模型更新本地模型的工具，具体例子请参考《[Paddle Serving中的模型热加载](C++_Serving/Hot_Loading_CN.md)》。
+Paddle Serving的C++引擎支持模型管理功能，支持多种模型和模型不同版本的管理。为了保证在模型更换期间推理服务的可用性，需要在服务不中断的情况下对模型进行热加载。Paddle Serving对该特性进行了支持，并提供了一个监控产出模型更新本地模型的工具，具体例子请参考《[Paddle Serving中的模型热加载](./C++_Serving/Hot_Loading_CN.md)》。
 
 ### 3.4 模型加解密
 
-Paddle Serving采用对称加密算法对模型进行加密，在服务加载模型过程中在内存中解密。目前，提供基础的模型安全能力，并不保证模型绝对安全性，用户可根据我们的设计加以完善，实现更高级别的安全性。说明文档参考《[加密模型预测](C++_Serving/Encryption_CN.md)》
+Paddle Serving采用对称加密算法对模型进行加密，在服务加载模型过程中在内存中解密。目前，提供基础的模型安全能力，并不保证模型绝对安全性，用户可根据我们的设计加以完善，实现更高级别的安全性。说明文档参考《[加密模型预测](./C++_Serving/Encryption_CN.md)》
 
 ### 3.5 A/B Test
 
-在对模型进行充分的离线评估后，通常需要进行在线A/B测试，来决定是否大规模上线服务。下图为使用Paddle Serving做A/B测试的基本结构，Client端做好相应的配置后，自动将流量分发给不同的Server，从而完成A/B测试。具体例子请参考《[如何使用Paddle Serving做ABTEST](C++_Serving/ABTEST_CN.md)》。
+在对模型进行充分的离线评估后，通常需要进行在线A/B测试，来决定是否大规模上线服务。下图为使用Paddle Serving做A/B测试的基本结构，Client端做好相应的配置后，自动将流量分发给不同的Server，从而完成A/B测试。具体例子请参考《[如何使用Paddle Serving做ABTEST](./C++_Serving/ABTEST_CN.md)》。
 
 <p align="center">
     <br>
@@ -193,7 +193,7 @@ Pipeline Serving的网络框架采用gRPC和gPRC gateway。gRPC service接收RPC
 </center>
 
 ### 5.2 核心设计与使用用例
-Pipeline Serving核心设计是图执行引擎，基本处理单元是OP和Channel，通过组合实现一套有向无环图，设计与使用文档参考《[Pipeline Serving设计与实现](Python_Pipeline/Pipeline_Design_CN.md)》
+Pipeline Serving核心设计是图执行引擎，基本处理单元是OP和Channel，通过组合实现一套有向无环图，设计与使用文档参考《[Pipeline Serving设计与实现](./Python_Pipeline/Pipeline_Design_CN.md)》
 <center>
 <img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
