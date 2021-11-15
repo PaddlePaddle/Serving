@@ -128,7 +128,7 @@ Paddle Serving uses a symmetric encryption algorithm to encrypt the model, and d
 
 ### 3.5 A/B Test
 
-After sufficient offline evaluation of the model, online A/B test is usually needed to decide whether to enable the service on a large scale. The following figure shows the basic structure of A/B test with Paddle Serving. After the client is configured with the corresponding configuration, the traffic will be automatically distributed to different servers to achieve A/B test. Please refer to [ABTEST in Paddle Serving](C++_Serving/ABTEST_EN.md) for specific examples.
+After sufficient offline evaluation of the model, online A/B test is usually needed to decide whether to enable the service on a large scale. The following figure shows the basic structure of A/B test with Paddle Serving. After the client is configured with the corresponding configuration, the traffic will be automatically distributed to different servers to achieve A/B test. Please refer to [ABTEST in Paddle Serving](C++_Serving/ABTest_EN.md) for specific examples.
 
 <p align="center">
     <br>

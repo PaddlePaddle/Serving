@@ -7,7 +7,7 @@ Paddle Serving服务端目前提供了支持Http直接访问的功能，本文�
 BRPC-Server端支持通过Http的方式被访问，各种语言都有实现Http请求的一些库，所以Java/Python/Go等BRPC支持不太完善的语言，可以通过Http的方式直接访问服务端进行预测。
 
 ### Http方式
-基本流程和原理：客户端需要将数据按照Proto约定的格式(请参阅[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto))封装在Http请求的请求体中。
+基本流程和原理：客户端需要将数据按照Proto约定的格式(请参阅[`core/general-server/proto/general_model_service.proto`](../../core/general-server/proto/general_model_service.proto))封装在Http请求的请求体中。
 BRPC-Server会尝试去JSON字符串中再去反序列化出Proto格式的数据，从而进行后续的处理。
 
 ### Http+protobuf方式
@@ -42,11 +42,11 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 
 使用HttpClient最简单只需要四步，1、创建一个HttpClient对象。2、加载Client端的prototxt配置文件（本例中为python/examples/fit_a_line/目录下的uci_housing_client/serving_client_conf.prototxt)。3、调用connect函数。4、调用Predict函数，通过Http方式请求预测服务。
 
-此外，您可以根据自己的需要配置Server端IP、Port、服务名称（此服务名称需要与[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto)文件中的Service服务名和rpc方法名对应，即`GeneralModelService`字段和`inference`字段），设置Request数据体压缩，设置Response支持压缩传输，模型加密预测（需要配置Server端使用模型加密）、设置响应超时时间等功能。
+此外，您可以根据自己的需要配置Server端IP、Port、服务名称（此服务名称需要与[`core/general-server/proto/general_model_service.proto`](../../core/general-server/proto/general_model_service.proto)文件中的Service服务名和rpc方法名对应，即`GeneralModelService`字段和`inference`字段），设置Request数据体压缩，设置Response支持压缩传输，模型加密预测（需要配置Server端使用模型加密）、设置响应超时时间等功能。
 
-Python的HttpClient使用示例见[`python/examples/fit_a_line/test_httpclient.py`](../python/examples/fit_a_line/test_httpclient.py)，接口详见[`python/paddle_serving_client/httpclient.py`](../python/paddle_serving_client/httpclient.py)。
+Python的HttpClient使用示例见[`examples/C++/fit_a_line/test_httpclient.py`](../../examples/C++/fit_a_line/test_httpclient.py)，接口详见[`python/paddle_serving_client/httpclient.py`](../../python/paddle_serving_client/httpclient.py)。
 
-Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/Client.java`](../java/src/main/java/io/paddle/serving/client/Client.java)。
+Java的HttpClient使用示例见[`java/examples/src/main/java/PaddleServingClientExample.java`](../../java/examples/src/main/java/PaddleServingClientExample.java)接口详见[`java/src/main/java/io/paddle/serving/client/Client.java`](../../java/src/main/java/io/paddle/serving/client/Client.java)。
 
 如果不能满足您的需求，您也可以在此基础上添加一些功能。
 
@@ -62,7 +62,7 @@ curl -XPOST http://0.0.0.0:9393/GeneralModelService/inference -d ' {"tensor":[{"
 ```
 其中`127.0.0.1:9393`为IP和Port，根据您服务端启动的IP和Port自行设定。
 
-`GeneralModelService`字段和`inference`字段分别为Proto文件中的Service服务名和rpc方法名，详见[`core/general-server/proto/general_model_service.proto`](../core/general-server/proto/general_model_service.proto)
+`GeneralModelService`字段和`inference`字段分别为Proto文件中的Service服务名和rpc方法名，详见[`core/general-server/proto/general_model_service.proto`](../../core/general-server/proto/general_model_service.proto)
 
 -d后面的是请求的数据体，json中一定要包含上述proto中的required字段，否则转化会失败，对应请求会被拒绝。
 

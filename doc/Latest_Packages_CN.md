@@ -41,7 +41,7 @@ https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.0.0-py3-n
 ```
 
 ## Baidu Kunlun user
-for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as follows. Users should use the xpu-beta docker [DOCKER IMAGES](./DOCKER_IMAGES.md) 
+for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as follows. Users should use the xpu-beta docker [DOCKER IMAGES](./Docker_Images_CN.md) 
 **We only support Python 3.6 for Kunlun Users.**
 
 ### Wheel Package Links

@@ -311,14 +311,14 @@ The default implementation of **pack_response_package** is to convert the dictio
 
 ## 3.Classic Examples
 
-All examples of pipelines are in [examples/pipeline/](../python/examples/pipeline) directory, There are 7 types of model examples currently:
-- [PaddleClas](../python/examples/pipeline/PaddleClas)
-- [Detection](../python/examples/pipeline/PaddleDetection)  
-- [bert](../python/examples/pipeline/bert)
-- [imagenet](../python/examples/pipeline/imagenet)
-- [imdb_model_ensemble](../python/examples/pipeline/imdb_model_ensemble)
-- [ocr](../python/examples/pipeline/ocr)
-- [simple_web_service](../python/examples/pipeline/simple_web_service)
+All examples of pipelines are in [examples/pipeline/](../../examples/Pipeline) directory, There are 7 types of model examples currently:
+- [PaddleClas](../../examples/Pipeline/PaddleClas) 
+- [Detection](../../examples/Pipeline/PaddleDetection)  
+- [bert](../../examples/Pipeline/bert)
+- [imagenet](../../examples/Pipeline/PaddleClas/imagenet)
+- [imdb_model_ensemble](../../examples/Pipeline/imdb_model_ensemble)
+- [ocr](../../examples/Pipeline/PaddleOCR/ocr)
+- [simple_web_service](../../examples/Pipeline/simple_web_service)
 
 Here, we build a simple imdb model enable example to show how to use Pipeline Serving. The relevant code can be found in the `python/examples/pipeline/imdb_model_ensemble` folder. The Server-side structure in the example is shown in the following figure:
 

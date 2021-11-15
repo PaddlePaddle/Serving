@@ -1,6 +1,6 @@
 # Paddle Serving中的集成预测
 
-(简体中文|[English](Model_Ensemble_EN.md))
+(简体中文|[English](./Model_Ensemble_EN.md))
 
 在一些场景中，可能使用多个相同输入的模型并行集成预测以获得更好的预测效果，Paddle Serving提供了这项功能。
 

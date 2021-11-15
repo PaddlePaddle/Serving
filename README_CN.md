@@ -39,7 +39,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 <h2 align="center">教程</h2>
 
-- AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
+- AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1975340)
 
 - 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
 <p align="center">
@@ -55,8 +55,8 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可以下面的文档。每天编译生成develop分支的最新开发包供开发者使用。
 - [使用docker安装Paddle Serving](doc/Install_CN.md)
 - [源码编译安装Paddle Serving](doc/Compile_CN.md)
-- [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes.md)
-- [部署Paddle Serving安全网关](doc/Serving_Auth_Docker.md)
+- [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
+- [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
 - [在异构硬件部署Paddle Serving](doc/Run_On_XPU_CN.md)
 - [最新Wheel开发包](doc/Latest_Packages_CN.md)(develop分支每日更新)
 
@@ -136,7 +136,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 > 贡献代码
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute.md)
+如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute_EN.md)
 - 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
 - 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
 - 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。

@@ -1,6 +1,6 @@
 # MOEDL ENCRYPTION INFERENCE
 
-([简体中文](Encryption_CN.md)|English)
+([简体中文](./Encryption_CN.md)|English)
 
 Paddle Serving provides model encryption inference, This document shows the details.
 

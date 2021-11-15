@@ -38,7 +38,7 @@
 |            libSM             |               1.2.2               |
 |          libXrender          |              0.9.10               |
 
-推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](DOCKER_IMAGES_CN.md)。
+推荐使用Docker编译，我们已经为您准备好了Paddle Serving编译环境并配置好了上述编译依赖，详见[该文档](Docker_Images_CN.md)。
 
 我们提供了五个环境的开发镜像，分别是CPU， Cuda10.1+Cudnn7， Cuda10.2+Cudnn7，Cuda10.2+Cudnn8， Cuda11.2+Cudnn8。我们提供了Serving开发镜像涵盖以上环境。与此同时，我们也支持Paddle开发镜像。
 

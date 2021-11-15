@@ -71,7 +71,7 @@ pip3 install paddle-serving-server-gpu==0.7.0.post112 # GPU with CUDA11.2 + Tens
 
 您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
 
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](Latest_Packages_CN.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](Compile_CN.md)。
+如果需要使用develop分支编译的安装包，请从[最新安装包列表](./Latest_Packages_CN.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./Compile_CN.md)。
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
