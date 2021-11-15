@@ -142,7 +142,7 @@ make: *** [all] Error 2
 
 #### Q：使用过程中出现CXXABI错误。
 
-这个问题出现的原因是Python使用的gcc版本和Serving所需的gcc版本对不上。对于Docker用户，推荐使用[Docker容器](./Run_In_Docker_CN.md)，由于Docker容器内的Python版本与Serving在发布前都做过适配，这样就不会出现类似的错误。如果是其他开发环境，首先需要确保开发环境中具备GCC 8.2，如果没有gcc 8.2，参考安装方式
+这个问题出现的原因是Python使用的gcc版本和Serving所需的gcc版本对不上。对于Docker用户，推荐使用[Docker容器](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)，由于Docker容器内的Python版本与Serving在发布前都做过适配，这样就不会出现类似的错误。如果是其他开发环境，首先需要确保开发环境中具备GCC 8.2，如果没有gcc 8.2，参考安装方式
 
 ```bash
 wget -q https://paddle-ci.gz.bcebos.com/gcc-8.2.0.tar.xz 
@@ -236,7 +236,7 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: python编译的GCC版本与serving的版本不匹配
 
-**A:**:1)使用[GPU docker](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Run_In_Docker_CN.md#gpunvidia-docker)解决环境问题；2)修改anaconda的虚拟环境下安装的python的gcc版本[改变python的GCC编译环境](https://www.jianshu.com/p/c498b3d86f77) 
+**A:**:1)使用GPU Dockers, [这里是Docker镜像列表](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)解决环境问题；2)修改anaconda的虚拟环境下安装的python的gcc版本[改变python的GCC编译环境](https://www.jianshu.com/p/c498b3d86f77) 
 
 #### Q: paddle-serving是否支持本地离线安装 
 
