@@ -104,8 +104,8 @@ print(fetch_map)
 以下提供部分样例，其他模型可参照进行修改。
 | 示例名称   | 示例链接                                                    |
 | :--------- | :---------------------------------------------------------- |
-| fit_a_line | [fit_a_line_xpu](../python/examples/xpu/fit_a_line_xpu)     |
-| resnet     | [resnet_v2_50_xpu](../python/examples/xpu/resnet_v2_50_xpu) |
+| fit_a_line | [fit_a_line_xpu](../examples/C++/xpu/resnet_v2_50_xpu)     |
+| resnet     | [resnet_v2_50_xpu](../examples/C++/xpu/resnet_v2_50_xpu) |
 
 注：支持昆仑芯片部署模型列表见[链接](https://paddlelite.paddlepaddle.org.cn/introduction/support_model_list.html)。不同模型适配上存在差异，可能存在不支持的情况，部署使用存在问题时，欢迎以[Github issue](https://github.com/PaddlePaddle/Serving/issues)，我们会实时跟进。
 

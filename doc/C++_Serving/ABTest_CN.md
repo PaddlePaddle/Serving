@@ -11,7 +11,7 @@
 ### 下载数据以及模型
 
 ``` shell
-cd Serving/python/examples/imdb
+cd Serving/examples/C++/imdb
 sh get_data.sh
 ```
 
