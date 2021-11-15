@@ -102,13 +102,13 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 | 8 | 12 | 13 | 2 | 3 | 4 | 
 
 </center>
+
 更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
 
 <center class="half">
-  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/>
-  <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
-  <img src="doc/images/detection.png" width="160"/>
-  <img src="https://github.com/PaddlePaddle/PaddleClas/raw/release/2.3/docs/images/recognition.gif" width="213"/>
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
+  <img src="doc/images/detection.png" width="350">
+  
 </center>
 
 <h2 align="center">社区</h2>
@@ -118,9 +118,15 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 ### 微信
 - 微信用户请扫码
+<center class="half">
+  <img src="doc/images/wechat_group_1.jpeg" width="250">
+</center
 
 ### QQ
-- 飞桨推理部署交流群(群号：696965088)
+- 飞桨推理部署交流群(Group No.：697765514)
+<center class="half">
+  <img src="doc/images/qq_group_1.png" width="200">
+</center>
 
 ### Slack
 - [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
@@ -129,11 +135,12 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 > 贡献代码
 
 如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute.md)
-
-- 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
-- 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
-- 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
-- 特别感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
+- 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
+- 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
+- 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
+- 感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
+- 感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
+- 感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
 
 > 反馈
 
