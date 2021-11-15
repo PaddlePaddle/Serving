@@ -11,7 +11,7 @@ Note that:  A/B Test is only applicable to RPC mode, not web mode.
 ### Download Data and Models
 
 ```shell
-cd Serving/python/examples/imdb
+cd Serving/examples/C++/imdb
 sh get_data.sh
 ```
 
@@ -103,8 +103,8 @@ Due to different network conditions, the results of each prediction may be sligh
 ```
 
 <!--
-cp ../Serving/python/examples/imdb/get_data.sh .
-cp ../Serving/python/examples/imdb/imdb_reader.py .
+cp ../../examples/C++/imdb/get_data.sh .
+cp ../../examples/C++/imdb/imdb_reader.py .
 pip install -U paddle_serving_server
 pip install -U paddle_serving_client
 pip install -U paddlepaddle
