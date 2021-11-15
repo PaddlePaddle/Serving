@@ -159,7 +159,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
     -DSERVER=ON ..
 make -j10
 ```
-**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](Compile_EN.md#Notes).
+**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](Compile_EN.md#Note).
 
 ## Compile Client
 
