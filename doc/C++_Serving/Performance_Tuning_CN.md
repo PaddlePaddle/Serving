@@ -31,7 +31,7 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 # 3.异步模式
 当<mark>**大部分用户的Request请求batch数<<模型最大支持的Batch数**</mark>时，采用异步模式的收益是明显的。
 
-异步模型的原理是将模型预测阶段与RPC线程脱离，模型单独开辟一个线程数可指定的线程池，RPC收到Request后将请求数据放入模型的线程池中的Task队列中，线程池中的线程从Task中取出数据合并Batch后进行预测，从而提升QPS，更多详细的介绍见[C++Serving功能简介](./Introduction_CN.md)，同步模式与异步模式的数据对比见[C++ Serving vs TensorFlow Serving 性能对比](Benchmark_CN.md)，在上述测试的条件下，异步模型比同步模式快百分50%。
+异步模型的原理是将模型预测阶段与RPC线程脱离，模型单独开辟一个线程数可指定的线程池，RPC收到Request后将请求数据放入模型的线程池中的Task队列中，线程池中的线程从Task中取出数据合并Batch后进行预测，从而提升QPS，更多详细的介绍见[C++Serving功能简介](./Introduction_CN.md)，同步模式与异步模式的数据对比见[C++ Serving vs TensorFlow Serving 性能对比](./Benchmark_CN.md)，在上述测试的条件下，异步模型比同步模式快百分50%。
 
 
 异步模式的开启有以下两种方式。
