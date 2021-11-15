@@ -70,7 +70,7 @@ class YourWebService(WebService):
 your_service = YourService(name="XXX")
 your_service.load_model_config("your_model_path")
 your_service.prepare_server(workdir="workdir", port=9292)
-# 如果是GPU用户，可以参照python/examples/ocr下的python示例
+# 如果是GPU用户，可以参照Serving/examples/Pipeline/PaddleOCR/ocr下的python示例
 your_service.run_debugger_service()
 # Windows平台不可以使用 run_rpc_service()接口
 your_service.run_web_service()
