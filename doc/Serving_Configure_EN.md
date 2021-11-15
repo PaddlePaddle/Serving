@@ -58,7 +58,7 @@ fetch_var {
 
 ## C++ Serving
 
-### 1. Quick start
+### 1. Quick start and stop
 
 The easiest way to start c++ serving is to provide the `--model` and `--port` flags.
 
@@ -107,6 +107,11 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
+#### Stop Serving.
+```BASH
+python3 -m paddle_serving_server.serve stop
+```
+`stop` sends SIGINT to C++ Serving. When setting `kill`, SIGKILL will be sent to C++ Serving
 
 ### 2. Starting with user-defined Configuration
 
@@ -316,6 +321,19 @@ fetch_var {
 
 ## Python Pipeline
 
+### Quick start and stop
+
+Example starting Pipeline Serving:
+```BASH
+python3 -m paddle_serving_server.serve --model serving_model --port 9393
+```
+### Stop Serving.
+```BASH
+python3 -m paddle_serving_server.serve stop
+```
+`stop` sends SIGINT to Pipeline Serving. When setting `kill`, SIGKILL will be sent to Pipeline Serving
+
+### yml Configuration
 Python Pipeline provides a user-friendly programming framework for multi-model composite services.
 
 Example of config.yaml:

@@ -64,9 +64,9 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 安装Paddle Serving后，使用快速开始将引导您运行Serving。第一步，调用模型保存接口，生成模型参数配置文件(.prototxt)用以在客户端和服务端使用；第二步，阅读配置和启动参数并启动服务；第三步，根据API和您的使用场景，基于SDK编写客户端请求，并测试推理服务。您想了解跟多特性的使用场景和方法，请详细阅读以下文档。
 - [快速开始](doc/Quick_Start_CN.md)
-- [保存用于Paddle Serving的模型和配置](doc/SAVE_CN.md)
+- [保存用于Paddle Serving的模型和配置](doc/Save_CN.md)
 - [配置和启动参数的说明](doc/Serving_Configure_CN.md)
-- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Http_Service_CN.md)
+- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#4.Client端特性)
 - [低精度推理](doc/Low_Precision_CN.md)
 - [常见模型数据处理](doc/Process_data_CN.md)
 - [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
@@ -95,21 +95,21 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 <h2 align="center">模型库</h2>
 
 Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计42个模型。
-<center class="half">
+
+<p align="center">
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
 | 8 | 12 | 13 | 2 | 3 | 4 | 
 
-</center>
+</p>
+
 更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
 
-<center class="half">
-  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="280"/>
-  <img src="https://github.com/PaddlePaddle/PaddleDetection/raw/release/2.3/docs/images/road554.png" width="160"/>
-  <img src="doc/images/detection.png" width="160"/>
-  <img src="https://github.com/PaddlePaddle/PaddleClas/raw/release/2.3/docs/images/recognition.gif" width="213"/>
-</center>
+<p align="center">
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
+  <img src="doc/images/detection.png" width="350">
+</p>
 
 <h2 align="center">社区</h2>
 
@@ -119,8 +119,16 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 ### 微信
 - 微信用户请扫码
 
+<p align="center">
+  <img src="doc/images/wechat_group_1.jpeg" width="250">
+</p>
+
 ### QQ
-- 飞桨推理部署交流群(群号：696965088)
+- 飞桨推理部署交流群(Group No.：697765514)
+
+<p align="center">
+  <img src="doc/images/qq_group_1.png" width="200">
+</p>
 
 ### Slack
 - [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
@@ -129,11 +137,12 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 > 贡献代码
 
 如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute.md)
-
-- 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
-- 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
-- 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
-- 特别感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
+- 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
+- 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
+- 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
+- 感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
+- 感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
+- 感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
 
 > 反馈
 
