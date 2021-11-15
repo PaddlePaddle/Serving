@@ -111,10 +111,10 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 
-<center class="half">
+<p align="center">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/> 
   <img src="doc/images/detection.png" width="350">
-</center>
+</p>
 
 
 <h2 align="center">Community</h2>
@@ -125,16 +125,16 @@ If you want to communicate with developers and other users? Welcome to join us, 
 - WeChat scavenging
 
 
-<center class="half">
+<p align="center">
   <img src="doc/images/wechat_group_1.jpeg" width="250">
-</center>
+</p>
 
 ### QQ
 - 飞桨推理部署交流群(Group No.：697765514)
 
-<center class="half">
+<p align="center">
   <img src="doc/images/qq_group_1.png" width="200">
-</center>
+</p>
 
 ### Slack
 
