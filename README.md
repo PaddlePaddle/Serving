@@ -17,7 +17,7 @@
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Contributors" src="https://img.shields.io/github/contributors/PaddlePaddle/Serving?color=orange&style=flat-square">
-        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ,Slack-orange?style=flat-square">
+        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ-orange?style=flat-square">
     </a>
     <br>
 <p>
@@ -59,7 +59,7 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
 - [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
-- [Latest Wheel packages(Update everyday on develop branch)](doc/Latest_Packages_CN.md)
+- [Latest Wheel packages(Update everyday on branch develop)](doc/Latest_Packages_CN.md)
 
 > Use
 
@@ -136,9 +136,6 @@ If you want to communicate with developers and other users? Welcome to join us, 
   <img src="doc/images/qq_group_1.png" width="200">
 </p>
 
-### Slack
-
-- [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 > Contribution
 
