@@ -57,9 +57,9 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
 - [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
-- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)(Chinese)
+- [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
-- [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
+- [Latest Wheel packages(Update everyday on develop branch)](doc/Latest_Packages_CN.md)
 
 > Use
 
@@ -82,7 +82,7 @@ The first step is to call the model save interface to generate a model parameter
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
 - Client SDK
-  - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client))
+  - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)
   - [C++ SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [Large-scale sparse parameter server](doc/Cube_Local_EN.md)
