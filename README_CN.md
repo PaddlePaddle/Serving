@@ -136,7 +136,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 > 贡献代码
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute_EN.md)
+如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines(English)](doc/Contribute_EN.md)
 - 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
 - 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
 - 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
