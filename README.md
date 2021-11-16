@@ -79,7 +79,7 @@ The first step is to call the model save interface to generate a model parameter
   - [Analyze and optimize performance(Chinese)](doc/C++_Serving/Performance_Tuning_CN.md)
   - [Benchmark(Chinese)](doc/C++_Serving/Benchmark_CN.md)
 - [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
-  - [Analyze and optimize performance](doc/Python_Pipeline/Pipeline_Design_EN.md)
+  - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Http_Service_CN.md)
