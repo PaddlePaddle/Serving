@@ -197,12 +197,4 @@ Pipeline Serving核心设计是图执行引擎，基本处理单元是OP和Chann
 <center>
 <img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
-----
 
-## 6. 未来计划
-
-### 6.1 向量检索、树结构检索
-在推荐与广告场景的召回系统中，通常需要采用基于向量的快速检索或者基于树结构的快速检索，Paddle Serving会对这方面的检索引擎进行集成或扩展。
-
-### 6.2 服务监控
-集成普罗米修斯监控，一套开源的监控&报警&时间序列数据库的组合，适合k8s和docker的监控系统。
