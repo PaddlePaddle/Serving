@@ -48,11 +48,9 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 <h2 align="center">文档</h2>
 
-***
-
 > 部署
 
-此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可以下面的文档。每天编译生成develop分支的最新开发包供开发者使用。
+此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可阅读以下文档。每天编译生成develop分支的最新开发包供开发者使用。
 - [使用docker安装Paddle Serving](doc/Install_CN.md)
 - [源码编译安装Paddle Serving](doc/Compile_CN.md)
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
@@ -104,7 +102,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 </p>
 
-更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
+更多模型示例进入[模型库](doc/Model_Zoo_CN.md)
 
 <p align="center">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
