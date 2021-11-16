@@ -357,11 +357,11 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["concat_1.tmp_0"]
 
-            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
-
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
+            
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
 
             #use_mkldnn
             #use_mkldnn: True
@@ -395,11 +395,11 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
 
-            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
-
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
+            
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
 
             #use_mkldnn
             #use_mkldnn: True
