@@ -82,7 +82,7 @@ The first step is to call the model save interface to generate a model parameter
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
 - Client SDK
-  - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client))
+  - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)
   - [C++ SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [Large-scale sparse parameter server](doc/Cube_Local_EN.md)
