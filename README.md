@@ -93,7 +93,7 @@ The first step is to call the model save interface to generate a model parameter
 
 For Paddle Serving developers, we provide extended documents such as custom OP, level of detail(LOD) processing.
 - [Custom Operators](doc/C++_Serving/OP_EN.md)
-- [Processing LOD Data](doc/LOD_EN.md)
+- [Processing LoD Data](doc/LOD_EN.md)
 - [FAQ(Chinese)](doc/FAQ_CN.md)
 
 <h2 align="center">Model Zoo</h2>
