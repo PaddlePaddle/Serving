@@ -332,7 +332,7 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 
 使用gdb调试core文件的方法为：gdb <可执行文件> <core文件>，进入后输入bt指令，一般即可显示出错在哪一行。
 
-注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.6.2/serving
+注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.7.0/serving
 
 
 ## 性能优化

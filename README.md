@@ -17,7 +17,7 @@
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Contributors" src="https://img.shields.io/github/contributors/PaddlePaddle/Serving?color=orange&style=flat-square">
-        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ,Slack-orange?style=flat-square">
+        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ-orange?style=flat-square">
     </a>
     <br>
 <p>
@@ -58,9 +58,9 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
 - [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
-- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)
+- [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
-- [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
+- [Latest Wheel packages(Update everyday on branch develop)](doc/Latest_Packages_CN.md)
 
 > Use
 
@@ -69,23 +69,23 @@ The first step is to call the model save interface to generate a model parameter
 - [Quick Start](doc/Quick_Start_EN.md)
 - [Save a servable model](doc/Save_EN.md)
 - [Description of configuration and startup parameters](doc/Serving_Configure_EN.md)
-- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Introduction_CN.md)
-- [Infer on quantizative models](doc/Low_Precision_CN.md)
-- [Data format of classic models](doc/Process_data_CN.md)
-- [C++ Serving](doc/C++_Serving/Introduction_CN.md) 
-  - [protocols](doc/C++_Serving/Inference_Protocols_CN.md)
+- [Guide for RESTful/gRPC/bRPC APIs(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
+- [Infer on quantizative models](doc/Low_Precision_EN.md)
+- [Data format of classic models(Chinese)](doc/Process_data_CN.md)
+- [C++ Serving(Chinese)](doc/C++_Serving/Introduction_CN.md) 
+  - [Protocols(Chinese)](doc/C++_Serving/Inference_Protocols_CN.md)
   - [Hot loading models](doc/C++_Serving/Hot_Loading_EN.md)
   - [A/B Test](doc/C++_Serving/ABTest_EN.md)
   - [Encryption](doc/C++_Serving/Encryption_EN.md)
   - [Analyze and optimize performance(Chinese)](doc/C++_Serving/Performance_Tuning_CN.md)
   - [Benchmark(Chinese)](doc/C++_Serving/Benchmark_CN.md)
 - [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
-  - [Analyze and optimize performance](doc/Python_Pipeline/Pipeline_Design_EN.md)
+  - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
 - Client SDK
-  - [Python SDK(Chinese)](doc/C++_Serving/Http_Service_CN.md)
+  - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)
-  - [C++ SDK(Chinese)](doc/C++_Serving/Creat_C++Serving_CN.md)
+  - [C++ SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [Large-scale sparse parameter server](doc/Cube_Local_EN.md)
 
 <br>
@@ -94,7 +94,7 @@ The first step is to call the model save interface to generate a model parameter
 
 For Paddle Serving developers, we provide extended documents such as custom OP, level of detail(LOD) processing.
 - [Custom Operators](doc/C++_Serving/OP_EN.md)
-- [Processing LOD Data](doc/LOD_EN.md)
+- [Processing LoD Data](doc/LOD_EN.md)
 - [FAQ(Chinese)](doc/FAQ_CN.md)
 
 <h2 align="center">Model Zoo</h2>
@@ -112,10 +112,10 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 For more model examples, read [Model zoo](doc/Model_Zoo_EN.md)
 
-<center class="half">
+<p align="center">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/> 
   <img src="doc/images/detection.png" width="350">
-</center>
+</p>
 
 
 <h2 align="center">Community</h2>
@@ -124,19 +124,19 @@ If you want to communicate with developers and other users? Welcome to join us, 
 
 ### Wechat
 - WeChat scavenging
-<center class="half">
+
+
+<p align="center">
   <img src="doc/images/wechat_group_1.jpeg" width="250">
-</center>
+</p>
 
 ### QQ
-- 飞桨推理部署交流群(Group No.：697765514)
-<center class="half">
+- QQ Group(Group No.：697765514)
+
+<p align="center">
   <img src="doc/images/qq_group_1.png" width="200">
-</center>
+</p>
 
-### Slack
-
-- [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 > Contribution
 
