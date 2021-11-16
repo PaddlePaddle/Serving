@@ -17,7 +17,7 @@
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Contributors" src="https://img.shields.io/github/contributors/PaddlePaddle/Serving?color=orange&style=flat-square">
-        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ,Slack-orange?style=flat-square">
+        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ-orange?style=flat-square">
     </a>
     <br>
 <p>
@@ -129,9 +129,6 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 <p align="center">
   <img src="doc/images/qq_group_1.png" width="200">
 </p>
-
-### Slack
-- [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 
 > 贡献代码
