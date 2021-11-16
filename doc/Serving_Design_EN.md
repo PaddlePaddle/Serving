@@ -199,16 +199,3 @@ The core design of Pipeline Serving is a graph execution engine, and the basic p
 <img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
 
-----
-
-
-## 6. Future Plan
-
-### 5.1 Auto Deployment on Cloud
-In order to make deployment more easily on public cloud, Paddle Serving considers to provides Operators on Kubernetes in submitting a service job.
-
-### 6.2 Vector Indexing and Tree based Indexing
-In recommendation and advertisement systems, it is commonly seen to use vector based index or tree based indexing service to do candidate retrievals. These retrieval tasks will be built-in services of Paddle Serving.
-
-### 6.3 Service Monitoring
-Paddle Serving will integrate Prometheus monitoring, which is a set of open source monitoring & alarm & time series database combination, suitable for k8s and docker monitoring systems.
