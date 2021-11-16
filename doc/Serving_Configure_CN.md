@@ -363,10 +363,10 @@ op:
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
-            #ir_optim
+            #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
@@ -396,7 +396,7 @@ op:
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
             #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效

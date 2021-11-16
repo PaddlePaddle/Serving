@@ -386,7 +386,7 @@ op:
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #use_mkldnn, When running on mkldnn，must set ir_optim=True
             #use_mkldnn: True
 
             #ir_optim
@@ -419,7 +419,7 @@ op:
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #use_mkldnn, When running on mkldnn，must set ir_optim=True
             #use_mkldnn: True
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
