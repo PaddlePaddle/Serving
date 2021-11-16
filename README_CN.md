@@ -89,7 +89,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 为Paddle Serving开发者，提供自定义OP，变长数据处理。
 - [自定义OP](doc/C++_Serving/OP_CN.md)
-- [变长数据(LOD)处理](doc/LOD_CN.md)
+- [变长数据(LoD)处理](doc/LOD_CN.md)
 - [常见问答](doc/FAQ_CN.md)
 
 <h2 align="center">模型库</h2>
