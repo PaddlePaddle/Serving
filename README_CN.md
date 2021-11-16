@@ -58,7 +58,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
 - [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
 - [在异构硬件部署Paddle Serving](doc/Run_On_XPU_CN.md)
-- [最新Wheel开发包](doc/Latest_Packages_CN.md)(develop分支每日更新)
+- [最新Wheel开发包(develop分支每日更新)](doc/Latest_Packages_CN.md)
 
 > 使用
 
@@ -66,7 +66,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [快速开始](doc/Quick_Start_CN.md)
 - [保存用于Paddle Serving的模型和配置](doc/Save_CN.md)
 - [配置和启动参数的说明](doc/Serving_Configure_CN.md)
-- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#4.Client端特性)
+- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [低精度推理](doc/Low_Precision_CN.md)
 - [常见模型数据处理](doc/Process_data_CN.md)
 - [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
@@ -80,9 +80,9 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
   - [性能优化指南](doc/Python_Pipeline/Pipeline_Design_CN.md)
   - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
 - 客户端SDK
-  - [Python SDK](doc/C++_Serving/Http_Service_CN.md)
+  - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_CN.md)
-  - [C++ SDK](doc/C++_Serving/Creat_C++Serving_CN.md)
+  - [C++ SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [大规模稀疏参数索引服务](doc/Cube_Local_CN.md)
 
 > 开发者
