@@ -102,7 +102,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 </p>
 
-更多模型示例参考Repo，可进入[模型库](doc/Model_Zoo_CN.md)
+更多模型示例进入[模型库](doc/Model_Zoo_CN.md)
 
 <p align="center">
   <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
