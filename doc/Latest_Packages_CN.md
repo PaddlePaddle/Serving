@@ -80,7 +80,7 @@ https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.0.0.tar.gz
 # Cuda 10.2 + Cudnn 8
 https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.0.0.tar.gz
 # Cuda 11.2
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-cuda112-0.0.0.tar.gz
+https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.0.0.tar.gz
 ```
 
 #### How to setup SERVING_BIN offline?
