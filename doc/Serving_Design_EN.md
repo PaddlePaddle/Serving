@@ -25,9 +25,9 @@ In order to meet the needs of users in different scenarios, Paddle Serving's pro
 
 | Response time | throughput | development efficiency | Resource utilization | selection | Applications|
 |-----|------|-----|-----|------|------|
-| LOW | HIGH | LOW | HIGH |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
-| HIGH | HIGH | HIGH | HIGH |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
-| HIGH | LOW | HIGH| LOW |Python webservice| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
+| Low | Highest | Low | Highest |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
+| Higest | Higher | Higher | Higher |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
+| Higer | Low | Low| Low |Python webservice| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
 
 Performance index description：
 1. Response time (ms): Average response time of a single request, calculate the response time of 50, 90, 95, 99 quantiles, the lower the better.
