@@ -50,7 +50,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 > 部署
 
-此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可以下面的文档。每天编译生成develop分支的最新开发包供开发者使用。
+此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可阅读以下文档。每天编译生成develop分支的最新开发包供开发者使用。
 - [使用docker安装Paddle Serving](doc/Install_CN.md)
 - [源码编译安装Paddle Serving](doc/Compile_CN.md)
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
