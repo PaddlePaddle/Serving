@@ -399,7 +399,7 @@ op:
             #use_mkldnn
             #use_mkldnn: True
 
-            #ir_optim
+            #ir_optim，开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
 ```
 
