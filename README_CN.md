@@ -77,7 +77,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
   - [性能优化指南](doc/C++_Serving/Performance_Tuning_CN.md)
   - [性能指标](doc/C++_Serving/Benchmark_CN.md)
 - [Python Pipeline简介](doc/Python_Pipeline/Pipeline_Design_CN.md)
-  - [性能优化指南](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [性能优化指南](doc/Python_Pipeline/Performance_Tuning_CN.md)
   - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
 - 客户端SDK
   - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
