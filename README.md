@@ -84,7 +84,7 @@ The first step is to call the model save interface to generate a model parameter
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Http_Service_CN.md)
   - [JAVA SDK](doc/Java_SDK_EN.md)
-  - [C++ SDK(Chinese)](doc/C++_Serving/Creat_C++Serving_CN.md)
+  - [C++ SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [Large-scale sparse parameter server](doc/Cube_Local_EN.md)
 
 <br>
