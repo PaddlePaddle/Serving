@@ -7,10 +7,10 @@ function usage
 {
     echo "usage: sh tools/generate_runtime_docker.sh --SOME_ARG ARG_VALUE"
     echo "   ";
-    echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11";
+    echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11.2";
     echo "   --python              : python version, 3.6/3.7/3.8 ";
-    echo "   --serving             : serving version(0.6.0)";
-    echo "   --paddle              : paddle version(2.1.0)"
+    #echo "   --serving             : serving version(0.6.0/0.6.2)";
+    #echo "   --paddle              : paddle version(2.1.0/2.2.0)"
     echo "   --image_name          : image name(default serving_runtime:env-python)"
     echo "  -h | --help            : helper";
 }
@@ -25,8 +25,8 @@ function parse_args
       case "$1" in
           --env )               env="$2";             shift;;
           --python )            python="$2";     shift;;
-          --serving )           serving="$2";      shift;;
-          --paddle )            paddle="$2";      shift;;
+          #--serving )           serving="$2";      shift;;
+          #--paddle )            paddle="$2";      shift;;
       --image_name )          image_name="$2";    shift;;
           -h | --help )         usage;            exit;; # quit and show usage
           * )                 args+=("$1")             # if no match, add it to the positional args
@@ -66,9 +66,11 @@ function run
       base_image="nvidia\/cuda:10.1-cudnn7-runtime-ubuntu16.04"
   elif [ $env == "cuda10.2" ]; then
       base_image="nvidia\/cuda:10.2-cudnn8-runtime-ubuntu16.04"
-  elif [ $env == "cuda11" ]; then
-      base_image="nvidia\/cuda:11.0.3-cudnn8-runtime-ubuntu16.04"
+  elif [ $env == "cuda11.2" ]; then
+      base_image="nvidia\/cuda:11.2.0-cudnn8-runtime-ubuntu16.04"
   fi
+  python="2.2.0"
+  serving="0.7.0"
   echo "base image: $base_image"
   echo "named arg: python: $python"
   echo "named arg: serving: $serving"
