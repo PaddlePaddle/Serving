@@ -57,9 +57,9 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
 - [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
-- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)(Chinese)
+- [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
-- [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
+- [Latest Wheel packages(Update everyday on branch develop)](doc/Latest_Packages_CN.md)
 
 > Use
 
