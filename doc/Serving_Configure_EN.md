@@ -91,7 +91,7 @@ More flags:
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
 | `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
 | `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
 | `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                            |
 | `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
 | `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
@@ -386,7 +386,7 @@ op:
             #Device ID
             devices: ""
 
-            #use_mkldnn
+            #use_mkldnn, When running on mkldnn，must set ir_optim=True
             #use_mkldnn: True
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
@@ -424,7 +424,7 @@ op:
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #use_mkldnn, When running on mkldnn，must set ir_optim=True
             #use_mkldnn: True
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
