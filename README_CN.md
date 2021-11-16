@@ -17,7 +17,7 @@
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Contributors" src="https://img.shields.io/github/contributors/PaddlePaddle/Serving?color=orange&style=flat-square">
-        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ,Slack-orange?style=flat-square">
+        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ-orange?style=flat-square">
     </a>
     <br>
 <p>
@@ -27,7 +27,7 @@
 Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving支持RESTful、gRPC、bRPC等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
 - 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
-- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md)
+- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
 - 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
 - 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
 - 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU等多种硬件；集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
@@ -58,7 +58,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
 - [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
 - [在异构硬件部署Paddle Serving](doc/Run_On_XPU_CN.md)
-- [最新Wheel开发包](doc/Latest_Packages_CN.md)(develop分支每日更新)
+- [最新Wheel开发包(develop分支每日更新)](doc/Latest_Packages_CN.md)
 
 > 使用
 
@@ -66,7 +66,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [快速开始](doc/Quick_Start_CN.md)
 - [保存用于Paddle Serving的模型和配置](doc/Save_CN.md)
 - [配置和启动参数的说明](doc/Serving_Configure_CN.md)
-- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#4.Client端特性)
+- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [低精度推理](doc/Low_Precision_CN.md)
 - [常见模型数据处理](doc/Process_data_CN.md)
 - [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
@@ -76,20 +76,20 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
   - [加密模型推理服务](doc/C++_Serving/Encryption_CN.md)
   - [性能优化指南](doc/C++_Serving/Performance_Tuning_CN.md)
   - [性能指标](doc/C++_Serving/Benchmark_CN.md)
-- [Python Pipeline简介](doc/Python_Pipeline/Pipeline_Design_CN.md)
-  - [性能优化指南](doc/Python_Pipeline/Pipeline_Design_CN.md)
+- [Python Pipeline设计](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [性能优化指南](doc/Python_Pipeline/Performance_Tuning_CN.md)
   - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
 - 客户端SDK
-  - [Python SDK](doc/C++_Serving/Http_Service_CN.md)
+  - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_CN.md)
-  - [C++ SDK](doc/C++_Serving/Creat_C++Serving_CN.md)
+  - [C++ SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [大规模稀疏参数索引服务](doc/Cube_Local_CN.md)
 
 > 开发者
 
 为Paddle Serving开发者，提供自定义OP，变长数据处理。
 - [自定义OP](doc/C++_Serving/OP_CN.md)
-- [变长数据(LOD)处理](doc/LOD_CN.md)
+- [变长数据(LoD)处理](doc/LOD_CN.md)
 - [常见问答](doc/FAQ_CN.md)
 
 <h2 align="center">模型库</h2>
@@ -130,13 +130,10 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
   <img src="doc/images/qq_group_1.png" width="200">
 </p>
 
-### Slack
-- [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
-
 
 > 贡献代码
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/Contribute_EN.md)
+如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines(English)](doc/Contribute_EN.md)
 - 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
 - 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
 - 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
