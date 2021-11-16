@@ -25,7 +25,7 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 在`tools/generate_runtime_docker.sh`文件下，它的使用方式如下
 
 ```bash
-bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.6 --serving 0.7.0 --paddle 2.2.0 --name serving_runtime:cuda10.1-py36
+bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.6 --name serving_runtime:cuda10.1-py36
 ```
 
 会生成 cuda10.1，python 3.6，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
