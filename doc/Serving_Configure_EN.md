@@ -424,6 +424,11 @@ op:
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
+            
+            #precsion, Decrease accuracy can increase speed
+            #GPU 支持: "fp32"(default), "fp16", "int8"；
+            #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
+            precision: "fp32"
 ```
 
 ### Single-machine and multi-card inference
