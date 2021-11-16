@@ -136,9 +136,6 @@ If you want to communicate with developers and other users? Welcome to join us, 
   <img src="doc/images/qq_group_1.png" width="200">
 </p>
 
-### Slack
-
-- [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
 
 > Contribution
 
