@@ -57,7 +57,7 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
 - [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
-- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)
+- [Deploy Paddle Serving with Security gateway](doc/Serving_Auth_Docker_CN.md)(Chinese)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
 - [Latest Wheel packages](doc/Latest_Packages_CN.md)(Update everyday on branch develop)
 
@@ -68,7 +68,7 @@ The first step is to call the model save interface to generate a model parameter
 - [Quick Start](doc/Quick_Start_EN.md)
 - [Save a servable model](doc/Save_EN.md)
 - [Description of configuration and startup parameters](doc/Serving_Configure_EN.md)
-- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Introduction_CN.md)
+- [Guide for RESTful/gRPC/bRPC APIs](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)(Chinese)
 - [Infer on quantizative models](doc/Low_Precision_CN.md)
 - [Data format of classic models](doc/Process_data_CN.md)
 - [C++ Serving](doc/C++_Serving/Introduction_CN.md) 
