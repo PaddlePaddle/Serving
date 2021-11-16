@@ -130,7 +130,7 @@ If you want to communicate with developers and other users? Welcome to join us, 
 </p>
 
 ### QQ
-- 飞桨推理部署交流群(Group No.：697765514)
+- QQ Group(Group No.：697765514)
 
 <p align="center">
   <img src="doc/images/qq_group_1.png" width="200">
