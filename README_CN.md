@@ -27,7 +27,7 @@
 Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving支持RESTful、gRPC、bRPC等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
 - 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
-- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-design-selection)
+- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
 - 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
 - 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
 - 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU等多种硬件；集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
