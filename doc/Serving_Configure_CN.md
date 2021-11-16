@@ -91,7 +91,7 @@ workdir_9393
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
 | `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
 | `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
 | `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                           |
 | `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
 | `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
@@ -363,7 +363,7 @@ op:
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
             devices: ""
 
-            #use_mkldnn
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
             #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
@@ -401,7 +401,7 @@ op:
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
             devices: ""
 
-            #use_mkldnn
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
             #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
