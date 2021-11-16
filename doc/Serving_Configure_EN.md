@@ -422,7 +422,7 @@ op:
             #use_mkldnn
             #use_mkldnn: True
 
-            #ir_optim
+            #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
 ```
 
