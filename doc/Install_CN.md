@@ -51,7 +51,7 @@ git clone https://github.com/PaddlePaddle/Serving
 # Paddle开发镜像需要执行以下脚本增加Serving所需依赖项
 bash Serving/tools/paddle_env_install.sh
 ```
-## 2.安装Paddle Serving相关Python库
+## 2.安装Paddle Serving稳定wheel包
 
 安装所需的pip依赖
 ```
