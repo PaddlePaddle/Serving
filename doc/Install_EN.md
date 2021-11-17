@@ -43,8 +43,8 @@ bash Serving/tools/paddle_env_install.sh
 **GPU:**
 ```
 # Start GPU Docker
-docker pull paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7 bash
+docker pull paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
@@ -100,8 +100,8 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
 |  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
 |  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                     | 无                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).
