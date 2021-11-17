@@ -1,66 +1,19 @@
 # Latest Wheel Packages
 
-## CPU server
-### Python 3
-```
-# Compile by gcc8.2
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl
-```
+## Paddle-Serving-Server (x86 CPU/GPU)
 
-## GPU server
-### Python 3
-```
-#cuda10.1 Cudnn 7 with TensorRT 6, Compile by gcc8.2
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post101-py3-none-any.whl
-#cuda10.2 Cudnn 7 with TensorRT 6, Compile by gcc5.4
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl
-#cuda10.2 Cudnn 8 with TensorRT 7, Compile by gcc8.2
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post1028-py3-none-any.whl
-#cuda11.2 Cudnn 8 with TensorRT 8 (beta), Compile by gcc8.2
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post112-py3-none-any.whl
-```
+|                           | develop whl                                                                                                                                                              | develop bin                                                                                                                             | stable whl                                                                                                                                                               | stable bin                                                                                                                              |
+|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| cpu-avx-mkl               | [paddle_serving_server-0.0.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl)                          | [serving-cpu-avx-mkl-0.0.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.0.0.tar.gz)                  | [paddle_serving_server-0.7.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.7.0-py3-none-any.whl)                          | [serving-cpu-avx-mkl-0.7.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.7.0.tar.gz)                  |
+| cpu-avx-openblas          | [paddle_serving_server-0.0.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl)                          | [serving-cpu-avx-openblas-0.0.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.0.0.tar.gz)        | [paddle_serving_server-0.7.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.7.0-py3-none-any.whl)                          | [serving-cpu-avx-openblas-0.7.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.7.0.tar.gz)        |
+| cpu-noavx-openblas        | [paddle_serving_server-0.0.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl)                          | [ serving-cpu-noavx-openblas-0.0.0.tar.gz ]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.0.0.tar.gz) | [paddle_serving_server-0.7.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.7.0-py3-none-any.whl)                          | [ serving-cpu-noavx-openblas-0.7.0.tar.gz ]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.7.0.tar.gz) |
+| cuda10.1-cudnn7-TensorRT6 | [paddle_serving_server_gpu-0.0.0.post101-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post101-py3-none-any.whl)  | [serving-gpu-101-0.0.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.0.0.tar.gz)                          | [paddle_serving_server_gpu-0.7.0.post101-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.7.0.post101-py3-none-any.whl)  | [serving-gpu-101-0.7.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.7.0.tar.gz)                          |
+| cuda10.2-cudnn7-TensorRT6 | [paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl)  | [serving-gpu-102-0.0.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.0.0.tar.gz)                          | [paddle_serving_server_gpu-0.7.0.post102-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.7.0.post102-py3-none-any.whl)  | [serving-gpu-102-0.7.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.7.0.tar.gz)                          |
+| cuda10.2-cudnn8-TensorRT7 | [paddle_serving_server_gpu-0.0.0.post1028-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl) | [ serving-gpu-1028-0.0.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.0.0.tar.gz )                     | [paddle_serving_server_gpu-0.7.0.post1028-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.7.0.post102-py3-none-any.whl) | [ serving-gpu-1028-0.7.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.7.0.tar.gz )                     |
+| cuda11.2-cudnn8-TensorRT8 | [paddle_serving_server_gpu-0.0.0.post112-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post112-py3-none-any.whl) | [ serving-gpu-112-0.0.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.0.0.tar.gz )                       | [paddle_serving_server_gpu-0.7.0.post112-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.7.0.post112-py3-none-any.whl) | [ serving-gpu-112-0.7.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.7.0.tar.gz )                       |
 
-## Client
-
-### Python 3.6
-```
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp36-none-any.whl
-```
-### Python 3.8
-```
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp38-none-any.whl
-```
-### Python 3.7
-```
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp37-none-any.whl
-```
-
-## App
-### Python 3
-```
-https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.0.0-py3-none-any.whl
-```
-
-## Binary Package
+### Binary Package
 for most users, we do not need to read this section. But if you deploy your Paddle Serving on a machine without network, you will encounter a problem that the binary executable tar file cannot be downloaded. Therefore, here we give you all the download links for various environment.
-
-### Bin links
-```
-# CPU AVX MKL
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.0.0.tar.gz
-# CPU AVX OPENBLAS
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.0.0.tar.gz
-# CPU NOAVX OPENBLAS
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.0.0.tar.gz
-# Cuda 10.1
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.0.0.tar.gz
-# Cuda 10.2 + Cudnn 7
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.0.0.tar.gz
-# Cuda 10.2 + Cudnn 8
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.0.0.tar.gz
-# Cuda 11.2
-https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.0.0.tar.gz
-```
 
 ### How to setup SERVING_BIN offline?
 
@@ -68,6 +21,19 @@ https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.0.0.tar.gz
 - download the serving client whl and serving app whl, pay attention to the Python version.
 - `pip install ` the serving and `tar xf ` the binary package, then `export SERVING_BIN=$PWD/serving-gpu-cuda11-0.0.0/serving` (take Cuda 11 as the example)
 
+## paddle-serving-client 
+
+|  | develop whl                                                                                                                                      | stable whl                                                                                                                                        |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Python3.6             | [paddle_serving_client-0.0.0-cp36-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp36-none-any.whl) | [paddle_serving_client-0.7.0-cp36-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.7.0-cp36-none-any.whl)) |
+| Python3.7             | [paddle_serving_client-0.0.0-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp37-none-any.whl) | [paddle_serving_client-0.7.0-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.7.0-cp37-none-any.whl)  |
+| Python3.8             | [paddle_serving_client-0.0.0-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp38-none-any.whl) | [paddle_serving_client-0.7.0-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.7.0-cp38-none-any.whl)  |
+
+## paddle-serving-app
+
+|         | develop whl                                                                                                                              | stable whl                                                                                                                                  |
+|---------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| Python3 | [paddle_serving_app-0.0.0-py3-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.0.0-py3-none-any.whl) | [ paddle_serving_app-0.7.0-py3-none-any.whl ]( https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.7.0-py3-none-any.whl) |
 
 
 ## Baidu Kunlun user
