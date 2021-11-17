@@ -52,7 +52,7 @@ git clone https://github.com/PaddlePaddle/Serving
 bash Serving/tools/paddle_env_install.sh
 ```
 
-## 2. Install Paddle Serving related whl Packages
+## 2. Install Paddle Serving stable whl packages
 
 Install the required pip dependencies
 ```
