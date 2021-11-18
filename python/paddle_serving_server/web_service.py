@@ -259,8 +259,8 @@ class WebService(object):
         self.port_list = []
         self.use_trt = use_trt
         self.gpu_multi_stream = gpu_multi_stream
-        self.op_num = runtime_thread_num
-        self.op_max_batch = batch_infer_size
+        self.runtime_thread_num = runtime_thread_num
+        self.batch_infer_size = batch_infer_size
        
         # record port and pid info for stopping process
         dump_pid_file([self.port], "web_service")
