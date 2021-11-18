@@ -429,7 +429,7 @@ class Server(object):
         if device_type == "0":
             device_version = self.get_device_version()
         elif device_type == "1":
-            if version_suffix == "101" or version_suffix == "1027" or version_suffix == "1028" or version_suffix == "112":
+            if version_suffix == "101" or version_suffix == "102" or version_suffix == "1028" or version_suffix == "112":
                 device_version = "gpu-" + version_suffix
             else:
                 device_version = "gpu-cuda" + version_suffix
