@@ -11,6 +11,7 @@ import functools
 import re
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from .util import ThreadIdGenerator
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 _LOGGER = logging.getLogger(__name__) 
 
@@ -91,7 +92,9 @@ class ErrorCatch():
                     if is_send_to_user == "True":
                          return (None, resp)
                     else:
-                        raise SystemExit("init server error occur")
+                        print("Erro_Num: {} {}".format(resp.err_no, resp.err_msg))
+                        print("Init error occurs. For detailed information, Please look up log by log_id.")
+                        kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
                 except Exception as e:
                     log_id = self._id_generator.next()
                     resp = pipeline_service_pb2.Response()
