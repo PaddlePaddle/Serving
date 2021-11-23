@@ -84,7 +84,7 @@ class ErrorCatch():
                 except CustomException as e:
                     log_id = self._id_generator.next()
                     resp = pipeline_service_pb2.Response()
-                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName:{}\nArgs:{}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__, args))
+                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName:{}\nArgs:{}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__))
                     split_list = re.split("\n|\t|:", str(e))
                     resp.err_no = int(split_list[3])
                     resp.err_msg = "Log_id: {}  ErrNo: {}  Error_msg: {}  ClassName: {}  FunctionName: {}".format(log_id, resp.err_no, split_list[9], func.__qualname__ ,func.__name__ )
@@ -98,7 +98,7 @@ class ErrorCatch():
                 except Exception as e:
                     log_id = self._id_generator.next()
                     resp = pipeline_service_pb2.Response()
-                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName: {}\nArgs: {}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__, args))
+                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName: {}\nArgs: {}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__))
                     resp.err_no = CustomExceptionCode.UNKNOW.value
                     resp.err_msg = "Log_id: {}  ErrNo: {}  Error_msg: {}  ClassName: {}  FunctionName: {}".format(log_id, resp.err_no, str(e).replace("\'", ""), func.__qualname__ ,func.__name__ )
                     return (None, resp)
