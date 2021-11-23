@@ -1103,7 +1103,7 @@ class Op(object):
             prod_errcode, prod_errinfo = None, None
 
             post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id, logid_dict)
-            if resp.err_no is 200:
+            if resp.err_no == CustomExceptionCode.OK.value:
                 postped_data, prod_errcode, prod_errinfo = post_res
                 if prod_errcode is not None:
                   # product errors occured
