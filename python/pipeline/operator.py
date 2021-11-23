@@ -814,7 +814,7 @@ class Op(object):
             prod_errcode, prod_errinfo = None, None
             log_id = logid_dict.get(data_id)
             process_res, resp = preprocess_help(self, parsed_data, data_id, logid_dict)
-            if resp.err_no is 200:
+            if resp.err_no == CustomExceptionCode.OK.value:
                 preped_data, is_skip_process, prod_errcode, prod_errinfo = process_res
                 if is_skip_process is True:
                     skip_process_dict[data_id] = True
