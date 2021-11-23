@@ -29,7 +29,7 @@ import enum
 import os
 import copy
 import time
-from .error_catch import ErrorCatch, CustomExceptioni, ProductErrCode
+from .error_catch import ErrorCatch, CustomException, ProductErrCode
 from .error_catch import CustomExceptionCode as ChannelDataErrcode
 
 _LOGGER = logging.getLogger(__name__)
