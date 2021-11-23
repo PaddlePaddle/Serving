@@ -493,7 +493,7 @@ class DAG(object):
                          is_thread_op: bool,
                          channel_size, 
                          build_dag_each_worker: [bool, None],
-                         tracer: [dict, None],
+                         tracer,
                         channel_recv_frist_arrive):
             self._request_name = request_name
             self._response_op = response_op
