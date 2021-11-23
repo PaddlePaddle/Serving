@@ -1094,7 +1094,7 @@ class Op(object):
             postped_data, prod_errcode, prod_errinfo = self.postprocess(parsed_data_dict[data_id], 
               midped_data, data_id, logid_dict.get(data_id))
             if not isinstance(postped_data, dict):
-                raise CustomException(CustomExceptionCode.TYPE_EXCEPTION, "postprocess should return dict", True)
+                raise CustomException(CustomExceptionCode.TYPE_ERROR, "postprocess should return dict", True)
             return postped_data, prod_errcode, prod_errinfo
 
         for data_id, midped_data in midped_data_dict.items():
