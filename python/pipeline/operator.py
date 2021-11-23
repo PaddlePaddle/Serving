@@ -813,7 +813,8 @@ class Op(object):
             is_skip_process = False
             prod_errcode, prod_errinfo = None, None
             log_id = logid_dict.get(data_id)
-            process_res, resp = preprocess_help(self, parsed_data, data_id, logid_dict)
+            process_res, resp = preprocess_help(self, parsed_data, data_id = data_id,
+            logid_dict = logid_dict)
             if resp.err_no == CustomExceptionCode.OK.value:
                 preped_data, is_skip_process, prod_errcode, prod_errinfo = process_res
                 if is_skip_process is True:
@@ -1102,7 +1103,8 @@ class Op(object):
             postped_data, err_channeldata = None, None
             prod_errcode, prod_errinfo = None, None
 
-            post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id, logid_dict)
+            post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id
+            = data_id, logid_dict = logid_dict)
             if resp.err_no == CustomExceptionCode.OK.value:
                 postped_data, prod_errcode, prod_errinfo = post_res
                 if prod_errcode is not None:

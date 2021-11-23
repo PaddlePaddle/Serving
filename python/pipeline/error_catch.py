@@ -82,9 +82,14 @@ class ErrorCatch():
                 try:
                     res = func(*args, **kw)
                 except CustomException as e:
-                    log_id = self._id_generator.next()
+                    if "log_id" in kw.keys():
+                        log_id = kw["log_id"]
+                    elif "logid_dict" in kw.keys() and "data_id" in kw.keys():
+                        log_id = kw["logid_dict"].get(kw["data_id"])
+                    else:
+                        log_id = 0
                     resp = pipeline_service_pb2.Response()
-                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName:{}\nArgs:{}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__, args))
+                    _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName: {}\nArgs: {}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__, args))
                     split_list = re.split("\n|\t|:", str(e))
                     resp.err_no = int(split_list[3])
                     resp.err_msg = "Log_id: {}  ErrNo: {}  Error_msg: {}  ClassName: {}  FunctionName: {}".format(log_id, resp.err_no, split_list[9], func.__qualname__ ,func.__name__ )
