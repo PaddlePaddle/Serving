@@ -17,7 +17,7 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 #### Q: paddle-serving是否支持Int32支持
 
-**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下，全部信息可参考[Serving配置与启动参数说明](./Serving_Configure_CN.md#模型配置文件)
+**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下，完整信息可参考[Serving配置与启动参数说明](./Serving_Configure_CN.md#模型配置文件)
 
      0-int64
     
