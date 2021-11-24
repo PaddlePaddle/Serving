@@ -77,6 +77,8 @@ paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubun
 
 paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
 
+**如果您之前使用paddle serving 0.5.X 0.6.X的Cuda10.2环境，需要注意在0.7.0版本，paddle-serving-server-gpu==0.7.0.post102的使用Cudnn7和TensorRT6，而0.6.0.post102使用cudnn8和TensorRT7。如果0.6.0的cuda10.2用户需要升级安装，请使用paddle-serving-server-gpu==0.7.0.post1028**
+
 ## 3.安装Paddle相关Python库
 **当您使用`paddle_serving_client.convert`命令或者`Python Pipeline框架`时才需要安装。**
 ```
