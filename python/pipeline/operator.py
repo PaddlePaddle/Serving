@@ -36,9 +36,10 @@ else:
 
 from .error_catch import ErrorCatch, CustomException, CustomExceptionCode
 from .proto import pipeline_service_pb2
-from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
-                      ChannelData, ChannelDataType, ChannelStopError,
-                      ChannelTimeoutError, ProductErrCode)
+from .channel import (ThreadChannel, ProcessChannel,ChannelData, 
+                      ChannelDataType, ChannelStopError, ChannelTimeoutError)
+from .error_catch import  ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler

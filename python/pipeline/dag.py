@@ -29,8 +29,9 @@ import json
 from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
 from .operator import Op, RequestOp, ResponseOp, VirtualOp
 from .channel import (ThreadChannel, ProcessChannel, ChannelData,
-                      ChannelDataErrcode, ChannelDataType, ChannelStopError,
-                      ProductErrCode)
+                      ChannelDataType, ChannelStopError)
+from .error_catch import  ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 from .profiler import TimeProfiler, PerformanceTracer
 from .util import NameGenerator, ThreadIdGenerator, PipelineProcSyncManager
 from .proto import pipeline_service_pb2
