@@ -46,9 +46,15 @@ for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as f
 
 for arm kunlun user
 ```
+# paddle-serving-server
 https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_server_xpu-0.0.0.post2-py3-none-any.whl
+# paddle-serving-client
 https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_client-0.0.0-cp36-none-any.whl
+# paddle-serving-app
 https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_app-0.0.0-py3-none-any.whl
+
+# SERVING BIN
+https://paddle-serving.bj.bcebos.com/bin/serving-xpu-aarch64-0.0.0.tar.gz
 ```
  
 for x86 kunlun user
