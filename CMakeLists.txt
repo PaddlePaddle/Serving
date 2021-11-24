@@ -168,6 +168,11 @@ if(SERVER)
     if(WITH_ROCM)
         include(hip)
     endif()
+
+    if(WITH_ASCEND_CL)
+	    include(external/ascend)
+	    list(APPEND EXTERNAL_LIBS ascend ascend_cl)
+    endif()
 endif()
 
 

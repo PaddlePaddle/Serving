@@ -293,6 +293,8 @@ class PaddleInferenceEngine : public EngineCore {
                   << FLAGS_nnadapter_context_properties
                   << ",nnadapter_model_cache_dir="
                   << FLAGS_nnadapter_model_cache_dir;
+      } else {
+	config.EnableNpu(gpu_id);
       }
     }
 

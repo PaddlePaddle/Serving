@@ -236,6 +236,8 @@ class LocalPredictor(object):
                 .set_device_names([nnadapter_device_names]) \
                 .set_context_properties(nnadapter_context_properties) \
                 .set_model_cache_dir(nnadapter_model_cache_dir)
+            else:
+                config.enable_npu(gpu_id)
         # set cpu low precision
         if not use_gpu and not use_lite:
             if precision_type == paddle_infer.PrecisionType.Int8:

@@ -136,6 +136,11 @@ class LocalServiceHandler(object):
             devices = [int(x) for x in devices.split(",")]
             self._use_lite = True
             self._use_ascend_cl = True
+        elif device_type == 6:
+            # Ascend 910 ARM CPU
+            self._device_name = "arm"
+            devices = [int(x) for x in devices.split(",")]
+            self._use_ascend_cl = True
         else:
             _LOGGER.error(
                 "LocalServiceHandler initialization fail. device_type={}"

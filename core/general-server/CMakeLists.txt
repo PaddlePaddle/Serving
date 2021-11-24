@@ -31,6 +31,10 @@ target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
 target_link_libraries(serving utf8proc)
+if(WITH_ASCEND_CL)
+    target_link_libraries(serving ascendcl acl_op_compiler)
+endif()
+
 
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
