@@ -1,6 +1,13 @@
 # FAQ
 
 
+## 版本升级问题
+
+#### Q: 从v0.6.x升级到v0.7.0版本时，运行Python Pipeline程序时报错信息如下：
+```
+Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postprocess() takes 4 positional arguments but 5 were given
+```
+**A:** 在服务端程序（例如 web_service.py)中postprocess函数中增加参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
 
 ## 基础知识
 
@@ -10,7 +17,7 @@
 
 #### Q: paddle-serving是否支持Int32支持
 
-**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
+**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下，全部信息可参考[Serving配置与启动参数说明](./Serving_Configure_CN.md#模型配置文件)
 
      0-int64
     
