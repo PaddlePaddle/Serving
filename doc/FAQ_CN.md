@@ -7,7 +7,7 @@
 ```
 Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postprocess() takes 4 positional arguments but 5 were given
 ```
-**A:** 在服务端程序（例如 web_service.py)中postprocess函数中增加参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
+**A:** 在服务端程序（例如 web_service.py)的postprocess函数定义中增加了参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
 
 ## 基础知识
 
