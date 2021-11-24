@@ -107,7 +107,7 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
-#### Stop Serving(execute the following command in the directory where start serving).
+#### Stop Serving(execute the following command in the directory where start serving or the path which environment variable SERVING_HOME set).
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
@@ -327,7 +327,7 @@ Example starting Pipeline Serving:
 ```BASH
 python3 web_service.py
 ```
-### Stop Serving(execute the following command in the directory where start serving).
+### Stop Serving(execute the following command in the directory where start Pipeline serving or the path which environment variable SERVING_HOME set).
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
