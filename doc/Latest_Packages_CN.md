@@ -2,6 +2,8 @@
 
 ## Paddle-Serving-Server (x86 CPU/GPU)
 
+Check the following table, and copy the address of hyperlink then run `pip3 install`. For example, if you want to install `paddle-serving-server-0.0.0-py3-non-any.whl`, right click the hyper link and copy the link address, the final command is `pip3 install https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl`.
+
 |                           | develop whl                                                                                                                                                              | develop bin                                                                                                                             | stable whl                                                                                                                                                               | stable bin                                                                                                                              |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | cpu-avx-mkl               | [paddle_serving_server-0.0.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl)                          | [serving-cpu-avx-mkl-0.0.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.0.0.tar.gz)                  | [paddle_serving_server-0.7.0-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.7.0-py3-none-any.whl)                          | [serving-cpu-avx-mkl-0.7.0.tar.gz](https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.7.0.tar.gz)                  |
@@ -44,9 +46,9 @@ for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as f
 
 for arm kunlun user
 ```
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_server_xpu-0.7.0.post2-cp36-cp36m-linux_aarch64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_client-0.7.0-cp36-cp36m-linux_aarch64.whl
-https://paddle-serving.bj.bcebos.com/whl/xpu/0.7.0/paddle_serving_app-0.7.0-cp36-cp36m-linux_aarch64.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_server_xpu-0.0.0.post2-py3-none-any.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_client-0.0.0-cp36-none-any.whl
+https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_app-0.0.0-py3-none-any.whl
 ```
  
 for x86 kunlun user
