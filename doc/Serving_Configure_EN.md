@@ -107,7 +107,7 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
-#### Stop Serving.
+#### Stop Serving(execute the following command in the directory where start serving).
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
@@ -325,9 +325,9 @@ fetch_var {
 
 Example starting Pipeline Serving:
 ```BASH
-python3 -m paddle_serving_server.serve --model serving_model --port 9393
+python3 web_service.py
 ```
-### Stop Serving.
+### Stop Serving(execute the following command in the directory where start serving).
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
