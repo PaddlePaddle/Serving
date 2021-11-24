@@ -55,6 +55,7 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
         init_res = init_helper(self, name, response_op, dag_conf, worker_idx)
         if init_res[1].err_no != CustomExceptionCode.OK.value :
             raise CustomException(CustomExceptionCode.INIT_ERROR, "pipeline server init error")
+        print("[PipelineServicer] succ init")
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):

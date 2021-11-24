@@ -1515,6 +1515,7 @@ class Op(object):
                 self.init_op() 
         
         init_helper(self, is_thread_op, concurrency_idx)
+        print("[OP Object] init success")
         # use a separate TimeProfiler per thread or process
         profiler = TimeProfiler()
         profiler.enable(True)

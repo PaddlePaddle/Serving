@@ -508,6 +508,7 @@ class DAG(object):
         init_helper(self, request_name, response_op, use_profile, is_thread_op,
                     channel_size, build_dag_each_worker, tracer,
                     channel_recv_frist_arrive)
+        print("[DAG] Succ init")
         _LOGGER.info("[DAG] Succ init")
 
     @staticmethod
