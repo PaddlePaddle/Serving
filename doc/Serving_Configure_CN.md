@@ -107,7 +107,7 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```BASH
 python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
 ```
-#### 当您想要关闭Serving服务时（在Serving启动目录下，执行以下命令）.
+#### 当您想要关闭Serving服务时（在Serving启动目录或环境变量SERVING_HOME路径下，执行以下命令）.
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
@@ -324,7 +324,7 @@ Python Pipeline启动命令如下：
 python3 web_service.py
 ```
 
-当您想要关闭Serving服务时（在Serving启动目录下，执行以下命令）：
+当您想要关闭Serving服务时（在Pipeline启动目录下或环境变量SERVING_HOME路径下，执行以下命令）：
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
