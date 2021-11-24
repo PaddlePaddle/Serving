@@ -49,12 +49,22 @@ class CustomExceptionCode(enum.Enum):
 class ProductErrCode(enum.Enum):
     """
     ProductErrCode is a base class for recording business error code. 
-    product developers inherit this class and extend more error codes. 
+    product developers overwrites this class and extend more error codes. 
     """
     pass
 
 
 class CustomException(Exception):
+    """
+    An self-defined exception class
+    
+    Usage : raise CustomException(CustomExceptionCode.exceptionCode, errorMsg, isSendToUser=False)
+    Args  :  
+           exceptionCode : CustomExceptionCode or ProductErrCode
+           errorMsg : string message you want to describe the error
+           isSendToUser : whether send to user or just record in errorlog
+    Return : An string of error_info 
+    """
     def __init__(self, exceptionCode, errorMsg, isSendToUser=False):
         super().__init__(self)
         self.error_info = "\n\texception_code: {}\n"\
@@ -69,12 +79,15 @@ class CustomException(Exception):
 
 
 class ErrorCatch():
-    def __init__(self):
-        self._id_generator = ThreadIdGenerator(
-                     max_id=1000000000000000000,
-                     base_counter=0,
-                     step=1)
+    """
+    An decorator class to catch error for method or function.
 
+    Usage : @ErrorCatch
+    Args  : None
+    Returns: tuple(res, response)
+             res is the original funciton return 
+             response includes erro_no and erro_msg
+    """
     def __call__(self, func):
         if inspect.isfunction(func) or inspect.ismethod(func):
             @functools.wraps(func)
@@ -101,13 +114,17 @@ class ErrorCatch():
                         print("Init error occurs. For detailed information, Please look up log by log_id.")
                         kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
                 except Exception as e:
-                    log_id = self._id_generator.next()
+                    if "log_id" in kw.keys():
+                        log_id = kw["log_id"]
+                    elif "logid_dict" in kw.keys() and "data_id" in kw.keys():
+                        log_id = kw["logid_dict"].get(kw["data_id"])
+                    else:
+                        log_id = 0
                     resp = pipeline_service_pb2.Response()
                     _LOGGER.error("\nLog_id: {}\n{}Classname: {}\nFunctionName: {}\nArgs: {}".format(log_id, traceback.format_exc(), func.__qualname__, func.__name__, args))
                     resp.err_no = CustomExceptionCode.UNKNOW.value
                     resp.err_msg = "Log_id: {}  ErrNo: {}  Error_msg: {}  ClassName: {}  FunctionName: {}".format(log_id, resp.err_no, str(e).replace("\'", ""), func.__qualname__ ,func.__name__ )
                     return (None, resp)
-                    # other exception won't be sent to users.
                 else:
                     resp = pipeline_service_pb2.Response()
                     resp.err_no = CustomExceptionCode.OK.value
