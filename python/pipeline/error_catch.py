@@ -179,4 +179,18 @@ class ParamVerify(object):
 
             return False
 
+    @staticmethod
+    def check_feed_dict(feed_dict, feed_list):
+        if not isinstance(feed_dict, dict):
+            return False
+        # read model config, try catch and 
+        feed_dict_key_size = len(feed_dict.keys())
+        if len(feed_dict.keys()) != len(feed_list):
+            return False
+        for key in feed_list:
+           if key in feed_dict.keys():
+               return False
+        return True 
+
+
 ErrorCatch = ErrorCatch()
