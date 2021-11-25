@@ -36,9 +36,10 @@ else:
 
 from .error_catch import ErrorCatch, CustomException, CustomExceptionCode
 from .proto import pipeline_service_pb2
-from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
-                      ChannelData, ChannelDataType, ChannelStopError,
-                      ChannelTimeoutError, ProductErrCode)
+from .channel import (ThreadChannel, ProcessChannel,ChannelData, 
+                      ChannelDataType, ChannelStopError, ChannelTimeoutError)
+from .error_catch import  ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
@@ -828,7 +829,8 @@ class Op(object):
             is_skip_process = False
             prod_errcode, prod_errinfo = None, None
             log_id = logid_dict.get(data_id)
-            process_res, resp = preprocess_help(self, parsed_data, data_id, logid_dict)
+            process_res, resp = preprocess_help(self, parsed_data, data_id = data_id,
+            logid_dict = logid_dict)
             if resp.err_no == CustomExceptionCode.OK.value:
                 preped_data, is_skip_process, prod_errcode, prod_errinfo = process_res
                 if is_skip_process is True:
@@ -1117,7 +1119,8 @@ class Op(object):
             postped_data, err_channeldata = None, None
             prod_errcode, prod_errinfo = None, None
 
-            post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id, logid_dict)
+            post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id
+            = data_id, logid_dict = logid_dict)
             if resp.err_no == CustomExceptionCode.OK.value:
                 postped_data, prod_errcode, prod_errinfo = post_res
                 if prod_errcode is not None:
@@ -1528,6 +1531,7 @@ class Op(object):
                 self.init_op() 
         
         init_helper(self, is_thread_op, concurrency_idx)
+        print("[OP Object] init success")
         # use a separate TimeProfiler per thread or process
         profiler = TimeProfiler()
         profiler.enable(True)
