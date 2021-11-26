@@ -1,0 +1,20 @@
+engines {
+  name: "general_infer_0"
+  type: "PADDLE_INFER"
+  reloadable_meta: "uci_housing_model/fluid_time_file"
+  reloadable_type: "timestamp_ne"
+  model_dir: "uci_housing_model"
+  gpu_ids: 0
+  enable_memory_optimization: true
+  enable_ir_optimization: false
+  use_trt: false
+  use_lite: false
+  use_xpu: false
+  use_gpu: true
+  combined_model: false
+  gpu_multi_stream: false
+  runtime_thread_num: 0
+  batch_infer_size: 32
+  enable_overrun: false
+  allow_split_request: true
+}

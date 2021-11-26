@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 
-cpp_test_cases = ["test_lac.py::TestLAC::test_cpu", "test_lac.py::TestLAC::test_gpu"]
+cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
 pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
 
 def run_test_cases(cases_list, case_type):

@@ -1,0 +1,121 @@
+I0100 00:00:00.000000 21847 op_repository.h:68] RAW: Succ regist op: GeneralDistKVInferOp
+I0100 00:00:00.000000 21847 op_repository.h:68] RAW: Succ regist op: GeneralDistKVQuantInferOp
+I0100 00:00:00.000000 21847 op_repository.h:68] RAW: Succ regist op: GeneralInferOp
+I0100 00:00:00.000000 21847 op_repository.h:68] RAW: Succ regist op: GeneralReaderOp
+I0100 00:00:00.000000 21847 op_repository.h:68] RAW: Succ regist op: GeneralResponseOp
+I0100 00:00:00.000000 21847 service_manager.h:79] RAW: Service[LoadGeneralModelService] insert successfully!
+I0100 00:00:00.000000 21847 load_general_model_service.pb.h:333] RAW: Success regist service[LoadGeneralModelService][PN5baidu14paddle_serving9predictor26load_general_model_service27LoadGeneralModelServiceImplE]
+I0100 00:00:00.000000 21847 service_manager.h:79] RAW: Service[GeneralModelService] insert successfully!
+I0100 00:00:00.000000 21847 general_model_service.pb.h:1608] RAW: Success regist service[GeneralModelService][PN5baidu14paddle_serving9predictor13general_model23GeneralModelServiceImplE]
+I0100 00:00:00.000000 21847 factory.h:155] RAW: Succ insert one factory, tag: PADDLE_INFER, base type N5baidu14paddle_serving9predictor11InferEngineE
+W0100 00:00:00.000000 21847 paddle_engine.cpp:29] RAW: Succ regist factory: ::baidu::paddle_serving::predictor::FluidInferEngine<PaddleInferenceEngine>->::baidu::paddle_serving::predictor::InferEngine, tag: PADDLE_INFER in macro!
+I1126 12:43:19.723743 21850 analysis_predictor.cc:668] ir_optim is turned off, no IR pass will be executed
+[1m[35m--- Running analysis [ir_graph_build_pass][0m
+[1m[35m--- Running analysis [ir_graph_clean_pass][0m
+[1m[35m--- Running analysis [ir_analysis_pass][0m
+[1m[35m--- Running analysis [ir_params_sync_among_devices_pass][0m
+I1126 12:43:19.724848 21850 ir_params_sync_among_devices_pass.cc:45] Sync params from CPU to GPU
+[1m[35m--- Running analysis [adjust_cudnn_workspace_size_pass][0m
+[1m[35m--- Running analysis [inference_op_replace_pass][0m
+[1m[35m--- Running analysis [memory_optimize_pass][0m
+I1126 12:43:19.725744 21850 memory_optimize_pass.cc:214] Cluster name : fc_0.tmp_0  size: 4
+I1126 12:43:19.725759 21850 memory_optimize_pass.cc:214] Cluster name : x  size: 52
+I1126 12:43:19.725764 21850 memory_optimize_pass.cc:214] Cluster name : fc_0.tmp_1  size: 4
+[1m[35m--- Running analysis [ir_graph_to_program_pass][0m
+I1126 12:43:19.726503 21850 analysis_predictor.cc:717] ======= optimize end =======
+I1126 12:43:19.726533 21850 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.726585 21850 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+I1126 12:43:19.726626 21850 cache.cpp:48] cube cache is loading data, path: uci_housing_model/cube_cache
+E1126 12:43:19.726637 21850 cache.cpp:58] invalid cache path uci_housing_model/cube_cache
+W1126 12:43:19.726644 21850 infer.h:444] create cube cache[0] done.
+W1126 12:43:19.726651 21850 infer.h:478] [21850] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.726673 21850 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.726680 21850 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.726723 21851 infer.h:431] tid:21851 Loading clone model ...
+I1126 12:43:19.727079 21851 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.727178 21851 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.727200 21851 infer.h:471] tid:21851 clone caches done
+W1126 12:43:19.727206 21851 infer.h:478] [21851] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.727234 21851 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.727242 21851 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.727262 21855 infer.h:431] tid:21855 Loading clone model ...
+I1126 12:43:19.727557 21855 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.727631 21855 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.727648 21855 infer.h:471] tid:21855 clone caches done
+W1126 12:43:19.727671 21855 infer.h:478] [21855] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.727696 21855 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.727705 21855 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.727728 21853 infer.h:431] tid:21853 Loading clone model ...
+I1126 12:43:19.728101 21853 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.728168 21853 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.728184 21853 infer.h:471] tid:21853 clone caches done
+W1126 12:43:19.728190 21853 infer.h:478] [21853] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.728214 21853 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.728220 21853 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.728250 21854 infer.h:431] tid:21854 Loading clone model ...
+I1126 12:43:19.728526 21854 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.728596 21854 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.728618 21854 infer.h:471] tid:21854 clone caches done
+W1126 12:43:19.728628 21854 infer.h:478] [21854] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.728655 21854 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.728662 21854 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.728684 21852 infer.h:431] tid:21852 Loading clone model ...
+I1126 12:43:19.729209 21852 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.729300 21852 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.729322 21852 infer.h:471] tid:21852 clone caches done
+W1126 12:43:19.729333 21852 infer.h:478] [21852] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.729365 21852 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.729377 21852 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.729384 21856 infer.h:431] tid:21856 Loading clone model ...
+I1126 12:43:19.729621 21856 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.729724 21856 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.729740 21856 infer.h:471] tid:21856 clone caches done
+W1126 12:43:19.729746 21856 infer.h:478] [21856] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.729766 21856 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.729773 21856 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.729795 21857 infer.h:431] tid:21857 Loading clone model ...
+I1126 12:43:19.730116 21857 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.730198 21857 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.730221 21857 infer.h:471] tid:21857 clone caches done
+W1126 12:43:19.730230 21857 infer.h:478] [21857] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.730262 21857 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.730271 21857 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.730280 21858 infer.h:431] tid:21858 Loading clone model ...
+I1126 12:43:19.730530 21858 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.730592 21858 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.730605 21858 infer.h:471] tid:21858 clone caches done
+W1126 12:43:19.730612 21858 infer.h:478] [21858] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.730633 21858 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.730639 21858 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.730651 21860 infer.h:431] tid:21860 Loading clone model ...
+I1126 12:43:19.730875 21860 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.730924 21860 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.730938 21860 infer.h:471] tid:21860 clone caches done
+W1126 12:43:19.730944 21860 infer.h:478] [21860] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.730963 21860 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.730970 21860 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+W1126 12:43:19.730998 21859 infer.h:431] tid:21859 Loading clone model ...
+I1126 12:43:19.731278 21859 naive_executor.cc:98] ---  skip [feed], feed -> x
+I1126 12:43:19.731353 21859 naive_executor.cc:98] ---  skip [fc_0.tmp_1], fetch -> fetch
+W1126 12:43:19.731369 21859 infer.h:471] tid:21859 clone caches done
+W1126 12:43:19.731375 21859 infer.h:478] [21859] Reload clone model and cube cache done. switching to current_idx[0]
+W1126 12:43:19.731385 21859 infer.cpp:255] Succ thrd initialize version engine: 18446744073709551615
+W1126 12:43:19.731392 21859 infer.cpp:441] Succ thrd initialize engine, name: general_infer_0
+I1126 12:43:19.732892 21847 server.cpp:1046] Server[baidu::paddle_serving::predictor::general_model::GeneralModelServiceImpl] is serving on port=9494.
+I1126 12:43:19.732928 21847 server.cpp:1049] Check out http://instance-hk6cehl7-2:9494 in web browser.
+I1126 12:43:22.426546 21855 general_model_service.pb.cc:3319] (logid=0) remote_side=[127.0.0.1:48336]
+I1126 12:43:22.426600 21855 general_model_service.pb.cc:3320] (logid=0) local_side=[127.0.0.1:9494]
+I1126 12:43:22.426609 21855 general_model_service.pb.cc:3321] (logid=0) service_name=[GeneralModelService]
+I1126 12:43:22.426609 21855 op_repository.h:68] RAW: Succ regist op: GeneralReaderOp
+I1126 12:43:22.426609 21855 op_repository.h:68] RAW: Succ regist op: GeneralInferOp
+I1126 12:43:22.426609 21855 op_repository.h:68] RAW: Succ regist op: GeneralResponseOp
+I1126 12:43:22.431190 21855 op.cpp:164] (logid=0) general_reader_0_time=[1856]
+W1126 12:43:22.431320 21855 device_context.cc:447] Please NOTE: device: 0, GPU Compute Capability: 6.1, Driver API Version: 10.1, Runtime API Version: 10.1
+W1126 12:43:22.431545 21855 device_context.cc:465] device: 0, cuDNN Version: 7.6.
+I1126 12:43:24.988032 21855 op.cpp:164] (logid=0) general_infer_0_time=[2556771]
+I1126 12:43:24.988127 21855 op.cpp:164] (logid=0) general_response_0_time=[26]
+I1126 12:43:24.988148 21855 service.cpp:263] (logid=0) workflow total time: 2561515
+I1126 12:43:24.988231 21855 general_model_service.pb.cc:3343] [serving]logid=0,cost=2561.65ms.
+Killed
+/usr/local/lib/python3.6/runpy.py:125: RuntimeWarning: 'paddle_serving_server.serve' found in sys.modules after import of package 'paddle_serving_server', but prior to execution of 'paddle_serving_server.serve'; this may result in unpredictable behaviour
+  warn(RuntimeWarning(msg))

@@ -1,0 +1,2 @@
+Going to Run Comand
+/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-101-0.0.0/serving -enable_model_toolkit -inferservice_path workdir_9494 -inferservice_file infer_service.prototxt -max_concurrency 0 -num_threads 10 -port 9494 -precision fp32 -use_calib=False -reload_interval_s 10 -resource_path workdir_9494 -resource_file resource.prototxt -workflow_path workdir_9494 -workflow_file workflow.prototxt -bthread_concurrency 10 -max_body_size 536870912 

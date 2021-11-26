@@ -1,0 +1,14 @@
+feed_var {
+  name: "x"
+  alias_name: "x"
+  is_lod_tensor: false
+  feed_type: 1
+  shape: 13
+}
+fetch_var {
+  name: "fc_0.tmp_1"
+  alias_name: "price"
+  is_lod_tensor: false
+  fetch_type: 1
+  shape: 1
+}
