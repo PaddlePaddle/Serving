@@ -1,4 +1,0 @@
-Log file created at: 2021/11/26 12:43:12
-Running on machine: instance-hk6cehl7-2
-Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
-E1126 12:43:12.788040 21784 cache.cpp:58] invalid cache path uci_housing_model/cube_cache

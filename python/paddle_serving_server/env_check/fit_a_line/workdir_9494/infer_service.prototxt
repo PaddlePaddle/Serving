@@ -1,5 +1,0 @@
-port: 9494
-services {
-  name: "GeneralModelService"
-  workflows: "workflow1"
-}
