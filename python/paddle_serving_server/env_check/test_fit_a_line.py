@@ -87,7 +87,6 @@ class TestFitALine(object):
             feed={"x": data}, fetch=fetch_list, batch=True)
         print(fetch_map)
         return fetch_map
-            
 
     def test_cpu(self):
         # 1.start server
@@ -105,6 +104,8 @@ class TestFitALine(object):
         # 4.predict by brpc
         # batch_size 1
         result_data = self.predict_brpc()
+        self.serving_util.check_result(result_data=result_data, truth_data=self.truth_val, batch_size=1)
+        result_data = self.predict_http()
         self.serving_util.check_result(result_data=result_data, truth_data=self.truth_val, batch_size=1)
 
         # 5.release
@@ -126,6 +127,8 @@ class TestFitALine(object):
         # 4.predict by brpc 
         # batch_size 1
         result_data = self.predict_brpc()
+        self.serving_util.check_result(result_data=result_data, truth_data=self.truth_val, batch_size=1)
+        result_data = self.predict_http()
         self.serving_util.check_result(result_data=result_data, truth_data=self.truth_val, batch_size=1)
 
         # 5.release
