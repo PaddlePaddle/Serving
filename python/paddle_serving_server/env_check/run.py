@@ -1,4 +1,28 @@
 import pytest
+# coding:utf-8
+# Copyright (c) 2020  PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+'''
+This module is used to check whether the running environment for PaddleServing is configured correctly.
+
+Two test cases are set for verifying the smooth of environment, fit a line test case for C++ Serving environment and uci for Pipeline Serving enviroment
+
+Usage: export PYTHON_EXECUTABLE=/usr/local/bin/python3.6
+       python3.6 -m paddle_serving_server.serve check
+'''
+
+
 import sys
 import os
 
