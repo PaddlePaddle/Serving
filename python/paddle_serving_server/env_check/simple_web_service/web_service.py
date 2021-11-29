@@ -16,8 +16,19 @@ from paddle_serving_server.web_service import WebService, Op
 import logging
 import numpy as np
 import sys
+import argparse
 
 _LOGGER = logging.getLogger()
+
+def serve_args():
+    parser = argparse.ArgumentParser("serve")
+    parser.add_argument(
+        "config",
+        type=str,
+        default="config.yml",
+        nargs="?",
+        help="cpu or gpu config.yml")
+    return parser.parse_args() 
 
 
 class UciOp(Op):
@@ -53,7 +64,7 @@ class UciService(WebService):
         uci_op = UciOp(name="uci", input_ops=[read_op])
         return uci_op
 
-
+args = serve_args()
 uci_service = UciService(name="uci")
-uci_service.prepare_pipeline_config("config.yml")
+uci_service.prepare_pipeline_config(args.config)
 uci_service.run_service()
