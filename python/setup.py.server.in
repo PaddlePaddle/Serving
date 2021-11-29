@@ -38,6 +38,9 @@ REQUIRED_PACKAGES = [
 ]
 
 packages=['paddle_serving_server',
+          'paddle_serving_server.env_check',
+          'paddle_serving_server.env_check.fit_a_line',
+          'paddle_serving_server.env_check.simple_web_service',
           'paddle_serving_server.proto',
           'paddle_serving_server.pipeline',
           'paddle_serving_server.pipeline.proto',
@@ -46,6 +49,12 @@ packages=['paddle_serving_server',
 
 package_dir={'paddle_serving_server':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
+             'paddle_serving_server.env_check':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check',
+             'paddle_serving_server.env_check.fit_a_line':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check/fit_a_line',
+             'paddle_serving_server.env_check.simple_web_service':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check/simple_web_service',
              'paddle_serving_server.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto',
              'paddle_serving_server.pipeline':
@@ -57,8 +66,8 @@ package_dir={'paddle_serving_server':
              'paddle_serving_server.pipeline.gateway.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/pipeline/gateway/proto'}
 
-package_data={'paddle_serving_server': ['pipeline/gateway/libproxy_server.so'],}
-
+package_data={'paddle_serving_server': ['pipeline/gateway/libproxy_server.so', 'env_check/fit_a_line/*', 'env_check/simple_web_service/*', 'env_check/fit_a_line/uci_housing_model/*', 'env_check/fit_a_line/uci_housing_client/*', 'env_check/simple_web_service/uci_housing_model/*', 'env_check/simple_web_service/uci_housing_client/*'],}
+include_package_data=True
 setup(
     name='${SERVER_PACKAGE_NAME}',
     version= package_version,
