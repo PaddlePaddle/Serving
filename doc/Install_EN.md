@@ -78,6 +78,8 @@ The paddle-serving-server and paddle-serving-server-gpu installation packages su
 
 The paddle-serving-client and paddle-serving-app installation packages support Linux and Windows, and paddle-serving-client only supports python3.6/3.7/3.8.
 
+**If you used the Cuda10.2 environment of paddle serving 0.5.X 0.6.X before, you need to pay attention to version 0.7.0, paddle-serving-server-gpu==0.7.0.post102 uses Cudnn7 and TensorRT6, and 0.6.0.post102 uses cudnn8 and TensorRT7. If 0.6.0 cuda10.2 users need to upgrade, please use paddle-serving-server-gpu==0.7.0.post1028**
+
 ## 3. Install Paddle related Python libraries
 **You only need to install it when you use the `paddle_serving_client.convert` command or the `Python Pipeline framework`. **
 ```
