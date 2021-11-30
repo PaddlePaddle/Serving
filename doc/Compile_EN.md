@@ -93,9 +93,10 @@ If not found. Explanation 1) The development version of Python is not installed 
 
 2) Set `PYTHON_LIBRARIES`
 
-Search for libpython3.7.so
+Search for libpython3.7.so or libpython3.7m.so
 ```
 find / -name libpython3.7.so
+find / -name libpython3.7m.so
 ```
 Usually there will be something similar to `**/lib/libpython3.7.so` or `**/lib/x86_64-linux-gnu/libpython3.7.so`, we only need to take its folder directory, For example, find `/usr/local/lib/libpython3.7.so`, then we only need `export PYTHON_LIBRARIES=/usr/local/lib`.
 If it is not found, it means 1) Statically compiling Python, you need to reinstall the dynamically compiled Python 2) The county is not enough to view the relevant system catalogs.
