@@ -133,7 +133,7 @@ export PYTHON_EXECUTABLE=/usr/bin/python3.7
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
-python -m install -r python/requirements.txt
+python3.7 -m pip install -r python/requirements.txt
  
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct
