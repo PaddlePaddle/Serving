@@ -84,8 +84,8 @@ More flags:
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
 | `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
 | `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
 | `port`                                         | int  | `9292`  | Exposed port of current service to users              |
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
