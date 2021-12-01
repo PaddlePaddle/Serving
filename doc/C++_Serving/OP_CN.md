@@ -113,8 +113,8 @@ int GeneralInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
 
-  if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
+  if (InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
 
@@ -127,14 +127,15 @@ int GeneralInferOp::inference() {
 DEFINE_OP(GeneralInferOp);
 ```
 
-`input_blob` 和 `output_blob` 都有很多的 `paddle::PaddleTensor`, 且Paddle预测库会被 `InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)`调用。此函数中的其他大多数代码都与性能分析有关，将来我们也可能会删除多余的代码。
+`input_blob` 和 `output_blob` 都有很多的 `paddle::PaddleTensor`, 且Paddle预测库会被 `InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)`调用。此函数中的其他大多数代码都与性能分析有关，将来我们也可能会删除多余的代码。
 
 
 基本上，以上代码可以实现一个新的运算符。如果您想访问字典资源，可以参考`core/predictor/framework/resource.cpp`来添加全局可见资源。资源的初始化在启动服务器的运行时执行。
 
 ## 定义 Python API
 
-在服务器端为Paddle Serving定义C++运算符后，最后一步是在Python API中为Paddle Serving服务器API添加注册， `python/paddle_serving_server/__init__.py`文件里有关于API注册的代码如下
+在服务器端为Paddle Serving定义C++运算符后，最后一步是在Python API中为Paddle Serving服务器API添加注册， `python/paddle_serving_server/dag.py`文件里有关于API注册的代码如下
+
 
 ``` python
 self.op_dict = {
@@ -146,4 +147,14 @@ self.op_dict = {
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv": "GeneralDistKVOp"
         }
+```
+
+在`python/paddle_serving_server/server.py`文件中仅添加`需要加载模型，执行推理预测的自定义的C++OP类的类名`。例如`general_reader`由于只是做一些简单的数据处理而不加载模型调用预测，故在👆的代码中需要添加，而不添加在👇的代码中。
+``` python
+default_engine_types = [
+                'GeneralInferOp',
+                'GeneralDistKVInferOp',
+                'GeneralDistKVQuantInferOp',
+                'GeneralDetectionOp',
+            ]
 ```
