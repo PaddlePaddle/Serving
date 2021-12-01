@@ -157,13 +157,13 @@ def ParamChecker(function):
 
         # if there are invalid arguments, raise the error.
         if len(invalid_argument_list) > 0:
-            raise CustomException(CustomExceptionCode.INPUT_PARAMS_ERROR, "invalid arg list: {}".format(invalid_argument_list))
+            raise CustomException(CustomExceptionCode.INPUT_PARAMS_ERROR, "invalid arg list: {}".format(invalid_argument_list), True)
 
         # check the result.
         result = function(*args, **kwargs)
         checker = inspect.signature(function).return_annotation
         if not check('return', result, checker, function):
-            raise CustomException(CustomExceptionCode.INPUT_PARAMS_ERROR, "invalid return type")
+            raise CustomException(CustomExceptionCode.INPUT_PARAMS_ERROR, "invalid return type", True)
 
         # return the result.
         return result
@@ -211,9 +211,21 @@ class ParamVerify(object):
         if len(feed_dict.keys()) != len(feed_list):
             return False
         for key in feed_list:
-           if key in feed_dict.keys():
+           if key not in feed_dict.keys():
                return False
         return True 
 
+
+    @staticmethod
+    def check_fetch_list(fetch_list, right_fetch_list):
+        if not isinstance(fetch_list, list):
+            return False
+        # read model config, try catch and 
+        if len(fetch_list) != len(right_fetch_list):
+            return False
+        for key in fetch_list:
+           if key not in right_fetch_list:
+               return False
+        return True 
 
 ErrorCatch = ErrorCatch()
