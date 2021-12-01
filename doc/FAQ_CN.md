@@ -1,6 +1,12 @@
 # FAQ
 
+## 版本升级问题
 
+#### Q: 从v0.6.x升级到v0.7.0版本时，运行Python Pipeline程序时报错信息如下：
+```
+Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postprocess() takes 4 positional arguments but 5 were given
+```
+**A:** 在服务端程序（例如 web_service.py)的postprocess函数定义中增加参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
 
 ## 基础知识
 
@@ -10,7 +16,7 @@
 
 #### Q: paddle-serving是否支持Int32支持
 
-**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下
+**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下，完整信息可参考[Serving配置与启动参数说明](./Serving_Configure_CN.md#模型配置文件)
 
      0-int64
     
@@ -332,7 +338,7 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 
 使用gdb调试core文件的方法为：gdb <可执行文件> <core文件>，进入后输入bt指令，一般即可显示出错在哪一行。
 
-注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.6.2/serving
+注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.7.0/serving
 
 
 ## 性能优化

@@ -47,9 +47,9 @@ Serving development mirror is the mirror used to compile and debug prediction se
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
 |  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
 |  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | Nan                     | Nan                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | Nan                    |  Nan                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 We first need to pull related images for the environment we need. Under the **Environment** column in the above table, except for the CPU, the rest (Cuda**+Cudnn**) belong to the GPU environment.
 
@@ -93,9 +93,10 @@ If not found. Explanation 1) The development version of Python is not installed 
 
 2) Set `PYTHON_LIBRARIES`
 
-Search for libpython3.7.so
+Search for libpython3.7.so or libpython3.7m.so
 ```
 find / -name libpython3.7.so
+find / -name libpython3.7m.so
 ```
 Usually there will be something similar to `**/lib/libpython3.7.so` or `**/lib/x86_64-linux-gnu/libpython3.7.so`, we only need to take its folder directory, For example, find `/usr/local/lib/libpython3.7.so`, then we only need `export PYTHON_LIBRARIES=/usr/local/lib`.
 If it is not found, it means 1) Statically compiling Python, you need to reinstall the dynamically compiled Python 2) The county is not enough to view the relevant system catalogs.
@@ -119,7 +120,7 @@ export PYTHON_EXECUTABLE=/usr/bin/python3.7
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
-python -m install -r python/requirements.txt
+python3.7 -m pip install -r python/requirements.txt
  
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct

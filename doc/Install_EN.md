@@ -43,8 +43,8 @@ bash Serving/tools/paddle_env_install.sh
 **GPU:**
 ```
 # Start GPU Docker
-docker pull paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7 bash
+docker pull paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
@@ -52,7 +52,7 @@ git clone https://github.com/PaddlePaddle/Serving
 bash Serving/tools/paddle_env_install.sh
 ```
 
-## 2. Install Paddle Serving related whl Packages
+## 2. Install Paddle Serving stable wheel packages
 
 Install the required pip dependencies
 ```
@@ -78,6 +78,8 @@ The paddle-serving-server and paddle-serving-server-gpu installation packages su
 
 The paddle-serving-client and paddle-serving-app installation packages support Linux and Windows, and paddle-serving-client only supports python3.6/3.7/3.8.
 
+**If you used the Cuda10.2 environment of paddle serving 0.5.X 0.6.X before, you need to pay attention to version 0.7.0, paddle-serving-server-gpu==0.7.0.post102 uses Cudnn7 and TensorRT6, and 0.6.0.post102 uses cudnn8 and TensorRT7. If 0.6.0 cuda10.2 users need to upgrade, please use paddle-serving-server-gpu==0.7.0.post1028**
+
 ## 3. Install Paddle related Python libraries
 **You only need to install it when you use the `paddle_serving_client.convert` command or the `Python Pipeline framework`. **
 ```
@@ -100,8 +102,8 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
 |  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
 |  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                     | 无                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).

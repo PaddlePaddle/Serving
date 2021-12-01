@@ -51,9 +51,9 @@ Serving开发镜像是Serving套件为了支持各个预测环境提供的用于
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
 |  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
 |  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                     | 无                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 我们首先要针对自己所需的环境拉取相关镜像。上表**环境**一列下，除了CPU，其余（Cuda**+Cudnn**）都属于GPU环境。
 您可以使用Serving开发镜像。
@@ -106,9 +106,10 @@ find / -name Python.h
 
 2) 设置`PYTHON_LIBRARIES`
 
-搜索 libpython3.7.so
+搜索 libpython3.7.so 或 libpython3.7m.so
 ```
 find / -name libpython3.7.so
+find / -name libpython3.7m.so
 ```
 通常会有类似于`**/lib/libpython3.7.so`或者`**/lib/x86_64-linux-gnu/libpython3.7.so`出现，我们只需要取它的文件夹目录就好，比如找到`/usr/local/lib/libpython3.7.so`，那么我们只需要`export PYTHON_LIBRARIES=/usr/local/lib`就好。
 如果没有找到，说明 1）静态编译Python，需要重新安装动态编译的Python 2）全县不足无法查看相关系统目录。
@@ -132,7 +133,7 @@ export PYTHON_EXECUTABLE=/usr/bin/python3.7
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
-python -m install -r python/requirements.txt
+python3.7 -m pip install -r python/requirements.txt
  
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct

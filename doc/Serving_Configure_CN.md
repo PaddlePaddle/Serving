@@ -91,7 +91,7 @@ workdir_9393
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
 | `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
 | `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
+| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
 | `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                           |
 | `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
 | `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
@@ -357,17 +357,22 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["concat_1.tmp_0"]
 
-            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
-
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
+
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
-            #ir_optim
+            #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
+            
+            #precsion, 预测精度，降低预测精度可提升预测速度
+            #GPU 支持: "fp32"(default), "fp16", "int8"；
+            #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
+            precision: "fp32"
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 3
@@ -390,17 +395,22 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
 
-            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: ""
-
             # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
             device_type: 0
 
-            #use_mkldnn
+            #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
+            devices: ""
+
+            #use_mkldnn, 开启mkldnn时，必须同时设置ir_optim=True，否则无效
             #use_mkldnn: True
 
-            #ir_optim
+            #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
+            
+            #precsion, 预测精度，降低预测精度可提升预测速度
+            #GPU 支持: "fp32"(default), "fp16", "int8"；
+            #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
+            precision: "fp32"
 ```
 
 ### 单机多卡

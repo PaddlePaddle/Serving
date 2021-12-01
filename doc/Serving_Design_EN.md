@@ -25,9 +25,9 @@ In order to meet the needs of users in different scenarios, Paddle Serving's pro
 
 | Response time | throughput | development efficiency | Resource utilization | selection | Applications|
 |-----|------|-----|-----|------|------|
-| LOW | HIGH | LOW | HIGH |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
-| HIGH | HIGH | HIGH | HIGH |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
-| HIGH | LOW | HIGH| LOW |Python webservice| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
+| Low | Highest | Low | Highest |C++ Serving | High-performance，recall and ranking services of large-scale online recommendation systems|
+| Higest | Higher | Higher | Higher |Python Pipeline Serving| High-throughput, high-efficiency, asynchronous mode, fitting for single operator multi-model combination scenarios|
+| Higer | Low | Higher| Low |Python webservice| High-throughput，Low-traffic services or projects that require rapid iteration, model effect verification|
 
 Performance index description：
 1. Response time (ms): Average response time of a single request, calculate the response time of 50, 90, 95, 99 quantiles, the lower the better.
@@ -199,16 +199,3 @@ The core design of Pipeline Serving is a graph execution engine, and the basic p
 <img src='images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </center>
 
-----
-
-
-## 6. Future Plan
-
-### 5.1 Auto Deployment on Cloud
-In order to make deployment more easily on public cloud, Paddle Serving considers to provides Operators on Kubernetes in submitting a service job.
-
-### 6.2 Vector Indexing and Tree based Indexing
-In recommendation and advertisement systems, it is commonly seen to use vector based index or tree based indexing service to do candidate retrievals. These retrieval tasks will be built-in services of Paddle Serving.
-
-### 6.3 Service Monitoring
-Paddle Serving will integrate Prometheus monitoring, which is a set of open source monitoring & alarm & time series database combination, suitable for k8s and docker monitoring systems.

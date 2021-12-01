@@ -43,15 +43,15 @@ bash Serving/tools/paddle_env_install.sh
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-cuda10.2-cudnn7 bash
+docker pull paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.0-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
 # Paddle开发镜像需要执行以下脚本增加Serving所需依赖项
 bash Serving/tools/paddle_env_install.sh
 ```
-## 2.安装Paddle Serving相关Python库
+## 2.安装Paddle Serving稳定wheel包
 
 安装所需的pip依赖
 ```
@@ -77,6 +77,8 @@ paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubun
 
 paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
 
+**如果您之前使用paddle serving 0.5.X 0.6.X的Cuda10.2环境，需要注意在0.7.0版本，paddle-serving-server-gpu==0.7.0.post102的使用Cudnn7和TensorRT6，而0.6.0.post102使用cudnn8和TensorRT7。如果0.6.0的cuda10.2用户需要升级安装，请使用paddle-serving-server-gpu==0.7.0.post1028**
+
 ## 3.安装Paddle相关Python库
 **当您使用`paddle_serving_client.convert`命令或者`Python Pipeline框架`时才需要安装。**
 ```
@@ -97,8 +99,8 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
 |  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
 |  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                     | 无                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
 |  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                    |  无                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)。

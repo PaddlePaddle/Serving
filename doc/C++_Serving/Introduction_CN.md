@@ -76,7 +76,7 @@ C++ Serving采用对称加密算法对模型进行加密，在服务加载模型
 <p>
 
 ### 4.2 多语言多协议Client
-BRPC网络框架支持[多种底层通信协议](#1.网络框架(BRPC))，即使用目前的C++ Serving框架的Server端，各种语言的Client端，甚至使用curl的方式，只要按照上述协议（具体支持的协议见[brpc官网](https://github.com/apache/incubator-brpc)）封装数据并发送，Server端就能够接收、处理和返回结果。
+BRPC网络框架支持[多种底层通信协议](#1网络框架BRPC)，即使用目前的C++ Serving框架的Server端，各种语言的Client端，甚至使用curl的方式，只要按照上述协议（具体支持的协议见[brpc官网](https://github.com/apache/incubator-brpc)）封装数据并发送，Server端就能够接收、处理和返回结果。
 
 对于支持的各种协议我们提供了部分的Client SDK示例供用户参考和使用，用户也可以根据自己的需求去开发新的Client SDK，也欢迎用户添加其他语言/协议（例如GRPC-Go、GRPC-C++ HTTP2-Go、HTTP2-Java等）Client SDK到我们的仓库供其他开发者借鉴和参考。
 
