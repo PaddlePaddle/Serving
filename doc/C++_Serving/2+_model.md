@@ -122,6 +122,3 @@ python3 ocr_cpp_client.py ocr_det_client ocr_rec_client
 #ocr_rec_client为第二个模型的Client端proto文件夹相对路径
 ```
 此时，对于Server端而言，`'general_reader'`会检查输入的数据的格式是否与第一个模型的Client端proto格式定义的一致，`'general_response'`会保证输出的数据格式与第二个模型的Client端proto文件一致。
-
-
-
