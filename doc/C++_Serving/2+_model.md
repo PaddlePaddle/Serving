@@ -33,7 +33,7 @@ OP是Paddle Serving服务端的处理流程（即DAG图）的基本组成，参�
   output_blob->SetBatchSize(batch_size);
 ```
 
-完成前处理和定义输出变了后，核心调用预测引擎的一句话如下：
+完成前处理和定义输出变量后，核心调用预测引擎的一句话如下：
 ``` c++
 if (InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)) {
     LOG(ERROR) << "Failed do infer in fluid model: " << engine_name().c_str();
