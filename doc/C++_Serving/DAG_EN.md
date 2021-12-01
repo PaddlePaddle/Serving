@@ -16,12 +16,13 @@ Deep neural nets often have some preprocessing steps on input data, and postproc
 
 ### Simple series structure
 
-PaddleServing has some predefined Computation Node in the framework. A very commonly used Computation Graph is the simple reader-inference-response mode that can cover most of the single model inference scenarios. A example graph and the corresponding DAG definition code is as follows.
+PaddleServing has some predefined Computation Node in the framework. A very commonly used Computation Graph is the simple reader-inference-response mode that can cover most of the single model inference scenarios. Here is a example of DAG graph.
 
 <center>
 <img src='../images/simple_dag.png' width = "260" height = "370" align="middle"/>
 </center>
 
+If you want to start the server through the python API. The corresponding DAG definition code is as follows.
 ``` python
 import paddle_serving_server as serving
 from paddle_serving_server import OpMaker
@@ -37,6 +38,8 @@ op_seq_maker.add_op(read_op)
 op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
+
+If you use `the command line + configuration file method to start C++ server`, you only need to modify [the configuration file](./Serving_Configure_CN.md), don`t need to change any line of 👆 code.
 
 For simple series logic, we simplify it and build it with `OpSeqMaker`. You can determine the successor by default according to the order of joining `OpSeqMaker` without specifying the successor of each node.
 
