@@ -16,7 +16,8 @@
 
 ### 简单的串联结构
 
-PaddleServing在框架中具有一些预定义的计算节点。 一种非常常用的计算图是简单的reader-infer-response模式，可以涵盖大多数单一模型推理方案。 示例图和相应的DAG定义代码如下。
+PaddleServing在框架中具有一些预定义的计算节点。 一种非常常用的计算图是简单的reader-infer-response模式，可以涵盖大多数单一模型推理方案。 示例图和通过`Python API 启动Server`相应的DAG定义代码如下（`python/paddle_serving_server/serve.py`）。
+
 <center>
 <img src='../images/simple_dag.png' width = "260" height = "370" align="middle"/>
 </center>
@@ -36,6 +37,9 @@ op_seq_maker.add_op(read_op)
 op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
+
+如果使用`C++命令行 + 配置文件的方式启动Server`只需修改配置文件即可。
+
 
 对于简单的串联逻辑，我们将其简化为`Sequence`，使用`OpSeqMaker`进行构建。用户可以不指定每个节点的前继，默认按加入`OpSeqMaker`的顺序来确定前继。
 
