@@ -112,8 +112,8 @@ int GeneralInferOp::inference() {
   int64_t start = timeline.TimeStampUS();
   timeline.Start();
 
-  if (InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)) {
-    LOG(ERROR) << "Failed do infer in fluid model: " << GENERAL_MODEL_NAME;
+  if (InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)) {
+    LOG(ERROR) << "Failed do infer in fluid model: " << engine_name().c_str();
     return -1;
   }
 
@@ -126,15 +126,16 @@ int GeneralInferOp::inference() {
 DEFINE_OP(GeneralInferOp);
 ```
 
-`input_blob` and `output_blob` both have multiple `paddle::PaddleTensor`, and the Paddle Inference library can be called through `InferManager::instance().infer(GENERAL_MODEL_NAME, in, out, batch_size)`. Most of the other code in this function is about profiling, we may remove redudant code in the future as well.
+`input_blob` and `output_blob` both have multiple `paddle::PaddleTensor`, and the Paddle Inference library can be called through `InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)`. Most of the other code in this function is about profiling, we may remove redudant code in the future as well.
 
 Basically, the above code can implement a new operator. If you want to visit dictionary resource, you can reference `core/predictor/framework/resource.cpp` to add global visible resources. The initialization of resources is executed at the runtime of starting server.
 
 ## Define Python API
 
-After you have defined a C++ operator on server side for Paddle Serving, the last step is to add a registration in Python API for PaddleServing server API, `python/paddle_serving_server/__init__.py` in the repo has the code piece.
+After you have defined a C++ operator on server side for Paddle Serving, the last step is to add a registration in Python API for PaddleServing server API, `python/paddle_serving_server/dag.py` in the repo has the code piece.
 
-``` c++
+
+``` python
 self.op_dict = {
             "general_infer": "GeneralInferOp",
             "general_reader": "GeneralReaderOp",
@@ -144,4 +145,16 @@ self.op_dict = {
             "general_single_kv": "GeneralSingleKVOp",
             "general_dist_kv": "GeneralDistKVOp"
         }
+```
+
+In `python/paddle_serving_server/server.py` file, only the class name of the C++ OP class that needs to load the model and execute prediction is added. 
+
+For example, `general_reader`, need to be added in the 👆 code, but not in the 👇 code. Because it only does some simple data processing without loading the model and call prediction. 
+``` python
+default_engine_types = [
+                'GeneralInferOp',
+                'GeneralDistKVInferOp',
+                'GeneralDistKVQuantInferOp',
+                'GeneralDetectionOp',
+            ]
 ```
