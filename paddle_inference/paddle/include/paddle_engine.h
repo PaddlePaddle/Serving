@@ -276,6 +276,7 @@ class PaddleInferenceEngine : public EngineCore {
     if (engine_conf.has_use_ascend_cl() &&
         engine_conf.use_ascend_cl()) {
       if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
+        // for ascend 310 
         FLAGS_nnadapter_device_names = "huawei_ascend_npu";
         FLAGS_nnadapter_context_properties =
                 "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS=" +
@@ -294,7 +295,8 @@ class PaddleInferenceEngine : public EngineCore {
                   << ",nnadapter_model_cache_dir="
                   << FLAGS_nnadapter_model_cache_dir;
       } else {
-	config.EnableNpu(gpu_id);
+        // for ascend 910
+	      config.EnableNpu(gpu_id);
       }
     }
 

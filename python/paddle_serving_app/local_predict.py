@@ -227,6 +227,7 @@ class LocalPredictor(object):
         # set ascend cl
         if use_ascend_cl:
             if use_lite:
+                # for ascend 310
                 nnadapter_device_names = "huawei_ascend_npu"
                 nnadapter_context_properties = \
                     "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS={}".format(gpu_id)
@@ -237,6 +238,7 @@ class LocalPredictor(object):
                 .set_context_properties(nnadapter_context_properties) \
                 .set_model_cache_dir(nnadapter_model_cache_dir)
             else:
+                # for ascend 910
                 config.enable_npu(gpu_id)
         # set cpu low precision
         if not use_gpu and not use_lite:
