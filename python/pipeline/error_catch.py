@@ -217,7 +217,7 @@ class ParamVerify(object):
 
     @staticmethod
     def check_fetch_list(fetch_list, right_fetch_list):
-        if len(fetch_list) ==0 :
+        if len(fetch_list) == 0:
             return True
         if not isinstance(fetch_list, list):
             return False
