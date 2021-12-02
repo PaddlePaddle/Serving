@@ -203,14 +203,13 @@ class ParamVerify(object):
             return False
 
     @staticmethod
-    def check_feed_dict(feed_dict, feed_list):
+    def check_feed_dict(feed_dict, right_feed_list):
         if not isinstance(feed_dict, dict):
             return False
-        # read model config, try catch and 
-        feed_dict_key_size = len(feed_dict.keys())
-        if len(feed_dict.keys()) != len(feed_list):
+        # right_feed_list reads from model config. the keys of feed_dict should same to it.
+        if len(feed_dict.keys()) != len(right_feed_list):
             return False
-        for key in feed_list:
+        for key in right_feed_list:
            if key not in feed_dict.keys():
                return False
         return True 
@@ -218,11 +217,11 @@ class ParamVerify(object):
 
     @staticmethod
     def check_fetch_list(fetch_list, right_fetch_list):
+        if len(fetch_list) ==0 :
+            return True
         if not isinstance(fetch_list, list):
             return False
-        # read model config, try catch and 
-        if len(fetch_list) != len(right_fetch_list):
-            return False
+        # right_fetch_list reads from model config, fetch_list should part of it.
         for key in fetch_list:
            if key not in right_fetch_list:
                return False
