@@ -206,11 +206,12 @@ class ParamVerify(object):
     def check_feed_dict(feed_dict, right_feed_list):
         if not isinstance(feed_dict, dict):
             return False
+        filter_feed_list = list(filter(lambda x: "lod" not in x, feed_dict.keys()))
         # right_feed_list reads from model config. the keys of feed_dict should same to it.
-        if len(feed_dict.keys()) != len(right_feed_list):
+        if len(filter_feed_list) != len(right_feed_list):
             return False
         for key in right_feed_list:
-           if key not in feed_dict.keys():
+           if key not in filter_feed_list:
                return False
         return True 
 
