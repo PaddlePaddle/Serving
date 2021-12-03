@@ -79,6 +79,11 @@ int GeneralReaderOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
+  if (var_num < 1) {
+    LOG(ERROR) << "(logid=" << log_id << ") Failed get feed_var, var_num="
+               << var_num;
+    return -1;
+  }
 
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
