@@ -47,6 +47,7 @@ message EngineDesc {
   optional bool combined_model = 18;
   optional bool encrypted_model = 19;
   optional bool gpu_multi_stream = 20;
+  optional bool use_ascend_cl = 21;
 
   /*
    * "runtime_thread_num": n == 0 means don`t use Asynchronous task scheduling

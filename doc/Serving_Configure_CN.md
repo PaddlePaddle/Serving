@@ -84,8 +84,8 @@ workdir_9393
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
 | `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
 | `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
 | `port`                                         | int  | `9292`  | Exposed port of current service to users              |
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
@@ -98,6 +98,7 @@ workdir_9393
 | `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
 | `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+| `use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
 
 #### 当您的某个模型想使用多张GPU卡部署时.
 ```BASH
@@ -249,6 +250,7 @@ engines {
   use_gpu: false
   combined_model: false
   gpu_multi_stream: false
+  use_ascend_cl: false
   runtime_thread_num: 0
   batch_infer_size: 32
   enable_overrun: false
@@ -286,6 +288,7 @@ gpu_ids: 2
 - use_gpu:是否使用GPU
 - combined_model: 是否使用组合模型文件
 - gpu_multi_stream: 是否开启gpu多流模式
+- use_ascend_cl: 是否使用昇腾,单独开启适配昇腾910，同时开启lite适配310
 - runtime_thread_num: 若大于0， 则启用Async异步模式，并创建对应数量的predictor实例。
 - batch_infer_size: Async异步模式下的最大batch数
 - enable_overrun: Async异步模式下总是将整个任务放入任务队列
@@ -357,7 +360,7 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["concat_1.tmp_0"]
 
-            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
             device_type: 0
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
@@ -395,7 +398,7 @@ op:
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
 
-            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
             device_type: 0
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
@@ -434,10 +437,12 @@ Python Pipeline除了支持CPU、GPU之外，还支持多种异构硬件部署�
 - TensorRT : 2
 - CPU(Arm) : 3
 - XPU : 4
+- Ascend310(Arm) : 5
+- Ascend910(Arm) : 6
 
 config.yml中硬件配置：
 ```YAML
-#计算硬件类型: 空缺时由devices决定(CPU/GPU)，0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+#计算硬件类型: 空缺时由devices决定(CPU/GPU)，0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
 device_type: 0
 #计算硬件ID，优先由device_type决定硬件类型。devices为""或空缺时为CPU预测；当为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
 devices: "" # "0,1"

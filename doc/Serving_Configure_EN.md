@@ -84,8 +84,8 @@ More flags:
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
 | `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
 | `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
 | `port`                                         | int  | `9292`  | Exposed port of current service to users              |
 | `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
@@ -98,6 +98,7 @@ More flags:
 | `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
 | `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+| `use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
 
 #### Serving model with multiple gpus.
 ```BASH
@@ -258,6 +259,7 @@ engines {
   use_gpu: false
   combined_model: false
   gpu_multi_stream: false
+  use_ascend_cl: false
   runtime_thread_num: 0
   batch_infer_size: 32
   enable_overrun: false
@@ -293,6 +295,7 @@ gpu_ids: 2
 - use_gpu: Enbale GPU.
 - combined_model: Enable combined model.
 - gpu_multi_stream: Enable gpu multiple stream mode.
+- use_ascend_cl: Enable Ascend, use individually for ascend910, use with lite for ascend310
 - runtime_thread_num: Enable Async mode when num greater than 0 and creating predictors.
 - batch_infer_size: The max batch size of Async mode.
 - enable_overrun: Enable over running of Async mode which means putting the whole task into the task queue.
@@ -380,7 +383,7 @@ op:
             #Fetch data list
             fetch_list: ["concat_1.tmp_0"]
 
-            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
             device_type: 0
 
             #Device ID
@@ -418,7 +421,7 @@ op:
             #Fetch data list
             fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
 
-            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
             device_type: 0
             
             #Device ID
@@ -459,10 +462,12 @@ In addition to supporting CPU and GPU, Pipeline also supports the deployment of 
 - TensorRT : 2
 - CPU(Arm) : 3
 - XPU : 4
+- Ascend310(Arm) : 5
+- Ascend910(Arm) : 6
 
 Reference config.yaml:
 ```YAML
-# device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+# device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
 device_type: 0
 devices: "" # "0,1"
 ```

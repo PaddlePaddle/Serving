@@ -88,6 +88,7 @@ class Server(object):
         self.gpu_multi_stream = False
         self.use_lite = False
         self.use_xpu = False
+        self.use_ascend_cl = False
         self.model_config_paths = collections.OrderedDict()
         self.product_name = None
         self.container_id = None
@@ -195,6 +196,9 @@ class Server(object):
     def set_xpu(self):
         self.use_xpu = True
 
+    def set_ascend_cl(self):
+        self.use_ascend_cl = True
+
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
         if self.model_toolkit_conf == None:
@@ -208,6 +212,8 @@ class Server(object):
             if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
                 self.gpuid = ["0"]
                 self.device = "gpu"
+            elif self.use_xpu or self.use_ascend_cl:
+                self.gpuid = ["0"]
             else:
                 self.gpuid = ["-1"]
 
@@ -244,6 +250,7 @@ class Server(object):
             engine.gpu_multi_stream = self.gpu_multi_stream
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
+            engine.use_ascend_cl = self.use_ascend_cl
             engine.use_gpu = False
 
             if len(self.gpuid) == 0:
@@ -436,6 +443,13 @@ class Server(object):
                 device_version = "gpu-cuda" + version_suffix
         elif device_type == "2":
             device_version = "xpu-" + platform.machine()
+        elif device_type == "3":
+            device_version = "rocm-" + platform.machine()
+        elif device_type == "4":
+            if self.use_lite:
+                device_version = "ascendcl-lite-" + platform.machine()
+            else:
+                device_version = "ascendcl-" + platform.machine()
         return device_version
 
     def download_bin(self):
