@@ -34,6 +34,7 @@ import socket
 from paddle_serving_server.env import CONF_HOME
 import signal
 from paddle_serving_server.util import *
+from paddle_serving_server.env_check.run import *
 
 
 # web_service.py is still used by Pipeline.
@@ -114,7 +115,7 @@ def serve_args():
         type=str,
         default="start",
         nargs="?",
-        help="stop or start PaddleServing")
+        help="stop or start PaddleServing, check running environemnt")
     parser.add_argument(
         "--thread",
         type=int,
@@ -450,7 +451,9 @@ if __name__ == "__main__":
             os._exit(0)
         else:
             os._exit(-1)
-
+    elif args.server == "check":
+         check_env() 
+         os._exit(0)
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass

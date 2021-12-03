@@ -29,35 +29,10 @@ import enum
 import os
 import copy
 import time
+from .error_catch import ErrorCatch, CustomException, ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class ChannelDataErrcode(enum.Enum):
-    """
-    ChannelData error code
-    """
-    OK = 0
-    TIMEOUT = 1
-    NOT_IMPLEMENTED = 2
-    TYPE_ERROR = 3
-    RPC_PACKAGE_ERROR = 4
-    CLIENT_ERROR = 5
-    CLOSED_ERROR = 6
-    NO_SERVICE = 7
-    UNKNOW = 8
-    INPUT_PARAMS_ERROR = 9
-
-    PRODUCT_ERROR = 100
-
-
-class ProductErrCode(enum.Enum):
-    """
-    ProductErrCode is a base class for recording business error code. 
-    product developers inherit this class and extend more error codes. 
-    """
-    pass
-
 
 class ChannelDataType(enum.Enum):
     """
