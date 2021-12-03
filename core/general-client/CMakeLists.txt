@@ -18,7 +18,7 @@ add_executable(simple_client example/simple_client.cpp)
 add_dependencies(simple_client utils sdk-cpp client)
 
 target_link_libraries(simple_client -Wl,--whole-archive
-        -Wl,--no-whole-archive -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -Wl,-rpath,'$ORIGIN'/lib)
+        -Wl,--no-whole-archive -Wl,--start-group -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -Wl,-rpath,'$ORIGIN'/lib)
 
 target_link_libraries(simple_client utils)
 target_link_libraries(simple_client sdk-cpp)

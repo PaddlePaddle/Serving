@@ -31,6 +31,10 @@ target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
 target_link_libraries(serving utf8proc)
+if(WITH_ASCEND_CL)
+    target_link_libraries(serving ascendcl acl_op_compiler)
+endif()
+
 
 if(WITH_GPU)
     target_link_libraries(serving ${CUDA_LIBRARIES})
@@ -62,4 +66,8 @@ install(FILES
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libdnnl.so.1
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
+endif()
+
+if (WITH_ROCM)
+    target_link_libraries(serving ${ROCM_HIPRTC_LIB})
 endif()
