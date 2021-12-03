@@ -34,10 +34,14 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
+check_feed_dict=ParamVerify.check_feed_dict
+check_fetch_list=ParamVerify.check_fetch_list
 from .proto import pipeline_service_pb2
-from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
-                      ChannelData, ChannelDataType, ChannelStopError,
-                      ChannelTimeoutError, ProductErrCode)
+from .channel import (ThreadChannel, ProcessChannel,ChannelData, 
+                      ChannelDataType, ChannelStopError, ChannelTimeoutError)
+from .error_catch import  ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
@@ -113,6 +117,19 @@ class Op(object):
         self._succ_init_op = False
         self._succ_close_op = False
 
+    # for feed/fetch dict cehck
+    @staticmethod
+    def get_feed_fetch_list(client):
+        from paddle_serving_app.local_predict import LocalPredictor
+        if isinstance(client, Client):
+            feed_names = client.get_feed_names()
+            fetch_names = client.get_fetch_names()
+        if isinstance(client, LocalPredictor):
+            feed_names = client.feed_names_
+            fetch_names = client.fetch_names_
+        return feed_names, fetch_names
+              
+
     def init_from_dict(self, conf):
         """
         Initializing one Op from config.yaml. If server_endpoints exist,
@@ -133,7 +150,6 @@ class Op(object):
             self._fetch_names = conf.get("fetch_list")
         if self._client_config is None:
             self._client_config = conf.get("client_config")
-
         if self._timeout is None:
             self._timeout = conf["timeout"]
         if self._timeout > 0:
@@ -353,12 +369,14 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
+            self.right_feed_names, self.right_fetch_names = self.get_feed_fetch_list(client) 
         elif self.client_type == 'pipeline_grpc':
             client = PPClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
             client = self.local_predictor
+            self.right_feed_names, self.right_fetch_names = self.get_feed_fetch_list(client)
         else:
             raise ValueError("Failed to init client: unknow client "
                              "type {}".format(self.client_type))
@@ -367,6 +385,7 @@ class Op(object):
             _LOGGER.info("Op({}) has no fetch name set. So fetch all vars")
         if self.client_type != "local_predictor":
             client.connect(server_endpoints)
+        _LOGGER.info("init_client, feed_list:{}, fetch_list: {}".format(self.right_feed_names, self.right_fetch_names))
         return client
 
     def get_input_ops(self):
@@ -543,7 +562,7 @@ class Op(object):
 
         (_, input_dict), = input_dicts.items()
         return input_dict, False, None, ""
-
+    
     def process(self, feed_batch, typical_logid=0):
         """
         In process stage, send requests to the inference server or predict locally.
@@ -560,7 +579,19 @@ class Op(object):
         call_result = None
         err_code = ChannelDataErrcode.OK.value
         err_info = ""
-
+        @ErrorCatch 
+        @ParamChecker
+        def feed_fetch_list_check_helper(feed_batch : lambda feed_batch: check_feed_dict(feed_batch[0], self.right_feed_names),
+                                         fetch_list : lambda fetch_list: check_fetch_list(fetch_list, self.right_fetch_names),
+                                         log_id):
+            return None
+        _, resp = feed_fetch_list_check_helper(feed_batch, self._fetch_names, log_id=typical_logid)
+        if resp.err_no != CustomExceptionCode.OK.value:
+            err_code = resp.err_no
+            err_info = resp.err_msg
+            call_result = None
+            return call_result, err_code, err_info
+                
         if self.client_type == "local_predictor":
             err, err_info = ChannelData.check_batch_npdata(feed_batch)
             if err != 0:
@@ -801,46 +832,40 @@ class Op(object):
         preped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
         skip_process_dict = {}
+        @ErrorCatch
+        def preprocess_help(self, parsed_data, data_id, logid_dict):
+            preped_data, is_skip_process, prod_errcode, prod_errinfo = self.preprocess(
+                parsed_data, data_id, logid_dict.get(data_id))
+            return preped_data, is_skip_process, prod_errcode, prod_errinfo
+            
         for data_id, parsed_data in parsed_data_dict.items():
             preped_data, error_channeldata = None, None
             is_skip_process = False
             prod_errcode, prod_errinfo = None, None
             log_id = logid_dict.get(data_id)
-            try:
-                preped_data, is_skip_process, prod_errcode, prod_errinfo = self.preprocess(
-                    parsed_data, data_id, logid_dict.get(data_id))
-                # Set skip_process_dict
+            process_res, resp = preprocess_help(self, parsed_data, data_id = data_id,
+            logid_dict = logid_dict)
+            if resp.err_no == CustomExceptionCode.OK.value:
+                preped_data, is_skip_process, prod_errcode, prod_errinfo = process_res
                 if is_skip_process is True:
                     skip_process_dict[data_id] = True
-            except TypeError as e:
-                # Error type in channeldata.datatype
-                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
+                if prod_errcode is not None:
+                    _LOGGER.error("data_id: {} return product error. Product ErrNo:{}, Product ErrMsg: {}".format(data_id, prod_errcode, prod_errinfo))
+                    error_channeldata = ChannelData(
+                      error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                      error_info="",
+                      prod_error_code=prod_errcode,
+                      prod_error_info=prod_errinfo,
+                      data_id=data_id,
+                      log_id=log_id)
+            else:
+                
                 error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.TYPE_ERROR.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
-            except Exception as e:
-                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
-                error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.UNKNOW.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
-
-            if prod_errcode is not None:
-                # product errors occured
-                error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
-                    error_info="",
-                    prod_error_code=prod_errcode,
-                    prod_error_info=prod_errinfo,
-                    data_id=data_id,
-                    log_id=log_id)
+                  error_code=resp.err_no,
+                  error_info=resp.err_msg,
+                  data_id=data_id,
+                  log_id=log_id)
+                skip_process_dict[data_id] = True 
 
             if error_channeldata is not None:
                 err_channeldata_dict[data_id] = error_channeldata
@@ -1019,12 +1044,13 @@ class Op(object):
 
         # 2 kinds of errors
         if error_code != ChannelDataErrcode.OK.value or midped_batch is None:
-            error_info = "(log_id={}) {} failed to predict.".format(
-                typical_logid, self.name)
+            error_info = "[{}] failed to predict. {}. Please check the input dict and checkout PipelineServingLogs/pipeline.log for more details.".format(
+             self.name, error_info)
+    
             _LOGGER.error(error_info)
             for data_id in data_ids:
                 err_channeldata_dict[data_id] = ChannelData(
-                    error_code=ChannelDataErrcode.CLIENT_ERROR.value,
+                    error_code=error_code,
                     error_info=error_info,
                     data_id=data_id,
                     log_id=logid_dict.get(data_id))
@@ -1095,68 +1121,58 @@ class Op(object):
         _LOGGER.debug("{} Running postprocess".format(op_info_prefix))
         postped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
+        @ErrorCatch
+        def postprocess_help(self, parsed_data_dict, midped_data, data_id, logid_dict):
+            postped_data, prod_errcode, prod_errinfo = self.postprocess(parsed_data_dict[data_id], 
+              midped_data, data_id, logid_dict.get(data_id))
+            if not isinstance(postped_data, dict):
+                raise CustomException(CustomExceptionCode.TYPE_ERROR, "postprocess should return dict", True)
+            return postped_data, prod_errcode, prod_errinfo
+
         for data_id, midped_data in midped_data_dict.items():
             log_id = logid_dict.get(data_id)
             postped_data, err_channeldata = None, None
             prod_errcode, prod_errinfo = None, None
-            try:
-                postped_data, prod_errcode, prod_errinfo = self.postprocess(
-                    parsed_data_dict[data_id], midped_data, data_id,
-                    logid_dict.get(data_id))
-            except Exception as e:
-                error_info = "(data_id={} log_id={}) {} Failed to postprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
-                err_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.UNKNOW.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
 
-            if prod_errcode is not None:
-                # product errors occured
+            post_res, resp = postprocess_help(self, parsed_data_dict, midped_data, data_id
+            = data_id, logid_dict = logid_dict)
+            if resp.err_no == CustomExceptionCode.OK.value:
+                postped_data, prod_errcode, prod_errinfo = post_res
+                if prod_errcode is not None:
+                  # product errors occured
+                    err_channeldata = ChannelData(
+                      error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                      error_info="",
+                      prod_error_code=prod_errcode,
+                      prod_error_info=prod_errinfo,
+                      data_id=data_id,
+                      log_id=log_id)
+            else:
                 err_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
-                    error_info="",
-                    prod_error_code=prod_errcode,
-                    prod_error_info=prod_errinfo,
+                    error_code=resp.err_no,
+                    error_info=resp.err_msg,
                     data_id=data_id,
                     log_id=log_id)
 
             if err_channeldata is not None:
                 err_channeldata_dict[data_id] = err_channeldata
                 continue
-            else:
-                if not isinstance(postped_data, dict):
-                    error_info = "(log_id={} log_id={}) {} Failed to postprocess: " \
-                            "output of postprocess funticon must be " \
-                            "dict type, but get {}".format(
-                                data_id, log_id, op_info_prefix,
-                                type(postped_data))
-                    _LOGGER.error(error_info)
-                    err_channeldata = ChannelData(
-                        error_code=ChannelDataErrcode.UNKNOW.value,
-                        error_info=error_info,
-                        data_id=data_id,
-                        log_id=log_id)
-                    err_channeldata_dict[data_id] = err_channeldata
-                    continue
 
-                output_data = None
-                err, _ = ChannelData.check_npdata(postped_data)
-                if err == 0:
-                    output_data = ChannelData(
-                        ChannelDataType.CHANNEL_NPDATA.value,
-                        npdata=postped_data,
-                        data_id=data_id,
-                        log_id=log_id)
-                else:
-                    output_data = ChannelData(
-                        ChannelDataType.DICT.value,
-                        dictdata=postped_data,
-                        data_id=data_id,
-                        log_id=log_id)
-                postped_data_dict[data_id] = output_data
+            output_data = None
+            err, _ = ChannelData.check_npdata(postped_data)
+            if err == 0:
+                output_data = ChannelData(
+                  ChannelDataType.CHANNEL_NPDATA.value,
+                  npdata=postped_data,
+                  data_id=data_id,
+                  log_id=log_id)
+            else:
+                output_data = ChannelData(
+                  ChannelDataType.DICT.value,
+                  dictdata=postped_data,
+                  data_id=data_id,
+                  log_id=log_id)
+            postped_data_dict[data_id] = output_data
         _LOGGER.debug("{} Succ postprocess".format(op_info_prefix))
         return postped_data_dict, err_channeldata_dict
 
@@ -1353,7 +1369,6 @@ class Op(object):
             _LOGGER.debug("op:{} parse_end:{}".format(op_info_prefix,
                                                       time.time()))
 
-            # print
             front_cost = int(round(_time() * 1000000)) - start
             for data_id, parsed_data in parsed_data_dict.items():
                 _LOGGER.debug(
@@ -1507,26 +1522,30 @@ class Op(object):
         Returns:
             TimeProfiler
         """
-        if is_thread_op:
-            with self._for_init_op_lock:
-                if not self._succ_init_op:
-                    # for the threaded version of Op, each thread cannot get its concurrency_idx
-                    self.concurrency_idx = None
-                    # init client
-                    self.client = self.init_client(self._client_config,
+        @ErrorCatch
+        def init_helper(self, is_thread_op, concurrency_idx):
+            if is_thread_op:
+                with self._for_init_op_lock:
+                    if not self._succ_init_op:
+                        # for the threaded version of Op, each thread cannot get its concurrency_idx
+                        self.concurrency_idx = None
+                        # init client
+                        self.client = self.init_client(self._client_config,
                                                    self._server_endpoints)
-                    # user defined
-                    self.init_op()
-                    self._succ_init_op = True
-                    self._succ_close_op = False
-        else:
-            self.concurrency_idx = concurrency_idx
-            # init client
-            self.client = self.init_client(self._client_config,
+                        # user defined
+                        self.init_op()
+                        self._succ_init_op = True
+                        self._succ_close_op = False
+            else:
+                self.concurrency_idx = concurrency_idx
+                # init client
+                self.client = self.init_client(self._client_config,
                                            self._server_endpoints)
-            # user defined
-            self.init_op()
-
+                # user defined
+                self.init_op() 
+        
+        init_helper(self, is_thread_op, concurrency_idx)
+        print("[OP Object] init success")
         # use a separate TimeProfiler per thread or process
         profiler = TimeProfiler()
         profiler.enable(True)
