@@ -30,9 +30,9 @@ from paddle_serving_server import OpMaker
 from paddle_serving_server import OpSeqMaker
 
 op_maker = serving.OpMaker()
-read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
-general_response_op = op_maker.create('general_response')
+read_op = op_maker.create('GeneralReaderOp')
+general_infer_op = op_maker.create('GeneralInferOp')
+general_response_op = op_maker.create('GeneralResponseOp')
 
 op_seq_maker = serving.OpSeqMaker()
 op_seq_maker.add_op(read_op)
@@ -65,13 +65,13 @@ from paddle_serving_server import OpGraphMaker
 from paddle_serving_server import Server
 
 op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
+read_op = op_maker.create('GeneralReaderOp')
 cnn_infer_op = op_maker.create(
-    'general_infer', engine_name='cnn', inputs=[read_op])
+    'GeneralInferOp', engine_name='cnn', inputs=[read_op])
 bow_infer_op = op_maker.create(
-    'general_infer', engine_name='bow', inputs=[read_op])
+    'GeneralInferOp', engine_name='bow', inputs=[read_op])
 response_op = op_maker.create(
-    'general_response', inputs=[cnn_infer_op, bow_infer_op])
+    'GeneralResponseOp', inputs=[cnn_infer_op, bow_infer_op])
 
 op_graph_maker = OpGraphMaker()
 op_graph_maker.add_op(read_op)
@@ -92,10 +92,10 @@ from paddle_serving_server import OpMaker
 from paddle_serving_server import OpSeqMaker
 
 op_maker = serving.OpMaker()
-read_op = op_maker.create('general_reader')
-dist_kv_op = op_maker.create('general_dist_kv')
-general_infer_op = op_maker.create('general_infer')
-general_response_op = op_maker.create('general_response')
+read_op = op_maker.create('GeneralReaderOp')
+dist_kv_op = op_maker.create('GeneralDistKVInferOp')
+general_infer_op = op_maker.create('GeneralInferOp')
+general_response_op = op_maker.create('GeneralResponseOp')
 
 op_seq_maker = serving.OpSeqMaker()
 op_seq_maker.add_op(read_op)
