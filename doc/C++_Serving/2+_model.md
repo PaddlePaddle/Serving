@@ -145,7 +145,8 @@ DEFINE_OP(/*自定义Class名称*/);
 在前面两个小节工作做好的基础上，一个服务启动两个模型串联，只需要在`--model后依次按顺序传入模型文件夹的相对路径`，且需要在`--op后依次传入自定义C++OP类名称`，其中--model后面的模型与--op后面的类名称的顺序需要对应，脚本代码如下：
 ```python
 #一个服务启动多模型串联
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralInferOp --port 9292#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralInferOp
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralInferOp --port 9292
+#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralInferOp
 ```
 
 ## 3.2 Client端调用
