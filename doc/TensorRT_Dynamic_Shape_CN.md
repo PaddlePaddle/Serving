@@ -3,7 +3,7 @@
 
 ## 引言
 
-在Pipeline/C++开启TensorRT[`--use_trt`]后，关于如何进行动态shape的配置，以下会分别给出Pipeline Serving和C++ Serving示例
+在Pipeline/C++开启TensorRT`--use_trt`后，关于如何进行动态shape的配置，以下会分别给出Pipeline Serving和C++ Serving示例
 
 以下是动态shape api
 ```
