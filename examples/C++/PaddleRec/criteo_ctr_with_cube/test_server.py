@@ -21,7 +21,7 @@ from paddle_serving_server import Server
 
 op_maker = OpMaker()
 read_op = op_maker.create('GeneralReaderOp')
-general_dist_kv_infer_op = op_maker.create('GeneralDistKVOp')
+general_dist_kv_infer_op = op_maker.create('GeneralDistKVInferOp')
 response_op = op_maker.create('GeneralResponseOp')
 
 op_seq_maker = OpSeqMaker()
