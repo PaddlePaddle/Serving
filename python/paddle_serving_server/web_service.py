@@ -157,19 +157,19 @@ class WebService(object):
         op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
 
-        read_op = op_maker.create('general_reader')
+        read_op = op_maker.create('GeneralReaderOp')
         op_seq_maker.add_op(read_op)
 
         for idx, single_model in enumerate(self.server_config_dir_paths):
-            infer_op_name = "general_infer"
+            infer_op_name = "GeneralInferOp"
             if len(self.server_config_dir_paths) == 2 and idx == 0:
-                infer_op_name = "general_detection"
+                infer_op_name = "GeneralDetectionOp"
             else:
-                infer_op_name = "general_infer"
+                infer_op_name = "GeneralInferOp"
             general_infer_op = op_maker.create(infer_op_name)
             op_seq_maker.add_op(general_infer_op)
 
-        general_response_op = op_maker.create('general_response')
+        general_response_op = op_maker.create('GeneralResponseOp')
         op_seq_maker.add_op(general_response_op)
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())

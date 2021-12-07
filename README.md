@@ -79,6 +79,7 @@ The first step is to call the model save interface to generate a model parameter
   - [Encryption](doc/C++_Serving/Encryption_EN.md)
   - [Analyze and optimize performance(Chinese)](doc/C++_Serving/Performance_Tuning_CN.md)
   - [Benchmark(Chinese)](doc/C++_Serving/Benchmark_CN.md)
+  - [Multiple models in series(Chinese)](doc/C++_Serving/2+_model.md)
 - [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
