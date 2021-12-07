@@ -49,8 +49,8 @@ class Server(object):
         self.workflow_fn:'str'="workflow.prototxt" # Only one for one Service/Workflow
         self.resource_fn:'str'="resource.prototxt" # Only one for one Service,model_toolkit_fn and general_model_config_fn is recorded in this file
         self.infer_service_fn:'str'="infer_service.prototxt" # Only one for one Service,Service--Workflow
-        self.model_toolkit_fn:'list'=[] # ["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
-        self.general_model_config_fn:'list'=[] # ["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
+        self.model_toolkit_fn:'list'=[] # ["GeneralInferOp_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.general_model_config_fn:'list'=[] # ["GeneralInferOp_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
         self.subdirectory:'list'=[] # The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.model_config_paths:'collections.OrderedDict()' # Save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
         """
@@ -91,6 +91,12 @@ class Server(object):
         self.model_config_paths = collections.OrderedDict()
         self.product_name = None
         self.container_id = None
+        self.default_engine_types = [
+            'GeneralInferOp',
+            'GeneralDistKVInferOp',
+            'GeneralDistKVQuantInferOp',
+            'GeneralDetectionOp',
+        ]
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -291,7 +297,7 @@ class Server(object):
                     fout.write(str(list(self.model_conf.values())[idx]))
                 for workflow in self.workflow_conf.workflows:
                     for node in workflow.nodes:
-                        if "dist_kv" in node.name:
+                        if "distkv" in node.name.lower():
                             self.resource_conf.cube_config_path = workdir
                             self.resource_conf.cube_config_file = self.cube_config_fn
                             if cube_conf == None:
@@ -299,7 +305,7 @@ class Server(object):
                                     "Please set the path of cube.conf while use dist_kv op."
                                 )
                             shutil.copy(cube_conf, workdir)
-                            if "quant" in node.name:
+                            if "quant" in node.name.lower():
                                 self.resource_conf.cube_quant_bits = 8
                 self.resource_conf.model_toolkit_path.extend([workdir])
                 self.resource_conf.model_toolkit_file.extend(
@@ -336,17 +342,12 @@ class Server(object):
             # If there is only one model path, use the default infer_op.
             # Because there are several infer_op type, we need to find
             # it from workflow_conf.
-            default_engine_types = [
-                'GeneralInferOp',
-                'GeneralDistKVInferOp',
-                'GeneralDistKVQuantInferOp',
-                'GeneralDetectionOp',
-            ]
+
             # now only support single-workflow.
             # TODO:support multi-workflow
             model_config_paths_list_idx = 0
             for node in self.workflow_conf.workflows[0].nodes:
-                if node.type in default_engine_types:
+                if node.type in self.default_engine_types:
                     if node.name is None:
                         raise Exception(
                             "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
