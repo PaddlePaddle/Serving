@@ -304,7 +304,7 @@ class Server(object):
                     fout.write(str(list(self.model_conf.values())[idx]))
                 for workflow in self.workflow_conf.workflows:
                     for node in workflow.nodes:
-                        if "dist_kv" in node.name:
+                        if "distkv" in node.name.lower():
                             self.resource_conf.cube_config_path = workdir
                             self.resource_conf.cube_config_file = self.cube_config_fn
                             if cube_conf == None:
@@ -312,7 +312,7 @@ class Server(object):
                                     "Please set the path of cube.conf while use dist_kv op."
                                 )
                             shutil.copy(cube_conf, workdir)
-                            if "quant" in node.name:
+                            if "quant" in node.name.lower():
                                 self.resource_conf.cube_quant_bits = 8
                 self.resource_conf.model_toolkit_path.extend([workdir])
                 self.resource_conf.model_toolkit_file.extend(
