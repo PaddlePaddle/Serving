@@ -57,7 +57,7 @@ Here, `client.predict` function has two arguments. `feed` is a `python dict` wit
 Users can also put the data format processing logic on the server side, so that they can directly use curl to access the service, refer to the following case whose path is `Serving/examples/C++/fit_a_line`
 
 ```
-python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 for client side,
 ```
