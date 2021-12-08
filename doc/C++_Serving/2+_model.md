@@ -195,6 +195,7 @@ std::vector<int> tensor_1_shape = tensor_1.shape;
 /*例如，你想修改输入数据中的第1个Tensor中的数据*/
 void* data_1 = tensor_1.data.data();
 //后续直接修改data_1指向的内存即可
+//比如，当您的数据是int类型，将void*转换为int*进行处理即可
 ```
 
 
@@ -208,7 +209,7 @@ void* data_1 = tensor_1.data.data();
 ```python
 #一个服务启动多模型串联
 python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9292
-#多模型串联 ocr_det_model对应GeneralDetectionOp  GeneralRecOp
+#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralRecOp
 ```
 
 ## 3.2 Client端调用
