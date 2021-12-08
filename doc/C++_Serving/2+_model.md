@@ -107,7 +107,8 @@ int /*自定义Class名称*/::inference() {
   VLOG(2) << "(logid=" << log_id << ") infer batch size: " << batch_size;
   TensorVector *out = &output_blob->tensor_vector;
 
-  /*前处理的代码添加在此处，前处理直接修改上文的TensorVector* in*/
+  //前处理的代码添加在此处，前处理直接修改上文的TensorVector* in
+  //注意in里面的数据是前置节点的输出经过后处理后的out中的数据
 
   Timer timeline;
   int64_t start = timeline.TimeStampUS();
@@ -121,7 +122,8 @@ int /*自定义Class名称*/::inference() {
     return -1;
   }
 
-  /*后处理的代码添加在此处，前处理直接修改上文的TensorVector *out*/
+  //后处理的代码添加在此处，后处理直接修改上文的TensorVector* out
+  //后处理后的out会被传递给后续的节点
 
   int64_t end = timeline.TimeStampUS();
   CopyBlobInfo(input_blob, output_blob);
@@ -135,7 +137,7 @@ DEFINE_OP(/*自定义Class名称*/);
 }  // namespace paddle_serving
 }  // namespace baidu
 ```
-### TensorVector数据结构的介绍和代码示例
+### TensorVector数据结构
 TensorVector* in和out都是一个TensorVector类型的指指针，其使用方法跟Paddle C++API中的Tensor几乎一样，相关的数据结构如下所示
 
 ``` C++
@@ -182,7 +184,7 @@ class PD_INFER_DECL PaddleBuf {
 };
 ```
 
-以下是一些针对TensorVector的访问的代码示例。
+### TensorVector代码示例
 ```C++
 /*例如，你想访问输入数据中的第1个Tensor*/
 paddle::PaddleTensor& tensor_1 = in->at(0);
@@ -193,7 +195,10 @@ std::vector<int> tensor_1_shape = tensor_1.shape;
 /*例如，你想修改输入数据中的第1个Tensor中的数据*/
 void* data_1 = tensor_1.data.data();
 //后续直接修改data_1指向的内存即可
+//比如，当您的数据是int类型，将void*转换为int*进行处理即可
 ```
+
+
 # 2. 编译
 此时，需要您重新编译生成serving，并通过`export SERVING_BIN`设置环境变量来指定使用您编译生成的serving二进制文件，并通过`pip3 install`的方式安装相关python包，细节请参考[如何编译Serving](../Compile_CN.md)
 
@@ -204,7 +209,7 @@ void* data_1 = tensor_1.data.data();
 ```python
 #一个服务启动多模型串联
 python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9292
-#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralInferOp
+#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralRecOp
 ```
 
 ## 3.2 Client端调用
