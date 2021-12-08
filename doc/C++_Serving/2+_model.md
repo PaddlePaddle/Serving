@@ -135,26 +135,84 @@ DEFINE_OP(/*自定义Class名称*/);
 }  // namespace paddle_serving
 }  // namespace baidu
 ```
+### TensorVector数据结构的介绍和代码示例
+TensorVector* in和out都是一个TensorVector类型的指指针，其使用方法跟Paddle C++API中的Tensor几乎一样，相关的数据结构如下所示
 
+``` C++
+//TensorVector
+typedef std::vector<paddle::PaddleTensor> TensorVector;
+
+//paddle::PaddleTensor
+struct PD_INFER_DECL PaddleTensor {
+  PaddleTensor() = default;
+  std::string name;  ///<  variable name.
+  std::vector<int> shape;
+  PaddleBuf data;  ///<  blob of data.
+  PaddleDType dtype;
+  std::vector<std::vector<size_t>> lod;  ///<  Tensor+LoD equals LoDTensor
+};
+
+//PaddleBuf
+class PD_INFER_DECL PaddleBuf {
+ public:
+
+ explicit PaddleBuf(size_t length)
+      : data_(new char[length]), length_(length), memory_owned_(true) {}
+
+  PaddleBuf(void* data, size_t length)
+      : data_(data), length_(length), memory_owned_{false} {}
+
+  explicit PaddleBuf(const PaddleBuf& other);
+
+  void Resize(size_t length);
+  void Reset(void* data, size_t length);
+  bool empty() const { return length_ == 0; }
+  void* data() const { return data_; }
+  size_t length() const { return length_; }
+  ~PaddleBuf() { Free(); }
+  PaddleBuf& operator=(const PaddleBuf&);
+  PaddleBuf& operator=(PaddleBuf&&);
+  PaddleBuf() = default;
+  PaddleBuf(PaddleBuf&& other);
+ private:
+  void Free();
+  void* data_{nullptr};  ///< pointer to the data memory.
+  size_t length_{0};     ///< number of memory bytes.
+  bool memory_owned_{true};
+};
+```
+
+以下是一些针对TensorVector的访问的代码示例。
+```C++
+/*例如，你想访问输入数据中的第1个Tensor*/
+paddle::PaddleTensor& tensor_1 = in->at(0);
+/*例如，你想修改输入数据中的第1个Tensor的名称*/
+tensor_1.name = "new name";
+/*例如，你想获取输入数据中的第1个Tensor的shape信息*/
+std::vector<int> tensor_1_shape = tensor_1.shape;
+/*例如，你想修改输入数据中的第1个Tensor中的数据*/
+void* data_1 = tensor_1.data.data();
+//后续直接修改data_1指向的内存即可
+```
 # 2. 编译
 此时，需要您重新编译生成serving，并通过`export SERVING_BIN`设置环境变量来指定使用您编译生成的serving二进制文件，并通过`pip3 install`的方式安装相关python包，细节请参考[如何编译Serving](../Compile_CN.md)
 
 # 3. 服务启动与调用
 ## 3.1 Server端启动
 
-在前面两个小节工作做好的基础上，一个服务启动两个模型串联，只需要在`--model后依次按顺序传入模型文件夹的相对路径`，且需要在`--op后依次传入自定义C++OP类名称`，其中--model后面的模型与--op后面的类名称的顺序需要对应，脚本代码如下：
+在前面两个小节工作做好的基础上，一个服务启动两个模型串联，只需要在`--model后依次按顺序传入模型文件夹的相对路径`，且需要在`--op后依次传入自定义C++OP类名称`，其中--model后面的模型与--op后面的类名称的顺序需要对应，`这里假设我们已经定义好了两个OP分别为GeneralDetectionOp和GeneralRecOp`，则脚本代码如下：
 ```python
 #一个服务启动多模型串联
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralInferOp --port 9292
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9292
 #多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralInferOp
 ```
 
 ## 3.2 Client端调用
-此时，Client端的调用，也需要传入两个Client端的proto文件或文件夹的路径，以OCR为例，python脚本代码如下：
+此时，Client端的调用，也需要传入两个Client端的proto文件或文件夹的路径，以OCR为例，可以参考[ocr_cpp_client.py](../../examples/C++/PaddleOCR/ocr/ocr_cpp_client.py)来自行编写您的脚本，此时Client调用如下：
 ```python
 #一个服务启动多模型串联
-python3 [ocr_cpp_client.py](../../examples/C++/PaddleOCR/ocr/ocr_cpp_client.py) ocr_det_client ocr_rec_client
+python3 自定义.py ocr_det_client ocr_rec_client
 #ocr_det_client为第一个模型的Client端proto文件夹的相对路径
 #ocr_rec_client为第二个模型的Client端proto文件夹的相对路径
 ```
-此时，对于Server端而言，输入的数据的格式与`第一个模型的Client端proto格式`定义的一致，输出的数据格式与`最后一个模型的Client端proto`文件一致。如果您不了解[proto的定义，请参考此处](./Serving_Configure_CN.md)。
+此时，对于Server端而言，输入的数据的格式与`第一个模型的Client端proto格式`定义的一致，输出的数据格式与`最后一个模型的Client端proto`文件一致。一般情况下您无须关注此事，当您需要了解详细的[proto的定义，请参考此处](./Serving_Configure_CN.md)。
