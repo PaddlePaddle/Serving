@@ -32,6 +32,7 @@ precision_map = {
     'int8': paddle_infer.PrecisionType.Int8,
     'fp32': paddle_infer.PrecisionType.Float32,
     'fp16': paddle_infer.PrecisionType.Half,
+    'bf16': 'bf16',
 }
 
 
@@ -194,6 +195,8 @@ class LocalPredictor(object):
         config.set_cpu_math_library_num_threads(thread_num)
         if use_mkldnn:
             config.enable_mkldnn()
+            if precision_type == "bf16":
+                config.enable_mkldnn_bfloat16()
             if mkldnn_cache_capacity > 0:
                 config.set_mkldnn_cache_capacity(mkldnn_cache_capacity)
             if mkldnn_op_list is not None:
