@@ -143,6 +143,8 @@ def serve_args():
     parser.add_argument(
         "--model", type=str, default="", nargs="+", help="Model for serving")
     parser.add_argument(
+        "--op", type=str, default="", nargs="+", help="Model for serving")
+    parser.add_argument(
         "--workdir",
         type=str,
         default="workdir",
@@ -183,7 +185,10 @@ def serve_args():
     parser.add_argument(
         "--use_xpu", default=False, action="store_true", help="Use XPU")
     parser.add_argument(
-        "--use_ascend_cl", default=False, action="store_true", help="Use Ascend CL")
+        "--use_ascend_cl",
+        default=False,
+        action="store_true",
+        help="Use Ascend CL")
     parser.add_argument(
         "--product_name",
         type=str,
@@ -208,6 +213,11 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     if gpu_mode == True:
         device = "gpu"
 
+    import paddle_serving_server as serving
+    op_maker = serving.OpMaker()
+    op_seq_maker = serving.OpSeqMaker()
+    server = serving.Server()
+
     thread_num = args.thread
     model = args.model
     mem_optim = args.mem_optim_off is False
@@ -215,38 +225,58 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     use_mkl = args.use_mkl
     max_body_size = args.max_body_size
     workdir = "{}_{}".format(args.workdir, port)
+    dag_list_op = []
 
     if model == "":
         print("You must specify your serving model")
         exit(-1)
-
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
         elif os.path.isfile(single_model_config):
             raise ValueError("The input of --model should be a dir not file.")
-    import paddle_serving_server as serving
-    op_maker = serving.OpMaker()
-    op_seq_maker = serving.OpSeqMaker()
-    read_op = op_maker.create('general_reader')
-    op_seq_maker.add_op(read_op)
-    for idx, single_model in enumerate(model):
-        infer_op_name = "general_infer"
-        # 目前由于ocr的节点Det模型依赖于opencv的第三方库
-        # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
-        # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
-        # 以后可能考虑不用python脚本来生成配置
-        if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
-            infer_op_name = "general_detection"
-        else:
-            infer_op_name = "general_infer"
-        general_infer_op = op_maker.create(infer_op_name)
-        op_seq_maker.add_op(general_infer_op)
 
-    general_response_op = op_maker.create('general_response')
+    # 如果通过--op GeneralDetectionOp GeneralRecOp
+    # 将不存在的自定义OP加入到DAG图和模型的列表中
+    # 并将传入顺序记录在dag_list_op中。
+    if args.op != "":
+        for single_op in args.op:
+            temp_str_list = single_op.split(':')
+            if len(temp_str_list) >= 1 and temp_str_list[0] != '':
+                if temp_str_list[0] not in op_maker.op_list:
+                    op_maker.op_list.append(temp_str_list[0])
+                if len(temp_str_list) >= 2 and temp_str_list[1] == '0':
+                    pass
+                else:
+                    server.default_engine_types.append(temp_str_list[0])
+
+                dag_list_op.append(temp_str_list[0])
+
+    read_op = op_maker.create('GeneralReaderOp')
+    op_seq_maker.add_op(read_op)
+    #如果dag_list_op不是空，那么证明通过--op 传入了自定义OP或自定义的DAG串联关系。
+    #此时，根据--op 传入的顺序去组DAG串联关系
+    if len(dag_list_op) > 0:
+        for single_op in dag_list_op:
+            op_seq_maker.add_op(op_maker.create(single_op))
+    #否则，仍然按照原有方式根虎--model去串联。
+    else:
+        for idx, single_model in enumerate(model):
+            infer_op_name = "GeneralInferOp"
+            # 目前由于ocr的节点Det模型依赖于opencv的第三方库
+            # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
+            # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
+            # 以后可能考虑不用python脚本来生成配置
+            if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
+                infer_op_name = "GeneralDetectionOp"
+            else:
+                infer_op_name = "GeneralInferOp"
+            general_infer_op = op_maker.create(infer_op_name)
+            op_seq_maker.add_op(general_infer_op)
+
+    general_response_op = op_maker.create('GeneralResponseOp')
     op_seq_maker.add_op(general_response_op)
 
-    server = serving.Server()
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
     server.use_mkl(use_mkl)

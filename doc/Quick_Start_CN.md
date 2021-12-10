@@ -85,7 +85,7 @@ print(fetch_map)
 用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`Serving/examples/C++/fit_a_line`.
 
 ```
-python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
+python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 客户端输入
 ```
