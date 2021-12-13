@@ -28,5 +28,6 @@ from paddle_serving_server import (
 
 from .dag import *
 from .server import *
+from .util import *
 
 __version__ = version.version_tag
