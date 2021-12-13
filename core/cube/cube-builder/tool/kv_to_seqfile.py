@@ -54,13 +54,21 @@ def kv_to_seqfile():
         finally:
             fp.close()
         for line in lines:
-            line_list = line.split(':')
+            line_list = line.split()
+            if len(line_list) < 1:
+                continue
             key = int(line_list[0])
-            value = str(line_list[1]).replace('\n', '')
+            show = int(line_list[1])
+            click = int(line_list[2])
+            values = [float(x) for x in line_list[3:]]
+
+           # str(line_list[1]).replace('\n', '')
             res.append(dict)
             key_bytes = struct.pack('Q', key)
-            row_bytes = struct.pack('%ss' % len(value), value)
-            print key, ':', value, '->', key_bytes, ':', row_bytes
+            row_bytes = ""
+            for v in values:
+                row_bytes += struct.pack('f', v)
+            print key, ':', values, '->', key_bytes, ':', row_bytes
             writer.write(key_bytes, row_bytes)
     f.close()
     write_donefile()
