@@ -53,6 +53,7 @@ fetch_var {
 |6|BF16|
 |7|UINT8|
 |8|INT8|
+|20|STRING|
 
 - shape：tensor shape
 
