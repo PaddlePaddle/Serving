@@ -56,6 +56,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
 - [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
 - [在异构硬件部署Paddle Serving](doc/Run_On_XPU_CN.md)
+- [Docker镜像](doc/Docker_Images_CN.md)
 - [最新Wheel开发包](doc/Latest_Packages_CN.md)
 
 > 使用

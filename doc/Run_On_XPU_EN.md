@@ -5,6 +5,9 @@
 Paddle serving supports deployment using Baidu Kunlun chips. Currently, it supports deployment on the ARM CPU server with Baidu Kunlun chips
  (such as Phytium FT-2000+/64), or Intel CPU with Baidu Kunlun chips. We will improve
  the deployment capability on various heterogeneous hardware servers in the future. 
+ 
+## Install docker images
+We recommend using the docker deployment service. In the xpu environment, you can refer to the [Docker image document](Docker_Images_EN.md) to install the xpu image, and further complete tasks such as construction, installation, and deployment.
 
 ## Compilation and installation
 Refer to [compile](./Compile_EN.md) document to setup the compilation environment. The following is based on FeiTeng FT-2000 +/64 platform.
