@@ -63,7 +63,7 @@ pip3 install -r python/requirements.txt
 pip3 install paddle-serving-client==0.7.0
 pip3 install paddle-serving-server==0.7.0 # CPU
 pip3 install paddle-serving-app==0.7.0
-pip3 install paddle-serving-server-gpu==0.7.0.post102 #GPU with CUDA10.2 + TensorRT6
+pip3 install paddle-serving-server-gpu==0.7.0.post102 #GPU with CUDA10.2 + Cudnn7 + TensorRT6
 # 其他GPU环境需要确认环境再选择执行哪一条
 pip3 install paddle-serving-server-gpu==0.7.0.post101 # GPU with CUDA10.1 + TensorRT6
 pip3 install paddle-serving-server-gpu==0.7.0.post112 # GPU with CUDA11.2 + TensorRT8
@@ -88,7 +88,21 @@ pip3 install paddlepaddle==2.2.0
 # GPU Cuda10.2环境请执行
 pip3 install paddlepaddle-gpu==2.2.0
 ```
-**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的GPU环境的url链接并进行安装。
+**注意**： 如果您的Cuda版本不是10.2，或者您需要在GPU环境上使用TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的GPU环境的url链接并进行安装。举例假设您使用python3.6，请执行如下命令。
+
+```
+# Cuda10.1 + Cudnn7 + TensorRT6
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5/paddlepaddle_gpu-2.2.0.post101-cp36-cp36m-linux_x86_64.whl
+
+# Cuda10.2 + Cudnn7 + TensorRT6, 需要注意的是此环境和Cuda10.1+Cudnn7+TensorRT6使用同一个paddle whl包
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5/paddlepaddle_gpu-2.2.0.post101-cp36-cp36m-linux_x86_64.whl
+
+# Cuda10.2 + Cudnn8 + TensorRT7
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.2_cudnn8.1.1_trt7.2.3.4/paddlepaddle_gpu-2.2.0-cp36-cp36m-linux_x86_64.whl
+
+# Cuda11.2 + Cudnn8 + TensorRT8
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda11.2_cudnn8.2.1_trt8.0.3.4/paddlepaddle_gpu-2.2.0.post112-cp36-cp36m-linux_x86_64.whl
+```
 
 例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`linux-cuda10.1-cudnn7.6-trt6-gcc8.2`对应的url，复制下来并执行
 ```
