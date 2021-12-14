@@ -3,7 +3,7 @@
 
 Paddle Serving支持使用百度昆仑芯片进行预测部署。目前支持在百度昆仑芯片和arm服务器（如飞腾 FT-2000+/64）, 或者百度昆仑芯片和Intel CPU服务器，上进行部署，后续完善对其他异构硬件服务器部署能力。
 
-## Docker镜像
+## 安装Docker镜像
 我们推荐使用docker部署Serving服务，在xpu环境下可参考[Docker镜像](Docker_Images_CN.md)文档安装xpu镜像，并进一步完成编译、安装和部署等任务。
 
 ## 编译、安装
