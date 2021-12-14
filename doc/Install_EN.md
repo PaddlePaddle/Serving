@@ -64,7 +64,7 @@ pip3 install -r python/requirements.txt
 pip3 install paddle-serving-client==0.7.0
 pip3 install paddle-serving-server==0.7.0 # CPU
 pip3 install paddle-serving-app==0.7.0
-pip3 install paddle-serving-server-gpu==0.7.0.post102 #GPU with CUDA10.2 + TensorRT6
+pip3 install paddle-serving-server-gpu==0.7.0.post102 #GPU with CUDA10.2 + Cudnn7 + TensorRT6
 # Other GPU environments need to confirm the environment before choosing which one to execute
 pip3 install paddle-serving-server-gpu==0.7.0.post101 # GPU with CUDA10.1 + TensorRT6
 pip3 install paddle-serving-server-gpu==0.7.0.post112 # GPU with CUDA11.2 + TensorRT8
@@ -89,12 +89,22 @@ pip3 install paddlepaddle==2.2.0
 # GPU Cuda10.2 environment please execute
 pip3 install paddlepaddle-gpu==2.2.0
 ```
-**Note**: If your Cuda version is not 10.2, please do not execute the above commands directly, you need to refer to [Paddle-Inference official document-download and install the Linux prediction library](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python) Select the URL link of the corresponding GPU environment and install it.
+**Note**: If your Cuda version is not 10.2 or if you want to use TensorRT(Cuda10.2 included), please do not execute the above commands directly, you need to refer to [Paddle-Inference official document-download and install the Linux prediction library](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python) Select the URL link of the corresponding GPU environment and install it. Assuming that you use Python3.6, please follow the codeblock.
 
-For example, for Python3.6 users of Cuda 10.1, please select the URL corresponding to `cp36-cp36m` and `linux-cuda10.1-cudnn7.6-trt6-gcc8.2` in the table, copy it and execute
 ```
-pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5/paddlepaddle_gpu-2.2.0.post101 -cp36-cp36m-linux_x86_64.whl
+# Cuda10.1 + Cudnn7 + TensorRT6
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5/paddlepaddle_gpu-2.2.0.post101-cp36-cp36m-linux_x86_64.whl
+
+# Cuda10.2 + Cudnn7 + TensorRT6, Attenton that the paddle whl for this env is same to that of Cuda10.1 + Cudnn7 + TensorRT6
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.1_cudnn7.6.5_trt6.0.1.5/paddlepaddle_gpu-2.2.0.post101-cp36-cp36m-linux_x86_64.whl
+
+# Cuda10.2 + Cudnn8 + TensorRT7
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda10.2_cudnn8.1.1_trt7.2.3.4/paddlepaddle_gpu-2.2.0-cp36-cp36m-linux_x86_64.whl
+
+# Cuda11.2 + Cudnn8 + TensorRT8
+pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.0/python/Linux/GPU/x86-64_gcc8.2_avx_mkl_cuda11.2_cudnn8.2.1_trt8.0.3.4/paddlepaddle_gpu-2.2.0.post112-cp36-cp36m-linux_x86_64.whl
 ```
+
 ## 4. Supported Docker Images and Instruction
 
 
