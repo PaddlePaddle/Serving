@@ -52,14 +52,21 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --p
     --op_max_batch 指定的各个模型的batch数量，默认值为32，该参数只有当--op_num不为0时才生效。
     
 #### 当您的某个模型想使用多张GPU卡部署时.
+``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
+```
 #### 当您的一个服务包含两个模型部署时.
+``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292
+```
 #### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡部署时.
+``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
+```
 #### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡，且需要异步模式每个模型指定不同的并发数时.
+``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --op_num 4 8
-
+```
 
 
 </center>
