@@ -31,7 +31,7 @@ target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
 target_link_libraries(serving utf8proc)
-if(WITH_ASCEND_CL)
+if(WITH_ASCEND_CL AND NOT WITH_LITE)
     target_link_libraries(serving ascendcl acl_op_compiler)
 endif()
 
