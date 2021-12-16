@@ -55,7 +55,14 @@ void printSeq(std::string file, int limit) {
 
     total_count++;
     int64_t value_length = record.record_len - record.key_len;
-    std::cout << "key: " << key << " , value: " << string_to_hex(record.value.c_str()) << std::endl; 
+    float *data_ptr = new float[record.value.size() / 4];
+    memcpy(data_ptr, record.value.data(), record.value.size()); 
+    std::cout << "key: " << key << " , value: " << string_to_hex(record.value.c_str()) << std::endl;
+    for (int i =0; i < record.value.size() / 4; ++i) {
+      std::cout << data_ptr[i] << " ";
+    } 
+    std::cout << std::endl;
+    delete(data_ptr);
     if (total_count >= limit) {
         break;
     }
