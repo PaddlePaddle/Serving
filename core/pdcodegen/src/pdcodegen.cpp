@@ -328,6 +328,23 @@ class PdsCodeGenerator : public CodeGenerator {
           inference_body += "  LOG(INFO) << oss.str();\n";
           inference_body += "  response->add_profile_time(start);\n";
           inference_body += "  response->add_profile_time(end);\n";
+          inference_body += "  if (::baidu::paddle_serving::predictor::PrometheusMetric::Enabled()) {\n";
+          inference_body += "  if (err_code == 0) {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQuerySuccess()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  } else {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQueryFailure()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  }\n";
+          inference_body += "  ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "      GetGeneralSingleton()\n";
+          inference_body += "          ->MetricQueryDuration()\n";
+          inference_body += "          .Increment(total_time * 1000);\n";
+          inference_body += "  }\n";
         } else {
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT
@@ -1095,6 +1112,23 @@ class PdsCodeGenerator : public CodeGenerator {
           inference_body += "  LOG(INFO) << oss.str();\n";
           inference_body += "  response->add_profile_time(start);\n";
           inference_body += "  response->add_profile_time(end);\n";
+          inference_body += "  if (::baidu::paddle_serving::predictor::PrometheusMetric::Enabled()) {\n";
+          inference_body += "  if (err_code == 0) {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQuerySuccess()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  } else {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQueryFailure()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  }\n";
+          inference_body += "  ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "      GetGeneralSingleton()\n";
+          inference_body += "          ->MetricQueryDuration()\n";
+          inference_body += "          .Increment(total_time * 1000);\n";
+          inference_body += "  }\n";
         } else {
           inference_body += "  // flush notice log\n";
           inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT

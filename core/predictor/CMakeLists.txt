@@ -17,7 +17,7 @@ if (WITH_TRT)
     add_definitions(-DWITH_TRT)
 endif()
 target_link_libraries(pdserving
-        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz paddle_inference ${paddle_depend_libs})
+        brpc protobuf boost leveldb configure -lpthread -lcrypto -lm -lrt -lssl -ldl -lz paddle_inference ${paddle_depend_libs} prometheus ${prometheus_libs})
 # install
 install(TARGETS pdserving
         RUNTIME DESTINATION ${PADDLE_SERVING_INSTALL_DIR}/bin

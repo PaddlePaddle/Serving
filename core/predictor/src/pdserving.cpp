@@ -37,6 +37,7 @@ using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;
 using baidu::paddle_serving::predictor::InferServiceManager;
 using baidu::paddle_serving::predictor::Resource;
+using baidu::paddle_serving::predictor::PrometheusMetric;
 using baidu::paddle_serving::predictor::FLAGS_workflow_path;
 using baidu::paddle_serving::predictor::FLAGS_workflow_file;
 using baidu::paddle_serving::predictor::FLAGS_inferservice_path;
@@ -47,6 +48,7 @@ using baidu::paddle_serving::predictor::FLAGS_resource_path;
 using baidu::paddle_serving::predictor::FLAGS_resource_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
+using baidu::paddle_serving::predictor::FLAGS_enable_prometheus;
 
 using baidu::paddle_serving::configure::InferServiceConf;
 using baidu::paddle_serving::configure::read_proto_conf;
@@ -215,6 +217,11 @@ int main(int argc, char** argv) {
   }
 
   VLOG(2) << "Succ initialize general model";
+
+  // enable prometheus
+  if (FLAGS_enable_prometheus) {
+    PrometheusMetric::EnableMetrics();
+  }
 
 #ifndef BCLOUD
   // FATAL messages are output to stderr

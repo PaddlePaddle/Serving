@@ -30,6 +30,7 @@
 #include "core/predictor/framework/factory.h"
 #include "core/predictor/framework/infer_data.h"
 #include "core/predictor/framework/memory.h"
+#include "core/predictor/framework/predictor_metric.h"
 #include "paddle_inference_api.h"  // NOLINT
 #include "experimental/float16.h"
 namespace baidu {
@@ -499,6 +500,9 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
   ~FluidInferEngine() {}
   typedef std::vector<paddle::PaddleTensor> TensorVector;
   int infer_impl(const void* in, void* out, uint32_t batch_size = -1) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    long start = tv.tv_sec * 1000000 + tv.tv_usec;
     // First of all, get the real core acording to the
     // Template parameter <EngineCore>.
     EngineCore* core = DBReloadableInferEngine<EngineCore>::get_core();
@@ -671,6 +675,17 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
       paddle::PaddleBuf paddleBuf(databuf_char, databuf_size);
       tensor_out.data = paddleBuf;
       tensorVector_out_pointer->push_back(tensor_out);
+    }
+    gettimeofday(&tv, NULL);
+    long end = tv.tv_sec * 1000000 + tv.tv_usec;
+    long total_time = end - start;
+    if (PrometheusMetric::Enabled()) {
+      PrometheusMetricManager::GetGeneralSingleton()
+          ->MetricInferenceCount()
+          .Increment(1);
+      PrometheusMetricManager::GetGeneralSingleton()
+          ->MetricInferenceDuration()
+          .Increment(total_time);
     }
     return 0;
   }
