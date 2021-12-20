@@ -44,6 +44,8 @@ DEFINE_bool(enable_cube, false, "enable cube");
 DEFINE_string(general_model_path, "./conf", "");
 DEFINE_string(general_model_file, "general_model.prototxt", "");
 DEFINE_bool(enable_general_model, true, "enable general model");
+DEFINE_bool(enable_prometheus, true, "enable prometheus");
+DEFINE_int32(prometheus_port, 18010, "");
 
 const char* START_OP_NAME = "startup_op";
 }  // namespace predictor

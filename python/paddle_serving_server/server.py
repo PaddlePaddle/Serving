@@ -98,6 +98,8 @@ class Server(object):
             'GeneralDistKVQuantInferOp',
             'GeneralDetectionOp',
         ]
+        self.enable_prometheus = False
+        self.prometheus_port = 19393
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -198,6 +200,12 @@ class Server(object):
 
     def set_ascend_cl(self):
         self.use_ascend_cl = True
+
+    def set_enable_prometheus(self, flag=False):
+        self.enable_prometheus = flag
+
+    def set_prometheus_port(self, prometheus_port):
+        self.prometheus_port = prometheus_port
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
@@ -587,7 +595,9 @@ class Server(object):
                     "-workflow_path {} " \
                     "-workflow_file {} " \
                     "-bthread_concurrency {} " \
-                    "-max_body_size {} ".format(
+                    "-max_body_size {} " \
+                    "-enable_prometheus={} " \
+                    "-prometheus_port {} ".format(
                         self.bin_path,
                         self.workdir,
                         self.infer_service_fn,
@@ -602,7 +612,9 @@ class Server(object):
                         self.workdir,
                         self.workflow_fn,
                         self.num_threads,
-                        self.max_body_size)
+                        self.max_body_size,
+                        self.enable_prometheus,
+                        self.prometheus_port)
 
         print("Going to Run Comand")
         print(command)

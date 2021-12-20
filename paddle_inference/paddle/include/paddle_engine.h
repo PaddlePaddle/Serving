@@ -296,7 +296,7 @@ class PaddleInferenceEngine : public EngineCore {
                   << FLAGS_nnadapter_model_cache_dir;
       } else {
         // for ascend 910
-	      config.EnableNpu(gpu_id);
+        config.EnableNpu(gpu_id);
       }
     }
 
