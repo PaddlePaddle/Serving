@@ -166,8 +166,8 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     Config config;
-    std::vector<std::string> suffixParaVector = {".pdiparams", "__params__"};
-    std::vector<std::string> suffixModelVector = {".pdmodel", "__model__"};
+    std::vector<std::string> suffixParaVector = {".pdiparams", "__params__", "params"};
+    std::vector<std::string> suffixModelVector = {".pdmodel", "__model__", "model"};
     std::string paraFileName = getFileBySuffix(model_path, suffixParaVector);
     std::string modelFileName = getFileBySuffix(model_path, suffixModelVector);
 
