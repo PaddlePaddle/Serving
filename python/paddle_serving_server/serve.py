@@ -34,7 +34,7 @@ import socket
 from paddle_serving_server.env import CONF_HOME
 import signal
 from paddle_serving_server.util import *
-from paddle_serving_server.env_check.run import *
+from paddle_serving_server.env_check.run import check_env
 
 
 # web_service.py is still used by Pipeline.

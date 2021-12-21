@@ -55,7 +55,7 @@ class TestFitALine(object):
             output_handle = predictor.get_output_handle(output_data_name)
             output_data = output_handle.copy_to_cpu()
             output_data_dict[output_data_name] = output_data
-        # 对齐Serving output
+        # convert to the same format of Serving output
         print(output_data_dict)
         output_data_dict["price"] = output_data_dict["fc_0.tmp_1"]
         del output_data_dict["fc_0.tmp_1"]
@@ -86,7 +86,12 @@ class TestFitALine(object):
         fetch_map = client.predict(
             feed={"x": data}, fetch=fetch_list, batch=True)
         print(fetch_map)
-        return fetch_map
+        output_dict = self.serving_util.parse_http_result(fetch_map)
+        return output_dict
+
+    def test_inference(self):
+        assert self.truth_val['price'].size != 0
+
 
     def test_cpu(self):
         # 1.start server
@@ -97,9 +102,6 @@ class TestFitALine(object):
 
         # 2.resource check
         assert count_process_num_on_port(9494) == 1
-        # assert check_gpu_memory(0) is False
-
-        # 3.keywords check
 
         # 4.predict by brpc
         # batch_size 1
@@ -120,9 +122,6 @@ class TestFitALine(object):
 
         # 2.resource check
         assert count_process_num_on_port(9494) == 1
-        # assert check_gpu_memory(0) is False
-
-        # 3.keywords check
 
         # 4.predict by brpc 
         # batch_size 1
@@ -133,9 +132,5 @@ class TestFitALine(object):
 
         # 5.release
         kill_process(9494)
-
-if __name__ == '__main__':
-    sss = TestCPPClient()
-    sss.get_truth_val_by_inference()
 
 

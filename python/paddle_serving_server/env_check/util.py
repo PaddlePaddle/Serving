@@ -5,7 +5,6 @@ import base64
 import subprocess
 import numpy as np
 
-
 class ServingTest(object):
     def __init__(self, data_path: str, example_path: str, model_dir: str, client_dir: str):
         """
@@ -56,8 +55,6 @@ class ServingTest(object):
             predict_result[key] = value.flatten()
         for key, value in truth_data.items():
             truth_result[key] = np.repeat(value, repeats=batch_size, axis=0).flatten()
-        # print("预测值:", predict_result)
-        # print("真实值:", truth_result)
 
         # compare
         for key in predict_result.keys():
@@ -65,10 +62,6 @@ class ServingTest(object):
             diff_count = np.sum(diff_array > delta)
             assert diff_count == 0, f"total: {np.size(diff_array)} diff count:{diff_count} max:{np.max(diff_array)}"
 
-        # for key in predict_result.keys():
-        #     for i, data in enumerate(predict_result[key]):
-        #         diff = sig_fig_compare(data, truth_result[key][i])
-        #         assert diff < delta, f"data:{data} truth:{truth_result[key][i]} diff is {diff} > {delta}, index:{i}"
 
     @staticmethod
     def parse_http_result(output):
@@ -85,7 +78,6 @@ class ServingTest(object):
 
     @staticmethod
     def release(keywords="web_service.py"):
-        #os.system("kill -9 $(ps -ef | grep serving | awk '{print $2}') > /dev/null 2>&1")
         os.system("kill -9 $(ps -ef | grep " + keywords + " | awk '{print $2}') > /dev/null 2>&1")
 
 
