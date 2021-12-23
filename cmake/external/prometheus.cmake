@@ -29,10 +29,13 @@ ExternalProject_Add(
   GIT_TAG               ${PROMETHEUS_TAG}
   PREFIX                ${PROMETHEUS_PREFIX_DIR}
   UPDATE_COMMAND        ""
-  CMAKE_ARGS            -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+  CMAKE_ARGS            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
                         -DBUILD_SHARED_LIBS=OFF
                         -DENABLE_PUSH=OFF
                         -DENABLE_COMPRESSION=OFF
+                        -DENABLE_TESTING=OFF
                         -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                         -DCMAKE_INSTALL_PREFIX:PATH=${PROMETHEUS_INSTALL_DIR}
                         -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
