@@ -32,13 +32,18 @@ ExternalProject_Add(
   CMAKE_ARGS            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                         -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+                        -DCMAKE_C_FLAGS_DEBUG=${CMAKE_C_FLAGS_DEBUG}
+                        -DCMAKE_C_FLAGS_RELEASE=${CMAKE_C_FLAGS_RELEASE}
+                        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+                        -DCMAKE_CXX_FLAGS_RELEASE=${CMAKE_CXX_FLAGS_RELEASE}
+                        -DCMAKE_CXX_FLAGS_DEBUG=${CMAKE_CXX_FLAGS_DEBUG}
+                        -DCMAKE_INSTALL_PREFIX:PATH=${PROMETHEUS_INSTALL_DIR}
+                        -DCMAKE_INSTALL_LIBDIR=${PROMETHEUS_INSTALL_DIR}/lib
+                        -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
                         -DBUILD_SHARED_LIBS=OFF
                         -DENABLE_PUSH=OFF
                         -DENABLE_COMPRESSION=OFF
                         -DENABLE_TESTING=OFF
-                        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-                        -DCMAKE_INSTALL_PREFIX:PATH=${PROMETHEUS_INSTALL_DIR}
-                        -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
   BUILD_BYPRODUCTS     ${PROMETHEUS_LIBRARIES}
 )
 
