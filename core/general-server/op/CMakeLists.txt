@@ -2,6 +2,7 @@ FILE(GLOB op_srcs ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/../.
 if(WITH_OPENCV)
     FILE(GLOB ocrtools_srcs ${CMAKE_CURRENT_LIST_DIR}/../../predictor/tools/ocrtools/*.cpp)
     FILE(GLOB ppshitu_tools_srcs ${CMAKE_CURRENT_LIST_DIR}/../../predictor/tools/pp_shitu_tools/*.cpp)
+    LIST(APPEND op_srcs ${ppshitu_tools_srcs})
     LIST(APPEND op_srcs ${ocrtools_srcs})
 else()
     set (EXCLUDE_DIR "general_detection_op.cpp")
