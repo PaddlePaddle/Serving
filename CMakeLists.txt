@@ -132,6 +132,7 @@ if (SERVER)
     #include(external/rocksdb)
     include(external/cudnn)
     include(paddlepaddle)
+    include(external/prometheus)
 endif()
 
 message("paddle serving source dir: " ${PADDLE_SERVING_SOURCE_DIR})

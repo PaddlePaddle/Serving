@@ -43,6 +43,8 @@ DECLARE_bool(enable_model_toolkit);
 DECLARE_string(enable_protocol_list);
 DECLARE_bool(enable_cube);
 DECLARE_bool(enable_general_model);
+DECLARE_bool(enable_prometheus);
+DECLARE_int32(prometheus_port);
 
 // STATIC Variables
 extern const char* START_OP_NAME;
