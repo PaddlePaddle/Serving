@@ -26,7 +26,7 @@ client = Client()
 # TODO:load_client need to load more than one client model.
 # this need to figure out some details.
 client.load_client_config(sys.argv[1:])
-client.connect(["127.0.0.1:9293"])
+client.connect(["127.0.0.1:9292"])
 
 import paddle
 test_img_dir = "imgs/"
