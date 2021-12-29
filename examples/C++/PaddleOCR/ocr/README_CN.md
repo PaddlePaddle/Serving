@@ -103,15 +103,13 @@ python3 rec_web_client.py
 **注意：** 若您需要使用Paddle Serving C++框架串联det模型和rec模型，并进行前后处理，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
 
 ### 启动服务
-根据CPU/GPU设备选择一种启动方式
+一个服务启动两个模型串联，只需要在`--model后依次按顺序传入模型文件夹的相对路径`，且需要在`--op后依次传入自定义C++OP类名称`，其中--model后面的模型与--op后面的类名称的顺序需要对应，`这里假设我们已经定义好了两个OP分别为GeneralDetectionOp和GeneralRecOp`，则脚本代码如下：
+```python
+#一个服务启动多模型串联
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9293
+#多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralRecOp
+```
 
-通过--model后，指定多个模型文件的文件夹路径来启动多模型串联的预测服务。
-```
-#for cpu user
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293
-#for gpu user
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_ids 0
-```
 
 ### 启动客户端
 由于需要在C++Server部分进行前后处理，传入C++Server的仅仅是图片的base64编码的字符串，故第一个模型的Client配置需要修改
