@@ -8,10 +8,7 @@ import sys
 
 from paddle_serving_client import Client
 from paddle_serving_client.httpclient import HttpClient
-from paddle_serving_client.io import inference_model_to_serving
-from paddle_serving_app.reader import SegPostprocess
 from paddle_serving_app.reader import *
-import paddle.inference as paddle_infer
 
 from util import *
 
@@ -31,6 +28,11 @@ class TestFitALine(object):
         self.serving_util.release()
 
     def get_truth_val_by_inference(self):
+        try:
+            import paddle.inference as paddle_infer
+        except:
+            # when paddle is not installed, directly return
+            return
         data = np.array(
             [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795,
              -0.0332]).astype("float32")[np.newaxis, :]

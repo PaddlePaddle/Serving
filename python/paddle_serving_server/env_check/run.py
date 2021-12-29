@@ -47,6 +47,7 @@ def run_test_cases(cases_list, case_type):
         elif res == 1:
             if case_name == "inference":
                 print("{} {} environment running failure. Please refer to https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/install/pip/linux-pip.html to configure environment".format(case_type, case_name))
+                os._exit(0)
             else:
                 print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/HEAD/doc/Compile_CN.md to configure environment".format(case_type, case_name))
 

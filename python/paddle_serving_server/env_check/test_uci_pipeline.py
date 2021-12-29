@@ -10,7 +10,6 @@ import sys
 from paddle_serving_server.pipeline import PipelineClient
 from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize, RCNNPostprocess
 from paddle_serving_app.reader import Sequential, File2Image, Resize, Transpose, BGR2RGB, SegPostprocess
-import paddle.inference as paddle_infer
 
 from util import *
 
@@ -30,6 +29,11 @@ class TestUCIPipeline(object):
         self.serving_util.release()
 
     def get_truth_val_by_inference(self):
+        try:
+            import paddle.inference as paddle_infer
+        except:
+            # when paddle is not installed, directly return
+            return
         data = np.array(
             [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795,
              -0.0332]).astype("float32")[np.newaxis, :]
