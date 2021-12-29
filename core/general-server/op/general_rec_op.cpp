@@ -14,11 +14,11 @@
 
 #include "core/general-server/op/general_rec_op.h"
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
-#include <functional>
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/resource.h"

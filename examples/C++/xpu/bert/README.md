@@ -7,7 +7,7 @@ tar zxvf bert_base_chinese.tar.gz
 ```
 ### convert model
 ```
-python3 -m paddle_serving_client.convert --dirname bert_base_chinese --model_filename bert_base_chinese/model.pdmodel --params_filename bert_base_chinese/model.pdiparams
+python3 -m paddle_serving_client.convert --dirname bert_base_chinese --model_filename model.pdmodel --params_filename model.pdiparams
 ```
 ### or, you can get the serving saved model directly
 ```
