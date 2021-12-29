@@ -21,6 +21,7 @@ import os
 import cv2
 from paddle_serving_app.reader import Sequential, URL2Image, ResizeByFactor
 from paddle_serving_app.reader import Div, Normalize, Transpose
+from paddle_serving_app.reader import OCRReader
 
 client = Client()
 # TODO:load_client need to load more than one client model.
@@ -44,5 +45,13 @@ for img_file in os.listdir(test_img_dir):
         feed={"image": image},
         fetch=["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"],
         batch=True)
-    #print("{} {}".format(fetch_map["price"][0], data[0][1][0]))
-    print(fetch_map)
+    result = {}
+    result["score"] = fetch_map["softmax_0.tmp_0"]
+    del fetch_map["softmax_0.tmp_0"]
+    rec_res = OCRReader().postprocess(fetch_map, with_score=False)
+    res_lst = []
+    for res in rec_res:
+        res_lst.append(res[0])
+    result["res"] = res_lst
+
+    print(result)
