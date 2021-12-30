@@ -84,9 +84,12 @@ const std::string getFileBySuffix(
   while ((dirp = readdir(dp)) != nullptr) {
     if (dirp->d_type == DT_REG) {
       for (int idx = 0; idx < suffixVector.size(); ++idx) {
-        if (std::string(dirp->d_name).find(suffixVector[idx]) !=
-            std::string::npos) {
-          fileName = static_cast<std::string>(dirp->d_name);
+        std::string fileName_in_Dir = static_cast<std::string>(dirp->d_name);
+        if (fileName_in_Dir.length() >= suffixVector[idx].length() &&
+            fileName_in_Dir.substr(
+                fileName_in_Dir.length() - suffixVector[idx].length(),
+                suffixVector[idx].length()) == suffixVector[idx]) {
+          fileName = fileName_in_Dir;
           break;
         }
       }
@@ -166,8 +169,10 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     Config config;
-    std::vector<std::string> suffixParaVector = {".pdiparams", "__params__", "params"};
-    std::vector<std::string> suffixModelVector = {".pdmodel", "__model__", "model"};
+    std::vector<std::string> suffixParaVector = {
+        ".pdiparams", "__params__", "params"};
+    std::vector<std::string> suffixModelVector = {
+        ".pdmodel", "__model__", "model"};
     std::string paraFileName = getFileBySuffix(model_path, suffixParaVector);
     std::string modelFileName = getFileBySuffix(model_path, suffixModelVector);
 
@@ -273,23 +278,20 @@ class PaddleInferenceEngine : public EngineCore {
       config.SetXpuDeviceId(gpu_id);
     }
 
-    if (engine_conf.has_use_ascend_cl() &&
-        engine_conf.use_ascend_cl()) {
+    if (engine_conf.has_use_ascend_cl() && engine_conf.use_ascend_cl()) {
       if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
-        // for ascend 310 
+        // for ascend 310
         FLAGS_nnadapter_device_names = "huawei_ascend_npu";
         FLAGS_nnadapter_context_properties =
-                "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS=" +
-                std::to_string(gpu_id);
+            "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS=" + std::to_string(gpu_id);
         FLAGS_nnadapter_model_cache_dir = "";
         config.NNAdapter()
-        .Enable()
-        .SetDeviceNames({FLAGS_nnadapter_device_names})
-        .SetContextProperties(FLAGS_nnadapter_context_properties)
-        .SetModelCacheDir(FLAGS_nnadapter_model_cache_dir);
+            .Enable()
+            .SetDeviceNames({FLAGS_nnadapter_device_names})
+            .SetContextProperties(FLAGS_nnadapter_context_properties)
+            .SetModelCacheDir(FLAGS_nnadapter_model_cache_dir);
         LOG(INFO) << "Enable Lite NNAdapter for Ascend,"
-                  << "nnadapter_device_names="
-                  << FLAGS_nnadapter_device_names
+                  << "nnadapter_device_names=" << FLAGS_nnadapter_device_names
                   << ",nnadapter_context_properties="
                   << FLAGS_nnadapter_context_properties
                   << ",nnadapter_model_cache_dir="
