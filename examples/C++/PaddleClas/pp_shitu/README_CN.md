@@ -1,6 +1,9 @@
-# PP-Shitu
+# C++ PP-Shitu Service服务
+
+**注意：** 使用Paddle Serving C++框架串联模型，由于C++的前后处理中使用了OPENCV库，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
+
 ```
-# 需安装相关依赖包
+## 需安装相关依赖包
 pip install faiss-cpu==1.7.1.post2 -i https://mirror.baidu.com/pypi/simple
 ```
 
