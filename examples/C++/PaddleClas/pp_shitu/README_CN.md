@@ -1,6 +1,6 @@
 # C++ PP-Shitu Service服务
 
-**注意：** 使用Paddle Serving C++框架串联模型，由于C++的前后处理中使用了OPENCV库，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
+**注意：** 使用Paddle Serving C++框架串联模型，由于C++代码中前后处理中使用了OPENCV库，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
 
 ```
 ## 需安装相关依赖包
