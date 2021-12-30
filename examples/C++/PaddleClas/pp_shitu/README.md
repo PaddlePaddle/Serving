@@ -1,4 +1,7 @@
-# PP-Shitu
+# C++ PP-Shitu Service
+
+**注意：** 由于C++代码中前后处理中使用了OPENCV库，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
+
 ```
 # Dependent packages need to be installed
 pip install faiss-cpu==1.7.1.post2 -i https://mirror.baidu.com/pypi/simple
