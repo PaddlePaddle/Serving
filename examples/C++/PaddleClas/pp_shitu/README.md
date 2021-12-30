@@ -1,6 +1,6 @@
 # C++ PP-Shitu Service
 
-**注意：** 由于C++代码中前后处理中使用了OPENCV库，您需要使用开启WITH_OPENCV选项编译的C++ Server，详见[COMPILE.md](../../../../doc/Compile_CN.md)
+**注意：** Since opencv library is used in the pre-processing and post-processing of C++ code, you need to open `WITH_OPENCV` option to compile the C++ server, see [COMPILE.md](../../../../doc/Compile_CN.md)
 
 ```
 # Dependent packages need to be installed
