@@ -1,4 +1,3 @@
-import pytest
 # coding:utf-8
 # Copyright (c) 2020  PaddlePaddle Authors. All Rights Reserved.
 #
@@ -25,7 +24,10 @@ Usage: export PYTHON_EXECUTABLE=/usr/local/bin/python3.6
 
 import sys
 import os
+import pytest
 
+
+inference_test_cases = ["test_fit_a_line.py::TestFitALine::test_inference"]
 cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
 pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
 
@@ -39,11 +41,16 @@ def run_test_cases(cases_list, case_type):
         args = args_str.split(" ")
         res = pytest.main(args)
         sys.stdout, sys.stderr = old_stdout, old_stderr
+        case_name = case.split('_')[-1]
         if res == 0:
-            print("{} {} environment running success".format(case_type, case[-3:]))
-        else:
-            print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/v0.7.0/doc/Install_CN.md to configure environment".format(case_type, case[-3:]))
-    
+            print("{} {} environment running success".format(case_type, case_name))
+        elif res == 1:
+            if case_name == "inference":
+                print("{} {} environment running failure. Please refer to https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/install/pip/linux-pip.html to configure environment".format(case_type, case_name))
+                os._exit(0)
+            else:
+                print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/HEAD/doc/Compile_CN.md to configure environment".format(case_type, case_name))
+
 def unset_proxy(key):
     os.unsetenv(key)
 
@@ -51,5 +58,6 @@ def check_env():
     if 'https_proxy' in os.environ or 'http_proxy' in os.environ:
         unset_proxy("https_proxy") 
         unset_proxy("http_proxy")     
+    run_test_cases(inference_test_cases, "PaddlePaddle")
     run_test_cases(cpp_test_cases, "C++")
     run_test_cases(pipeline_test_cases, "Pipeline")

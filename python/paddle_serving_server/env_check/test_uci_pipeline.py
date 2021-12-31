@@ -10,7 +10,6 @@ import sys
 from paddle_serving_server.pipeline import PipelineClient
 from paddle_serving_app.reader import CenterCrop, RGB2BGR, Transpose, Div, Normalize, RCNNPostprocess
 from paddle_serving_app.reader import Sequential, File2Image, Resize, Transpose, BGR2RGB, SegPostprocess
-import paddle.inference as paddle_infer
 
 from util import *
 
@@ -30,6 +29,11 @@ class TestUCIPipeline(object):
         self.serving_util.release()
 
     def get_truth_val_by_inference(self):
+        try:
+            import paddle.inference as paddle_infer
+        except:
+            # when paddle is not installed, directly return
+            return
         data = np.array(
             [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795,
              -0.0332]).astype("float32")[np.newaxis, :]
@@ -54,7 +58,7 @@ class TestUCIPipeline(object):
             output_handle = predictor.get_output_handle(output_data_name)
             output_data = output_handle.copy_to_cpu()
             output_data_dict[output_data_name] = output_data
-        # 对齐Serving output
+        # convert to the same format of Serving output
         output_data_dict["prob"] = output_data_dict["fc_0.tmp_1"]
         del output_data_dict["fc_0.tmp_1"]
         self.truth_val = output_data_dict
@@ -63,17 +67,15 @@ class TestUCIPipeline(object):
     def predict_pipeline_rpc(self, batch_size=1):
         # 1.prepare feed_data
         feed_dict = {'x': '0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332'}
-        # TODO 原示例不支持batch
 
         # 2.init client
-        # fetch = ["label", "prob"]
         client = PipelineClient()
         client.connect(['127.0.0.1:9998'])
 
         # 3.predict for fetch_map
         ret = client.predict(feed_dict=feed_dict)
         print(ret)
-        # 转换为dict
+        # 4.convert dict to numpy
         result = {"prob": np.array(eval(ret.value[0]))}
         print(result)
         return result
@@ -83,7 +85,6 @@ class TestUCIPipeline(object):
         data = '0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, ' \
                '-0.0332'
         feed_dict = {"key": [], "value": []}
-        # TODO 原示例不支持batch
         feed_dict["key"].append("x")
         feed_dict["value"].append(data)
 
@@ -91,7 +92,7 @@ class TestUCIPipeline(object):
         url = "http://127.0.0.1:18082/uci/prediction"
         r = requests.post(url=url, data=json.dumps(feed_dict))
         print(r.json())
-        # 转换为dict of numpy array
+        # 3.convert dict to numpy array
         result = {"prob": np.array(eval(r.json()["value"][0]))}
         return result
 
@@ -104,21 +105,19 @@ class TestUCIPipeline(object):
 
         # 2.resource check
         assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway 代理、转发
-        #assert check_gpu_memory(0) is False
+        assert count_process_num_on_port(18082) == 1  # gRPC gateway
 
         # 3.keywords check
         check_keywords_in_server_log("MKLDNN is enabled", filename="stderr.log")
 
         # 4.predict by rpc
-        # batch_size=1
         result = self.predict_pipeline_rpc(batch_size=1)
         self.serving_util.check_result(result_data=result, truth_data=self.truth_val, batch_size=1)
-        # # predict by http
-        result = self.predict_pipeline_http(batch_size=1)  # batch_size=1
+        # 5.predict by http
+        result = self.predict_pipeline_http(batch_size=1)  
         self.serving_util.check_result(result_data=result, truth_data=self.truth_val, batch_size=1)
 
-        # 5.release
+        # 6.release
         kill_process(9998)
         kill_process(18082)
 
@@ -132,15 +131,13 @@ class TestUCIPipeline(object):
 
         # 2.resource check
         assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway 代理、转发
-        #assert check_gpu_memory(0) is False
+        assert count_process_num_on_port(18082) == 1  # gRPC gateway
 
-        # 4.predict by rpc
-        # batch_size=1
+        # 3.predict by rpc
         result = self.predict_pipeline_rpc(batch_size=1)
         self.serving_util.check_result(result_data=result, truth_data=self.truth_val, batch_size=1)
-        # # predict by http
-        result = self.predict_pipeline_http(batch_size=1)  # batch_size=1
+        # 4.predict by http
+        result = self.predict_pipeline_http(batch_size=1) 
         self.serving_util.check_result(result_data=result, truth_data=self.truth_val, batch_size=1)
 
         # 5.release

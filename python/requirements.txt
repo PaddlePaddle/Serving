@@ -21,4 +21,3 @@ sentencepiece; platform_machine ==  "aarch64"
 opencv-python==4.2.0.32; platform_machine !=  "aarch64"
 opencv-python; platform_machine == "aarch64"
 pytest 
-pynvml
