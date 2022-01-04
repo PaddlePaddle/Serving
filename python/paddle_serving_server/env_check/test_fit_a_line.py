@@ -20,12 +20,13 @@ class TestFitALine(object):
         serving_util.check_model_data_exist()
         self.get_truth_val_by_inference(self)
         self.serving_util = serving_util
+        self.serving_util.release('service')
 
     def teardown_method(self):
         print_log(["stderr.log", "stdout.log",
                    "log/serving.ERROR", "PipelineServingLogs/pipeline.log"], iden="after predict")
         kill_process(9494)
-        self.serving_util.release()
+        self.serving_util.release('service')
 
     def get_truth_val_by_inference(self):
         try:
