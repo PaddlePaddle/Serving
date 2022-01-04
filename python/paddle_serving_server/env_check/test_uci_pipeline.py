@@ -21,12 +21,13 @@ class TestUCIPipeline(object):
         serving_util.check_model_data_exist()
         self.get_truth_val_by_inference(self)
         self.serving_util = serving_util
+        self.serving_util.release('web_service')
 
     def teardown_method(self):
         print_log(["stderr.log", "stdout.log",
                    "log/serving.ERROR", "PipelineServingLogs/pipeline.log"], iden="after predict")
         kill_process(9998)
-        self.serving_util.release()
+        self.serving_util.release('web_service')
 
     def get_truth_val_by_inference(self):
         try:
