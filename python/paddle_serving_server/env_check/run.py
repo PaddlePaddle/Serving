@@ -31,12 +31,13 @@ inference_test_cases = ["test_fit_a_line.py::TestFitALine::test_inference"]
 cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
 pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
 
-def run_test_cases(cases_list, case_type):
+def run_test_cases(cases_list, case_type, is_open_std):
     old_stdout, old_stderr = sys.stdout, sys.stderr
     real_path = os.path.dirname(os.path.realpath(__file__))
     for case in cases_list:
-        sys.stdout = open('/dev/null', 'w')
-        sys.stderr = open('/dev/null', 'w')
+        if is_open_std is False:
+            sys.stdout = open('/dev/null', 'w')
+            sys.stderr = open('/dev/null', 'w')
         args_str = "--disable-warnings " + str(real_path) + "/" + case
         args = args_str.split(" ")
         res = pytest.main(args)
@@ -54,10 +55,19 @@ def run_test_cases(cases_list, case_type):
 def unset_proxy(key):
     os.unsetenv(key)
 
-def check_env():
+def check_env(mode):
     if 'https_proxy' in os.environ or 'http_proxy' in os.environ:
         unset_proxy("https_proxy") 
         unset_proxy("http_proxy")     
-    run_test_cases(inference_test_cases, "PaddlePaddle")
-    run_test_cases(cpp_test_cases, "C++")
-    run_test_cases(pipeline_test_cases, "Pipeline")
+    is_open_std = False 
+    if mode is "debug":
+        is_open_std = True
+    if mode is "all" or mode is "inference" or mode is "debug":
+        run_test_cases(inference_test_cases, "PaddlePaddle", is_open_std)
+    if mode is "all" or mode is "cpp" or mode is "debug":
+        run_test_cases(cpp_test_cases, "C++", is_open_std)
+    if mode is "all" or mode is "pipeline" or mode is "debug":
+        run_test_cases(pipeline_test_cases, "Pipeline", is_open_std)
+
+if __name__ == '__main__':
+    check_env("debug")
