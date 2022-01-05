@@ -3,6 +3,7 @@ import argparse
 import base64
 import subprocess
 import numpy as np
+import sys
 
 class ServingTest(object):
     def __init__(self, data_path: str, example_path: str, model_dir: str, client_dir: str):
@@ -15,7 +16,9 @@ class ServingTest(object):
         code_path = os.path.dirname(os.path.realpath(__file__))
         self.data_path = f"{code_path}/{data_path}/"
         self.example_path = f"{code_path}/{example_path}/"
-        self.py_version = os.environ.get("PYTHON_EXECUTABLE")
+        self.py_version = sys.executable
+        if 'PYTHON_EXECUTABLE' in os.environ:
+            self.py_version = os.environ.get("PYTHON_EXECUTABLE")
         self.model_dir = model_dir
         self.client_config = f"{client_dir}/serving_client_conf.prototxt"
 

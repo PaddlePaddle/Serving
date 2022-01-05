@@ -473,31 +473,39 @@ def stop_serving(command: str, port: int=None):
     return True
 
 class Check_Env_Shell(cmd.Cmd):
-    intro = 'Welcome to the check env shell.Type help or ? to list commands.\n'
-    #prompt = '(check) '
+    intro = "Welcome to the check env shell.Type help to list commands.\n"
     # ----- basic  commands -----
+    def do_help(self, arg):
+        print("\nCommand list\n"\
+               "check_all\tCheck Environment of Paddle Inference, Pipeline Serving, C++ Serving\n"\
+               "check_pipeline\tCheck Environment of Pipeline Serving\n"\
+               "check_cpp\tCheck Environment of C++ Serving\n"\
+               "check_inference\tCheck Environment of Paddle Inference\n"\
+               "debug\tOpen pytest log to debug\n"\
+               "exit\tExit Check Env Shell\n")
+
     def do_check_all(self, arg):
-        'Check Environment of Paddle Inference, Pipeline Serving, C++ Serving'
+        "Check Environment of Paddle Inference, Pipeline Serving, C++ Serving"
         check_env("all") 
     
     def do_check_pipeline(self, arg):
-        'Check Environment of Pipeline Serving'
+        "Check Environment of Pipeline Serving"
         check_env("pipeline") 
     
     def do_check_cpp(self, arg):
-        'Check Environment of C++ Serving'
+        "Check Environment of C++ Serving"
         check_env("cpp") 
 
     def do_check_inference(self, arg):
-        'Check Environment of Paddle Inference'
+        "Check Environment of Paddle Inference"
         check_env("inference") 
       
     def do_debug(self, arg):
-        'Open pytest log to debug'
+        "Open pytest log to debug"
         check_env("debug") 
 
     def do_exit(self, arg):
-        'Exit Check Env Shell'
+        "Exit Check Env Shell"
         print('Check Environment Shell Exit')
         os._exit(0)
         return True
