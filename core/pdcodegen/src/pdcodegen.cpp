@@ -301,15 +301,33 @@ class PdsCodeGenerator : public CodeGenerator {
         inference_body += "\"\]\";\n";
         inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
         inference_body += "service_name=\[\" << \"$name$\" << \"\]\";\n";  // NOLINT
-        inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
-        inference_body += "  if (err_code != 0) {\n";
-        inference_body += "    LOG(WARNING)\n";
-        inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
-        inference_body += "inferservice[$name$], name[$service$]\"\n";
-        inference_body += "        << \", error_code: \" << err_code;\n";
-        inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
-        inference_body += "failed!\");\n";
-        inference_body += "  }\n";
+        if (service_name == "GeneralModelService") {
+          inference_body += "uint64_t key = 0;";
+          inference_body += "int err_code = 0;";
+          inference_body += "if (RequestCache::GetSingleton()->Get(*request, response, &key) != 0) {";
+          inference_body += "  err_code = svr->inference(request, response, log_id);";
+          inference_body += "  if (err_code != 0) {";
+          inference_body += "    LOG(WARNING)";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call inferservice[GeneralModelService], name[GeneralModelService]\"";
+          inference_body += "        << \", error_code: \" << err_code;";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference failed!\");";
+          inference_body += "  } else {";
+          inference_body += "    RequestCache::GetSingleton()->Put(*request, *response, &key);";
+          inference_body += "  }";
+          inference_body += "} else {";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") Get from cache\";";
+          inference_body += "}";
+        } else {
+          inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
+          inference_body += "  if (err_code != 0) {\n";
+          inference_body += "    LOG(WARNING)\n";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
+          inference_body += "inferservice[$name$], name[$service$]\"\n";
+          inference_body += "        << \", error_code: \" << err_code;\n";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
+          inference_body += "failed!\");\n";
+          inference_body += "  }\n";
+        }
         inference_body += "  gettimeofday(&tv, NULL);\n";
         inference_body += "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n";
         if (service_name == "GeneralModelService") {
@@ -1085,15 +1103,33 @@ class PdsCodeGenerator : public CodeGenerator {
         inference_body += "\"\]\";\n";
         inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
         inference_body += "service_name=\[\" << \"$name$\" << \"\]\";\n";  // NOLINT
-        inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
-        inference_body += "  if (err_code != 0) {\n";
-        inference_body += "    LOG(WARNING)\n";
-        inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
-        inference_body += "inferservice[$name$], name[$service$]\"\n";
-        inference_body += "        << \", error_code: \" << err_code;\n";
-        inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
-        inference_body += "failed!\");\n";
-        inference_body += "  }\n";
+        if (service_name == "GeneralModelService") {
+          inference_body += "uint64_t key = 0;";
+          inference_body += "int err_code = 0;";
+          inference_body += "if (RequestCache::GetSingleton()->Get(*request, response, &key) != 0) {";
+          inference_body += "  err_code = svr->inference(request, response, log_id);";
+          inference_body += "  if (err_code != 0) {";
+          inference_body += "    LOG(WARNING)";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call inferservice[GeneralModelService], name[GeneralModelService]\"";
+          inference_body += "        << \", error_code: \" << err_code;";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference failed!\");";
+          inference_body += "  } else {";
+          inference_body += "    RequestCache::GetSingleton()->Put(*request, *response, &key);";
+          inference_body += "  }";
+          inference_body += "} else {";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") Get from cache\";";
+          inference_body += "}";
+        } else {
+          inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
+          inference_body += "  if (err_code != 0) {\n";
+          inference_body += "    LOG(WARNING)\n";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
+          inference_body += "inferservice[$name$], name[$service$]\"\n";
+          inference_body += "        << \", error_code: \" << err_code;\n";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
+          inference_body += "failed!\");\n";
+          inference_body += "  }\n";
+        }
         inference_body += "  gettimeofday(&tv, NULL);\n";
         inference_body += "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n";
         if (service_name == "GeneralModelService") {

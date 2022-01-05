@@ -100,6 +100,7 @@ class Server(object):
         ]
         self.enable_prometheus = False
         self.prometheus_port = 19393
+        self.request_cache_size = 0
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -206,6 +207,9 @@ class Server(object):
 
     def set_prometheus_port(self, prometheus_port):
         self.prometheus_port = prometheus_port
+
+    def set_request_cache_size(self, request_cache_size):
+        self.request_cache_size = request_cache_size
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
@@ -615,6 +619,17 @@ class Server(object):
                         self.max_body_size,
                         self.enable_prometheus,
                         self.prometheus_port)
+        if self.enable_prometheus:
+            command =   command + \
+                        "-enable_prometheus={} " \
+                        "-prometheus_port {} ".format(
+                        self.enable_prometheus,
+                        self.prometheus_port)
+        if self.request_cache_size > 0:
+            command =   command + \
+                        "-request_cache_size {} ".format(
+                            self.request_cache_size
+                        )
 
         print("Going to Run Comand")
         print(command)

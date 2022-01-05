@@ -236,6 +236,7 @@ class DBReloadableInferEngine : public ReloadableInferEngine {
     }
 
     LOG(WARNING) << "Succ load engine, path: " << conf.model_dir();
+    RequestCache::GetSingleton()->Clear();
     return 0;
   }
 
