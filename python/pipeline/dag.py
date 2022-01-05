@@ -828,6 +828,33 @@ class DAG(object):
 
         return self._input_channel, self._output_channel, self._pack_func, self._unpack_func
 
+    def start_prom(self):
+        import prometheus_client
+        from prometheus_client import Counter
+        from prometheus_client.core import CollectorRegistry
+
+        from flask import Response, Flask
+        from .prometheus_metrics import registry 
+        
+        app = Flask(__name__)
+        requests_total = Counter('c1','A counter')
+
+        @app.route("/metrics/")
+        def requests_count():
+            requests_total.inc(1)
+            # requests_total.inc(2)
+            return Response(prometheus_client.generate_latest(registry),mimetype="text/plain")
+
+        def prom_run():
+            app.run(host="0.0.0.0",port=8581)
+        
+        p = multiprocessing.Process(
+                target=prom_run,
+                args=())
+        _LOGGER.info("Prometheus Start 2")
+        p.daemon = True
+        p.start()
+
     def start(self):
         """
         Each OP starts a thread or process by _is_thread_op 
@@ -847,7 +874,9 @@ class DAG(object):
             else:
                 self._threads_or_proces.extend(op.start_with_process())
         _LOGGER.info("[DAG] start")
-
+        _LOGGER.info("Prometheus Start 1")
+        self.start_prom()
+         
         # not join yet
         return self._threads_or_proces
 
