@@ -94,3 +94,12 @@ output
 ```
 {'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
 ```
+<h3 align="center">Stop Serving/Pipeline service</h3>
+
+**Method one** ：Ctrl+C to quit
+
+**Method Two** ：In the path where starting the Serving/Pipeline service or the path which environment variable SERVING_HOME set (the file named ProcessInfo.json exists in this path)
+
+```
+python3 -m paddle_serving_server.serve stop
+```
