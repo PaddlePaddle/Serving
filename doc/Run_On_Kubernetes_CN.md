@@ -25,10 +25,10 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 在`tools/generate_runtime_docker.sh`文件下，它的使用方式如下
 
 ```bash
-bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.6 --name serving_runtime:cuda10.1-py36
+bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.7.0
 ```
 
-会生成 cuda10.1，python 3.6，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
+会生成 cuda10.1，python 3.7，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
 如果您需要老版本Serving运行镜像，请checkout到老版本分支。
 
 ```
@@ -40,7 +40,7 @@ bash tools/generate_runtime_docker.sh --help
 - paddle-serving-server， paddle-serving-client，paddle-serving-app，paddlepaddle，具体版本可以在tools/runtime.dockerfile当中查看，同时，如果有定制化的需求，也可以在该文件中进行定制化。
 - paddle-serving-server 二进制可执行程序
 
-也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py36`
+也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py37`
 
 ### 添加您的代码和模型 
 
