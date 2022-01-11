@@ -10,7 +10,7 @@
 
 
 ## 1.启动开发镜像
-<mark>**同时支持使用Serving镜像和Paddle镜像，1.1和1.2章节中的操作2选1即可。**</mark>
+<mark>**同时支持使用Serving镜像和Paddle镜像，1.1和1.2章节中的操作2选1即可。**</mark> 因为在Paddle镜像运行Serving上需要额外安装依赖库，因此，我们推荐直接使用Serving开发镜像。
 ### 1.1 Serving开发镜像（CPU/GPU 2选1）
 **CPU：**
 ```
