@@ -105,8 +105,8 @@ class TestUCIPipeline(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway
+        assert count_process_num_on_port(9998) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"  # gRPC Server
+        assert count_process_num_on_port(18082) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"  # gRPC gateway
 
         # 3.keywords check
         check_keywords_in_server_log("MKLDNN is enabled", filename="stderr.log")
@@ -131,8 +131,8 @@ class TestUCIPipeline(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway
+        assert count_process_num_on_port(9998) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"  # gRPC Server
+        assert count_process_num_on_port(18082) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"  # gRPC gateway
 
         # 3.predict by rpc
         result = self.predict_pipeline_rpc(batch_size=1)
