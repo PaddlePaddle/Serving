@@ -9,7 +9,7 @@
 **Tip-2**: The GPU environments in the following examples are all cuda10.2-cudnn7. If you use Python Pipeline to deploy and need Nvidia TensorRT to optimize prediction performance, please refer to [Supported Mirroring Environment and Instructions](#4.-Supported-Docker-Images-and-Instruction) to choose other versions.
 
 ## 1. Start the Docker Container
-<mark>**Both Serving Dev Image and Paddle Dev Image are supported at the same time. You can choose 1 from the operation 2 in chapters 1.1 and 1.2.**</mark>
+<mark>**Both Serving Dev Image and Paddle Dev Image are supported at the same time. You can choose 1 from the operation 2 in chapters 1.1 and 1.2.**</mark>Deploying the Serving service on the Paddle docker image requires the installation of additional dependency libraries. Therefore, we directly use the Serving development image.
 
 ### 1.1 Serving Dev Images (CPU/GPU 2 choose 1)
 **CPU:**

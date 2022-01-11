@@ -40,8 +40,9 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 <h2 align="center">教程</h2>
 
 - AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1975340)
-
 - 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
+- Edge AI solution based on Paddle Serving & Baidu Intelligent Edge(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+
 <p align="center">
     <img src="doc/images/demo.gif" width="700">
 </p>

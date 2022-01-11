@@ -209,6 +209,8 @@ def serve_args():
         "--enable_prometheus", default=False, action="store_true", help="Use Prometheus")
     parser.add_argument(
         "--prometheus_port", type=int, default=19393, help="Port of the Prometheus")
+    parser.add_argument(
+        "--request_cache_size", type=int, default=0, help="Port of the Prometheus")
     return parser.parse_args()
 
 
@@ -292,6 +294,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     server.set_max_body_size(max_body_size)
     server.set_enable_prometheus(args.enable_prometheus)
     server.set_prometheus_port(args.prometheus_port)
+    server.set_request_cache_size(args.request_cache_size)
 
     if args.use_trt and device == "gpu":
         server.set_trt()
