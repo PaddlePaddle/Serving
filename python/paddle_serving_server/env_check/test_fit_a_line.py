@@ -104,7 +104,7 @@ class TestFitALine(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9494) == 1
+        assert count_process_num_on_port(9494) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"
 
         # 4.predict by brpc
         # batch_size 1
@@ -124,7 +124,7 @@ class TestFitALine(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9494) == 1
+        assert count_process_num_on_port(9494) == 1, "Please check 'Captured stdout teardown' to refer to stderr log"
 
         # 4.predict by brpc 
         # batch_size 1
