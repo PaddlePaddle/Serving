@@ -88,8 +88,14 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 此时 lod 为空。
         tensor_out.lod = batchTask._batch_out[fetchvar_index].lod;
         // resize all batch memory at one time
+        
         size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
-        tensor_out.data.Resize(databuf_size);
+        
+        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size,memoryPtr);
+        paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
+        tensor_out.data = paddleBuf;
+        
+        //tensor_out.data.Resize(databuf_size);
       } else {
         // 当taskmeta_num = 1时，由于同时只有一个taskMeta操作task
         // 不涉及线程安全问题，所以此时可以直接由taskMeta->task->resize->copy
@@ -209,7 +215,7 @@ void TaskExecutor<TaskT>::stop() {
 template <typename TaskT>
 TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     const void* inVectorT_ptr,
-    void* outVectorT_ptr) {  // NOLINT
+    void* outVectorT_ptr, MempoolRegion* memoryPtr) {  // NOLINT
   TaskT* task = butil::get_object<TaskT>();
   if (!task) {
     LOG(ERROR) << "Failed get TaskT from object pool";
@@ -235,7 +241,8 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
   task->read_fd = fds[0];
   task->write_fd = fds[1];
   task->owner_tid = ::syscall(SYS_gettid);
-
+  task->memoryPtr = memoryPtr;
+  //task->_bspec_key = _bspec_key;
   task->inVectorT_ptr = (const InVectorT*)inVectorT_ptr;
   task->outVectorT_ptr = (OutVectorT*)outVectorT_ptr;
   if (!task->task_init()) {
@@ -403,9 +410,9 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
 
 template <typename InItemT, typename OutItemT>
 bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
-                                              void* out) {  // NOLINT
+                                              void* out, MempoolRegion* memoryPtr) {  // NOLINT
   TaskHandler<TaskT> handler =
-      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out);
+      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out, memoryPtr);
 
   if (handler.valid()) {
     _task_owned = handler;
