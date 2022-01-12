@@ -8,10 +8,7 @@ import sys
 
 from paddle_serving_client import Client
 from paddle_serving_client.httpclient import HttpClient
-from paddle_serving_client.io import inference_model_to_serving
-from paddle_serving_app.reader import SegPostprocess
 from paddle_serving_app.reader import *
-import paddle.inference as paddle_infer
 
 from util import *
 
@@ -31,6 +28,11 @@ class TestFitALine(object):
         self.serving_util.release()
 
     def get_truth_val_by_inference(self):
+        try:
+            import paddle.inference as paddle_infer
+        except:
+            # when paddle is not installed, directly return
+            return
         data = np.array(
             [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795,
              -0.0332]).astype("float32")[np.newaxis, :]
@@ -55,7 +57,7 @@ class TestFitALine(object):
             output_handle = predictor.get_output_handle(output_data_name)
             output_data = output_handle.copy_to_cpu()
             output_data_dict[output_data_name] = output_data
-        # 对齐Serving output
+        # convert to the same format of Serving output
         print(output_data_dict)
         output_data_dict["price"] = output_data_dict["fc_0.tmp_1"]
         del output_data_dict["fc_0.tmp_1"]
@@ -86,7 +88,12 @@ class TestFitALine(object):
         fetch_map = client.predict(
             feed={"x": data}, fetch=fetch_list, batch=True)
         print(fetch_map)
-        return fetch_map
+        output_dict = self.serving_util.parse_http_result(fetch_map)
+        return output_dict
+
+    def test_inference(self):
+        assert self.truth_val['price'].size != 0
+
 
     def test_cpu(self):
         # 1.start server
@@ -97,9 +104,6 @@ class TestFitALine(object):
 
         # 2.resource check
         assert count_process_num_on_port(9494) == 1
-        # assert check_gpu_memory(0) is False
-
-        # 3.keywords check
 
         # 4.predict by brpc
         # batch_size 1
@@ -120,9 +124,6 @@ class TestFitALine(object):
 
         # 2.resource check
         assert count_process_num_on_port(9494) == 1
-        # assert check_gpu_memory(0) is False
-
-        # 3.keywords check
 
         # 4.predict by brpc 
         # batch_size 1
@@ -133,9 +134,5 @@ class TestFitALine(object):
 
         # 5.release
         kill_process(9494)
-
-if __name__ == '__main__':
-    sss = TestCPPClient()
-    sss.get_truth_val_by_inference()
 
 

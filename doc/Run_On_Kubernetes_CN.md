@@ -2,13 +2,13 @@
 
 Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving 模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
 
-### 集群准备
+### 1.集群准备
 
 如果您还没有Kubenetes集群，我们推荐[购买并使用百度智能云CCE集群](https://cloud.baidu.com/doc/CCE/index.html). 如果是其他云服务商提供的集群，或者自行安装Kubenetes集群，请遵照对应的教程。
 
 您还需要准备一个用于Kubenetes集群部署使用的镜像仓库，通常与云服务提供商绑定，如果您使用的是百度智能云的CCE集群，可以参照[百度智能云CCR镜像仓库使用方式](https://cloud.baidu.com/doc/CCR/index.html)。当然Docker Hub也可以作为镜像仓库，但是可能在部署时会出现下载速度慢的情况。
 
-### 环境准备
+### 2.环境准备
 
 需要在Kubenetes集群上安装网关工具KONG。
 
@@ -16,20 +16,20 @@ Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供�
 kubectl apply -f https://bit.ly/kong-ingress-dbless
 ```
 
+### 选择Serving开发镜像 （可选）
+您可以直接选择已生成的Serving [DOCKER开发镜像列表](./Docker_Images_CN.md)作为Kubernetes部署的首选，携带了开发工具，可用于调试和编译代码。
 
+### 制作Serving运行镜像（可选）
 
-### 制作Serving运行镜像（可选）：
+与[DOCKER开发镜像列表](./Docker_Images_CN.md)文档相比，开发镜像用于调试、编译代码，携带了大量的开发工具，因此镜像体积较大。运行镜像通常容器体积更小的轻量级容器，可在边缘端设备上部署。如您不需要轻量级运行容器，请直接跳过这一部分。
 
-首先您需要确定运行镜像的具体环境。和[DOCKER开发镜像列表](./Docker_Images_CN.md)文档相比，开发镜像用于调试、编译代码，携带了大量的开发工具，因此镜像体积较大。运行镜像通常要求缩小容器体积以提高部署的灵活性。如果您不太需要轻量级的运行容器，请直接跳过这一部分。
-
-在`tools/generate_runtime_docker.sh`文件下，它的使用方式如下
+我们提供了运行镜像的生成脚本在Serving代码库下`tools/generate_runtime_docker.sh`文件，通过以下命令可生成代码。
 
 ```bash
-bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.6 --name serving_runtime:cuda10.1-py36
+bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.7.0
 ```
 
-会生成 cuda10.1，python 3.6，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。
-如果您需要老版本Serving运行镜像，请checkout到老版本分支。
+会生成 cuda10.1，python 3.7，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。强烈建议您使用最新的paddle和serving的版本（2个版本是对应的如paddle 2.2.x 与serving 0.7.0对应，paddle 2.1.x 与 serving 0.6.x对应），因为更早的版本上出现的错误只在最新版本修复，无法在历史版本中修复。
 
 ```
 bash tools/generate_runtime_docker.sh --help
@@ -40,7 +40,7 @@ bash tools/generate_runtime_docker.sh --help
 - paddle-serving-server， paddle-serving-client，paddle-serving-app，paddlepaddle，具体版本可以在tools/runtime.dockerfile当中查看，同时，如果有定制化的需求，也可以在该文件中进行定制化。
 - paddle-serving-server 二进制可执行程序
 
-也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py36`
+也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py37`
 
 ### 添加您的代码和模型 
 
