@@ -25,7 +25,7 @@ class TestUCIPipeline(object):
 
     def teardown_method(self):
         print_log(["stderr.log", "stdout.log",
-                   "PipelineServingLogs/pipeline.log"], iden="after predict")
+                   "PipelineServingLogs/pipeline.log"])
         kill_process(9998)
         kill_process(18082)
         self.serving_util.release('web_service')

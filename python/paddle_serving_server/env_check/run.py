@@ -53,7 +53,7 @@ def run_test_cases(cases_list, case_type, is_open_std):
                 print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/develop/doc/Install_CN.md".format(case_type, case_name))
 
 def unset_env(key):
-    os.unsetenv(key)
+    del os.environ[key]
 
 def check_env(mode):
     
