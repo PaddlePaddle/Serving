@@ -50,15 +50,18 @@ def run_test_cases(cases_list, case_type, is_open_std):
                 print("{} {} environment running failure. Please refer to https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/install/pip/linux-pip.html to configure environment".format(case_type, case_name))
                 os._exit(0)
             else:
-                print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/HEAD/doc/Compile_CN.md to configure environment".format(case_type, case_name))
+                print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/develop/doc/Install_CN.md".format(case_type, case_name))
 
-def unset_proxy(key):
+def unset_env(key):
     os.unsetenv(key)
 
 def check_env(mode):
+    
     if 'https_proxy' in os.environ or 'http_proxy' in os.environ:
-        unset_proxy("https_proxy") 
-        unset_proxy("http_proxy")     
+        unset_env("https_proxy") 
+        unset_env("http_proxy")     
+    if 'GREP_OPTIONS' in os.environ:
+        unset_env("GREP_OPTIONS") 
     is_open_std = False 
     if mode is "debug":
         is_open_std = True
