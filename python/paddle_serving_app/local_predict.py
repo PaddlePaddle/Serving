@@ -88,7 +88,9 @@ class LocalPredictor(object):
                           mkldnn_op_list=None,
                           mkldnn_bf16_op_list=None,
                           use_feed_fetch_ops=False,
-                          use_ascend_cl=False):
+                          use_ascend_cl=False,
+                          min_subgraph_size=3,
+                          dynamic_shape_info={}):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -99,6 +101,9 @@ class LocalPredictor(object):
             use_profile: use predictor profiles, False default.
             thread_num: thread nums of cpu math library, default 1. 
             mem_optim: memory optimization, True default.
+            ir_optim: open calculation chart optimization, False default.
+            use_trt: use nvidia TensorRT optimization, False default
+            use_lite: use Paddle-Lite Engint, False default
             ir_optim: open calculation chart optimization, False default.
             use_trt: use nvidia TensorRT optimization, False default
             use_lite: use Paddle-Lite Engint, False default
@@ -211,9 +216,13 @@ class LocalPredictor(object):
                     precision_mode=precision_type,
                     workspace_size=1 << 20,
                     max_batch_size=32,
-                    min_subgraph_size=3,
+                    min_subgraph_size=min_subgraph_size,
                     use_static=False,
                     use_calib_mode=False)
+
+                if len(dynamic_shape_info):
+                     config.set_trt_dynamic_shape_info(
+                         dynamic_shape_info['min_input_shape'], dynamic_shape_info['max_input_shape'], dynamic_shape_info['opt_input_shape'])       
         # set lite
         if use_lite:
             config.enable_lite_engine(

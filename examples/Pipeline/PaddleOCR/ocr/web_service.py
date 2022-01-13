@@ -40,6 +40,37 @@ class DetOp(Op):
             "min_size": 3
         })
 
+    def set_dynamic_shape_info(self):
+        min_input_shape = {
+            "x": [1, 3, 50, 50],
+            "conv2d_182.tmp_0": [1, 1, 20, 20],
+            "nearest_interp_v2_2.tmp_0": [1, 1, 20, 20],
+            "nearest_interp_v2_3.tmp_0": [1, 1, 20, 20],
+            "nearest_interp_v2_4.tmp_0": [1, 1, 20, 20],
+            "nearest_interp_v2_5.tmp_0": [1, 1, 20, 20]
+        }
+        max_input_shape = {
+            "x": [1, 3, 1536, 1536],
+            "conv2d_182.tmp_0": [20, 200, 960, 960],
+            "nearest_interp_v2_2.tmp_0": [20, 200, 960, 960],
+            "nearest_interp_v2_3.tmp_0": [20, 200, 960, 960],
+            "nearest_interp_v2_4.tmp_0": [20, 200, 960, 960],
+            "nearest_interp_v2_5.tmp_0": [20, 200, 960, 960],
+        }
+        opt_input_shape = {
+            "x": [1, 3, 960, 960],
+            "conv2d_182.tmp_0": [3, 96, 240, 240],
+            "nearest_interp_v2_2.tmp_0": [3, 96, 240, 240],
+            "nearest_interp_v2_3.tmp_0": [3, 24, 240, 240],
+            "nearest_interp_v2_4.tmp_0": [3, 24, 240, 240],
+            "nearest_interp_v2_5.tmp_0": [3, 24, 240, 240],
+        }
+        self.dynamic_shape_info = {
+            "min_input_shape": min_input_shape,
+            "max_input_shape": max_input_shape,
+            "opt_input_shape": opt_input_shape,
+        }    
+
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         imgs = []
@@ -52,11 +83,11 @@ class DetOp(Op):
             det_img = self.det_preprocess(self.im)
             _, self.new_h, self.new_w = det_img.shape
             imgs.append(det_img[np.newaxis, :].copy())
-        return {"image": np.concatenate(imgs, axis=0)}, False, None, ""
+        return {"x": np.concatenate(imgs, axis=0)}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         #        print(fetch_dict)
-        det_out = fetch_dict["concat_1.tmp_0"]
+        det_out = fetch_dict["save_infer_model/scale_0.tmp_1"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
         ]
@@ -71,6 +102,25 @@ class RecOp(Op):
         self.ocr_reader = OCRReader()
         self.get_rotate_crop_image = GetRotateCropImage()
         self.sorted_boxes = SortedBoxes()
+    
+    def set_dynamic_shape_info(self):
+        min_input_shape = {
+            "x": [1, 3, 32, 10],
+            "lstm_1.tmp_0": [1, 1, 128]
+        }
+        max_input_shape = {
+            "x": [50, 3, 32, 1000],
+            "lstm_1.tmp_0": [500, 50, 128]
+        }
+        opt_input_shape = {
+            "x": [6, 3, 32, 100],
+            "lstm_1.tmp_0": [25, 5, 128]
+        }
+        self.dynamic_shape_info = {
+            "min_input_shape": min_input_shape,
+            "max_input_shape": max_input_shape,
+            "opt_input_shape": opt_input_shape,
+        }
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
@@ -143,7 +193,7 @@ class RecOp(Op):
             for id, img in enumerate(img_list):
                 norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
                 imgs[id] = norm_img
-            feed = {"image": imgs.copy()}
+            feed = {"x": imgs.copy()}
             feed_list.append(feed)
         #_LOGGER.info("feed_list : {}".format(feed_list))
 
