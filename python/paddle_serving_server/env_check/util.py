@@ -23,8 +23,6 @@ class ServingTest(object):
         self.client_config = f"{client_dir}/serving_client_conf.prototxt"
 
         os.chdir(self.example_path)
-        #print("======================cur path======================")
-        #print(os.getcwd())
         self.check_model_data_exist()
 
     def check_model_data_exist(self):
@@ -46,7 +44,6 @@ class ServingTest(object):
         if wait:
             p.wait()
 
-        #print_log([err, out])
 
     @staticmethod
     def check_result(result_data: dict, truth_data: dict, batch_size=1, delta=1e-3):
@@ -92,7 +89,6 @@ def kill_process(port, sleep_time=0):
 def count_process_num_on_port(port):
     command = "netstat -nlp | grep :" + str(port) + " | wc -l"
     count = eval(os.popen(command).read())
-    #print(f"port-{port} processes num:", count)
     return count
 
 
@@ -140,8 +136,7 @@ def print_log(file_list, iden=""):
             if file.startswith("log") or file.startswith("PipelineServingLogs"):
                 os.remove(file)
         else:
-            print(f"{file} not exist")
-        #print("======================================================")
+            pass
 
 
 def parse_prototxt(file):
