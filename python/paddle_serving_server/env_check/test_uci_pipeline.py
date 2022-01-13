@@ -105,9 +105,6 @@ class TestUCIPipeline(object):
         assert count_process_num_on_port(9998) == 1, "Error occured when Paddle Server started"  # gRPC Server
         assert count_process_num_on_port(18082) == 1, "Error occured when Paddle Server started"  # gRPC gateway
 
-        # 3.keywords check
-        check_keywords_in_server_log("MKLDNN is enabled", filename="stderr.log")
-
         # 4.predict by rpc
         result = self.predict_pipeline_rpc(batch_size=1)
         self.serving_util.check_result(result_data=result, truth_data=self.truth_val, batch_size=1)

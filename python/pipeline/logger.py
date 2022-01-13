@@ -24,8 +24,11 @@ class SectionLevelFilter(object):
     def filter(self, logRecord):
         return logRecord.levelno in self._levels
 
-
 log_dir = "PipelineServingLogs"
+if 'SERVING_LOG_PATH' in os.environ:
+    serving_log_path = os.environ['SERVING_LOG_PATH']
+    log_dir = os.path.join(serving_log_path, log_dir)
+
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 

@@ -90,6 +90,7 @@ class TestFitALine(object):
         return output_dict
 
     def test_inference(self):
+        self.serving_util.start_server_by_shell(cmd="", sleep=1)
         assert self.truth_val['price'].size != 0, "The result of inference is empty"
 
 

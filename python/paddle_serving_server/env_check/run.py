@@ -31,6 +31,11 @@ inference_test_cases = ["test_fit_a_line.py::TestFitALine::test_inference"]
 cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
 pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
 
+def set_serving_log_path():
+    if 'SERVING_LOG_PATH' not in os.environ:
+        serving_log_path = os.path.expanduser(os.getcwd())
+        os.environ['SERVING_LOG_PATH']=serving_log_path
+
 def run_test_cases(cases_list, case_type, is_open_std):
     old_stdout, old_stderr = sys.stdout, sys.stderr
     real_path = os.path.dirname(os.path.realpath(__file__))
@@ -56,7 +61,7 @@ def unset_env(key):
     del os.environ[key]
 
 def check_env(mode):
-    
+    set_serving_log_path()
     if 'https_proxy' in os.environ or 'http_proxy' in os.environ:
         unset_env("https_proxy") 
         unset_env("http_proxy")     
