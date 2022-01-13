@@ -599,9 +599,7 @@ class Server(object):
                     "-workflow_path {} " \
                     "-workflow_file {} " \
                     "-bthread_concurrency {} " \
-                    "-max_body_size {} " \
-                    "-enable_prometheus={} " \
-                    "-prometheus_port {} ".format(
+                    "-max_body_size {} ".format(
                         self.bin_path,
                         self.workdir,
                         self.infer_service_fn,
@@ -616,9 +614,7 @@ class Server(object):
                         self.workdir,
                         self.workflow_fn,
                         self.num_threads,
-                        self.max_body_size,
-                        self.enable_prometheus,
-                        self.prometheus_port)
+                        self.max_body_size)
         if self.enable_prometheus:
             command =   command + \
                         "-enable_prometheus={} " \

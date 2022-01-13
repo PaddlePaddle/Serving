@@ -100,6 +100,7 @@ More flags:
 | `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
 | `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
 | `use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
+| `request_cache_size`                           | int  | `0`     | Bytes size of request cache. By default, the cache is disabled |
 
 #### Serving model with multiple gpus.
 ```BASH
