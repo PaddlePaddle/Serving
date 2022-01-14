@@ -480,10 +480,14 @@ class Check_Env_Shell(cmd.Cmd):
     # ----- basic  commands -----
     def do_help(self, arg):
         print("\nCommand list\t\tDescription\n"\
-               "check_all\t\tCheck Environment of Paddle Inference, Pipeline Serving, C++ Serving\n"\
-               "check_pipeline\t\tCheck Environment of Pipeline Serving\n"\
-               "check_cpp\t\tCheck Environment of C++ Serving\n"\
-               "check_inference\t\tCheck Environment of Paddle Inference\n"\
+               "check_all\t\tCheck Environment of Paddle Inference, Pipeline Serving, C++ Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_pipeline\t\tCheck Environment of Pipeline Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_cpp\t\tCheck Environment of C++ Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_inference\t\tCheck Environment of Paddle Inference. "\
+               "If failed, using debug command to debug\n"\
                "debug\t\t\tWhen checking was failed, open log to debug\n"\
                "exit\t\t\tExit Check Env Shell\n")
 

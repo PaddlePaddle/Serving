@@ -30,11 +30,23 @@ import pytest
 inference_test_cases = ["test_fit_a_line.py::TestFitALine::test_inference"]
 cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
 pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
+log_files = ["PipelineServingLogs", "log", "stderr.log", "stdout.log"]
 
 def set_serving_log_path():
     if 'SERVING_LOG_PATH' not in os.environ:
         serving_log_path = os.path.expanduser(os.getcwd())
         os.environ['SERVING_LOG_PATH']=serving_log_path
+
+def mv_log_to_new_dir(dir_path):
+    import shutil
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    serving_log_path = os.environ['SERVING_LOG_PATH']
+    for file_name in log_files:
+        file_path = os.path.join(serving_log_path, file_name)
+        if os.path.exists(file_path):
+            shutil.move(file_path, dir_path)   
+     
 
 def run_test_cases(cases_list, case_type, is_open_std):
     old_stdout, old_stderr = sys.stdout, sys.stderr
@@ -48,6 +60,10 @@ def run_test_cases(cases_list, case_type, is_open_std):
         res = pytest.main(args)
         sys.stdout, sys.stderr = old_stdout, old_stderr
         case_name = case.split('_')[-1]
+        serving_log_path = os.environ['SERVING_LOG_PATH']
+        dir_name = str(case_type) + '_' + case.split(':')[-1]
+        new_dir_path = os.path.join(serving_log_path, dir_name)
+        mv_log_to_new_dir(new_dir_path)
         if res == 0:
             print("{} {} environment running success".format(case_type, case_name))
         elif res == 1:

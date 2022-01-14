@@ -13,6 +13,7 @@ class ServingTest(object):
         DATA_PATH: 数据集根目录
         py_version: python版本 python3.6~3.8
         """
+        self.serving_log_path = os.environ['SERVING_LOG_PATH']
         code_path = os.path.dirname(os.path.realpath(__file__))
         self.data_path = f"{code_path}/{data_path}/"
         self.example_path = f"{code_path}/{example_path}/"
@@ -37,6 +38,9 @@ class ServingTest(object):
                 os.system(f"ln -s {abs_path} {file}")
 
     def start_server_by_shell(self, cmd: str, sleep: int = 5, err="stderr.log", out="stdout.log", wait=False):
+
+        err = os.path.join(self.serving_log_path, err)
+        out = os.path.join(self.serving_log_path, out) 
         self.err = open(err, "w")
         self.out = open(out, "w")
         p = subprocess.Popen(cmd, shell=True, stdout=self.out, stderr=self.err)
@@ -128,16 +132,15 @@ def diff_compare(array1, array2):
 
 
 def print_log(file_list, iden=""):
+    serving_log_path = os.environ['SERVING_LOG_PATH']
     for file in file_list:
-        print(f"======================{file} {iden}=====================")
-        if os.path.exists(file):
-            with open(file, "r") as f:
+        print(f"======================{file}=====================")
+        file_path = os.path.join(serving_log_path, file)
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
                 print(f.read())
-            if file.startswith("log") or file.startswith("PipelineServingLogs"):
-                os.remove(file)
         else:
             pass
-
 
 def parse_prototxt(file):
     with open(file, "r") as f:
