@@ -116,6 +116,16 @@ class Op(object):
         self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
         self._succ_close_op = False
+        self.dynamic_shape_info = {} 
+        self.set_dynamic_shape_info()
+    
+    def set_dynamic_shape_info(self):
+        """
+        when opening tensorrt(configure in config.yml) and each time the input shape
+        for inferring is different, using this method for configuring tensorrt
+        dynamic shape to infer in each op model
+        """
+        pass
 
     # for feed/fetch dict cehck
     @staticmethod
@@ -182,6 +192,7 @@ class Op(object):
         self.mkldnn_cache_capacity = 0
         self.mkldnn_op_list = None
         self.mkldnn_bf16_op_list = None
+        self.min_subgraph_size = 3
 
         if self._server_endpoints is None:
             server_endpoints = conf.get("server_endpoints", [])
@@ -212,6 +223,8 @@ class Op(object):
                         "mkldnn_op_list")
                     self.mkldnn_bf16_op_list = local_service_conf.get(
                         "mkldnn_bf16_op_list")
+                    self.min_subgraph_size = local_service_conf.get(
+                        "min_subgraph_size")
 
                     if self.model_config is None:
                         self.with_serving = False
@@ -233,7 +246,9 @@ class Op(object):
                                 mkldnn_cache_capacity=self.
                                 mkldnn_cache_capacity,
                                 mkldnn_op_list=self.mkldnn_bf16_op_list,
-                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list)
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
+                                min_subgraph_size=self.min_subgraph_size,
+                                dynamic_shape_info=self.dynamic_shape_info)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -261,7 +276,9 @@ class Op(object):
                                 mkldnn_cache_capacity=self.
                                 mkldnn_cache_capacity,
                                 mkldnn_op_list=self.mkldnn_op_list,
-                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list)
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
+                                min_subgraph_size=self.min_subgraph_size,
+                                dynamic_shape_info=self.dynamic_shape_info)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -766,7 +783,9 @@ class Op(object):
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
                       self.mkldnn_bf16_op_list, self.is_jump_op(),
-                      self.get_output_channels_of_jump_ops()))
+                      self.get_output_channels_of_jump_ops(),
+                      self.min_subgraph_size,
+                      self.dynamic_shape_info))
             p.daemon = True
             p.start()
             process.append(p)
@@ -803,7 +822,9 @@ class Op(object):
                       self.ir_optim, self.precision, self.use_mkldnn,
                       self.mkldnn_cache_capacity, self.mkldnn_op_list,
                       self.mkldnn_bf16_op_list, self.is_jump_op(),
-                      self.get_output_channels_of_jump_ops()))
+                      self.get_output_channels_of_jump_ops(),
+                      self.min_subgraph_size,
+                      self.dynamic_shape_info))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -1264,7 +1285,7 @@ class Op(object):
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
              device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
              mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
-             is_jump_op, output_channels_of_jump_ops):
+             is_jump_op, output_channels_of_jump_ops, min_subgraph_size, dynamic_shape_info):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1316,7 +1337,9 @@ class Op(object):
                     use_mkldnn=use_mkldnn,
                     mkldnn_cache_capacity=mkldnn_cache_capacity,
                     mkldnn_op_list=mkldnn_op_list,
-                    mkldnn_bf16_op_list=mkldnn_bf16_op_list)
+                    mkldnn_bf16_op_list=mkldnn_bf16_op_list,
+                    min_subgraph_size=min_subgraph_size,
+                    dynamic_shape_info=dynamic_shape_info)
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))
