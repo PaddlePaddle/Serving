@@ -190,7 +190,7 @@ class LocalServiceHandler(object):
                 self._thread_num, self._client_type, self._fetch_names,
                 self._precision, self._use_mkldnn, self._mkldnn_cache_capacity,
                 self._mkldnn_op_list, self._mkldnn_bf16_op_list,
-                self._use_ascend_cl, self.min_subgraph_sizei, 
+                self._use_ascend_cl, self.min_subgraph_size, 
                 bool(len(self.dynamic_shape_info))))
 
     def get_fetch_list(self):
