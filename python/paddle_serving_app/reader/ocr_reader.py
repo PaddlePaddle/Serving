@@ -173,7 +173,7 @@ class OCRReader(object):
 
         return norm_img_batch[0]
 
-    def postprocess(self, outputs, with_score=False):
+    def postprocess_old(self, outputs, with_score=False):
         rec_res = []
         rec_idx_lod = outputs["ctc_greedy_decoder_0.tmp_0.lod"]
         rec_idx_batch = outputs["ctc_greedy_decoder_0.tmp_0"]
@@ -202,3 +202,15 @@ class OCRReader(object):
             else:
                 rec_res.append([preds_text])
         return rec_res
+
+    def postprocess(self, outputs, with_score=False):
+        preds = outputs["save_infer_model/scale_0.tmp_1"]
+        try:
+            preds = preds.numpy()
+        except:
+            pass
+        preds_idx = preds.argmax(axis=2)
+        preds_prob = preds.max(axis=2)
+        text = self.label_ops.decode(
+            preds_idx, preds_prob, is_remove_duplicate=True)
+        return text
