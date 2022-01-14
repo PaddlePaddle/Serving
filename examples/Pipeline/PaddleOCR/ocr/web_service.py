@@ -213,13 +213,13 @@ class RecOp(Op):
         res_list = []
         if isinstance(fetch_data, dict):
             if len(fetch_data) > 0:
-                rec_batch_res = self.ocr_reader.postprocess(
+                rec_batch_res = self.ocr_reader.postprocess_ocrv2(
                     fetch_data, with_score=True)
                 for res in rec_batch_res:
                     res_list.append(res[0])
         elif isinstance(fetch_data, list):
             for one_batch in fetch_data:
-                one_batch_res = self.ocr_reader.postprocess(
+                one_batch_res = self.ocr_reader.postprocess_ocrv2(
                     one_batch, with_score=True)
                 for res in one_batch_res:
                     res_list.append(res[0])
