@@ -163,10 +163,10 @@ int GeneralRecOp::inference() {
       argmax_idx = int(std::distance(
           &output_tensor_1_data[n * predict_shape[1]],
           std::max_element(&output_tensor_1_data[n * predict_shape[1]],
-                           &output_tensor_1_data[(n + 1) * predict_shape[1]])));
+                           output_tensor_1_data + (n + 1) * predict_shape[1])));
       max_value = float(
           *std::max_element(&output_tensor_1_data[n * predict_shape[1]],
-                            &output_tensor_1_data[(n + 1) * predict_shape[1]]));
+                            output_tensor_1_data + (n + 1) * predict_shape[1]));
       if (blank - 1 - argmax_idx > 1e-5) {
         score_vector[index] += max_value;
         count += 1;

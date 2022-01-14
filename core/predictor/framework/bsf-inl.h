@@ -19,10 +19,8 @@
 #else
 #include <butil/atomicops.h>
 #endif
-
 #include <sys/syscall.h>
 #include <boost/bind.hpp>
-
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/memory.h"
 
@@ -34,7 +32,7 @@ template <typename InItemT, typename OutItemT>
 bool Task<InItemT, OutItemT>::task_fetch_init(BatchTasks<TaskT>& batchTask) {
   // 双检锁，减少加锁的粒度
   if (!fetch_init) {
-    if (taskmeta_num > 1) {
+    if (total_taskmeta_num > 1) {
       // 对于task被拆分为多个taskmeta,需要加锁。
       AutoMutex lock(task_mut);
       task_fetch_create(batchTask);
@@ -102,7 +100,7 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
 
         // 当task被分为多个taskMeta时，需要临时对象记录
         // 收齐后再一起合并
-        if (taskmeta_num > 1) {
+        if (total_taskmeta_num > 1) {
           taskMetaOutLodTensor.push_back(tensor_out);
         }
       }
@@ -110,7 +108,7 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
     }
     // outLodTensorVector实际是一个双层vector
     // shape为taskmeta_num * vector_fetch_lod_index.size();
-    outLodTensorVector.resize(taskmeta_num, taskMetaOutLodTensor);
+    outLodTensorVector.resize(total_taskmeta_num, taskMetaOutLodTensor);
     fetch_init = true;
   }
   return true;
