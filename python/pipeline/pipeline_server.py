@@ -260,6 +260,7 @@ class PipelineServer(object):
                 "use_calib": False,
                 "use_mkldnn": False,
                 "mkldnn_cache_capacity": 0,
+                "min_subgraph_size": 3,
             },
         }
         for op in self._used_op:
