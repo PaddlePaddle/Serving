@@ -116,6 +116,8 @@ class LocalPredictor(object):
             mkldnn_bf16_op_list: op list accelerated using MKLDNN bf16, None default.
             use_feed_fetch_ops: use feed/fetch ops, False default.
             use_ascend_cl: run predict on Huawei Ascend, False default
+            min_subgraph_size: the minimal subgraph size for opening tensorrt to optimize, 3 default
+            dynamic_shape_info: dict including min_input_shape，max_input_shape, opt_input_shape, {} default 
         """
         gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -155,11 +157,12 @@ class LocalPredictor(object):
             "use_trt:{}, use_lite:{}, use_xpu:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, "
-            "use_ascend_cl:{} ".format(
+            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{}".format(
                 model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
                 ir_optim, use_trt, use_lite, use_xpu, precision, use_calib,
                 use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
-                mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl))
+                mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl,
+                min_subgraph_size, dynamic_shape_info))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -222,7 +225,9 @@ class LocalPredictor(object):
 
                 if len(dynamic_shape_info):
                      config.set_trt_dynamic_shape_info(
-                         dynamic_shape_info['min_input_shape'], dynamic_shape_info['max_input_shape'], dynamic_shape_info['opt_input_shape'])       
+                         dynamic_shape_info['min_input_shape'], 
+                         dynamic_shape_info['max_input_shape'], 
+                         dynamic_shape_info['opt_input_shape'])       
         # set lite
         if use_lite:
             config.enable_lite_engine(

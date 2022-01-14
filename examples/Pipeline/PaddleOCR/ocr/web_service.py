@@ -39,7 +39,12 @@ class DetOp(Op):
             "unclip_ratio": 1.5,
             "min_size": 3
         })
-
+   
+    """ 
+    when opening tensorrt(configure in config.yml) and each time the input shape 
+    for inferring is different, using this method for configuring tensorrt 
+    dynamic shape to infer in each op model
+    """
     def set_dynamic_shape_info(self):
         min_input_shape = {
             "x": [1, 3, 50, 50],
@@ -103,6 +108,11 @@ class RecOp(Op):
         self.get_rotate_crop_image = GetRotateCropImage()
         self.sorted_boxes = SortedBoxes()
     
+    """ 
+    when opening tensorrt(configure in config.yml) and each time the input shape 
+    for inferring is different, using this method for configuring tensorrt 
+    dynamic shape to infer in each op model
+    """
     def set_dynamic_shape_info(self):
         min_input_shape = {
             "x": [1, 3, 32, 10],

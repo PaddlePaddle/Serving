@@ -120,6 +120,11 @@ class Op(object):
         self.set_dynamic_shape_info()
     
     def set_dynamic_shape_info(self):
+        """
+        when opening tensorrt(configure in config.yml) and each time the input shape
+        for inferring is different, using this method for configuring tensorrt
+        dynamic shape to infer in each op model
+        """
         pass
 
     # for feed/fetch dict cehck
