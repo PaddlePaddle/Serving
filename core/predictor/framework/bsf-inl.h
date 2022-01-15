@@ -19,10 +19,8 @@
 #else
 #include <butil/atomicops.h>
 #endif
-
 #include <sys/syscall.h>
 #include <boost/bind.hpp>
-
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/memory.h"
 
@@ -34,7 +32,7 @@ template <typename InItemT, typename OutItemT>
 bool Task<InItemT, OutItemT>::task_fetch_init(BatchTasks<TaskT>& batchTask) {
   // 双检锁，减少加锁的粒度
   if (!fetch_init) {
-    if (taskmeta_num > 1) {
+    if (total_taskmeta_num > 1) {
       // 对于task被拆分为多个taskmeta,需要加锁。
       AutoMutex lock(task_mut);
       task_fetch_create(batchTask);
@@ -88,15 +86,21 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 此时 lod 为空。
         tensor_out.lod = batchTask._batch_out[fetchvar_index].lod;
         // resize all batch memory at one time
+        
         size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
-        tensor_out.data.Resize(databuf_size);
+        
+        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size,memoryPtr);
+        paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
+        tensor_out.data = paddleBuf;
+        
+        //tensor_out.data.Resize(databuf_size);
       } else {
         // 当taskmeta_num = 1时，由于同时只有一个taskMeta操作task
         // 不涉及线程安全问题，所以此时可以直接由taskMeta->task->resize->copy
 
         // 当task被分为多个taskMeta时，需要临时对象记录
         // 收齐后再一起合并
-        if (taskmeta_num > 1) {
+        if (total_taskmeta_num > 1) {
           taskMetaOutLodTensor.push_back(tensor_out);
         }
       }
@@ -104,7 +108,7 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
     }
     // outLodTensorVector实际是一个双层vector
     // shape为taskmeta_num * vector_fetch_lod_index.size();
-    outLodTensorVector.resize(taskmeta_num, taskMetaOutLodTensor);
+    outLodTensorVector.resize(total_taskmeta_num, taskMetaOutLodTensor);
     fetch_init = true;
   }
   return true;
@@ -209,7 +213,7 @@ void TaskExecutor<TaskT>::stop() {
 template <typename TaskT>
 TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     const void* inVectorT_ptr,
-    void* outVectorT_ptr) {  // NOLINT
+    void* outVectorT_ptr, MempoolRegion* memoryPtr) {  // NOLINT
   TaskT* task = butil::get_object<TaskT>();
   if (!task) {
     LOG(ERROR) << "Failed get TaskT from object pool";
@@ -235,7 +239,8 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
   task->read_fd = fds[0];
   task->write_fd = fds[1];
   task->owner_tid = ::syscall(SYS_gettid);
-
+  task->memoryPtr = memoryPtr;
+  //task->_bspec_key = _bspec_key;
   task->inVectorT_ptr = (const InVectorT*)inVectorT_ptr;
   task->outVectorT_ptr = (OutVectorT*)outVectorT_ptr;
   if (!task->task_init()) {
@@ -403,9 +408,9 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
 
 template <typename InItemT, typename OutItemT>
 bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
-                                              void* out) {  // NOLINT
+                                              void* out, MempoolRegion* memoryPtr) {  // NOLINT
   TaskHandler<TaskT> handler =
-      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out);
+      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out, memoryPtr);
 
   if (handler.valid()) {
     _task_owned = handler;
