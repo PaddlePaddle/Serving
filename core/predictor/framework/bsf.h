@@ -38,6 +38,8 @@ namespace im {
 namespace bsf {
 
 static const size_t DEFAULT_BATCH_SIZE = 100;
+typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
+typedef baidu::paddle_serving::predictor::MempoolRegion MempoolRegion;
 
 // InItemT is paddle::PaddleTensor
 // InVectorT std::vector<paddle::PaddleTensor>
@@ -61,6 +63,7 @@ struct Task {
   typedef Task<InItemT, OutItemT> TaskT;
   typedef std::vector<size_t> ShapeVector;
   typedef std::vector<ShapeVector> VectorOfShapeVector;
+  typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
 
   int read_fd;
   int write_fd;
@@ -75,10 +78,12 @@ struct Task {
   std::set<size_t> set_fetch_nobatch_index;
   butil::atomic<size_t> index;
   size_t taskmeta_num;
+  size_t total_taskmeta_num;
   THREAD_MUTEX_T task_mut;
   bool fetch_init;
   // taskmeta_num * set_feed_lod_index.size()
   std::vector<OutVectorT> outLodTensorVector;
+  MempoolRegion* memoryPtr;
 
   Task() {
     read_fd = -1;
@@ -96,6 +101,7 @@ struct Task {
     index.store(0, butil::memory_order_relaxed);
     THREAD_MUTEX_INIT(&task_mut, NULL);
     fetch_init = false;
+    total_taskmeta_num = 1;
     outLodTensorVector.clear();
   }
   ~Task() {
@@ -111,6 +117,7 @@ struct Task {
     rem = -1;
     total_feed_batch = 0;
     taskmeta_num = 0;
+    total_taskmeta_num = 1;
     index.store(0, butil::memory_order_relaxed);
     THREAD_MUTEX_DESTROY(&task_mut);
     fetch_init = false;
@@ -130,6 +137,7 @@ struct Task {
     rem = -1;
     total_feed_batch = 0;
     taskmeta_num = 0;
+    total_taskmeta_num = 1;
     index.store(0, butil::memory_order_relaxed);
     THREAD_MUTEX_INIT(&task_mut, NULL);
     fetch_init = false;
@@ -348,14 +356,14 @@ struct Task {
   bool combine_taskmeta() {
     // 只有含有lod类型的fetch输出，且task被拆分为多个taskmeta的情况
     // 才需要将数据从outLodTensorVector搬运到outVectorT_ptr
-    if (vector_fetch_lod_index.size() > 0 && taskmeta_num > 1) {
+    if (vector_fetch_lod_index.size() > 0 && total_taskmeta_num > 1) {
       for (size_t index = 0; index < vector_fetch_lod_index.size(); ++index) {
         size_t data_length = 0;
         size_t lod_length = 0;
         size_t total_shape0 = 0;
         size_t feedvar_index = vector_fetch_lod_index[index];
         // 由于PaddleTensor的resize实现，是每次都会清空，所以必须先统计总长度。
-        for (size_t taskmeta_index = 0; taskmeta_index < taskmeta_num;
+        for (size_t taskmeta_index = 0; taskmeta_index < total_taskmeta_num;
              ++taskmeta_index) {
           data_length +=
               outLodTensorVector[taskmeta_index][index].data.length();
@@ -364,7 +372,12 @@ struct Task {
         }
         // 一次性扩容PaddleTensor中的data和lod
         paddle::PaddleTensor& fetchVarTensor = (*outVectorT_ptr)[feedvar_index];
-        fetchVarTensor.data.Resize(data_length);
+        fetchVarTensor.shape[0] = total_shape0;
+        void* databuf_data = MempoolWrapper::instance().malloc(data_length,memoryPtr);
+        paddle::PaddleBuf paddleBuf(databuf_data, data_length);
+        fetchVarTensor.data = paddleBuf;
+         
+        //fetchVarTensor.data.Resize(data_length);
         // task中的lod补0
         if (fetchVarTensor.lod.size() <= 0) {
           fetchVarTensor.lod.push_back({0});
@@ -378,15 +391,18 @@ struct Task {
         size_t lod_length_offset = 0;
         size_t once_data_length = 0;
         size_t once_lod_length = 0;
-        size_t last_lod_value = fetchVarTensor.lod[0][lod_length_offset];
-        for (size_t taskmeta_index = 0; taskmeta_index < taskmeta_num;
+        for (size_t taskmeta_index = 0; taskmeta_index < total_taskmeta_num;
              ++taskmeta_index) {
+          //process data
           void* dst_ptr = fetchVarTensor.data.data() + data_length_offset;
           void* source_ptr =
               outLodTensorVector[taskmeta_index][index].data.data();
           once_data_length =
               outLodTensorVector[taskmeta_index][index].data.length();
           memcpy(dst_ptr, source_ptr, once_data_length);
+          data_length_offset += once_data_length;
+          //process lod
+          size_t last_lod_value = fetchVarTensor.lod[0][lod_length_offset];
           once_lod_length =
               outLodTensorVector[taskmeta_index][index].lod[0].size();
           for (size_t once_index = 0; once_index < once_lod_length;
@@ -394,9 +410,9 @@ struct Task {
             fetchVarTensor.lod[0][lod_length_offset + 1] =
                 last_lod_value +
                 outLodTensorVector[taskmeta_index][index].lod[0][once_index];
+            lod_length_offset++;
           }
-          data_length_offset += once_data_length;
-          lod_length_offset += once_lod_length;
+
         }
       }
     }
@@ -527,6 +543,11 @@ class BatchTasks {
     }
     int start_index = task->batch_size() - task->rem;
     TaskMetaT tm(task, start_index, add, task->taskmeta_num);
+    task->rem -= add;
+    _rem_size -= add;
+    if(task->taskmeta_num == 0){
+      task->total_taskmeta_num = 1 + (task->rem + _batch_size - 1)/_batch_size;
+    }
     task->taskmeta_num += 1;
     _taskmeta_vector.push_back(tm);
     if (_batch_in_offset.size() == 0) {
@@ -577,8 +598,6 @@ class BatchTasks {
             tm.feed_shape0_range[feedvar_index][0];
       }
     }
-    task->rem -= add;
-    _rem_size -= add;
     return _rem_size;
   }
 
@@ -604,7 +623,6 @@ class BatchTasks {
     if (_taskmeta_vector.size() <= 0) {
       return;
     }
-
     for (size_t ti = 0; ti < _taskmeta_vector.size(); ++ti) {
       TaskMetaT& tm = _taskmeta_vector[ti];
 
@@ -625,8 +643,10 @@ class BatchTasks {
           paddleTensor.lod = _batch_in_lod[feedvar_index];
           paddleTensor.shape = feedVarTensor.shape;
           paddleTensor.shape[0] = _total_shape0_batch_in[feedvar_index];
-          paddleTensor.data.Resize(feedvar_bytesize *
-                                   _total_shape0_batch_in[feedvar_index]);
+          size_t databuf_size = feedvar_bytesize * _total_shape0_batch_in[feedvar_index];
+          void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
+          paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
+          paddleTensor.data = paddleBuf;
           _batch_in.push_back(paddleTensor);
         }
 
@@ -733,16 +753,27 @@ class BatchTasks {
       // 此时，无法分辨是否是天然nobatch，此时set_fetch_nobatch_index会漏掉
       // 后续希望在其他地方能够区分两者。
       if (fetchvar_batch_size(fetchvar_index) != _total_fetch_batch) {
-        // which means error.
-        if (fetchvar_batch_size(fetchvar_index) != 1 &&
-            _total_fetch_batch != 1) {
+        if(fetchvar_batch_size(fetchvar_index) <= 0){
+          // which means error.
           return false;
-        } else {
+        }else if(fetchvar_batch_size(fetchvar_index) == 1){
           // which means fetchvar shape[0] = 1.
           // shape[0] does not change with batch
           set_fetch_nobatch_index.insert(fetchvar_index);
           _total_fetch_batch =
               std::max(fetchvar_batch_size(fetchvar_index), _total_fetch_batch);
+        }else if(_total_fetch_batch == 1){
+          //这时意味着，之前的fetchvar shape[0] 全部都= 1
+          //当前的fetchvar shape[0] > 1
+          //所以，之前的都是no_batch
+          for(size_t temp_index = fetchvar_index-1; temp_index >= 0; --temp_index){
+            set_fetch_nobatch_index.insert(fetchvar_index);
+          }
+          _total_fetch_batch =
+              std::max(fetchvar_batch_size(fetchvar_index), _total_fetch_batch);
+        }else{
+          // which means error.
+          return false;
         }
       }
       // 将lod fetchvar index加入到vector中。
@@ -790,7 +821,6 @@ class BatchTasks {
       for (size_t fetchvar_index = 0; fetchvar_index < fetchvar_num;
            ++fetchvar_index) {
         size_t fetchvar_bytesize_index = fetchvar_bytesize(fetchvar_index);
-
         if (set_fetch_nobatch_index.size() > 0 &&
             set_fetch_nobatch_index.find(fetchvar_index) !=
                 set_fetch_nobatch_index.end()) {
@@ -819,12 +849,17 @@ class BatchTasks {
           // task被拆分为多个taskmeta时，不能直接拷入task->outVectorT_ptr
           // 此时,先拷入task->outLodTensorVector[taskmeta_index]
           // 当task所有的taskmeta都完成时，再按照顺序进行拷贝回task->outVectorT_ptr。
-          if (task->taskmeta_num > 1) {
+          if (task->total_taskmeta_num > 1) {
             paddle::PaddleTensor& fetchVarTensor =
                 task->outLodTensorVector[taskmeta_index][fetch_lod_index];
             size_t length = fetchvar_bytesize_index * shape0_length;
             fetchVarTensor.shape[0] = shape0_length;
-            fetchVarTensor.data.Resize(length);
+            fetch_lod_index++;
+
+            void* databuf_data = MempoolWrapper::instance().malloc(length,task->memoryPtr);
+            paddle::PaddleBuf paddleBuf(databuf_data, length);
+            fetchVarTensor.data = paddleBuf;
+            //fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +
                                shape0_index_start * fetchvar_bytesize_index;
@@ -850,7 +885,12 @@ class BatchTasks {
                 (*task->outVectorT_ptr)[fetchvar_index];
             size_t length = fetchvar_bytesize_index * shape0_length;
             fetchVarTensor.shape[0] = shape0_length;
-            fetchVarTensor.data.Resize(length);
+            
+            void* databuf_data = MempoolWrapper::instance().malloc(length,task->memoryPtr);
+            paddle::PaddleBuf paddleBuf(databuf_data, length);
+            fetchVarTensor.data = paddleBuf;
+            
+            //fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +
                                shape0_index_start * fetchvar_bytesize_index;
@@ -879,7 +919,6 @@ class BatchTasks {
                    last_lod_value);
             }
           }
-          fetch_lod_index++;
         } else {
           // 普通fetchvar情况，此时该Task总的fetchvar_batch =
           // 输入的总的batch_size()
@@ -1076,7 +1115,7 @@ class TaskExecutor {
 
   int work(ThreadContext<TaskT>* context);
 
-  TaskHandler<TaskT> schedule(const void*, void*);
+  TaskHandler<TaskT> schedule(const void*, void*, MempoolRegion* memoryPtr);
 
   bool move_task_to_batch(BatchTasks<TaskT>& batchTask);  // NOLINT
 
@@ -1159,7 +1198,7 @@ class TaskManager {
 
   ~TaskManager() { wait(); }
 
-  bool schedule(const void* in, void* out);  // NOLINT
+  bool schedule(const void* in, void* out, MempoolRegion* memoryPtr);  // NOLINT
   void wait();
 
   inline void clear() { wait(); }
