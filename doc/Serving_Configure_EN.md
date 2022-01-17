@@ -495,4 +495,7 @@ Python Pipeline supports low-precision inference. The precision types supported 
 #GPU support: "fp32"(default), "fp16(TensorRT)", "int8"；
 #CPU support: "fp32"(default), "fp16", "bf16"(mkldnn); not support: "int8"
 precision: "fp32"
+
+#cablic, open it when using int8
+use_calib: True
 ```
