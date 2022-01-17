@@ -34,7 +34,7 @@ log_files = ["PipelineServingLogs", "log", "stderr.log", "stdout.log"]
 
 def set_serving_log_path():
     if 'SERVING_LOG_PATH' not in os.environ:
-        serving_log_path = os.path.expanduser(os.getcwd())
+        serving_log_path = os.path.expanduser(os.getcwd()) + '/'
         os.environ['SERVING_LOG_PATH']=serving_log_path
 
 def mv_log_to_new_dir(dir_path):
