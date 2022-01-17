@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #ifdef BCLOUD
 #include <bthread_unstable.h>  // bthread_set_worker_startfn
@@ -135,16 +136,22 @@ int main(int argc, char** argv) {
   // google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();
+  std::string base_log_path = "";
+  if (const char* serving_log_path = std::getenv("SERVING_LOG_PATH")) {
+     base_log_path = serving_log_path;
+  }
 
 // initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
-
+  std::string log_dir = base_log_path + "./log/";
   std::string filename(argv[0]);
   filename = filename.substr(filename.find_last_of('/') + 1);
+
+  
   settings.log_file =
-      strdup((std::string("./log/") + filename + ".log").c_str());
+      strdup((std::string(log_dir) + filename + ".log").c_str());
   settings.delete_old = logging::DELETE_OLD_LOG_FILE;
   logging::InitLogging(settings);
 
@@ -154,7 +161,7 @@ int main(int argc, char** argv) {
   logging::ComlogSink::GetInstance()->Setup(&cso);
 #else
   if (FLAGS_log_dir == "") {
-    FLAGS_log_dir = "./log";
+    FLAGS_log_dir = base_log_path + "./log";
   }
 
   struct stat st_buf;
