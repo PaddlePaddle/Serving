@@ -489,4 +489,7 @@ Python Pipeline支持低精度推理，CPU、GPU和TensoRT支持的精度类型�
 #GPU 支持: "fp32"(default), "fp16(TensorRT)", "int8"；
 #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
 precision: "fp32"
+
+#cablic, open it when using int8
+use_calib: True
 ```
