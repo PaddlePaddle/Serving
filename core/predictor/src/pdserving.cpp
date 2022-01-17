@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
   g_change_server_port();
   std::string base_log_path = "";
   if (const char* serving_log_path = std::getenv("SERVING_LOG_PATH")) {
-     base_log_path = serving_log_path + '/';
+     base_log_path = serving_log_path;
   }
 
 // initialize logger instance
