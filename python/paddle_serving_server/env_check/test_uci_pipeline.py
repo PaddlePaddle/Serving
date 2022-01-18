@@ -21,12 +21,14 @@ class TestUCIPipeline(object):
         serving_util.check_model_data_exist()
         self.get_truth_val_by_inference(self)
         self.serving_util = serving_util
+        self.serving_util.release('web_service')
 
     def teardown_method(self):
         print_log(["stderr.log", "stdout.log",
-                   "log/serving.ERROR", "PipelineServingLogs/pipeline.log"], iden="after predict")
+                   "PipelineServingLogs/pipeline.log"])
         kill_process(9998)
-        self.serving_util.release()
+        kill_process(18082)
+        self.serving_util.release('web_service')
 
     def get_truth_val_by_inference(self):
         try:
@@ -62,7 +64,6 @@ class TestUCIPipeline(object):
         output_data_dict["prob"] = output_data_dict["fc_0.tmp_1"]
         del output_data_dict["fc_0.tmp_1"]
         self.truth_val = output_data_dict
-        print(self.truth_val, self.truth_val["prob"].shape)
 
     def predict_pipeline_rpc(self, batch_size=1):
         # 1.prepare feed_data
@@ -74,10 +75,8 @@ class TestUCIPipeline(object):
 
         # 3.predict for fetch_map
         ret = client.predict(feed_dict=feed_dict)
-        print(ret)
         # 4.convert dict to numpy
         result = {"prob": np.array(eval(ret.value[0]))}
-        print(result)
         return result
 
     def predict_pipeline_http(self, batch_size=1):
@@ -91,7 +90,6 @@ class TestUCIPipeline(object):
         # 2.predict for fetch_map
         url = "http://127.0.0.1:18082/uci/prediction"
         r = requests.post(url=url, data=json.dumps(feed_dict))
-        print(r.json())
         # 3.convert dict to numpy array
         result = {"prob": np.array(eval(r.json()["value"][0]))}
         return result
@@ -104,11 +102,8 @@ class TestUCIPipeline(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway
-
-        # 3.keywords check
-        check_keywords_in_server_log("MKLDNN is enabled", filename="stderr.log")
+        assert count_process_num_on_port(9998) == 1, "Error occured when Paddle Server started"  # gRPC Server
+        assert count_process_num_on_port(18082) == 1, "Error occured when Paddle Server started"  # gRPC gateway
 
         # 4.predict by rpc
         result = self.predict_pipeline_rpc(batch_size=1)
@@ -130,8 +125,8 @@ class TestUCIPipeline(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9998) == 1  # gRPC Server
-        assert count_process_num_on_port(18082) == 1  # gRPC gateway
+        assert count_process_num_on_port(9998) == 1, "Error occured when Paddle Server started"  # gRPC Server
+        assert count_process_num_on_port(18082) == 1, "Error occured when Paddle Server started"  # gRPC gateway
 
         # 3.predict by rpc
         result = self.predict_pipeline_rpc(batch_size=1)

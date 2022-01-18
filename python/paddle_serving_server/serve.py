@@ -35,6 +35,7 @@ from paddle_serving_server.env import CONF_HOME
 import signal
 from paddle_serving_server.util import *
 from paddle_serving_server.env_check.run import check_env
+import cmd
 
 
 # web_service.py is still used by Pipeline.
@@ -474,6 +475,47 @@ def stop_serving(command: str, port: int=None):
                 os.remove(filepath)
     return True
 
+class Check_Env_Shell(cmd.Cmd):
+    intro = "Welcome to the check env shell.Type help to list commands.\n"
+    # ----- basic  commands -----
+    def do_help(self, arg):
+        print("\nCommand list\t\tDescription\n"\
+               "check_all\t\tCheck Environment of Paddle Inference, Pipeline Serving, C++ Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_pipeline\t\tCheck Environment of Pipeline Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_cpp\t\tCheck Environment of C++ Serving. "\
+               "If failed, using debug command to debug\n"\
+               "check_inference\t\tCheck Environment of Paddle Inference. "\
+               "If failed, using debug command to debug\n"\
+               "debug\t\t\tWhen checking was failed, open log to debug\n"\
+               "exit\t\t\tExit Check Env Shell\n")
+
+    def do_check_all(self, arg):
+        "Check Environment of Paddle Inference, Pipeline Serving, C++ Serving"
+        check_env("all") 
+    
+    def do_check_pipeline(self, arg):
+        "Check Environment of Pipeline Serving"
+        check_env("pipeline") 
+    
+    def do_check_cpp(self, arg):
+        "Check Environment of C++ Serving"
+        check_env("cpp") 
+
+    def do_check_inference(self, arg):
+        "Check Environment of Paddle Inference"
+        check_env("inference") 
+      
+    def do_debug(self, arg):
+        "Open pytest log to debug"
+        check_env("debug") 
+
+    def do_exit(self, arg):
+        "Exit Check Env Shell"
+        print('Check Environment Shell Exit')
+        os._exit(0)
+        return True
 
 if __name__ == "__main__":
     # args.device is not used at all.
@@ -491,8 +533,7 @@ if __name__ == "__main__":
         else:
             os._exit(-1)
     elif args.server == "check":
-         check_env() 
-         os._exit(0)
+         Check_Env_Shell().cmdloop() 
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass

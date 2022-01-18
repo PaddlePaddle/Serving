@@ -20,12 +20,14 @@ class TestFitALine(object):
         serving_util.check_model_data_exist()
         self.get_truth_val_by_inference(self)
         self.serving_util = serving_util
+        self.serving_util.release('service')
+        kill_process(9494)
 
     def teardown_method(self):
         print_log(["stderr.log", "stdout.log",
-                   "log/serving.ERROR", "PipelineServingLogs/pipeline.log"], iden="after predict")
+                   "log/serving.ERROR", "PipelineServingLogs/pipeline.log"])
         kill_process(9494)
-        self.serving_util.release()
+        self.serving_util.release('service')
 
     def get_truth_val_by_inference(self):
         try:
@@ -58,11 +60,9 @@ class TestFitALine(object):
             output_data = output_handle.copy_to_cpu()
             output_data_dict[output_data_name] = output_data
         # convert to the same format of Serving output
-        print(output_data_dict)
         output_data_dict["price"] = output_data_dict["fc_0.tmp_1"]
         del output_data_dict["fc_0.tmp_1"]
         self.truth_val = output_data_dict
-        print(self.truth_val, self.truth_val["price"].shape)
 
     def predict_brpc(self, batch_size=1):
         data = np.array(
@@ -74,7 +74,6 @@ class TestFitALine(object):
         fetch_list = client.get_fetch_names()
         fetch_map = client.predict(
             feed={"x": data}, fetch=fetch_list, batch=True)
-        print(fetch_map)
         return fetch_map
     
     def predict_http(self, batch_size=1):
@@ -87,12 +86,12 @@ class TestFitALine(object):
         fetch_list = client.get_fetch_names()
         fetch_map = client.predict(
             feed={"x": data}, fetch=fetch_list, batch=True)
-        print(fetch_map)
         output_dict = self.serving_util.parse_http_result(fetch_map)
         return output_dict
 
     def test_inference(self):
-        assert self.truth_val['price'].size != 0
+        self.serving_util.start_server_by_shell(cmd="", sleep=1)
+        assert self.truth_val['price'].size != 0, "The result of inference is empty"
 
 
     def test_cpu(self):
@@ -103,7 +102,7 @@ class TestFitALine(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9494) == 1
+        assert count_process_num_on_port(9494) == 1, "Error occured when Paddle Server started"
 
         # 4.predict by brpc
         # batch_size 1
@@ -123,7 +122,7 @@ class TestFitALine(object):
         )
 
         # 2.resource check
-        assert count_process_num_on_port(9494) == 1
+        assert count_process_num_on_port(9494) == 1, "Error occured when Paddle Server started"
 
         # 4.predict by brpc 
         # batch_size 1
