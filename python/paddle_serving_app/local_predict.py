@@ -82,7 +82,6 @@ class LocalPredictor(object):
                           use_lite=False,
                           use_xpu=False,
                           precision="fp32",
-                          use_calib=False,
                           use_mkldnn=False,
                           mkldnn_cache_capacity=0,
                           mkldnn_op_list=None,
@@ -90,7 +89,8 @@ class LocalPredictor(object):
                           use_feed_fetch_ops=False,
                           use_ascend_cl=False,
                           min_subgraph_size=3,
-                          dynamic_shape_info={}):
+                          dynamic_shape_info={},
+                          use_calib=False):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -109,7 +109,6 @@ class LocalPredictor(object):
             use_lite: use Paddle-Lite Engint, False default
             use_xpu: run predict on Baidu Kunlun, False default
             precision: precision mode, "fp32" default
-            use_calib: use TensorRT calibration, False default
             use_mkldnn: use MKLDNN, False default.
             mkldnn_cache_capacity: cache capacity for input shapes, 0 default.
             mkldnn_op_list: op list accelerated using MKLDNN, None default.
@@ -118,6 +117,7 @@ class LocalPredictor(object):
             use_ascend_cl: run predict on Huawei Ascend, False default
             min_subgraph_size: the minimal subgraph size for opening tensorrt to optimize, 3 default
             dynamic_shape_info: dict including min_input_shape，max_input_shape, opt_input_shape, {} default 
+            use_calib: use TensorRT calibration, False default
         """
         gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -221,7 +221,7 @@ class LocalPredictor(object):
                     max_batch_size=32,
                     min_subgraph_size=min_subgraph_size,
                     use_static=False,
-                    use_calib_mode=False)
+                    use_calib_mode=use_calib)
 
                 if len(dynamic_shape_info):
                      config.set_trt_dynamic_shape_info(
