@@ -46,6 +46,7 @@ from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
 from .pipeline_client import PipelineClient as PPClient
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -1285,7 +1286,6 @@ class Op(object):
 
         return parsed_data_dict, need_profile_dict, profile_dict, logid_dict
 
-    @ErrorCatch
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
              device_type, devices, mem_optim, ir_optim, precision,
@@ -1367,10 +1367,11 @@ class Op(object):
              mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info)
 
         if resp.err_no != CustomExceptionCode.OK.value:
-            raise CustomException(
-                      CustomExceptionCode.INIT_ERROR, 
-                      "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
-                      False)
+            _LOGGER.critical(
+                "{} failed to init op: {}".format(op_info_prefix, e),
+                exc_info=False)
+	    print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
+            kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
 
         _LOGGER.info("{} Succ init".format(op_info_prefix))
 
