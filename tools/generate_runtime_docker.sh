@@ -9,9 +9,9 @@ function usage
     echo "   ";
     echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11.2";
     echo "   --python              : python version, 3.6/3.7/3.8 ";
-    #echo "   --serving             : serving version(0.6.0/0.6.2)";
-    #echo "   --paddle              : paddle version(2.1.0/2.2.0)"
-    echo "   --image_name          : image name(default serving_runtime:env-python)";
+    echo "   --serving             : serving version(0.7.0/0.6.2)";
+    echo "   --paddle              : paddle version(2.2.0/2.1.2)"
+    echo "   --image_name          : image name(default serving_runtime:env-python)"
     echo "  -h | --help            : helper";
 }
 
@@ -25,9 +25,9 @@ function parse_args
       case "$1" in
           --env )               env="$2";             shift;;
           --python )            python="$2";     shift;;
-          #--serving )          serving="$2";      shift;;
-          #--paddle )           paddle="$2";      shift;;
-          --image_name )        image_name="$2";    shift;;
+          --serving )           serving="$2";      shift;;
+          --paddle )            paddle="$2";      shift;;
+      --image_name )          image_name="$2";    shift;;
           -h | --help )         usage;            exit;; # quit and show usage
           * )                 args+=("$1")             # if no match, add it to the positional args
       esac
@@ -41,7 +41,7 @@ function parse_args
   positional_2="${args[1]}"
 
   # validate required args
-  if [[ -z "${env}" || -z "${python}" ]]; then
+  if [[ -z "${paddle}" || -z "${env}" || -z "${python}" || -z "${serving}" ]]; then
       echo "Invalid arguments. paddle or env or python or serving is missing."
       usage
       exit;
@@ -57,8 +57,6 @@ function parse_args
 
 function run
 {
-  python="2.2.0"
-  serving="0.7.0"
   parse_args "$@"
 
   echo "named arg: env: $env"
@@ -71,6 +69,8 @@ function run
   elif [ $env == "cuda11.2" ]; then
       base_image="nvidia\/cuda:11.2.0-cudnn8-runtime-ubuntu16.04"
   fi
+  #python="2.2.0"
+  #serving="0.7.0"
   echo "base image: $base_image"
   echo "named arg: python: $python"
   echo "named arg: serving: $serving"
@@ -78,8 +78,7 @@ function run
   echo "named arg: image_name: $image_name"
   
   sed -e "s/<<base_image>>/$base_image/g" -e "s/<<python_version>>/$python/g" -e "s/<<run_env>>/$env/g" -e "s/<<serving_version>>/$serving/g" -e "s/<<paddle_version>>/$paddle/g" tools/Dockerfile.runtime_template > Dockerfile.tmp
-  #docker build --network=host --build-arg ftp_proxy=http://172.19.57.45:3128 --build-arg https_proxy=http://172.19.57.45:3128 --build-arg http_proxy=http://172.19.57.45:3128 --build-arg HTTP_PROXY=http://172.19.57.45:3128 --build-arg HTTPS_PROXY=http://172.19.57.45:3128 -t $image_name -f Dockerfile.tmp .
-  docker build -t $image_name -f Dockerfile.tmp .
+  docker build --network=host --build-arg ftp_proxy=http://172.19.57.45:3128 --build-arg https_proxy=http://172.19.57.45:3128 --build-arg http_proxy=http://172.19.57.45:3128 --build-arg HTTP_PROXY=http://172.19.57.45:3128 --build-arg HTTPS_PROXY=http://172.19.57.45:3128 -t $image_name -f Dockerfile.tmp .
 }
 
 run "$@";
