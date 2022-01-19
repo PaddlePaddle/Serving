@@ -1281,6 +1281,7 @@ class Op(object):
 
         return parsed_data_dict, need_profile_dict, profile_dict, logid_dict
 
+    @ErrorCatch
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
              device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
@@ -1322,7 +1323,12 @@ class Op(object):
 
         # init ops
         profiler = None
-        try:
+        @ErrorCatch
+        def check_helper(self, is_thread_op, model_config, workdir, 
+             thread_num, device_type, devices, mem_optim, ir_optim, 
+             precision, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list, 
+             mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info):
+            
             if is_thread_op == False and self.client_type == "local_predictor":
                 self.service_handler = local_service_handler.LocalServiceHandler(
                     model_config=model_config,
@@ -1348,11 +1354,17 @@ class Op(object):
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
 
-        except Exception as e:
-            _LOGGER.critical(
-                "{} failed to init op: {}".format(op_info_prefix, e),
-                exc_info=True)
-            os._exit(-1)
+        _, resp = check_helper(self, is_thread_op, model_config, workdir,
+             thread_num, device_type, devices, mem_optim, ir_optim,
+             precision, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
+             mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info)
+
+        if resp.err_no != CustomExceptionCode.OK.value:
+            raise CustomException(
+                      CustomExceptionCode.INIT_ERROR, 
+                      "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
+                      False)
+
         _LOGGER.info("{} Succ init".format(op_info_prefix))
 
         batch_generator = self._auto_batching_generator(
