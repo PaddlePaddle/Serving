@@ -1368,7 +1368,7 @@ class Op(object):
 
         if resp.err_no != CustomExceptionCode.OK.value:
             _LOGGER.critical(
-                "{} failed to init op: {}".format(op_info_prefix, e),
+                "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
                 exc_info=False)
 	    print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
             kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
