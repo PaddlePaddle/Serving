@@ -1370,7 +1370,7 @@ class Op(object):
 	    _LOGGER.critical(
                 "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
                 exc_info=False)
-	    print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
+            print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
             kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
 
         _LOGGER.info("{} Succ init".format(op_info_prefix))
