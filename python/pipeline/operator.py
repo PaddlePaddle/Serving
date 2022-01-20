@@ -1367,7 +1367,7 @@ class Op(object):
              mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info)
 
         if resp.err_no != CustomExceptionCode.OK.value:
-            _LOGGER.critical(
+	    _LOGGER.critical(
                 "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
                 exc_info=False)
 	    print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
