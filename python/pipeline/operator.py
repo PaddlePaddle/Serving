@@ -1360,8 +1360,9 @@ class Op(object):
                     concurrency_idx)
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
+            return profiler
 
-        _, resp = check_helper(self, is_thread_op, model_config, workdir,
+        profiler, resp = check_helper(self, is_thread_op, model_config, workdir,
              thread_num, device_type, devices, mem_optim, ir_optim,
              precision, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
              mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info)
