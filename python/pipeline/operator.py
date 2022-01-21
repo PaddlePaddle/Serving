@@ -46,6 +46,7 @@ from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
 from .pipeline_client import PipelineClient as PPClient
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
@@ -1328,7 +1329,12 @@ class Op(object):
 
         # init ops
         profiler = None
-        try:
+        @ErrorCatch
+        def check_helper(self, is_thread_op, model_config, workdir, 
+             thread_num, device_type, devices, mem_optim, ir_optim, 
+             precision, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list, 
+             mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info):
+            
             if is_thread_op == False and self.client_type == "local_predictor":
                 self.service_handler = local_service_handler.LocalServiceHandler(
                     model_config=model_config,
@@ -1354,12 +1360,21 @@ class Op(object):
                     concurrency_idx)
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
+            return profiler
 
-        except Exception as e:
+        profiler, resp = check_helper(self, is_thread_op, model_config, workdir,
+             thread_num, device_type, devices, mem_optim, ir_optim,
+             precision, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
+             mkldnn_bf16_op_list, min_subgraph_size, dynamic_shape_info)
+
+        if resp.err_no != CustomExceptionCode.OK.value:
             _LOGGER.critical(
-                "{} failed to init op: {}".format(op_info_prefix, e),
-                exc_info=True)
-            os._exit(-1)
+                "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
+                exc_info=False)
+
+            print("{} failed to init op: {}".format(op_info_prefix, resp.err_msg))
+            kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+
         _LOGGER.info("{} Succ init".format(op_info_prefix))
 
         batch_generator = self._auto_batching_generator(
