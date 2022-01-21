@@ -23,10 +23,13 @@ from .proto import general_model_config_pb2 as m_config
 import paddle.inference as paddle_infer
 import logging
 import glob
+from paddle_serving_server.pipeline.error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
+check_dynamic_shape_info=ParamVerify.check_dynamic_shape_info
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("LocalPredictor")
 logger.setLevel(logging.INFO)
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 precision_map = {
     'int8': paddle_infer.PrecisionType.Int8,
@@ -223,6 +226,15 @@ class LocalPredictor(object):
                     use_static=False,
                     use_calib_mode=use_calib)
 
+                @ErrorCatch
+                @ParamChecker
+                def dynamic_shape_info_helper(dynamic_shape_info:lambda dynamic_shape_info: check_dynamic_shape_info(dynamic_shape_info)):
+                    pass
+                _, resp = dynamic_shape_info_helper(dynamic_shape_info)
+                if resp.err_no != CustomExceptionCode.OK.value:
+                    print("dynamic_shape_info configure error, it should contain [min_input_shape', 'max_input_shape', 'opt_input_shape' {}".format(resp.err_msg))
+                    kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+
                 if len(dynamic_shape_info):
                      config.set_trt_dynamic_shape_info(
                          dynamic_shape_info['min_input_shape'], 
@@ -269,7 +281,18 @@ class LocalPredictor(object):
                 if mkldnn_bf16_op_list is not None:
                     config.set_bfloat16_op(mkldnn_bf16_op_list)
 
-        self.predictor = paddle_infer.create_predictor(config)
+        @ErrorCatch
+        def create_predictor_check(config):
+            predictor = paddle_infer.create_predictor(config)
+            return predictor
+        predictor, resp = create_predictor_check(config)
+        if resp.err_no != CustomExceptionCode.OK.value:
+            logger.critical(
+                "failed to create predictor: {}".format(resp.err_msg),
+                exc_info=False)
+            print("failed to create predictor: {}".format(resp.err_msg))
+            kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+        self.predictor = predictor
 
     def predict(self, feed=None, fetch=None, batch=False, log_id=0):
         """
