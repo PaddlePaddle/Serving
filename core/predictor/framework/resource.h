@@ -24,6 +24,7 @@
 #include "core/predictor/common/inner_common.h"
 #include "core/predictor/framework/infer.h"
 #include "core/predictor/framework/memory.h"
+#include "core/predictor/framework/thread_mutex.h"
 
 namespace baidu {
 namespace paddle_serving {
