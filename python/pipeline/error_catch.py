@@ -227,5 +227,17 @@ class ParamVerify(object):
            if key not in right_fetch_list:
                return False
         return True 
+     
+    @staticmethod
+    def check_dynamic_shape_info(dynamic_shape_info):
+        if not isinstance(dynamic_shape_info, dict):
+            return False
+        if len(dynamic_shape_info) == 0:
+            return True
+        shape_info_keys = ["min_input_shape", "max_input_shape", "opt_input_shape"]
+        if all(key in dynamic_shape_info for key in shape_info_keys):
+            return True
+        else:
+            return False
 
 ErrorCatch = ErrorCatch()
