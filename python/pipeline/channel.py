@@ -34,6 +34,7 @@ from .error_catch import CustomExceptionCode as ChannelDataErrcode
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ChannelDataType(enum.Enum):
     """
     Channel data type
@@ -167,7 +168,8 @@ class ChannelData(object):
         elif isinstance(npdata, dict):
             # batch_size = 1
             for _, value in npdata.items():
-                if not isinstance(value, np.ndarray):
+                if not isinstance(value, np.ndarray) and not (isinstance(
+                        value, list) and isinstance(value[0], str)):
                     error_code = ChannelDataErrcode.TYPE_ERROR.value
                     error_info = "Failed to check data: the value " \
                             "of data must be np.ndarray, but get {}.".format(
