@@ -97,12 +97,6 @@ int Resource::initialize(const std::string& path, const std::string& file) {
   }
   LOG(WARNING) << "Successfully proc initialized mempool wrapper";
 
-  if (ThreadMutex::instance().initialize() != 0) {
-    LOG(ERROR) << "Failed proc initialized mempool wrapper";
-    return -1;
-  }
-  LOG(WARNING) << "Successfully proc initialized ThreadMutex";
-
 #ifdef WITH_AUTH
   std::string product_name_str = resource_conf.auth_product_name();
   std::string container_id_str = resource_conf.auth_container_id();
@@ -307,12 +301,6 @@ int Resource::thread_initialize() {
   }
   LOG(WARNING) << "Successfully thread initialized mempool wrapper";
 
-  if (ThreadMutex::instance().thread_initialize() != 0) {
-    LOG(ERROR) << "Failed thread initialized ThreadMutex";
-    return -1;
-  }
-  LOG(WARNING) << "Successfully thread initialized ThreadMutex";
-
   // infer manager
   if (FLAGS_enable_model_toolkit &&
       InferManager::instance().thrd_initialize() != 0) {
@@ -356,12 +344,6 @@ int Resource::finalize() {
     LOG(ERROR) << "Failed proc finalize infer manager";
     return -1;
   }
-
-  if (ThreadMutex::instance().finalize() != 0) {
-    LOG(ERROR) << "Failed proc finalize ThreadMutex";
-    return -1;
-  }
-
   if (CubeAPI::instance()->destroy() != 0) {
     LOG(ERROR) << "Destory cube api failed ";
     return -1;
