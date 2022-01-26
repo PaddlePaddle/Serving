@@ -86,14 +86,15 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 此时 lod 为空。
         tensor_out.lod = batchTask._batch_out[fetchvar_index].lod;
         // resize all batch memory at one time
-        
+
         size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
-        
-        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size,memoryPtr);
+
+        void* databuf_data =
+            MempoolWrapper::instance().malloc(databuf_size, memoryPtr);
         paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
         tensor_out.data = paddleBuf;
-        
-        //tensor_out.data.Resize(databuf_size);
+
+        // tensor_out.data.Resize(databuf_size);
       } else {
         // 当taskmeta_num = 1时，由于同时只有一个taskMeta操作task
         // 不涉及线程安全问题，所以此时可以直接由taskMeta->task->resize->copy
@@ -211,48 +212,38 @@ void TaskExecutor<TaskT>::stop() {
 }
 
 template <typename TaskT>
-TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
+int TaskExecutor<TaskT>::schedule(
     const void* inVectorT_ptr,
-    void* outVectorT_ptr, MempoolRegion* memoryPtr) {  // NOLINT
+    void* outVectorT_ptr,
+    MempoolRegion* memoryPtr,
+    THREAD_MUTEX_T* thread_mutex_ptr,
+    THREAD_COND_T* thread_cond_ptr,
+    TaskManager<InType, OutType>* task_manager_ptr) {  // NOLINT
   TaskT* task = butil::get_object<TaskT>();
   if (!task) {
     LOG(ERROR) << "Failed get TaskT from object pool";
-    return TaskHandler<TaskT>::valid_handle();
+    return -1;
   }
   task->clear();
 
-  /*
-  if (!BatchTasks<TaskT>::check_valid(in, out, _overrun)) {
-    LOG(ERROR) << "Invalid input & output";
-    return TaskHandler<TaskT>::valid_handle();
-  }
-  */
-
-  int fds[2];
-  int rc = pipe(fds);
-  if (rc != 0) {
-    LOG(ERROR) << "call pipe() failed, errno=" << errno << ":"
-               << strerror(errno);
-    return TaskHandler<TaskT>::valid_handle();
-  }
-
-  task->read_fd = fds[0];
-  task->write_fd = fds[1];
+  task->task_manager_ptr = task_manager_ptr;
+  task->thread_mutex_ptr = thread_mutex_ptr;
+  task->thread_cond_ptr = thread_cond_ptr;
   task->owner_tid = ::syscall(SYS_gettid);
   task->memoryPtr = memoryPtr;
-  //task->_bspec_key = _bspec_key;
+  // task->_bspec_key = _bspec_key;
   task->inVectorT_ptr = (const InVectorT*)inVectorT_ptr;
   task->outVectorT_ptr = (OutVectorT*)outVectorT_ptr;
   if (!task->task_init()) {
     LOG(ERROR) << "task->init() failed";
+    return -1;
   }
   task->rem = task->batch_size();
   task->index.store(0, butil::memory_order_relaxed);
   AutoMutex lock(_mut);
   _task_queue.push_back(task);
   THREAD_COND_SIGNAL(&_cond);
-
-  return TaskHandler<TaskT>(*task);
+  return 0;
 }
 
 // this function is accessed by multi thread.
@@ -407,13 +398,19 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
 }
 
 template <typename InItemT, typename OutItemT>
-bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
-                                              void* out, MempoolRegion* memoryPtr) {  // NOLINT
-  TaskHandler<TaskT> handler =
-      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out, memoryPtr);
+bool TaskManager<InItemT, OutItemT>::schedule(
+    const void* in,
+    void* out,
+    MempoolRegion* memoryPtr,
+    THREAD_MUTEX_T* thread_mutex_ptr,
+    THREAD_COND_T* thread_cond_ptr) {  // NOLINT
+  int error_no = TaskExecutorVector<TaskT>::instance()[_model_index].schedule(
+      in, out, memoryPtr, thread_mutex_ptr, thread_cond_ptr, this);
 
-  if (handler.valid()) {
-    _task_owned = handler;
+  if (error_no >= 0) {
+    _task_ready = false;
+    this->thread_mutex_ptr = thread_mutex_ptr;
+    this->thread_cond_ptr = thread_cond_ptr;
     return true;
   } else {
     LOG(ERROR) << "failed to schedule task";
@@ -423,17 +420,13 @@ bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
 
 template <typename InItemT, typename OutItemT>
 void TaskManager<InItemT, OutItemT>::wait() {
-  char buffer[128];
-  while (read(_task_owned.read_fd, buffer, sizeof(buffer)) < 0 &&
-         errno == EINTR) {
+  THREAD_MUTEX_LOCK(thread_mutex_ptr);
+  while (!_task_ready) {
+    THREAD_COND_WAIT(thread_cond_ptr, thread_mutex_ptr);
   }
-
-  close(_task_owned.read_fd);
-  close(_task_owned.write_fd);
-
-  _task_owned.read_fd = -1;
-  _task_owned.write_fd = -1;
+  THREAD_MUTEX_UNLOCK(thread_mutex_ptr);
   return;
 }
+
 }  // namespace bsf
 }  // namespace im

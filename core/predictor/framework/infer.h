@@ -31,8 +31,9 @@
 #include "core/predictor/framework/infer_data.h"
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/predictor_metric.h"
-#include "paddle_inference_api.h"  // NOLINT
+#include "core/predictor/framework/thread_mutex.h"
 #include "experimental/float16.h"
+#include "paddle_inference_api.h"  // NOLINT
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -548,7 +549,7 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
         int8_t* data = static_cast<int8_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       } else if ((*tensorVector_in_pointer)[i].dtype ==
-               paddle::PaddleDType::FLOAT16) {
+                 paddle::PaddleDType::FLOAT16) {
         paddle::platform::float16* data =
             static_cast<paddle::platform::float16*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
