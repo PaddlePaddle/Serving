@@ -49,13 +49,17 @@ class PerformanceTracer(object):
         self._channels = []
         # The size of data in Channel will not exceed server_worker_num
         self._server_worker_num = server_worker_num
-        if _is_profile:
-            self.profile_dict = {}
+        self.profile_dict = {}
 
     def data_buffer(self):
         return self._data_buffer
 
     def start(self):
+        self._thrd = threading.Thread(
+            target=self._trace_func, args=(self._channels, ))
+        self._thrd.daemon = True
+        self._thrd.start()
+        """
         if self._is_thread_mode:
             self._thrd = threading.Thread(
                 target=self._trace_func, args=(self._channels, ))
@@ -66,6 +70,7 @@ class PerformanceTracer(object):
                 target=self._trace_func, args=(self._channels, ))
             self._proc.daemon = True
             self._proc.start()
+        """
 
     def set_channels(self, channels):
         self._channels = channels
@@ -121,8 +126,7 @@ class PerformanceTracer(object):
                                 calcu_cost += op_cost[name][action]
                         _LOGGER.info("\tidle[{}]".format(1 - 1.0 * calcu_cost /
                                                          tot_cost))
-            if _is_profile:
-                self.profile_dict = copy.deepcopy(op_cost)
+            self.profile_dict = copy.deepcopy(op_cost)
                 
             if "DAG" in op_cost:
                 calls = list(op_cost["DAG"].values())
