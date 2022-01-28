@@ -23,10 +23,13 @@ from .proto import general_model_config_pb2 as m_config
 import paddle.inference as paddle_infer
 import logging
 import glob
+from paddle_serving_server.pipeline.error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
+check_dynamic_shape_info=ParamVerify.check_dynamic_shape_info
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("LocalPredictor")
 logger.setLevel(logging.INFO)
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 precision_map = {
     'int8': paddle_infer.PrecisionType.Int8,
@@ -82,13 +85,15 @@ class LocalPredictor(object):
                           use_lite=False,
                           use_xpu=False,
                           precision="fp32",
-                          use_calib=False,
                           use_mkldnn=False,
                           mkldnn_cache_capacity=0,
                           mkldnn_op_list=None,
                           mkldnn_bf16_op_list=None,
                           use_feed_fetch_ops=False,
-                          use_ascend_cl=False):
+                          use_ascend_cl=False,
+                          min_subgraph_size=3,
+                          dynamic_shape_info={},
+                          use_calib=False):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -102,15 +107,20 @@ class LocalPredictor(object):
             ir_optim: open calculation chart optimization, False default.
             use_trt: use nvidia TensorRT optimization, False default
             use_lite: use Paddle-Lite Engint, False default
+            ir_optim: open calculation chart optimization, False default.
+            use_trt: use nvidia TensorRT optimization, False default
+            use_lite: use Paddle-Lite Engint, False default
             use_xpu: run predict on Baidu Kunlun, False default
             precision: precision mode, "fp32" default
-            use_calib: use TensorRT calibration, False default
             use_mkldnn: use MKLDNN, False default.
             mkldnn_cache_capacity: cache capacity for input shapes, 0 default.
             mkldnn_op_list: op list accelerated using MKLDNN, None default.
             mkldnn_bf16_op_list: op list accelerated using MKLDNN bf16, None default.
             use_feed_fetch_ops: use feed/fetch ops, False default.
             use_ascend_cl: run predict on Huawei Ascend, False default
+            min_subgraph_size: the minimal subgraph size for opening tensorrt to optimize, 3 default
+            dynamic_shape_info: dict including min_input_shape，max_input_shape, opt_input_shape, {} default 
+            use_calib: use TensorRT calibration, False default
         """
         gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -150,11 +160,12 @@ class LocalPredictor(object):
             "use_trt:{}, use_lite:{}, use_xpu:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, "
-            "use_ascend_cl:{} ".format(
-                model_path, use_gpu, gpu_id, use_profile, thread_num, mem_optim,
-                ir_optim, use_trt, use_lite, use_xpu, precision, use_calib,
-                use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
-                mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl))
+            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{}".
+            format(model_path, use_gpu, gpu_id, use_profile, thread_num,
+                   mem_optim, ir_optim, use_trt, use_lite, use_xpu, precision,
+                   use_calib, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
+                   mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl,
+                   min_subgraph_size, dynamic_shape_info))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -211,9 +222,24 @@ class LocalPredictor(object):
                     precision_mode=precision_type,
                     workspace_size=1 << 20,
                     max_batch_size=32,
-                    min_subgraph_size=3,
+                    min_subgraph_size=min_subgraph_size,
                     use_static=False,
-                    use_calib_mode=False)
+                    use_calib_mode=use_calib)
+
+                @ErrorCatch
+                @ParamChecker
+                def dynamic_shape_info_helper(dynamic_shape_info:lambda dynamic_shape_info: check_dynamic_shape_info(dynamic_shape_info)):
+                    pass
+                _, resp = dynamic_shape_info_helper(dynamic_shape_info)
+                if resp.err_no != CustomExceptionCode.OK.value:
+                    print("dynamic_shape_info configure error, it should contain [min_input_shape', 'max_input_shape', 'opt_input_shape' {}".format(resp.err_msg))
+                    kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+
+                if len(dynamic_shape_info):
+                    config.set_trt_dynamic_shape_info(
+                        dynamic_shape_info['min_input_shape'],
+                        dynamic_shape_info['max_input_shape'],
+                        dynamic_shape_info['opt_input_shape'])
         # set lite
         if use_lite:
             config.enable_lite_engine(
@@ -255,7 +281,18 @@ class LocalPredictor(object):
                 if mkldnn_bf16_op_list is not None:
                     config.set_bfloat16_op(mkldnn_bf16_op_list)
 
-        self.predictor = paddle_infer.create_predictor(config)
+        @ErrorCatch
+        def create_predictor_check(config):
+            predictor = paddle_infer.create_predictor(config)
+            return predictor
+        predictor, resp = create_predictor_check(config)
+        if resp.err_no != CustomExceptionCode.OK.value:
+            logger.critical(
+                "failed to create predictor: {}".format(resp.err_msg),
+                exc_info=False)
+            print("failed to create predictor: {}".format(resp.err_msg))
+            kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+        self.predictor = predictor
 
     def predict(self, feed=None, fetch=None, batch=False, log_id=0):
         """
@@ -301,7 +338,8 @@ class LocalPredictor(object):
         # Assemble the input data of paddle predictor, and filter invalid inputs. 
         input_names = self.predictor.get_input_names()
         for name in input_names:
-            if isinstance(feed[name], list):
+            if isinstance(feed[name], list) and not isinstance(feed[name][0],
+                                                               str):
                 feed[name] = np.array(feed[name]).reshape(self.feed_shapes_[
                     name])
             if self.feed_types_[name] == 0:
@@ -328,6 +366,9 @@ class LocalPredictor(object):
                 feed[name] = feed[name].astype("complex64")
             elif self.feed_types_[name] == 11:
                 feed[name] = feed[name].astype("complex128")
+            elif isinstance(feed[name], list) and isinstance(feed[name][0],
+                                                             str):
+                pass
             else:
                 raise ValueError("local predictor receives wrong data type")
 

@@ -41,9 +41,10 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 <h2 align="center">Tutorial</h2>
 
 
-- AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1975340)
-
+- AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
 - Video tutorial(Chinese) : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
+- Edge AI solution based on Paddle Serving & Baidu Intelligent Edge(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+
 <p align="center">
     <img src="doc/images/demo.gif" width="700">
 </p>
@@ -57,7 +58,7 @@ This chapter guides you through the installation and deployment steps. It is str
 
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
-- [Deploy Paddle Serving on Kubernetes](doc/Run_On_Kubernetes_CN.md)
+- [Deploy Paddle Serving on Kubernetes(Chinese)](doc/Run_On_Kubernetes_CN.md)
 - [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - [Deploy Paddle Serving on more hardwares](doc/Run_On_XPU_EN.md)
 - [Docker Images](doc/Docker_Images_EN.md)

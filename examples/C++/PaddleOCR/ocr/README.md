@@ -4,9 +4,9 @@
 
 ## Get Model
 ```
-python3 -m paddle_serving_app.package --get_model ocr_rec
+wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/ocr_rec.tar.gz
 tar -xzvf ocr_rec.tar.gz
-python3 -m paddle_serving_app.package --get_model ocr_det
+wget https://paddle-serving.bj.bcebos.com/ocr/ocr_det.tar.gz
 tar -xzvf ocr_det.tar.gz
 ```
 

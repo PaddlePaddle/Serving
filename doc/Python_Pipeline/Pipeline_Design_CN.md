@@ -700,6 +700,8 @@ Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型
   - fp16
   - int8 
 
+使用int8时，要开启use_calib: True
+
 参考[simple_web_service](../../examples/Pipeline/simple_web_service)示例
 ***
 

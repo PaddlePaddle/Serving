@@ -1,9 +1,9 @@
 import os
-import pynvml
 import argparse
 import base64
 import subprocess
 import numpy as np
+import sys
 
 class ServingTest(object):
     def __init__(self, data_path: str, example_path: str, model_dir: str, client_dir: str):
@@ -13,16 +13,17 @@ class ServingTest(object):
         DATA_PATH: 数据集根目录
         py_version: python版本 python3.6~3.8
         """
+        self.serving_log_path = os.environ['SERVING_LOG_PATH']
         code_path = os.path.dirname(os.path.realpath(__file__))
         self.data_path = f"{code_path}/{data_path}/"
         self.example_path = f"{code_path}/{example_path}/"
-        self.py_version = os.environ.get("PYTHON_EXECUTABLE")
+        self.py_version = sys.executable
+        if 'PYTHON_EXECUTABLE' in os.environ:
+            self.py_version = os.environ.get("PYTHON_EXECUTABLE")
         self.model_dir = model_dir
         self.client_config = f"{client_dir}/serving_client_conf.prototxt"
 
         os.chdir(self.example_path)
-        print("======================cur path======================")
-        print(os.getcwd())
         self.check_model_data_exist()
 
     def check_model_data_exist(self):
@@ -37,6 +38,9 @@ class ServingTest(object):
                 os.system(f"ln -s {abs_path} {file}")
 
     def start_server_by_shell(self, cmd: str, sleep: int = 5, err="stderr.log", out="stdout.log", wait=False):
+
+        err = os.path.join(self.serving_log_path, err)
+        out = os.path.join(self.serving_log_path, out) 
         self.err = open(err, "w")
         self.out = open(out, "w")
         p = subprocess.Popen(cmd, shell=True, stdout=self.out, stderr=self.err)
@@ -44,7 +48,6 @@ class ServingTest(object):
         if wait:
             p.wait()
 
-        print_log([err, out])
 
     @staticmethod
     def check_result(result_data: dict, truth_data: dict, batch_size=1, delta=1e-3):
@@ -87,20 +90,9 @@ def kill_process(port, sleep_time=0):
     # 解决端口占用
     os.system(f"sleep {sleep_time}")
 
-
-def check_gpu_memory(gpu_id):
-    pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(gpu_id)
-    mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    mem_used = mem_info.used / 1024 ** 2
-    print(f"GPU-{gpu_id} memory used:", mem_used)
-    return mem_used > 100
-
-
 def count_process_num_on_port(port):
     command = "netstat -nlp | grep :" + str(port) + " | wc -l"
     count = eval(os.popen(command).read())
-    print(f"port-{port} processes num:", count)
     return count
 
 
@@ -140,17 +132,15 @@ def diff_compare(array1, array2):
 
 
 def print_log(file_list, iden=""):
+    serving_log_path = os.environ['SERVING_LOG_PATH']
     for file in file_list:
-        print(f"======================{file} {iden}=====================")
-        if os.path.exists(file):
-            with open(file, "r") as f:
+        print(f"======================{file}=====================")
+        file_path = os.path.join(serving_log_path, file)
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
                 print(f.read())
-            if file.startswith("log") or file.startswith("PipelineServingLogs"):
-                os.remove(file)
         else:
-            print(f"{file} not exist")
-        print("======================================================")
-
+            pass
 
 def parse_prototxt(file):
     with open(file, "r") as f:

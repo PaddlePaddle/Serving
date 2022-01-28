@@ -260,6 +260,7 @@ class PipelineServer(object):
                 "use_calib": False,
                 "use_mkldnn": False,
                 "mkldnn_cache_capacity": 0,
+                "min_subgraph_size": 3,
             },
         }
         for op in self._used_op:
@@ -420,6 +421,7 @@ class ServerYamlConfChecker(object):
             "use_calib": False,
             "use_mkldnn": False,
             "mkldnn_cache_capacity": 0,
+            "min_subgraph_size": 3,
         }
         conf_type = {
             "model_config": str,
@@ -435,6 +437,7 @@ class ServerYamlConfChecker(object):
             "mkldnn_cache_capacity": int,
             "mkldnn_op_list": list,
             "mkldnn_bf16_op_list": list,
+            "min_subgraph_size": int,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,

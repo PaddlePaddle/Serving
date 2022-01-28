@@ -98,8 +98,7 @@ int ReloadableInferEngine::infer(const void* in,
 
   im::bsf::TaskManager<paddle::PaddleTensor, paddle::PaddleTensor> task_manager(
       _model_index);
-
-  task_manager.schedule(in, out);
+  task_manager.schedule(in, out, MempoolWrapper::instance().get_thread_memory_ptr());
   task_manager.wait();
   return 0;
 }

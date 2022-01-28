@@ -61,6 +61,7 @@
 #include "core/predictor/common/utils.h"
 
 #include "core/predictor/framework/prometheus_metric.h"
+#include "core/predictor/framework/request_cache.h"
 
 #ifdef BCLOUD
 namespace brpc = baidu::rpc;
