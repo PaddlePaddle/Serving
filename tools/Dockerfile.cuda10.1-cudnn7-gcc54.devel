@@ -66,6 +66,12 @@ RUN wget -q https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz && \
     CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
     make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.8.0*
 
+# Install Python3.9
+RUN wget -q https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz && \
+    tar -xzf Python-3.9.0.tgz && cd Python-3.9.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.9.0*
+
 ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 RUN ln -sf /usr/local/bin/python3.6 /usr/local/bin/python3 && ln -sf /usr/local/bin/python3.6 /usr/bin/python3 && ln -sf /usr/local/bin/pip3.6 /usr/local/bin/pip3 && ln -sf /usr/local/bin/pip3.6 /usr/bin/pip3
 
@@ -121,10 +127,13 @@ RUN wget https://paddle-ci.gz.bcebos.com/ccache-3.7.9.tar.gz && \
     make -j8 && make install && \
     ln -s /usr/local/ccache-3.7.9/bin/ccache /usr/local/bin/ccache
 
-RUN python3.8 -m pip install --upgrade pip requests && \
-    python3.7 -m pip install --upgrade pip requests && \
-    python3.6 -m pip install --upgrade pip requests 
+# Update pip version 
+RUN python3.8 -m pip install --upgrade pip==21.3.1 requests && \
+    python3.7 -m pip install --upgrade pip==21.3.1 requests && \
+    python3.6 -m pip install --upgrade pip==21.3.1 requests && \
+    python3.9 -m pip install --upgrade pip==21.3.1 requests
 
+# Wget ssl libs and link thems
 RUN wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
     tar xf centos_ssl.tar && rm -rf centos_ssl.tar && \
     mv libcrypto.so.1.0.2k /usr/lib/libcrypto.so.1.0.2k && mv libssl.so.1.0.2k /usr/lib/libssl.so.1.0.2k && \
