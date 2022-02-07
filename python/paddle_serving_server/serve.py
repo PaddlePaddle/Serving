@@ -37,6 +37,11 @@ from paddle_serving_server.util import *
 from paddle_serving_server.env_check.run import check_env
 import cmd
 
+def signal_handler(signal, frame):
+    print('Process stopped')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 # web_service.py is still used by Pipeline.
 def port_is_available(port):
