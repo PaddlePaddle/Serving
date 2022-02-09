@@ -392,6 +392,9 @@ op:
             #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
             
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
+            
             #precsion, 预测精度，降低预测精度可提升预测速度
             #GPU 支持: "fp32"(default), "fp16", "int8"；
             #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
@@ -429,6 +432,9 @@ op:
 
             #ir_optim, 开启TensorRT时，必须同时设置ir_optim=True，否则无效
             ir_optim: True
+            
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
             
             #precsion, 预测精度，降低预测精度可提升预测速度
             #GPU 支持: "fp32"(default), "fp16", "int8"；
