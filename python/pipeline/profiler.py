@@ -50,6 +50,7 @@ class PerformanceTracer(object):
         # The size of data in Channel will not exceed server_worker_num
         self._server_worker_num = server_worker_num
         self.profile_dict = {}
+        self._enable_dict = False
 
     def data_buffer(self):
         return self._data_buffer
@@ -74,6 +75,9 @@ class PerformanceTracer(object):
 
     def set_channels(self, channels):
         self._channels = channels
+
+    def set_enable_dict(self, enable):
+        self._enable_dict = enable
 
     def _trace_func(self, channels):
         all_actions = ["in", "prep", "midp", "postp", "out"]
@@ -111,9 +115,14 @@ class PerformanceTracer(object):
             if len(op_cost) != 0:
                 for name in op_cost:
                     tot_cost, calcu_cost = 0.0, 0.0
+                    count = 0
                     for action, costs in op_cost[name].items():
                         op_cost[name][action] = sum(costs) / (1e3 * len(costs))
                         tot_cost += op_cost[name][action]
+                        if action == "midp":
+                            count = len(costs)
+                    if "midp" in op_cost[name].keys():
+                        op_cost[name]['count'] = count
                     if name != "DAG":
                         _LOGGER.info("Op({}):".format(name))
                         
@@ -146,7 +155,7 @@ class PerformanceTracer(object):
                 for latency in latencys:
                     _LOGGER.info("\t\t.{}[{} ms]".format(latency, calls[int(
                         tot * latency / 100.0)]))
-                if _is_profile:
+                if _is_profile or self._enable_dict:
                     self.profile_dict["DAG"]["query_count"] = tot
                     self.profile_dict["DAG"]["qps"] = qps
                     self.profile_dict["DAG"]["succ"] = 1 - 1.0 * err_count / tot

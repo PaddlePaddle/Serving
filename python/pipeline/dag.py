@@ -62,7 +62,10 @@ class DAGExecutor(object):
 
         self._retry = dag_conf["retry"]
         self._server_use_profile = dag_conf["use_profile"]
-        if "prometheus_port" in dag_conf:
+        self._enable_prometheus = False
+        if "enable_prometheus" in dag_conf:
+            self._enable_prometheus = dag_conf["enable_prometheus"]
+        if "prometheus_port" in dag_conf and self._enable_prometheus:
             self._prometheus_port = dag_conf["prometheus_port"]
         else:
             self._prometheus_port = None
@@ -81,6 +84,8 @@ class DAGExecutor(object):
         if tracer_interval_s >= 1:
             self._tracer = PerformanceTracer(
                 self._is_thread_op, tracer_interval_s, server_worker_num)
+            if self._enable_prometheus:
+                self._tracer.set_enable_dict(True)
 
         self._dag = DAG(self.name, response_op, self._server_use_profile, self._prometheus_port,
                         self._is_thread_op, channel_size, build_dag_each_worker,
@@ -844,9 +849,9 @@ class DAG(object):
         from .prometheus_metrics import registry 
         from .prometheus_metrics import metric_query_success, metric_query_failure, metric_inf_count, metric_query_duration_us, metric_inf_duration_us 
         app = Flask(__name__)
-        requests_total = Counter('c1','A counter')
+        # requests_total = Counter('c1','A counter') 
         
-        @app.route("/metrics/")
+        @app.route("/metrics")
         def requests_count():
             item = self._tracer.profile_dict
             _LOGGER.info("metrics: {}".format(item))
@@ -855,14 +860,24 @@ class DAG(object):
                 total = item["DAG"]["query_count"]
                 succ = total * item["DAG"]["succ"]
                 fail = total * (1 - item["DAG"]["succ"])
-                inf_cnt = total
                 query_duration = total *item["DAG"]["avg"]
-                metric_query_success._value.set(succ)
-                metric_query_failure._value.set(fail)
-                metric_inf_count._value.set(total)
-                metric_query_duration_us._value.set(query_duration)
+                metric_query_success.inc(succ)
+                metric_query_failure._value.inc(fail)
+                metric_query_duration_us._value.inc(query_duration)
+
+                inf_cnt = 0
+                infer_duration = 0.0
+                for name in item:
+                    if name != "DAG":
+                        if "count" in item[name]:
+                            inf_cnt += item[name]["count"]
+                            if "midp" in item[name]:
+                                infer_duration += item[name]["count"]*item[name]["midp"]
+                metric_inf_count._value.inc(inf_cnt)
+                metric_inf_duration_us._value.inc(infer_duration)
             
             #return str(item)
+            self._tracer.profile_dict = {}
             return Response(prometheus_client.generate_latest(registry),mimetype="text/plain")
 
         def prom_run():
@@ -895,8 +910,9 @@ class DAG(object):
             else:
                 self._threads_or_proces.extend(op.start_with_process())
         _LOGGER.info("[DAG] start")
-        _LOGGER.info("Prometheus Start 1")
-        self.start_prom(self._prometheus_port)
+        if self._use_prometheus:
+            _LOGGER.info("Prometheus Start 1")
+            self.start_prom(self._prometheus_port)
          
         # not join yet
         return self._threads_or_proces

@@ -30,26 +30,26 @@ PrometheusMetric::PrometheusMetric()
       serializer_(new prometheus::TextSerializer()),
       query_success_family_(
           prometheus::BuildCounter()
-              .Name("pd_query_request_success")
+              .Name("pd_query_request_success_total")
               .Help("Number of successful query requests")
               .Register(*registry_)),
       query_failure_family_(
           prometheus::BuildCounter()
-              .Name("pd_query_request_failure")
+              .Name("pd_query_request_failure_total")
               .Help("Number of failed query requests")
               .Register(*registry_)),
       inf_count_family_(prometheus::BuildCounter()
-                            .Name("pd_inference_count")
+                            .Name("pd_inference_count_total")
                             .Help("Number of inferences performed")
                             .Register(*registry_)),
       query_duration_us_family_(
           prometheus::BuildCounter()
-              .Name("pd_query_request_duration_us")
+              .Name("pd_query_request_duration_us_total")
               .Help("Cummulative query request duration in microseconds")
               .Register(*registry_)),
       inf_duration_us_family_(
           prometheus::BuildCounter()
-              .Name("pd_inference_duration_us")
+              .Name("pd_inference_duration_us_total")
               .Help("Cummulative inference duration in microseconds")
               .Register(*registry_)),
       metrics_enabled_(false)
