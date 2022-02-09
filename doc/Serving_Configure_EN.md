@@ -397,6 +397,9 @@ op:
             #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
             
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
+            
             #precsion, Decrease accuracy can increase speed
             #GPU 支持: "fp32"(default), "fp16", "int8"；
             #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
@@ -434,6 +437,9 @@ op:
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
+            
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
             
             #precsion, Decrease accuracy can increase speed
             #GPU 支持: "fp32"(default), "fp16", "int8"；
