@@ -22,9 +22,7 @@ from paddle_serving_app.reader import Div, Normalize, Transpose
 from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
 
 _LOGGER = logging.getLogger()
-
-
-class DetOp(Op):
+class PreDetOp(Op):
     def init_op(self):
         self.det_preprocess = Sequential([
             ResizeByFactor(32, 960), Div(255),
@@ -39,7 +37,29 @@ class DetOp(Op):
             "unclip_ratio": 1.5,
             "min_size": 3
         })
-   
+
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
+        (_, input_dict), = input_dicts.items()
+        imgs = []
+        for key in input_dict.keys():
+            data = base64.b64decode(input_dict[key].encode('utf8'))
+            self.raw_im = data
+            data = np.frombuffer(data, np.uint8)
+            self.im = cv2.imdecode(data, cv2.IMREAD_COLOR)
+            self.ori_h, self.ori_w, _ = self.im.shape
+            det_img = self.det_preprocess(self.im)
+            _, self.new_h, self.new_w = det_img.shape
+            imgs.append(det_img[np.newaxis, :].copy())
+        return {"image": np.concatenate(imgs, axis=0), 
+                "ori_h": self.ori_h, 
+                "ori_w": self.ori_w, 
+                "new_h": self.new_h, 
+                "new_w": self.new_w, 
+                "raw_im": self.raw_im}, None, ""
+
+
+class DetOp(Op):
+
     """ 
     when opening tensorrt(configure in config.yml) and each time the input shape 
     for inferring is different, using this method for configuring tensorrt 
@@ -78,20 +98,14 @@ class DetOp(Op):
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
-        imgs = []
-        for key in input_dict.keys():
-            data = base64.b64decode(input_dict[key].encode('utf8'))
-            self.raw_im = data
-            data = np.frombuffer(data, np.uint8)
-            self.im = cv2.imdecode(data, cv2.IMREAD_COLOR)
-            self.ori_h, self.ori_w, _ = self.im.shape
-            det_img = self.det_preprocess(self.im)
-            _, self.new_h, self.new_w = det_img.shape
-            imgs.append(det_img[np.newaxis, :].copy())
-        return {"x": np.concatenate(imgs, axis=0)}, False, None, ""
+        self.ori_h = input_dict["ori_h"]
+        self.ori_w = input_dict["ori_w"]
+        self.new_h = input_dict["new_h"]
+        self.new_w = input_dict["new_w"]
+        self.raw_im = input_dict["raw_im"]
+        return {"x": input_dict["image"]}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
-        #        print(fetch_dict)
         det_out = fetch_dict["save_infer_model/scale_0.tmp_1"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
@@ -101,38 +115,13 @@ class DetOp(Op):
         out_dict = {"dt_boxes": dt_boxes, "image": self.raw_im}
         return out_dict, None, ""
 
-
-class RecOp(Op):
+class PreRecOp(Op):
     def init_op(self):
         self.ocr_reader = OCRReader()
         self.get_rotate_crop_image = GetRotateCropImage()
         self.sorted_boxes = SortedBoxes()
-    
-    """ 
-    when opening tensorrt(configure in config.yml) and each time the input shape 
-    for inferring is different, using this method for configuring tensorrt 
-    dynamic shape to infer in each op model
-    """
-    def set_dynamic_shape_info(self):
-        min_input_shape = {
-            "x": [1, 3, 32, 10],
-            "lstm_1.tmp_0": [1, 1, 128]
-        }
-        max_input_shape = {
-            "x": [50, 3, 32, 1000],
-            "lstm_1.tmp_0": [500, 50, 128]
-        }
-        opt_input_shape = {
-            "x": [6, 3, 32, 100],
-            "lstm_1.tmp_0": [25, 5, 128]
-        }
-        self.dynamic_shape_info = {
-            "min_input_shape": min_input_shape,
-            "max_input_shape": max_input_shape,
-            "opt_input_shape": opt_input_shape,
-        }
 
-    def preprocess(self, input_dicts, data_id, log_id):
+    def postprocess(self, input_dicts,fetch_dict, data_id, log_id):
         (_, input_dict), = input_dicts.items()
         raw_im = input_dict["image"]
         data = np.frombuffer(raw_im, np.uint8)
@@ -205,9 +194,36 @@ class RecOp(Op):
                 imgs[id] = norm_img
             feed = {"x": imgs.copy()}
             feed_list.append(feed)
-        #_LOGGER.info("feed_list : {}".format(feed_list))
+        return {"feed_list" : feed_list}, None, ""
 
-        return feed_list, False, None, ""
+class RecOp(Op):
+    """ 
+    when opening tensorrt(configure in config.yml) and each time the input shape 
+    for inferring is different, using this method for configuring tensorrt 
+    dynamic shape to infer in each op model
+    """
+    def set_dynamic_shape_info(self):
+        min_input_shape = {
+            "x": [1, 3, 32, 10],
+            "lstm_1.tmp_0": [1, 1, 128]
+        }
+        max_input_shape = {
+            "x": [50, 3, 32, 1000],
+            "lstm_1.tmp_0": [500, 50, 128]
+        }
+        opt_input_shape = {
+            "x": [6, 3, 32, 100],
+            "lstm_1.tmp_0": [25, 5, 128]
+        }
+        self.dynamic_shape_info = {
+            "min_input_shape": min_input_shape,
+            "max_input_shape": max_input_shape,
+            "opt_input_shape": opt_input_shape,
+        }
+
+    def preprocess(self, input_dicts, data_id, log_id):
+        (_, input_dict), = input_dicts.items()
+        return input_dict["feed_list"], False, None, ""
 
     def postprocess(self, input_dicts, fetch_data, data_id, log_id):
         res_list = []
@@ -230,8 +246,10 @@ class RecOp(Op):
 
 class OcrService(WebService):
     def get_pipeline_response(self, read_op):
-        det_op = DetOp(name="det", input_ops=[read_op])
-        rec_op = RecOp(name="rec", input_ops=[det_op])
+        pre_det_op = PreDetOp(name="pre_det", input_ops=[read_op])
+        det_op = DetOp(name="det", input_ops=[pre_det_op])
+        pre_rec_op = PreRecOp(name="pre_rec", input_ops=[det_op])
+        rec_op = RecOp(name="rec", input_ops=[pre_rec_op])
         return rec_op
 
 
