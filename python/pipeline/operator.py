@@ -371,6 +371,9 @@ class Op(object):
     def set_tracer(self, tracer):
         self._tracer = tracer
 
+    def set_use_prometheus(self, use_prometheus):
+        self._use_prometheus = use_prometheus
+
     def init_client(self, client_config, server_endpoints):
         """
         Initialize the client object. There are three types of clients, brpc,
@@ -1448,6 +1451,7 @@ class Op(object):
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
+            _LOGGER.info("prometheus inf count +1")
             midp_time = end - start
             _LOGGER.debug("op:{} process_end:{}, cost:{}".format(
                 op_info_prefix, time.time(), midp_time))

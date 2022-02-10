@@ -62,6 +62,13 @@ class DAGExecutor(object):
 
         self._retry = dag_conf["retry"]
         self._server_use_profile = dag_conf["use_profile"]
+        self._enable_prometheus = False
+        if "enable_prometheus" in dag_conf:
+            self._enable_prometheus = dag_conf["enable_prometheus"]
+        if "prometheus_port" in dag_conf and self._enable_prometheus:
+            self._prometheus_port = dag_conf["prometheus_port"]
+        else:
+            self._prometheus_port = None
         channel_size = dag_conf["channel_size"]
         channel_recv_frist_arrive = dag_conf["channel_recv_frist_arrive"]
         self._is_thread_op = dag_conf["is_thread_op"]
@@ -77,8 +84,10 @@ class DAGExecutor(object):
         if tracer_interval_s >= 1:
             self._tracer = PerformanceTracer(
                 self._is_thread_op, tracer_interval_s, server_worker_num)
+            if self._enable_prometheus:
+                self._tracer.set_enable_dict(True)
 
-        self._dag = DAG(self.name, response_op, self._server_use_profile,
+        self._dag = DAG(self.name, response_op, self._server_use_profile, self._prometheus_port,
                         self._is_thread_op, channel_size, build_dag_each_worker,
                         self._tracer, channel_recv_frist_arrive)
         (in_channel, out_channel, pack_rpc_func,
@@ -480,10 +489,10 @@ class DAG(object):
     """
     Directed Acyclic Graph(DAG) engine, builds one DAG topology.
     """
-    def __init__(self, request_name, response_op, use_profile, is_thread_op,
+    def __init__(self, request_name, response_op, use_profile, prometheus_port, is_thread_op,
                  channel_size, build_dag_each_worker, tracer,
                  channel_recv_frist_arrive):
-        _LOGGER.info("{}, {}, {}, {}, {} ,{} ,{} ,{}".format(request_name, response_op, use_profile, is_thread_op,
+        _LOGGER.info("{}, {}, {}, {}, {}, {} ,{} ,{} ,{}".format(request_name, response_op, use_profile, prometheus_port, is_thread_op,
                          channel_size, build_dag_each_worker, tracer,
                                           channel_recv_frist_arrive))
         @ErrorCatch
@@ -491,6 +500,7 @@ class DAG(object):
         def init_helper(self, request_name: str,
                          response_op, 
                          use_profile: [bool, None], 
+                         prometheus_port: [int, None],
                          is_thread_op: bool,
                          channel_size, 
                          build_dag_each_worker: [bool, None],
@@ -499,6 +509,8 @@ class DAG(object):
             self._request_name = request_name
             self._response_op = response_op
             self._use_profile = use_profile
+            self._prometheus_port = prometheus_port
+            self._use_prometheus = (self._prometheus_port is not None)
             self._is_thread_op = is_thread_op
             self._channel_size = channel_size
             self._build_dag_each_worker = build_dag_each_worker
@@ -506,7 +518,7 @@ class DAG(object):
             self._channel_recv_frist_arrive = channel_recv_frist_arrive
             if not self._is_thread_op:
                 self._manager = PipelineProcSyncManager()
-        init_helper(self, request_name, response_op, use_profile, is_thread_op,
+        init_helper(self, request_name, response_op, use_profile, prometheus_port, is_thread_op,
                     channel_size, build_dag_each_worker, tracer,
                     channel_recv_frist_arrive)
         print("[DAG] Succ init")
@@ -828,6 +840,56 @@ class DAG(object):
 
         return self._input_channel, self._output_channel, self._pack_func, self._unpack_func
 
+    def start_prom(self, prometheus_port):
+        import prometheus_client
+        from prometheus_client import Counter
+        from prometheus_client.core import CollectorRegistry
+
+        from flask import Response, Flask
+        from .prometheus_metrics import registry 
+        from .prometheus_metrics import metric_query_success, metric_query_failure, metric_inf_count, metric_query_duration_us, metric_inf_duration_us 
+        app = Flask(__name__)
+        # requests_total = Counter('c1','A counter') 
+        
+        @app.route("/metrics")
+        def requests_count():
+            item = self._tracer.profile_dict
+            _LOGGER.info("metrics: {}".format(item))
+            # {'uci': {'in': 727.443, 'prep': 0.5525833333333333, 'midp': 2.21375, 'postp': 1.32375, 'out': 0.9396666666666667}, 'DAG': {'call_0': 29.479, 'call_1': 8.176, 'call_2': 8.045, 'call_3': 7.988, 'call_4': 7.609, 'call_5': 7.629, 'call_6': 7.625, 'call_7': 8.32, 'call_8': 8.57, 'call_9': 8.055, 'call_10': 7.915, 'call_11': 7.873, 'query_count': 12, 'qps': 1.2, 'succ': 1.0, 'avg': 9.773666666666667, '50': 8.045, '60': 8.055, '70': 8.176, '80': 8.32, '90': 8.57, '95': 29.479, '99': 29.479}}
+            if "DAG" in item:
+                total = item["DAG"]["query_count"]
+                succ = total * item["DAG"]["succ"]
+                fail = total * (1 - item["DAG"]["succ"])
+                query_duration = total *item["DAG"]["avg"]
+                metric_query_success.inc(succ)
+                metric_query_failure._value.inc(fail)
+                metric_query_duration_us._value.inc(query_duration)
+
+                inf_cnt = 0
+                infer_duration = 0.0
+                for name in item:
+                    if name != "DAG":
+                        if "count" in item[name]:
+                            inf_cnt += item[name]["count"]
+                            if "midp" in item[name]:
+                                infer_duration += item[name]["count"]*item[name]["midp"]
+                metric_inf_count._value.inc(inf_cnt)
+                metric_inf_duration_us._value.inc(infer_duration)
+            
+            #return str(item)
+            self._tracer.profile_dict = {}
+            return Response(prometheus_client.generate_latest(registry),mimetype="text/plain")
+
+        def prom_run():
+            app.run(host="0.0.0.0",port=prometheus_port)
+       
+        p = threading.Thread(
+                target=prom_run,
+                args=())
+        _LOGGER.info("Prometheus Start 2")
+        p.daemon = True
+        p.start()
+
     def start(self):
         """
         Each OP starts a thread or process by _is_thread_op 
@@ -842,12 +904,16 @@ class DAG(object):
         for op in self._actual_ops:
             op.use_profiler(self._use_profile)
             op.set_tracer(self._tracer)
+            op.set_use_prometheus(self._use_prometheus)
             if self._is_thread_op:
                 self._threads_or_proces.extend(op.start_with_thread())
             else:
                 self._threads_or_proces.extend(op.start_with_process())
         _LOGGER.info("[DAG] start")
-
+        if self._use_prometheus:
+            _LOGGER.info("Prometheus Start 1")
+            self.start_prom(self._prometheus_port)
+         
         # not join yet
         return self._threads_or_proces
 
