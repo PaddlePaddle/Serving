@@ -21,3 +21,4 @@ sentencepiece; platform_machine ==  "aarch64"
 opencv-python==4.3.0.38; platform_machine !=  "aarch64"
 opencv-python; platform_machine == "aarch64"
 pytest 
+prometheus-client==0.12.0
