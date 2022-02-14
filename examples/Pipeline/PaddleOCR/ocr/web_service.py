@@ -29,14 +29,6 @@ class PreDetOp(Op):
             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                 (2, 0, 1))
         ])
-        self.filter_func = FilterBoxes(10, 10)
-        self.post_func = DBPostProcess({
-            "thresh": 0.3,
-            "box_thresh": 0.5,
-            "max_candidates": 1000,
-            "unclip_ratio": 1.5,
-            "min_size": 3
-        })
 
     def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         (_, input_dict), = input_dicts.items()
@@ -59,6 +51,15 @@ class PreDetOp(Op):
 
 
 class DetOp(Op):
+    def init_op(self):
+        self.filter_func = FilterBoxes(10, 10)
+        self.post_func = DBPostProcess({
+            "thresh": 0.3,
+            "box_thresh": 0.5,
+            "max_candidates": 1000,
+            "unclip_ratio": 1.5,
+            "min_size": 3
+        })
 
     """ 
     when opening tensorrt(configure in config.yml) and each time the input shape 
@@ -197,6 +198,9 @@ class PreRecOp(Op):
         return {"feed_list" : feed_list}, None, ""
 
 class RecOp(Op):
+    def init_op(self):
+        self.ocr_reader = OCRReader()
+
     """ 
     when opening tensorrt(configure in config.yml) and each time the input shape 
     for inferring is different, using this method for configuring tensorrt 
