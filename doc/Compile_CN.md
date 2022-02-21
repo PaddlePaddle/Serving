@@ -254,7 +254,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
 make -j10
 ```
 
-**注意：** 编译成功后，需要设置`SERVING_BIN`路径，详见后面的[注意事项](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#注意事项)。
+**注意：** 编译成功后，需要设置`SERVING_BIN`路径。
 
 
 
