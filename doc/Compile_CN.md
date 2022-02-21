@@ -4,19 +4,19 @@
 
 ## 总体概述
 
-编译Paddle Serving一共分以下几步
-
-- 编译环境准备：根据模型和运行环境的需要，选择最合适的镜像
-- 下载代码库：下载Serving代码库，按需要执行初始化操作
-- 环境变量准备：根据运行环境的需要，确定Python各个环境变量，如GPU环境还需要确定Cuda，Cudnn，TensorRT等环境变量。
-- 正式编译： 编译`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`相关whl包
-- 安装相关whl包：安装编译出的三个whl包，并设置SERVING_BIN环境变量
+编译Paddle Serving一共分以下几步： 
+- [编译环境准备](#1)：根据模型和运行环境的需要，选择最合适的镜像
+- [下载代码库](#2)：下载Serving代码库，按需要执行初始化操作
+- [环境变量准备](#3)：根据运行环境的需要，确定Python各个环境变量，如GPU环境还需要确定Cuda，Cudnn，TensorRT等环境变量。
+- [正式编译](#4)： 编译`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`相关whl包
+- [安装相关whl包](#5)：安装编译出的三个whl包，并设置SERVING_BIN环境变量
+- [注意事项](#6)
 
 此外，针对某些C++二次开发场景，我们也提供了OPENCV的联编方案。
 
 
 
-
+<a name="1"></a>
 ## 编译环境准备
 
 |             组件             |             版本要求              |
@@ -78,7 +78,7 @@ nvidia-docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
 docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
 ```
 
-
+<a name="2"></a>
 ## 下载代码库
 **注明： 如果您正在使用Paddle开发镜像，需要在下载代码库后手动运行`bash env_install.sh`(如代码框的第三行所示）**
 ```
@@ -89,6 +89,7 @@ cd Serving && git submodule update --init --recursive
 bash tools/paddle_env_install.sh
 ```
 
+<a name="3"></a>
 ## 环境变量准备
 
 **设置PYTHON环境变量**
@@ -161,7 +162,7 @@ export TENSORRT_LIBRARY_PATH="/usr/"
 | TENSORRT_ROOT         | libnvinfer.so.*所在目录的上一级目录，取决于TensorRT安装目录 | 全部GPU环境都需要 | 否(/usr)                 |
 
 
-
+<a name="4"></a>
 ## 正式编译
 
 我们一共需要编译三个目标，分别是`paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`，其中`paddle-serving-server`需要区分CPU或者GPU版本。如果是CPU版本请运行，
@@ -222,6 +223,7 @@ make -j10
 cd ..
 ```
 
+<a name="5"></a>
 ## 安装相关whl包
 ```
 pip3.7 install -r build_server/python/dist/*.whl
@@ -230,6 +232,7 @@ pip3.7 install -r build_app/python/dist/*.whl
 export SERVING_BIN=${PWD}/build_server/core/general-server/serving
 ```
 
+<a name="6"></a>
 ## 注意事项
 
 注意到上一小节的最后一行`export SERVING_BIN`，运行python端Server时，会检查`SERVING_BIN`环境变量，如果想使用自己编译的二进制文件，请将设置该环境变量为对应二进制文件的路径，通常是`export SERVING_BIN=${BUILD_DIR}/core/general-server/serving`。
