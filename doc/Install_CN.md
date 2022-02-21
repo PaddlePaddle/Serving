@@ -66,7 +66,6 @@ pip3 install -r python/requirements.txt
 
 ```shell
 pip3 install paddle-serving-client==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
-
 pip3 install paddle-serving-app==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server

@@ -63,19 +63,19 @@ pip3 install -r python/requirements.txt
 Install the service whl package. There are three types of client, app and server. The server is divided into CPU and GPU. Choose one installation according to the environment. 
 - GPU with CUDA10.2 + Cudnn7 + TensorRT6(Recommended)
 ```shell
-pip3 install paddle-serving-client==0.8.0
-
-pip3 install paddle-serving-app==0.8.0
+pip3 install paddle-serving-client==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-app==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server
-pip3 install paddle-serving-server==0.8.0
-pip3 install paddle-serving-server-gpu==0.8.0.post102 #
-# Other GPU environments need to confirm the environment before choosing which one to execute
-pip3 install paddle-serving-server-gpu==0.8.0.post101 # GPU with CUDA10.1 + TensorRT6
-pip3 install paddle-serving-server-gpu==0.8.0.post112 # GPU with CUDA11.2 + TensorRT8
+pip3 install paddle-serving-server==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# GPU environments need to confirm the environment before choosing which one to execute
+pip3 install paddle-serving-server-gpu==0.8.0.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+pip3 install paddle-serving-server-gpu==0.8.0.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.0.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-If you are in China, You may need to use a chinese mirror source (such as Tsinghua source, add `-i https://pypi.tuna.tsinghua.edu.cn/simple` to the pip command) to speed up the download.
+By default, the domestic Tsinghua mirror source is turned on to speed up the download. If you use a proxy, you can turn it off（`-i https://pypi.tuna.tsinghua.edu.cn/simple`).
 
 If you need to use the installation package compiled by the develop branch, please download the download address from [Latest installation package list](./Latest_Packages_CN.md), and use the `pip install` command to install. If you want to compile by yourself, please refer to [Paddle Serving Compilation Document](./Compile_CN.md).
 
