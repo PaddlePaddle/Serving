@@ -58,3 +58,17 @@ Server端<mark>**线程数N**</mark>的设置需要结合三个因素来综合�
 
 ## 4.3 示例
 请参考[examples/C++/PaddleOCR/ocr/README_CN.md](../../examples/C++/PaddleOCR/ocr/README_CN.md)中`C++ OCR Service服务章节`和[Paddle Serving中的集成预测](./Model_Ensemble_CN.md)中的例子。
+
+# 5.请求缓存
+当<mark>**您的业务中有较多重复请求**</mark>时，您可以考虑使用C++Serving[Request Cache](./Request_Cache_CN.md)来提升服务性能
+
+## 5.1 优点
+服务可以缓存请求结果，将请求数据与结果以键值对的形式保存。当有重复请求到来时，可以根据请求数据直接从缓存中获取结果并返回，而不需要进行模型预测等处理（耗时与请求数据大小有关，在毫秒量级）。
+
+## 5.2 缺点
+
+1) 需要额外的系统内存用于缓存请求结果，具体缓存大小可以通过启动参数进行配置。
+2) 对于未命中请求，会增加额外的时间用于根据请求数据检索缓存（耗时增加1%左右）。
+
+## 5.3 示例
+请参考[Request Cache](./Request_Cache_CN.md)中的使用方法
