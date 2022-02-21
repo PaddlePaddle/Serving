@@ -4,9 +4,9 @@
 ## 概览
 
 TensorRT是一个高性能的深度学习推理（Inference）优化器，可以为深度学习应用提供低延迟、高吞吐率的部署推理。
-以下将分别从 PIpeline Serving 和 C++ Serving 介绍 Tensorrt 开启方式以及配置动态 shape（Dynamic Shape）。
+以下将分别从 Pipeline Serving 和 C++ Serving 介绍 Tensorrt 开启方式以及配置动态 shape(Dynamic Shape)。
 
-## Paddle Inference 动态 shape Api
+## Paddle Inference Dynamic Shape Api
 ```
   void SetTRTDynamicShapeInfo(
       std::map<std::string, std::vector<int>> min_input_shape,
@@ -175,5 +175,5 @@ def set_dynamic_shape_info(self):
 ```
 具体可以参考[Pipeline OCR](../examples/Pipeline/PaddleOCR/ocr/)
 >> **注意**: 由于不同的模型具有不同的动态 shape 配置，因此不存在通用的动态 shape 配置方法。当运行 Pipeline Serving 
->> 出现报错信息时，应该使用[netron](https://netron.app/) 加载模型，查看各个 op 的输入输出 shape。之后，结合报错信息，添加相应的
->> 动态 shape 配置代码。
+>> 出现报错信息时，应该使用[netron](https://netron.app/) 加载模型，查看各个 op 的输入输出 shape。之后，结合报错信息，在 web_service.py 
+>> 添加相应的动态 shape 配置代码。
