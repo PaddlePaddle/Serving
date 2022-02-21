@@ -364,10 +364,40 @@ dag:
     tracer:
         interval_s: 10
 
+    #client类型，包括brpc, grpc和local_predictor.local_predictor不启动Serving服务，进程内预测
+    #client_type: local_predictor
+
+    #channel的最大长度，默认为0
+    #channel_size: 0
+
+    #针对大模型分布式场景tensor并行，接收第一个返回结果后其他结果丢弃来提供速度
+    #channel_recv_frist_arrive: False
+
 op:
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 6
+
+        #Serving IPs
+        #server_endpoints: ["127.0.0.1:9393"]
+
+        #Fetch结果列表，以client_config中fetch_var的alias_name为准
+        #fetch_list: ["concat_1.tmp_0"]
+
+        #det模型client端配置
+        #client_config: serving_client_conf.prototxt
+
+        #Serving交互超时时间, 单位ms
+        #timeout: 3000
+
+        #Serving交互重试次数，默认不重试
+        #retry: 1
+
+        # 批量查询Serving的数量, 默认1。batch_size>1要设置auto_batching_timeout，否则不足batch_size时会阻塞
+        #batch_size: 2
+
+        # 批量查询超时，与batch_size配合使用
+        #auto_batching_timeout: 2000
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -399,6 +429,27 @@ op:
             #GPU 支持: "fp32"(default), "fp16", "int8"；
             #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
             precision: "fp32"
+
+            #mem_optim, memory / graphic memory optimization
+            #mem_optim: True
+
+            #use_calib, Use TRT int8 calibration
+            #use_calib: False
+
+            #use_mkldnn, Use mkldnn for cpu
+            #use_mkldnn: False
+
+            #The cache capacity of different input shapes for mkldnn
+            #mkldnn_cache_capacity: 0
+
+            #mkldnn_op_list, op list accelerated using MKLDNN, None default
+            #mkldnn_op_list: []
+
+            #mkldnn_bf16_op_list,op list accelerated using MKLDNN bf16, None default.
+            #mkldnn_bf16_op_list: []
+
+            #min_subgraph_size,the minimal subgraph size for opening tensorrt to optimize, 3 default
+            #min_subgraph_size: 3
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 3
