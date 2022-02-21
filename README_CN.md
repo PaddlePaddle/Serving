@@ -11,8 +11,8 @@
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop?style=flat-square">
         <img alt="Docs" src="https://img.shields.io/badge/docs-中文文档-brightgreen?style=flat-square">
-        <img alt="Release" src="https://img.shields.io/badge/release-0.7.0-blue?style=flat-square">
-        <img alt="Python" src="https://img.shields.io/badge/python-3.6+-blue?style=flat-square">
+        <img alt="Release" src="https://img.shields.io/badge/release-0.8.0-blue?style=flat-square">
+        <img alt="Python" src="https://img.shields.io/badge/python-3.6/3.7/3.8/3.9-blue?style=flat-square">
         <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving?color=blue&style=flat-square">
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
@@ -30,10 +30,11 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
 - 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
 - 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
-- 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU等多种硬件；集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
+- 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU、华为昇腾310/910、海光DCU、Nvidia Jetson等多种硬件
+- 集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
 - 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
 - 支持云端部署，提供百度云智能云kubernetes集群部署Paddle Serving案例
-- 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型，更多模型持续扩展
+- 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型
 - 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频cache等特性、可单机或云端部署
 
 
@@ -41,7 +42,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 - AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
 - 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
-- Edge AI solution based on Paddle Serving & Baidu Intelligent Edge(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+- 边缘AI解决方案-[基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
 
 <p align="center">
     <img src="doc/images/demo.gif" width="700">

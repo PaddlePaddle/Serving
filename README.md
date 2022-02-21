@@ -11,8 +11,8 @@
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop?style=flat-square">
         <img alt="Docs" src="https://img.shields.io/badge/docs-中文文档-brightgreen?style=flat-square">
-        <img alt="Release" src="https://img.shields.io/badge/release-0.7.0-blue?style=flat-square">
-        <img alt="Python" src="https://img.shields.io/badge/python-3.6+-blue?style=flat-square">
+        <img alt="Release" src="https://img.shields.io/badge/release-0.8.0-blue?style=flat-square">
+        <img alt="Python" src="https://img.shields.io/badge/python-3.6/3.7/3.8/3.9-blue?style=flat-square">
         <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving?color=blue&style=flat-square">
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
         <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
@@ -31,7 +31,8 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 - There are two frameworks, namely high-performance C++ Serving and high-easy-to-use Python pipeline. The C++ Serving is based on the bRPC network framework to create a high-throughput, low-latency inference service, and its performance indicators are ahead of competing products. The Python pipeline is based on the gRPC/gRPC-Gateway network framework and the Python language to build a highly easy-to-use and high-throughput inference service. How to choose which one please see [Techinical Selection](doc/Serving_Design_EN.md#21-design-selection).
 - Support multiple [protocols](doc/C++_Serving/Inference_Protocols_CN.md) such as HTTP, gRPC, bRPC, and provide C++, Python, Java language SDK.
 - Design and implement a high-performance inference service framework for asynchronous pipelines based on directed acyclic graph (DAG), with features such as multi-model combination, asynchronous scheduling, concurrent inference, dynamic batch, multi-card multi-stream inference, etc.
-- Adapt to a variety of commonly used computing hardwares, such as x86 (Intel) CPU, ARM CPU, Nvidia GPU, Kunlun XPU, etc.; Integrate acceleration libraries of Intel MKLDNN and  Nvidia TensorRT, and low-precision and quantitative inference.
+- Adapt to a variety of commonly used computing hardwares, such as x86 (Intel) CPU, ARM CPU, Nvidia GPU, Kunlun XPU, HUAWEI Ascend 310/910, HYGON DCU、Nvidia Jetson etc. 
+- Integrate acceleration libraries of Intel MKLDNN and  Nvidia TensorRT, and low-precision and quantitative inference.
 - Provide a model security deployment solution, including encryption model deployment, and authentication mechanism, HTTPs security gateway, which is used in practice.
 - Support cloud deployment, provide a deployment case of Baidu Cloud Intelligent Cloud kubernetes cluster.
 - Provide more than 40 classic pre-model deployment examples, such as PaddleOCR, PaddleClas, PaddleDetection, PaddleSeg, PaddleNLP, PaddleRec and other suites, and more models continue to expand.
@@ -43,7 +44,7 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 
 - AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
 - Video tutorial(Chinese) : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
-- Edge AI solution based on Paddle Serving & Baidu Intelligent Edge(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+- Edge AI solution(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
 
 <p align="center">
     <img src="doc/images/demo.gif" width="700">
@@ -127,7 +128,6 @@ If you want to communicate with developers and other users? Welcome to join us, 
 
 ### Wechat
 - WeChat scavenging
-
 
 <p align="center">
   <img src="doc/images/wechat_group_1.jpeg" width="250">
