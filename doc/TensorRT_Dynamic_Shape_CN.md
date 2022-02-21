@@ -23,7 +23,12 @@ TensorRT是一个高性能的深度学习推理（Inference）优化器，可以
 在 C++ Serving 启动命令加上`--use_trt`
 
 ```
-
+python -m paddle_serving_server.serve \
+--model serving_server \
+--thread 2 --port 9000 \
+--gpu_ids 0 \
+--use_trt \
+--precision FP16
 ```
 
 **二. C++ Serving 设置动态 shape**
@@ -170,5 +175,5 @@ def set_dynamic_shape_info(self):
 ```
 具体可以参考[Pipeline OCR](../examples/Pipeline/PaddleOCR/ocr/)
 >> **注意**: 由于不同的模型具有不同的动态 shape 配置，因此不存在通用的动态 shape 配置方法。当运行 Pipeline Serving 
->> 出现报错信息时，应该使用[netron](https://netron.app/) 加载模型，查看各个 op 的输入输出 shape。之后，结合报错信息，添加响应的
+>> 出现报错信息时，应该使用[netron](https://netron.app/) 加载模型，查看各个 op 的输入输出 shape。之后，结合报错信息，添加相应的
 >> 动态 shape 配置代码。
