@@ -4,7 +4,7 @@
 ## 概览
 
 TensorRT是一个高性能的深度学习推理（Inference）优化器，可以为深度学习应用提供低延迟、高吞吐率的部署推理。
-以下将分别从 PIpeline Serving 和 C++ Serving 开启 tensorrt 和配置动态 shape 进行讲解。
+以下将分别从 PIpeline Serving 和 C++ Serving 介绍 Tensorrt 开启方式以及配置动态 shape（Dynamic Shape）。
 
 ## Paddle Inference 动态 shape Api
 ```
