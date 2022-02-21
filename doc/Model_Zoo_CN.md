@@ -10,6 +10,7 @@
 
 | 模型 | 类型 | 示例使用的框架 | 下载 |
 | --- | --- | --- | ---- |
+| pp_shitu | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/pp_shitu) | [.tar.gz](https://paddle-imagenet-models-name.bj.bcebos.com/dygraph/rec/models/inference/serving/pp_shitu.tar.gz) |
 | resnet_v2_50_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/resnet_v2_50)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet_V2_50) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/resnet_v2_50_imagenet.tar.gz) | Pipeline Serving, C++ Serving|
 | mobilenet_v2_imagenet | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/mobilenet) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageClassification/mobilenet_v2_imagenet.tar.gz) |
 | resnet50_vd | PaddleClas | [C++ Serving](../examples/C++/PaddleClas/imagenet)</br>[Pipeline Serving](../examples/Pipeline/PaddleClas/ResNet50_vd) | [.tar.gz](https://paddle-serving.bj.bcebos.com/model/ResNet50_vd.tar) |
@@ -27,6 +28,8 @@
 | senta_bilstm | PaddleNLP | [C++ Serving](../examples/C++/PaddleNLP/senta) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/senta_bilstm.tar.gz) |C++ Serving|
 | lac | PaddleNLP | [C++ Serving](../examples/C++/PaddleNLP/lac) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/lac.tar.gz) |
 | transformer | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/blob/develop/examples/machine_translation/transformer/deploy/serving/README.md) | [model](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/machine_translation/transformer) |
+| ELECTRA | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/blob/develop/examples/language_model/electra/deploy/serving/README.md) | [model](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/language_model/electra) |
+| In-batch Negatives | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/applications/neural_search/recall/in_batch_negative) | [model](https://bj.bcebos.com/v1/paddlenlp/models/inbatch_model.zip) |
 | criteo_ctr | PaddleRec | [C++ Serving](../examples/C++/PaddleRec/criteo_ctr) | [.tar.gz](https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz) |
 | criteo_ctr_with_cube | PaddleRec | [C++ Serving](../examples/C++/PaddleRec/criteo_ctr_with_cube) | [.tar.gz](https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz) |
 | wide&deep | PaddleRec | [C++ Serving](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/doc/serving.md) | [model](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/models/rank/wide_deep/README.md) |
@@ -66,4 +69,3 @@
   - [PaddleRec](https://github.com/PaddlePaddle/PaddleRec)
   - [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)
   - [PaddleGAN](https://github.com/PaddlePaddle/PaddleGAN)
-

@@ -369,10 +369,40 @@ dag:
     tracer:
         interval_s: 10
 
+    #client type，include brpc, grpc and local_predictor.
+    #client_type: local_predictor
+
+    # max channel size, default 0
+    #channel_size: 0
+
+    #For distributed large model scenario with tensor parallelism, the first result is received and the other results are discarded to provide speed
+    #channel_recv_frist_arrive: False
+
 op:
     det:
         #concurrency，is_thread_op=True，thread otherwise process
         concurrency: 6
+
+        #Serving IPs
+        #server_endpoints: ["127.0.0.1:9393"]
+
+        #Fetch data list
+        #fetch_list: ["concat_1.tmp_0"]
+
+        #det client config
+        #client_config: serving_client_conf.prototxt
+
+        #Serving timeout, ms
+        #timeout: 3000
+
+        #Serving retry times
+        #retry: 1
+
+        #Default 1。batch_size>1 should set auto_batching_timeout
+        #batch_size: 2
+
+        #Batching timeout，used with batch_size
+        #auto_batching_timeout: 2000
 
         #Loading local server configuration without server_endpoints.
         local_service_conf:
@@ -397,10 +427,34 @@ op:
             #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
             
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
+            
             #precsion, Decrease accuracy can increase speed
             #GPU 支持: "fp32"(default), "fp16", "int8"；
             #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
             precision: "fp32"
+
+            #mem_optim, memory / graphic memory optimization
+            #mem_optim: True
+
+            #use_calib, Use TRT int8 calibration
+            #use_calib: False
+
+            #use_mkldnn, Use mkldnn for cpu
+            #use_mkldnn: False
+
+            #The cache capacity of different input shapes for mkldnn
+            #mkldnn_cache_capacity: 0
+
+            #mkldnn_op_list, op list accelerated using MKLDNN, None default
+            #mkldnn_op_list: []
+
+            #mkldnn_bf16_op_list,op list accelerated using MKLDNN bf16, None default.
+            #mkldnn_bf16_op_list: []
+
+            #min_subgraph_size,the minimal subgraph size for opening tensorrt to optimize, 3 default
+            #min_subgraph_size: 3
     rec:
         #concurrency，is_thread_op=True，thread otherwise process
         concurrency: 3
@@ -434,6 +488,9 @@ op:
 
             #ir_optim, When running on TensorRT，must set ir_optim=True
             ir_optim: True
+            
+            #CPU 计算线程数，在CPU场景开启会降低单次请求响应时长
+            #thread_num: 10
             
             #precsion, Decrease accuracy can increase speed
             #GPU 支持: "fp32"(default), "fp16", "int8"；
