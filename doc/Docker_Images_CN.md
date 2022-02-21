@@ -11,7 +11,7 @@
 1. 通过 TAG 直接从 dockerhub 或 `registry.baidubce.com` 拉取镜像，具体TAG请参见下文的**镜像说明**章节的表格。
 
    ```shell
-   docker pull paddlepaddle/serving:<TAG> # 如果连接dockerhub网速不佳可以尝试registry.baidubce.com/paddlepaddle/serving:<TAG>
+   docker pull registry.baidubce.com/paddlepaddle/serving:<TAG> 
    ```
 
 2. 基于 Dockerfile 构建镜像
@@ -23,7 +23,6 @@
    ```
    
 
-
 ## 镜像说明
 
 若需要基于源代码二次开发编译，请使用后缀为-devel的版本。
@@ -32,16 +31,16 @@
 
 |                         镜像选择                         |   操作系统    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
-|                       CPU development                        | Ubuntu16 |         0.7.0-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
-|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | 0.7.0-cuda10.1-cudnn7-gcc54-devel (not ready) | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
-|              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | 0.7.0-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
-|              GPU (cuda10.2-cudnn7-tensorRT6) development               | Ubuntu16 | 0.7.0-cuda10.2-cudnn7-devel | [Dockerfile.cuda10.2-cudnn7.devel](../tools/Dockerfile.cuda10.2-cudnn7.devel) |
-|              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | 0.7.0-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
-|              GPU (cuda11.2-cudnn8-tensorRT8) development               | Ubuntu16 | 0.7.0-cuda11.2-cudnn8-devel | [Dockerfile.cuda11.2-cudnn8.devel](../tools/Dockerfile.cuda11.2-cudnn8.devel) |
+|                       CPU development                        | Ubuntu16 |         0.8.0-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
+|              GPU (cuda10.1-cudnn7-tensorRT6-gcc54) development               | Ubuntu16 | 0.8.0-cuda10.1-cudnn7-gcc54-devel (not ready) | [Dockerfile.cuda10.1-cudnn7-gcc54.devel](../tools/Dockerfile.cuda10.1-cudnn7-gcc54.devel) |
+|              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | 0.8.0-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
+|              GPU (cuda10.2-cudnn7-tensorRT6) development               | Ubuntu16 | 0.8.0-cuda10.2-cudnn7-devel | [Dockerfile.cuda10.2-cudnn7.devel](../tools/Dockerfile.cuda10.2-cudnn7.devel) |
+|              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | 0.8.0-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
+|              GPU (cuda11.2-cudnn8-tensorRT8) development               | Ubuntu16 | 0.8.0-cuda11.2-cudnn8-devel | [Dockerfile.cuda11.2-cudnn8.devel](../tools/Dockerfile.cuda11.2-cudnn8.devel) |
 
 **Java镜像：**
 ```
-registry.baidubce.com/paddlepaddle/serving:latest-java
+registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-java
 ```
 
 **XPU镜像：**
@@ -66,15 +65,15 @@ registry.baidubce.com/paddlepaddle/serving:xpu-x86 # for x86 xpu user
 
 | Env      | Version | Docker images tag            | OS        | Gcc Version |
 |----------|---------|------------------------------|-----------|-------------|
-|    CPU   | >=0.5.0 | 0.7.0-devel                 | Ubuntu 16 |  8.2.0       |
+|    CPU   | >=0.5.0 | 0.8.0-devel                 | Ubuntu 16 |  8.2.0       |
 |          | <=0.4.0 | 0.4.0-devel                  | CentOS 7  | 4.8.5       |
-| Cuda10.1 | >=0.5.0 | 0.7.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.1 | >=0.5.0 | 0.8.0-cuda10.1-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | 0.4.0-cuda10.1-cudnn7-devel    | CentOS 7  | 4.8.5     |
-| Cuda10.2+Cudnn7 | >=0.5.0 | 0.7.0-cuda10.2-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.2+Cudnn7 | >=0.5.0 | 0.8.0-cuda10.2-cudnn7-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
-| Cuda10.2+Cudnn8 | >=0.5.0 | 0.7.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
+| Cuda10.2+Cudnn8 | >=0.5.0 | 0.8.0-cuda10.2-cudnn8-devel  | Ubuntu 16 |   8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
-| Cuda11.2 | >=0.5.0 | 0.7.0-cuda11.2-cudnn8-devel | Ubuntu 16 |    8.2.0       |
+| Cuda11.2 | >=0.5.0 | 0.8.0-cuda11.2-cudnn8-devel | Ubuntu 16 |    8.2.0       |
 |          | <=0.4.0 | Nan                          | Nan       | Nan         |
 
 运行镜像:

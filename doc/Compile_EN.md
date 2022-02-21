@@ -37,7 +37,7 @@ In addition, for some C++ secondary development scenarios, we also provide OPENC
 
 Docker compilation is recommended. We have prepared the Paddle Serving compilation environment for you and configured the above compilation dependencies. For details, please refer to [this document](DOCKER_IMAGES_CN.md).
 
-We provide five environment development images, namely CPU, Cuda10.1+Cudnn7, Cuda10.2+Cudnn7, Cuda10.2+Cudnn8, Cuda11.2+Cudnn8. We provide a Serving development image to cover the above environment. At the same time, we also support Paddle development mirroring.
+We provide five environment development images, namely CPU, CUDA10.1 + CUDNN7, CUDA10.2 + CUDNN7, CUDA10.2 + CUDNN8, CUDA11.2 + CUDNN8. We provide a Serving development image to cover the above environment. At the same time, we also support Paddle development mirroring.
 
 The Serving image name is **paddlepaddle/serving:${Serving development image Tag}** (If the network is not good, you can visit **registry.baidubce.com/paddlepaddle/serving:${Serving development image Tag}**), The name of the Paddle development image is **paddlepaddle/paddle:${Paddle Development Image Tag}**. In order to prevent users from confusing the two sets of mirroring, we explain the origin of the two sets of mirroring separately.
 
@@ -45,11 +45,11 @@ Serving development mirror is the mirror used to compile and debug prediction se
 
 |  Environment           |   Serving Dev Image Tag               |    OS      | Paddle Dev Image Tag       |  OS            |
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
-|  CPU                         | 0.7.0-devel                       |  Ubuntu 16.04   | 2.2.0                 | Ubuntu 18.04.       |
-|  Cuda10.1+Cudnn7             | 0.7.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | Nan                     | Nan                 |
-|  Cuda10.2+Cudnn7             | 0.7.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
-|  Cuda10.2+Cudnn8             | 0.7.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | Nan                    |  Nan                 |
-|  Cuda11.2+Cudnn8             | 0.7.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  CPU                         | 0.8.0-devel                       |  Ubuntu 16.04   | 2.2.2                 | Ubuntu 18.04.       |
+|  CUDA10.1 + Cudnn7             | 0.8.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | Nan                     | Nan                 |
+|  CUDA10.2 + Cudnn7             | 0.8.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.2-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
+|  CUDA10.2 + Cudnn8             | 0.8.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | Nan                    |  Nan                 |
+|  CUDA11.2 + Cudnn8             | 0.8.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.2-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 We first need to pull related images for the environment we need. Under the **Environment** column in the above table, except for the CPU, the rest (Cuda**+Cudnn**) belong to the GPU environment.
 
@@ -242,7 +242,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR/ \
 make -j10
 ```
 
-**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path, see the following [Notes](https://github.com/PaddlePaddle/Serving/blob/develop/doc/COMPILE_CN.md#Notes) ).
+**Note:** After the compilation is successful, you need to set the `SERVING_BIN` path.
 
 
 
@@ -257,7 +257,7 @@ make -j10
 | WITH_GPU | Compile Paddle Serving with NVIDIA GPU | OFF |
 | WITH_TRT | Compile Paddle Serving with TensorRT | OFF |
 | WITH_OPENCV | Compile Paddle Serving with OPENCV | OFF |
-| CUDNN_LIBRARY | Define CuDNN library and header path | |
+| CUDNN_LIBRARY | Define CUDNN library and header path | |
 | CUDA_TOOLKIT_ROOT_DIR | Define CUDA PATH | |
 | TENSORRT_ROOT | Define TensorRT PATH | |
 | CLIENT | Compile Paddle Serving Client | OFF |
@@ -272,26 +272,26 @@ Paddle Serving supports prediction on the GPU through the PaddlePaddle predictio
 To compile the Paddle Serving GPU version on bare metal, you need to install these basic libraries:
 
 -CUDA
--CuDNN
+-CUDNN
 
 To compile the TensorRT version, you need to install the TensorRT library.
 
 The things to note here are:
 
 1. Compile the basic library versions such as CUDA/CUDNN installed on the system where Serving is located, and need to be compatible with the actual GPU device. For example, Tesla V100 card requires at least CUDA 9.0. If the version of basic libraries such as CUDA used during compilation is too low, the Serving process cannot be started due to the incompatibility between the generated GPU code and the actual hardware device, or serious problems such as coredump may occur.
-2. Install the CUDA driver compatible with the actual GPU device on the system running Paddle Serving, and install the basic library compatible with the CUDA/CuDNN version used during compilation. If the version of CUDA/CuDNN installed on the system running Paddle Serving is lower than the version used during compilation, it may cause strange cuda function call failures and other problems.
+2. Install the CUDA driver compatible with the actual GPU device on the system running Paddle Serving, and install the basic library compatible with the CUDA/CUDNN version used during compilation. If the version of CUDA/CUDNN installed on the system running Paddle Serving is lower than the version used during compilation, it may cause strange cuda function call failures and other problems.
 
 The following is the matching relationship between PaddleServing mirrored Cuda, Cudnn, and TensorRT for reference:
 
-| | CUDA | CuDNN | TensorRT |
+| | CUDA | CUDNN | TensorRT |
 | :----: | :-----: | :----------: | :----: |
-| post101 | 10.1 | CuDNN 7.6.5 | 6.0.1 |
-| post102 | 10.2 | CuDNN 8.0.5 | 7.1.3 |
-| post11 | 11.0 | CuDNN 8.0.4 | 7.1.3 |
+| post101 | 10.1 | CUDNN 7.6.5 | 6.0.1 |
+| post102 | 10.2 | CUDNN 8.0.5 | 7.1.3 |
+| post11 | 11.0 | CUDNN 8.0.4 | 7.1.3 |
 
-### Attachment: How to make the Paddle Serving compilation system detect the CuDNN library
+### Attachment: How to make the Paddle Serving compilation system detect the CUDNN library
 
-After downloading the corresponding version of CuDNN from the official website of NVIDIA developer and decompressing it locally, add the `-DCUDNN_LIBRARY` parameter to the cmake compilation command and specify the path of the CuDNN library.
+After downloading the corresponding version of CUDNN from the official website of NVIDIA developer and decompressing it locally, add the `-DCUDNN_LIBRARY` parameter to the cmake compilation command and specify the path of the CUDNN library.
 
 ## Attachment: Compile and install OpenCV library
 **Note:** You only need to do this when you need to include the OpenCV library in your C++ code.
