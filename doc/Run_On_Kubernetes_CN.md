@@ -26,7 +26,7 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 我们提供了运行镜像的生成脚本在Serving代码库下`tools/generate_runtime_docker.sh`文件，通过以下命令可生成代码。
 
 ```bash
-bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.7.0
+bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.8.0
 ```
 
 会生成 cuda10.1，python 3.7，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。强烈建议您使用最新的paddle和serving的版本（2个版本是对应的如paddle 2.2.x 与serving 0.7.0对应，paddle 2.1.x 与 serving 0.6.x对应），因为更早的版本上出现的错误只在最新版本修复，无法在历史版本中修复。
@@ -84,8 +84,8 @@ python3.6 web_service.py
 web service模式本质上和pipeline模式类似，因此我们以`Serving/examples/C++/PaddleNLP/bert`为例
 
 ```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.7.0-cpu-py36
-docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.7.0-cpu-py36 bash
+#假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.8.0-cpu-py36
+docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.8.0-cpu-py36 bash
 cd Serving/examples/C++/PaddleNLP/bert
 ### download model 
 wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
