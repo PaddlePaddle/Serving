@@ -8,9 +8,9 @@ function usage
     echo "usage: sh tools/generate_runtime_docker.sh --SOME_ARG ARG_VALUE"
     echo "   ";
     echo "   --env                 : running env, cpu/cuda10.1/cuda10.2/cuda11.2";
-    echo "   --python              : python version, 3.6/3.7/3.8 ";
-    echo "   --serving             : serving version(0.7.0/0.6.2)";
-    echo "   --paddle              : paddle version(2.2.0/2.1.2)"
+    echo "   --python              : python version, 3.6/3.7/3.8/3.9 ";
+    echo "   --serving             : serving version(v0.8.0/0.7.0)";
+    echo "   --paddle              : paddle version(2.2.2/2.2.0)"
     echo "   --image_name          : image name(default serving_runtime:env-python)"
     echo "  -h | --help            : helper";
 }
