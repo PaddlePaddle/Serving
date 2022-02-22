@@ -126,3 +126,10 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.2/python/Linux/GPU/x
 |  CUDA11.2 + CUDNN8             | 0.8.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.2-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)。
+
+## 5.安装完成后的环境检查
+当以上步骤均完成后可使用命令行运行环境检查功能，自动运行Paddle Serving相关示例，进行环境相关配置校验。
+```
+python3 -m paddle_serving_server.serve check
+```
+详情请参考[环境检查文档](./Check_Env_CN.md)
