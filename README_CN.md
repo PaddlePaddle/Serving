@@ -80,6 +80,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
   - [多模型串联](doc/C++_Serving/2+_model.md)
 - [Python Pipeline设计](doc/Python_Pipeline/Pipeline_Design_CN.md)
   - [性能优化指南](doc/Python_Pipeline/Performance_Tuning_CN.md)
+  - [TensorRT动态shape](doc/TensorRT_Dynamic_Shape_CN.md)
   - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
 - 客户端SDK
   - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)

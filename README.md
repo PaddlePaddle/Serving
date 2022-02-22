@@ -62,7 +62,6 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Deploy Paddle Serving on Kubernetes(Chinese)](doc/Run_On_Kubernetes_CN.md)
 - [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - Deploy on more hardwares[[百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
-- [Docker镜像](doc/Docker_Images_CN.md)
 - [Docker Images](doc/Docker_Images_EN.md)
 - [Latest Wheel packages](doc/Latest_Packages_CN.md)
 
@@ -86,6 +85,7 @@ The first step is to call the model save interface to generate a model parameter
   - [Multiple models in series(Chinese)](doc/C++_Serving/2+_model.md)
 - [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
+  - [TensorRT dynamic Shape](doc/TensorRT_Dynamic_Shape_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
