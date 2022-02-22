@@ -97,13 +97,13 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 <h2 align="center">模型库</h2>
 
-Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计42个模型。
+Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计45个模型。
 
 <p align="center">
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 14 | 2 | 3 | 4 | 
+| 8 | 12 | 14 | 2 | 3 | 6 | 
 
 </p>
 

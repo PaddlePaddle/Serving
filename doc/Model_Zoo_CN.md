@@ -28,6 +28,8 @@
 | senta_bilstm | PaddleNLP | [C++ Serving](../examples/C++/PaddleNLP/senta) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SentimentAnalysis/senta_bilstm.tar.gz) |C++ Serving|
 | lac | PaddleNLP | [C++ Serving](../examples/C++/PaddleNLP/lac) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/LexicalAnalysis/lac.tar.gz) |
 | transformer | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/blob/develop/examples/machine_translation/transformer/deploy/serving/README.md) | [model](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/machine_translation/transformer) |
+| ELECTRA | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/blob/develop/examples/language_model/electra/deploy/serving/README.md) | [model](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/language_model/electra) |
+| In-batch Negatives | PaddleNLP | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/applications/neural_search/recall/in_batch_negative) | [model](https://bj.bcebos.com/v1/paddlenlp/models/inbatch_model.zip) |
 | criteo_ctr | PaddleRec | [C++ Serving](../examples/C++/PaddleRec/criteo_ctr) | [.tar.gz](https://paddle-serving.bj.bcebos.com/criteo_ctr_example/criteo_ctr_demo_model.tar.gz) |
 | criteo_ctr_with_cube | PaddleRec | [C++ Serving](../examples/C++/PaddleRec/criteo_ctr_with_cube) | [.tar.gz](https://paddle-serving.bj.bcebos.com/unittest/ctr_cube_unittest.tar.gz) |
 | wide&deep | PaddleRec | [C++ Serving](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/doc/serving.md) | [model](https://github.com/PaddlePaddle/PaddleRec/blob/release/2.1.0/models/rank/wide_deep/README.md) |
