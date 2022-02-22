@@ -4,7 +4,7 @@ Paddle Serving支持使用JETSON进行预测部署。目前仅支持Pipeline模�
 
 ### 安装PaddlePaddle
 
-可以参考[NV Jetson部署示例]（https://paddleinference.paddlepaddle.org.cn/demo_tutorial/cuda_jetson_demo.html）安装python版本的paddlepaddle
+可以参考[NV Jetson部署示例](https://paddleinference.paddlepaddle.org.cn/demo_tutorial/cuda_jetson_demo.html) 安装python版本的paddlepaddle
 
 
 ### 安装PaddleServing
