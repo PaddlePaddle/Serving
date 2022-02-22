@@ -37,6 +37,7 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 - Support cloud deployment, provide a deployment case of Baidu Cloud Intelligent Cloud kubernetes cluster.
 - Provide more than 40 classic pre-model deployment examples, such as PaddleOCR, PaddleClas, PaddleDetection, PaddleSeg, PaddleNLP, PaddleRec and other suites, and more models continue to expand.
 - Supports distributed deployment of large-scale sparse parameter index models, with features such as multiple tables, multiple shards, multiple copies, local high-frequency cache, etc., and can be deployed on a single machine or clouds.
+- Support service monitoring, provide prometheus-based performance statistics and port access
 
 
 <h2 align="center">Tutorial</h2>
