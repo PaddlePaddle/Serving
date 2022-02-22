@@ -103,7 +103,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 13 | 2 | 3 | 4 | 
+| 8 | 12 | 14 | 2 | 3 | 4 | 
 
 </p>
 
