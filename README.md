@@ -111,7 +111,7 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 13 | 2 | 3 | 4 | 
+| 8 | 12 | 14 | 2 | 3 | 4 | 
 
 </p>
 
