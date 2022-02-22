@@ -1,4 +1,4 @@
-# Serving Configuration
+# Serving配置
 
 (简体中文|[English](./Serving_Configure_EN.md))
 
