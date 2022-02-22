@@ -7,7 +7,7 @@ curl http://localhost:19393/metrics
 
 ## 配置使用
 
-### C+ Server
+### C++ Server
 
 对于 C++ Server 来说，启动服务时请添加如下参数
 
