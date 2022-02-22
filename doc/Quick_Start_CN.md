@@ -24,7 +24,7 @@ Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-完整参数列表参阅文档[Serving配置](doc/Serving_Configure_EN.md#c-serving)
+完整参数列表参阅文档[Serving配置](Serving_Configure_EN.md#c-serving)
 
 #### 异步模型的说明
     异步模式适用于1、请求数量非常大的情况，2、多模型串联，想要分别指定每个模型的并发数的情况。
