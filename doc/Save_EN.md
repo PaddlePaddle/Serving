@@ -23,7 +23,7 @@ Arguments are the same as `inference_model_to_serving` API.
 | `model_filename` | str | None | The name of file to load the inference program. If it is None, the default filename `__model__` will be used. |
 | `params_filename` | str | None | The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. |
 
-**Demo: Convert From Dynamic Graph**
+### Convert From Dynamic Graph
 
 PaddlePaddle 2.0 provides a new dynamic graph mode, so here we use imagenet ResNet50 dynamic graph as an example to teach how to export from a saved model and use it for real online inference scenarios.
 
