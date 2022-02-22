@@ -154,6 +154,8 @@ If you want to contribute code to Paddle Serving, please reference [Contribution
 - Thanks to [@mcl-stone](https://github.com/mcl-stone) in updating faster_rcnn benchmark
 - Thanks to [@cg82616424](https://github.com/cg82616424) in updating the unet benchmark  modifying resize comment error
 - Thanks to [@cuicheng01](https://github.com/cuicheng01) for providing 11 PaddleClas models
+- Thanks to [@Jiaqi Liu](https://github.com/LiuChiachi) for supporting prediction for string list input
+- Thanks to [@Bin Lu](https://github.com/Intsigstephon) for adding pp-shitu example
 
 > Feedback
 
