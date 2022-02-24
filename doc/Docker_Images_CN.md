@@ -80,4 +80,9 @@ registry.baidubce.com/paddlepaddle/serving:xpu-x86 # for x86 xpu user
 
 运行镜像比开发镜像更加轻量化, 运行镜像提供了serving的whl和bin，但为了运行期更小的镜像体积，没有提供诸如cmake这样但开发工具。 如果您想了解有关信息，请检查文档[在Kubernetes上使用Paddle Serving](./Run_On_Kubernetes_CN.md)。
 
-
+| Env      | Version | Docker images tag            | OS        | Gcc Version | Size |
+|----------|---------|------------------------------|-----------|-------------|------|
+|    CPU   | 0.8.0 | 0.8.0-runtime                 | Ubuntu 16 |  8.2.0       | 3.9 GB |
+| Cuda10.1 | 0.8.0 | 0.8.0-cuda10.1-cudnn7-runtime  | Ubuntu 16 |   8.2.0       | 10 GB |
+| Cuda10.2 | 0.8.0 | 0.8.0-cuda10.2-cudnn8-runtime  | Ubuntu 16 |   8.2.0       | 10.1 GB |
+| Cuda11.2 | 0.8.0 | 0.8.0-cuda11.2-cudnn8-runtime| Ubuntu 16 |    8.2.0       | 14.2 GB |

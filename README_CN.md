@@ -29,13 +29,14 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
 - 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
 - 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
-- 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理等特性
+- 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理、请求缓存等特性
 - 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU、华为昇腾310/910、海光DCU、Nvidia Jetson等多种硬件
 - 集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
 - 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
 - 支持云端部署，提供百度云智能云kubernetes集群部署Paddle Serving案例
 - 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型
 - 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频cache等特性、可单机或云端部署
+- 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问
 
 
 <h2 align="center">教程</h2>
@@ -70,6 +71,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
 - [低精度推理](doc/Low_Precision_CN.md)
 - [常见模型数据处理](doc/Process_data_CN.md)
+- [普罗米修斯](doc/Prometheus_CN.md)
 - [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
   - [协议](doc/C++_Serving/Inference_Protocols_CN.md)
   - [模型热加载](doc/C++_Serving/Hot_Loading_CN.md)
@@ -78,8 +80,10 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
   - [性能优化指南](doc/C++_Serving/Performance_Tuning_CN.md)
   - [性能指标](doc/C++_Serving/Benchmark_CN.md)
   - [多模型串联](doc/C++_Serving/2+_model.md)
+  - [请求缓存](doc/C++_Serving/Request_Cache_CN.md)
 - [Python Pipeline设计](doc/Python_Pipeline/Pipeline_Design_CN.md)
   - [性能优化指南](doc/Python_Pipeline/Performance_Tuning_CN.md)
+  - [TensorRT动态shape](doc/TensorRT_Dynamic_Shape_CN.md)
   - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
 - 客户端SDK
   - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
@@ -96,13 +100,13 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 
 <h2 align="center">模型库</h2>
 
-Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计42个模型。
+Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计45个模型。
 
 <p align="center">
 
 | PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
 | :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 13 | 2 | 3 | 4 | 
+| 8 | 12 | 14 | 2 | 3 | 6 | 
 
 </p>
 
@@ -142,6 +146,8 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 - 感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
 - 感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
 - 感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
+- 感谢 [@Jiaqi Liu](https://github.com/LiuChiachi) 新增list[str]类型输入的预测支持
+- 感谢 [@Bin Lu](https://github.com/Intsigstephon) 提供PP-Shitu C++模型示例
 
 > 反馈
 

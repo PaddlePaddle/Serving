@@ -23,25 +23,8 @@ Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
 ``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
-<center>
 
-| Argument                                       | Type | Default | Description                                           |
-| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
-| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
-| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
-| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+完整参数列表参阅文档[Serving配置](Serving_Configure_EN.md#c-serving)
 
 #### 异步模型的说明
     异步模式适用于1、请求数量非常大的情况，2、多模型串联，想要分别指定每个模型的并发数的情况。

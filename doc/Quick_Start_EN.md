@@ -20,23 +20,8 @@ A user can also start a RPC service with `paddle_serving_server.serve`. RPC serv
 ``` shell
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
-<center>
 
-| Argument                                       | Type | Default | Description                                           |
-| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `4`     | Concurrency of current service                        |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str  | `""`    | Path of paddle model directory to be served           |
-| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
-
-</center>
+For a complete list of parameters, see the document [Serving Configuration](Serving_Configure_CN.md#c-serving)
 
 ```python
 # A user can visit rpc service through paddle_serving_client API

@@ -23,7 +23,7 @@ serving_io.inference_model_to_serving(dirname, serving_server="serving_server", 
 | `model_filename` | str | None | 存储需要转换的模型Inference Program结构的文件名称。如果设置为None，则使用 `__model__` 作为默认的文件名 |
 | `params_filename` | str | None | 存储需要转换的模型所有参数的文件名称。当且仅当所有模型参数被保>存在一个单独的二进制文件中，它才需要被指定。如果模型参数是存储在各自分离的文件中，设置它的值为None |
 
-**示例：从动态图模型中导出**
+### 从动态图模型中导出
 
 PaddlePaddle 2.0提供了全新的动态图模式，因此我们这里以imagenet ResNet50动态图为示例教学如何从已保存模型导出，并用于真实的在线预测场景。
 
