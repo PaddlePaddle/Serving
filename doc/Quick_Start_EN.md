@@ -21,7 +21,7 @@ A user can also start a RPC service with `paddle_serving_server.serve`. RPC serv
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
 ```
 
-For a complete list of parameters, see the document [Serving Configuration](doc/Serving_Configure_CN.md#c-serving)
+For a complete list of parameters, see the document [Serving Configuration](Serving_Configure_CN.md#c-serving)
 
 ```python
 # A user can visit rpc service through paddle_serving_client API

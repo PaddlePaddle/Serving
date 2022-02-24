@@ -83,4 +83,9 @@ Running Images:
 
 Running Images is lighter than Develop Images, and Running Images are made up with serving whl and bin, but without develop tools like cmake because of lower image size. If you want to know about it, plese check the document [Paddle Serving on Kubernetes](./Run_On_Kubernetes_CN.md).
 
-
+| Env      | Version | Docker images tag            | OS        | Gcc Version | Size |
+|----------|---------|------------------------------|-----------|-------------|------|
+|    CPU   | 0.8.0 | 0.8.0-runtime                 | Ubuntu 16 |  8.2.0       | 3.9 GB |
+| Cuda10.1 | 0.8.0 | 0.8.0-cuda10.1-cudnn7-runtime  | Ubuntu 16 |   8.2.0       | 10 GB |
+| Cuda10.2 | 0.8.0 | 0.8.0-cuda10.2-cudnn8-runtime  | Ubuntu 16 |   8.2.0       | 10.1 GB |
+| Cuda11.2 | 0.8.0 | 0.8.0-cuda11.2-cudnn8-runtime| Ubuntu 16 |    8.2.0       | 14.2 GB |
