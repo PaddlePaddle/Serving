@@ -14,6 +14,7 @@ Jinja2==2.11.3
 MarkupSafe==1.1.1
 Werkzeug==1.0.1
 ujson>=2.0.3
-grpcio-tools>=1.33.2
+grpcio-tools==1.33.2
 grpcio>=1.33.2
 sentencepiece==0.1.83
+pillow==8.4.0
