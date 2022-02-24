@@ -24,6 +24,13 @@ dag:
         interval_s: 10
 
 op:
+
+    pre_det:
+        #并发数，is_thread_op=True时，为线程并发；否则为进程并发
+        concurrency: 25
+        device_type: 0
+        devices: ""
+
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 6
@@ -56,6 +63,13 @@ op:
             
             #开启tensorrt后，进行优化的子图包含的最少节点数
             #min_subgraph_size: 13
+
+    pre_rec:
+        #并发数，is_thread_op=True时，为线程并发；否则为进程并发
+        concurrency: 10
+        device_type: 0
+        devices: ""
+
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 3
