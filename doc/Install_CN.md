@@ -23,7 +23,7 @@ git clone https://github.com/PaddlePaddle/Serving
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
 nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
@@ -43,7 +43,7 @@ bash Serving/tools/paddle_env_install.sh
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
+nvidia-docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
 nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
