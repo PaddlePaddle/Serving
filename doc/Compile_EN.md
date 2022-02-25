@@ -39,8 +39,6 @@ Docker compilation is recommended. We have prepared the Paddle Serving compilati
 
 We provide five environment development images, namely CPU, CUDA10.1 + CUDNN7, CUDA10.2 + CUDNN7, CUDA10.2 + CUDNN8, CUDA11.2 + CUDNN8. We provide a Serving development image to cover the above environment. At the same time, we also support Paddle development mirroring.
 
-The Serving image name is **paddlepaddle/serving:${Serving development image Tag}** (If the network is not good, you can visit **registry.baidubce.com/paddlepaddle/serving:${Serving development image Tag}**), The name of the Paddle development image is **paddlepaddle/paddle:${Paddle Development Image Tag}**. In order to prevent users from confusing the two sets of mirroring, we explain the origin of the two sets of mirroring separately.
-
 Serving development mirror is the mirror used to compile and debug prediction services provided by Serving suite in order to support various prediction environments. Paddle development mirror is the mirror used for compilation, development, and training models released by Paddle on the official website. In order to allow Paddle developers to use Serving directly in the same container. For developers who have already used Serving users in the previous version, Serving development image should not be unfamiliar. But for developers who are familiar with the Paddle training framework ecology, they should be more familiar with the existing Paddle development mirrors. In order to adapt to the different habits of all users, we have fully supported both sets of mirrors.
 
 |  Environment           |   Serving Dev Image Tag               |    OS      | Paddle Dev Image Tag       |  OS            |
@@ -55,16 +53,25 @@ We first need to pull related images for the environment we need. Under the **En
 
 You can use Serving Dev Images.
 ```
-docker pull paddlepaddle/serving:${Serving Dev Image Tag}
+docker pull registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag}
 
 # For GPU Image
-nvidia-docker run --rm -it  paddlepaddle/serving:${Serving Dev Image Tag} bash
+nvidia-docker run --rm -it  registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
 
 # For CPU Image
-docker run --rm -it  paddlepaddle/serving:${Serving Dev Image Tag} bash
+docker run --rm -it  registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
 ```
 
 You can also use Paddle Dev Images.
+```
+docker pull registry.baidubce.com/paddlepaddle/paddle:${Paddle Dev Image Tag}
+
+# For GPU Image
+nvidia-docker run --rm -it registry.baidubce.com/paddlepaddle/paddle:${Paddle Dev Image Tag} bash
+
+# For CPU Image
+docker run --rm -it registry.baidubce.com/paddlepaddle/paddle:${Paddle Dev Image Tag} bash
+```
 
 ## Download the Serving Code Repo
 **Note: If you are using Paddle to develop the image, you need to manually run `bash env_install.sh` after downloading the code base (as shown in the third line of the code box)**
