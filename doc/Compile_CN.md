@@ -40,8 +40,6 @@
 
 我们提供了五个环境的开发镜像，分别是CPU， CUDA10.1+CUDNN7， CUDA10.2+CUDNN7，CUDA10.2+CUDNN8， CUDA11.2+CUDNN8。我们提供了Serving开发镜像涵盖以上环境。与此同时，我们也支持Paddle开发镜像。
 
-其中Serving镜像名是 **paddlepaddle/serving:${Serving开发镜像Tag}**(如果网络不佳可以访问**registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag}**)， Paddle开发镜像名是 **paddlepaddle/paddle:${Paddle开发镜像Tag}**。为了防止用户对两套镜像出现混淆，我们分别解释一下两套镜像的由来。
-
 Serving开发镜像是Serving套件为了支持各个预测环境提供的用于编译、调试预测服务的镜像，Paddle开发镜像是Paddle在官网发布的用于编译、开发、训练模型使用镜像。为了让Paddle开发者能够在同一个容器内直接使用Serving。对于上个版本就已经使用Serving用户的开发者来说，Serving开发镜像应该不会感到陌生。但对于熟悉Paddle训练框架生态的开发者，目前应该更熟悉已有的Paddle开发镜像。为了适应所有用户的不同习惯，我们对这两套镜像都做了充分的支持。
 
 
@@ -56,24 +54,24 @@ Serving开发镜像是Serving套件为了支持各个预测环境提供的用于
 我们首先要针对自己所需的环境拉取相关镜像。上表**环境**一列下，除了CPU，其余（Cuda**+Cudnn**）都属于GPU环境。
 您可以使用Serving开发镜像。
 ```
-docker pull paddlepaddle/serving:${Serving开发镜像Tag}
+docker pull registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag}
 
 # 如果是GPU镜像
-nvidia-docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
+nvidia-docker run --rm -it registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag} bash
 
 # 如果是CPU镜像
-docker run --rm -it  paddlepaddle/serving:${Serving开发镜像Tag} bash
+docker run --rm -it registry.baidubce.com/paddlepaddle/serving:${Serving开发镜像Tag} bash
 ```
 
 也可以使用Paddle开发镜像。
 ```
-docker pull paddlepaddle/paddle:${Paddle开发镜像Tag}
+docker pull registry.baidubce.com/paddlepaddle/paddle:${Paddle开发镜像Tag}
 
 # 如果是GPU镜像，需要使用nvidia-docker
-nvidia-docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
+nvidia-docker run --rm -it registry.baidubce.com/paddlepaddle/paddle:${Paddle开发镜像Tag} bash
 
 # 如果是CPU镜像
-docker run --rm -it paddlepaddle/paddle:${Paddle开发镜像Tag} bash
+docker run --rm -it registry.baidubce.com/paddlepaddle/paddle:${Paddle开发镜像Tag} bash
 ```
 
 <a name="2"></a>
