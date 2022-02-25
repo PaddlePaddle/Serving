@@ -15,16 +15,16 @@
 **CPU：**
 ```
 # 启动 CPU Docker
-docker pull paddlepaddle/serving:0.8.0-devel
-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
@@ -32,8 +32,8 @@ git clone https://github.com/PaddlePaddle/Serving
 **CPU：**
 ```
 # 启动 CPU Docker
-docker pull paddlepaddle/paddle:2.2.2
-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.2 bash
+docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.2.2 bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
@@ -43,8 +43,8 @@ bash Serving/tools/paddle_env_install.sh
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7 bash
+docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
