@@ -65,16 +65,16 @@ pip3 install -r python/requirements.txt
 - post112 = CUDA11.2 + TensorRT8
 
 ```shell
-pip3 install paddle-serving-client==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-app==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-client==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-app==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server
-pip3 install paddle-serving-server==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 10.2的包
-pip3 install paddle-serving-server-gpu==0.8.0.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
-pip3 install paddle-serving-server-gpu==0.8.0.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.8.0.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.2.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+pip3 install paddle-serving-server-gpu==0.8.2.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.2.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 默认开启国内清华镜像源来加速下载，如果您使用HTTP代理可以关闭(`-i https://pypi.tuna.tsinghua.edu.cn/simple`)
@@ -91,10 +91,10 @@ paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其�
 **当您使用`paddle_serving_client.convert`命令或者`Python Pipeline框架`时才需要安装。**
 ```
 # CPU环境请执行
-pip3 install paddlepaddle==2.2.2
+pip3 install paddlepaddle==2.2.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU CUDA 10.2环境请执行
-pip3 install paddlepaddle-gpu==2.2.2
+pip3 install paddlepaddle-gpu==2.2.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 **注意**： 如果您的Cuda版本不是10.2，或者您需要在GPU环境上使用TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的GPU环境的url链接并进行安装。举例假设您使用python3.6，请执行如下命令。
 
