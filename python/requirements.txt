@@ -18,7 +18,7 @@ Werkzeug==1.0.1
 ujson>=2.0.3
 sentencepiece==0.1.96; platform_machine !=  "aarch64"
 sentencepiece; platform_machine ==  "aarch64"
-opencv-python==4.3.0.38; platform_machine !=  "aarch64"
+opencv-python==3.4.17.61; platform_machine !=  "aarch64"
 opencv-python; platform_machine == "aarch64"
 pytest==7.0.1
 prometheus-client==0.12.0
