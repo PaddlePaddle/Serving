@@ -34,7 +34,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - 集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
 - 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
 - 支持云端部署，提供百度云智能云kubernetes集群部署Paddle Serving案例
-- 提供丰富的经典预模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型
+- 提供丰富的经典模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型
 - 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频cache等特性、可单机或云端部署
 - 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问
 
