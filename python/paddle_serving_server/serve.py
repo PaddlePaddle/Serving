@@ -185,6 +185,12 @@ def serve_args():
         action="store_true",
         help="Use encryption model")
     parser.add_argument(
+        "--encryption_rpc_port", 
+        type=int, 
+        required=False, 
+        default=12000, 
+        help="Port of encryption model, only valid for arg.use_encryption_model")
+    parser.add_argument(
         "--use_trt", default=False, action="store_true", help="Use TensorRT")
     parser.add_argument(
         "--use_lite", default=False, action="store_true", help="Use PaddleLite")
@@ -352,8 +358,11 @@ def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-mis
 
 
 class MainService(BaseHTTPRequestHandler):
+    #def __init__(self):
+    #    print("MainService ___init________\n")
     def get_available_port(self):
-        default_port = 12000
+        global encryption_rpc_port
+        default_port = encryption_rpc_port
         for i in range(1000):
             if port_is_available(default_port + i):
                 return default_port + i
@@ -553,7 +562,8 @@ if __name__ == "__main__":
         p_flag = False
         p = None
         serving_port = 0
-        server = HTTPServer(('0.0.0.0', int(args.port)), MainService)
+        encryption_rpc_port = args.encryption_rpc_port
+        server = HTTPServer(('localhost', int(args.port)), MainService)
         print(
             'Starting encryption server, waiting for key from client, use <Ctrl-C> to stop'
         )
