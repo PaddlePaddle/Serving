@@ -20,14 +20,16 @@ docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serv
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+
 **GPU:**
 ```
 # Start GPU Docker Container
-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
 nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+
 ### 1.2 Paddle Dev Images (choose any codeblock of CPU/GPU)
 **CPU:**
 ```

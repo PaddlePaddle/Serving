@@ -11,6 +11,7 @@
 
 ## 1.启动开发镜像
 <mark>**同时支持使用Serving镜像和Paddle镜像，1.1和1.2章节中的操作2选1即可。**</mark> 在Paddle docker镜像上部署Serving服务需要安装额外依赖库，因此，我们直接使用Serving开发镜像。
+
 ### 1.1 Serving开发镜像（CPU/GPU 2选1）
 **CPU：**
 ```
@@ -23,11 +24,12 @@ git clone https://github.com/PaddlePaddle/Serving
 **GPU：**
 ```
 # 启动 GPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
 nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+
 ### 1.2 Paddle开发镜像（CPU/GPU 2选1）
 **CPU：**
 ```
