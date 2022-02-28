@@ -56,10 +56,10 @@ You can use Serving Dev Images.
 docker pull registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag}
 
 # For GPU Image
-nvidia-docker run --rm -it  registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
+nvidia-docker run --rm -it registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
 
 # For CPU Image
-docker run --rm -it  registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
+docker run --rm -it registry.baidubce.com/paddlepaddle/serving:${Serving Dev Image Tag} bash
 ```
 
 You can also use Paddle Dev Images.
