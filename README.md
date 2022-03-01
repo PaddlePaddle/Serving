@@ -62,7 +62,7 @@ This chapter guides you through the installation and deployment steps. It is str
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
 - [Deploy Paddle Serving on Kubernetes(Chinese)](doc/Run_On_Kubernetes_CN.md)
 - [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
-- Deploy on more hardwares[[百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
+- Deploy on more hardwares[[ARM CPU、百度昆仑](doc/Run_On_XPU_N.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
 - [Docker Images](doc/Docker_Images_EN.md)
 - [Latest Wheel packages](doc/Latest_Packages_CN.md)
 
