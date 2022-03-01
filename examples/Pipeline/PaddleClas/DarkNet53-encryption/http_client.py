@@ -13,7 +13,6 @@ if __name__ == "__main__":
     with open(os.path.join(".", "daisy.jpg"), 'rb') as file:
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
-    header = {"Content-Type":"application/json", "apikey":"WeJn7tVjuujtGxBgl6cWRGpmL2VMEBdb", "X-INSTANCE-ID" : "kong_ins10"}
     data = {"key": ["image"], "value": [image]}
     for i in range(1):
         r = requests.post(url=url, data=json.dumps(data))
