@@ -16,7 +16,6 @@
 
 #include <errno.h>
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <functional>
 #include <list>
@@ -65,7 +64,7 @@ struct Task {
   typedef InItemT InType;
   typedef OutItemT OutType;
   typedef Task<InItemT, OutItemT> TaskT;
-  typedef std::vector<size_t> ShapeVector;
+  typedef std::vector<int> ShapeVector;
   typedef std::vector<ShapeVector> VectorOfShapeVector;
   typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
 
@@ -497,7 +496,7 @@ class BatchTasks {
   typedef typename TaskT::InType InType;
   typedef typename TaskT::OutType OutType;
   typedef TaskMeta<TaskT> TaskMetaT;
-  typedef std::vector<size_t> ShapeVector;
+  typedef std::vector<int> ShapeVector;
   typedef std::vector<ShapeVector> VectorOfShapeVector;
   typedef std::vector<size_t> LodVector;
   typedef std::vector<LodVector> PaddleTensorLod;
@@ -567,9 +566,9 @@ class BatchTasks {
       return 2;
     }
 
-    vector<size_t> multiplies_1(vector_of_max_shape.size());
-    vector<size_t> multiplies_2(vector_of_max_shape.size());
-    vector<size_t> temp_multiplies(vector_of_max_shape.size());
+    std::vector<size_t> multiplies_1(vector_of_max_shape.size());
+    std::vector<size_t> multiplies_2(vector_of_max_shape.size());
+    std::vector<size_t> temp_multiplies(vector_of_max_shape.size());
     VectorOfShapeVector temp_vector_max_shape(vector_of_max_shape.size());
     for (size_t i = 0; i < vector_of_max_shape.size(); ++i) {
       if (vector_of_max_shape[i].size() != task_vector_shape[i].size())
@@ -590,8 +589,8 @@ class BatchTasks {
                                         task_vector_shape[i].end(),
                                         1,
                                         std::multiplies<size_t>());
-      if ((abs(temp_multiplies[i] - multiplies_1[i]) <= ABSOLUTE_ERROR &&
-           abs(temp_multiplies[i] - multiplies_2[i]) <= ABSOLUTE_ERROR) ||
+      if ((labs(temp_multiplies[i] - multiplies_1[i]) <= ABSOLUTE_ERROR &&
+           labs(temp_multiplies[i] - multiplies_2[i]) <= ABSOLUTE_ERROR) ||
           (temp_multiplies[i] / multiplies_1[i] >= RELATIVE_ERROR &&
            temp_multiplies[i] / multiplies_2[i] >= RELATIVE_ERROR)) {
         continue;
@@ -698,7 +697,7 @@ class BatchTasks {
   // batch.merge_tasks() is thread-safe function
   // cause batch is a local variable and Task is just read, not written.
 
-  void copy_element_value(size_t) void merge_tasks() {
+  void merge_tasks() {
     if (_taskmeta_vector.size() <= 0) {
       return;
     }
@@ -1396,7 +1395,7 @@ class TaskExecutor {
   typedef typename TaskT::OutVectorT OutVectorT;
   typedef std::vector<TaskT> TaskArrayT;
   typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
-  typedef std::vector<size_t> ShapeVector;
+  typedef std::vector<int> ShapeVector;
   typedef std::vector<ShapeVector> VectorOfShapeVector;
 
   TaskExecutor()
