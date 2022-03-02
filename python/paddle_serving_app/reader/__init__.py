@@ -21,3 +21,4 @@ from .lac_reader import LACReader
 from .senta_reader import SentaReader
 #from .imdb_reader import IMDBDataset
 from .ocr_reader import OCRReader
+from .pptsn_reader import VideoDecoder, Sampler, Scale, TenCrop, Image2Array, Normalization
