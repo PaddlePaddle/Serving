@@ -20,7 +20,9 @@
 #include <list>
 #include <set>
 #include <vector>
-
+#include <cmath>
+#include <functional>
+#include <numeric>
 #ifdef BCLOUD
 #include "base/atomicops.h"
 #else
@@ -38,6 +40,8 @@ namespace im {
 namespace bsf {
 
 static const size_t DEFAULT_BATCH_SIZE = 100;
+static const size_t ABSOLUTE_ERROR = 1024;
+static const float RELATIVE_ERROR = 0.5;
 typedef baidu::paddle_serving::predictor::MempoolWrapper MempoolWrapper;
 typedef baidu::paddle_serving::predictor::MempoolRegion MempoolRegion;
 
@@ -124,7 +128,7 @@ struct Task {
     outLodTensorVector.clear();
   }
 
-  void clear(){
+  void clear() {
     read_fd = -1;
     write_fd = -1;
     owner_tid = -1;
@@ -158,13 +162,18 @@ struct Task {
     return 1;
   }
 
-  bool combine_task_valid(Task* other_task) {
-    // TODO(HexToString): auto-padding
-    // 除最外层的shape外，内层shape应一致才能合并。
+  int combine_task_valid(Task* other_task) {
+    // 除最外层的shape外，内层shape应一致或者允许Padding才能合并。
     // 否则跳出循环,放入下一个batchTask中。
+    // 当内层shape不一致时，此时先不判断是否Padding，在batchTask层判断，返回2。
     // 以此保证batch.append_task(task)中的task的内层shape相同。
+
+    // return 0 表示Shape[0] = 1
+    // 而!=batch的情况，两个Task中的值不同，此时不能合并。
+    // return 1 表示Shape维度完全一致，直接合并即可。
+    // return 2 表示Shape维度不完全一致，还需要进一步的判断，是否合并。
     if (other_task->feedvar_shape_nobatch() != feedvar_shape_nobatch()) {
-      return false;
+      return 2;
     }
 
     // 对于Shape[0] = 1 而!=batch的情况，因为合并时，取其中一个的值
@@ -177,9 +186,9 @@ struct Task {
           std::memcmp((*inVectorT_ptr)[feedvar_index].data.data(),
                       (*(other_task->inVectorT_ptr))[feedvar_index].data.data(),
                       (*inVectorT_ptr)[feedvar_index].data.length());
-      if (result != 0) return false;
+      if (result != 0) return 0;
     }
-    return true;
+    return 1;
   }
 
   size_t feedvar_batch_size(size_t feedvar_index) {
@@ -373,11 +382,12 @@ struct Task {
         // 一次性扩容PaddleTensor中的data和lod
         paddle::PaddleTensor& fetchVarTensor = (*outVectorT_ptr)[feedvar_index];
         fetchVarTensor.shape[0] = total_shape0;
-        void* databuf_data = MempoolWrapper::instance().malloc(data_length,memoryPtr);
+        void* databuf_data =
+            MempoolWrapper::instance().malloc(data_length, memoryPtr);
         paddle::PaddleBuf paddleBuf(databuf_data, data_length);
         fetchVarTensor.data = paddleBuf;
-         
-        //fetchVarTensor.data.Resize(data_length);
+
+        // fetchVarTensor.data.Resize(data_length);
         // task中的lod补0
         if (fetchVarTensor.lod.size() <= 0) {
           fetchVarTensor.lod.push_back({0});
@@ -393,7 +403,7 @@ struct Task {
         size_t once_lod_length = 0;
         for (size_t taskmeta_index = 0; taskmeta_index < total_taskmeta_num;
              ++taskmeta_index) {
-          //process data
+          // process data
           void* dst_ptr = fetchVarTensor.data.data() + data_length_offset;
           void* source_ptr =
               outLodTensorVector[taskmeta_index][index].data.data();
@@ -401,7 +411,7 @@ struct Task {
               outLodTensorVector[taskmeta_index][index].data.length();
           memcpy(dst_ptr, source_ptr, once_data_length);
           data_length_offset += once_data_length;
-          //process lod
+          // process lod
           size_t last_lod_value = fetchVarTensor.lod[0][lod_length_offset];
           once_lod_length =
               outLodTensorVector[taskmeta_index][index].lod[0].size();
@@ -412,7 +422,6 @@ struct Task {
                 outLodTensorVector[taskmeta_index][index].lod[0][once_index];
             lod_length_offset++;
           }
-
         }
       }
     }
@@ -496,11 +505,15 @@ class BatchTasks {
 
   explicit BatchTasks(size_t batch_size,
                       bool overrun = false,
-                      bool allow_split_request = true)
+                      bool allow_split_request = true,
+                      bool auto_padding = true,
+                      int padding_value = 0)
       : _batch_size(batch_size),
         _rem_size(batch_size),
         _overrun(overrun),
-        _allow_split_request(allow_split_request) {
+        _allow_split_request(allow_split_request),
+        _auto_padding(auto_padding),
+        _padding_value(padding_value) {
     _batch_in.clear();
     _batch_in_offset.clear();
     _total_shape0_batch_in.clear();
@@ -530,6 +543,71 @@ class BatchTasks {
     vector_fetch_lod_index.clear();
   }
 
+  // return 0
+  // 表示feedvar数量都不一样，或者，每个feedvar的shape维度都不同，此时不能合并batch。
+  // return 1 表示合并batch不划算。
+  // return 2 表示合并batch划算。
+  int padding(TaskT* task) {
+    const VectorOfShapeVector& task_vector_shape =
+        task->feedvar_shape_nobatch();
+    int return_value = 2;
+
+    // 当batchTask中为空时，第一次加入Task，此时则BatchTask中即为第一个Task中的Shape.
+    if (vector_of_max_shape.size() == 0) {
+      vector_of_max_shape = task_vector_shape;
+      return 2;
+    }
+
+    if (vector_of_max_shape.size() != task_vector_shape.size()) {
+      return 0;
+    }
+
+    // 当两个Shape完全相同时，无须更新，无须计算，无须Padding。
+    if (vector_of_max_shape == task_vector_shape) {
+      return 2;
+    }
+
+    vector<size_t> multiplies_1(vector_of_max_shape.size());
+    vector<size_t> multiplies_2(vector_of_max_shape.size());
+    vector<size_t> temp_multiplies(vector_of_max_shape.size());
+    VectorOfShapeVector temp_vector_max_shape(vector_of_max_shape.size());
+    for (size_t i = 0; i < vector_of_max_shape.size(); ++i) {
+      if (vector_of_max_shape[i].size() != task_vector_shape[i].size())
+        return 0;
+      for (size_t j = 0; j < vector_of_max_shape[i].size(); ++j) {
+        temp_vector_max_shape[i].push_back(
+            std::max(vector_of_max_shape[i][j], task_vector_shape[i][j]));
+      }
+      temp_multiplies[i] = std::accumulate(temp_vector_max_shape[i].begin(),
+                                           temp_vector_max_shape[i].end(),
+                                           1,
+                                           std::multiplies<size_t>());
+      multiplies_1[i] = std::accumulate(vector_of_max_shape[i].begin(),
+                                        vector_of_max_shape[i].end(),
+                                        1,
+                                        std::multiplies<size_t>());
+      multiplies_2[i] = std::accumulate(task_vector_shape[i].begin(),
+                                        task_vector_shape[i].end(),
+                                        1,
+                                        std::multiplies<size_t>());
+      if ((abs(temp_multiplies[i] - multiplies_1[i]) <= ABSOLUTE_ERROR &&
+           abs(temp_multiplies[i] - multiplies_2[i]) <= ABSOLUTE_ERROR) ||
+          (temp_multiplies[i] / multiplies_1[i] >= RELATIVE_ERROR &&
+           temp_multiplies[i] / multiplies_2[i] >= RELATIVE_ERROR)) {
+        continue;
+      } else {
+        return_value = 1;
+      }
+    }
+
+    // 当合并batch时，需要更新BatchTask中的最大Shape
+    // 此时，整个BatchTask到最后合并多个Task时，需要Padding
+    if (return_value == 2) {
+      vector_of_max_shape = temp_vector_max_shape;
+    }
+    return return_value;
+  }
+
   // synchronized operation
   // because Upper level callers of this function have already locked.
   // 能进到此函数的task都是同类task，在该函数之前已保证了这点。
@@ -545,8 +623,9 @@ class BatchTasks {
     TaskMetaT tm(task, start_index, add, task->taskmeta_num);
     task->rem -= add;
     _rem_size -= add;
-    if(task->taskmeta_num == 0){
-      task->total_taskmeta_num = 1 + (task->rem + _batch_size - 1)/_batch_size;
+    if (task->taskmeta_num == 0) {
+      task->total_taskmeta_num =
+          1 + (task->rem + _batch_size - 1) / _batch_size;
     }
     task->taskmeta_num += 1;
     _taskmeta_vector.push_back(tm);
@@ -619,7 +698,7 @@ class BatchTasks {
   // batch.merge_tasks() is thread-safe function
   // cause batch is a local variable and Task is just read, not written.
 
-  void merge_tasks() {
+  void copy_element_value(size_t) void merge_tasks() {
     if (_taskmeta_vector.size() <= 0) {
       return;
     }
@@ -631,19 +710,28 @@ class BatchTasks {
         const paddle::PaddleTensor& feedVarTensor =
             (*tm.task->inVectorT_ptr)[feedvar_index];
         size_t feedvar_bytesize = tm.task->feedvar_bytesize(feedvar_index);
+        const ShapeVector& feedvar_max_shape_vector =
+            vector_of_max_shape[feedvar_index];
+        size_t feedvar_max_num =
+            std::accumulate(feedvar_max_shape_vector.begin(),
+                            feedvar_max_shape_vector.end(),
+                            1,
+                            std::multiplies<size_t>());
+        size_t feedvar_element_bytesize =
+            tm.task->feedvar_element_bytesize(feedvar_index);
+        size_t feedvar_max_bytes = feedvar_element_bytesize * feedvar_max_num;
 
         if (ti == 0) {
           // Create the entire tensor at once
-          // for now, we assume that every task feedvar_bytesize is the same.
-          // which means we dont support auto embedding.
-          // but for different feedvar, it is different.
           paddle::PaddleTensor paddleTensor;
           paddleTensor.dtype = feedVarTensor.dtype;
           paddleTensor.name = feedVarTensor.name;
           paddleTensor.lod = _batch_in_lod[feedvar_index];
-          paddleTensor.shape = feedVarTensor.shape;
-          paddleTensor.shape[0] = _total_shape0_batch_in[feedvar_index];
-          size_t databuf_size = feedvar_bytesize * _total_shape0_batch_in[feedvar_index];
+          paddleTensor.shape = feedvar_max_shape_vector;
+          paddleTensor.shape.insert(paddleTensor.shape.begin(),
+                                    _total_shape0_batch_in[feedvar_index]);
+          size_t databuf_size =
+              feedvar_max_bytes * _total_shape0_batch_in[feedvar_index];
           void* databuf_data = MempoolWrapper::instance().malloc(databuf_size);
           paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
           paddleTensor.data = paddleBuf;
@@ -656,12 +744,243 @@ class BatchTasks {
             feedVarTensor.data.data() +
             feedvar_bytesize * tm.feed_shape0_range[feedvar_index][0];
         size_t length =
-            feedvar_bytesize * (tm.feed_shape0_range[feedvar_index][1] -
-                                tm.feed_shape0_range[feedvar_index][0]);
-        memcpy(dst_ptr, source_ptr, length);
+            feedvar_max_bytes * (tm.feed_shape0_range[feedvar_index][1] -
+                                 tm.feed_shape0_range[feedvar_index][0]);
+
+        // 不需要padding，连续内存，则直接memcpy
+        // 这里可以直接比较内存是否一样大
+        // 在于前面Padding函数中，已经保证了vector_of_max_shape中各个维度都是最大值。
+        // 当shape-1 = [8000,20000] shape-2 = [20000,8000]时
+        // 此时，vector_of_max_shape中的shape = [20000,20000]
+        // 所以feedvar_max_bytes == feedvar_bytesize时，一定是shape完全相同。
+        if (feedvar_max_bytes == feedvar_bytesize) {
+          memcpy(dst_ptr, source_ptr, length);
+        } else {
+          memset(dst_ptr, 0, length);
+          size_t old_index = 0;
+          size_t new_index = 0;
+
+          switch (feedvar_max_shape_vector.size()) {
+            case 5:
+              for (int i_0 = tm.feed_shape0_range[feedvar_index][0];
+                   i_0 < tm.feed_shape0_range[feedvar_index][1];
+                   ++i_0) {
+                for (int i_1 = 0; i_1 < feedVarTensor.shape[1]; ++i_1) {
+                  for (int i_2 = 0; i_2 < feedVarTensor.shape[2]; ++i_2) {
+                    for (int i_3 = 0; i_3 < feedVarTensor.shape[3]; ++i_3) {
+                      for (int i_4 = 0; i_4 < feedVarTensor.shape[4]; ++i_4) {
+                        for (int i_5 = 0; i_5 < feedVarTensor.shape[5]; ++i_5) {
+                          old_index = i_0 * feedVarTensor.shape[1] *
+                                          feedVarTensor.shape[2] *
+                                          feedVarTensor.shape[3] *
+                                          feedVarTensor.shape[4] *
+                                          feedVarTensor.shape[5] +
+                                      i_1 * feedVarTensor.shape[2] *
+                                          feedVarTensor.shape[3] *
+                                          feedVarTensor.shape[4] *
+                                          feedVarTensor.shape[5] +
+                                      i_2 * feedVarTensor.shape[3] *
+                                          feedVarTensor.shape[4] *
+                                          feedVarTensor.shape[5] +
+                                      i_3 * feedVarTensor.shape[4] *
+                                          feedVarTensor.shape[5] +
+                                      i_4 * feedVarTensor.shape[5] + i_5;
+                          new_index = i_0 * feedvar_max_shape_vector[0] *
+                                          feedvar_max_shape_vector[1] *
+                                          feedvar_max_shape_vector[2] *
+                                          feedvar_max_shape_vector[3] *
+                                          feedvar_max_shape_vector[4] +
+                                      i_1 * feedvar_max_shape_vector[1] *
+                                          feedvar_max_shape_vector[2] *
+                                          feedvar_max_shape_vector[3] *
+                                          feedvar_max_shape_vector[4] +
+                                      i_2 * feedvar_max_shape_vector[2] *
+                                          feedvar_max_shape_vector[3] *
+                                          feedvar_max_shape_vector[4] +
+                                      i_3 * feedvar_max_shape_vector[3] *
+                                          feedvar_max_shape_vector[4] +
+                                      i_4 * feedvar_max_shape_vector[4] + i_5;
+                          if (feedVarTensor.dtype ==
+                              paddle::PaddleDType::INT64) {
+                            *((int64_t*)dst_ptr + new_index) =
+                                *((int64_t*)source_ptr + old_index);
+                          } else if (feedVarTensor.dtype ==
+                                     paddle::PaddleDType::FLOAT32) {
+                            *((float*)dst_ptr + new_index) =
+                                *((float*)source_ptr + old_index);
+                          } else if (feedVarTensor.dtype ==
+                                     paddle::PaddleDType::INT32) {
+                            *((int32_t*)dst_ptr + new_index) =
+                                *((int32_t*)source_ptr + old_index);
+                          } else if (feedVarTensor.dtype ==
+                                     paddle::PaddleDType::UINT8) {
+                            *((char*)dst_ptr + new_index) =
+                                *((char*)source_ptr + old_index);
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              break;
+            case 4:
+              for (int i_0 = tm.feed_shape0_range[feedvar_index][0];
+                   i_0 < tm.feed_shape0_range[feedvar_index][1];
+                   ++i_0) {
+                for (int i_1 = 0; i_1 < feedVarTensor.shape[1]; ++i_1) {
+                  for (int i_2 = 0; i_2 < feedVarTensor.shape[2]; ++i_2) {
+                    for (int i_3 = 0; i_3 < feedVarTensor.shape[3]; ++i_3) {
+                      for (int i_4 = 0; i_4 < feedVarTensor.shape[4]; ++i_4) {
+                        old_index = i_0 * feedVarTensor.shape[1] *
+                                        feedVarTensor.shape[2] *
+                                        feedVarTensor.shape[3] *
+                                        feedVarTensor.shape[4] +
+                                    i_1 * feedVarTensor.shape[2] *
+                                        feedVarTensor.shape[3] *
+                                        feedVarTensor.shape[4] +
+                                    i_2 * feedVarTensor.shape[3] *
+                                        feedVarTensor.shape[4] +
+                                    i_3 * feedVarTensor.shape[4] + i_4;
+                        new_index = i_0 * feedvar_max_shape_vector[0] *
+                                        feedvar_max_shape_vector[1] *
+                                        feedvar_max_shape_vector[2] *
+                                        feedvar_max_shape_vector[3] +
+                                    i_1 * feedvar_max_shape_vector[1] *
+                                        feedvar_max_shape_vector[2] *
+                                        feedvar_max_shape_vector[3] +
+                                    i_2 * feedvar_max_shape_vector[2] *
+                                        feedvar_max_shape_vector[3] +
+                                    i_3 * feedvar_max_shape_vector[3] + i_4;
+                        if (feedVarTensor.dtype == paddle::PaddleDType::INT64) {
+                          *((int64_t*)dst_ptr + new_index) =
+                              *((int64_t*)source_ptr + old_index);
+                        } else if (feedVarTensor.dtype ==
+                                   paddle::PaddleDType::FLOAT32) {
+                          *((float*)dst_ptr + new_index) =
+                              *((float*)source_ptr + old_index);
+                        } else if (feedVarTensor.dtype ==
+                                   paddle::PaddleDType::INT32) {
+                          *((int32_t*)dst_ptr + new_index) =
+                              *((int32_t*)source_ptr + old_index);
+                        } else if (feedVarTensor.dtype ==
+                                   paddle::PaddleDType::UINT8) {
+                          *((char*)dst_ptr + new_index) =
+                              *((char*)source_ptr + old_index);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              break;
+            case 3:
+              for (int i_0 = tm.feed_shape0_range[feedvar_index][0];
+                   i_0 < tm.feed_shape0_range[feedvar_index][1];
+                   ++i_0) {
+                for (int i_1 = 0; i_1 < feedVarTensor.shape[1]; ++i_1) {
+                  for (int i_2 = 0; i_2 < feedVarTensor.shape[2]; ++i_2) {
+                    for (int i_3 = 0; i_3 < feedVarTensor.shape[3]; ++i_3) {
+                      old_index = i_0 * feedVarTensor.shape[1] *
+                                      feedVarTensor.shape[2] *
+                                      feedVarTensor.shape[3] +
+                                  i_1 * feedVarTensor.shape[2] *
+                                      feedVarTensor.shape[3] +
+                                  i_2 * feedVarTensor.shape[3] + i_3;
+                      new_index = i_0 * feedvar_max_shape_vector[0] *
+                                      feedvar_max_shape_vector[1] *
+                                      feedvar_max_shape_vector[2] +
+                                  i_1 * feedvar_max_shape_vector[1] *
+                                      feedvar_max_shape_vector[2] +
+                                  i_2 * feedvar_max_shape_vector[2] + i_3;
+                      if (feedVarTensor.dtype == paddle::PaddleDType::INT64) {
+                        *((int64_t*)dst_ptr + new_index) =
+                            *((int64_t*)source_ptr + old_index);
+                      } else if (feedVarTensor.dtype ==
+                                 paddle::PaddleDType::FLOAT32) {
+                        *((float*)dst_ptr + new_index) =
+                            *((float*)source_ptr + old_index);
+                      } else if (feedVarTensor.dtype ==
+                                 paddle::PaddleDType::INT32) {
+                        *((int32_t*)dst_ptr + new_index) =
+                            *((int32_t*)source_ptr + old_index);
+                      } else if (feedVarTensor.dtype ==
+                                 paddle::PaddleDType::UINT8) {
+                        *((char*)dst_ptr + new_index) =
+                            *((char*)source_ptr + old_index);
+                      }
+                    }
+                  }
+                }
+              }
+              break;
+            case 2:
+              for (int i_0 = tm.feed_shape0_range[feedvar_index][0];
+                   i_0 < tm.feed_shape0_range[feedvar_index][1];
+                   ++i_0) {
+                for (int i_1 = 0; i_1 < feedVarTensor.shape[1]; ++i_1) {
+                  for (int i_2 = 0; i_2 < feedVarTensor.shape[2]; ++i_2) {
+                    old_index =
+                        i_0 * feedVarTensor.shape[1] * feedVarTensor.shape[2] +
+                        i_1 * feedVarTensor.shape[2] + i_2;
+                    new_index = i_0 * feedvar_max_shape_vector[0] *
+                                    feedvar_max_shape_vector[1] +
+                                i_1 * feedvar_max_shape_vector[1] + i_2;
+                    if (feedVarTensor.dtype == paddle::PaddleDType::INT64) {
+                      *((int64_t*)dst_ptr + new_index) =
+                          *((int64_t*)source_ptr + old_index);
+                    } else if (feedVarTensor.dtype ==
+                               paddle::PaddleDType::FLOAT32) {
+                      *((float*)dst_ptr + new_index) =
+                          *((float*)source_ptr + old_index);
+                    } else if (feedVarTensor.dtype ==
+                               paddle::PaddleDType::INT32) {
+                      *((int32_t*)dst_ptr + new_index) =
+                          *((int32_t*)source_ptr + old_index);
+                    } else if (feedVarTensor.dtype ==
+                               paddle::PaddleDType::UINT8) {
+                      *((char*)dst_ptr + new_index) =
+                          *((char*)source_ptr + old_index);
+                    }
+                  }
+                }
+              }
+              break;
+            case 1:
+              for (int i_0 = tm.feed_shape0_range[feedvar_index][0];
+                   i_0 < tm.feed_shape0_range[feedvar_index][1];
+                   ++i_0) {
+                for (int i_1 = 0; i_1 < feedVarTensor.shape[1]; ++i_1) {
+                  old_index = i_0 * feedVarTensor.shape[1] + i_1;
+                  new_index = i_0 * feedvar_max_shape_vector[0] + i_1;
+                  if (feedVarTensor.dtype == paddle::PaddleDType::INT64) {
+                    *((int64_t*)dst_ptr + new_index) =
+                        *((int64_t*)source_ptr + old_index);
+                  } else if (feedVarTensor.dtype ==
+                             paddle::PaddleDType::FLOAT32) {
+                    *((float*)dst_ptr + new_index) =
+                        *((float*)source_ptr + old_index);
+                  } else if (feedVarTensor.dtype ==
+                             paddle::PaddleDType::INT32) {
+                    *((int32_t*)dst_ptr + new_index) =
+                        *((int32_t*)source_ptr + old_index);
+                  } else if (feedVarTensor.dtype ==
+                             paddle::PaddleDType::UINT8) {
+                    *((char*)dst_ptr + new_index) =
+                        *((char*)source_ptr + old_index);
+                  }
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        }
+
         // nobatch类型的feedvar，不叠加.
-        if (tm.feedvar_type[feedvar_index] != 3)
+        if (tm.feedvar_type[feedvar_index] != 3) {
           _batch_in_offset[feedvar_index] += length;
+        }
       }
     }
   }
@@ -753,25 +1072,26 @@ class BatchTasks {
       // 此时，无法分辨是否是天然nobatch，此时set_fetch_nobatch_index会漏掉
       // 后续希望在其他地方能够区分两者。
       if (fetchvar_batch_size(fetchvar_index) != _total_fetch_batch) {
-        if(fetchvar_batch_size(fetchvar_index) <= 0){
+        if (fetchvar_batch_size(fetchvar_index) <= 0) {
           // which means error.
           return false;
-        }else if(fetchvar_batch_size(fetchvar_index) == 1){
+        } else if (fetchvar_batch_size(fetchvar_index) == 1) {
           // which means fetchvar shape[0] = 1.
           // shape[0] does not change with batch
           set_fetch_nobatch_index.insert(fetchvar_index);
           _total_fetch_batch =
               std::max(fetchvar_batch_size(fetchvar_index), _total_fetch_batch);
-        }else if(_total_fetch_batch == 1){
-          //这时意味着，之前的fetchvar shape[0] 全部都= 1
-          //当前的fetchvar shape[0] > 1
-          //所以，之前的都是no_batch
-          for(size_t temp_index = fetchvar_index-1; temp_index >= 0; --temp_index){
+        } else if (_total_fetch_batch == 1) {
+          // 这时意味着，之前的fetchvar shape[0] 全部都= 1
+          // 当前的fetchvar shape[0] > 1
+          // 所以，之前的都是no_batch
+          for (size_t temp_index = fetchvar_index - 1; temp_index >= 0;
+               --temp_index) {
             set_fetch_nobatch_index.insert(fetchvar_index);
           }
           _total_fetch_batch =
               std::max(fetchvar_batch_size(fetchvar_index), _total_fetch_batch);
-        }else{
+        } else {
           // which means error.
           return false;
         }
@@ -856,10 +1176,11 @@ class BatchTasks {
             fetchVarTensor.shape[0] = shape0_length;
             fetch_lod_index++;
 
-            void* databuf_data = MempoolWrapper::instance().malloc(length,task->memoryPtr);
+            void* databuf_data =
+                MempoolWrapper::instance().malloc(length, task->memoryPtr);
             paddle::PaddleBuf paddleBuf(databuf_data, length);
             fetchVarTensor.data = paddleBuf;
-            //fetchVarTensor.data.Resize(length);
+            // fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +
                                shape0_index_start * fetchvar_bytesize_index;
@@ -885,12 +1206,13 @@ class BatchTasks {
                 (*task->outVectorT_ptr)[fetchvar_index];
             size_t length = fetchvar_bytesize_index * shape0_length;
             fetchVarTensor.shape[0] = shape0_length;
-            
-            void* databuf_data = MempoolWrapper::instance().malloc(length,task->memoryPtr);
+
+            void* databuf_data =
+                MempoolWrapper::instance().malloc(length, task->memoryPtr);
             paddle::PaddleBuf paddleBuf(databuf_data, length);
             fetchVarTensor.data = paddleBuf;
-            
-            //fetchVarTensor.data.Resize(length);
+
+            // fetchVarTensor.data.Resize(length);
             void* dst_ptr = fetchVarTensor.data.data();
             void* source_ptr = _batch_out[fetchvar_index].data.data() +
                                shape0_index_start * fetchvar_bytesize_index;
@@ -979,10 +1301,26 @@ class BatchTasks {
   std::set<size_t> set_fetch_nobatch_index;
   std::vector<size_t> vector_fetch_lod_index;
 
+  // 这个BatchTask中目前,各个FeedVar中最大的Shape集合
+
   size_t _rem_size;
   size_t _batch_size;
   bool _overrun;
   bool _allow_split_request;
+
+  // 这个BatchTask中目前,各个FeedVar中最大的Shape集合
+  VectorOfShapeVector vector_of_max_shape;
+  // AutoPadding功能中，用这个与新的待合并Batch的TaskMeta来计算是否合并
+  // 策略有两个，满足任何一个均可合并
+  // 1、当相似度的乘积大于50%时
+  // 2、当绝对差的字节数小于1024字节时
+  // 例如，Shape-1 = [batch, 500, 500] Shape-2 = [batch, 400, 400]
+  // 此时，绝对值差为90000字节，相对误差为0.8*0.8 = 0.64，满足条件1，不满足条件2
+  // 例如，Shape-1 = [batch, 1, 1] Shape-2 = [batch, 2, 2]
+  // 此时，绝对值差为3字节，相对误差为0.5*0.5 = 0.25，满足条件2，不满足条件1
+  // 上述两种情况都可以进行AutoPadding.
+  bool _auto_padding;
+  int _padding_value;
 };
 
 // BSF task handle

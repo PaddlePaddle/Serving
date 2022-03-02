@@ -220,4 +220,4 @@ python3 自定义.py ocr_det_client ocr_rec_client
 #ocr_det_client为第一个模型的Client端proto文件夹的相对路径
 #ocr_rec_client为第二个模型的Client端proto文件夹的相对路径
 ```
-此时，对于Server端而言，输入的数据的格式与`第一个模型的Client端proto格式`定义的一致，输出的数据格式与`最后一个模型的Client端proto`文件一致。一般情况下您无须关注此事，当您需要了解详细的[proto的定义，请参考此处](../Serving_Configure_CN.md)。
+此时，对于Server端而言，输入的数据的格式与`第一个模型的Client端proto格式`定义的一致，输出的数据格式与`最后一个模型的Client端proto`文件一致。一般情况下您无须关注此事，当您需要了解详细的[proto的定义，请参考此处](./Serving_Configure_CN.md)。
