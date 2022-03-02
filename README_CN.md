@@ -60,7 +60,7 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
 - 异构硬件部署[[百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
 - [Docker镜像](doc/Docker_Images_CN.md)
-- [最新Wheel开发包(English)](doc/Latest_Packages_CN.md)
+- [下载Wheel包](doc/Latest_Packages_CN.md)
 
 > 使用
 

@@ -8,6 +8,8 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 ```
 **A:** 在服务端程序（例如 web_service.py)的postprocess函数定义中增加参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
 
+***
+
 ## 基础知识
 
 #### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
@@ -39,6 +41,8 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 #### Q: paddle-serving目前支持哪些协议
 
 **A:** http rpc 
+
+***
 
 ## 安装问题
 
@@ -119,6 +123,7 @@ pip install shapely==1.7.0
 方法2：
 pip install -r python/requirements.txt
 ```
+***
 
 ## 编译问题
 
@@ -144,7 +149,15 @@ make: *** [all] Error 2
 
 **A:** 运行命令安装libbz2: apt install libbz2-dev
 
+***
 ## 环境问题
+
+#### Q:  ImportError: dlopen: cannot load any more object with static TLS 
+
+**A:** 一般是用户使用Linux系统版本比较低或者Python使用的gcc版本比较低导致的，可使用以下命令检查，或者通过使用Serving或Paddle镜像安装
+```
+strings /lib/libc.so | grep GLIBC
+```
 
 #### Q：使用过程中出现CXXABI错误。
 
@@ -208,6 +221,24 @@ wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
 
   (3) Cuda10.1及更高版本需要TensorRT。安装TensorRT相关文件的脚本参考 [install_trt.sh](../tools/dockerfiles/build_scripts/install_trt.sh).
 
+***
+
+## 模型参数保存问题
+
+#### Q: 找不到'_remove_training_info'属性，详细报错信息如下：
+```
+python3 -m paddle_serving_client.convert --dirname ./ch_PP-OCRv2_det_infer/ \
+                                         --model_filename inference.pdmodel          \
+                                         --params_filename inference.pdiparams       \
+                                         --serving_server ./ppocrv2_det_serving/ \
+                                         --serving_client ./ppocrv2_det_client/ 
+ AttributeError: 'Program' object has no attribute '_remove_training_info'
+```
+
+**A:** Paddle版本低，升级Paddle版本到2.2.x及以上
+
+***
+
 ## 部署问题
 
 #### Q: GPU环境运行Serving报错，GPU count is: 0。
@@ -250,6 +281,8 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 
 #### Q: Docker中启动server IP地址 127.0.0.1 与 0.0.0.0 差异
 **A:** 您必须将容器的主进程设置为绑定到特殊的 0.0.0.0 “所有接口”地址，否则它将无法从容器外部访问。在Docker中 127.0.0.1 代表“这个容器”，而不是“这台机器”。如果您从容器建立到 127.0.0.1 的出站连接，它将返回到同一个容器；如果您将服务器绑定到 127.0.0.1，接收不到来自外部的连接。
+
+***
 
 ## 预测问题
 
@@ -296,7 +329,7 @@ client.connect(["127.0.0.1:9393"])
 
  **A:** 参考该文档安装TensorRT: https://blog.csdn.net/hesongzefairy/article/details/105343525
 
-
+***
 
 ## 日志排查
 
@@ -321,7 +354,6 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 ```
 
 
-
 #### Q: （GLOG_v=2下）Server端日志一切正常，但Client端始终得不到正确的预测结果
 
 **A:** 可能是配置文件有问题，检查下配置文件（is_load_tensor，fetch_type等有没有问题）
@@ -341,4 +373,3 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.7.0/serving
 
 
-## 性能优化
