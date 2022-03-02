@@ -39,7 +39,7 @@ op_seq_maker.add_op(general_infer_op)
 op_seq_maker.add_op(general_response_op)
 ```
 
-If you use `the command line + configuration file method to start C++ server`, you only need to modify [the configuration file](./Serving_Configure_CN.md), don`t need to change any line of 👆 code.
+If you use `the command line + configuration file method to start C++ server`, you only need to modify [the configuration file](../Serving_Configure_CN.md), don`t need to change any line of 👆 code.
 
 For simple series logic, we simplify it and build it with `OpSeqMaker`. You can determine the successor by default according to the order of joining `OpSeqMaker` without specifying the successor of each node.
 
