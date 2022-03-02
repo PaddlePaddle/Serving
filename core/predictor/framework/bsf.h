@@ -16,13 +16,13 @@
 
 #include <errno.h>
 #include <algorithm>
+#include <cmath>
 #include <cstring>
+#include <functional>
 #include <list>
+#include <numeric>
 #include <set>
 #include <vector>
-#include <cmath>
-#include <functional>
-#include <numeric>
 #ifdef BCLOUD
 #include "base/atomicops.h"
 #else
