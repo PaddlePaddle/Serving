@@ -16,7 +16,7 @@ op:
         client_type: brpc
         retry: 1
         timeout: 3000
-        server_endpoints: ["127.0.0.1:9403"]
+        server_endpoints: ["127.0.0.1:9400"]
         client_config: "encrypt_client"
         fetch_list: ["save_infer_model/scale_0.tmp_0"]
         batch_size: 1
