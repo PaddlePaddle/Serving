@@ -15,16 +15,16 @@
 **CPU:**
 ```
 # Start CPU Docker Container
-docker pull paddlepaddle/serving:0.8.0-devel
-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-devel
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-devel bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 **GPU:**
 ```
 # Start GPU Docker Container
-docker pull paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
+docker pull registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
@@ -32,8 +32,8 @@ git clone https://github.com/PaddlePaddle/Serving
 **CPU:**
 ```
 # Start CPU Docker Container
-docker pull paddlepaddle/paddle:2.2.2
-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.2 bash
+docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2
+docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.2.2 bash
 docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
@@ -43,8 +43,8 @@ bash Serving/tools/paddle_env_install.sh
 **GPU:**
 ```
 # Start GPU Docker
-docker pull paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
-nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7 bash
+nvidia-docker pull registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7
+nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.2.2-gpu-cuda10.2-cudnn7 bash
 nvidia-docker exec -it test bash
 git clone https://github.com/PaddlePaddle/Serving
 
@@ -62,17 +62,19 @@ pip3 install -r python/requirements.txt
 
 Install the service whl package. There are three types of client, app and server. The server is divided into CPU and GPU. Choose one installation according to the environment. 
 - GPU with CUDA10.2 + Cudnn7 + TensorRT6(Recommended)
+- post101 = CUDA10.1 + TensorRT6
+- post112 = CUDA11.2 + TensorRT8
 ```shell
-pip3 install paddle-serving-client==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-app==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-client==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-app==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server
-pip3 install paddle-serving-server==0.8.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU environments need to confirm the environment before choosing which one to execute
-pip3 install paddle-serving-server-gpu==0.8.0.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
-pip3 install paddle-serving-server-gpu==0.8.0.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.8.0.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.2.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+pip3 install paddle-serving-server-gpu==0.8.2.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.2.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 By default, the domestic Tsinghua mirror source is turned on to speed up the download. If you use a proxy, you can turn it off（`-i https://pypi.tuna.tsinghua.edu.cn/simple`).
@@ -89,10 +91,10 @@ The paddle-serving-client and paddle-serving-app installation packages support L
 **You only need to install it when you use the `paddle_serving_client.convert` command or the `Python Pipeline framework`. **
 ```
 # CPU environment please execute
-pip3 install paddlepaddle==2.2.2
+pip3 install paddlepaddle==2.2.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU CUDA 10.2 environment please execute
-pip3 install paddlepaddle-gpu==2.2.2
+pip3 install paddlepaddle-gpu==2.2.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 **Note**: If your CUDA version is not 10.2 or if you want to use TensorRT(CUDA10.2 included), please do not execute the above commands directly, you need to refer to [Paddle-Inference official document-download and install the Linux prediction library](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python) Select the URL link of the corresponding GPU environment and install it. Assuming that you use Python3.6, please follow the codeblock.
 
