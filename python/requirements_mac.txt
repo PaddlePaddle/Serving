@@ -17,4 +17,5 @@ ujson>=2.0.3
 grpcio-tools==1.33.2
 grpcio>=1.33.2
 sentencepiece==0.1.83
-pillow==8.4.0
+pillow==8.4.0 ; python_version == "3.6"
+pillow==9.0.0 ; python_version > "3.6"
