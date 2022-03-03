@@ -11,13 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# from paddle_serving_server.pipeline import PipelineClient
+try:
+    from paddle_serving_server.pipeline import PipelineClient
+except ImportError:
+    from paddle_serving_server.pipeline import PipelineClient
+import numpy as np
 import requests
 import json
+import cv2
+import base64
+import os
 
-url = "http://127.0.0.1:9999/ppTSN/prediction"
+client = PipelineClient()
+client.connect(['127.0.0.1:18090'])
+
 video_url = "https://paddle-serving.bj.bcebos.com/model/PaddleVideo/example.avi"
-for i in range(4):
-    data = {"key": ["filename"], "value": [video_url]}
-    r = requests.post(url=url, data=json.dumps(data))
-    print(r.json())
+for i in range(1):
+    ret = client.predict(feed_dict={"video_url": video_url}, fetch=["res"])
+    print(ret)
