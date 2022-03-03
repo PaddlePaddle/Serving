@@ -108,13 +108,13 @@ For Paddle Serving developers, we provide extended documents such as custom OP, 
 <h2 align="center">Model Zoo</h2>
 
 
-Paddle Serving works closely with the Paddle model suite, and implements a large number of service deployment examples, including image classification, object detection, language and text recognition, Chinese part of speech, sentiment analysis, content recommendation and other types of examples,  for a total of 45 models.
+Paddle Serving works closely with the Paddle model suite, and implements a large number of service deployment examples, including image classification, object detection, language and text recognition, Chinese part of speech, sentiment analysis, content recommendation and other types of examples,  for a total of 46 models.
 
 <p align="center">
 
-| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
-| :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 14 | 2 | 3 | 6 | 
+| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | Paddle Video |
+| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | 
+| 8 | 12 | 14 | 2 | 3 | 6 | 1|
 
 </p>
 
