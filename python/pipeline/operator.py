@@ -102,6 +102,8 @@ class Op(object):
         self._retry = max(1, retry)
         self._batch_size = batch_size
         self._auto_batching_timeout = auto_batching_timeout
+        self._use_encryption_model = None
+        self._encryption_key = ""
 
         self._input = None
         self._outputs = []
@@ -161,6 +163,11 @@ class Op(object):
             self._fetch_names = conf.get("fetch_list")
         if self._client_config is None:
             self._client_config = conf.get("client_config")
+        if self._use_encryption_model is None:
+            print ("config use_encryption model here", conf.get("use_encryption_model"))
+            self._use_encryption_model = conf.get("use_encryption_model")
+            if self._encryption_key is None or self._encryption_key=="":
+                self._encryption_key = conf.get("encryption_key")
         if self._timeout is None:
             self._timeout = conf["timeout"]
         if self._timeout > 0:
@@ -409,7 +416,12 @@ class Op(object):
             self._fetch_names = client.fetch_names_
             _LOGGER.info("Op({}) has no fetch name set. So fetch all vars")
         if self.client_type != "local_predictor":
-            client.connect(server_endpoints)
+            if self._use_encryption_model is None or self._use_encryption_model is False:
+               client.connect(server_endpoints)
+            else:
+               print("connect to encryption rpc client")
+               client.use_key(self._encryption_key)
+               client.connect(server_endpoints, encryption=True)
         _LOGGER.info("init_client, feed_list:{}, fetch_list: {}".format(self.right_feed_names, self.right_fetch_names))
         return client
 
