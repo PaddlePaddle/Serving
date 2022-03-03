@@ -19,7 +19,7 @@
    建立新目录，复制对应 Dockerfile 内容到该目录下 Dockerfile 文件。执行
 
    ```shell
-   docker build -f tools/${DOCKERFILE} -t <image-name>:<images-tag> .
+   docker build -f tools/${DOCKERFILE} -t registry.baidubce.com/paddlepaddle/serving:<images-tag> .
    ```
    
 
