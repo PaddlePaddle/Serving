@@ -67,3 +67,4 @@ Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/whole
   - [PaddleRec](https://github.com/PaddlePaddle/PaddleRec)
   - [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)
   - [PaddleGAN](https://github.com/PaddlePaddle/PaddleGAN)
+  - [PaddleVideo](https://github.com/PaddlePaddle/PaddleVideo)
