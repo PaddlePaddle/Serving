@@ -1,4 +1,6 @@
-# Latest Wheel Packages
+# Download Wheel Packages
+
+(English|[简体中文](./Latest_Packages_CN.md))
 
 ## Paddle-Serving-Server (x86 CPU/GPU)
 
@@ -31,8 +33,7 @@ for most users, we do not need to read this section. But if you deploy your Padd
 | Python3.7             | [paddle_serving_client-0.0.0-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp37-none-any.whl) | [paddle_serving_client-0.8.3-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp37-none-any.whl)  |
 | Python3.8             | [paddle_serving_client-0.0.0-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp38-none-any.whl) | [paddle_serving_client-0.8.3-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
 | Python3.9             | [paddle_serving_client-0.0.0-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp39-none-any.whl) | [paddle_serving_client-0.8.3-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
-
-## paddle-serving-app Wheel包
+## paddle-serving-app
 
 |         | develop whl                                                                                                                              | stable whl                                                                                                                                  |
 |---------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
