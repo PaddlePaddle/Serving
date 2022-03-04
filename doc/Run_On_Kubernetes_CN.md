@@ -29,7 +29,7 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.8.0
 ```
 
-会生成 cuda10.1，python 3.7，serving版本0.7.0 还有 paddle版本2.2.0的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。强烈建议您使用最新的paddle和serving的版本（2个版本是对应的如paddle 2.2.x 与serving 0.7.0对应，paddle 2.1.x 与 serving 0.6.x对应），因为更早的版本上出现的错误只在最新版本修复，无法在历史版本中修复。
+会生成 cuda10.1，python 3.7，serving版本0.8.0 还有 paddle版本2.2.2的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。强烈建议您使用最新的paddle和serving的版本（2个版本是对应的如paddle 2.2.0 与serving 0.7.x对应，paddle 2.2.2 与 serving 0.8.x对应），因为更早的版本上出现的错误只在最新版本修复，无法在历史版本中修复。
 
 ```
 bash tools/generate_runtime_docker.sh --help
