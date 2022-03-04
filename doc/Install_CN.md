@@ -67,21 +67,21 @@ pip3 install -r python/requirements.txt
 - post112 = CUDA11.2 + TensorRT8
 
 ```shell
-pip3 install paddle-serving-client==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-app==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server
-pip3 install paddle-serving-server==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 10.2的包
-pip3 install paddle-serving-server-gpu==0.8.2.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
-pip3 install paddle-serving-server-gpu==0.8.2.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.8.2.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.3.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+pip3 install paddle-serving-server-gpu==0.8.3.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.3.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 默认开启国内清华镜像源来加速下载，如果您使用HTTP代理可以关闭(`-i https://pypi.tuna.tsinghua.edu.cn/simple`)
 
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](./Latest_Packages_CN.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./Compile_CN.md)。
+如果需要使用develop分支编译的安装包，请从[下载Wheel包](./Latest_Packages_CN.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./Compile_CN.md)。
 
 paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
 
