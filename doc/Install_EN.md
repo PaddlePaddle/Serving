@@ -124,10 +124,10 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.2/python/Linux/GPU/x
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).
 
-## 5. Installation check
+## 5. Installation Check
 After the above steps are completed, you can use the command line to run the environment check function to automatically run the Paddle Serving related examples to verify the environment-related configuration.
 
 ```
 python3 -m paddle_serving_server.serve check
 ```
-For details, please refer to the [Environmental Check Documentation](./Check_Env_CN.md)
+For details, please refer to the [Installation Env Check](./Check_Env_CN.md)
