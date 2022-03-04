@@ -58,9 +58,9 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - [源码编译安装Paddle Serving](doc/Compile_CN.md)
 - [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
 - [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
-- 异构硬件部署[[百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
+- 异构硬件部署[[ARM CPU、百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
 - [Docker镜像](doc/Docker_Images_CN.md)
-- [最新Wheel开发包(English)](doc/Latest_Packages_CN.md)
+- [下载Wheel包](doc/Latest_Packages_CN.md)
 
 > 使用
 
@@ -104,9 +104,9 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 <p align="center">
 
-| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | 
-| :----:  | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 14 | 2 | 3 | 6 | 
+| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | Paddle Video |
+| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | 
+| 8 | 12 | 14 | 2 | 3 | 6 | 1 | 
 
 </p>
 

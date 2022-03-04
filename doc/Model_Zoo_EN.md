@@ -53,6 +53,7 @@ Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/whole
 | ch_ppocr_server_v2.0 | PaddleOCR | [Pipeline Serving](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/deploy/pdserving/README.md) | [model](https://github.com/PaddlePaddle/PaddleOCR) |
 | deeplabv3 | PaddleSeg | [C++ Serving](../examples/C++/PaddleSeg/deeplabv3) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/deeplabv3.tar.gz) |
 | unet | PaddleSeg | [C++ Serving](../examples/C++/PaddleSeg/unet_for_image_seg) | [.tar.gz](https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/ImageSegmentation/unet.tar.gz) |
+| PPTSN_K400 | PaddleVideo | [Pipeline Serving](../examples/Pipeline/PaddleVideo/PPTSN_K400) | [model](https://paddle-serving.bj.bcebos.com/model/PaddleVideo/PPTSN_K400.tar) |
 
 - Refer [example](../examples) for more details on above models.
 
@@ -66,3 +67,4 @@ Special thanks to the [Padddle wholechain](https://www.paddlepaddle.org.cn/whole
   - [PaddleRec](https://github.com/PaddlePaddle/PaddleRec)
   - [PaddleSeg](https://github.com/PaddlePaddle/PaddleSeg)
   - [PaddleGAN](https://github.com/PaddlePaddle/PaddleGAN)
+  - [PaddleVideo](https://github.com/PaddlePaddle/PaddleVideo)
