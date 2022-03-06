@@ -90,6 +90,8 @@ The first step is to call the model save interface to generate a model parameter
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [TensorRT dynamic Shape](doc/TensorRT_Dynamic_Shape_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
+  - Our Paper: [JiZhi: A Fast and Cost-Effective Model-As-A-Service System for
+Web-Scale Online Inference at Baidu](https://arxiv.org/pdf/2106.01674.pdf)
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)
