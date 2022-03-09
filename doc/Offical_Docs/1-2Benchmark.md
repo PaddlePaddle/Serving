@@ -20,6 +20,7 @@
 - 异步模式：异步线程处理方式，保证显存占用相同，最大批量为32，异步线程数为2
 
 **三.同步模式**
+
 结论：同步模型默认参数配置情况下，C++ Serving 吞吐和平均时延指标均优于 Tensorflow Serving。
 
 <p align="center">
@@ -38,6 +39,7 @@
 |150	|pd-serving	|239.114	|627.279	|tf-serving	|86.312	|1737.848|
 
 **四.异步模式**
+
 结论：client数据较少时，Tensorflow Serving 性能略优于 C++ Serving ，但当 client 并发数超过70后，Tensorflow Serving 服务出现大量超时，而 C++ Serving 仍能正常运行
 
 <p align="center">
