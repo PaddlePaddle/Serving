@@ -20,7 +20,7 @@ services:
     restart: always
 
   kong-migrations:
-    image: registry.baidubce.com/serving_gateway/kong:paddle
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
     command: kong migrations bootstrap
     depends_on:
       - db
@@ -33,7 +33,7 @@ services:
     restart: on-failure
 
   kong:
-    image: registry.baidubce.com/serving_gateway/kong:paddle
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
     depends_on:
       - db
       - redis
@@ -59,7 +59,7 @@ services:
     restart: always
 
   kong-prepare:
-    image: registry.baidubce.com/serving_gateway/kong:paddle
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
     entrypoint: ["bash", "/autoconfigure-admin-api.sh"]
     depends_on:
       - kong
