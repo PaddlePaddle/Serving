@@ -62,24 +62,22 @@ pip3 install -r python/requirements.txt
 
 Install the service whl package. There are three types of client, app and server. The server is divided into CPU and GPU. Choose one installation according to the environment. 
 - GPU with CUDA10.2 + Cudnn7 + TensorRT6(Recommended)
-- post101 = CUDA10.1 + TensorRT6
-- post112 = CUDA11.2 + TensorRT8
 ```shell
-pip3 install paddle-serving-client==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-app==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # CPU Server
-pip3 install paddle-serving-server==0.8.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # GPU environments need to confirm the environment before choosing which one to execute
-pip3 install paddle-serving-server-gpu==0.8.2.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
-pip3 install paddle-serving-server-gpu==0.8.2.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.8.2.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.3.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+pip3 install paddle-serving-server-gpu==0.8.3.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install paddle-serving-server-gpu==0.8.3.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 By default, the domestic Tsinghua mirror source is turned on to speed up the download. If you use a proxy, you can turn it off（`-i https://pypi.tuna.tsinghua.edu.cn/simple`).
 
-If you need to use the installation package compiled by the develop branch, please download the download address from [Latest installation package list](./Latest_Packages_CN.md), and use the `pip install` command to install. If you want to compile by yourself, please refer to [Paddle Serving Compilation Document](./Compile_CN.md).
+If you need to use the installation package compiled by the develop branch, please download the download address from [Download wheel packages](./Latest_Packages_EN.md), and use the `pip install` command to install. If you want to compile by yourself, please refer to [Paddle Serving Compilation Document](./Compile_CN.md).
 
 The paddle-serving-server and paddle-serving-server-gpu installation packages support Centos 6/7, Ubuntu 16/18 and Windows 10.
 
@@ -125,9 +123,9 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.2.2/python/Linux/GPU/x
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).
 
-## 5. Installation check
-After the above steps are completed, you can use the command line to run the environment check function to automatically run the Paddle Serving related examples to verify the environment-related configuration.
+## 5.Installation Check
+When the above steps are completed, you can use the command line to run the environment check function to automatically run the Paddle Serving related examples to verify the environment-related configuration.
 ```
 python3 -m paddle_serving_server.serve check
 ```
-For details, please refer to the [Environmental Check Documentation](./Check_Env_CN.md)
+For more information, please see[Installation Check](./Check_Env_CN.md)
