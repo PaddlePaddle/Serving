@@ -70,7 +70,6 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 每个lod型的fetchvar拷贝到对应的临时空间中
         // 最后再计算临时空间的总量，合并fetchvar和lod
         fetchvar_batch = 0;
-
       } else {
         // 普通fetchvar情况，此时该Task总的fetchvar_batch =
         // 输入的总的batch_size()
