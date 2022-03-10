@@ -60,9 +60,9 @@ pip3 install -r python/requirements.txt
 ```
 
 安装服务whl包，共有3种client、app、server，Server分为CPU和GPU，GPU包根据您的环境选择一种安装
-- post102 = CUDA10.2 + Cudnn7 + TensorRT6（推荐）
-- post101 = CUDA10.1 + TensorRT6
-- post112 = CUDA11.2 + TensorRT8
+- post102 = CUDA10.2 + cuDNN7 + TensorRT6（推荐）
+- post101 = CUDA10.1 + cuDNN7 + TensorRT6
+- post112 = CUDA11.2 + cuDNN8 + TensorRT8
 
 ```shell
 pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
