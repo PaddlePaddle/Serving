@@ -1,10 +1,10 @@
-# Wheel包下载
+# Download Wheel Packages
 
-(简体中文|[English](./Latest_Packages_EN.md))
+(English|[简体中文](./Latest_Packages_CN.md))
 
 ## Paddle-Serving-Server (x86 CPU/GPU)
 
-查找下面表格，拷贝链接地址，并运行 `pip3 install`。例如要安装 `paddle-serving-server-0.0.0-py3-non-any.whl`, 请右键点击链接拷贝链接地址，最终命令是`pip3 install https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl`。
+Check the following table, and copy the address of hyperlink then run `pip3 install`. For example, if you want to install `paddle-serving-server-0.0.0-py3-non-any.whl`, right click the hyper link and copy the link address, the final command is `pip3 install https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server-0.0.0-py3-none-any.whl`.
 
 |                           | develop whl                                                                                                                                                              | develop bin                                                                                                                             | stable whl                                                                                                                                                               | stable bin                                                                                                                              |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
@@ -16,16 +16,16 @@
 | cuda10.2-cudnn8-TensorRT7 | [paddle_serving_server_gpu-0.0.0.post1028-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post102-py3-none-any.whl) | [ serving-gpu-1028-0.0.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.0.0.tar.gz )                     | [paddle_serving_server_gpu-0.8.3.post1028-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.8.3.post102-py3-none-any.whl) | [serving-gpu-1028-0.8.3.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.8.3.tar.gz )                     |
 | cuda11.2-cudnn8-TensorRT8 | [paddle_serving_server_gpu-0.0.0.post112-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.0.0.post112-py3-none-any.whl) | [ serving-gpu-112-0.0.0.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.0.0.tar.gz )                       | [paddle_serving_server_gpu-0.8.3.post112-py3-none-any.whl ](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_gpu-0.8.3.post112-py3-none-any.whl)   | [serving-gpu-112-0.8.3.tar.gz]( https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.8.3.tar.gz )                       |
 
-### 二进制包（Binary Package）
-大多数用户不会用到此章节。但是如果你在无网络的环境下部署Paddle Serving，在首次启动Serving时，无法下载二进制tar文件。因此，提供多种环境二进制包的下载链接，下载后传到无网络环境的指定目录下，即可使用。
+### Binary Package
+for most users, we do not need to read this section. But if you deploy your Paddle Serving on a machine without network, you will encounter a problem that the binary executable tar file cannot be downloaded. Therefore, here we give you all the download links for various environment.
 
-### 如何离线设置SERVING_BIN?
+### How to setup SERVING_BIN offline?
 
-- 下载Serving Server Wheel包和二进制tar包，确保它们与环境是一致的
-- 下载Serving Client Wheel包和Serving App wheel包, 同时注意Python版本要一致.
-- `pip install ` 所有Wheel包 and `tar xf ` 二进制tar包, 然后`export SERVING_BIN=$PWD/serving-gpu-cuda11-0.0.0/serving` (以Cuda 11为例)
+- download the serving server whl package and bin package, and make sure they are for the same environment
+- download the serving client whl and serving app whl, pay attention to the Python version.
+- `pip install ` the serving and `tar xf ` the binary package, then `export SERVING_BIN=$PWD/serving-gpu-cuda11-0.0.0/serving` (take Cuda 11 as the example)
 
-## paddle-serving-client Wheel包
+## paddle-serving-client 
 
 |  | develop whl                                                                                                                                      | stable whl                                                                                                                                        |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -33,21 +33,20 @@
 | Python3.7             | [paddle_serving_client-0.0.0-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp37-none-any.whl) | [paddle_serving_client-0.8.3-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp37-none-any.whl)  |
 | Python3.8             | [paddle_serving_client-0.0.0-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp38-none-any.whl) | [paddle_serving_client-0.8.3-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
 | Python3.9             | [paddle_serving_client-0.0.0-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp39-none-any.whl) | [paddle_serving_client-0.8.3-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
-
-## paddle-serving-app Wheel包
+## paddle-serving-app
 
 |         | develop whl                                                                                                                              | stable whl                                                                                                                                  |
 |---------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | Python3 | [paddle_serving_app-0.0.0-py3-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.0.0-py3-none-any.whl) | [ paddle_serving_app-0.8.3-py3-none-any.whl ]( https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_app-0.8.3-py3-none-any.whl) |
 
 
-## 百度昆仑芯片
-对于使用百度昆仑芯片的用户， 通过以下方式下载arm-xpu 或 x86-xpu Wheel包。选择 xpu-beta docker [DOCKER镜像](./Docker_Images_CN.md) 
-**昆仑环境仅支持python36**
+## Baidu Kunlun user
+for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as follows. Users should use the xpu-beta docker [DOCKER IMAGES](./Docker_Images_CN.md) 
+**We only support Python 3.6 for Kunlun Users.**
 
-### Wheel包链接
+### Wheel Package Links
 
-适用ARM CPU环境的昆仑Wheel包：
+for arm kunlun user
 ```
 # paddle-serving-server
 https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_server_xpu-0.0.0.post2-py3-none-any.whl
@@ -60,7 +59,7 @@ https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_app-0.0.0-py3-no
 https://paddle-serving.bj.bcebos.com/bin/serving-xpu-aarch64-0.0.0.tar.gz
 ```
  
-适用于x86 CPU环境的昆仑Wheel包：
+for x86 kunlun user
 ``` 
 https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_xpu-0.8.3.post2-py3-none-any.whl
 

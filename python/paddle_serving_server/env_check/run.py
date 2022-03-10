@@ -44,8 +44,9 @@ def mv_log_to_new_dir(dir_path):
     serving_log_path = os.environ['SERVING_LOG_PATH']
     for file_name in log_files:
         file_path = os.path.join(serving_log_path, file_name)
+        dir_path_temp = os.path.join(dir_path, file_name)
         if os.path.exists(file_path):
-            shutil.move(file_path, dir_path)   
+            shutil.move(file_path, dir_path_temp)   
      
 
 def run_test_cases(cases_list, case_type, is_open_std):
