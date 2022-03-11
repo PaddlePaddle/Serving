@@ -67,69 +67,72 @@ docker pull registry.baidubce.com/paddlepaddle/serving:ascend-aarch64-cann3.3.0-
 
 **一. 启动开发镜像**
 
-    CPU
-    ```
-    # 启动 CPU Docker
-    docker pull paddlepaddle/serving:0.8.0-devel
-    docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-devel bash
-    docker exec -it test bash
-    git clone https://github.com/PaddlePaddle/Serving
-    ```
-    GPU
-    ```
-    # 启动 GPU Docker
-    docker pull paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
-    nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
-    nvidia-docker exec -it test bash
-    git clone https://github.com/PaddlePaddle/Serving
-    ```
+   **CPU:**
+
+   ```
+   # 启动 CPU Docker
+   docker pull paddlepaddle/serving:0.8.0-devel
+   docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-devel bash
+   docker exec -it test bash
+   git clone https://github.com/PaddlePaddle/Serving
+   ```
+   
+   **GPU:**
+
+   ```
+   # 启动 GPU Docker
+   docker pull paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel
+   nvidia-docker run -p 9292:9292 --name test -dit paddlepaddle/serving:0.8.0-cuda10.2-cudnn7-devel bash
+   nvidia-docker exec -it test bash
+   git clone https://github.com/PaddlePaddle/Serving
+   ```
 
 **二. 安装所需的 pip 依赖**
 
-    ```
-    cd Serving
-    pip3 install -r python/requirements.txt
-    ```
+   ```
+   cd Serving
+   pip3 install -r python/requirements.txt
+   ```
 
 **三. 安装服务 whl 包**
 
    共有3种 client、app、server，Server 分为 CPU 和 GPU，GPU 包根据您的环境选择一种安装
 
-    - post102 = CUDA10.2 + Cudnn7 + TensorRT6（推荐）
-    - post101 = CUDA10.1 + TensorRT6
-    - post112 = CUDA11.2 + TensorRT8
+   - post102 = CUDA10.2 + Cudnn7 + TensorRT6（推荐）
+   - post101 = CUDA10.1 + TensorRT6
+   - post112 = CUDA11.2 + TensorRT8
 
-    ```
-    pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
-    pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
-    
-    # CPU Server
-    pip3 install paddle-serving-server==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
-    
-    # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 10.2的包
-    pip3 install paddle-serving-server-gpu==0.8.3.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
-    pip3 install paddle-serving-server-gpu==0.8.3.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-    pip3 install paddle-serving-server-gpu==0.8.3.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
-    ```
+   ```
+   pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   
+   # CPU Server
+   pip3 install paddle-serving-server==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   
+   # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 10.2的包
+   pip3 install paddle-serving-server-gpu==0.8.3.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+   pip3 install paddle-serving-server-gpu==0.8.3.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   pip3 install paddle-serving-server-gpu==0.8.3.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   ```
 
-    默认开启国内清华镜像源来加速下载，如果您使用 HTTP 代理可以关闭(`-i https://pypi.tuna.tsinghua.edu.cn/simple`)
+   默认开启国内清华镜像源来加速下载，如果您使用 HTTP 代理可以关闭(`-i https://pypi.tuna.tsinghua.edu.cn/simple`)
 
 **四. 安装 Paddle 相关 Python 库**
-    **当您使用`paddle_serving_client.convert`命令或者`Python Pipeline 框架`时才需要安装。**
-    ```
-    # CPU 环境请执行
-    pip3 install paddlepaddle==2.2.2
+   **当您使用`paddle_serving_client.convert`命令或者`Python Pipeline 框架`时才需要安装。**
+   ```
+   # CPU 环境请执行
+   pip3 install paddlepaddle==2.2.2
 
-    # GPU CUDA 10.2环境请执行
-    pip3 install paddlepaddle-gpu==2.2.2
-    ```
-    **注意**： 如果您的 Cuda 版本不是10.2，或者您需要在 GPU 环境上使用 TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的 GPU 环境的 url 链接并进行安装。
+   # GPU CUDA 10.2环境请执行
+   pip3 install paddlepaddle-gpu==2.2.2
+   ```
+   **注意**： 如果您的 Cuda 版本不是10.2，或者您需要在 GPU 环境上使用 TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https:/paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的 GPU 环境的 url 链接并进行安装。
 
 **五. 安装完成后的环境检查**
-    当以上步骤均完成后可使用命令行运行环境检查功能，自动运行 Paddle Serving 相关示例，进行环境相关配置校验。
+   当以上步骤均完成后可使用命令行运行环境检查功能，自动运行 Paddle Serving 相关示例，进行环境相关配置校验。
 
-    ```
-    python3 -m paddle_serving_server.serve check
-    ```
+   ```
+   python3 -m paddle_serving_server.serve check
+   ```
 
-    详情请参考[环境检查文档](./Check_Env_CN.md)
+   详情请参考[环境检查文档](./Check_Env_CN.md)
