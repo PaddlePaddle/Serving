@@ -99,7 +99,7 @@ docker pull registry.baidubce.com/paddlepaddle/serving:ascend-aarch64-cann3.3.0-
     - post101 = CUDA10.1 + TensorRT6
     - post112 = CUDA11.2 + TensorRT8
 
-    ```shell
+    ```
     pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
     pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
     
