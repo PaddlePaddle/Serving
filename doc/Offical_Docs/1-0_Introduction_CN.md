@@ -1,17 +1,17 @@
 # Serving介绍、概述
 
-Paddle Serving 是飞桨官方推荐的服务化部署框架，围绕 AI 落地的最后一公里提供专业、可靠、易用的在线模型服务框架。
+Paddle Serving 是飞桨官方推荐的服务化部署框架，围绕 AI 落地的最后一公里提供专业、可靠、易用的在线模型服务框架。当用户使用深度学习框架完成模型训练，导出Paddle模型后，即可以使用Paddle Serving完成该模型的服务化部署。
 
 ## 主要特性
-- 支持深度学习平台：支持 Paddle 框架训练模型，其他机器学习平台（Caffe、TensorFlow、ONNX、PyTorch）可通过 x2paddle 工具迁移模型。
-- 支持多种网络协议：HTTP、gRPC、bRPC等多种协议。
-- 支持多种语言 SDK：C++、Python、Java。
-- 适配多种计算硬件：x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑 XPU、华为昇腾 310/910、海光 DCU、Nvidia Jetson等多种硬件。
-- 部署平台：支持 Docker 和 Kubernetes 云端部署，提供多种环境的 Docker 开发镜像和云端部署案例。
-- 具有高性能设计：基于有向无环图（DAG）的异步流水线构建高性能服务化推理框架，具有多模型组合、异步调度、并发推理、动态批量和多卡多流等设计。
-- 提供模型安全部署解决方案：加密模型部署、鉴权校验、HTTPs 安全网关，并在实际项目中应用。
-- 提供大规模稀疏参数模型服务化部署方案：如推荐、广告等场景，具有高性能、大批量在线查询、离线增量版本更新、多版本管理和多表横向扩展能力。
-- 提供丰富的经典模型示例：如 PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec 等套件，共计40+个预训练精品模型，更多模型持续扩展。
+- **支持多深度学习框架**：支持 Paddle 框架训练模型，其他机器学习平台（Caffe、TensorFlow、ONNX、PyTorch）可通过 X2Paddle 工具迁移模型。
+- **支持多种网络协议**：HTTP、gRPC、bRPC等多种协议。
+- **支持多种语言 SDK**：C++、Python、Java。
+- **适配多种计算硬件**：x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑 XPU、华为昇腾 310/910、海光 DCU、Nvidia Jetson等多种硬件。
+- **多部署平台**：支持 Docker 和 Kubernetes 云端部署，提供多种环境的 Docker 开发镜像和云端部署案例。
+- **高性能设计**：基于有向无环图（DAG）的异步流水线构建高性能服务化推理框架，具有多模型组合、异步调度、并发推理、动态批量和多卡多流等设计。
+- **提供模型安全部署解决方案**：加密模型部署、鉴权校验、HTTPs 安全网关，并在实际项目中应用。
+- **提供大规模稀疏参数模型服务化部署方案**：如推荐、广告等场景，具有高性能、大批量在线查询、离线增量版本更新、多版本管理和多表横向扩展能力。
+- **提供丰富的经典模型示例**：如 PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec 等套件，共计40+个预训练精品模型，更多模型持续扩展。
 
 ## 开发流程
 
