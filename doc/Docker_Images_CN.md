@@ -28,7 +28,7 @@
 若需要基于源代码二次开发编译，请使用后缀为-devel的版本。
 **在TAG列，0.8.0也可以替换成对应的版本号，例如0.5.0/0.4.1等，但需要注意的是，部分开发环境随着某个版本迭代才增加，因此并非所有环境都有对应的版本号可以使用。**
 
-** 开发镜像：**
+**开发镜像：**
 开发镜像中安装多种开发工具，可用于调试和编译代码，适配2种 GCC 版本和多种 CUDA 环境，但镜像体积较大。
 
 |                         镜像选择                         |   操作系统    |             TAG              |                          Dockerfile                          |
@@ -41,7 +41,7 @@
 |              GPU (cuda11.2-cudnn8-tensorRT8) development               | Ubuntu16 | 0.8.0-cuda11.2-cudnn8-devel | [Dockerfile.cuda11.2-cudnn8.devel](../tools/Dockerfile.cuda11.2-cudnn8.devel) |
 
 
-** 运行镜像: **
+**运行镜像: **
 
 运行镜像比开发镜像更加轻量化, 运行镜像提供了serving的whl和bin，但为了运行期更小的镜像体积，没有提供诸如cmake这样但开发工具。 如果您想了解有关信息，请检查文档[在Kubernetes上使用Paddle Serving](./Run_On_Kubernetes_CN.md)。
 
