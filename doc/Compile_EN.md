@@ -218,9 +218,9 @@ cd ..
 
 ## Install Related Whl Packages
 ```
-pip3.7 install -r build_server/python/dist/*.whl
-pip3.7 install -r build_client/python/dist/*.whl
-pip3.7 install -r build_app/python/dist/*.whl
+pip3.7 install build_server/python/dist/*.whl
+pip3.7 install build_client/python/dist/*.whl
+pip3.7 install build_app/python/dist/*.whl
 export SERVING_BIN=${PWD}/build_server/core/general-server/serving
 ```
 
@@ -258,7 +258,7 @@ make -j10
 ## Attached: CMake option description
 
 | Compilation Options | Description | Default |
-| :--------------: | :------------------------------- ---------: | :--: |
+| :--------------: | :----------------------------------------: | :--: |
 | WITH_AVX | Compile Paddle Serving with AVX intrinsics | OFF |
 | WITH_MKL | Compile Paddle Serving with MKL support | OFF |
 | WITH_GPU | Compile Paddle Serving with NVIDIA GPU | OFF |
