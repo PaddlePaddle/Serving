@@ -33,7 +33,9 @@ If you want to customize your Serving based on source code, use the version with
 If you need to develop and compile based on the source code, please use the version with the suffix -devel.
 **In the TAG column, 0.8.0 can also be replaced with the corresponding version number, such as 0.5.0/0.4.1, etc., but it should be noted that some development environments only increase with a certain version iteration, so not all environments All have the corresponding version number can be used.**
 
-**Develop Docker Images:**
+**Development Docker Images:**
+
+A variety of development tools are installed in the development image, which can be used to debug and compile code, and adapt to two GCC versions and multiple CUDA environments, but the image size is large.
 
 |                         Description                         |   OS    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
