@@ -258,7 +258,7 @@ make -j10
 ## Attached: CMake option description
 
 | Compilation Options | Description | Default |
-| :--------------: | :------------------------------- ---------: | :--: |
+| :--------------: | :----------------------------------------: | :--: |
 | WITH_AVX | Compile Paddle Serving with AVX intrinsics | OFF |
 | WITH_MKL | Compile Paddle Serving with MKL support | OFF |
 | WITH_GPU | Compile Paddle Serving with NVIDIA GPU | OFF |
@@ -290,7 +290,7 @@ The things to note here are:
 
 The following is the matching relationship between PaddleServing mirrored Cuda, Cudnn, and TensorRT for reference:
 
-| | CUDA | CUDNN | TensorRT |
+| Tag | CUDA | CUDNN | TensorRT |
 | :----: | :-----: | :----------: | :----: |
 | post101 | 10.1 | CUDNN 7.6.5 | 6.0.1 |
 | post102 | 10.2 | CUDNN 8.0.5 | 7.1.3 |
