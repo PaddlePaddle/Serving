@@ -41,37 +41,49 @@ kubectl apply -f https://bit.ly/kong-ingress-dbless
 
 完整镜像列表，请参考 [DOCKER 开发镜像列表](./Docker_Images_CN.md)
 
-其次，需要在镜像文件中添加 Serving 业务代码和模型。假定按上述步骤已拥有Serving运行镜像 paddle_serving:cuda10.2-py36，以 PaddleOCR 文字识别任务为例展示镜像制作方法。
+其次，需要在镜像文件中添加 Serving 业务代码和模型。假定按上述步骤完成3个前置任务
+#### 1.选定运行镜像：registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.1-cudnn7-runtime 
+#### 2.克隆代码库（/home/work）：git clone https://github.com/PaddlePaddle/Serving.git
+#### 3.安装 py wheels：pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ```bash
-# run docker
-docker run --rm -dit --name pipeline_serving_demo paddle_serving:cuda10.2-py36 bash
-cd Serving/examples/Pipeline/PaddleOCR/ocr
+# Run docker
+nvidia-docker run --rm -dit --name pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.1-cudnn7-runtime bash
 
-# get models
-python -m paddle_serving_app.package --get_model ocr_rec
+# Enter your serving repo, and download OCR models
+cd /home/work/Serving/examples/Pipeline/PaddleOCR/ocr
+
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 cd ..
 
-# copy OCR directory to your docker
+# Copy OCR directory to your docker
 docker cp ocr pipeline_serving_demo:/home/
 
-# commit and push it
-docker commit pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo
-docker push registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo
+# Commit and push it
+docker commit pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
+docker push registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
 ```
 
 最终，你完成了业务镜像制作环节。
 
 **三. 集群部署**
 
-Paddle Serving 封装了脚本 generate_k8s_yamls.sh 用以生成 Kubernetes 部署配置。以 OCR 为例，运行以下命令生成 Kubernetes 集群配置。
+Serving/tools/generate_k8s_yamls.sh 会生成 Kubernetes 部署配置。以 OCR 为例，运行以下命令生成 Kubernetes 集群配置。
 ```
-sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python3.6 web_service.py" --port 9999
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101 --workdir /home/ocr --command "python3.7 web_service.py" --port 9999
 ```
-需要注意的是 app_name 需要同 URL 的函数名相同。例如 ocr 示例的访问 URL 是 https://127.0.0.1:9292/ocr/prediction。
+生成信息如下：
+```
+named arg: app_name: ocr
+named arg: image_name: registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
+named arg: workdir: /home/ocr
+named arg: command: python3.7 web_service.py
+named arg: port: 9999
+check k8s_serving.yaml and k8s_ingress.yaml please.
+```
 
 运行命令后，生成2个 yaml 文件，分别是 k8s_serving.yaml 和 k8s_ingress.yaml。执行以下命令启动 Kubernetes 集群 和 Ingress 网关。
 
@@ -89,7 +101,22 @@ kubectl get deploy
 部署状态如下：
 ```
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-ocr    1/1     1            1           2d20h
+ocr    1/1     1            1           10m
+```
+
+查询全部 Pod 信息 运行命令：
+```
+kubectl get pods
+```
+查询 Pod 信息如下：
+```
+NAME                       READY   STATUS    RESTARTS   AGE
+ocr-c5bd77d49-mfh72        1/1     Running   0          10m
+uci-5bc7d545f5-zfn65       1/1     Running   0          52d
+```
+进入 Pod container 运行命令：
+```
+kubectl exec -ti ocr-c5bd77d49-mfh72 -n bash 
 ```
 
 查询集群服务状态：
@@ -110,3 +137,22 @@ kube-system   kube-dns                  ClusterIP      172.16.0.10      <none>  
 kube-system   metrics-server            ClusterIP      172.16.34.157    <none>        443/TCP                    28d
 ```
 
+根据 kong-proxy 的 CLUSTER-IP 和 端口信息，访问 URL: http://172.16.88.132:80/ocr/prediction 查询 OCR 服务。 
+
+**四.更新镜像**
+
+假定更新了文件或数据，重新生成 k8s_serving.yaml 和 k8s_ingress.yaml。
+```
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101 --workdir /home/ocr --command "python3.7 web_service.py" --port 9999
+```
+更新配置，并重启Pod
+```
+kubectl apply -f k8s_serving.yaml
+kubectl apply -f k8s_ingress.yaml
+
+# 查找 ocr 的 pod name
+kubectl get pods
+
+# 更新 pod
+kubectl exec -it ocr-c5bd77d49-s8jwh -n default -- /bin/sh
+```
