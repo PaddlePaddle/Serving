@@ -61,7 +61,10 @@ pip3 install -r python/requirements.txt
 ```
 
 Install the service whl package. There are three types of client, app and server. The server is divided into CPU and GPU. Choose one installation according to the environment. 
-- GPU with CUDA10.2 + Cudnn7 + TensorRT6(Recommended)
+- post102 = CUDA10.2 + cuDNN7 + TensorRT6(Recommended)
+- post101 = CUDA10.1 + cuDNN7 + TensorRT6
+- post112 = CUDA11.2 + cuDNN8 + TensorRT8
+
 ```shell
 pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple

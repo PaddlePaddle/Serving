@@ -3,7 +3,7 @@
 ##  安装说明
 
 本说明将指导您在64位操作系统编译和安装 PaddleServing。
-**强烈建议**您在**Docker 内构建** Paddle Serving，更多镜像请查看[Docker镜像列表](Docker_Images_CN.md)。
+**强烈建议**您在 **Docker 内构建** Paddle Serving，更多镜像请查看 [Docker镜像列表](Docker_Images_CN.md)。
 
 **一. Python 和 pip 版本：**
 
@@ -91,7 +91,7 @@
     # GPU CUDA 10.2环境请执行
     pip3 install paddlepaddle-gpu==2.2.2
     ```
-    **注意**： 如果您的 Cuda 版本不是10.2，或者您需要在 GPU 环境上使用 TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的 GPU 环境的 url 链接并进行安装。
+    **注意**： 如果您的 CUDA 版本不是10.2，或者您需要在 GPU 环境上使用 TensorRT，请勿直接执行上述命令，需要参考[Paddle-Inference官方文档-下载安装Linux预测库](https://paddleinference.paddlepaddle.org.cn/master/user_guides/download_lib.html#python)选择相应的 GPU 环境的 url 链接并进行安装。
 
 7. 安装完成后的环境检查
     当以上步骤均完成后可使用命令行运行环境检查功能，自动运行 Paddle Serving 相关示例，进行环境相关配置校验。
@@ -102,10 +102,8 @@
 
 8. 更多帮助信息请参考：
 
-    
-
 
 **第二种安装方式：使用源代码编译安装**
 
 - 如果您只是使用 PaddleServing ，建议使用 **pip** 安装即可。
-- 如果您有开发 PaddleServing 的需求，请参考：[从源码编译]
+- 如果您有开发 PaddleServing 的需求，请参考 [从源码编译]()
