@@ -70,7 +70,6 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 每个lod型的fetchvar拷贝到对应的临时空间中
         // 最后再计算临时空间的总量，合并fetchvar和lod
         fetchvar_batch = 0;
-
       } else {
         // 普通fetchvar情况，此时该Task总的fetchvar_batch =
         // 输入的总的batch_size()
@@ -86,14 +85,15 @@ bool Task<InItemT, OutItemT>::task_fetch_create(BatchTasks<TaskT>& batchTask) {
         // 此时 lod 为空。
         tensor_out.lod = batchTask._batch_out[fetchvar_index].lod;
         // resize all batch memory at one time
-        
+
         size_t databuf_size = fetchvar_batch * fetchvar_bytesize_index;
-        
-        void* databuf_data = MempoolWrapper::instance().malloc(databuf_size,memoryPtr);
+
+        void* databuf_data =
+            MempoolWrapper::instance().malloc(databuf_size, memoryPtr);
         paddle::PaddleBuf paddleBuf(databuf_data, databuf_size);
         tensor_out.data = paddleBuf;
-        
-        //tensor_out.data.Resize(databuf_size);
+
+        // tensor_out.data.Resize(databuf_size);
       } else {
         // 当taskmeta_num = 1时，由于同时只有一个taskMeta操作task
         // 不涉及线程安全问题，所以此时可以直接由taskMeta->task->resize->copy
@@ -213,7 +213,8 @@ void TaskExecutor<TaskT>::stop() {
 template <typename TaskT>
 TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
     const void* inVectorT_ptr,
-    void* outVectorT_ptr, MempoolRegion* memoryPtr) {  // NOLINT
+    void* outVectorT_ptr,
+    MempoolRegion* memoryPtr) {  // NOLINT
   TaskT* task = butil::get_object<TaskT>();
   if (!task) {
     LOG(ERROR) << "Failed get TaskT from object pool";
@@ -240,7 +241,7 @@ TaskHandler<TaskT> TaskExecutor<TaskT>::schedule(
   task->write_fd = fds[1];
   task->owner_tid = ::syscall(SYS_gettid);
   task->memoryPtr = memoryPtr;
-  //task->_bspec_key = _bspec_key;
+  // task->_bspec_key = _bspec_key;
   task->inVectorT_ptr = (const InVectorT*)inVectorT_ptr;
   task->outVectorT_ptr = (OutVectorT*)outVectorT_ptr;
   if (!task->task_init()) {
@@ -309,7 +310,7 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     }
 
     // combine_task_valid负责判断是否能够合并
-    // 除最外层的shape外，内层shape应一致才能合并。
+    // 除最外层的shape外，内层shape应一致或者允许Padding才能合并。
     // 否则跳出循环,放入下一个batchTask中。
     // 以此保证batch.append_task(task)中的task的内层shape相同。
 
@@ -317,11 +318,14 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     // 所以要求该feedvar必须相等，才能合并。
     // 否则跳出循环,放入下一个batchTask中。
     // 目前没有PaddleTensor和PaddleBuff没有重载==，所以只能比较内存.
-    // TODO(HexToString): 可以考虑后期支持AutoPadding.
     if (previous_task != nullptr) {
-      if (!task->combine_task_valid(previous_task)) {
+      if (task->combine_task_valid(previous_task) == 0) {
         break;
       }
+    }
+
+    if (batchTask.padding(task) != 2) {
+      break;
     }
     size_t rem = batchTask.append_task(task);
     previous_task = task;
@@ -407,10 +411,11 @@ int TaskExecutor<TaskT>::work(ThreadContext<TaskT>* context) {
 }
 
 template <typename InItemT, typename OutItemT>
-bool TaskManager<InItemT, OutItemT>::schedule(const void* in,
-                                              void* out, MempoolRegion* memoryPtr) {  // NOLINT
+bool TaskManager<InItemT, OutItemT>::schedule(
+    const void* in, void* out, MempoolRegion* memoryPtr) {  // NOLINT
   TaskHandler<TaskT> handler =
-      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(in, out, memoryPtr);
+      TaskExecutorVector<TaskT>::instance()[_model_index].schedule(
+          in, out, memoryPtr);
 
   if (handler.valid()) {
     _task_owned = handler;
