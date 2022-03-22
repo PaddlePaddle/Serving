@@ -12,6 +12,8 @@
 
 此外，针对某些 C++ 二次开发场景，我们也提供了 OPENCV 的联编方案。
 
+<img src="images/2-3_Compile_CN_1.png">
+
 
 ## 编译环境准备
 
@@ -20,7 +22,7 @@
 |              OS              |     Ubuntu16 and 18/CentOS 7      |
 |             gcc              |          5.4.0(Cuda 10.1) and 8.2.0         |
 |           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
-|            cmake             |          3.2.0 and later          |
+|            cmake             |          3.16.0 and later          |
 |            Python            |          3.6.0 and later          |
 |              Go              |          1.17.2 and later          |
 |             git              |         2.17.1 and later          |
@@ -73,35 +75,6 @@ cd Serving && git submodule update --init --recursive
 
 请按照如下，确定好需要编译的 Python 版本，设置对应的环境变量，一共需要设置三个环境变量，分别是 `PYTHON_INCLUDE_DIR`, `PYTHON_LIBRARIES`, `PYTHON_EXECUTABLE`。以下我们以 python 3.7为例，介绍如何设置这三个环境变量。
 
-1. 设置 `PYTHON_INCLUDE_DIR`
-
-搜索 Python.h 所在的目录
-```
-find / -name Python.h
-```
-通常会有类似于 `**/include/python3.7/Python.h` 出现，我们只需要取它的文件夹目录就好，比如找到 `/usr/include/python3.7/Python.h`，那么我们只需要 `export PYTHON_INCLUDE_DIR=/usr/include/python3.7/` 就好。
-如果没有找到。说明 1）没有安装开发版本的 Python，需重新安装 2）权限不足无法查看相关系统目录。
-
-2. 设置 `PYTHON_LIBRARIES`
-
-搜索 libpython3.7.so 或 libpython3.7m.so
-```
-find / -name libpython3.7.so
-find / -name libpython3.7m.so
-```
-通常会有类似于 `**/lib/libpython3.7.so` 或者 `**/lib/x86_64-linux-gnu/libpython3.7.so` 出现，我们只需要取它的文件夹目录就好，比如找到 `/usr/local/lib/libpython3.7.so`，那么我们只需要 `export PYTHON_LIBRARIES=/usr/local/lib` 就好。
-如果没有找到，说明 1）静态编译 Python，需要重新安装动态编译的 Python 2）全县不足无法查看相关系统目录。
-
-3. 设置 `PYTHON_EXECUTABLE`
-
-直接查看 python3.7 路径
-```
-which python3.7
-```
-假如结果是 `/usr/local/bin/python3.7`，那么直接设置 `export PYTHON_EXECUTABLE=/usr/local/bin/python3.7`。
-
-设置好这三个环境变量至关重要，设置完成后，我们便可以执行下列操作（以下是 Paddle Cuda 11.2 的开发镜像的 PYTHON 环境，如果是其他镜像，请更改相应的 `PYTHON_INCLUDE_DIR`, `PYTHON_LIBRARIES`, `PYTHON_EXECUTABLE`）。
-
 ```
 # 请自行修改至自身路径
 export PYTHON_INCLUDE_DIR=/usr/local/include/python3.7m/
@@ -121,6 +94,17 @@ go install github.com/golang/protobuf/protoc-gen-go@v1.4.3
 go install google.golang.org/grpc@v1.33.0
 go env -w GO111MODULE=auto
 ```
+环境变量的含义如下表所示。
+
+| cmake 环境变量         | 含义                                | 注意事项               | Docker 环境是否需要 |
+|-----------------------|-------------------------------------|-------------------------------|--------------------|
+| PYTHON_INCLUDE_DIR | Python.h 所在的目录，通常为 **/include/python3.7/Python.h | 如果没有找到。说明 1）没有安装开发版本的 Python，需重新安装 2）权限不足无法查看相关系统目录。                | 是(/usr/local/include/python3.7)                 |
+| PYTHON_LIBRARIES         | libpython3.7.so 或 libpython3.7m.so 所在目录，通常为 /usr/local/lib  | 如果没有找到。说明 1）没有安装开发版本的 Python，需重新安装 2）权限不足无法查看相关系统目录。                | 是(/usr/local/lib/x86_64-linux-gnu/libpython3.7m.so)                 |
+| PYTHON_EXECUTABLE   | python3.7 所在目录，通常为 /usr/local/bin |                | 是(/usr/local/bin/python3.7)                 |
+
+
+**二. 设置 CUDA 环境变量**
+
 
 如果您是 GPU 用户需要额外设置 `CUDA_PATH`, `CUDNN_LIBRARY`, `CUDA_CUDART_LIBRARY` 和 `TENSORRT_LIBRARY_PATH`。
 ```
@@ -143,6 +127,7 @@ export TENSORRT_LIBRARY_PATH="/usr/"
 ## 正式编译
 
 我们一共需要编译三个目标，分别是 `paddle-serving-server`, `paddle-serving-client`, `paddle-serving-app`，其中 `paddle-serving-server` 需要区分 CPU 或者 GPU 版本。
+全部编译选项详见附录。
 
 **一. 编译 paddle-serving-server**
 
@@ -167,15 +152,17 @@ cd build_server
 cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_LIBRARIES=$PYTHON_LIBRARIES \
     -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
-    -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_PATH} \
-    -DCUDNN_LIBRARY=${CUDNN_LIBRARY} \
-    -DCUDA_CUDART_LIBRARY=${CUDA_CUDART_LIBRARY} \
-    -DTENSORRT_ROOT=${TENSORRT_LIBRARY_PATH} \
+    -DCUDA_TOOLKIT_ROOT_DIR=$CUDA_PATH \
+    -DCUDNN_LIBRARY=$CUDNN_LIBRARY \
+    -DCUDA_CUDART_LIBRARY=$CUDA_CUDART_LIBRARY \
+    -DTENSORRT_ROOT=$TENSORRT_LIBRARY_PATH \
     -DSERVER=ON \
     -DWITH_GPU=ON ..
 make -j20
 cd ..
 ``` 
+
+编译出的 whl 包在 `build_server/python/dist/` 目录下，编译出的二进制文件在 `build_server/core/general-server/serving` 路径下。
 
 **二. 编译 paddle-serving-client**
 
@@ -191,6 +178,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
 make -j10
 cd ..
 ```
+编译出的 whl 包在 `build_client/python/dist/` 目录下。
 
 **三. 编译 paddle-serving-app**
 
@@ -205,6 +193,7 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
 make -j10
 cd ..
 ```
+编译出的 whl 包在 `build_app/python/dist/` 目录下。
 
 ## 安装相关 whl 包
 ```

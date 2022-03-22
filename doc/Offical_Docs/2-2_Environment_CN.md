@@ -1,8 +1,11 @@
-# 标准环境配置
+# 原生系统标准环境配置
 
-本文介绍基于标准环境进行配置安装。
+本文介绍基于原生系统标准环境进行配置安装。
 
-## CentOS 7 环境配置
+<img src="images/2-2_Environment_CN_1.png">
+
+
+## CentOS 7 环境配置（第一步）
 
 **一.环境准备**
 
@@ -12,14 +15,26 @@
 
 * 如果您的计算机有 NVIDIA® GPU，请确保满足以下条件
 
-    * **CUDA 工具包 10.1/10.2 配合 cuDNN 7 (cuDNN 版本>=7.6.5)**
-    * **CUDA 工具包 11.2 配合 cuDNN v8.1.1**
-    * **配套版本的 TensorRT**
+    * **CUDA 工具包：10.1/10.2 配合 cuDNN 7 (cuDNN 版本>=7.6.5) 或者 11.2 配合 cuDNN v8.1.1**
+    * **兼容版本的 TensorRT**
     * **GPU运算能力超过3.5的硬件设备**
 
-        您可参考NVIDIA官方文档了解CUDA和CUDNN的安装流程和配置方法，请见[CUDA](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/)，[cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/)，[TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/index.html)
+        您可参考NVIDIA官方文档了解CUDA和CUDNN的安装流程和配置方法，请见[CUDA](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/)，[cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/)，[TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/index.html), [GPU算力](https://developer.nvidia.com/cuda-gpus)
 
 **三.安装必要工具**
+
+需要安装的依赖库及工具详见下表：
+
+|             组件             |             版本要求              |
+| :--------------------------: | :-------------------------------: |
+|         bzip2-devel          |          1.0.6 and later          |
+|              make              |     later     |
+|             gcc              |          8.2.0         |
+|           gcc-c++            |          8.2.0         |
+|            cmake             |          3.15.0 and later          |
+|              Go              |          1.17.2 and later          |
+|        openssl-devel         |              1.0.2k               |
+|           patchelf           |                0.9                |
 
 1. 更新系统源
 
@@ -115,7 +130,7 @@
     ln -sf /usr/lib/libssl.so.10 /usr/lib/libssl.so
     ```
 
-## Ubuntu 16.04/18.04 环境配置
+## Ubuntu 16.04/18.04 环境配置（第一步）
 
 **一.环境准备**
 
@@ -221,15 +236,26 @@
     ln -sf /usr/lib/libssl.so.10 /usr/lib/libssl.so
     ```
 
-## Windows 环境配置
+## Windows 环境配置（第一步）
 
 由于受限第三方库的支持，Windows平台目前只支持用web service的方式搭建local predictor预测服务。
 
 **一.环境准备**
 
-**目前原生Windows仅支持Python 3.6或更高版本**。首先需要将Python的可执行程序所在目录加入到PATH当中。通常在**系统属性/我的电脑属性**-**高级**-**环境变量** ，点选Path，并在开头加上路径。例如`C:\Users\$USER\AppData\Local\Programs\Python\Python36`，最后连续点击**确定** 。在Powershell上如果输入python可以进入python交互界面，说明环境变量配置成功。
+* **Python 版本 3.6/3.7/3.8/3.9 (64 bit)**
 
-**二.安装必要工具**
+**二.选择 CPU/GPU**
+
+* 如果您的计算机有 NVIDIA® GPU，请确保满足以下条件
+
+    * **CUDA 工具包 10.1/10.2 配合 cuDNN 7 (cuDNN 版本>=7.6.5)**
+    * **CUDA 工具包 11.2 配合 cuDNN v8.1.1**
+    * **配套版本的 TensorRT**
+    * **GPU运算能力超过3.5的硬件设备**
+
+        您可参考NVIDIA官方文档了解CUDA和CUDNN的安装流程和配置方法，请见[CUDA](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/)，[cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/)，[TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/index.html)
+
+**三.安装必要工具**
 
 1. 更新 wget 工具
 
@@ -243,15 +269,11 @@
 
     部分用户可能会在`import paddle`阶段遇见dll无法链接的问题，建议[安装Visual Studio社区版本](https://visualstudio.microsoft.com/) ，并且安装C++的相关组件。
 
-## 使用 pip 安装
+## 使用 pip 安装（第二步）
 
 **一. 安装服务 whl 包**
 
-   共有3种 client、app、server，Server 分为 CPU 和 GPU，GPU 包根据您的环境选择一种安装
-
-   - post102 = CUDA10.2 + Cudnn7 + TensorRT6（推荐）
-   - post101 = CUDA10.1 + TensorRT6
-   - post112 = CUDA11.2 + TensorRT8
+   服务 whl 包包括： client、app、server，其中 Server 分为 CPU 和 GPU，GPU 包根据您的环境选择一种安装
 
    ```
    pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -261,8 +283,11 @@
    pip3 install paddle-serving-server==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
    
    # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 10.2的包
+   # CUDA10.2 + Cudnn7 + TensorRT6（推荐）
    pip3 install paddle-serving-server-gpu==0.8.3.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
+   # CUDA10.1 + TensorRT6
    pip3 install paddle-serving-server-gpu==0.8.3.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
+   # CUDA11.2 + TensorRT8
    pip3 install paddle-serving-server-gpu==0.8.3.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
 
@@ -284,6 +309,13 @@
 
    ```
    python3 -m paddle_serving_server.serve check
+   # 以下输出表明环境检查正常
+   (Cmd) check_all
+   PaddlePaddle inference environment running success
+   C++ cpu environment running success
+   C++ gpu environment running success
+   Pipeline cpu environment running success
+   Pipeline gpu environment running success
    ```
 
    详情请参考[环境检查文档](./Check_Env_CN.md)
