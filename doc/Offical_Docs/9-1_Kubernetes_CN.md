@@ -60,11 +60,12 @@ systemctl start kube-proxy
 
 完整镜像列表，请参考 [DOCKER 开发镜像列表](./Docker_Images_CN.md)
 
-其次，需要在镜像文件中添加 Serving 业务代码和模型。假定按上述步骤完成3个前置任务
-#### 1.选定运行镜像：registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.1-cudnn7-runtime 
-#### 2.克隆代码库（/home/work）：git clone https://github.com/PaddlePaddle/Serving.git
-#### 3.安装 py wheels：pip3 install paddle-serving-app==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
+制作镜像的整体步骤如下，这里选定 Serving 运行镜像，相比于开发镜像体积更小，镜像内已安装相关的依赖和 Serving wheel 包。
+1.选定运行镜像：registry.baidubce.com/paddlepaddle/serving:0.8.3-cuda10.1-cudnn7-runtime 
+2.运行镜像并拷贝模型和服务代码到镜像中，当你需要部署外部其他模型时，更换模型和代码即可。
+3.制作并上传新镜像
 
+假定已完成上述3个前置运行镜像并拷贝模型到镜像中，看具体操作。
 ```bash
 # Run docker
 nvidia-docker run --rm -dit --name pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.1-cudnn7-runtime bash

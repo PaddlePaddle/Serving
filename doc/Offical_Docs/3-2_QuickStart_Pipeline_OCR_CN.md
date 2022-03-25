@@ -1,6 +1,8 @@
-# 文字识别（OCR）部署案例
+# Python Pipeline 快速部署案例
 
-## 文字识别模型介绍
+Python Pipeline 框架使用 Python 语言开发，是一套端到端多模型组合服务编程框架，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体服务的预估效率。详细设计参考[ Python Pipeline 设计与使用]()
+
+## 模型介绍
 
 OCR 技术一般指光学字符识别。 OCR（Optical Character Recognition，光学字符识别）是指电子设备（例如扫描仪或数码相机）检查纸上打印的字符，通过检测暗、亮的模式确定其形状，然后用字符识别方法将形状翻译成计算机文字的过程。
 
@@ -15,12 +17,7 @@ PaddleOCR 提供的 PP-OCR 系列模型覆盖轻量级服务端、轻量级移�
 | 中英文通用服务端模型 | 143.4M | ch_ppocr_server_v2.0_xx | 服务器端 |
 
 
-## Python Pipeline 设计
-
-Python Pipeline 框架使用 Python 语言开发，是一套端到端多模型组合服务编程框架，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体服务的预估效率。详细设计参考[ Python Pipeline 设计与使用]()
-
-
-## 部署案例
+## 模型步骤
 
 前提条件是你已完成[环境安装]()步骤，并已验证环境安装成功，此处不在赘述。
 
@@ -28,7 +25,6 @@ Python Pipeline 框架使用 Python 语言开发，是一套端到端多模型�
 ```
 git clone https://github.com/PaddlePaddle/Serving
 ```
-
 按以下5个步骤操作即可实现 OCR 示例部署。
 
 **一.获取模型**
@@ -204,7 +200,7 @@ ocr_service.run_service()
 ```
 
 
-#### 5.启动服务与验证
+**五.启动服务与验证**
 
 运行程序 `web_service.py` 启动服务端
 ```
