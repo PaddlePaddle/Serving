@@ -91,7 +91,7 @@ message Tensor {
 - lod：lod 信息，LoD(Level-of-Detail) Tensor 是 Paddle 的高级特性，是对 Tensor 的一种扩充，用于支持更自由的数据输入。Lod 相关原理介绍，请参考[相关文档](../LOD_CN.md)
 - name/alias_name: 名称及别名，与模型配置对应
 
-**二.构建 Tensor 数据 **
+**二.构建 Tensor 数据**
 
 1. FLOAT32 类型 Tensor
 
