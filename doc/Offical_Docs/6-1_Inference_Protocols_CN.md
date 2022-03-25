@@ -4,6 +4,8 @@ C++ Serving 基于 BRPC 进行服务构建，支持 BRPC、GRPC、RESTful 请求
 
 ## Tensor
 
+**一.Tensor 定义**
+
 Tensor 可以装载多种类型的数据，是 Request 和 Response 的基础单元。Tensor 的具体定义如下：
 
 ```protobuf
@@ -89,7 +91,9 @@ message Tensor {
 - lod：lod 信息，LoD(Level-of-Detail) Tensor 是 Paddle 的高级特性，是对 Tensor 的一种扩充，用于支持更自由的数据输入。Lod 相关原理介绍，请参考[相关文档](../LOD_CN.md)
 - name/alias_name: 名称及别名，与模型配置对应
 
-**一.构建 FLOAT32 数据 Tensor**
+**二.构建 Tensor 数据 **
+
+1. FLOAT32 类型 Tensor
 
 ```C
 // 原始数据
@@ -113,7 +117,7 @@ tensor->mutable_float_data()->Resize(total_number, 0);
 memcpy(tensor->mutable_float_data()->mutable_data(), float_datadata(), total_number * sizeof(float));
 ```
 
-**二.构建 INT8 数据 Tensor**
+2. INT8 类型 Tensor
 
 ```C
 // 原始数据
@@ -133,6 +137,8 @@ tensor->set_tensor_content(string_data);
 
 ## Request
 
+**一.Request 定义**
+
 Request 为客户端需要发送的请求数据，其以 Tensor 为基础数据单元，并包含了额外的请求信息。定义如下：
 
 ```protobuf
@@ -148,7 +154,7 @@ message Request {
 - profile_server: 调试参数，打开时会输出性能信息
 - log_id: 请求ID
 
-**一.构建 Request**
+**二.构建 Request**
 
 当使用 BRPC 或 GRPC 进行请求时，使用 protobuf 形式数据，构建方式如下：
 
@@ -170,6 +176,8 @@ Tensor *tensor = req.add_tensor();
 ```
 
 ## Response
+
+**一.Response 定义**
 
 Response 为服务端返回给客户端的结果，包含了 Tensor 数据、错误码、错误信息等。定义如下：
 
@@ -203,7 +211,7 @@ message ModelOutput {
 |-5002|"Paddle Serving Array Overflow Error."|
 |-5100|"Paddle Serving Op Inference Error."|
 
-**一.读取Response数据**
+**二.读取 Response 数据**
 
 ```C
 uint32_t model_num = res.outputs_size();
