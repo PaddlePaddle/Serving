@@ -11,7 +11,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import java.util.*;
 
 public class PaddleServingClientExample {
-    boolean fit_a_line(String model_config_path) {
+    boolean http_proto(String model_config_path) {
         float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
             0.0582f, -0.0727f, -0.1583f, -0.0584f,
             0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
@@ -24,10 +24,59 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("price");
         
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
+        String result = client.predict(feed_data, fetch, true, 0);
+        
+        System.out.println(result);
+        return true;
+    }
+
+    boolean http_json(String model_config_path) {
+        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+            0.0582f, -0.0727f, -0.1583f, -0.0584f,
+            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
+        INDArray npdata = Nd4j.createFromArray(data);
+        long[] batch_shape = {1,13};
+        INDArray batch_npdata = npdata.reshape(batch_shape);
+        HashMap<String, Object> feed_data
+            = new HashMap<String, Object>() {{
+                put("x", batch_npdata);
+            }};
+        List<String> fetch = Arrays.asList("price");
+        
+        Client client = new Client();
+        //注意：跨docker，需要设置--net-host或直接访问另一个docker的ip
+        client.setIP("127.0.0.1");
+        client.setPort("9393");
+        client.set_http_proto(false);
+        client.loadClientConfig(model_config_path);
+        String result = client.predict(feed_data, fetch, true, 0);
+        
+        System.out.println(result);
+        return true;
+    }
+
+    boolean grpc(String model_config_path) {
+        float[] data = {0.0137f, -0.1136f, 0.2553f, -0.0692f,
+            0.0582f, -0.0727f, -0.1583f, -0.0584f,
+            0.6283f, 0.4919f, 0.1856f, 0.0795f, -0.0332f};
+        INDArray npdata = Nd4j.createFromArray(data);
+        long[] batch_shape = {1,13};
+        INDArray batch_npdata = npdata.reshape(batch_shape);
+        HashMap<String, Object> feed_data
+            = new HashMap<String, Object>() {{
+                put("x", batch_npdata);
+            }};
+        List<String> fetch = Arrays.asList("price");
+        
+        Client client = new Client();
+        client.setIP("127.0.0.1");
+        client.setPort("9393");
+        client.loadClientConfig(model_config_path);
+        client.set_use_grpc_client(true);
         String result = client.predict(feed_data, fetch, true, 0);
         
         System.out.println(result);
@@ -47,15 +96,14 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("price");
         
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         client.use_key(keyFilePath);
         try {
             Thread.sleep(1000*3);   // 休眠3秒，等待Server启动
         } catch (Exception e) {
-            //TODO: handle exception
         }
         String result = client.predict(feed_data, fetch, true, 0);
         
@@ -76,8 +124,8 @@ public class PaddleServingClientExample {
             }};
         List<String> fetch = Arrays.asList("price");
         
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         client.set_request_compress(true);
@@ -127,8 +175,8 @@ public class PaddleServingClientExample {
                 put("im_size", batch_im_size);
             }};
         List<String> fetch = Arrays.asList("save_infer_model/scale_0.tmp_0");
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -149,8 +197,8 @@ public class PaddleServingClientExample {
                 put("segment_ids", Nd4j.createFromArray(segment_ids));
             }};
         List<String> fetch = Arrays.asList("pooled_output");
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -219,8 +267,8 @@ public class PaddleServingClientExample {
                 put("embedding_0.tmp_0", Nd4j.createFromArray(embedding_0));
             }};
         List<String> fetch = Arrays.asList("prob");
-        HttpClient client = new HttpClient();
-        client.setIP("0.0.0.0");
+        Client client = new Client();
+        client.setIP("127.0.0.1");
         client.setPort("9393");
         client.loadClientConfig(model_config_path);
         String result = client.predict(feed_data, fetch, true, 0);
@@ -236,13 +284,17 @@ public class PaddleServingClientExample {
         
         if (args.length < 2) {
             System.out.println("Usage: java -cp <jar> PaddleServingClientExample <test-type> <configPath>.");
-            System.out.println("<test-type>: fit_a_line bert cube_local yolov4 encrypt");
+            System.out.println("<test-type>: http_proto http_json grpc bert cube_local yolov4 encrypt");
             return;
         }
         String testType = args[0];
         System.out.format("[Example] %s\n", testType);
-        if ("fit_a_line".equals(testType)) {
-            succ = e.fit_a_line(args[1]);
+        if ("http_proto".equals(testType)) {
+            succ = e.http_proto(args[1]);
+        } else if ("http_json".equals(testType)) {
+            succ = e.http_json(args[1]);
+        } else if ("grpc".equals(testType)) {
+            succ = e.grpc(args[1]);
         } else if ("compress".equals(testType)) {
             succ = e.compress(args[1]);
         } else if ("bert".equals(testType)) {

@@ -36,13 +36,14 @@ go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
 go get -u github.com/golang/protobuf/protoc-gen-go@v1.4.3
 go get -u google.golang.org/grpc@v1.33.0
+go env -w GO111MODULE=auto
 
 build_whl_list=(build_cpu_server build_gpu_server build_client build_app)
 rpc_model_list=(grpc_fit_a_line grpc_yolov4 pipeline_imagenet bert_rpc_gpu bert_rpc_cpu ResNet50_rpc \
-lac_rpc cnn_rpc bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
+lac_rpc_asyn cnn_rpc_asyn bow_rpc lstm_rpc fit_a_line_rpc deeplabv3_rpc mobilenet_rpc unet_rpc resnetv2_rpc \
 criteo_ctr_rpc_cpu criteo_ctr_rpc_gpu ocr_rpc yolov4_rpc_gpu faster_rcnn_hrnetv2p_w18_1x_encrypt \
-faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service)
-http_model_list=(fit_a_line_http lac_http cnn_http bow_http lstm_http ResNet50_http bert_http \
+faster_rcnn_model_rpc low_precision_resnet50_int8 ocr_c++_service ocr_c++_service_asyn)
+http_model_list=(fit_a_line_http lac_http imdb_http_proto imdb_http_json imdb_grpc ResNet50_http bert_http \
 pipeline_ocr_cpu_http)
 
 function setproxy() {
@@ -227,7 +228,7 @@ function link_data() {
 function before_hook() {
     setproxy
     cd ${build_path}/python
-    ${py_version} -m pip install --upgrade pip==21.1.3
+    ${py_version} -m pip install --upgrade pip==21.1.3 -i https://pypi.douban.com/simple
     ${py_version} -m pip install requests
     ${py_version} -m pip install -r requirements.txt
     ${py_version} -m pip install numpy==1.16.4
@@ -491,7 +492,7 @@ function ResNet101_rpc() {
     kill_server_process
 }
 
-function cnn_rpc() {
+function cnn_rpc_asyn() {
     dir=${log_dir}rpc_model/cnn_rpc/
     check_dir ${dir}
     unsetproxy
@@ -499,8 +500,9 @@ function cnn_rpc() {
     data_dir=${data}imdb/
     link_data ${data_dir}
     sed -i 's/9292/8865/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 > ${dir}server_log.txt 2>&1 &
-    check_result server 5
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 8865 --op_num 4 --thread 10 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
     head test_data/part-0 | ${py_version} test_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
     check_result client "cnn_CPU_RPC server test completed"
     kill_server_process
@@ -536,7 +538,7 @@ function lstm_rpc() {
     kill_server_process
 }
 
-function lac_rpc() {
+function lac_rpc_asyn() {
     dir=${log_dir}rpc_model/lac_rpc/
     check_dir ${dir}
     unsetproxy
@@ -544,8 +546,9 @@ function lac_rpc() {
     data_dir=${data}lac/
     link_data ${data_dir}
     sed -i 's/9292/8868/g' lac_client.py
-    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 8868 > ${dir}server_log.txt 2>&1 &
-    check_result server 5
+    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 8868 --gpu_ids 0 --op_num 2 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
     echo "我爱北京天安门" | ${py_version} lac_client.py lac_client/serving_client_conf.prototxt lac_dict/ > ${dir}client_log.txt 2>&1
     check_result client "lac_CPU_RPC server test completed"
     kill_server_process
@@ -574,7 +577,7 @@ function faster_rcnn_model_rpc() {
     data_dir=${data}detection/faster_rcnn_r50_fpn_1x_coco/
     link_data ${data_dir}
     sed -i 's/9494/8870/g' test_client.py
-    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 2 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model serving_server --port 8870 --gpu_ids 1 --thread 8 > ${dir}server_log.txt 2>&1 &
     echo "faster rcnn running ..."
     nvidia-smi
     check_result server 10
@@ -611,7 +614,7 @@ function deeplabv3_rpc() {
     data_dir=${data}deeplabv3/
     link_data ${data_dir}
     sed -i "s/9494/8880/g" deeplabv3_client.py
-    ${py_version} -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 2 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model deeplabv3_server --gpu_ids 0 --port 8880 --thread 4 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     check_gpu_memory 0
     nvidia-smi
@@ -767,10 +770,9 @@ function fit_a_line_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/fit_a_line
-    sed -i "s/9393/8871/g" test_server.py
-    ${py_version} test_server.py > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 > ${dir}server_log.txt 2>&1 &
     check_result server 10
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:8871/uci/prediction > ${dir}client_log.txt 2>&1
+    ${py_version} test_httpclient.py uci_housing_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "fit_a_line_CPU_HTTP server test completed"
     kill_server_process
 }
@@ -780,46 +782,50 @@ function lac_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/lac
-    ${py_version} lac_web_service.py lac_model/ lac_workdir 8872 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model lac_model/ --port 9292 > ${dir}server_log.txt 2>&1 &
     check_result server 10
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "我爱北京天安门"}], "fetch":["word_seg"]}' http://127.0.0.1:8872/lac/prediction > ${dir}client_log.txt 2>&1
+    echo "我爱北京天安门" | ${py_version} lac_http_client.py lac_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "lac_CPU_HTTP server test completed"
     kill_server_process
 }
 
-function cnn_http() {
-    dir=${log_dir}http_model/cnn_http/
+function imdb_http_proto() {
+    dir=${log_dir}http_model/imdb_http_proto/
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    ${py_version} text_classify_service.py imdb_cnn_model/ workdir/ 8873 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 > ${dir}server_log.txt 2>&1 &
     check_result server 10
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8873/imdb/prediction > ${dir}client_log.txt 2>&1
-    check_result client "cnn_CPU_HTTP server test completed"
+    head test_data/part-0 | ${py_version} test_http_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    check_result client "imdb_CPU_HTTP-proto server test completed"
     kill_server_process
 }
 
-function bow_http() {
-    dir=${log_dir}http_model/bow_http/
+function imdb_http_json() {
+    dir=${log_dir}http_model/imdb_http_json/
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    ${py_version} text_classify_service.py imdb_bow_model/ workdir/ 8874 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 > ${dir}server_log.txt 2>&1 &
     check_result server 10
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8874/imdb/prediction > ${dir}client_log.txt 2>&1
-    check_result client "bow_CPU_HTTP server test completed"
+    sed -i "s/#client.set_http_proto(True)/client.set_http_proto(False)/g" test_http_client.py
+    head test_data/part-0 | ${py_version} test_http_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    check_result client "imdb_CPU_HTTP-json server test completed"
     kill_server_process
 }
 
-function lstm_http() {
-    dir=${log_dir}http_model/lstm_http/
+function imdb_grpc() {
+    dir=${log_dir}http_model/imdb_grpc/
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imdb
-    ${py_version} text_classify_service.py imdb_bow_model/ workdir/ 8875 imdb.vocab > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9292 --gpu_ids 1 > ${dir}server_log.txt 2>&1 &
     check_result server 10
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "i am very sad | 0"}], "fetch":["prediction"]}' http://127.0.0.1:8875/imdb/prediction > ${dir}client_log.txt 2>&1
-    check_result client "lstm_CPU_HTTP server test completed"
+    check_gpu_memory 1
+    sed -i "s/client.set_http_proto(False)/#client.set_http_proto(False)/g" test_http_client.py
+    sed -i "s/#client.set_use_grpc_client(True)/client.set_use_grpc_client(True)/g" test_http_client.py
+    head test_data/part-0 | ${py_version} test_http_client.py imdb_cnn_client_conf/serving_client_conf.prototxt imdb.vocab > ${dir}client_log.txt 2>&1
+    check_result client "imdb_GPU_GRPC server test completed"
     kill_server_process
 }
 
@@ -828,10 +834,10 @@ function ResNet50_http() {
     check_dir ${dir}
     unsetproxy
     cd ${build_path}/python/examples/imagenet
-    ${py_version} resnet50_web_service.py ResNet50_vd_model gpu 8876 > ${dir}server_log.txt 2>&1 &
+    ${py_version} -m paddle_serving_server.serve --model ResNet50_vd_model --port 9696 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
     check_result server 10
     check_gpu_memory 0
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"image": "https://paddle-serving.bj.bcebos.com/imagenet-example/daisy.jpg"}], "fetch": ["score"]}' http://127.0.0.1:8876/image/prediction > ${dir}client_log.txt 2>&1
+    ${py_version} resnet50_http_client.py ResNet50_vd_client_config/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "ResNet50_GPU_HTTP server test completed"
     kill_server_process
 }
@@ -843,10 +849,11 @@ function bert_http() {
     cd ${build_path}/python/examples/bert
     cp data-c.txt.1 data-c.txt
     cp vocab.txt.1 vocab.txt
-    export CUDA_VISIBLE_DEVICES=0
-    ${py_version} bert_web_service.py bert_seq128_model/ 8878 > ${dir}server_log.txt 2>&1 &
-    check_result server 8
-    curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://127.0.0.1:8878/bert/prediction > ${dir}client_log.txt 2>&1
+    export CUDA_VISIBLE_DEVICES=0,1
+    ${py_version} -m paddle_serving_server.serve --model bert_seq128_model/ --port 9292 --gpu_ids 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 10
+    check_gpu_memory 0
+    head data-c.txt | ${py_version} bert_httpclient.py --model bert_seq128_client/serving_client_conf.prototxt > ${dir}client_log.txt 2>&1
     check_result client "bert_GPU_HTTP server test completed"
     kill_server_process
 }
@@ -902,11 +909,28 @@ function ocr_c++_service() {
     cp -r ocr_det_client/ ./ocr_det_client_cp
     rm -rf ocr_det_client
     mv ocr_det_client_cp ocr_det_client
-    sed -i "s/feed_type: 1/feed_type: 3/g" ocr_det_client/serving_client_conf.prototxt
+    sed -i "s/feed_type: 1/feed_type: 20/g" ocr_det_client/serving_client_conf.prototxt
     sed -i "s/shape: 3/shape: 1/g" ocr_det_client/serving_client_conf.prototxt
     sed -i '7,8d' ocr_det_client/serving_client_conf.prototxt
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC server started${RES}"
     $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 > ${dir}server_log.txt 2>&1 &
+    check_result server 8
+    check_gpu_memory 0
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"
+    echo "------------------first:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client
+    echo "------------------second:"
+    $py_version ocr_cpp_client.py ocr_det_client ocr_rec_client > ${dir}client_log.txt 2>&1
+    check_result client "OCR_C++_Service_GPU_RPC server test completed"
+    kill_server_process
+}
+
+function ocr_c++_service_asyn() {
+    dir=${log_dir}rpc_model/ocr_c++_serving/
+    cd ${build_path}/python/examples/ocr
+    check_dir ${dir}
+    echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC asyn_server started${RES}"
+    $py_version -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --port 9293 --gpu_id 0 --op_num 4 > ${dir}server_log.txt 2>&1 &
     check_result server 8
     check_gpu_memory 0
     echo -e "${GREEN_COLOR}OCR_C++_Service_GPU_RPC client started${RES}"

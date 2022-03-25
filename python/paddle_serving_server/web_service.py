@@ -28,12 +28,13 @@ import os
 from paddle_serving_server import pipeline
 from paddle_serving_server.pipeline import Op
 from paddle_serving_server.serve import format_gpu_to_strlist
+from paddle_serving_server.util import dump_pid_file
 
 
 def port_is_available(port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         sock.settimeout(2)
-        result = sock.connect_ex(('0.0.0.0', port))
+        result = sock.connect_ex(('127.0.0.1', port))
     if result != 0:
         return True
     else:
@@ -52,7 +53,7 @@ class WebService(object):
     def get_pipeline_response(self, read_op):
         return None
 
-    def prepare_pipeline_config(self, yaml_file):
+    def prepare_pipeline_config(self, yml_file=None, yml_dict=None):
         # build dag
         read_op = pipeline.RequestOp()
         last_op = self.get_pipeline_response(read_op)
@@ -62,7 +63,7 @@ class WebService(object):
                              "`get_pipeline_response`.")
         response_op = pipeline.ResponseOp(input_ops=[last_op])
         self._server.set_response_op(response_op)
-        self._server.prepare_server(yaml_file)
+        self._server.prepare_server(yml_file=yml_file, yml_dict=yml_dict)
 
     def run_service(self):
         self._server.run_server()
@@ -123,7 +124,7 @@ class WebService(object):
                             workdir,
                             port=9292,
                             gpus=None,
-                            thread_num=2,
+                            thread_num=4,
                             mem_optim=True,
                             use_lite=False,
                             use_xpu=False,
@@ -132,8 +133,8 @@ class WebService(object):
                             use_calib=False,
                             use_trt=False,
                             gpu_multi_stream=False,
-                            op_num=None,
-                            op_max_batch=None):
+                            runtime_thread_num=None,
+                            batch_infer_size=None):
 
         device = "cpu"
         server = Server()
@@ -156,19 +157,19 @@ class WebService(object):
         op_maker = OpMaker()
         op_seq_maker = OpSeqMaker()
 
-        read_op = op_maker.create('general_reader')
+        read_op = op_maker.create('GeneralReaderOp')
         op_seq_maker.add_op(read_op)
 
         for idx, single_model in enumerate(self.server_config_dir_paths):
-            infer_op_name = "general_infer"
+            infer_op_name = "GeneralInferOp"
             if len(self.server_config_dir_paths) == 2 and idx == 0:
-                infer_op_name = "general_detection"
+                infer_op_name = "GeneralDetectionOp"
             else:
-                infer_op_name = "general_infer"
+                infer_op_name = "GeneralInferOp"
             general_infer_op = op_maker.create(infer_op_name)
             op_seq_maker.add_op(general_infer_op)
 
-        general_response_op = op_maker.create('general_response')
+        general_response_op = op_maker.create('GeneralResponseOp')
         op_seq_maker.add_op(general_response_op)
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
@@ -186,11 +187,11 @@ class WebService(object):
         if gpu_multi_stream and device == "gpu":
             server.set_gpu_multi_stream()
 
-        if op_num:
-            server.set_op_num(op_num)
+        if runtime_thread_num:
+            server.set_runtime_thread_num(runtime_thread_num)
 
-        if op_max_batch:
-            server.set_op_max_batch(op_max_batch)
+        if batch_infer_size:
+            server.set_batch_infer_size(batch_infer_size)
 
         if use_lite:
             server.set_lite()
@@ -224,8 +225,8 @@ class WebService(object):
                 use_calib=self.use_calib,
                 use_trt=self.use_trt,
                 gpu_multi_stream=self.gpu_multi_stream,
-                op_num=self.op_num,
-                op_max_batch=self.op_max_batch))
+                runtime_thread_num=self.runtime_thread_num,
+                batch_infer_size=self.batch_infer_size))
 
     def prepare_server(self,
                        workdir,
@@ -236,12 +237,12 @@ class WebService(object):
                        use_lite=False,
                        use_xpu=False,
                        ir_optim=False,
-                       thread_num=2,
+                       thread_num=4,
                        mem_optim=True,
                        use_trt=False,
                        gpu_multi_stream=False,
-                       op_num=None,
-                       op_max_batch=None,
+                       runtime_thread_num=None,
+                       batch_infer_size=None,
                        gpuid=None):
         print("This API will be deprecated later. Please do not use it")
         self.workdir = workdir
@@ -258,9 +259,11 @@ class WebService(object):
         self.port_list = []
         self.use_trt = use_trt
         self.gpu_multi_stream = gpu_multi_stream
-        self.op_num = op_num
-        self.op_max_batch = op_max_batch
-
+        self.runtime_thread_num = runtime_thread_num
+        self.batch_infer_size = batch_infer_size
+            
+        # record port and pid info for stopping process
+        dump_pid_file([self.port], "web_service")
         # if gpuid != None, we will use gpuid first.
         # otherwise, keep the self.gpus unchanged.
         # maybe self.gpus is set by the Function set_gpus.

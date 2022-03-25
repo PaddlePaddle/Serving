@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #ifdef BCLOUD
 #include <bthread_unstable.h>  // bthread_set_worker_startfn
@@ -37,6 +38,7 @@ using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;
 using baidu::paddle_serving::predictor::InferServiceManager;
 using baidu::paddle_serving::predictor::Resource;
+using baidu::paddle_serving::predictor::PrometheusMetric;
 using baidu::paddle_serving::predictor::FLAGS_workflow_path;
 using baidu::paddle_serving::predictor::FLAGS_workflow_file;
 using baidu::paddle_serving::predictor::FLAGS_inferservice_path;
@@ -47,6 +49,7 @@ using baidu::paddle_serving::predictor::FLAGS_resource_path;
 using baidu::paddle_serving::predictor::FLAGS_resource_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
+using baidu::paddle_serving::predictor::FLAGS_enable_prometheus;
 
 using baidu::paddle_serving::configure::InferServiceConf;
 using baidu::paddle_serving::configure::read_proto_conf;
@@ -133,16 +136,22 @@ int main(int argc, char** argv) {
   // google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();
+  std::string base_log_path = "";
+  if (const char* serving_log_path = std::getenv("SERVING_LOG_PATH")) {
+     base_log_path = serving_log_path;
+  }
 
 // initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
-
+  std::string log_dir = base_log_path + "./log/";
   std::string filename(argv[0]);
   filename = filename.substr(filename.find_last_of('/') + 1);
+
+  
   settings.log_file =
-      strdup((std::string("./log/") + filename + ".log").c_str());
+      strdup((std::string(log_dir) + filename + ".log").c_str());
   settings.delete_old = logging::DELETE_OLD_LOG_FILE;
   logging::InitLogging(settings);
 
@@ -152,7 +161,7 @@ int main(int argc, char** argv) {
   logging::ComlogSink::GetInstance()->Setup(&cso);
 #else
   if (FLAGS_log_dir == "") {
-    FLAGS_log_dir = "./log";
+    FLAGS_log_dir = base_log_path + "./log";
   }
 
   struct stat st_buf;
@@ -215,6 +224,11 @@ int main(int argc, char** argv) {
   }
 
   VLOG(2) << "Succ initialize general model";
+
+  // enable prometheus
+  if (FLAGS_enable_prometheus) {
+    PrometheusMetric::EnableMetrics();
+  }
 
 #ifndef BCLOUD
   // FATAL messages are output to stderr

@@ -2,324 +2,157 @@
 
 <p align="center">
     <br>
-<img src='doc/serving_logo.png' width = "600" height = "130">
+<img src='doc/images/serving_logo.png' width = "600" height = "130">
     <br>
 <p>
-
-
 
 <p align="center">
     <br>
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
-        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop">
+        <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop?style=flat-square">
+        <img alt="Docs" src="https://img.shields.io/badge/docs-中文文档-brightgreen?style=flat-square">
+        <img alt="Release" src="https://img.shields.io/badge/release-0.8.0-blue?style=flat-square">
+        <img alt="Python" src="https://img.shields.io/badge/python-3.6/3.7/3.8/3.9-blue?style=flat-square">
+        <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving?color=blue&style=flat-square">
+        <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
+        <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving?color=yellow&style=flat-square">
+        <img alt="Contributors" src="https://img.shields.io/github/contributors/PaddlePaddle/Serving?color=orange&style=flat-square">
+        <img alt="Community" src="https://img.shields.io/badge/join-Wechat,QQ-orange?style=flat-square">
     </a>
-    <img alt="Release" src="https://img.shields.io/badge/Release-0.0.3-yellowgreen">
-    <img alt="Issues" src="https://img.shields.io/github/issues/PaddlePaddle/Serving">
-    <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving">
-    <img alt="Slack" src="https://img.shields.io/badge/Join-Slack-green">
     <br>
 <p>
 
-
-
-- [动机](./README_CN.md#动机)
-- [教程](./README_CN.md#教程)
-- [安装](./README_CN.md#安装)
-- [快速开始示例](./README_CN.md#快速开始示例)
-- [文档](README_CN.md#文档)
-- [社区](README_CN.md#社区)
-
-<h2 align="center">动机</h2>
-
-Paddle Serving 旨在帮助深度学习开发者轻易部署在线预测服务。 **本项目目标**: 当用户使用 [Paddle](https://github.com/PaddlePaddle/Paddle) 训练了一个深度神经网络，就同时拥有了该模型的预测服务。
-
-<h3 align="center">Paddle Serving的核心功能</h3>
-
-- 与Paddle训练紧密连接，绝大部分Paddle模型可以 **一键部署**.
-- 支持 **工业级的服务能力** 例如模型管理，在线加载，在线A/B测试等.
-- 支持客户端和服务端之间 **高并发和高效通信**.
-- 支持 **多种编程语言** 开发客户端，例如C++, Python和Java.
-
 ***
 
-- 任何经过[PaddlePaddle](https://github.com/paddlepaddle/paddle)训练的模型，都可以经过直接保存或是[模型转换接口](./doc/SAVE_CN.md)，用于Paddle Serving在线部署。
-- 支持[多模型串联服务部署](./doc/PIPELINE_SERVING_CN.md), 同时提供Rest接口和RPC接口以满足您的需求，[Pipeline示例](./python/examples/pipeline)。
-- 支持Paddle生态的各大模型库, 例如[PaddleDetection](./python/examples/detection)，[PaddleOCR](./python/examples/ocr)，[PaddleRec](https://github.com/PaddlePaddle/PaddleRec/tree/master/recserving/movie_recommender)。
-- 提供丰富多彩的前后处理，方便用户在训练、部署等各阶段复用相关代码，弥合AI开发者和应用开发者之间的鸿沟，详情参考[模型示例](./python/examples/)。
+Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving支持RESTful、gRPC、bRPC等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
-<p align="center">
-    <img src="doc/demo.gif" width="700">
-</p>
+- 集成高性能服务端推理引擎paddle Inference和移动端引擎paddle Lite，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过[x2paddle](https://github.com/PaddlePaddle/X2Paddle)工具迁移模型
+- 具有高性能C++和高易用Python 2套框架。C++框架基于高性能bRPC网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python框架基于gRPC/gRPC-Gateway网络框架和Python语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
+- 支持HTTP、gRPC、bRPC等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供C++、Python、Java语言SDK
+- 设计并实现基于有向无环图(DAG)的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理、请求缓存等特性
+- 适配x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑XPU、华为昇腾310/910、海光DCU、Nvidia Jetson等多种硬件
+- 集成Intel MKLDNN、Nvidia TensorRT加速库，以及低精度和量化推理
+- 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs安全网关，并在实际项目中应用
+- 支持云端部署，提供百度云智能云kubernetes集群部署Paddle Serving案例
+- 提供丰富的经典模型部署示例，如PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec等套件，共计40+个预训练精品模型
+- 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频cache等特性、可单机或云端部署
+- 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问
+
 
 <h2 align="center">教程</h2>
 
-Paddle Serving开发者为您提供了简单易用的[AIStudio教程-Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/1555945)
+- AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
+- 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
+- 边缘AI解决方案-[基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
 
-教程提供了如下内容
-
-<ul>
-<li>Paddle Serving环境安装</li>
-  <ul>
-    <li>Docker镜像启动方式
-    <li>pip安装Paddle Serving
-  </ul>
-<li>快速体验部署在线推理服务</li>
-<li>部署在线推理服务进阶流程</li>
-  <ul>
-    <li>获取可用于部署在线服务的模型</li>
-    <li>启动推理服务</li>
-  </ul>
-<li>Paddle Serving在线部署实例</li>
-  <ul>
-    <li>使用Paddle Serving部署图像检测服务</li>
-    <li>使用Paddle Serving部署OCR Pipeline在线服务</li>
-  </ul>
-</ul>
-
-
-<h2 align="center">安装</h2>
-
-**强烈建议**您在**Docker内构建**Paddle Serving，请查看[如何在Docker中运行PaddleServing](doc/RUN_IN_DOCKER_CN.md)。更多镜像请查看[Docker镜像列表](doc/DOCKER_IMAGES_CN.md)。
-
-**提示**：目前paddlepaddle 2.1版本的默认GPU环境是Cuda 10.2，因此GPU Docker的示例代码以Cuda 10.2为准。镜像和pip安装包也提供了其余GPU环境，用户如果使用其他环境，需要仔细甄别并选择合适的版本。
-
-**提示**：本项目仅支持Python3.6/3.7/3.8，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
-
-```
-# 启动 CPU Docker
-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-devel bash
-docker exec -it test bash
-git clone https://github.com/PaddlePaddle/Serving
-```
-```
-# 启动 GPU Docker
-nvidia-docker pull registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.6.2-cuda10.2-cudnn8-devel bash
-nvidia-docker exec -it test bash
-git clone https://github.com/PaddlePaddle/Serving
-```
-
-安装所需的pip依赖
-```
-cd Serving
-pip3 install -r python/requirements.txt
-```
-
-```shell
-pip3 install paddle-serving-client==0.6.2
-pip3 install paddle-serving-server==0.6.2 # CPU
-pip3 install paddle-serving-app==0.6.2
-pip3 install paddle-serving-server-gpu==0.6.2.post102 #GPU with CUDA10.2 + TensorRT7
-# 其他GPU环境需要确认环境再选择执行哪一条
-pip3 install paddle-serving-server-gpu==0.6.2.post101 # GPU with CUDA10.1 + TensorRT6
-pip3 install paddle-serving-server-gpu==0.6.2.post11 # GPU with CUDA10.1 + TensorRT7
-```
-
-您可能需要使用国内镜像源（例如清华源, 在pip命令中添加`-i https://pypi.tuna.tsinghua.edu.cn/simple`）来加速下载。
-
-如果需要使用develop分支编译的安装包，请从[最新安装包列表](./doc/LATEST_PACKAGES.md)中获取下载地址进行下载，使用`pip install`命令进行安装。如果您想自行编译，请参照[Paddle Serving编译文档](./doc/COMPILE_CN.md)。
-
-paddle-serving-server和paddle-serving-server-gpu安装包支持Centos 6/7, Ubuntu 16/18和Windows 10。
-
-paddle-serving-client和paddle-serving-app安装包支持Linux和Windows，其中paddle-serving-client仅支持python3.6/3.7/3.8。
-
-**最新的0.6.2的版本，已经不支持Cuda 9.0和Cuda 10.0，Python已不支持2.7和3.5。**
-
-推荐安装2.1.0及以上版本的paddle
-
-```
-# CPU环境请执行
-pip3 install paddlepaddle==2.1.0
-
-# GPU Cuda10.2环境请执行
-pip3 install paddlepaddle-gpu==2.1.0
-```
-
-**注意**： 如果您的Cuda版本不是10.2，请勿直接执行上述命令，需要参考[Paddle官方文档-多版本whl包列表](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/Tables.html#whl-release)
-
-选择相应的GPU环境的url链接并进行安装，例如Cuda 10.1的Python3.6用户，请选择表格当中的`cp36-cp36m`和`cuda10.1-cudnn7-mkl-gcc8.2-avx-trt6.0.1.5`对应的url，复制下来并执行
-```
-pip3 install https://paddle-wheel.bj.bcebos.com/with-trt/2.1.0-gpu-cuda10.1-cudnn7-mkl-gcc8.2/paddlepaddle_gpu-2.1.0.post101-cp36-cp36m-linux_x86_64.whl
-```
-由于默认的`paddlepaddle-gpu==2.1.0`是Cuda 10.2，并没有联编TensorRT，因此如果需要和在`paddlepaddle-gpu`上使用TensorRT，需要在上述多版本whl包列表当中，找到`cuda10.2-cudnn8.0-trt7.1.3`，下载对应的Python版本。更多信息请参考[如何使用TensorRT?](doc/TENSOR_RT_CN.md)。
-
-如果是其他环境和Python版本，请在表格中找到对应的链接并用pip安装。
-
-对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](./doc/WINDOWS_TUTORIAL_CN.md)。
-
-
-<h2 align="center">快速开始示例</h2>
-
-这个快速开始示例主要是为了给那些已经有一个要部署的模型的用户准备的，而且我们也提供了一个可以用来部署的模型。如果您想知道如何从离线训练到在线服务走完全流程，请参考前文的AiStudio教程。
-
-<h3 align="center">波士顿房价预测</h3>
-
-进入到Serving的git目录下，进入到`fit_a_line`例子
-``` shell
-cd Serving/python/examples/fit_a_line
-sh get_data.sh
-```
-
-Paddle Serving 为用户提供了基于 HTTP 和 RPC 的服务
-
-<h3 align="center">RPC服务</h3>
-
-用户还可以使用`paddle_serving_server.serve`启动RPC服务。 尽管用户需要基于Paddle Serving的python客户端API进行一些开发，但是RPC服务通常比HTTP服务更快。需要指出的是这里我们没有指定`--name`。
-
-``` shell
-python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292
-```
-<center>
-
-| Argument                                       | Type | Default | Description                                           |
-| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `op_num`                                       | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `op_max_batch`                                 | int[]| `32`    | Batch Number for each model in asynchronous mode      |
-| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
-| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT                           |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU        |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Only for deployment with TensorRT                     |
-| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
-
-#### 异步模型的说明
-    异步模式适用于1、请求数量非常大的情况，2、多模型串联，想要分别指定每个模型的并发数的情况。
-    异步模式有助于提高Service服务的吞吐（QPS），但对于单次请求而言，时延会有少量增加。
-    异步模式中，每个模型会启动您指定个数的N个线程，每个线程中包含一个模型实例，换句话说每个模型相当于包含N个线程的线程池，从线程池的任务队列中取任务来执行。
-    异步模式中，各个RPC Server的线程只负责将Request请求放入模型线程池的任务队列中，等任务被执行完毕后，再从任务队列中取出已完成的任务。
-    上表中通过 --thread 10 指定的是RPC Server的线程数量，默认值为2，--op_num 指定的是各个模型的线程池中线程数N，默认值为0，表示不使用异步模式。
-    --op_max_batch 指定的各个模型的batch数量，默认值为32，该参数只有当--op_num不为0时才生效。
-    
-#### 当您的某个模型想使用多张GPU卡部署时.
-python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --gpu_ids 0,1,2
-#### 当您的一个服务包含两个模型部署时.
-python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292
-#### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡部署时.
-python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2
-#### 当您的一个服务包含两个模型，且每个模型都需要指定多张GPU卡，且需要异步模式每个模型指定不同的并发数时.
-python3 -m paddle_serving_server.serve --model uci_housing_model_1 uci_housing_model_2 --thread 10 --port 9292 --gpu_ids 0,1 1,2 --op_num 4 8
-
-</center>
-
-``` python
-# A user can visit rpc service through paddle_serving_client API
-from paddle_serving_client import Client
-
-client = Client()
-client.load_client_config("uci_housing_client/serving_client_conf.prototxt")
-client.connect(["127.0.0.1:9292"])
-data = [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727,
-        -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]
-fetch_map = client.predict(feed={"x": np.array(data).reshape(1,13,1)}, fetch=["price"])
-print(fetch_map)
-
-```
-在这里，`client.predict`函数具有两个参数。 `feed`是带有模型输入变量别名和值的`python dict`。 `fetch`被要从服务器返回的预测变量赋值。 在该示例中，在训练过程中保存可服务模型时，被赋值的tensor名为`"x"`和`"price"`。
-
-
-<h3 align="center">HTTP服务</h3>
-
-用户也可以将数据格式处理逻辑放在服务器端进行，这样就可以直接用curl去访问服务，参考如下案例，在目录`python/examples/fit_a_line`.
-
-```
-python3 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9292 --name uci
-```
-客户端输入
-```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://127.0.0.1:9292/uci/prediction
-```
-返回结果
-```
-{"result":{"price":[[18.901151657104492]]}}
-```
-
-<h3 align="center">Pipeline服务</h3>
-
-Paddle Serving提供业界领先的多模型串联服务，强力支持各大公司实际运行的业务场景，参考 [OCR文字识别案例](python/examples/pipeline/ocr)，在目录`python/examples/pipeline/ocr`
-
-我们先获取两个模型
-```
-python3 -m paddle_serving_app.package --get_model ocr_rec
-tar -xzvf ocr_rec.tar.gz
-python3 -m paddle_serving_app.package --get_model ocr_det
-tar -xzvf ocr_det.tar.gz
-```
-然后启动服务端程序，将两个串联的模型作为一个整体的服务。
-```
-python3 web_service.py
-```
-最终使用http的方式请求
-```
-python3 pipeline_http_client.py
-```
-也支持rpc的方式
-```
-python3 pipeline_rpc_client.py
-```
-输出
-```
-{'err_no': 0, 'err_msg': '', 'key': ['res'], 'value': ["['土地整治与土壤修复研究中心', '华南农业大学1素图']"]}
-```
+<p align="center">
+    <img src="doc/images/demo.gif" width="700">
+</p>
 
 <h2 align="center">文档</h2>
 
-### 新手教程
-- [怎样保存用于Paddle Serving的模型？](doc/SAVE_CN.md)
-- [十分钟构建Bert-As-Service](doc/BERT_10_MINS_CN.md)
-- [Paddle Serving示例合辑](python/examples)
-- [如何在Paddle Serving处理常见数据类型](doc/PROCESS_DATA.md)
-- [如何在Serving上处理level of details(LOD)?](doc/LOD_CN.md)
+> 部署
 
-### 开发者教程
-- [如何开发一个新的Web Service?](doc/NEW_WEB_SERVICE_CN.md)
-- [如何编译PaddleServing?](doc/COMPILE_CN.md)
-- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
-- [如何在K8S集群上部署Paddle Serving?](doc/PADDLE_SERVING_ON_KUBERNETES.md)
-- [如何在Paddle Serving上部署安全网关?](doc/SERVING_AUTH_DOCKER.md)
-- [如何开发Pipeline?](doc/PIPELINE_SERVING_CN.md)
-- [如何使用uWSGI部署Web Service](doc/UWSGI_DEPLOY_CN.md)
-- [如何实现模型文件热加载](doc/HOT_LOADING_IN_SERVING_CN.md)
-- [如何使用TensorRT?](doc/TENSOR_RT_CN.md)
+此章节引导您完成安装和部署步骤，强烈推荐使用Docker部署Paddle Serving，如您不使用docker，省略docker相关步骤。在云服务器上可以使用Kubernetes部署Paddle Serving。在异构硬件如ARM CPU、昆仑XPU上编译或使用Paddle Serving可阅读以下文档。每天编译生成develop分支的最新开发包供开发者使用。
+- [使用docker安装Paddle Serving](doc/Install_CN.md)
+- [源码编译安装Paddle Serving](doc/Compile_CN.md)
+- [在Kuberntes集群上部署Paddle Serving](doc/Run_On_Kubernetes_CN.md)
+- [部署Paddle Serving安全网关](doc/Serving_Auth_Docker_CN.md)
+- 异构硬件部署[[ARM CPU、百度昆仑](doc/Run_On_XPU_CN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
+- [Docker镜像](doc/Docker_Images_CN.md)
+- [下载Wheel包](doc/Latest_Packages_CN.md)
 
-### 关于Paddle Serving性能
-- [如何测试Paddle Serving性能？](python/examples/util/)
-- [如何优化性能?](doc/PERFORMANCE_OPTIM_CN.md)
-- [在一张GPU上启动多个预测服务](doc/MULTI_SERVICE_ON_ONE_GPU_CN.md)
-- [GPU版Benchmarks](doc/BENCHMARKING_GPU.md)
+> 使用
 
-### 设计文档
-- [Paddle Serving设计文档](doc/DESIGN_DOC_CN.md)
+安装Paddle Serving后，使用快速开始将引导您运行Serving。第一步，调用模型保存接口，生成模型参数配置文件(.prototxt)用以在客户端和服务端使用；第二步，阅读配置和启动参数并启动服务；第三步，根据API和您的使用场景，基于SDK编写客户端请求，并测试推理服务。您想了解跟多特性的使用场景和方法，请详细阅读以下文档。
+- [快速开始](doc/Quick_Start_CN.md)
+- [保存用于Paddle Serving的模型和配置](doc/Save_CN.md)
+- [配置和启动参数的说明](doc/Serving_Configure_CN.md)
+- [RESTful/gRPC/bRPC API指南](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
+- [低精度推理](doc/Low_Precision_CN.md)
+- [常见模型数据处理](doc/Process_data_CN.md)
+- [普罗米修斯](doc/Prometheus_CN.md)
+- [C++ Serving简介](doc/C++_Serving/Introduction_CN.md) 
+  - [协议](doc/C++_Serving/Inference_Protocols_CN.md)
+  - [模型热加载](doc/C++_Serving/Hot_Loading_CN.md)
+  - [A/B Test](doc/C++_Serving/ABTest_CN.md)
+  - [加密模型推理服务](doc/C++_Serving/Encryption_CN.md)
+  - [性能优化指南](doc/C++_Serving/Performance_Tuning_CN.md)
+  - [性能指标](doc/C++_Serving/Benchmark_CN.md)
+  - [多模型串联](doc/C++_Serving/2+_model.md)
+  - [请求缓存](doc/C++_Serving/Request_Cache_CN.md)
+- [Python Pipeline设计](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [性能优化指南](doc/Python_Pipeline/Performance_Tuning_CN.md)
+  - [TensorRT动态shape](doc/TensorRT_Dynamic_Shape_CN.md)
+  - [性能指标](doc/Python_Pipeline/Benchmark_CN.md)
+- 客户端SDK
+  - [Python SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
+  - [JAVA SDK](doc/Java_SDK_CN.md)
+  - [C++ SDK](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
+- [大规模稀疏参数索引服务](doc/Cube_Local_CN.md)
 
-### FAQ
-- [常见问答](doc/FAQ.md)
+> 开发者
+
+为Paddle Serving开发者，提供自定义OP，变长数据处理。
+- [自定义OP](doc/C++_Serving/OP_CN.md)
+- [变长数据(LoD)处理](doc/LOD_CN.md)
+- [常见问答](doc/FAQ_CN.md)
+
+<h2 align="center">模型库</h2>
+
+Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计45个模型。
+
+<p align="center">
+
+| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | Paddle Video |
+| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | 
+| 8 | 12 | 14 | 2 | 3 | 6 | 1 | 
+
+</p>
+
+更多模型示例进入[模型库](doc/Model_Zoo_CN.md)
+
+<p align="center">
+  <img src="https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.3/doc/imgs_results/PP-OCRv2/PP-OCRv2-pic003.jpg?raw=true" width="345"/>
+  <img src="doc/images/detection.png" width="350">
+</p>
 
 <h2 align="center">社区</h2>
 
-### Slack
 
-想要同开发者和其他用户沟通吗？欢迎加入我们的 [Slack channel](https://paddleserving.slack.com/archives/CUBPKHKMJ)
+您想要同开发者和其他用户沟通吗？欢迎加入我们，通过如下方式加入社群
 
-### 贡献代码
+### 微信
+- 微信用户请扫码
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines](doc/CONTRIBUTE.md)
+<p align="center">
+  <img src="doc/images/wechat_group_1.jpeg" width="250">
+</p>
 
-- 特别感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
-- 特别感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
-- 特别感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
-- 特别感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
+### QQ
+- 飞桨推理部署交流群(Group No.：697765514)
 
-### 反馈
+<p align="center">
+  <img src="doc/images/qq_group_1.png" width="200">
+</p>
+
+
+> 贡献代码
+
+如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines(English)](doc/Contribute_EN.md)
+- 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
+- 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
+- 感谢 [@BeyondYourself](https://github.com/BeyondYourself) 提供grpc教程，更新FAQ教程，整理文件目录。
+- 感谢 [@mcl-stone](https://github.com/mcl-stone) 提供faster rcnn benchmark脚本
+- 感谢 [@cg82616424](https://github.com/cg82616424) 提供unet benchmark脚本和修改部分注释错误
+- 感谢 [@cuicheng01](https://github.com/cuicheng01) 提供PaddleClas的11个模型
+- 感谢 [@Jiaqi Liu](https://github.com/LiuChiachi) 新增list[str]类型输入的预测支持
+- 感谢 [@Bin Lu](https://github.com/Intsigstephon) 提供PP-Shitu C++模型示例
+
+> 反馈
 
 如有任何反馈或是bug，请在 [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues)提交
 
-### License
+> License
 
 [Apache 2.0 License](https://github.com/PaddlePaddle/Serving/blob/develop/LICENSE)

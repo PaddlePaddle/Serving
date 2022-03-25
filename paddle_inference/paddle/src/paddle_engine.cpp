@@ -22,6 +22,11 @@ namespace inference {
 DEFINE_int32(gpuid, 0, "GPU device id to use");
 DEFINE_string(precision, "fp32", "precision to deploy, default is fp32");
 DEFINE_bool(use_calib, false, "calibration mode, default is false");
+DEFINE_string(nnadapter_device_names, "", "Names of nnadapter device");
+DEFINE_string(nnadapter_context_properties,
+              "",
+              "Properties of nnadapter context");
+DEFINE_string(nnadapter_model_cache_dir, "", "Cache dir of nnadapter model");
 
 REGIST_FACTORY_OBJECT_IMPL_WITH_NAME(
     ::baidu::paddle_serving::predictor::FluidInferEngine<PaddleInferenceEngine>,

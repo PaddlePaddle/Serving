@@ -31,7 +31,22 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Request;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
-enum ProtoDataType { P_INT64, P_FLOAT32, P_INT32, P_STRING };
+// support: FLOAT32, INT64, INT32, UINT8, INT8, FLOAT16
+enum ProtoDataType {
+  P_INT64 = 0,
+  P_FLOAT32,
+  P_INT32,
+  P_FP64,
+  P_INT16,
+  P_FP16,
+  P_BF16,
+  P_UINT8,
+  P_INT8,
+  P_BOOL,
+  P_COMPLEX64,
+  P_COMPLEX128,
+  P_STRING = 20,
+};
 
 int GeneralReaderOp::inference() {
   // read request from client
@@ -64,6 +79,11 @@ int GeneralReaderOp::inference() {
 
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
+  if (var_num < 1) {
+    LOG(ERROR) << "(logid=" << log_id << ") Failed get feed_var, var_num="
+               << var_num;
+    return -1;
+  }
 
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
@@ -78,6 +98,7 @@ int GeneralReaderOp::inference() {
   int64_t elem_type = 0;
   int64_t elem_size = 0;
   int64_t databuf_size = 0;
+  const void* src_ptr = nullptr;
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor paddleTensor;
     const Tensor &tensor = req->tensor(i);
@@ -86,19 +107,38 @@ int GeneralReaderOp::inference() {
     elem_size = 0;
     databuf_size = 0;
     elem_type = tensor.elem_type();
-    VLOG(2) << "var[" << i << "] has elem type: " << elem_type;
+    src_ptr = nullptr ;
     if (elem_type == P_INT64) {  // int64
       elem_size = sizeof(int64_t);
       paddleTensor.dtype = paddle::PaddleDType::INT64;
       data_len = tensor.int64_data_size();
+      src_ptr = tensor.int64_data().data();
     } else if (elem_type == P_FLOAT32) {
       elem_size = sizeof(float);
       paddleTensor.dtype = paddle::PaddleDType::FLOAT32;
       data_len = tensor.float_data_size();
+      src_ptr = tensor.float_data().data();
     } else if (elem_type == P_INT32) {
       elem_size = sizeof(int32_t);
       paddleTensor.dtype = paddle::PaddleDType::INT32;
       data_len = tensor.int_data_size();
+      src_ptr = tensor.int_data().data();
+    } else if (elem_type == P_UINT8) {
+      elem_size = sizeof(uint8_t);
+      paddleTensor.dtype = paddle::PaddleDType::UINT8;
+      data_len = tensor.tensor_content().size();
+      src_ptr = tensor.tensor_content().data();
+    } else if (elem_type == P_INT8) {
+      elem_size = sizeof(int8_t);
+      paddleTensor.dtype = paddle::PaddleDType::INT8;
+      data_len = tensor.tensor_content().size();
+      src_ptr = tensor.tensor_content().data();
+    } else if (elem_type == P_FP16) {
+      // copy bytes from tensor content to TensorVector
+      elem_size = 1;
+      paddleTensor.dtype = paddle::PaddleDType::FLOAT16;
+      data_len = tensor.tensor_content().size();
+      src_ptr = tensor.tensor_content().data();
     } else if (elem_type == P_STRING) {
       // use paddle::PaddleDType::UINT8 as for String.
       elem_size = sizeof(char);
@@ -109,7 +149,17 @@ int GeneralReaderOp::inference() {
       // now only support single string
       for (int idx = 0; idx < tensor.data_size(); idx++) {
         data_len += tensor.data()[idx].length() + 1;
+        src_ptr = tensor.data()[idx].data();
       }
+    }
+    VLOG(2) << "var[" << i << "] has elem type: " << elem_type << ";"
+            << "elem_size=" << elem_size << ";"
+            << "dtype=" << paddleTensor.dtype << ";"
+            << "data_len=" << data_len;
+    if (src_ptr == nullptr) {
+      LOG(ERROR) << "Not support var[" << i << "] with elem_type[" 
+                 << elem_type << "]";
+      continue;
     }
     // implement lod tensor here
     // only support 1-D lod
@@ -141,44 +191,17 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();
     }
-    if (elem_type == P_INT64) {
-      int64_t *dst_ptr = static_cast<int64_t *>(out->at(i).data.data());
-      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << tensor.int64_data(0);
-      if (!dst_ptr) {
-        LOG(ERROR) << "dst_ptr is nullptr";
-        return -1;
-      }
-      memcpy(dst_ptr, tensor.int64_data().data(), databuf_size);
-      /*
-      int elem_num = tensor.int64_data_size();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = tensor.int64_data(k);
-      }
-      */
-    } else if (elem_type == P_FLOAT32) {
-      float *dst_ptr = static_cast<float *>(out->at(i).data.data());
-      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << tensor.float_data(0);
-      if (!dst_ptr) {
-        LOG(ERROR) << "dst_ptr is nullptr";
-        return -1;
-      }
-      memcpy(dst_ptr, tensor.float_data().data(), databuf_size);
-      /*int elem_num = tensor.float_data_size();
-      for (int k = 0; k < elem_num; ++k) {
-        dst_ptr[k] = tensor.float_data(k);
-      }*/
-    } else if (elem_type == P_INT32) {
-      int32_t *dst_ptr = static_cast<int32_t *>(out->at(i).data.data());
-      VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
-              << "] is " << tensor.int_data(0);
-      if (!dst_ptr) {
-        LOG(ERROR) << "dst_ptr is nullptr";
-        return -1;
-      }
-      memcpy(dst_ptr, tensor.int_data().data(), databuf_size);
-    } else if (elem_type == P_STRING) {
+    void* dst_ptr = out->at(i).data.data();
+    if (!dst_ptr) {
+      LOG(ERROR) << "dst_ptr is nullptr";
+      return -1;
+    }
+
+    // For common data, we just copy from src to dst
+    // For string data, we need to iterate through all str
+    if (elem_type != P_STRING) {
+      memcpy(dst_ptr, src_ptr, databuf_size);
+    } else {
       char *dst_ptr = static_cast<char *>(out->at(i).data.data());
       VLOG(2) << "(logid=" << log_id << ") first element data in var[" << i
               << "] is " << tensor.data(0);

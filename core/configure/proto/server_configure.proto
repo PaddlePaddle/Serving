@@ -22,11 +22,8 @@ message EngineDesc {
   required string reloadable_type = 4;
   required string model_dir = 5;
   repeated int32 gpu_ids = 6;
-  required int32 runtime_thread_num = 7;
-  required int32 batch_infer_size = 8;
-  required int32 enable_batch_align = 9;
-  optional string version_file = 10;
-  optional string version_type = 11;
+  optional string version_file = 7;
+  optional string version_type = 8;
 
   /*
    * Sparse Parameter Service type. Valid types are:
@@ -39,17 +36,35 @@ message EngineDesc {
     LOCAL = 1;
     REMOTE = 2;
   }
-  optional SparseParamServiceType sparse_param_service_type = 12;
-  optional string sparse_param_service_table_name = 13;
-  optional bool enable_memory_optimization = 14;
-  optional bool enable_ir_optimization = 15;
-  optional bool use_trt = 16;
-  optional bool use_lite = 17;
-  optional bool use_xpu = 18;
-  optional bool use_gpu = 19;
-  optional bool combined_model = 20;
-  optional bool encrypted_model = 21;
-  optional bool gpu_multi_stream = 22;
+  optional SparseParamServiceType sparse_param_service_type = 10;
+  optional string sparse_param_service_table_name = 11;
+  optional bool enable_memory_optimization = 12;
+  optional bool enable_ir_optimization = 13;
+  optional bool use_trt = 14;
+  optional bool use_lite = 15;
+  optional bool use_xpu = 16;
+  optional bool use_gpu = 17;
+  optional bool combined_model = 18;
+  optional bool encrypted_model = 19;
+  optional bool gpu_multi_stream = 20;
+  optional bool use_ascend_cl = 21;
+
+  /*
+   * "runtime_thread_num": n == 0 means don`t use Asynchronous task scheduling
+   * mode.
+   * n > 0 means how many Predictor for this engine in Asynchronous task
+   * scheduling mode.
+   * "batch_infer_size": the max batch for this engine in Asynchronous task
+   * scheduling mode.
+   * "enable_overrun": always put a whole task into the TaskQueue even if the
+   * total batch is bigger than "batch_infer_size".
+   * "allow_split_request": allow to split task(which is corresponding to
+   * request).
+   */
+  optional int32 runtime_thread_num = 30 [ default = 0 ];
+  optional int32 batch_infer_size = 31 [ default = 32 ];
+  optional bool enable_overrun = 32 [ default = false ];
+  optional bool allow_split_request = 33 [ default = true ];
 };
 
 // model_toolkit conf
@@ -61,11 +76,14 @@ message ResourceConf {
   repeated string model_toolkit_file = 2;
   repeated string general_model_path = 3;
   repeated string general_model_file = 4;
-  optional string cube_config_path = 5;
-  optional string cube_config_file = 6;
-  optional int32 cube_quant_bits = 7; // set 0 if no quant.
-  optional string auth_product_name = 8;
-  optional string auth_container_id = 9;
+
+  optional string cube_config_path = 10;
+  optional string cube_config_file = 11;
+  optional int32 cube_quant_bits = 12;
+  optional string cube_cache_path = 13;
+
+  optional string auth_product_name = 20;
+  optional string auth_container_id = 21;
 };
 
 // DAG node depency info

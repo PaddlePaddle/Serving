@@ -49,8 +49,8 @@ class Server(object):
         self.workflow_fn:'str'="workflow.prototxt" # Only one for one Service/Workflow
         self.resource_fn:'str'="resource.prototxt" # Only one for one Service,model_toolkit_fn and general_model_config_fn is recorded in this file
         self.infer_service_fn:'str'="infer_service.prototxt" # Only one for one Service,Service--Workflow
-        self.model_toolkit_fn:'list'=[] # ["general_infer_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
-        self.general_model_config_fn:'list'=[] # ["general_infer_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
+        self.model_toolkit_fn:'list'=[] # ["GeneralInferOp_0/model_toolkit.prototxt"]The quantity is equal to the InferOp quantity,Engine--OP
+        self.general_model_config_fn:'list'=[] # ["GeneralInferOp_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
         self.subdirectory:'list'=[] # The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.model_config_paths:'collections.OrderedDict()' # Save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
         """
@@ -82,15 +82,25 @@ class Server(object):
         self.mkl_flag = False
         self.device = "cpu"
         self.gpuid = []
-        self.op_num = [0]
-        self.op_max_batch = [32]
+        self.runtime_thread_num = [0]
+        self.batch_infer_size = [32]
         self.use_trt = False
         self.gpu_multi_stream = False
         self.use_lite = False
         self.use_xpu = False
+        self.use_ascend_cl = False
         self.model_config_paths = collections.OrderedDict()
         self.product_name = None
         self.container_id = None
+        self.default_engine_types = [
+            'GeneralInferOp',
+            'GeneralDistKVInferOp',
+            'GeneralDistKVQuantInferOp',
+            'GeneralDetectionOp',
+        ]
+        self.enable_prometheus = False
+        self.prometheus_port = 19393
+        self.request_cache_size = 0
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -140,7 +150,7 @@ class Server(object):
     def set_ir_optimize(self, flag=False):
         self.ir_optimization = flag
 
-    # Multi-Server does not have this Function. 
+    # Multi-Server does not have this Function.
     def set_product_name(self, product_name=None):
         if product_name == None:
             raise ValueError("product_name can't be None.")
@@ -171,11 +181,11 @@ class Server(object):
     def set_gpuid(self, gpuid):
         self.gpuid = format_gpu_to_strlist(gpuid)
 
-    def set_op_num(self, op_num):
-        self.op_num = op_num
+    def set_runtime_thread_num(self, runtime_thread_num):
+        self.runtime_thread_num = runtime_thread_num
 
-    def set_op_max_batch(self, op_max_batch):
-        self.op_max_batch = op_max_batch
+    def set_batch_infer_size(self, batch_infer_size):
+        self.batch_infer_size = batch_infer_size
 
     def set_trt(self):
         self.use_trt = True
@@ -188,6 +198,18 @@ class Server(object):
 
     def set_xpu(self):
         self.use_xpu = True
+
+    def set_ascend_cl(self):
+        self.use_ascend_cl = True
+
+    def set_enable_prometheus(self, flag=False):
+        self.enable_prometheus = flag
+
+    def set_prometheus_port(self, prometheus_port):
+        self.prometheus_port = prometheus_port
+
+    def set_request_cache_size(self, request_cache_size):
+        self.request_cache_size = request_cache_size
 
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
@@ -202,18 +224,20 @@ class Server(object):
             if self.device == "gpu" or self.use_trt or self.gpu_multi_stream:
                 self.gpuid = ["0"]
                 self.device = "gpu"
+            elif self.use_xpu or self.use_ascend_cl:
+                self.gpuid = ["0"]
             else:
                 self.gpuid = ["-1"]
 
-        if isinstance(self.op_num, int):
-            self.op_num = [self.op_num]
-        if len(self.op_num) == 0:
-            self.op_num.append(0)
+        if isinstance(self.runtime_thread_num, int):
+            self.runtime_thread_num = [self.runtime_thread_num]
+        if len(self.runtime_thread_num) == 0:
+            self.runtime_thread_num.append(0)
 
-        if isinstance(self.op_max_batch, int):
-            self.op_max_batch = [self.op_max_batch]
-        if len(self.op_max_batch) == 0:
-            self.op_max_batch.append(32)
+        if isinstance(self.batch_infer_size, int):
+            self.batch_infer_size = [self.batch_infer_size]
+        if len(self.batch_infer_size) == 0:
+            self.batch_infer_size.append(32)
 
         index = 0
 
@@ -224,11 +248,13 @@ class Server(object):
             engine.reloadable_meta = model_config_path + "/fluid_time_file"
             os.system("touch {}".format(engine.reloadable_meta))
             engine.reloadable_type = "timestamp_ne"
-            engine.runtime_thread_num = self.op_num[index % len(self.op_num)]
-            engine.batch_infer_size = self.op_max_batch[index %
-                                                        len(self.op_max_batch)]
+            engine.runtime_thread_num = self.runtime_thread_num[index % len(
+                self.runtime_thread_num)]
+            engine.batch_infer_size = self.batch_infer_size[index % len(
+                self.batch_infer_size)]
 
-            engine.enable_batch_align = 1
+            engine.enable_overrun = False
+            engine.allow_split_request = True
             engine.model_dir = model_config_path
             engine.enable_memory_optimization = self.memory_optimization
             engine.enable_ir_optimization = self.ir_optimization
@@ -236,6 +262,7 @@ class Server(object):
             engine.gpu_multi_stream = self.gpu_multi_stream
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
+            engine.use_ascend_cl = self.use_ascend_cl
             engine.use_gpu = False
 
             if len(self.gpuid) == 0:
@@ -289,7 +316,7 @@ class Server(object):
                     fout.write(str(list(self.model_conf.values())[idx]))
                 for workflow in self.workflow_conf.workflows:
                     for node in workflow.nodes:
-                        if "dist_kv" in node.name:
+                        if "distkv" in node.name.lower():
                             self.resource_conf.cube_config_path = workdir
                             self.resource_conf.cube_config_file = self.cube_config_fn
                             if cube_conf == None:
@@ -297,7 +324,7 @@ class Server(object):
                                     "Please set the path of cube.conf while use dist_kv op."
                                 )
                             shutil.copy(cube_conf, workdir)
-                            if "quant" in node.name:
+                            if "quant" in node.name.lower():
                                 self.resource_conf.cube_quant_bits = 8
                 self.resource_conf.model_toolkit_path.extend([workdir])
                 self.resource_conf.model_toolkit_file.extend(
@@ -334,17 +361,12 @@ class Server(object):
             # If there is only one model path, use the default infer_op.
             # Because there are several infer_op type, we need to find
             # it from workflow_conf.
-            default_engine_types = [
-                'GeneralInferOp',
-                'GeneralDistKVInferOp',
-                'GeneralDistKVQuantInferOp',
-                'GeneralDetectionOp',
-            ]
+
             # now only support single-workflow.
             # TODO:support multi-workflow
             model_config_paths_list_idx = 0
             for node in self.workflow_conf.workflows[0].nodes:
-                if node.type in default_engine_types:
+                if node.type in self.default_engine_types:
                     if node.name is None:
                         raise Exception(
                             "You have set the engine_name of Op. Please use the form {op: model_path} to configure model path"
@@ -427,17 +449,23 @@ class Server(object):
         if device_type == "0":
             device_version = self.get_device_version()
         elif device_type == "1":
-            if version_suffix == "101" or version_suffix == "102":
+            if version_suffix == "101" or version_suffix == "102" or version_suffix == "1028" or version_suffix == "112":
                 device_version = "gpu-" + version_suffix
             else:
                 device_version = "gpu-cuda" + version_suffix
         elif device_type == "2":
             device_version = "xpu-" + platform.machine()
+        elif device_type == "3":
+            device_version = "rocm-" + platform.machine()
+        elif device_type == "4":
+            if self.use_lite:
+                device_version = "ascendcl-lite-" + platform.machine()
+            else:
+                device_version = "ascendcl-" + platform.machine()
         return device_version
 
     def download_bin(self):
         os.chdir(self.module_path)
-        need_download = False
 
         #acquire lock
         version_file = open("{}/version.py".format(self.module_path), "r")
@@ -538,7 +566,7 @@ class Server(object):
     def port_is_available(self, port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(2)
-            result = sock.connect_ex(('0.0.0.0', port))
+            result = sock.connect_ex(('127.0.0.1', port))
         if result != 0:
             return True
         else:
@@ -564,7 +592,7 @@ class Server(object):
                     "-num_threads {} " \
                     "-port {} " \
                     "-precision {} " \
-                    "-use_calib {} " \
+                    "-use_calib={} " \
                     "-reload_interval_s {} " \
                     "-resource_path {} " \
                     "-resource_file {} " \
@@ -587,6 +615,17 @@ class Server(object):
                         self.workflow_fn,
                         self.num_threads,
                         self.max_body_size)
+        if self.enable_prometheus:
+            command =   command + \
+                        "-enable_prometheus={} " \
+                        "-prometheus_port {} ".format(
+                        self.enable_prometheus,
+                        self.prometheus_port)
+        if self.request_cache_size > 0:
+            command =   command + \
+                        "-request_cache_size {} ".format(
+                            self.request_cache_size
+                        )
 
         print("Going to Run Comand")
         print(command)

@@ -44,9 +44,9 @@ REQUIRED_PACKAGES = [
     'six >= 1.10.0',
     'pillow',
     'pyclipper', 'shapely',
-    'sentencepiece<=0.1.92; platform_machine != "aarch64"',
+    'sentencepiece<=0.1.96; platform_machine != "aarch64"',
     'sentencepiece; platform_machine == "aarch64"',
-    'opencv-python<=4.2.0.32; platform_machine != "aarch64"',
+    'opencv-python==3.4.17.61; platform_machine != "aarch64"',
     'opencv-python; platform_machine == "aarch64"',
 ]
 

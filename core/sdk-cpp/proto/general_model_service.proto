@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-syntax = "proto2";
+syntax = "proto3";
 import "pds_option.proto";
 import "builtin_format.proto";
 package baidu.paddle_serving.predictor.general_model;
@@ -20,33 +20,88 @@ package baidu.paddle_serving.predictor.general_model;
 option cc_generic_services = true;
 
 message Tensor {
-  repeated bytes data = 1;
-  repeated int32 int_data = 2;
-  repeated int64 int64_data = 3;
-  repeated float float_data = 4;
-  optional int32 elem_type =
-      5; // 0 means int64, 1 means float32, 2 means int32, 3 means bytes(string)
-  repeated int32 shape = 6;       // shape should include batch
-  repeated int32 lod = 7;         // only for fetch tensor currently
-  optional string name = 8;       // get from the Model prototxt
-  optional string alias_name = 9; // get from the Model prototxt
+  // VarType: INT64
+  repeated int64 int64_data = 1;
+
+  // VarType: FP32
+  repeated float float_data = 2;
+
+  // VarType: INT32
+  repeated int32 int_data = 3;
+
+  // VarType: FP64
+  repeated double float64_data = 4;
+
+  // VarType: UINT32
+  repeated uint32 uint32_data = 5;
+
+  // VarType: BOOL
+  repeated bool bool_data = 6;
+
+  // (No support)VarType: COMPLEX64, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated float complex64_data = 7;
+
+  // (No support)VarType: COMPLEX128, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated double complex128_data = 8;
+
+  // VarType: STRING
+  repeated string data = 9;
+
+  // Element types:
+  //   0 => INT64
+  //   1 => FP32
+  //   2 => INT32
+  //   3 => FP64
+  //   4 => INT16
+  //   5 => FP16
+  //   6 => BF16
+  //   7 => UINT8
+  //   8 => INT8
+  //   9 => BOOL
+  //  10 => COMPLEX64
+  //  11 => COMPLEX128
+  //  20 => STRING
+  int32 elem_type = 10;
+
+  // Shape of the tensor, including batch dimensions.
+  repeated int32 shape = 11;
+
+  // Level of data(LOD), support variable length data, only for fetch tensor
+  // currently.
+  repeated int32 lod = 12;
+
+  // Correspond to the variable 'name' in the model description prototxt.
+  string name = 13;
+
+  // Correspond to the variable 'alias_name' in the model description prototxt.
+  string alias_name = 14; // get from the Model prototxt
+
+  // VarType: FP16, INT16, INT8, BF16, UINT8
+  bytes tensor_content = 15;
 };
 
 message Request {
   repeated Tensor tensor = 1;
   repeated string fetch_var_names = 2;
-  optional bool profile_server = 3 [ default = false ];
-  required uint64 log_id = 4 [ default = 0 ];
+  bool profile_server = 3;
+  uint64 log_id = 4;
 };
 
 message Response {
   repeated ModelOutput outputs = 1;
   repeated int64 profile_time = 2;
+  // Error code
+  int32 err_no = 3;
+
+  // Error messages
+  string err_msg = 4;
 };
 
 message ModelOutput {
   repeated Tensor tensor = 1;
-  optional string engine_name = 2;
+  string engine_name = 2;
 }
 
 service GeneralModelService {

@@ -33,11 +33,14 @@ util.gen_pipeline_code("paddle_serving_server")
 
 REQUIRED_PACKAGES = [
     'six >= 1.10.0', 'protobuf >= 3.11.0', 'grpcio <= 1.33.2', 'grpcio-tools <= 1.33.2',
-    'flask >= 1.1.1', 'click==7.1.2', 'itsdangerous==1.1.0', 'Jinja2==2.11.3',
-    'MarkupSafe==1.1.1', 'Werkzeug==1.0.1', 'func_timeout', 'pyyaml'
+    'flask >= 1.1.1,<2.0.0', 'click==7.1.2', 'itsdangerous==1.1.0', 'Jinja2==2.11.3',
+    'MarkupSafe==1.1.1', 'Werkzeug==1.0.1', 'func_timeout', 'pyyaml', 'pytest'
 ]
 
 packages=['paddle_serving_server',
+          'paddle_serving_server.env_check',
+          'paddle_serving_server.env_check.fit_a_line',
+          'paddle_serving_server.env_check.simple_web_service',
           'paddle_serving_server.proto',
           'paddle_serving_server.pipeline',
           'paddle_serving_server.pipeline.proto',
@@ -46,6 +49,12 @@ packages=['paddle_serving_server',
 
 package_dir={'paddle_serving_server':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server',
+             'paddle_serving_server.env_check':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check',
+             'paddle_serving_server.env_check.fit_a_line':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check/fit_a_line',
+             'paddle_serving_server.env_check.simple_web_service':
+             '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/env_check/simple_web_service',
              'paddle_serving_server.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/proto',
              'paddle_serving_server.pipeline':
@@ -57,8 +66,8 @@ package_dir={'paddle_serving_server':
              'paddle_serving_server.pipeline.gateway.proto':
              '${PADDLE_SERVING_BINARY_DIR}/python/paddle_serving_server/pipeline/gateway/proto'}
 
-package_data={'paddle_serving_server': ['pipeline/gateway/libproxy_server.so'],}
-
+package_data={'paddle_serving_server': ['pipeline/gateway/libproxy_server.so', 'env_check/fit_a_line/*', 'env_check/simple_web_service/*', 'env_check/fit_a_line/uci_housing_model/*', 'env_check/fit_a_line/uci_housing_client/*', 'env_check/simple_web_service/uci_housing_model/*', 'env_check/simple_web_service/uci_housing_client/*'],}
+include_package_data=True
 setup(
     name='${SERVER_PACKAGE_NAME}',
     version= package_version,

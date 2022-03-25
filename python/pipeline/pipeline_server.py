@@ -22,12 +22,16 @@ from contextlib import closing
 import multiprocessing
 import yaml
 import io
-
+import time
+import os
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
 from .proto import pipeline_service_pb2_grpc, pipeline_service_pb2
 from . import operator
 from . import dag
 from . import util
 from . import channel
+from paddle_serving_server.env import CONF_HOME
+from paddle_serving_server.util import dump_pid_file
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,19 +40,28 @@ class PipelineServicer(pipeline_service_pb2_grpc.PipelineServiceServicer):
     """
     Pipeline Servicer entrance.
     """
-
     def __init__(self, name, response_op, dag_conf, worker_idx=-1):
-        super(PipelineServicer, self).__init__()
-        self._name = name
 
-        # init dag executor
-        self._dag_executor = dag.DAGExecutor(response_op, dag_conf, worker_idx)
-        self._dag_executor.start()
+        @ErrorCatch
+        @ParamChecker
+        def init_helper(self, name, response_op, 
+          dag_conf: dict,
+          worker_idx=-1):
+           self._name = name
+           self._dag_executor = dag.DAGExecutor(response_op, dag_conf, worker_idx)
+           self._dag_executor.start()
+            
+        super(PipelineServicer, self).__init__()
+        init_res = init_helper(self, name, response_op, dag_conf, worker_idx)
+        if init_res[1].err_no != CustomExceptionCode.OK.value :
+            raise CustomException(CustomExceptionCode.INIT_ERROR, "pipeline server init error")
+        print("[PipelineServicer] succ init")
         _LOGGER.info("[PipelineServicer] succ init")
 
     def inference(self, request, context):
-        _LOGGER.info("(log_id={}) inference request name:{} self.name:{}".
-                     format(request.logid, request.name, self._name))
+        _LOGGER.info(
+            "(log_id={}) inference request name:{} self.name:{} time:{}".format(
+                request.logid, request.name, self._name, time.time()))
         if request.name != "" and request.name != self._name:
             _LOGGER.error("(log_id={}) name dismatch error. request.name:{},"
                           "server.name={}".format(request.logid, request.name,
@@ -75,7 +88,6 @@ def _reserve_port(port):
         yield sock.getsockname()[1]
     finally:
         sock.close()
-
 
 class PipelineServer(object):
     """
@@ -196,7 +208,14 @@ class PipelineServer(object):
                         self._http_port):
                     raise SystemExit("Failed to prepare_server: http_port({}) "
                                      "is already used".format(self._http_port))
-
+        # write the port info into ProcessInfo.json
+        portList = []
+        if self._http_port is not None:
+            portList.append(self._rpc_port)
+        if self._rpc_port is not None:
+            portList.append(self._http_port)
+        if len(portList):
+            dump_pid_file(portList, "pipline")
         self._worker_num = conf["worker_num"]
         self._build_dag_each_worker = conf["build_dag_each_worker"]
         self._init_ops(conf["op"])
@@ -241,6 +260,7 @@ class PipelineServer(object):
                 "use_calib": False,
                 "use_mkldnn": False,
                 "mkldnn_cache_capacity": 0,
+                "min_subgraph_size": 3,
             },
         }
         for op in self._used_op:
@@ -339,7 +359,7 @@ class ServerYamlConfChecker(object):
                              " or yml_dict can be selected as the parameter.")
         if yml_file is not None:
             with io.open(yml_file, encoding='utf-8') as f:
-                conf = yaml.load(f.read())
+                conf = yaml.load(f.read(), yaml.FullLoader)
         elif yml_dict is not None:
             conf = yml_dict
         else:
@@ -401,6 +421,7 @@ class ServerYamlConfChecker(object):
             "use_calib": False,
             "use_mkldnn": False,
             "mkldnn_cache_capacity": 0,
+            "min_subgraph_size": 3,
         }
         conf_type = {
             "model_config": str,
@@ -416,6 +437,7 @@ class ServerYamlConfChecker(object):
             "mkldnn_cache_capacity": int,
             "mkldnn_op_list": list,
             "mkldnn_bf16_op_list": list,
+            "min_subgraph_size": int,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
@@ -469,6 +491,7 @@ class ServerYamlConfChecker(object):
             "channel_size": 0,
             "is_thread_op": True,
             "tracer": {},
+            "channel_recv_frist_arrive": False,
         }
 
         conf_type = {
@@ -477,6 +500,7 @@ class ServerYamlConfChecker(object):
             "use_profile": bool,
             "channel_size": int,
             "is_thread_op": bool,
+            "channel_recv_frist_arrive": bool,
         }
 
         conf_qualification = {

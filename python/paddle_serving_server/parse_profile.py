@@ -96,7 +96,7 @@ if __name__ == "__main__":
     args = parse_args()
     benchmark_cfg_filename = args.benchmark_cfg
     f = open(benchmark_cfg_filename, 'r')
-    benchmark_config = yaml.load(f)
+    benchmark_config = yaml.load(f, yaml.FullLoader)
     f.close()
     benchmark_log_filename = args.benchmark_log
     f = open(benchmark_log_filename, 'r')

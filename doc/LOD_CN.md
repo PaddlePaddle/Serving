@@ -1,6 +1,6 @@
 # Lod字段说明
 
-(简体中文|[English](LOD.md))
+(简体中文|[English](LOD_EN.md))
 
 ## 概念
 

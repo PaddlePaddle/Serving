@@ -108,7 +108,7 @@ def pad_batch_data(insts,
         input_mask_data = np.array(
             [[1] * len(inst) + [0] * (max_len - len(inst)) for inst in insts])
         input_mask_data = np.expand_dims(input_mask_data, axis=-1)
-        return_list += [input_mask_data.astype("float32")]
+        return_list += [input_mask_data]
 
     if return_max_len:
         return_list += [max_len]

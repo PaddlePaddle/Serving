@@ -28,32 +28,11 @@ import logging
 import enum
 import os
 import copy
+import time
+from .error_catch import ErrorCatch, CustomException, ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class ChannelDataErrcode(enum.Enum):
-    """
-    ChannelData error code
-    """
-    OK = 0
-    TIMEOUT = 1
-    NOT_IMPLEMENTED = 2
-    TYPE_ERROR = 3
-    RPC_PACKAGE_ERROR = 4
-    CLIENT_ERROR = 5
-    CLOSED_ERROR = 6
-    NO_SERVICE = 7
-    UNKNOW = 8
-    PRODUCT_ERROR = 9
-
-
-class ProductErrCode(enum.Enum):
-    """
-    ProductErrCode is a base class for recording business error code. 
-    product developers inherit this class and extend more error codes. 
-    """
-    pass
 
 
 class ChannelDataType(enum.Enum):
@@ -124,7 +103,6 @@ class ChannelData(object):
 
     def get_size(self):
         size = 0
-        dict_data = None
         if isinstance(self.dictdata, dict):
             for k in self.dictdata:
                 size += sys.getsizeof(self.dictdata[k]) + sys.getsizeof(k)
@@ -190,7 +168,8 @@ class ChannelData(object):
         elif isinstance(npdata, dict):
             # batch_size = 1
             for _, value in npdata.items():
-                if not isinstance(value, np.ndarray):
+                if not isinstance(value, np.ndarray) and not (isinstance(
+                        value, list) and isinstance(value[0], str)):
                     error_code = ChannelDataErrcode.TYPE_ERROR.value
                     error_info = "Failed to check data: the value " \
                             "of data must be np.ndarray, but get {}.".format(
@@ -259,7 +238,11 @@ class ProcessChannel(object):
         maintains the data obtained from queue.
     """
 
-    def __init__(self, manager, name=None, maxsize=0):
+    def __init__(self,
+                 manager,
+                 name=None,
+                 maxsize=0,
+                 channel_recv_frist_arrive=False):
         # For queue multiprocess: after putting an object on 
         # an empty queue there may be an infinitessimal delay
         # before the queue's :meth:`~Queue.empty`
@@ -282,6 +265,9 @@ class ProcessChannel(object):
         self._cursor_count = manager.dict()  # {cursor: count}
         self._base_cursor = manager.Value('i', 0)
         self._output_buf = manager.list()
+
+        self._cur_max_dataid = manager.Value('i', -1)
+        self._channel_recv_frist_arrive = channel_recv_frist_arrive
 
     def get_maxsize(self):
         return self._maxsize
@@ -325,9 +311,10 @@ class ProcessChannel(object):
     def push(self, channeldata, op_name=None):
         _LOGGER.debug(
             self._log(
-                "(data_id={} log_id={}) Op({}) Enter channel::push producers:{}".
+                "(data_id={} log_id={}) Op({}) Enter channel::push producers:{}, time:{}".
                 format(channeldata.id, channeldata.log_id, op_name,
-                       len(self._producers))))
+                       len(self._producers), time.time())))
+
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(
@@ -355,15 +342,54 @@ class ProcessChannel(object):
                 self._cv.notify_all()
                 notify_all_time = _time()
                 _LOGGER.debug(
-                    "(data_id={}) Op({}) channel push cost! enter_cv:{} ms, push_que:{} ms, notify:{} ms, data_size:{}".
+                    "(data_id={}) Op({}) channel push cost! enter_cv:{} ms, push_que:{} ms, notify:{} ms, data_size:{}, time:{}".
                     format(channeldata.id, op_name, (enter_cv_time - start_time)
                            * 1000, (push_que_time - enter_cv_time) * 1000, (
                                notify_all_time - push_que_time) * 1000,
-                           channeldata.get_size()))
+                           channeldata.get_size(), time.time()))
             _LOGGER.debug(
                 self._log(
                     "(data_id={} log_id={}) Op({}) Pushed data into internal queue.".
                     format(channeldata.id, channeldata.log_id, op_name)))
+            return True
+        elif self._channel_recv_frist_arrive == True:
+            start_time = _time()
+            with self._cv:
+                _LOGGER.debug(
+                    "(data_id={}) Op({}) Channel({}) enter channel_recv_first_arrive. _cur_max_dataid:{}".
+                    format(channeldata.id, op_name, self.name,
+                           self._cur_max_dataid.value))
+                if channeldata.id > self._cur_max_dataid.value:
+                    enter_cv_time = _time()
+                    push_que_time = enter_cv_time
+                    while self._stop.value == 0:
+                        try:
+                            self._que.put((channeldata.id, {
+                                op_name: channeldata
+                            }),
+                                          timeout=0)
+                            push_que_time = _time()
+                            self._cur_max_dataid.value = channeldata.id
+                            break
+                        except Queue.Full:
+                            self._cv.wait()
+                    if self._stop.value == 1:
+                        raise ChannelStopError()
+                    self._cv.notify_all()
+                    notify_all_time = _time()
+                    _LOGGER.debug(
+                        "(data_id={}) Op({}) channel push cost! enter_cv:{} ms, push_que:{} ms, notify:{} ms, data_size:{}, time:{}".
+                        format(channeldata.id, op_name, (
+                            enter_cv_time - start_time) * 1000, (
+                                push_que_time - enter_cv_time) * 1000, (
+                                    notify_all_time - push_que_time) * 1000,
+                               channeldata.get_size(), time.time()))
+                else:
+                    # log and drop it
+                    _LOGGER.debug(
+                        "(data_id={}) Op({}) send data is dropped! cur_max_dataid:{}".
+                        format(channeldata.id, op_name,
+                               self._cur_max_dataid.value))
             return True
         elif op_name is None:
             _LOGGER.critical(
@@ -414,8 +440,8 @@ class ProcessChannel(object):
 
                 _LOGGER.debug(
                     self._log(
-                        "(data_id={} log_id={}) Op({}) Pushed data into internal_queue.".
-                        format(data_id, log_id, op_name)))
+                        "(data_id={} log_id={}) Op({}) Pushed data into internal_queue. time:{}".
+                        format(data_id, log_id, op_name, time.time())))
             self._cv.notify_all()
         return True
 
@@ -464,9 +490,9 @@ class ProcessChannel(object):
             key = list(resp.keys())[0]
             data_id = resp[key].id
             _LOGGER.debug(
-                "(data_id={}) op({}) front cost enter_cv:{} ms, queue_get:{} ms".
+                "(data_id={}) op({}) front cost enter_cv:{} ms, queue_get:{} ms, time:{}".
                 format(data_id, op_name, (time_2 - time_1) / 1000.0, (
-                    time_3 - time_2) / 1000.0))
+                    time_3 - time_2) / 1000.0, time.time()))
             if resp is not None:
                 list_values = list(resp.values())
                 _LOGGER.debug(
@@ -501,9 +527,9 @@ class ProcessChannel(object):
                     list_values = list(channeldata.values())
                     _LOGGER.debug(
                         self._log(
-                            "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer".
+                            "(data_id={} log_id={}) Op({}) Pop ready item into output_buffer, time:{}".
                             format(list_values[0].id, list_values[0].log_id,
-                                   op_name)))
+                                   op_name, time.time())))
                     break
                 except Queue.Empty:
                     if timeout is not None:
@@ -561,8 +587,9 @@ class ProcessChannel(object):
             list_values = list(resp.values())
             _LOGGER.debug(
                 self._log(
-                    "(data_id={} log_id={}) Op({}) Got data from output_buffer".
-                    format(list_values[0].id, list_values[0].log_id, op_name)))
+                    "(data_id={} log_id={}) Op({}) Got data from output_buffer, time:{}".
+                    format(list_values[0].id, list_values[0].log_id, op_name,
+                           time.time())))
         return resp
 
     def stop(self):
@@ -601,7 +628,7 @@ class ThreadChannel(Queue.PriorityQueue):
         maintains the data obtained from queue.
     """
 
-    def __init__(self, name=None, maxsize=-1):
+    def __init__(self, name=None, maxsize=-1, channel_recv_frist_arrive=False):
         Queue.Queue.__init__(self, maxsize=maxsize)
         self._maxsize = maxsize
         self.name = name
@@ -618,6 +645,9 @@ class ThreadChannel(Queue.PriorityQueue):
         self._cursor_count = {}  # {cursor: count}
         self._base_cursor = 0
         self._output_buf = []
+
+        self._channel_recv_frist_arrive = channel_recv_frist_arrive
+        self._cur_max_dataid = -1
 
     def get_maxsize(self):
         return self._maxsize
@@ -662,6 +692,7 @@ class ThreadChannel(Queue.PriorityQueue):
         _LOGGER.debug(
             self._log("(data_id={} log_id={}) Op({}) Pushing data".format(
                 channeldata.id, channeldata.log_id, op_name)))
+
         if len(self._producers) == 0:
             _LOGGER.critical(
                 self._log(
@@ -688,6 +719,29 @@ class ThreadChannel(Queue.PriorityQueue):
                     "(data_id={} log_id={}) Op({}) Pushed data into internal_queue.".
                     format(channeldata.id, channeldata.log_id, op_name)))
             return True
+        elif self._channel_recv_frist_arrive is True:
+            with self._cv:
+                if channeldata.id > self._cur_max_dataid:
+                    while self._stop is False:
+                        try:
+                            self.put((channeldata.id, {
+                                op_name: channeldata
+                            }),
+                                     timeout=0)
+                            self._cur_max_dataid = channeldata.id
+                            break
+                        except Queue.Full:
+                            self._cv.wait()
+                    if self._stop:
+                        raise ChannelStopError()
+                    self._cv.notify_all()
+                else:
+                    # log and drop it
+                    _LOGGER.debug(
+                        "(data_id={}) Op({}) send data is dropped! cur_max_dataid:{}".
+                        format(channeldata.id, op_name, self._cur_max_dataid))
+            return True
+
         elif op_name is None:
             _LOGGER.critical(
                 self._log(

@@ -24,6 +24,12 @@ from .io import inference_model_to_serving
 def parse_args():  # pylint: disable=doc-string-missing
     parser = argparse.ArgumentParser("convert")
     parser.add_argument(
+        "--show_proto",
+        type=bool,
+        default=False,
+        help='If yes, you can preview the proto and then determine your feed var alias name and fetch var alias name.'
+    )
+    parser.add_argument(
         "--dirname",
         type=str,
         required=True,
@@ -53,6 +59,18 @@ def parse_args():  # pylint: disable=doc-string-missing
         default=None,
         help='The name of file to load all parameters. It is only used for the case that all parameters were saved in a single binary file. If parameters were saved in separate files, set it as None. Default: None.'
     )
+    parser.add_argument(
+        "--feed_alias_names",
+        type=str,
+        default=None,
+        help='set alias names for feed vars, split by comma \',\', you should run --show_proto to check the number of feed vars'
+    )
+    parser.add_argument(
+        "--fetch_alias_names",
+        type=str,
+        default=None,
+        help='set alias names for feed vars, split by comma \',\', you should run --show_proto to check the number of fetch vars'
+    )
     return parser.parse_args()
 
 
@@ -63,4 +81,7 @@ if __name__ == "__main__":
         serving_server=args.serving_server,
         serving_client=args.serving_client,
         model_filename=args.model_filename,
-        params_filename=args.params_filename)
+        params_filename=args.params_filename,
+        show_proto=args.show_proto,
+        feed_alias_names=args.feed_alias_names,
+        fetch_alias_names=args.fetch_alias_names)

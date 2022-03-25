@@ -276,43 +276,100 @@ class PdsCodeGenerator : public CodeGenerator {
           "output_name",
           google::protobuf::dots_to_colons(m->output_type()->full_name()));
       if (m->name() == "inference") {
+        std::string inference_body = "";
+        inference_body += "  brpc::ClosureGuard done_guard(done);\n";
+        inference_body += "  brpc::Controller* cntl = \n";
+        inference_body += "        static_cast<brpc::Controller*>(cntl_base);\n";
+        inference_body += "  cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);\n";
+        inference_body += "  uint64_t log_id = request->log_id();\n";
+        inference_body += "  cntl->set_log_id(log_id);\n";
+        inference_body += "  ::baidu::paddle_serving::predictor::InferService* svr = \n";
+        inference_body += "       ";
+        inference_body += "::baidu::paddle_serving::predictor::InferServiceManager::instance(";
+        inference_body += ").item(\"$service$\");\n";
+        inference_body += "  if (svr == NULL) {\n";
+        inference_body += "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: ";
+        inference_body += "$service$\";\n";
+        inference_body += "    cntl->SetFailed(404, \"Not found service: $service$\");\n";
+        inference_body += "    return ;\n";
+        inference_body += "  }\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "remote_side=\[\" << cntl->remote_side() << ";  // NOLINT
+        inference_body += "\"\]\";\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "local_side=\[\" << cntl->local_side() << ";  // NOLINT
+        inference_body += "\"\]\";\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "service_name=\[\" << \"$name$\" << \"\]\";\n";  // NOLINT
+        if (service_name == "GeneralModelService") {
+          inference_body += "uint64_t key = 0;";
+          inference_body += "int err_code = 0;";
+          inference_body += "if (RequestCache::GetSingleton()->Get(*request, response, &key) != 0) {";
+          inference_body += "  err_code = svr->inference(request, response, log_id);";
+          inference_body += "  if (err_code != 0) {";
+          inference_body += "    LOG(WARNING)";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call inferservice[GeneralModelService], name[GeneralModelService]\"";
+          inference_body += "        << \", error_code: \" << err_code;";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference failed!\");";
+          inference_body += "  } else {";
+          inference_body += "    RequestCache::GetSingleton()->Put(*request, *response, &key);";
+          inference_body += "  }";
+          inference_body += "} else {";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") Get from cache\";";
+          inference_body += "}";
+        } else {
+          inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
+          inference_body += "  if (err_code != 0) {\n";
+          inference_body += "    LOG(WARNING)\n";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
+          inference_body += "inferservice[$name$], name[$service$]\"\n";
+          inference_body += "        << \", error_code: \" << err_code;\n";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
+          inference_body += "failed!\");\n";
+          inference_body += "  }\n";
+        }
+        inference_body += "  gettimeofday(&tv, NULL);\n";
+        inference_body += "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n";
+        if (service_name == "GeneralModelService") {
+          inference_body += "  std::ostringstream oss;\n";
+          inference_body += "  oss << \"[serving]\"\n";
+          inference_body += "      << \"logid=\" << log_id << \",\";\n";
+          inference_body += "  int op_num = response->profile_time_size() / 2;\n";
+          inference_body += "  for (int i = 0; i < op_num; ++i) {\n";
+          inference_body += "    double t = (response->profile_time(i * 2 + 1)\n";
+          inference_body += "                - response->profile_time(i * 2)) / 1000.0;\n";
+          inference_body += "    oss << \"op\" << i << \"=\" << t << \"ms,\";\n";
+          inference_body += "  }\n";
+          inference_body += "  double total_time = (end - start) / 1000.0;\n";
+          inference_body += "  oss << \"cost=\" << total_time << \"ms.\";\n";
+          inference_body += "  // flush notice log\n";
+          inference_body += "  LOG(INFO) << oss.str();\n";
+          inference_body += "  response->add_profile_time(start);\n";
+          inference_body += "  response->add_profile_time(end);\n";
+          inference_body += "  if (::baidu::paddle_serving::predictor::PrometheusMetric::Enabled()) {\n";
+          inference_body += "  if (err_code == 0) {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQuerySuccess()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  } else {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQueryFailure()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  }\n";
+          inference_body += "  ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "      GetGeneralSingleton()\n";
+          inference_body += "          ->MetricQueryDuration()\n";
+          inference_body += "          .Increment(total_time * 1000);\n";
+          inference_body += "  }\n";
+        } else {
+          inference_body += "  // flush notice log\n";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT
+          inference_body += "start) << \"\]\";\n";
+        }
         printer->Print(
-            "  baidu::rpc::ClosureGuard done_guard(done);\n"
-            "  baidu::rpc::Controller* cntl = \n"
-            "        static_cast<baidu::rpc::Controller*>(cntl_base);\n"
-            "  cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);\n"
-            "  uint64_t log_id = request->log_id();\n"
-            "  cntl->set_log_id(log_id);\n"
-            "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
-            "       "
-            "::baidu::paddle_serving::predictor::InferServiceManager::instance("
-            ").item(\"$service$\");\n"
-            "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
-            "$service$\";\n"
-            "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
-            "    return ;\n"
-            "  }\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") remote_side=\[\" "  // NOLINT
-            "<< cntl->remote_side() << \"\]\";\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") local_side=\[\" "  // NOLINT
-            "<< cntl->local_side() << \"\]\";\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") service_name=\[\" "  // NOLINT
-            "<< \"$name$\" << \"\]\";\n"
-            "  int err_code = svr->inference(request, response, log_id);\n"
-            "  if (err_code != 0) {\n"
-            "    LOG(WARNING)\n"
-            "        << \"(logid=\" << log_id << \") Failed call "
-            "inferservice[$name$], name[$service$]\"\n"
-            "        << \", error_code: \" << err_code;\n"
-            "    cntl->SetFailed(err_code, \"InferService inference "
-            "failed!\");\n"
-            "  }\n"
-            "  gettimeofday(&tv, NULL);\n"
-            "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
-            "  // flush notice log\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
-            "start) << \"\]\";\n",  // NOLINT
+            inference_body.c_str(),
             "name",
             class_name,
             "service",
@@ -1021,45 +1078,100 @@ class PdsCodeGenerator : public CodeGenerator {
           "output_name",
           google::protobuf::dots_to_colons(m->output_type()->full_name()));
       if (m->name() == "inference") {
+        std::string inference_body = "";
+        inference_body += "  brpc::ClosureGuard done_guard(done);\n";
+        inference_body += "  brpc::Controller* cntl = \n";
+        inference_body += "        static_cast<brpc::Controller*>(cntl_base);\n";
+        inference_body += "  cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);\n";
+        inference_body += "  uint64_t log_id = request->log_id();\n";
+        inference_body += "  cntl->set_log_id(log_id);\n";
+        inference_body += "  ::baidu::paddle_serving::predictor::InferService* svr = \n";
+        inference_body += "       ";
+        inference_body += "::baidu::paddle_serving::predictor::InferServiceManager::instance(";
+        inference_body += ").item(\"$service$\");\n";
+        inference_body += "  if (svr == NULL) {\n";
+        inference_body += "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: ";
+        inference_body += "$service$\";\n";
+        inference_body += "    cntl->SetFailed(404, \"Not found service: $service$\");\n";
+        inference_body += "    return ;\n";
+        inference_body += "  }\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "remote_side=\[\" << cntl->remote_side() << ";  // NOLINT
+        inference_body += "\"\]\";\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "local_side=\[\" << cntl->local_side() << ";  // NOLINT
+        inference_body += "\"\]\";\n";
+        inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") ";
+        inference_body += "service_name=\[\" << \"$name$\" << \"\]\";\n";  // NOLINT
+        if (service_name == "GeneralModelService") {
+          inference_body += "uint64_t key = 0;";
+          inference_body += "int err_code = 0;";
+          inference_body += "if (RequestCache::GetSingleton()->Get(*request, response, &key) != 0) {";
+          inference_body += "  err_code = svr->inference(request, response, log_id);";
+          inference_body += "  if (err_code != 0) {";
+          inference_body += "    LOG(WARNING)";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call inferservice[GeneralModelService], name[GeneralModelService]\"";
+          inference_body += "        << \", error_code: \" << err_code;";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference failed!\");";
+          inference_body += "  } else {";
+          inference_body += "    RequestCache::GetSingleton()->Put(*request, *response, &key);";
+          inference_body += "  }";
+          inference_body += "} else {";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") Get from cache\";";
+          inference_body += "}";
+        } else {
+          inference_body += "  int err_code = svr->inference(request, response, log_id);\n";
+          inference_body += "  if (err_code != 0) {\n";
+          inference_body += "    LOG(WARNING)\n";
+          inference_body += "        << \"(logid=\" << log_id << \") Failed call ";
+          inference_body += "inferservice[$name$], name[$service$]\"\n";
+          inference_body += "        << \", error_code: \" << err_code;\n";
+          inference_body += "    cntl->SetFailed(err_code, \"InferService inference ";
+          inference_body += "failed!\");\n";
+          inference_body += "  }\n";
+        }
+        inference_body += "  gettimeofday(&tv, NULL);\n";
+        inference_body += "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n";
+        if (service_name == "GeneralModelService") {
+          inference_body += "  std::ostringstream oss;\n";
+          inference_body += "  oss << \"[serving]\"\n";
+          inference_body += "      << \"logid=\" << log_id << \",\";\n";
+          inference_body += "  int op_num = response->profile_time_size() / 2;\n";
+          inference_body += "  for (int i = 0; i < op_num; ++i) {\n";
+          inference_body += "    double t = (response->profile_time(i * 2 + 1)\n";
+          inference_body += "                - response->profile_time(i * 2)) / 1000.0;\n";
+          inference_body += "    oss << \"op\" << i << \"=\" << t << \"ms,\";\n";
+          inference_body += "  }\n";
+          inference_body += "  double total_time = (end - start) / 1000.0;\n";
+          inference_body += "  oss << \"cost=\" << total_time << \"ms.\";\n";
+          inference_body += "  // flush notice log\n";
+          inference_body += "  LOG(INFO) << oss.str();\n";
+          inference_body += "  response->add_profile_time(start);\n";
+          inference_body += "  response->add_profile_time(end);\n";
+          inference_body += "  if (::baidu::paddle_serving::predictor::PrometheusMetric::Enabled()) {\n";
+          inference_body += "  if (err_code == 0) {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQuerySuccess()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  } else {\n";
+          inference_body += "    ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "        GetGeneralSingleton()\n";
+          inference_body += "            ->MetricQueryFailure()\n";
+          inference_body += "            .Increment(1);\n";
+          inference_body += "  }\n";
+          inference_body += "  ::baidu::paddle_serving::predictor::PrometheusMetricManager::\n";
+          inference_body += "      GetGeneralSingleton()\n";
+          inference_body += "          ->MetricQueryDuration()\n";
+          inference_body += "          .Increment(total_time * 1000);\n";
+          inference_body += "  }\n";
+        } else {
+          inference_body += "  // flush notice log\n";
+          inference_body += "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - ";  // NOLINT
+          inference_body += "start) << \"\]\";\n";
+        }
         printer->Print(
-            "  brpc::ClosureGuard done_guard(done);\n"
-            "  brpc::Controller* cntl = \n"
-            "        static_cast<brpc::Controller*>(cntl_base);\n"
-            "  cntl->set_response_compress_type(brpc::COMPRESS_TYPE_GZIP);\n"
-            "  uint64_t log_id = request->log_id();\n"
-            "  cntl->set_log_id(log_id);\n"
-            "  ::baidu::paddle_serving::predictor::InferService* svr = \n"
-            "       "
-            "::baidu::paddle_serving::predictor::InferServiceManager::instance("
-            ").item(\"$service$\");\n"
-            "  if (svr == NULL) {\n"
-            "    LOG(ERROR) << \"(logid=\" << log_id << \") Not found service: "
-            "$service$\";\n"
-            "    cntl->SetFailed(404, \"Not found service: $service$\");\n"
-            "    return ;\n"
-            "  }\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") "
-            "remote_side=\[\" << cntl->remote_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") "
-            "local_side=\[\" << cntl->local_side() << "  // NOLINT
-            "\"\]\";\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") "
-            "service_name=\[\" << \"$name$\" << \"\]\";\n"  // NOLINT
-            "  int err_code = svr->inference(request, response, log_id);\n"
-            "  if (err_code != 0) {\n"
-            "    LOG(WARNING)\n"
-            "        << \"(logid=\" << log_id << \") Failed call "
-            "inferservice[$name$], name[$service$]\"\n"
-            "        << \", error_code: \" << err_code;\n"
-            "    cntl->SetFailed(err_code, \"InferService inference "
-            "failed!\");\n"
-            "  }\n"
-            "  gettimeofday(&tv, NULL);\n"
-            "  long end = tv.tv_sec * 1000000 + tv.tv_usec;\n"
-            "  // flush notice log\n"
-            "  LOG(INFO) << \"(logid=\" << log_id << \") tc=\[\" << (end - "  // NOLINT
-            "start) << \"\]\";\n",  // NOLINT
+            inference_body.c_str(),
             "name",
             class_name,
             "service",
@@ -1492,11 +1604,6 @@ class PdsCodeGenerator : public CodeGenerator {
       const FieldDescriptor* fd = in_shared_fields[si];
       std::string field_name = fd->name();
       printer->Print("\n/////$field_name$\n", "field_name", field_name);
-      if (fd->is_optional()) {
-        printer->Print(
-            "if (req->has_$field_name$()) {\n", "field_name", field_name);
-        printer->Indent();
-      }
       if (fd->cpp_type() ==
               google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE ||
           fd->is_repeated()) {
@@ -1508,10 +1615,6 @@ class PdsCodeGenerator : public CodeGenerator {
         printer->Print("sub_req->set_$field_name$(req->$field_name$());\n",
                        "field_name",
                        field_name);
-      }
-      if (fd->is_optional()) {
-        printer->Outdent();
-        printer->Print("}\n");
       }
     }
 

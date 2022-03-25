@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <dirent.h>
 #include <pthread.h>
 #include <fstream>
 #include <map>
@@ -40,6 +41,9 @@ using paddle_infer::CreatePredictor;
 DECLARE_int32(gpuid);
 DECLARE_string(precision);
 DECLARE_bool(use_calib);
+DECLARE_string(nnadapter_device_names);
+DECLARE_string(nnadapter_context_properties);
+DECLARE_string(nnadapter_model_cache_dir);
 
 static const int max_batch = 32;
 static const int min_subgraph_size = 3;
@@ -69,7 +73,36 @@ PrecisionType GetPrecision(const std::string& precision_data) {
   return PrecisionType::kFloat32;
 }
 
-// Engine Base
+const std::string getFileBySuffix(
+    const std::string& path, const std::vector<std::string>& suffixVector) {
+  DIR* dp = nullptr;
+  std::string fileName = "";
+  struct dirent* dirp = nullptr;
+  if ((dp = opendir(path.c_str())) == nullptr) {
+    return fileName;
+  }
+  while ((dirp = readdir(dp)) != nullptr) {
+    if (dirp->d_type == DT_REG) {
+      for (int idx = 0; idx < suffixVector.size(); ++idx) {
+        std::string fileName_in_Dir = static_cast<std::string>(dirp->d_name);
+        if (fileName_in_Dir.length() >= suffixVector[idx].length() &&
+            fileName_in_Dir.substr(
+                fileName_in_Dir.length() - suffixVector[idx].length(),
+                suffixVector[idx].length()) == suffixVector[idx]) {
+          fileName = fileName_in_Dir;
+          break;
+        }
+      }
+    }
+    if (fileName.length() != 0) break;
+  }
+  closedir(dp);
+  return fileName;
+}
+
+// Engine Core is the base class of inference engines, which can be derived from
+// paddle Inference Engine, or inference engines of other machine learning
+// platforms
 class EngineCore {
  public:
   virtual ~EngineCore() {}
@@ -116,6 +149,11 @@ class EngineCore {
   virtual void* get() { return _predictor.get(); }
 
  protected:
+  // _predictor is a prediction instance of Paddle Inference.
+  // when inferring on the CPU, _predictor is bound to a model.
+  // when inferring on the GPU, _predictor is bound to a model and a GPU card.
+  // Therefore, when using GPU multi-card inference, you need to create multiple
+  // EngineCore.
   std::shared_ptr<Predictor> _predictor;
 };
 
@@ -131,9 +169,23 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     Config config;
-    // todo, auto config(zhangjun)
-    if (engine_conf.has_encrypted_model() && engine_conf.encrypted_model()) {
+    std::vector<std::string> suffixParaVector = {
+        ".pdiparams", "__params__", "params"};
+    std::vector<std::string> suffixModelVector = {
+        ".pdmodel", "__model__", "model"};
+    std::string paraFileName = getFileBySuffix(model_path, suffixParaVector);
+    std::string modelFileName = getFileBySuffix(model_path, suffixModelVector);
+
+    std::string encryParaPath = model_path + "/encrypt_model";
+    std::string encryModelPath = model_path + "/encrypt_params";
+    std::string encryKeyPath = model_path + "/key";
+
+    // encrypt model
+    if (access(encryParaPath.c_str(), F_OK) != -1 &&
+        access(encryModelPath.c_str(), F_OK) != -1 &&
+        access(encryKeyPath.c_str(), F_OK) != -1) {
       // decrypt model
+
       std::string model_buffer, params_buffer, key_buffer;
       predictor::ReadBinaryFile(model_path + "/encrypt_model", &model_buffer);
       predictor::ReadBinaryFile(model_path + "/encrypt_params", &params_buffer);
@@ -147,16 +199,11 @@ class PaddleInferenceEngine : public EngineCore {
                             real_model_buffer.size(),
                             &real_params_buffer[0],
                             real_params_buffer.size());
-    } else if (engine_conf.has_combined_model()) {
-      if (!engine_conf.combined_model()) {
-        config.SetModel(model_path);
-      } else {
-        config.SetParamsFile(model_path + "/__params__");
-        config.SetProgFile(model_path + "/__model__");
-      }
+    } else if (paraFileName.length() != 0 && modelFileName.length() != 0) {
+      config.SetParamsFile(model_path + "/" + paraFileName);
+      config.SetProgFile(model_path + "/" + modelFileName);
     } else {
-      config.SetParamsFile(model_path + "/__params__");
-      config.SetProgFile(model_path + "/__model__");
+      config.SetModel(model_path);
     }
 
     config.SwitchSpecifyInputNames(true);
@@ -198,6 +245,7 @@ class PaddleInferenceEngine : public EngineCore {
 
     if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
       config.EnableLiteEngine(precision_type, true);
+      config.SwitchIrOptim(true);
     }
 
     if ((!engine_conf.has_use_lite() && !engine_conf.has_use_gpu()) ||
@@ -227,6 +275,31 @@ class PaddleInferenceEngine : public EngineCore {
     if (engine_conf.has_use_xpu() && engine_conf.use_xpu()) {
       // 2 MB l3 cache
       config.EnableXpu(2 * 1024 * 1024);
+      config.SetXpuDeviceId(gpu_id);
+    }
+
+    if (engine_conf.has_use_ascend_cl() && engine_conf.use_ascend_cl()) {
+      if (engine_conf.has_use_lite() && engine_conf.use_lite()) {
+        // for ascend 310
+        FLAGS_nnadapter_device_names = "huawei_ascend_npu";
+        FLAGS_nnadapter_context_properties =
+            "HUAWEI_ASCEND_NPU_SELECTED_DEVICE_IDS=" + std::to_string(gpu_id);
+        FLAGS_nnadapter_model_cache_dir = "";
+        config.NNAdapter()
+            .Enable()
+            .SetDeviceNames({FLAGS_nnadapter_device_names})
+            .SetContextProperties(FLAGS_nnadapter_context_properties)
+            .SetModelCacheDir(FLAGS_nnadapter_model_cache_dir);
+        LOG(INFO) << "Enable Lite NNAdapter for Ascend,"
+                  << "nnadapter_device_names=" << FLAGS_nnadapter_device_names
+                  << ",nnadapter_context_properties="
+                  << FLAGS_nnadapter_context_properties
+                  << ",nnadapter_model_cache_dir="
+                  << FLAGS_nnadapter_model_cache_dir;
+      } else {
+        // for ascend 910
+        config.EnableNpu(gpu_id);
+      }
     }
 
     if (engine_conf.has_enable_memory_optimization() &&

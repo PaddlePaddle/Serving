@@ -31,15 +31,21 @@ sys.path.append(
 #param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
 #param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
 #param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
-#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
+#param 'type'(which is in feed_var or fetch_var) = 5 means dataType is float16
+#param 'type'(which is in feed_var or fetch_var) = 7 means dataType is uint8
+#param 'type'(which is in feed_var or fetch_var) = 8 means dataType is int8
+#param 'type'(which is in feed_var or fetch_var) = 20 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
-bytes_type = 3
+float16_type = 5
+uint8_type = 7
+int8_type = 8
+bytes_type = 20
 #int_type,float_type,string_type are the set of each subdivision classes.
 int_type = set([int64_type, int32_type])
 float_type = set([float32_type])
-string_type = set([bytes_type])
+string_type = set([bytes_type, float16_type, uint8_type, int8_type])
 
 
 class _NOPProfiler(object):
@@ -289,31 +295,39 @@ class Client(object):
                 log_id=0):
         self.profile_.record('py_prepro_0')
 
-        if feed is None or fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction")
+        # fetch 可以为空，此时会取所有的输出结果
+        if feed is None:
+            raise ValueError("You should specify feed for prediction")
 
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, list):
             fetch_list = fetch
+        # fetch 可以为空，此时会取所有的输出结果
+        elif fetch == None:
+            pass
         else:
-            raise ValueError("Fetch only accepts string and list of string")
+            raise ValueError("Fetch only accepts string or list of string")
 
         feed_batch = []
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, list):
-            # if input is a list and the number of feed_var is 1.
-            # create a temp_dict { key = feed_var_name, value = list}
-            # put the temp_dict into the feed_batch.
-            if len(self.feed_names_) != 1:
-                raise ValueError(
-                    "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
-                )
-            temp_dict = {}
-            temp_dict[self.feed_names_[0]] = feed
-            feed_batch.append(temp_dict)
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_batch = feed
+            else:
+                # if input is a list and the number of feed_var is 1.
+                # create a temp_dict { key = feed_var_name, value = list}
+                # put the temp_dict into the feed_batch.
+                if len(self.feed_names_) != 1:
+                    raise ValueError(
+                        "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
+                    )
+                temp_dict = {}
+                temp_dict[self.feed_names_[0]] = feed
+                feed_batch.append(temp_dict)
         else:
             raise ValueError("Feed only accepts dict and list of dict")
 
@@ -321,10 +335,15 @@ class Client(object):
         if len(feed_batch) != 1:
             raise ValueError("len of feed_batch can only be 1.")
 
-        int_slot = []
-        int_feed_names = []
-        int_shape = []
-        int_lod_slot_batch = []
+        int32_slot = []
+        int32_feed_names = []
+        int32_shape = []
+        int32_lod_slot_batch = []
+
+        int64_slot = []
+        int64_feed_names = []
+        int64_shape = []
+        int64_lod_slot_batch = []
 
         float_slot = []
         float_feed_names = []
@@ -337,78 +356,88 @@ class Client(object):
         string_shape = []
         fetch_names = []
 
-        counter = 0
-
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        if len(fetch_names) == 0:
-            raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.")
-
-        feed_i = feed_batch[0]
-        for key in feed_i:
+        feed_dict = feed_batch[0]
+        for key in feed_dict:
             if ".lod" not in key and key not in self.feed_names_:
                 raise ValueError("Wrong feed name: {}.".format(key))
             if ".lod" in key:
                 continue
 
-            self.shape_check(feed_i, key)
+            self.shape_check(feed_dict, key)
             if self.feed_types_[key] in int_type:
-                int_feed_names.append(key)
                 shape_lst = []
                 if batch == False:
-                    feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
                         1, axis=0)
-                if isinstance(feed_i[key], np.ndarray):
-                    shape_lst.extend(list(feed_i[key].shape))
-                    int_shape.append(shape_lst)
+                # verify different input int_type
+                if(self.feed_types_[key] == int64_type):
+                    int64_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int64_shape.append(shape_lst)
+                        self.has_numpy_input = True
+                    else:
+                        int64_shape.append(self.feed_shapes_[key])
+                        self.all_numpy_input = False
+                    if "{}.lod".format(key) in feed_dict:
+                        int64_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int64_lod_slot_batch.append([])
+                    int64_slot.append(np.ascontiguousarray(feed_dict[key]))
                 else:
-                    int_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    int_lod_slot_batch.append(feed_i["{}.lod".format(key)])
-                else:
-                    int_lod_slot_batch.append([])
-
-                if isinstance(feed_i[key], np.ndarray):
-                    int_slot.append(np.ascontiguousarray(feed_i[key]))
-                    self.has_numpy_input = True
-                else:
-                    int_slot.append(np.ascontiguousarray(feed_i[key]))
-                    self.all_numpy_input = False
+                    int32_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int32_shape.append(shape_lst)
+                        self.has_numpy_input = True
+                    else:
+                        int32_shape.append(self.feed_shapes_[key])
+                        self.all_numpy_input = False
+                    if "{}.lod".format(key) in feed_dict:
+                        int32_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int32_lod_slot_batch.append([])
+                    int32_slot.append(np.ascontiguousarray(feed_dict[key]))
 
             elif self.feed_types_[key] in float_type:
                 float_feed_names.append(key)
                 shape_lst = []
                 if batch == False:
-                    feed_i[key] = np.expand_dims(feed_i[key], 0).repeat(
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
                         1, axis=0)
-                if isinstance(feed_i[key], np.ndarray):
-                    shape_lst.extend(list(feed_i[key].shape))
+                if isinstance(feed_dict[key], np.ndarray):
+                    shape_lst.extend(list(feed_dict[key].shape))
                     float_shape.append(shape_lst)
                 else:
                     float_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    float_lod_slot_batch.append(feed_i["{}.lod".format(key)])
+                if "{}.lod".format(key) in feed_dict:
+                    float_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
                 else:
                     float_lod_slot_batch.append([])
 
-                if isinstance(feed_i[key], np.ndarray):
-                    float_slot.append(np.ascontiguousarray(feed_i[key]))
+                if isinstance(feed_dict[key], np.ndarray):
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.has_numpy_input = True
                 else:
-                    float_slot.append(np.ascontiguousarray(feed_i[key]))
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.all_numpy_input = False
             #if input is string, feed is not numpy.
             elif self.feed_types_[key] in string_type:
                 string_feed_names.append(key)
                 string_shape.append(self.feed_shapes_[key])
-                if "{}.lod".format(key) in feed_i:
-                    string_lod_slot_batch.append(feed_i["{}.lod".format(key)])
+                if "{}.lod".format(key) in feed_dict:
+                    string_lod_slot_batch.append(feed_dict["{}.lod".format(
+                        key)])
                 else:
                     string_lod_slot_batch.append([])
-                string_slot.append(feed_i[key])
+                if type(feed_dict[key]) is np.ndarray:
+                    string_slot.append(feed_dict[key].tostring())
+                else:
+                    string_slot.append(feed_dict[key])
                 self.has_numpy_input = True
 
         self.profile_.record('py_prepro_1')
@@ -418,7 +447,8 @@ class Client(object):
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
                 float_slot, float_feed_names, float_shape, float_lod_slot_batch,
-                int_slot, int_feed_names, int_shape, int_lod_slot_batch,
+                int32_slot, int32_feed_names, int32_shape, int32_lod_slot_batch,
+                int64_slot, int64_feed_names, int64_shape, int64_lod_slot_batch,
                 string_slot, string_feed_names, string_shape,
                 string_lod_slot_batch, fetch_names, result_batch_handle,
                 self.pid, log_id)
@@ -440,6 +470,9 @@ class Client(object):
         model_engine_names = result_batch_handle.get_engine_names()
         for mi, engine_name in enumerate(model_engine_names):
             result_map = {}
+            # fetch 为空，则会取所有的输出结果
+            if len(fetch_names) == 0:
+                fetch_names = result_batch_handle.get_tensor_alias_names(mi)
             # result map needs to be a numpy array
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int64_type:
@@ -475,6 +508,54 @@ class Client(object):
                     # result_map[name] will be py::array(numpy array)
                     result_map[name] = result_batch_handle.get_int32_by_name(
                         mi, name)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == uint8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.uint8)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == int8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.int8)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == float16_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.float16)
                     if result_map[name].size == 0:
                         raise ValueError(
                             "Failed to fetch, maybe the type of [{}]"

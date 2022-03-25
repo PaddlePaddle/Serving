@@ -212,7 +212,7 @@ class slim_hash_map {
 
   int copy_data_from(const slim_hash_map& rhs) {
     destroy();
-
+    LOG(INFO) << "start copy data, rhs info, mHashSize: " << rhs.m_nHashSize;
     if (rhs.m_nHashSize > 0) {
       m_hashTable = new (std::nothrow) uint32_t[rhs.m_nHashSize];
       if (!m_hashTable) {
@@ -231,7 +231,7 @@ class slim_hash_map {
                    << sizeof(hash_node_t) * BLOCK_SIZE;
         return -1;
       }
-
+      LOG(INFO) << "copy data, m_nBlockNum: " << m_nBlockNum << " , copy size:" << sizeof(hash_node_t) * BLOCK_SIZE;
       memcpy(m_blockAddr[m_nBlockNum],
              rhs.m_blockAddr[m_nBlockNum],
              sizeof(hash_node_t) * BLOCK_SIZE);
@@ -265,11 +265,13 @@ class slim_hash_map {
     }
     size_type index = key % m_nHashSize;
     hash_node_t* node = get_node(m_hashTable[index]);
-
+    int node_cnt = 0;
     while (node != NULL && node->data.first != key) {
+      LOG(INFO) << "node link get:" << node->data.first;
+      node_cnt++;
       node = get_node(node->next);
     }
-
+    LOG(INFO) << "key: " << key << " , found count: " << node_cnt;  
     if (node == NULL) {
       return end();
     }
@@ -390,7 +392,6 @@ class slim_hash_map {
     if (node != NULL) {
       return node->data.second;
     }
-
     return add_node(index, key)->data.second;
   }
   void clear() {
@@ -399,16 +400,16 @@ class slim_hash_map {
     m_nFreeEntries = 0;
     m_nSize = 0;
   }
-  bool load(const char* file) {
+  bool load(const char* file, uint32_t block_id) {
     // clear();
+    // bias = 0 means base mode, bias = K means patch mode, and base dict has size K
     int size = sizeof(key_t) + sizeof(value_t);
     FILE* fp = fopen(file, "rb");
     char* buf = reinterpret_cast<char*>(malloc(size * 100000));
-
+    LOG(INFO) << "current block id: " << block_id;
     if (fp == NULL || buf == NULL) {
       return false;
     }
-
     size_t read_count;
     bool err = false;
     key_t key;
@@ -423,6 +424,8 @@ class slim_hash_map {
       for (int i = 0; i < static_cast<int>(read_count); ++i) {
         key = *(reinterpret_cast<key_t*>(buf + i * size));
         value = *(reinterpret_cast<value_t*>(buf + i * size + sizeof(key_t)));
+        value = ((uint64_t)block_id << 32) | value;
+        LOG(INFO) << "slim map key: " << key << " , value: " << value; 
         (*this)[key] = value;
       }
     }
@@ -557,7 +560,6 @@ class slim_hash_map {
   }
   hash_node_t* add_node(uint32_t index, const key_type& key) {
     ++m_nSize;
-
     if (m_nFreeEntries) {
       uint32_t addr = m_nFreeEntries;
       hash_node_t* node = get_node(addr);
@@ -569,7 +571,7 @@ class slim_hash_map {
     }
 
     uint32_t block = ((m_nNextEntry & 0xFF800000) >> 23);
-
+    //LOG(INFO) << "key: " << key << " here. index: " << index << " , m_nNextEntry: "<< m_nNextEntry << " , block:" << block<< ", m_nBlockNum:" << m_nBlockNum;
     if (block >= m_nBlockNum) {
       try {
         m_blockAddr[m_nBlockNum++] = new hash_node_t[BLOCK_SIZE];
@@ -581,7 +583,6 @@ class slim_hash_map {
         return NULL;
       }
     }
-
     uint32_t addr = m_nNextEntry;
     ++m_nNextEntry;
     hash_node_t* node = get_node(addr);

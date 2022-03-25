@@ -1,0 +1,160 @@
+# A image for building paddle binaries
+# Use cuda devel base image for both cpu and gpu environment
+# When you modify it, please be aware of cudnn-runtime version
+FROM nvidia/cuda:11.2.0-cudnn8-devel-ubuntu16.04
+MAINTAINER PaddlePaddle Authors <paddle-dev@baidu.com>
+
+# ENV variables
+ARG WITH_GPU
+ARG WITH_AVX
+
+ENV WITH_GPU=${WITH_GPU:-ON}
+ENV WITH_AVX=${WITH_AVX:-ON}
+
+ENV HOME /root
+# Add bash enhancements
+COPY tools/dockerfiles/root/ /root/
+
+# Set ubuntu sources
+RUN sed -i s:/archive.ubuntu.com:/mirrors.tuna.tsinghua.edu.cn/ubuntu:g /etc/apt/sources.list && \
+    cat /etc/apt/sources.list && \
+    apt-get clean -y && \
+    apt-get -y update --fix-missing
+
+# Prepare packages for Python
+RUN apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev
+
+RUN apt-get install -y --allow-downgrades --allow-change-held-packages \
+    patchelf git python-pip python-dev python-opencv openssh-server bison \
+    wget unzip unrar tar xz-utils bzip2 gzip coreutils ntp \
+    curl sed grep graphviz libjpeg-dev zlib1g-dev  \
+    python-matplotlib unzip \
+    automake locales clang-format swig  \
+    liblapack-dev liblapacke-dev libcurl4-openssl-dev \
+    net-tools libtool module-init-tools vim && \
+    apt-get install libprotobuf-dev -y && \
+    apt-get clean -y
+
+RUN ln -s /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/libssl.so.10 && \
+    ln -s /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/libcrypto.so.10
+
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/shellcheck-v0.7.1.linux.x86_64.tar.xz && \
+    tar -xf shellcheck-v0.7.1.linux.x86_64.tar.xz && cp  shellcheck-v0.7.1/shellcheck /usr/bin/shellcheck && \
+    rm -rf shellcheck-v0.7.1.linux.x86_64.tar.xz shellcheck-v0.7.1
+
+# Downgrade gcc&&g++
+WORKDIR /usr/bin 
+      COPY tools/dockerfiles/build_scripts /build_scripts 
+      RUN bash /build_scripts/install_gcc.sh gcc82 && rm -rf /build_scripts 
+      RUN cp gcc gcc.bak && cp g++ g++.bak && rm gcc && rm g++ 
+      RUN ln -s /usr/local/gcc-8.2/bin/gcc /usr/local/bin/gcc 
+      RUN ln -s /usr/local/gcc-8.2/bin/g++ /usr/local/bin/g++ 
+      RUN ln -s /usr/local/gcc-8.2/bin/gcc /usr/bin/gcc 
+      RUN ln -s /usr/local/gcc-8.2/bin/g++ /usr/bin/g++ 
+      ENV PATH=/usr/local/gcc-8.2/bin:$PATH 
+
+# install cmake
+WORKDIR /home
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/cmake-3.16.0-Linux-x86_64.tar.gz && tar -zxvf cmake-3.16.0-Linux-x86_64.tar.gz && rm cmake-3.16.0-Linux-x86_64.tar.gz
+ENV PATH=/home/cmake-3.16.0-Linux-x86_64/bin:$PATH
+
+# Install Python build
+RUN mkdir -p /root/python_build/ && wget -q https://www.sqlite.org/2018/sqlite-autoconf-3250300.tar.gz && \
+    tar -zxf sqlite-autoconf-3250300.tar.gz && cd sqlite-autoconf-3250300 && \
+    ./configure -prefix=/usr/local && make -j8 && make install && cd ../ && rm sqlite-autoconf-3250300.tar.gz
+
+# Install Python3.6
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/Python-3.6.0.tgz && \
+    tar -xzf Python-3.6.0.tgz && cd Python-3.6.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.6.0*
+
+# Install Python3.7
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/Python-3.7.0.tgz && \
+    tar -xzf Python-3.7.0.tgz && cd Python-3.7.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.7.0*
+
+# Install Python3.8
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/Python-3.8.0.tgz && \
+    tar -xzf Python-3.8.0.tgz && cd Python-3.8.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.8.0*
+
+# Install Python3.9
+RUN wget -q --no-check-certificate https://paddle-serving.bj.bcebos.com/python/Python-3.9.0.tgz && \
+    tar -xzf Python-3.9.0.tgz && cd Python-3.9.0 && \
+    CFLAGS="-Wformat" ./configure --prefix=/usr/local/ --enable-shared > /dev/null && \
+    make -j8 > /dev/null && make altinstall > /dev/null && ldconfig && cd .. && rm -rf Python-3.9.0*
+
+ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
+RUN ln -sf /usr/local/bin/python3.6 /usr/local/bin/python3 && ln -sf /usr/local/bin/python3.6 /usr/bin/python3 && ln -sf /usr/local/bin/pip3.6 /usr/local/bin/pip3 && ln -sf /usr/local/bin/pip3.6 /usr/bin/pip3
+
+RUN rm -r /root/python_build
+
+# Install Go and glide
+RUN wget -qO- https://paddle-ci.cdn.bcebos.com/go1.17.2.linux-amd64.tar.gz | \
+    tar -xz -C /usr/local && \
+    mkdir /root/go && \
+    mkdir /root/go/bin && \
+    mkdir /root/go/src && \
+    echo "GOROOT=/usr/local/go" >> /root/.bashrc && \
+    echo "GOPATH=/root/go" >> /root/.bashrc && \
+    echo "PATH=/usr/local/go/bin:/root/go/bin:$PATH" >> /root/.bashrc
+ENV GOROOT=/usr/local/go GOPATH=/root/go
+# should not be in the same line with GOROOT definition, otherwise docker build could not find GOROOT.
+ENV PATH=usr/local/go/bin:/root/go/bin:${PATH}
+
+# Install TensorRT
+# following TensorRT.tar.gz is not the default official one, we do two miny changes:
+# 1. Remove the unnecessary files to make the library small. TensorRT.tar.gz only contains include and lib now,
+#    and its size is only one-third of the official one.
+# 2. Manually add ~IPluginFactory() in IPluginFactory class of NvInfer.h, otherwise, it couldn't work in paddle.
+#    See https://github.com/PaddlePaddle/Paddle/issues/10129 for details.
+
+# Downgrade TensorRT 
+COPY tools/dockerfiles/build_scripts /build_scripts
+RUN bash /build_scripts/install_trt.sh cuda11.2 
+RUN rm -rf /build_scripts
+
+# git credential to skip password typing
+RUN git config --global credential.helper store
+
+# Fix locales to en_US.UTF-8
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
+
+# Older versions of patchelf limited the size of the files being processed and were fixed in this pr.
+# https://github.com/NixOS/patchelf/commit/ba2695a8110abbc8cc6baf0eea819922ee5007fa
+# So install a newer version here.
+RUN wget -q https://paddle-ci.cdn.bcebos.com/patchelf_0.10-2_amd64.deb && \
+    dpkg -i patchelf_0.10-2_amd64.deb
+
+# Configure OpenSSH server. c.f. https://docs.docker.com/engine/examples/running_ssh_service
+RUN mkdir /var/run/sshd && echo 'root:root' | chpasswd && sed -ri 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+CMD source ~/.bashrc
+
+# ccache 3.7.9
+RUN wget https://paddle-ci.gz.bcebos.com/ccache-3.7.9.tar.gz && \
+    tar xf ccache-3.7.9.tar.gz && mkdir /usr/local/ccache-3.7.9 && cd ccache-3.7.9 && \
+    ./configure -prefix=/usr/local/ccache-3.7.9 && \
+    make -j8 && make install && \
+    ln -s /usr/local/ccache-3.7.9/bin/ccache /usr/local/bin/ccache
+
+# Update pip version 
+RUN python3.9 -m pip install --upgrade pip==22.0.3 -i https://pypi.douban.com/simple && \
+    python3.8 -m pip install --upgrade pip -i https://pypi.douban.com/simple && \
+    python3.7 -m pip install --upgrade pip -i https://pypi.douban.com/simple && \
+    python3.6 -m pip install --upgrade pip -i https://pypi.douban.com/simple
+
+# Wget ssl libs and link thems
+RUN wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
+    tar xf centos_ssl.tar && rm -rf centos_ssl.tar && \
+    mv libcrypto.so.1.0.2k /usr/lib/libcrypto.so.1.0.2k && mv libssl.so.1.0.2k /usr/lib/libssl.so.1.0.2k && \
+    ln -sf /usr/lib/libcrypto.so.1.0.2k /usr/lib/libcrypto.so.10 && \
+    ln -sf /usr/lib/libssl.so.1.0.2k /usr/lib/libssl.so.10 && \
+    ln -sf /usr/lib/libcrypto.so.10 /usr/lib/libcrypto.so && \
+    ln -sf /usr/lib/libssl.so.10 /usr/lib/libssl.so
+
+EXPOSE 22

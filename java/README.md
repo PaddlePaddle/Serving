@@ -73,9 +73,9 @@ java -cp paddle-serving-sdk-java-examples-0.0.1-jar-with-dependencies.jar Pipeli
 
 1.In the example, all models(not pipeline) need to use `--use_multilang` to start GRPC multi-programming language support, and the port number is 9393. If you need another port, you need to modify it in the java file
 
-2.Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/PIPELINE_SERVING.md) for details). Pipeline Serving Client for Java is released.
+2.Currently Serving has launched the Pipeline mode (see [Pipeline Serving](../doc/Python_Pipeline/Pipeline_Design_EN.md) for details). Pipeline Serving Client for Java is released.
 
-3.The parameters`ip` and`port` in PipelineClientExample.java(path:java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），needs to be connected with the corresponding pipeline server parameters`ip` and`port` which is defined in the config.yaml(Taking IMDB model ensemble as an example，path:python/examples/pipeline/imdb_model_ensemble/[config.yaml](../python/examples/pipeline/imdb_model_ensemble/config.yml)）
+3.The parameters`ip` and`port` in PipelineClientExample.java(path:java/examples/src/main/java/[PipelineClientExample.java](./examples/src/main/java/PipelineClientExample.java)），needs to be connected with the corresponding pipeline server parameters`ip` and`port` which is defined in the config.yaml(Taking IMDB model ensemble as an example，path:python/examples/pipeline/imdb_model_ensemble/[config.yaml](../examples/Pipeline/imdb_model_ensemble/config.yml)）
 
 ### Customization guidance
 
