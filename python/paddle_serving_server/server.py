@@ -473,7 +473,7 @@ class Server(object):
         folder_name = "serving-%s-%s" % (self.get_serving_bin_name(),
                                          version_tag)
         tar_name = "%s.tar.gz" % folder_name
-        bin_url = "https://paddle-serving.bj.bcebos.com/bin/%s" % tar_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/test-dev/bin/%s" % tar_name
 
         self.server_path = os.path.join(self.module_path, folder_name)
 
