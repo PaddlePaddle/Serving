@@ -30,6 +30,25 @@ Paddle Serving 的 Kubernetes 集群部署方案设计如下图所示，用户�
 kubectl apply -f https://bit.ly/kong-ingress-dbless
 ```
 
+**二. 安装 Kubernetes **
+kubernetes 集群环境安装和启动步骤如下，并使用 kubectl 命令与通过它与 Kubernetes 进行交互和管理。
+```
+// close OS firewall
+systemctl disable firewarlld
+systemctl stop firewarlld
+ 
+// install etcd & kubernetes
+yum install -y etcd kubernetes
+ 
+// start etcd & kubernetes
+systemctl start etcd
+systemctl start docker
+systemctl start kube-apiserver
+systemctl start kube-controller-manager
+systemctl start kube-scheduler
+systemctl start kubelet
+systemctl start kube-proxy
+```
 
 **二. 制作镜像**
 
@@ -67,7 +86,17 @@ docker commit pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:k
 docker push registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
 ```
 
-最终，你完成了业务镜像制作环节。
+最终，你完成了业务镜像制作环节。通过拉取制作的镜像，创建Docker示例后，在`/home`路径下验证模型目录，通过以下命令验证 Wheel 包安装。
+```
+pip3.7 list | grep paddle
+```
+输出显示已安装3个 Serving Wheel 包和1个 Paddle Wheel 包。
+```
+paddle-serving-app        0.8.3
+paddle-serving-client     0.8.3
+paddle-serving-server-gpu 0.8.3.post101
+paddlepaddle-gpu          2.2.2.post101
+```
 
 **三. 集群部署**
 
@@ -88,11 +117,27 @@ check k8s_serving.yaml and k8s_ingress.yaml please.
 运行命令后，生成2个 yaml 文件，分别是 k8s_serving.yaml 和 k8s_ingress.yaml。执行以下命令启动 Kubernetes 集群 和 Ingress 网关。
 
 ```
-kubectl apply -f k8s_serving.yaml
-kubectl apply -f k8s_ingress.yaml
+kubectl create -f k8s_serving.yaml
+kubectl create -f k8s_ingress.yaml
 ```
 
-最终通过输入以下命令检验集群部署状态：
+Kubernetes 下常用命令
+| 命令 | 说明 |
+| --- | --- |
+| kubectl create -f xxx.yaml | 使用 xxx.yml 创建资源对象 |
+| kubectl apply -f xxx.yaml |	使用 xxx.yml 更新资源对象 |	
+| kubectl delete po mysql| 删除名为 mysql 的 pods |
+| kubectl get all --all-namespace | 查询所有资源信息 |	
+| kubectl get po | 查询所有 pods |
+| kubectl get namespace |	查询所有命名空间 |
+| kubectl get rc | 查询所有|
+| kubectl get services | 查询所有 services |
+| kubectl get node | 查询所有 node 节点 |
+| kubectl get deploy | 查询集群部署状态 |
+
+按下面4个步骤查询集群状态并进入 Pod 容器:
+
+1. 最终通过输入以下命令检验集群部署状态：
 ```
 kubectl get deploy
 
@@ -104,7 +149,7 @@ NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 ocr    1/1     1            1           10m
 ```
 
-查询全部 Pod 信息 运行命令：
+2. 查询全部 Pod 信息 运行命令：
 ```
 kubectl get pods
 ```
@@ -114,12 +159,13 @@ NAME                       READY   STATUS    RESTARTS   AGE
 ocr-c5bd77d49-mfh72        1/1     Running   0          10m
 uci-5bc7d545f5-zfn65       1/1     Running   0          52d
 ```
-进入 Pod container 运行命令：
+
+3. 进入 Pod container 运行命令：
 ```
 kubectl exec -ti ocr-c5bd77d49-mfh72 -n bash 
 ```
 
-查询集群服务状态：
+4. 查询集群服务状态：
 ```
 kubectl get service --all-namespaces
 ```
