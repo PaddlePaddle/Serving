@@ -156,6 +156,8 @@ message Request {
 
 **二.构建 Request**
 
+1. Protobuf 形式
+
 当使用 BRPC 或 GRPC 进行请求时，使用 protobuf 形式数据，构建方式如下：
 
 ```C
@@ -168,10 +170,11 @@ for (auto &name : fetch_name) {
 Tensor *tensor = req.add_tensor();
 ...
 ```
+2. Json 形式
 
-当使用 RESTful 请求时，可以使用 JSON 形式数据，具体格式如下：
+当使用 RESTful 请求时，可以使用 Json 形式数据，具体格式如下：
 
-```JSON
+```Json
 {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"name":"x","alias_name":"x","shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}
 ```
 
