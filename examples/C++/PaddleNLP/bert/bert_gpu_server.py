@@ -19,9 +19,9 @@ from paddle_serving_server import OpSeqMaker
 from paddle_serving_server import Server
 
 op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
-general_infer_op = op_maker.create('general_infer')
-general_response_op = op_maker.create('general_response')
+read_op = op_maker.create('GeneralReaderOp')
+general_infer_op = op_maker.create('GeneralInferOp')
+general_response_op = op_maker.create('GeneralResponseOp')
 
 op_seq_maker = OpSeqMaker()
 op_seq_maker.add_op(read_op)

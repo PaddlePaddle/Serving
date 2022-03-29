@@ -45,13 +45,13 @@ from paddle_serving_server import OpGraphMaker
 from paddle_serving_server import Server
 
 op_maker = OpMaker()
-read_op = op_maker.create('general_reader')
+read_op = op_maker.create('GeneralReaderOp')
 cnn_infer_op = op_maker.create(
-    'general_infer', engine_name='cnn', inputs=[read_op])
+    'GeneralInferOp', engine_name='cnn', inputs=[read_op])
 bow_infer_op = op_maker.create(
-    'general_infer', engine_name='bow', inputs=[read_op])
+    'GeneralInferOp', engine_name='bow', inputs=[read_op])
 response_op = op_maker.create(
-    'general_response', inputs=[cnn_infer_op, bow_infer_op])
+    'GeneralResponseOp', inputs=[cnn_infer_op, bow_infer_op])
 
 op_graph_maker = OpGraphMaker()
 op_graph_maker.add_op(read_op)
