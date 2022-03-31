@@ -138,18 +138,21 @@ DEFINE_OP(GeneralInferOp);
 
 
 ``` python
-self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_response": "GeneralResponseOp",
-            "general_text_reader": "GeneralTextReaderOp",
-            "general_text_response": "GeneralTextResponseOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp"
-        }
+self.op_list = [
+            "GeneralInferOp",
+            "GeneralReaderOp",
+            "GeneralResponseOp",
+            "GeneralTextReaderOp",
+            "GeneralTextResponseOp",
+            "GeneralSingleKVOp",
+            "GeneralDistKVInferOp",
+            "GeneralDistKVOp",
+            "GeneralCopyOp",
+            "GeneralDetectionOp",
+        ]
 ```
 
-在`python/paddle_serving_server/server.py`文件中仅添加`需要加载模型，执行推理预测的自定义的C++OP类的类名`。例如`general_reader`由于只是做一些简单的数据处理而不加载模型调用预测，故在👆的代码中需要添加，而不添加在👇的代码中。
+在`python/paddle_serving_server/server.py`文件中仅添加`需要加载模型，执行推理预测的自定义的C++OP类的类名`。例如`GeneralReaderOp`由于只是做一些简单的数据处理而不加载模型调用预测，故在👆的代码中需要添加，而不添加在👇的代码中。
 ``` python
 default_engine_types = [
                 'GeneralInferOp',
