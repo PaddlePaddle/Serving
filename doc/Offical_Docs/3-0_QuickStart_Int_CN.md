@@ -1,4 +1,4 @@
-# 部署案例概述
+# 快速开始案例部署
 
 您可以通过以下 Paddle Serving 快速开始案例，分别了解到 C++ Serving 与 Python Pipeline 2种框架的部署方法。
 - [使用 C++ Serving 部署 Resnet50 模型案例]()

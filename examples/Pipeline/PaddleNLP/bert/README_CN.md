@@ -1,6 +1,6 @@
-# Imagenet Pipeline WebService
+# Bert Pipeline WebService
 
-这里以 Imagenet 服务为例来介绍 Pipeline WebService 的使用。
+这里以 Bert 服务为例来介绍 Pipeline WebService 的使用。
 
 ## 获取模型
 ```

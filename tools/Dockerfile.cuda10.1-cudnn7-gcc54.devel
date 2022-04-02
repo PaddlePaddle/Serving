@@ -84,7 +84,7 @@ RUN ln -sf /usr/local/bin/python3.6 /usr/local/bin/python3 && ln -sf /usr/local/
 RUN rm -r /root/python_build
 
 # Install Go and glide
-RUN wget -qO- https://dl.google.com/go/go1.14.linux-amd64.tar.gz | \
+RUN wget -qO- https://paddle-ci.cdn.bcebos.com/go1.17.2.linux-amd64.tar.gz | \
     tar -xz -C /usr/local && \
     mkdir /root/go && \
     mkdir /root/go/bin && \
