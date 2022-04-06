@@ -39,22 +39,12 @@ fetch_var {
 - name：名称
 - alias_name：别名，与名称对应
 - is_lod_tensor：是否为 lod，具体可参考《[Lod字段说明](./LOD_CN.md)》
-- feed_type：数据类型
-
-|feed_type|类型|
-|---------|----|
-|0|INT64|
-|1|FLOAT32|
-|2|INT32|
-|3|FP64|
-|4|INT16|
-|5|FP16|
-|6|BF16|
-|7|UINT8|
-|8|INT8|
-|20|STRING|
-
+- feed_type：数据类型，详见表格
 - shape：数据维度
+
+| feet_type | 0    | 1       | 2    | 3   | 4    | 5   | 6   | 7   | 8    | 20 |
+|-----------|-------|---------|-------|-------|------|------|-------|-------|-----|--------|
+| 类型       | INT64 | FLOAT32 | INT32 | FP64 | INT16 | FP16 | BF16 | UINT8 | INT8 | STRING |
 
 ## C++ Serving
 
@@ -82,47 +72,28 @@ workdir_9393
 更多启动参数详见下表：
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
-| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
-| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                           |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
-| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
-| `use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
-| `request_cache_size`                           | int  | `0`     | Bytes size of request cache. By default, the cache is disabled |
+| `thread`                                       | int  | `2`     | BRPC 服务的线程数                         |
+| `runtime_thread_num`                           | int[]| `0`     | 异步模式下每个模型的线程数     |
+| `batch_infer_size`                             | int[]| `32`    | 异步模式下每个模型的 Batch 数      |
+| `gpu_ids`                                      | str[]| `"-1"`  | 设置每个模型的 GPU id，例如当使用多卡部署时，可设置 "0,1,2"                            |
+| `port`                                         | int  | `9292`  | 服务的端口号              |
+| `model`                                        | str[]| `""`    | 模型文件路径，例如包含两个模型时，可设置 "serving_model_1 serving_model_2"           |
+| `mem_optim_off`                                | -    | -       | 是否关闭内存优化选项          |
+| `ir_optim`                                     | bool | False   | 是否开启图优化 |
+| `use_mkl` (Only for cpu version)               | -    | -       | 开启 MKL 选项，需要与 ir_optim 配合使用                                |
+| `use_trt` (Only for trt version)               | -    | -       | 开启 TensorRT，需要与 ir_optim 配合使用                           |
+| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | 开启 PaddleLite，需要与 ir_optim 配合使用                              |
+| `use_xpu`                                      | -    | -       | 开启百度昆仑 XPU 配置，需要与 ir_optim 配合使用        |
+| `precision`                                    | str  | FP32    | 精度配置，支持 FP32, FP16, INT8              |
+| `use_calib`                                    | bool | False   | 是否开启 TRT int8 校准模式                              |
+| `gpu_multi_stream`                             | bool | False   | 是否开启 GPU 多流模式                |
+| `use_ascend_cl`                                | bool | False   | 开启昇腾配置，单独开启时适配 910，与 use_lite 共同开启时适配 310 |
+| `request_cache_size`                           | int  | `0`     | 请求缓存的容量大小。默认为 0 时，缓存关闭 |
 
-1. 当您的某个模型想使用多张 GPU 卡部署时.
-
-```BASH
-python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 9292 --gpu_ids 0,1,2
-```
-
-2. 当您的一个服务包含两个模型部署时.
-
-```BASH
-python3 -m paddle_serving_server.serve --model serving_model_1 serving_model_2 --thread 10 --port 9292
-```
-
-3. 当您想要关闭 Serving 服务时（在 Serving 启动目录或环境变量 SERVING_HOME 路径下，执行以下命令）.
-
-```BASH
-python3 -m paddle_serving_server.serve stop
-```
-
-stop 参数发送 SIGINT 至 C++ Serving，若改成 kill 则发送 SIGKILL 信号至 C++ Serving
 
 **二. 自定义配置启动**
 
-一般情况下，自动生成的配置可以应对大部分场景。对于特殊场景，用户也可自行定义配置文件。这些配置文件包括 service.prototxt、workflow.prototxt、resource.prototxt、model_toolkit.prototxt、proj.conf。启动命令如下:
+一般情况下，自动生成的配置可以应对大部分场景。对于特殊场景，用户也可自行定义配置文件。这些配置文件包括 service.prototxt（配置服务列表）、workflow.prototxt（配置 OP 流程 workflow）、resource.prototxt（指定模型配置文件）、model_toolkit.prototxt（配置模型信息和预测引擎）、proj.conf（配置服务参数）。启动命令如下:
 
 ```BASH
 /bin/serving --flagfile=proj.conf
@@ -184,7 +155,7 @@ services {
 
 3. workflow.prototxt
 
-workflow.prototxt 用来描述具体的 workflow。通过 `--workflow_path` 和 `--workflow_file` 指定加载路径。protobuf 格式可参考 `configure/server_configure.protobuf` 的 `Workflow` 类型。
+workflow.prototxt 用来描述具体的 workflow。通过 `--workflow_path` 和 `--workflow_file` 指定加载路径。protobuf 格式可参考 `configure/server_configure.protobuf` 的 `Workflow` 类型。自定义 OP 请参考 [自定义OP]()
 如下示例，workflow 由3个 OP 构成，GeneralReaderOp 用于读取数据，GeneralInferOp 依赖于 GeneralReaderOp 并进行预测，GeneralResponseOp 将预测结果返回：
 
 ```
@@ -275,25 +246,9 @@ engines {
 - name: 引擎名称，与 workflow.prototxt 中的 node.name 以及所在目录名称对应
 - type: 预测引擎的类型。当前只支持 ”PADDLE_INFER“
 - reloadable_meta: 目前实际内容无意义，用来通过对该文件的 mtime 判断是否超过 reload 时间阈值
-- reloadable_type: 检查 reload 条件：timestamp_ne/timestamp_gt/md5sum/revision/none
-
-|reloadable_type|含义|
-|---------------|----|
-|timestamp_ne|reloadable_meta 所指定文件的 mtime 时间戳发生变化|
-|timestamp_gt|reloadable_meta 所指定文件的 mtime 时间戳大于等于上次检查时记录的 mtime 时间戳|
-|md5sum|目前无用，配置后永远不 reload|
-|revision|目前无用，配置后用于不 reload|
-
+- reloadable_type: 检查 reload 条件：timestamp_ne/timestamp_gt/md5sum/revision/none，详见表格
 - model_dir: 模型文件路径
 - gpu_ids: 引擎运行时使用的 GPU device id，支持指定多个，如：
-
-```
-# 指定 GPU 0，1，2
-gpu_ids: 0
-gpu_ids: 1
-gpu_ids: 2
-```
-
 - enable_memory_optimization: 是否开启 memory 优化
 - enable_ir_optimization: 是否开启 ir 优化
 - use_trt: 是否开启 TensorRT，需同时开启 use_gpu
@@ -308,43 +263,35 @@ gpu_ids: 2
 - enable_overrun: Async 异步模式下总是将整个任务放入任务队列
 - allow_split_request: Async 异步模式下允许拆分任务
 
+|reloadable_type|含义|
+|---------------|----|
+|timestamp_ne|reloadable_meta 所指定文件的 mtime 时间戳发生变化|
+|timestamp_gt|reloadable_meta 所指定文件的 mtime 时间戳大于等于上次检查时记录的 mtime 时间戳|
+|md5sum|目前无用，配置后永远不 reload|
+|revision|目前无用，配置后用于不 reload|
+
 6. general_model.prototxt
 
-general_model.prototxt 内容与模型配置 serving_server_conf.prototxt 相同，用了描述模型输入输出参数信息。示例如下：
-```
-feed_var {
-  name: "x"
-  alias_name: "x"
-  is_lod_tensor: false
-  feed_type: 1
-  shape: 13
-}
-fetch_var {
-  name: "fc_0.tmp_1"
-  alias_name: "price"
-  is_lod_tensor: false
-  fetch_type: 1
-  shape: 1
-}
-```
+general_model.prototxt 内容与模型配置 serving_server_conf.prototxt 相同，用了描述模型输入输出参数信息。
 
 ## Python Pipeline
 
 **一. 快速启动与关闭**
 
-Python Pipeline 启动命令如下：
+Python Pipeline 启动脚本如下，脚本实现请参考[Pipeline Serving]()：
 
 ```BASH
 python3 web_service.py
 ```
 
-当您想要关闭 Serving 服务时（在 Pipeline 启动目录下或环境变量 SERVING_HOME 路径下，执行以下命令）：
+当您想要关闭 Serving 服务时（在 Pipeline 启动目录下或环境变量 SERVING_HOME 路径下，执行以下命令）可以如下命令，
+stop 参数发送 SIGINT 至 Pipeline Serving，若 Linux 系统中改成 kill 则发送 SIGKILL 信号至 Pipeline Serving
 
 ```BASH
 python3 -m paddle_serving_server.serve stop
 ```
 
-stop 参数发送 SIGINT 至 Pipeline Serving，若改成 kill 则发送 SIGKILL 信号至 Pipeline Serving
+
 
 **二. 配置文件**
 
@@ -352,42 +299,53 @@ Python Pipeline 提供了用户友好的多模型组合服务编程框架，适�
 其配置文件为 YAML 格式，一般默认为 config.yaml。示例如下：
 
 ```YAML
-#rpc 端口, rpc_port 和 http_port 不允许同时为空。当 rpc_port 为空且 http_port 不为空时，会自动将 rpc_port 设置为 http_port+1
 rpc_port: 18090
 
-#http 端口, rpc_port 和 http_port 不允许同时为空。当 rpc_port 可用且 http_port 为空时，不自动生成 http_port
 http_port: 9999
 
-#worker_num, 最大并发数。当 build_dag_each_worker=True 时, 框架会创建w orker_num 个进程，每个进程内构建 grpcSever和DAG
-##当 build_dag_each_worker=False 时，框架会设置主线程 grpc 线程池的 max_workers=worker_num
 worker_num: 20
 
-#build_dag_each_worker, False，框架在进程内创建一条 DAG；True，框架会每个进程内创建多个独立的 DAG
 build_dag_each_worker: false
+```
 
+| Argument                                       | Type | Default | Description                                           |
+| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
+| `rpc_port`                                       | int  | `18090`     | rpc 端口, rpc_port 和 http_port 不允许同时为空。当 rpc_port 为空且 http_port 不为空时，会自动将 rpc_port 设置为 http_port+1                         |
+| `http_port`                           | int| `9999`     | http 端口, rpc_port 和 http_port 不允许同时为空。当 rpc_port 可用且 http_port 为空时，不自动生成 http_port     |
+| `worker_num`                           | int| `20`     | worker_num, 最大并发数。当 build_dag_each_worker=True 时, 框架会创建w orker_num 个进程，每个进程内构建 grpcSever和DAG,当 build_dag_each_worker=False 时，框架会设置主线程 grpc 线程池的 max_workers=worker_num     |
+| `build_dag_each_worker`                           | bool| `false`     | False，框架在进程内创建一条 DAG；True，框架会每个进程内创建多个独立的 DAG     |
+
+```YAML
 dag:
-    #op 资源类型, True, 为线程模型；False，为进程模型
     is_thread_op: False
 
-    #重试次数
     retry: 1
 
-    #使用性能分析, True，生成 Timeline 性能数据，对性能有一定影响；False 为不使用
     use_profile: false
     tracer:
         interval_s: 10
 
-    #client 类型，包括 brpc, grpc 和 local_predictor.local_predictor 不启动 Serving 服务，进程内预测
-    #client_type: local_predictor
+    client_type: local_predictor
 
-    #channel 的最大长度，默认为0
-    #channel_size: 0
+    channel_size: 0
 
-    #针对大模型分布式场景 tensor 并行，接收第一个返回结果后其他结果丢弃来提供速度
-    #channel_recv_frist_arrive: False
+    channel_recv_frist_arrive: False
+```
 
+| Argument                                       | Type | Default | Description                                           |
+| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
+| `is_thread_op`                                       | bool  | `false`     | op 资源类型, True, 为线程模型；False，为进程模型 |
+| `retry`                                       | int  | `1`     | 重试次数                         |
+| `use_profile`                                       | bool  | `false`     | 使用性能分析, True，生成 Timeline 性能数据，对性能有一定影响；False 为不使用  |
+| `tracer:interval_s`                                       | int  | `10 `    | rpc 端口, rpc_port 和 http_port 不允许同时为空。当 rpc_port 为空且 http_port 不为空时，会自动将 rpc_port 设置为 http_port+1                         |
+| `client_type`                                       | string  | `local_predictor`     | client 类型，包括 brpc, grpc 和 local_predictor.local_predictor 不启动 Serving 服务，进程内预测 |
+| `channel_size`                                       | int  | `0`     | channel 的最大长度，默认为0  |
+| `channel_recv_frist_arrive`                                       | bool  | `false`     | 针对大模型分布式场景 tensor 并行，接收第一个返回结果后其他结果丢弃来提供速度  |
+
+
+```YAML
 op:
-    det:
+    op1:
         #并发数，is_thread_op=True 时，为线程并发；否则为进程并发
         concurrency: 6
 
@@ -449,9 +407,6 @@ op:
             #use_calib, Use TRT int8 calibration
             #use_calib: False
 
-            #use_mkldnn, Use mkldnn for cpu
-            #use_mkldnn: False
-
             #The cache capacity of different input shapes for mkldnn
             #mkldnn_cache_capacity: 0
 
@@ -463,106 +418,36 @@ op:
 
             #min_subgraph_size,the minimal subgraph size for opening tensorrt to optimize, 3 default
             #min_subgraph_size: 3
-    rec:
-        #并发数，is_thread_op=True 时，为线程并发；否则为进程并发
-        concurrency: 3
-
-        #超时时间, 单位 ms
-        timeout: -1
-
-        #Serving 交互重试次数，默认不重试
-        retry: 1
-
-        #当 op 配置没有 server_endpoints 时，从 local_service_conf 读取本地服务配置
-        local_service_conf:
-
-            #client 类型，包括 brpc, grpc 和 local_predictor。local_predictor 不启动 Serving 服务，进程内预测
-            client_type: local_predictor
-
-            #rec 模型路径
-            model_config: ocr_rec_model
-
-            #Fetch 结果列表，以 client_config 中 fetch_var 的 alias_name 为准
-            fetch_list: ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
-
-            # device_type, 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
-            device_type: 0
-
-            #计算硬件 ID，当 devices 为""或不写时为 CPU 预测；当 devices 为 "0", "0,1,2" 时为 GPU 预测，表示使用的 GPU 卡
-            devices: ""
-
-            #use_mkldnn, 开启 mkldnn 时，必须同时设置 ir_optim=True，否则无效
-            #use_mkldnn: True
-
-            #ir_optim, 开启 TensorRT 时，必须同时设置 ir_optim=True，否则无效
-            ir_optim: True
-            
-            #CPU 计算线程数，在 CPU 场景开启会降低单次请求响应时长
-            #thread_num: 10
-            
-            #precsion, 预测精度，降低预测精度可提升预测速度
-            #GPU 支持: "fp32"(default), "fp16", "int8"；
-            #CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
-            precision: "fp32"
 ```
 
-**三. 单机多卡**
+| Argument                                       | Type | Default | Description                                           |
+| ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
+| `concurrency`                                       | int  | `6`     | 并发数，is_thread_op=True 时，为线程并发；否则为进程并发 |
+| `server_endpoints`                                       | list  | `-`     | 服务 IP 列表                         |
+| `fetch_list`                                       | list  | `-`     | Fetch 结果列表，以 client_config 中 fetch_var 的 alias_name 为准 |
+| `client_config`                                       | string  | `-`     | 模型 client 端配置                         |
+| `timeout`                                       | int  | `3000`     | Serving 交互超时时间, 单位 ms |
+| `retry`                                       | int  | `1`     | Serving 交互重试次数，默认不重试 |
+| `batch_size`                                       | int  | `1`     | 批量查询 Serving 的数量, 默认 1。batch_size>1 要设置 auto_batching_timeout，否则不足 batch_size 时会阻塞  |
+| `auto_batching_timeout`                                       | int  | `2000`     | 批量查询超时，与 batch_size 配合使用                         |
+| `local_service_conf`                                       | map  | `-`     | 当 op 配置没有 server_endpoints 时，从 local_service_conf 读取本地服务配置 |
+| `client_type`                                       | string  | `-`     | client 类型，包括 brpc, grpc 和 local_predictor.local_predictor 不启动 Serving 服务，进程内预测 |
+| `model_config`                                       | string  | `-`     | 模型路径 |
+| `fetch_list`                                       | list  | `-`     | Fetch 结果列表，以 client_config 中 fetch_var 的 alias_name 为准 |
+| `device_type`                                       | int  | `0`     | 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910 |
+| `devices`                                       | string  | `-`     | 计算硬件 ID，当 devices 为""或不写时为 CPU 预测；当 devices 为 "0", "0,1,2" 时为 GPU 预测，表示使用的 GPU 卡 |
+| `use_mkldnn`                                       | bool  | `True`     | use_mkldnn, 开启 mkldnn 时，必须同时设置 ir_optim=True，否则无效|
+| `ir_optim`                                       | bool  | `True`     | 开启 TensorRT 时，必须同时设置 ir_optim=True，否则无效 |
+| `thread_num`                                       | int  | `10`     | CPU 计算线程数，在 CPU 场景开启会降低单次请求响应时长|
+| `precision`                                       | string  | `fp32`     | 预测精度，降低预测精度可提升预测速度,GPU 支持: "fp32"(default), "fp16", "int8"；CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8" |
+| `mem_optim`                                       | bool  | `True`     | 内存优化选项 |
+| `use_calib`                                       | bool  | `False`     | TRT int8 量化校准模型 |
+| `mkldnn_cache_capacity`                                       | int  | `0`     | mkldnn 的不同输入尺寸缓存大小 |
+| `mkldnn_op_list`                                       | list  | `-`     | mkldnn 加速的 op 列表 |
+| `mkldnn_bf16_op_list`                                       | list  | `-`     | mkldnn bf16 加速的 op 列表 |
+| `min_subgraph_size`                                       | int  | `3`     | 开启 tensorrt 优化的最小子图大小 |
 
-单机多卡推理，M 个 OP 进程与 N 个 GPU 卡绑定，需要在 config.ymal 中配置 3 个参数。首先选择进程模式，这样并发数即进程数，然后配置 devices。绑定方法是进程启动时遍历 GPU 卡 ID，例如启动 7 个 OP 进程，设置了 0，1，2 三个 device id，那么第 1、4、7 个启动的进程与 0 卡绑定，第 2、5 进程与 1 卡绑定，3、6 进程与卡 2 绑定。
+**三. 进阶参数配置**
 
-```YAML
-#op 资源类型, True, 为线程模型；False，为进程模型
-is_thread_op: False
+更多进阶参数配置介绍，如单机多卡推理、异构硬件、低精度推理等请参考[Pipeline Serving 典型示例]()
 
-#并发数，is_thread_op=True 时，为线程并发；否则为进程并发
-concurrency: 7
-
-devices: "0,1,2"
-```
-
-**四. 异构硬件**
-
-Python Pipeline 除了支持 CPU、GPU 之外，还支持多种异构硬件部署。在 config.yaml 中由 device_type 和 devices 控制。优先使用 device_type 指定，当其空缺时根据 devices 自动判断类型。device_type 描述如下：
-
-- CPU(Intel) : 0
-- GPU : 1
-- TensorRT : 2
-- CPU(Arm) : 3
-- XPU : 4
-- Ascend310(Arm) : 5
-- Ascend910(Arm) : 6
-
-config.yml 中硬件配置：
-
-```YAML
-#计算硬件类型: 空缺时由 devices 决定( CPU/GPU )，0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 5=arm ascend310, 6=arm ascend910
-device_type: 0
-#计算硬件 ID，优先由 device_type 决定硬件类型。devices 为""或空缺时为 CPU 预测；当为 "0", "0,1,2" 时为 GPU 预测，表示使用的 GPU 卡
-devices: "" # "0,1"
-```
-
-**五. 低精度推理**
-
-Python Pipeline 支持低精度推理，CPU、GPU 和 TensoRT 支持的精度类型如下所示：
-- CPU
-  - fp32(default)
-  - fp16
-  - bf16(mkldnn)
-- GPU
-  - fp32(default)
-  - fp16(TRT下有效)
-  - int8
-- Tensor RT
-  - fp32(default)
-  - fp16
-  - int8 
-
-```YAML
-#precsion, 预测精度，降低预测精度可提升预测速度
-#GPU 支持: "fp32"(default), "fp16(TensorRT)", "int8"；
-#CPU 支持: "fp32"(default), "fp16", "bf16"(mkldnn); 不支持: "int8"
-precision: "fp32"
-
-#cablic, open it when using int8
-use_calib: True
-```
