@@ -75,7 +75,7 @@ go env -w GOPROXY=https://goproxy.cn,direct
 go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v1.15.2
 go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v1.15.2
 go install github.com/golang/protobuf/protoc-gen-go@v1.4.3
-go install google.golang.org/grpc@v1.33.0
+go install google.golang.org/grpc@v1.33.1
 go env -w GO111MODULE=auto
 ```
 
