@@ -4,8 +4,9 @@
 
 Paddle Serving 实现了一套通用的多模型组合服务编程框架 Python Pipeline，不仅解决上述痛点，同时还能大幅提高 GPU 利用率，并易于开发和维护。
 
-通过阅读以下内容掌握 Python Pipeline 框架基础功能、设计方案、使用指南等。
-- [Python Pipeline 基础功能]()
-- [Python Pipeline 使用案例]()
-- [Python Pipeline 高阶用法]()
-- [Python Pipeline 优化指南]()
+Python Pipeline 使用案例请阅读[Python Pipeline 快速部署案例](./3-2_QuickStart_Pipeline_OCR_CN.md)
+
+通过阅读以下内容掌握 Python Pipeline 设计方案、高阶用法和优化指南等。
+- [Python Pipeline 框架设计](7-1_Python_Pipeline_Design_CN.md)
+- [Python Pipeline 高阶用法](7-2_Python_Pipeline_Senior_CN.md)
+- [Python Pipeline 优化指南](7-3_Python_Pipeline_Optimize_CN.md)
