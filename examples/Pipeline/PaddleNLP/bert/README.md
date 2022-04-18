@@ -1,6 +1,6 @@
-# Imagenet Pipeline WebService
+# Bert Pipeline WebService
 
-This document will takes Imagenet service as an example to introduce how to use Pipeline WebService.
+This document will takes Bert service as an example to introduce how to use Pipeline WebService.
 
 ## Get model
 ```
