@@ -1,22 +1,16 @@
 # Cube 编译
 
-## 概述
-
-**Cube 一共有 4 个组件.**
-
-- Cube-Server: Cube-Server 是 C++ 程序，是 Cube 套件的核心，负责稀疏参数索引服务的查询。
-- Cube-Agent: Cube-Agent 是一段 Go 程序，负责稀疏参数配送。
-- Cube-Transfer: Cube-Transfer 是一段 Go 程序，负责接受上游原始稀疏参数模型，做分片后分发给各个 Cube-Agent。
-- Cube-Builder: Cube-Builder 是一段 C++ 程序，负责被 Cube-Transfer 调用并按配置生成相关分片。
-
 ## 编译依赖
 
 **以下是主要组件及其编译依赖**
 
-- Cube-Server: Cube-Server 最重要的编译依赖是 Baidu-RPC，其提供高效快速的 RPC 协议。这个依赖库可以复用 Paddle-Serving 的配置。 
-- Cube-Agent: Cube-Agent 需要 Go 环境支持，需要按照[编译文档]()安装相关 Go 依赖库。 
-- Cube-Transfer: Cube-Transfer 需要 Go 环境支持，需要按照[编译文档]()安装相关 Go 依赖库。
-- Cube-Builder： Cube-Builder 依赖关系较为简单，不需要提前准备依赖项。
+|             组件             |             说明              |
+| :--------------------------: | :-------------------------------: |
+|             Cube-Server              |     C++程序，提供高效快速的 RPC 协议      |
+|             Cube-Agent              |          Go 程序，需要 Go 环境支持         |
+|           Cube-Transfer            |          Go 程序，需要 Go 环境支持         |
+|            Cube-Builder             |           C++程序          |
+|            Cube-Cli            |          C++组件，已集成进 C++ server 中，不需单独编译          |
 
 ## 编译方法
 
@@ -64,8 +58,12 @@ cmake -DPYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
     -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
     -DSERVER=ON \
     -DWITH_GPU=OFF ..
-make -j20
+make -j
 cd ..
 ```
 
-最终我们会在`build_cube/core/cube`目录下看到 Cube 组件已经编译完成。
+最终我们会在`build_cube/core/cube`目录下看到 Cube 组件已经编译完成，其中:
+- Cube-Server：build_cube/core/cube/cube-server/cube
+- Cube-Agent：build_cube/core/cube/cube-agent/src/cube-agent
+- Cube-Transfer：build_cube/core/cube/cube-transfer/src/cube-transfer
+- Cube-Builder：build_cube/core/cube/cube-builder/cube-builder
