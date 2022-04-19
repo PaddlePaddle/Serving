@@ -13,7 +13,7 @@ Kubernetes 是一个基于容器技术的分布式架构的解决方案，是云
 Paddle Serving 的 Kubernetes 集群部署方案设计如下图所示，用户流量通过 Kong Ingress 转发到 Kubernetes 集群。Kubernetes 集群负责管理 Service 和 Pod 实例。
 
 <p align="center">
-  <img src="../images/kubernetes_design.png" width="250">
+  <img src="../images/kubernetes_design.png" width="800">
 </p>
 
 ## 部署步骤
