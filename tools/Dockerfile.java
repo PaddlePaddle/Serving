@@ -1,7 +1,7 @@
 # A image for building paddle binaries
 # # Use cuda devel base image for both cpu and gpu environment
 # # When you modify it, please be aware of cudnn-runtime version
-FROM hub.baidubce.com/paddlepaddle/serving:latest-cuda10.2-cudnn8-devel
+FROM registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.2-cudnn8-devel  
 MAINTAINER PaddlePaddle Authors <paddle-dev@baidu.com>
 
 

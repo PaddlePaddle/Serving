@@ -40,12 +40,19 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 - Support service monitoring, provide prometheus-based performance statistics and port access
 
 
-<h2 align="center">Tutorial</h2>
+<h2 align="center">Tutorial and Papers</h2>
 
 
 - AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
+- AIStudio OCR practice(Chinese) : [基于PaddleServing的OCR服务化部署实战](https://aistudio.baidu.com/aistudio/projectdetail/3630726)
 - Video tutorial(Chinese) : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
 - Edge AI solution(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+
+- Paper : [JiZhi: A Fast and Cost-Effective Model-As-A-Service System for
+Web-Scale Online Inference at Baidu](https://arxiv.org/pdf/2106.01674.pdf)
+- Paper : [ERNIE 3.0 TITAN: EXPLORING LARGER-SCALE KNOWLEDGE
+ENHANCED PRE-TRAINING FOR LANGUAGE UNDERSTANDING
+AND GENERATION](https://arxiv.org/pdf/2112.12731.pdf)
 
 <p align="center">
     <img src="doc/images/demo.gif" width="700">
@@ -90,8 +97,6 @@ The first step is to call the model save interface to generate a model parameter
   - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
   - [TensorRT dynamic Shape](doc/TensorRT_Dynamic_Shape_EN.md)
   - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
-  - Our Paper: [JiZhi: A Fast and Cost-Effective Model-As-A-Service System for
-Web-Scale Online Inference at Baidu](https://arxiv.org/pdf/2106.01674.pdf)
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)

@@ -1,4 +1,5 @@
 numpy>=1.12, <=1.16.4 ; python_version<"3.5"
+numpy<=1.19.4 ; platform_machine ==  "aarch64"
 shapely==1.8.0
 wheel>=0.34.0, <0.35.0
 setuptools>=44.1.0
@@ -24,7 +25,7 @@ pytest==7.0.1
 prometheus-client==0.12.0
 pillow==8.4.0 ; python_version == "3.6"
 pillow==9.0.0 ; python_version > "3.6"
-av==8.0.3
-decord==0.4.2
-SimpleITK
+av==8.0.3; platform_machine !=  "aarch64"
+decord==0.4.2; platform_machine !=  "aarch64"
+SimpleITK; platform_machine !=  "aarch64"
 

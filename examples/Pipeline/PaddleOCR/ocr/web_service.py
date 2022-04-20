@@ -14,6 +14,7 @@
 from paddle_serving_server.web_service import WebService, Op
 import logging
 import numpy as np
+import copy
 import cv2
 import base64
 from paddle_serving_app.reader import OCRReader
@@ -34,17 +35,18 @@ class DetOp(Op):
         self.filter_func = FilterBoxes(10, 10)
         self.post_func = DBPostProcess({
             "thresh": 0.3,
-            "box_thresh": 0.5,
+            "box_thresh": 0.6,
             "max_candidates": 1000,
             "unclip_ratio": 1.5,
             "min_size": 3
         })
-   
+
     """ 
     when opening tensorrt(configure in config.yml) and each time the input shape 
     for inferring is different, using this method for configuring tensorrt 
     dynamic shape to infer in each op model
     """
+
     def set_dynamic_shape_info(self):
         min_input_shape = {
             "x": [1, 3, 50, 50],
@@ -74,7 +76,7 @@ class DetOp(Op):
             "min_input_shape": min_input_shape,
             "max_input_shape": max_input_shape,
             "opt_input_shape": opt_input_shape,
-        }    
+        }
 
     def preprocess(self, input_dicts, data_id, log_id):
         (_, input_dict), = input_dicts.items()
@@ -107,25 +109,20 @@ class RecOp(Op):
         self.ocr_reader = OCRReader()
         self.get_rotate_crop_image = GetRotateCropImage()
         self.sorted_boxes = SortedBoxes()
-    
+
     """ 
     when opening tensorrt(configure in config.yml) and each time the input shape 
     for inferring is different, using this method for configuring tensorrt 
     dynamic shape to infer in each op model
     """
+
     def set_dynamic_shape_info(self):
-        min_input_shape = {
-            "x": [1, 3, 32, 10],
-            "lstm_1.tmp_0": [1, 1, 128]
-        }
+        min_input_shape = {"x": [1, 3, 32, 10], "lstm_1.tmp_0": [1, 1, 128]}
         max_input_shape = {
             "x": [50, 3, 32, 1000],
             "lstm_1.tmp_0": [500, 50, 128]
         }
-        opt_input_shape = {
-            "x": [6, 3, 32, 100],
-            "lstm_1.tmp_0": [25, 5, 128]
-        }
+        opt_input_shape = {"x": [6, 3, 32, 100], "lstm_1.tmp_0": [25, 5, 128]}
         self.dynamic_shape_info = {
             "min_input_shape": min_input_shape,
             "max_input_shape": max_input_shape,
@@ -137,8 +134,10 @@ class RecOp(Op):
         raw_im = input_dict["image"]
         data = np.frombuffer(raw_im, np.uint8)
         im = cv2.imdecode(data, cv2.IMREAD_COLOR)
-        dt_boxes = input_dict["dt_boxes"]
-        dt_boxes = self.sorted_boxes(dt_boxes)
+        self.dt_list = input_dict["dt_boxes"]
+        self.dt_list = self.sorted_boxes(self.dt_list)
+        # deepcopy to save origin dt_boxes
+        dt_boxes = copy.deepcopy(self.dt_list)
         feed_list = []
         img_list = []
         max_wh_ratio = 0
@@ -205,26 +204,31 @@ class RecOp(Op):
                 imgs[id] = norm_img
             feed = {"x": imgs.copy()}
             feed_list.append(feed)
-        #_LOGGER.info("feed_list : {}".format(feed_list))
 
         return feed_list, False, None, ""
 
     def postprocess(self, input_dicts, fetch_data, data_id, log_id):
-        res_list = []
+        rec_list = []
+        dt_num = len(self.dt_list)
         if isinstance(fetch_data, dict):
             if len(fetch_data) > 0:
                 rec_batch_res = self.ocr_reader.postprocess_ocrv2(
                     fetch_data, with_score=True)
                 for res in rec_batch_res:
-                    res_list.append(res[0])
+                    rec_list.append(res)
         elif isinstance(fetch_data, list):
             for one_batch in fetch_data:
                 one_batch_res = self.ocr_reader.postprocess_ocrv2(
                     one_batch, with_score=True)
                 for res in one_batch_res:
-                    res_list.append(res[0])
+                    rec_list.append(res)
 
-        res = {"res": str(res_list)}
+        result_list = []
+        for i in range(dt_num):
+            text = rec_list[i]
+            dt_box = self.dt_list[i]
+            result_list.append([text, dt_box.tolist()])
+        res = {"result": str(result_list)}
         return res, None, ""
 
 
