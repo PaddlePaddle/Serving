@@ -65,6 +65,24 @@ message EngineDesc {
   optional int32 batch_infer_size = 31 [ default = 32 ];
   optional bool enable_overrun = 32 [ default = false ];
   optional bool allow_split_request = 33 [ default = true ];
+
+  /*
+   * Distributed inference params
+   * "enable_dist_model": enable distributed model, false default.
+   * "carrier_id": mark carrier
+   * "dist_cfg_file": file name of distributed configure.
+   * "dist_nranks": number of distributed nodes.
+   * "dist_endpoints": all endpoints(ip:port) of distributed nodes.
+   * "dist_subgraph_index": distributed subgraph index, auto increment from 0.
+   * It is
+   * used to select the endpoint of the current shard in distribute model.
+   */
+  optional bool enable_dist_model = 40 [ default = false ];
+  optional string dist_carrier_id = 41 [ default = "inference" ];
+  optional string dist_cfg_file = 42;
+  optional int32 dist_nranks = 43 [ default = 0 ];
+  repeated string dist_endpoints = 44;
+  optional int32 dist_subgraph_index = 45 [ default = 0 ];
 };
 
 // model_toolkit conf
@@ -96,7 +114,8 @@ message DAGNodeDependency {
 message DAGNode {
   required string name = 1;
   required string type = 2;
-  repeated DAGNodeDependency dependencies = 3;
+  repeated string address = 3;
+  repeated DAGNodeDependency dependencies = 4;
 };
 
 // workflow entry

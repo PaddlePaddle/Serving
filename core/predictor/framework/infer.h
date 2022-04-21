@@ -32,7 +32,8 @@
 #include "core/predictor/framework/memory.h"
 #include "core/predictor/framework/predictor_metric.h"
 #include "paddle_inference_api.h"  // NOLINT
-#include "experimental/float16.h"
+//#include "experimental/float16.h"
+#include "experimental/phi/common/float16.h"
 namespace baidu {
 namespace paddle_serving {
 namespace predictor {
@@ -548,9 +549,9 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
         int8_t* data = static_cast<int8_t*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       } else if ((*tensorVector_in_pointer)[i].dtype ==
-               paddle::PaddleDType::FLOAT16) {
-        paddle::platform::float16* data =
-            static_cast<paddle::platform::float16*>(origin_data);
+                 paddle::PaddleDType::FLOAT16) {
+        phi::dtype::float16* data =
+            static_cast<phi::dtype::float16*>(origin_data);
         lod_tensor_in->CopyFromCpu(data);
       } else {
         LOG(ERROR) << "Inference not support type["
@@ -646,14 +647,14 @@ class FluidInferEngine : public CloneDBReloadableInferEngine<EngineCore> {
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       } else if (dataType == paddle::PaddleDType::FLOAT16) {
-        databuf_size = out_num * sizeof(paddle::platform::float16);
+        databuf_size = out_num * sizeof(phi::dtype::float16);
         databuf_data = MempoolWrapper::instance().malloc(databuf_size);
         if (!databuf_data) {
           LOG(ERROR) << "Malloc failed, size: " << databuf_size;
           return -1;
         }
-        paddle::platform::float16* data_out =
-            reinterpret_cast<paddle::platform::float16*>(databuf_data);
+        phi::dtype::float16* data_out =
+            reinterpret_cast<phi::dtype::float16*>(databuf_data);
         lod_tensor_out->CopyToCpu(data_out);
         databuf_char = reinterpret_cast<char*>(data_out);
       }

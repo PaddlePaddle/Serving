@@ -37,6 +37,7 @@ using paddle_infer::PrecisionType;
 using paddle_infer::Predictor;
 using paddle_infer::Tensor;
 using paddle_infer::CreatePredictor;
+using paddle_infer::DistConfig;
 
 DECLARE_int32(gpuid);
 DECLARE_string(precision);
@@ -204,6 +205,39 @@ class PaddleInferenceEngine : public EngineCore {
       config.SetProgFile(model_path + "/" + modelFileName);
     } else {
       config.SetModel(model_path);
+    }
+
+    // Enable distributed model inferencing
+    DistConfig distCfg;
+    if (engine_conf.has_enable_dist_model() &&
+        engine_conf.enable_dist_model()) {
+      int ep_size = engine_conf.dist_endpoints_size();
+      int cur_index = engine_conf.dist_subgraph_index();
+      if (ep_size <= cur_index) {
+        LOG(ERROR) << "create paddle predictor failed, Distributed model error."
+                   << " dist_endpoints_size=" << ep_size
+                   << " is not bigger than dist_subgraph_index=" << cur_index;
+        return -1;
+      }
+      std::vector<std::string> vec_eps;
+      for (int i = 0; i < ep_size; ++i) {
+        vec_eps.emplace_back(engine_conf.dist_endpoints(i));
+      }
+      distCfg.EnableDistModel(true);
+      distCfg.SetCarrierId(engine_conf.dist_carrier_id());
+      distCfg.SetRanks(engine_conf.dist_nranks(), cur_index);
+      distCfg.SetEndpoints(vec_eps, engine_conf.dist_endpoints(cur_index));
+      distCfg.SetCommInitConfig(engine_conf.dist_cfg_file());
+
+      config.SetDistConfig(distCfg);
+      LOG(INFO) << "Create Distributed predictor! dist_carrier_id="
+                << engine_conf.dist_carrier_id()
+                << ", Ranks=" << engine_conf.dist_nranks()
+                << ", current index of ranks=" << cur_index
+                << ", current endpoint="
+                << engine_conf.dist_endpoints(cur_index)
+                << ", communicate init config file="
+                << engine_conf.dist_cfg_file();
     }
 
     config.SwitchSpecifyInputNames(true);

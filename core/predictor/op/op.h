@@ -114,6 +114,7 @@ class Op {
            const std::string& name,
            const std::string& type,
            void* conf,
+           const std::vector<std::string>& address,
            const uint64_t log_id);
 
   int deinit();
@@ -134,6 +135,8 @@ class Op {
   const std::string& op_name() const { return _name; }
 
   const std::string& full_name() const { return _full_name; }
+
+  const std::vector<std::string>& address() const { return _address; }
 
   const std::vector<std::string>& pre_names() const { return _pre_node_names; }
 
@@ -206,6 +209,7 @@ class Op {
   std::string _name;
   std::string _full_name;  // service_workflow_stageindex_opname
   std::string _type;
+  std::vector<std::string> _address;
   bool _has_calc;
   bool _has_init;
   TimerFlow* _timer;
