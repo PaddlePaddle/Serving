@@ -225,6 +225,12 @@ class PaddleInferenceEngine : public EngineCore {
       config.SwitchIrOptim(true);
     }
 
+    int local_min_subgraph_size = min_subgraph_size;
+    if (engine_conf.has_min_subgraph_size()) {
+      local_min_subgraph_size = engine_conf.min_subgraph_size();
+      LOG(INFO) << "local_min_subgraph_size=" << local_min_subgraph_size;
+    }
+
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
@@ -236,10 +242,55 @@ class PaddleInferenceEngine : public EngineCore {
       }
       config.EnableTensorRtEngine(1 << 20,
                                   max_batch,
-                                  min_subgraph_size,
+                                  local_min_subgraph_size,
                                   precision_type,
                                   false,
                                   FLAGS_use_calib);
+      std::map<std::string, std::vector<int>> min_input_shape;
+      std::map<std::string, std::vector<int>> max_input_shape;
+      std::map<std::string, std::vector<int>> optim_input_shape;
+      if (engine_conf.min_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.min_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while(ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          min_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.max_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.max_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while(ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          max_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.opt_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.opt_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while(ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          optim_input_shape[key] = arr;
+        }
+      }
+      config.SetTRTDynamicShapeInfo(min_input_shape,
+                                    max_input_shape,
+                                    optim_input_shape);
       LOG(INFO) << "create TensorRT predictor";
     }
 

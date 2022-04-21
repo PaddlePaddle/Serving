@@ -222,6 +222,8 @@ def serve_args():
         "--prometheus_port", type=int, default=19393, help="Port of the Prometheus")
     parser.add_argument(
         "--request_cache_size", type=int, default=0, help="Port of the Prometheus")
+    parser.add_argument(
+        "--min_subgraph_size", type=int, default="", nargs="+", help="gpu ids")
     return parser.parse_args()
 
 
@@ -272,11 +274,14 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
 
     read_op = op_maker.create('GeneralReaderOp')
     op_seq_maker.add_op(read_op)
+    is_ocr = False
     #如果dag_list_op不是空，那么证明通过--op 传入了自定义OP或自定义的DAG串联关系。
     #此时，根据--op 传入的顺序去组DAG串联关系
     if len(dag_list_op) > 0:
         for single_op in dag_list_op:
             op_seq_maker.add_op(op_maker.create(single_op))
+            if single_op == "GeneralDetectionOp":
+                is_ocr = True
     #否则，仍然按照原有方式根虎--model去串联。
     else:
         for idx, single_model in enumerate(model):
@@ -287,6 +292,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
             # 以后可能考虑不用python脚本来生成配置
             if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
                 infer_op_name = "GeneralDetectionOp"
+                is_ocr = True
             else:
                 infer_op_name = "GeneralInferOp"
             general_infer_op = op_maker.create(infer_op_name)
@@ -306,10 +312,14 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     server.set_enable_prometheus(args.enable_prometheus)
     server.set_prometheus_port(args.prometheus_port)
     server.set_request_cache_size(args.request_cache_size)
+    server.set_min_subgraph_size(args.min_subgraph_size)
 
     if args.use_trt and device == "gpu":
         server.set_trt()
         server.set_ir_optimize(True)
+        if is_ocr:
+            info = set_ocr_dynamic_shape_info()
+            server.set_trt_dynamic_shape_info(info)
 
     if args.gpu_multi_stream and device == "gpu":
         server.set_gpu_multi_stream()
@@ -344,6 +354,51 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
         use_encryption_model=args.use_encryption_model)
     server.run_server()
 
+def set_ocr_dynamic_shape_info():
+    info = []
+    min_input_shape = {
+        "x": [1, 3, 50, 50],
+        "conv2d_182.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_2.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_3.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_4.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_5.tmp_0": [1, 1, 20, 20]
+    }
+    max_input_shape = {
+        "x": [1, 3, 1536, 1536],
+        "conv2d_182.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_2.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_3.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_4.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_5.tmp_0": [20, 200, 960, 960],
+    }
+    opt_input_shape = {
+        "x": [1, 3, 960, 960],
+        "conv2d_182.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_2.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_3.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_4.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_5.tmp_0": [3, 24, 240, 240],
+    }
+    det_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(det_info)
+    min_input_shape = {"x": [1, 3, 32, 10], "lstm_1.tmp_0": [1, 1, 128]}
+    max_input_shape = {
+        "x": [50, 3, 32, 1000],
+        "lstm_1.tmp_0": [500, 50, 128]
+    }
+    opt_input_shape = {"x": [6, 3, 32, 100], "lstm_1.tmp_0": [25, 5, 128]}
+    rec_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(rec_info)
+    return info
 
 def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
 

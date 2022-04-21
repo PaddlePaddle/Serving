@@ -101,6 +101,8 @@ class Server(object):
         self.enable_prometheus = False
         self.prometheus_port = 19393
         self.request_cache_size = 0
+        self.min_subgraph_size = []
+        self.trt_dynamic_shape_info = []
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -211,6 +213,13 @@ class Server(object):
     def set_request_cache_size(self, request_cache_size):
         self.request_cache_size = request_cache_size
 
+    def set_min_subgraph_size(self, min_subgraph_size):
+        if isinstance(min_subgraph_size, list):
+            self.min_subgraph_size = list(map(int, min_subgraph_size))
+    
+    def set_trt_dynamic_shape_info(self, info):
+        self.trt_dynamic_shape_info = info
+
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
         if self.model_toolkit_conf == None:
@@ -292,6 +301,25 @@ class Server(object):
             if use_encryption_model:
                 engine.encrypted_model = True
             engine.type = "PADDLE_INFER"
+            if len(self.min_subgraph_size) > index:
+                engine.min_subgraph_size = self.min_subgraph_size[index]
+            if len(self.trt_dynamic_shape_info) > index:
+                dynamic_shape_info = self.trt_dynamic_shape_info[index]
+                try:
+                    for key,value in dynamic_shape_info.items():
+                        shape_type = key
+                        if shape_type == "min_input_shape":
+                            local_map = engine.min_input_shape
+                        if shape_type == "max_input_shape":
+                            local_map = engine.max_input_shape
+                        if shape_type == "opt_input_shape":
+                            local_map = engine.opt_input_shape
+                        for name,shape in value.items():
+                            local_value = ' '.join(str(i) for i in shape)
+                            local_map[name] = local_value
+                except:
+                    raise ValueError("Set TRT dynamic shape info error!")
+            
             self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
             self.model_toolkit_conf[-1].engines.extend([engine])
             index = index + 1

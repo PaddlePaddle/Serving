@@ -244,7 +244,7 @@ int GeneralDetectionOp::inference() {
     databuf_char_out = reinterpret_cast<char*>(databuf_data_out);
     paddle::PaddleBuf paddleBuf(databuf_char_out, databuf_size_out);
     paddle::PaddleTensor tensor_out;
-    tensor_out.name = "image";
+    tensor_out.name = "x";
     tensor_out.dtype = paddle::PaddleDType::FLOAT32;
     tensor_out.shape = output_shape;
     tensor_out.data = paddleBuf;

@@ -4,9 +4,9 @@
 
 ## Get Model
 ```
-wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/ocr_rec.tar.gz
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-wget https://paddle-serving.bj.bcebos.com/ocr/ocr_det.tar.gz
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
@@ -108,7 +108,7 @@ python3 rec_web_client.py
 When a service starts the concatenation of two models, it only needs to pass in the relative path of the model folder in order after `--model`, and the custom C++ OP class name after `--op`. The order of the model after `--model` and the class name after `--OP` needs to correspond. Here, it is assumed that we have defined the two OPs as GeneralDetectionOp and GeneralRecOp respectively, The script code is as follows:
 ```python
 #One service starts the concatenation of two models
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9293
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralInferOp --port 9293
 #ocr_det_model correspond to GeneralDetectionOp, ocr_rec_model correspond to GeneralRecOp
 ```
 

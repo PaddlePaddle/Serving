@@ -34,7 +34,7 @@ for img_file in os.listdir(test_img_dir):
     with open(os.path.join(test_img_dir, img_file), 'rb') as file:
         image_data1 = file.read()
     image = cv2_to_base64(image_data1)
-    data = {"feed": [{"image": image}], "fetch": ["res"]}
+    data = {"feed": [{"x": image}], "fetch": ["res"]}
     r = requests.post(url=url, headers=headers, data=json.dumps(data))
     print(r)
     print(r.json())

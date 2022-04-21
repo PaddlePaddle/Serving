@@ -65,6 +65,10 @@ message EngineDesc {
   optional int32 batch_infer_size = 31 [ default = 32 ];
   optional bool enable_overrun = 32 [ default = false ];
   optional bool allow_split_request = 33 [ default = true ];
+  optional int32 min_subgraph_size = 34 [ default = 3 ];
+  map<string,string> min_input_shape = 35;
+  map<string,string> max_input_shape = 36;
+  map<string,string> opt_input_shape = 37;
 };
 
 // model_toolkit conf
