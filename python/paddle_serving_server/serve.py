@@ -350,8 +350,8 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
                 general_infer_op = op_maker.create(infer_op_name)
                 op_seq_maker.add_op(general_infer_op)
 
-            general_response_op = op_maker.create('GeneralResponseOp')
-            op_seq_maker.add_op(general_response_op)
+        general_response_op = op_maker.create('GeneralResponseOp')
+        op_seq_maker.add_op(general_response_op)
     else:
         # for the master serving of distributed model only add one general_remote op.
         if args.dist_worker_serving_endpoints is None:
