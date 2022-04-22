@@ -214,8 +214,12 @@ class Server(object):
         self.request_cache_size = request_cache_size
 
     def set_min_subgraph_size(self, min_subgraph_size):
-        if isinstance(min_subgraph_size, list):
-            self.min_subgraph_size = list(map(int, min_subgraph_size))
+        for s in min_subgraph_size:
+            try:
+                size = int(s)
+            except:
+                size = 3
+            self.min_subgraph_size.append(size)
     
     def set_trt_dynamic_shape_info(self, info):
         self.trt_dynamic_shape_info = info

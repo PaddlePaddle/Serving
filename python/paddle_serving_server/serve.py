@@ -223,7 +223,7 @@ def serve_args():
     parser.add_argument(
         "--request_cache_size", type=int, default=0, help="Port of the Prometheus")
     parser.add_argument(
-        "--min_subgraph_size", type=int, default="", nargs="+", help="min_subgraph_size")
+        "--min_subgraph_size", type=str, default="", nargs="+", help="min_subgraph_size")
     return parser.parse_args()
 
 
