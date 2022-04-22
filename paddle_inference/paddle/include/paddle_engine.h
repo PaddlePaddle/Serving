@@ -348,6 +348,21 @@ class PaddleInferenceEngine : public EngineCore {
       return -1;
     }
 
+    LOG(INFO) << "paddle_engine params : enable_dist_model:" << engine_conf.enable_dist_model()
+              << ", use_gpu: " << engine_conf.has_use_gpu()
+              << ", gpu_id: " << gpu_id
+              << ", use_gpu_multi_stream: " << engine_conf.gpu_multi_stream()
+              << ", precision: " << FLAGS_precision
+              << ", enable_ir_optimization: " << engine_conf.enable_ir_optimization()
+              << ", use_trt: " << engine_conf.use_trt()
+              << ", trt_max_batch: " << max_batch
+              << ", trt_min_subgraph_size: " << min_subgraph_size
+              << ", use_calib: " << FLAGS_use_calib
+              << ", use_lite: " << engine_conf.use_lite()
+              << ", use_ascend_cl: " << engine_conf.has_use_ascend_cl()
+              << ", use_xpu: " << engine_conf.use_xpu()
+              << ", enable_memory_optimization: " << engine_conf.enable_memory_optimization();
+
     VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;
   }

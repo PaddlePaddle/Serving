@@ -666,7 +666,7 @@ class Server(object):
                     "-num_threads {} " \
                     "-port {} " \
                     "-precision {} " \
-                    "-use_calib {} " \
+                    "-use_calib={} " \
                     "-reload_interval_s {} " \
                     "-resource_path {} " \
                     "-resource_file {} " \
