@@ -268,7 +268,7 @@ class PaddleInferenceEngine : public EngineCore {
           config.EnableGpuMultiStream();
         }
       }
-      config.EnableTensorRtEngine(1 << 20,
+      config.EnableTensorRtEngine(1 << 25,
                                   max_batch,
                                   min_subgraph_size,
                                   precision_type,
