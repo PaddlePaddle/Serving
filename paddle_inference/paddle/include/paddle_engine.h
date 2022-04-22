@@ -228,7 +228,6 @@ class PaddleInferenceEngine : public EngineCore {
     int local_min_subgraph_size = min_subgraph_size;
     if (engine_conf.has_min_subgraph_size()) {
       local_min_subgraph_size = engine_conf.min_subgraph_size();
-      LOG(INFO) << "local_min_subgraph_size=" << local_min_subgraph_size;
     }
 
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
