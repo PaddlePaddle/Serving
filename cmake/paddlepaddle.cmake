@@ -113,7 +113,7 @@ else()
 endif()
 
 MESSAGE(STATUS "PADDLE_LIB_PATH=${PADDLE_LIB_PATH}")
-if (WITH_GPU OR WITH_MKLML)
+if ((WITH_GPU OR WITH_MKLML) AND NOT WITH_JETSON)
     if (WITH_TRT)
         ExternalProject_Add(
             "extern_paddle"
