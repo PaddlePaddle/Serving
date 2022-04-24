@@ -96,6 +96,10 @@ int ServerManager::start_and_wait() {
     LOG(ERROR) << "Failed to start Paddle Inference Server";
     return -1;
   }
+
+  std::cout << "C++ Serving service started successfully!" << std::endl;
+  LOG(INFO) << "C++ Serving service started successfully!";
+
   _server.RunUntilAskedToQuit();
 
   ServerManager::stop_reloader();

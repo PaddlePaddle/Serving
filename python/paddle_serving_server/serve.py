@@ -233,7 +233,7 @@ def serve_args():
         "--request_cache_size",
         type=int,
         default=0,
-        help="Port of the Prometheus")
+        help="Max request cache size")
     parser.add_argument(
         "--use_dist_model",
         default=False,
@@ -274,11 +274,6 @@ def serve_args():
         default=False,
         action="store_true",
         help="The master serving of distributed inference")
-    parser.add_argument(
-        "--request_cache_size",
-        type=int,
-        default=0,
-        help="Port of the Prometheus")
     parser.add_argument(
         "--min_subgraph_size",
         type=str,
