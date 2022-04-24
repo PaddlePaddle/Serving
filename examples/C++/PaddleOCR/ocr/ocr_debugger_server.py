@@ -48,7 +48,7 @@ class OCRService(WebService):
         self.ocr_reader = OCRReader()
 
     def preprocess(self, feed=[], fetch=[]):
-        data = base64.b64decode(feed[0]["image"].encode('utf8'))
+        data = base64.b64decode(feed[0]["x"].encode('utf8'))
         data = np.fromstring(data, np.uint8)
         im = cv2.imdecode(data, cv2.IMREAD_COLOR)
         ori_h, ori_w, _ = im.shape
@@ -57,7 +57,7 @@ class OCRService(WebService):
         det_img = det_img[np.newaxis, :]
         det_img = det_img.copy()
         det_out = self.det_client.predict(
-            feed={"image": det_img}, fetch=["concat_1.tmp_0"], batch=True)
+            feed={"x": det_img}, fetch=["save_infer_model/scale_0.tmp_1"], batch=True)
         filter_func = FilterBoxes(10, 10)
         post_func = DBPostProcess({
             "thresh": 0.3,
@@ -68,7 +68,7 @@ class OCRService(WebService):
         })
         sorted_boxes = SortedBoxes()
         ratio_list = [float(new_h) / ori_h, float(new_w) / ori_w]
-        dt_boxes_list = post_func(det_out["concat_1.tmp_0"], [ratio_list])
+        dt_boxes_list = post_func(det_out["save_infer_model/scale_0.tmp_1"], [ratio_list])
         dt_boxes = filter_func(dt_boxes_list[0], [ori_h, ori_w])
         dt_boxes = sorted_boxes(dt_boxes)
         get_rotate_crop_image = GetRotateCropImage()
@@ -88,12 +88,12 @@ class OCRService(WebService):
         for id, img in enumerate(img_list):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
             imgs[id] = norm_img
-        feed = {"image": imgs.copy()}
-        fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
+        feed = {"x": imgs.copy()}
+        fetch = ["save_infer_model/scale_0.tmp_1"]
         return feed, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
-        rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
+        rec_res = self.ocr_reader.postprocess_ocrv2(fetch_map, with_score=True)
         res_lst = []
         for res in rec_res:
             res_lst.append(res[0])
