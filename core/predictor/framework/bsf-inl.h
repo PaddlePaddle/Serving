@@ -275,6 +275,7 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
   }
 
   TaskT* previous_task = nullptr;
+  int padding_task_count = 0;
   while (!_task_queue.empty()) {
     TaskT* task = _task_queue.front();
 
@@ -327,12 +328,18 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     if (batchTask.padding(task) != 2) {
       break;
     }
+    ++padding_task_count;
     size_t rem = batchTask.append_task(task);
     previous_task = task;
     if (task->rem <= 0) {
       _task_queue.pop_front();
     }
     if (rem <= 0) break;
+  }
+
+  if (padding_task_count > 1) {
+    LOG(INFO) << "Hit auto padding, merge " << padding_task_count
+              << " tasks into 1 batch.";
   }
   LOG(INFO) << "Number of tasks remaining in _task_queue is"
             << _task_queue.size();
