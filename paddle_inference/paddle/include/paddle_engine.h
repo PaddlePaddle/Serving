@@ -259,6 +259,11 @@ class PaddleInferenceEngine : public EngineCore {
       config.SwitchIrOptim(true);
     }
 
+    int local_min_subgraph_size = min_subgraph_size;
+    if (engine_conf.has_min_subgraph_size()) {
+      local_min_subgraph_size = engine_conf.min_subgraph_size();
+    }
+
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
@@ -270,10 +275,54 @@ class PaddleInferenceEngine : public EngineCore {
       }
       config.EnableTensorRtEngine(1 << 25,
                                   max_batch,
-                                  min_subgraph_size,
+                                  local_min_subgraph_size,
                                   precision_type,
                                   false,
                                   FLAGS_use_calib);
+      std::map<std::string, std::vector<int>> min_input_shape;
+      std::map<std::string, std::vector<int>> max_input_shape;
+      std::map<std::string, std::vector<int>> optim_input_shape;
+      if (engine_conf.min_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.min_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          min_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.max_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.max_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          max_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.opt_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.opt_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          optim_input_shape[key] = arr;
+        }
+      }
+      config.SetTRTDynamicShapeInfo(
+          min_input_shape, max_input_shape, optim_input_shape);
       LOG(INFO) << "create TensorRT predictor";
     }
 
@@ -348,12 +397,14 @@ class PaddleInferenceEngine : public EngineCore {
       return -1;
     }
 
-    LOG(INFO) << "paddle_engine params : enable_dist_model:" << engine_conf.enable_dist_model()
+    LOG(INFO) << "paddle_engine params : enable_dist_model:"
+              << engine_conf.enable_dist_model()
               << ", use_gpu: " << engine_conf.has_use_gpu()
               << ", gpu_id: " << gpu_id
               << ", use_gpu_multi_stream: " << engine_conf.gpu_multi_stream()
               << ", precision: " << FLAGS_precision
-              << ", enable_ir_optimization: " << engine_conf.enable_ir_optimization()
+              << ", enable_ir_optimization: "
+              << engine_conf.enable_ir_optimization()
               << ", use_trt: " << engine_conf.use_trt()
               << ", trt_max_batch: " << max_batch
               << ", trt_min_subgraph_size: " << min_subgraph_size
@@ -361,7 +412,8 @@ class PaddleInferenceEngine : public EngineCore {
               << ", use_lite: " << engine_conf.use_lite()
               << ", use_ascend_cl: " << engine_conf.has_use_ascend_cl()
               << ", use_xpu: " << engine_conf.use_xpu()
-              << ", enable_memory_optimization: " << engine_conf.enable_memory_optimization();
+              << ", enable_memory_optimization: "
+              << engine_conf.enable_memory_optimization();
 
     VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;

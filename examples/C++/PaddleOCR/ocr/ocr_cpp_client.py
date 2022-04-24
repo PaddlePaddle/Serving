@@ -42,13 +42,11 @@ for img_file in os.listdir(test_img_dir):
         image_data = file.read()
     image = cv2_to_base64(image_data)
     fetch_map = client.predict(
-        feed={"image": image},
-        fetch=["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"],
+        feed={"x": image},
+        fetch=["save_infer_model/scale_0.tmp_1"],
         batch=True)
     result = {}
-    result["score"] = fetch_map["softmax_0.tmp_0"]
-    del fetch_map["softmax_0.tmp_0"]
-    rec_res = OCRReader().postprocess(fetch_map, with_score=False)
+    rec_res = OCRReader().postprocess_ocrv2(fetch_map, with_score=False)
     res_lst = []
     for res in rec_res:
         res_lst.append(res[0])
