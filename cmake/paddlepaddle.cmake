@@ -30,7 +30,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.2.2")
+SET(PADDLE_VERSION "2.3.0-rc0")
 if (WITH_GPU)
     message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}")
     # cuda 11.0 is not supported, 11.2 would be added.
@@ -177,7 +177,7 @@ if (NOT WITH_MKLML)
 endif()
 
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
+SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 if (WITH_ASCEND_CL)
     SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 endif()

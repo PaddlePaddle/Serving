@@ -80,8 +80,8 @@ int GeneralReaderOp::inference() {
   VLOG(2) << "(logid=" << log_id << ") var num: " << var_num
           << ") start to call load general model_conf op";
   if (var_num < 1) {
-    LOG(ERROR) << "(logid=" << log_id << ") Failed get feed_var, var_num="
-               << var_num;
+    LOG(ERROR) << "(logid=" << log_id
+               << ") Failed get feed_var, var_num=" << var_num;
     return -1;
   }
 
@@ -98,7 +98,7 @@ int GeneralReaderOp::inference() {
   int64_t elem_type = 0;
   int64_t elem_size = 0;
   int64_t databuf_size = 0;
-  const void* src_ptr = nullptr;
+  const void *src_ptr = nullptr;
   for (int i = 0; i < var_num; ++i) {
     paddle::PaddleTensor paddleTensor;
     const Tensor &tensor = req->tensor(i);
@@ -107,7 +107,7 @@ int GeneralReaderOp::inference() {
     elem_size = 0;
     databuf_size = 0;
     elem_type = tensor.elem_type();
-    src_ptr = nullptr ;
+    src_ptr = nullptr;
     if (elem_type == P_INT64) {  // int64
       elem_size = sizeof(int64_t);
       paddleTensor.dtype = paddle::PaddleDType::INT64;
@@ -157,8 +157,8 @@ int GeneralReaderOp::inference() {
             << "dtype=" << paddleTensor.dtype << ";"
             << "data_len=" << data_len;
     if (src_ptr == nullptr) {
-      LOG(ERROR) << "Not support var[" << i << "] with elem_type[" 
-                 << elem_type << "]";
+      LOG(ERROR) << "Not support var[" << i << "] with elem_type[" << elem_type
+                 << "]";
       continue;
     }
     // implement lod tensor here
@@ -166,9 +166,15 @@ int GeneralReaderOp::inference() {
     // TODO(HexToString): support 2-D lod
     if (tensor.lod_size() > 0) {
       VLOG(2) << "(logid=" << log_id << ") var[" << i << "] is lod_tensor";
-      paddleTensor.lod.resize(1);
+      int lod_index = -1;
       for (int k = 0; k < tensor.lod_size(); ++k) {
-        paddleTensor.lod[0].push_back(tensor.lod(k));
+        if (tensor.lod(k) == 0) {
+          lod_index++;
+          paddleTensor.lod.resize(lod_index + 1);
+        }
+        paddleTensor.lod[lod_index].push_back(tensor.lod(k));
+        VLOG(2) << "(logid=" << log_id << ") lod[" << lod_index
+                << "]=" << tensor.lod(k);
       }
     }
 
@@ -191,7 +197,7 @@ int GeneralReaderOp::inference() {
       VLOG(2) << "(logid=" << log_id << ") var[" << i
               << "] has lod_tensor and len=" << out->at(i).lod[0].back();
     }
-    void* dst_ptr = out->at(i).data.data();
+    void *dst_ptr = out->at(i).data.data();
     if (!dst_ptr) {
       LOG(ERROR) << "dst_ptr is nullptr";
       return -1;

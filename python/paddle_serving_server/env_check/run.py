@@ -21,21 +21,27 @@ Usage: export PYTHON_EXECUTABLE=/usr/local/bin/python3.6
        python3.6 -m paddle_serving_server.serve check
 '''
 
-
 import sys
 import os
 import pytest
 
-
 inference_test_cases = ["test_fit_a_line.py::TestFitALine::test_inference"]
-cpp_test_cases = ["test_fit_a_line.py::TestFitALine::test_cpu", "test_fit_a_line.py::TestFitALine::test_gpu"]
-pipeline_test_cases = ["test_uci_pipeline.py::TestUCIPipeline::test_cpu", "test_uci_pipeline.py::TestUCIPipeline::test_gpu"]
+cpp_test_cases = [
+    "test_fit_a_line.py::TestFitALine::test_cpu",
+    "test_fit_a_line.py::TestFitALine::test_gpu"
+]
+pipeline_test_cases = [
+    "test_uci_pipeline.py::TestUCIPipeline::test_cpu",
+    "test_uci_pipeline.py::TestUCIPipeline::test_gpu"
+]
 log_files = ["PipelineServingLogs", "log", "stderr.log", "stdout.log"]
+
 
 def set_serving_log_path():
     if 'SERVING_LOG_PATH' not in os.environ:
         serving_log_path = os.path.expanduser(os.getcwd()) + '/'
-        os.environ['SERVING_LOG_PATH']=serving_log_path
+        os.environ['SERVING_LOG_PATH'] = serving_log_path
+
 
 def mv_log_to_new_dir(dir_path):
     import shutil
@@ -46,8 +52,8 @@ def mv_log_to_new_dir(dir_path):
         file_path = os.path.join(serving_log_path, file_name)
         dir_path_temp = os.path.join(dir_path, file_name)
         if os.path.exists(file_path):
-            shutil.move(file_path, dir_path_temp)   
-     
+            shutil.move(file_path, dir_path_temp)
+
 
 def run_test_cases(cases_list, case_type, is_open_std):
     old_stdout, old_stderr = sys.stdout, sys.stderr
@@ -66,33 +72,41 @@ def run_test_cases(cases_list, case_type, is_open_std):
         new_dir_path = os.path.join(serving_log_path, dir_name)
         mv_log_to_new_dir(new_dir_path)
         if res == 0:
-            print("{} {} environment running success".format(case_type, case_name))
+            print("{} {} environment running success".format(case_type,
+                                                             case_name))
         elif res == 1:
             if case_name == "inference":
-                print("{} {} environment running failure. Please refer to https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/install/pip/linux-pip.html to configure environment".format(case_type, case_name))
+                print(
+                    "{} {} environment running failure. Please refer to https://www.paddlepaddle.org.cn/install/quick?docurl=/documentation/docs/zh/install/pip/linux-pip.html to configure environment".
+                    format(case_type, case_name))
                 os._exit(0)
             else:
-                print("{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/develop/doc/Install_CN.md".format(case_type, case_name))
+                print(
+                    "{} {} environment running failure, if you need this environment, please refer to https://github.com/PaddlePaddle/Serving/blob/develop/doc/Install_CN.md".
+                    format(case_type, case_name))
+
 
 def unset_env(key):
     del os.environ[key]
 
+
 def check_env(mode):
     set_serving_log_path()
     if 'https_proxy' in os.environ or 'http_proxy' in os.environ:
-        unset_env("https_proxy") 
-        unset_env("http_proxy")     
+        unset_env("https_proxy")
+        unset_env("http_proxy")
     if 'GREP_OPTIONS' in os.environ:
-        unset_env("GREP_OPTIONS") 
-    is_open_std = False 
-    if mode is "debug":
+        unset_env("GREP_OPTIONS")
+    is_open_std = False
+    if mode == "debug":
         is_open_std = True
-    if mode is "all" or mode is "inference" or mode is "debug":
+    if mode == "all" or mode == "inference" or mode == "debug":
         run_test_cases(inference_test_cases, "PaddlePaddle", is_open_std)
-    if mode is "all" or mode is "cpp" or mode is "debug":
+    if mode == "all" or mode == "cpp" or mode == "debug":
         run_test_cases(cpp_test_cases, "C++", is_open_std)
-    if mode is "all" or mode is "pipeline" or mode is "debug":
+    if mode == "all" or mode == "pipeline" or mode == "debug":
         run_test_cases(pipeline_test_cases, "Pipeline", is_open_std)
+
 
 if __name__ == '__main__':
     check_env("debug")

@@ -6,7 +6,7 @@ Paddle Serving 实现了一套通用的多模型组合服务编程框架 Python 
 
 Python Pipeline 使用案例请阅读[Python Pipeline 快速部署案例](./3-2_QuickStart_Pipeline_OCR_CN.md)
 
-通过阅读以下内容掌握 Python Pipeline 设计方案、高阶用法和优化指南等。
+通过阅读以下内容掌握 Python Pipeline 核心功能和使用方法、高阶功能用法和性能优化指南等。
 - [Python Pipeline 框架设计](7-1_Python_Pipeline_Design_CN.md)
 - [Python Pipeline 高阶用法](7-2_Python_Pipeline_Senior_CN.md)
 - [Python Pipeline 优化指南](7-3_Python_Pipeline_Optimize_CN.md)

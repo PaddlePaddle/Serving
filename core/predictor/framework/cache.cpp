@@ -55,7 +55,7 @@ int CubeCache::reload_data(const std::string& cache_path) {
 
   // loading data from cache files
   if (stat(cache_path.c_str(), &st) < 0 || !S_ISDIR(st.st_mode)) {
-    LOG(ERROR) << "invalid cache path " << cache_path;
+    LOG(WARNING) << "No cube cache directory " << cache_path << " provided, ignore it";
     return -1;
   }
   if ((dp = opendir(cache_path.c_str())) == nullptr) {

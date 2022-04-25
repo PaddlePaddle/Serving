@@ -90,6 +90,7 @@ int DagView::init(Dag* dag,
                    node->name,
                    node->type,
                    node->conf,
+                   node->address,
                    log_id) != 0) {
         LOG(WARNING) << "(logid=" << log_id
                      << ") Failed init op, type:" << node->type;

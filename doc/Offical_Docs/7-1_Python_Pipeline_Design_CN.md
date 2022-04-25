@@ -42,7 +42,7 @@ Request 是输入结构，`key` 与 `value` 是配对的 string 数组。 `name`
 
 Response 是输出结构，`err_no` 和 `err_msg` 表达处理结果的正确性和错误信息，`key` 和 `value` 为结果。
 
-Pipeline 服务包装了继承于 WebService 类，以 OCR 示例为例，派生出 OcrService 类，get_pipeline_response 函数内实现 DAG 拓扑关系，默认服务入口为 read_op，函数返回的 Op 为最后一个处理，此处要求最后返回的 Op 必须唯一。
+Pipeline 服务包装了继承于 WebService 类，以 [OCR 示例](https://github.com/PaddlePaddle/Serving/tree/develop/examples/Pipeline/PaddleOCR/ocr)为例，派生出 OcrService 类，get_pipeline_response 函数内实现 DAG 拓扑关系，默认服务入口为 read_op，函数返回的 Op 为最后一个处理，此处要求最后返回的 Op 必须唯一。
 
 所有服务和模型的所有配置信息在 `config.yml` 中记录，URL 的 name 字段由 OcrService 初始化定义；run_service 函数启动服务。
 
@@ -177,6 +177,8 @@ Pipeline 的日志模块在 `logger.py` 中定义，使用了 `logging.handlers.
 
 ```
 
+**四. 服务超时与重试**
+
 
 
 ## 自定义信息
@@ -297,7 +299,6 @@ def init_op(self):
 ```
 
 RequestOp 和 ResponseOp 是 Python Pipeline 的中2个特殊 Op，分别是用分解 RPC 数据加入到图执行引擎中，和拿到图执行引擎的预测结果并打包 RPC 数据到客户端。
-
 RequestOp 类的设计如下所示，核心是在 unpack_request_package 函数中解析请求数据，因此，当修改 Request 结构后重写此函数实现全新的解包处理。
 
 |                接口                 |                    说明                    |
@@ -333,7 +334,6 @@ class RequestOp(Op):
 
         return dict_data, log_id, None, ""
 ```
-
 
 ResponseOp 类的设计如下所示，核心是在 pack_response_package 中打包返回结构，因此修改 Response 结构后重写此函数实现全新的打包格式。
 
@@ -380,4 +380,36 @@ class ProductErrCode(enum.Enum):
     product developers inherit this class and extend more error codes. 
     """
     pass
+```
+
+其使用方法如下所示，定义了一种错误类型 `Product_Error` ，在 `preprocess` 函数返回值中设置错误信息，在 `postprocess` 函数中也可以设置。
+```python
+
+class ProductErrCode(enum.Enum):
+    """
+    ProductErrCode is a base class for recording business error code. 
+    product developers inherit this class and extend more error codes. 
+    """
+    Product_Error = 100001,
+
+def preprocess(self, input_dicts, data_id, log_id):
+    """
+    In preprocess stage, assembling data for process stage. users can 
+    override this function for model feed features.
+    Args:
+        input_dicts: input data to be preprocessed
+        data_id: inner unique id
+        log_id: global unique id for RTT
+    Return:
+        input_dict: data for process stage
+        is_skip_process: skip process stage or not, False default
+        prod_errcode: None default, otherwise, product errores occured.
+                      It is handled in the same way as exception. 
+        prod_errinfo: "" default
+    """
+    (_, input_dict), = input_dicts.items()
+    if input_dict.get_key("product_error"):
+        return input_dict, False, Product_Error, "Product Error Occured"
+    return input_dict, False, None, "" 
+
 ```

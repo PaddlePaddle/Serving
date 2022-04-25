@@ -37,11 +37,14 @@ from paddle_serving_server.util import *
 from paddle_serving_server.env_check.run import check_env
 import cmd
 
+
 def signal_handler(signal, frame):
     print('Process stopped')
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
+
 
 # web_service.py is still used by Pipeline.
 def port_is_available(port):
@@ -185,10 +188,10 @@ def serve_args():
         action="store_true",
         help="Use encryption model")
     parser.add_argument(
-        "--encryption_rpc_port", 
-        type=int, 
-        required=False, 
-        default=12000, 
+        "--encryption_rpc_port",
+        type=int,
+        required=False,
+        default=12000,
         help="Port of encryption model, only valid for arg.use_encryption_model")
     parser.add_argument(
         "--use_trt", default=False, action="store_true", help="Use TensorRT")
@@ -217,13 +220,66 @@ def serve_args():
         action="store_true",
         help="Use gpu_multi_stream")
     parser.add_argument(
-        "--enable_prometheus", default=False, action="store_true", help="Use Prometheus")
+        "--enable_prometheus",
+        default=False,
+        action="store_true",
+        help="Use Prometheus")
     parser.add_argument(
-        "--prometheus_port", type=int, default=19393, help="Port of the Prometheus")
+        "--prometheus_port",
+        type=int,
+        default=19393,
+        help="Port of the Prometheus")
     parser.add_argument(
-        "--request_cache_size", type=int, default=0, help="Port of the Prometheus")
+        "--request_cache_size",
+        type=int,
+        default=0,
+        help="Max request cache size")
     parser.add_argument(
-        "--min_subgraph_size", type=str, default="", nargs="+", help="min_subgraph_size")
+        "--use_dist_model",
+        default=False,
+        action="store_true",
+        help="Use distributed model")
+    parser.add_argument(
+        "--dist_carrier_id",
+        type=str,
+        default="",
+        help="carrier id of distributed model")
+    parser.add_argument(
+        "--dist_cfg_file",
+        type=str,
+        default="",
+        help="config file of distributed model")
+    parser.add_argument(
+        "--dist_endpoints",
+        type=str,
+        default="+",
+        help="endpoints of distributed model. splited by comma")
+    parser.add_argument(
+        "--dist_nranks",
+        type=int,
+        default=0,
+        help="nranks of distributed model")
+    parser.add_argument(
+        "--dist_subgraph_index",
+        type=int,
+        default=-1,
+        help="index of distributed model")
+    parser.add_argument(
+        "--dist_worker_serving_endpoints",
+        type=str,
+        default=None,
+        help="endpoints of worker serving endpoints")
+    parser.add_argument(
+        "--dist_master_serving",
+        default=False,
+        action="store_true",
+        help="The master serving of distributed inference")
+    parser.add_argument(
+        "--min_subgraph_size",
+        type=str,
+        default="",
+        nargs="+",
+        help="min_subgraph_size")
     return parser.parse_args()
 
 
@@ -247,7 +303,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     workdir = "{}_{}".format(args.workdir, port)
     dag_list_op = []
 
-    if model == "":
+    if model == "" and not args.dist_master_serving:
         print("You must specify your serving model")
         exit(-1)
     for single_model_config in args.model:
@@ -272,34 +328,55 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
 
                 dag_list_op.append(temp_str_list[0])
 
-    read_op = op_maker.create('GeneralReaderOp')
-    op_seq_maker.add_op(read_op)
-    is_ocr = False
-    #如果dag_list_op不是空，那么证明通过--op 传入了自定义OP或自定义的DAG串联关系。
-    #此时，根据--op 传入的顺序去组DAG串联关系
-    if len(dag_list_op) > 0:
-        for single_op in dag_list_op:
-            op_seq_maker.add_op(op_maker.create(single_op))
-            if single_op == "GeneralDetectionOp":
-                is_ocr = True
-    #否则，仍然按照原有方式根虎--model去串联。
-    else:
-        for idx, single_model in enumerate(model):
-            infer_op_name = "GeneralInferOp"
-            # 目前由于ocr的节点Det模型依赖于opencv的第三方库
-            # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
-            # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
-            # 以后可能考虑不用python脚本来生成配置
-            if len(model) == 2 and idx == 0 and single_model == "ocr_det_model":
-                infer_op_name = "GeneralDetectionOp"
-                is_ocr = True
-            else:
+    # The workflows of master serving in distributed model is different from
+    # worker servings. The workflow of worker servings is same to non-distributed
+    # model, but workerflow of master serving needs to add IP address of other
+    # worker serving in the machine.
+    if not args.dist_master_serving:
+        read_op = op_maker.create('GeneralReaderOp')
+        op_seq_maker.add_op(read_op)
+        is_ocr = False
+        #如果dag_list_op不是空，那么证明通过--op 传入了自定义OP或自定义的DAG串联关系。
+        #此时，根据--op 传入的顺序去组DAG串联关系
+        if len(dag_list_op) > 0:
+            for single_op in dag_list_op:
+                op_seq_maker.add_op(op_maker.create(single_op))
+                if single_op == "GeneralDetectionOp":
+                    is_ocr = True
+        #否则，仍然按照原有方式根虎--model去串联。
+        else:
+            for idx, single_model in enumerate(model):
                 infer_op_name = "GeneralInferOp"
-            general_infer_op = op_maker.create(infer_op_name)
-            op_seq_maker.add_op(general_infer_op)
+                # 目前由于ocr的节点Det模型依赖于opencv的第三方库
+                # 只有使用ocr的时候，才会加入opencv的第三方库并编译GeneralDetectionOp
+                # 故此处做特殊处理，当不满足下述情况时，所添加的op默认为GeneralInferOp
+                # 以后可能考虑不用python脚本来生成配置
+                if len(model
+                       ) == 2 and idx == 0 and single_model == "ocr_det_model":
+                    infer_op_name = "GeneralDetectionOp"
+                    is_ocr = True
+                else:
+                    infer_op_name = "GeneralInferOp"
+                general_infer_op = op_maker.create(infer_op_name)
+                op_seq_maker.add_op(general_infer_op)
 
-    general_response_op = op_maker.create('GeneralResponseOp')
-    op_seq_maker.add_op(general_response_op)
+        general_response_op = op_maker.create('GeneralResponseOp')
+        op_seq_maker.add_op(general_response_op)
+    else:
+        # for the master serving of distributed model only add one general_remote op.
+        if args.dist_worker_serving_endpoints is None:
+            raise ValueError(
+                "Params Error!. dist_worker_serving_endpoints is empty when dist_master_serving is set"
+            )
+        worker_serving_endpoints = args.dist_worker_serving_endpoints.split(",")
+        if len(worker_serving_endpoints) == 0:
+            raise ValueError(
+                "Params Error!. dist_worker_serving_endpoints is empty when dist_master_serving is set"
+            )
+
+        general_remote_op = op_maker.create(
+            'GeneralRemoteOp', None, [], [], addresses=worker_serving_endpoints)
+        op_seq_maker.add_op(general_remote_op, )
 
     server.set_op_sequence(op_seq_maker.get_op_sequence())
     server.set_num_threads(thread_num)
@@ -312,6 +389,12 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     server.set_enable_prometheus(args.enable_prometheus)
     server.set_prometheus_port(args.prometheus_port)
     server.set_request_cache_size(args.request_cache_size)
+    server.set_enable_dist_model(args.use_dist_model)
+    server.set_dist_carrier_id(args.dist_carrier_id)
+    server.set_dist_cfg_file(args.dist_cfg_file)
+    server.set_dist_nranks(args.dist_nranks)
+    server.set_dist_endpoints(args.dist_endpoints.split(","))
+    server.set_dist_subgraph_index(args.dist_subgraph_index)
     server.set_min_subgraph_size(args.min_subgraph_size)
 
     if args.use_trt and device == "gpu":
@@ -354,6 +437,7 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
         use_encryption_model=args.use_encryption_model)
     server.run_server()
 
+
 def set_ocr_dynamic_shape_info():
     info = []
     min_input_shape = {
@@ -387,10 +471,7 @@ def set_ocr_dynamic_shape_info():
     }
     info.append(det_info)
     min_input_shape = {"x": [1, 3, 32, 10], "lstm_1.tmp_0": [1, 1, 128]}
-    max_input_shape = {
-        "x": [50, 3, 32, 1000],
-        "lstm_1.tmp_0": [500, 50, 128]
-    }
+    max_input_shape = {"x": [50, 3, 32, 1000], "lstm_1.tmp_0": [500, 50, 128]}
     opt_input_shape = {"x": [6, 3, 32, 100], "lstm_1.tmp_0": [25, 5, 128]}
     rec_info = {
         "min_input_shape": min_input_shape,
@@ -399,6 +480,7 @@ def set_ocr_dynamic_shape_info():
     }
     info.append(rec_info)
     return info
+
 
 def start_multi_card(args, serving_port=None):  # pylint: disable=doc-string-missing
 
@@ -544,8 +626,10 @@ def stop_serving(command: str, port: int=None):
                 os.remove(filepath)
     return True
 
+
 class Check_Env_Shell(cmd.Cmd):
     intro = "Welcome to the check env shell.Type help to list commands.\n"
+
     # ----- basic  commands -----
     def do_help(self, arg):
         print("\nCommand list\t\tDescription\n"\
@@ -562,29 +646,30 @@ class Check_Env_Shell(cmd.Cmd):
 
     def do_check_all(self, arg):
         "Check Environment of Paddle Inference, Pipeline Serving, C++ Serving"
-        check_env("all") 
-    
+        check_env("all")
+
     def do_check_pipeline(self, arg):
         "Check Environment of Pipeline Serving"
-        check_env("pipeline") 
-    
+        check_env("pipeline")
+
     def do_check_cpp(self, arg):
         "Check Environment of C++ Serving"
-        check_env("cpp") 
+        check_env("cpp")
 
     def do_check_inference(self, arg):
         "Check Environment of Paddle Inference"
-        check_env("inference") 
-      
+        check_env("inference")
+
     def do_debug(self, arg):
         "Open pytest log to debug"
-        check_env("debug") 
+        check_env("debug")
 
     def do_exit(self, arg):
         "Exit Check Env Shell"
         print('Check Environment Shell Exit')
         os._exit(0)
         return True
+
 
 if __name__ == "__main__":
     # args.device is not used at all.
@@ -602,7 +687,7 @@ if __name__ == "__main__":
         else:
             os._exit(-1)
     elif args.server == "check":
-         Check_Env_Shell().cmdloop() 
+        Check_Env_Shell().cmdloop()
     for single_model_config in args.model:
         if os.path.isdir(single_model_config):
             pass
