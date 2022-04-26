@@ -1,6 +1,6 @@
-# Low precsion of ResNet50 Pipeline WebService
+# Python Pipeline 低精度部署案例
 
-这里以 ResNet50 的低精度模型为例介绍 Pipeline WebService 的部署和使用。
+这里以 ResNet50 量化模型 为例，介绍 Python Pipline 低精度部署案例。
 
 ## 1.获取模型
 ```

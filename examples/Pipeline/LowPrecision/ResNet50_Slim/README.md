@@ -1,6 +1,6 @@
-# Imagenet Pipeline WebService
+# Low precsion examples of python pipeline 
 
-This document will takes Imagenet service as an example to introduce how to use Pipeline WebService.
+Here we take the ResNet50 quantization model as an example to introduce the low-precision deployment case of Python Pipline.
 
 ## 1.Get model
 ```
