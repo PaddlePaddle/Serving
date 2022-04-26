@@ -47,7 +47,7 @@ class ImagenetOp(Op):
         return {"image": input_imgs}, False, None, ""
 
     def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
-        score_list = fetch_dict["score"]
+        score_list = fetch_dict["save_infer_model/scale_0.tmp_0"]
         result = {"label": [], "prob": []}
         for score in score_list:
             score = score.tolist()
