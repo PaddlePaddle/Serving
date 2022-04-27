@@ -32,7 +32,7 @@
 | Python3.6             | [paddle_serving_client-0.0.0-cp36-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp36-none-any.whl) | [paddle_serving_client-0.8.3-cp36-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp36-none-any.whl)  |
 | Python3.7             | [paddle_serving_client-0.0.0-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp37-none-any.whl) | [paddle_serving_client-0.8.3-cp37-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp37-none-any.whl)  |
 | Python3.8             | [paddle_serving_client-0.0.0-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp38-none-any.whl) | [paddle_serving_client-0.8.3-cp38-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
-| Python3.9             | [paddle_serving_client-0.0.0-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp39-none-any.whl) | [paddle_serving_client-0.8.3-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp38-none-any.whl)  |
+| Python3.9             | [paddle_serving_client-0.0.0-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.0.0-cp39-none-any.whl) | [paddle_serving_client-0.8.3-cp39-none-any.whl](https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_client-0.8.3-cp39-none-any.whl)  |
 
 ## paddle-serving-app Wheel包
 
