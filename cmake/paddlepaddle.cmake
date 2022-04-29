@@ -100,7 +100,7 @@ endif()
 
 if(WITH_LITE)
     if (WITH_XPU)
-        SET(PADDLE_LIB_PATH "https://paddle-inference-lib.bj.bcebos.com/${PADDLE_LIB_VERSION}/paddle_inference_install_dir.tar.gz ")
+        SET(PADDLE_LIB_PATH "https://paddle-serving.bj.bcebos.com/inferlib/${PADDLE_LIB_VERSION}/paddle_inference_install_dir.tar.gz ")
     elseif (WITH_ASCEND_CL)
         SET(PADDLE_LIB_PATH "http://paddle-serving.bj.bcebos.com/inferlib/${PADDLE_LIB_VERSION}/paddle_inference_install_dir.tgz ")
     endif()
