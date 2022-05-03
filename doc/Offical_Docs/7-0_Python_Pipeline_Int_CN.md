@@ -10,3 +10,4 @@ Python Pipeline 使用案例请阅读[Python Pipeline 快速部署案例](./3-2_
 - [Python Pipeline 框架设计](7-1_Python_Pipeline_Design_CN.md)
 - [Python Pipeline 核心功能](7-2_Python_Pipeline_Senior_CN.md)
 - [Python Pipeline 优化指南](7-3_Python_Pipeline_Optimize_CN.md)
+- [Python Pipeline 性能指标](7-4_Python_Pipeline_Benchmark_CN.md)
