@@ -14,7 +14,7 @@ Paddle Serving 提供2种耗时分析工具，`Pipeline Trace Tool` 和 `Pipelin
 - Pipeline Trace Tool : 统计服务端所有进程各个阶段的平均耗时，包括每个 `Op` 和 `Channel`，用于定量分析。
 - Pipeline Profile Tool : 是可视化 Trace View 工具，生成多进程并发效果图，用定性和定量分析执行和并发效果。
 
-** 一.Pipeline Trace Tool **
+**一.Pipeline Trace Tool**
 
 `Pipeline Trace Tool` 统计每个 `Op` 和 `Channel` 中各阶段的处理耗时，
 
@@ -60,7 +60,7 @@ dag:
  ==================== TRACER ======================
 ```
 
-** 二.Pipeline Profile Tool **
+**二.Pipeline Profile Tool**
 
 ```
 dag:
@@ -102,7 +102,7 @@ python3.7 trace.py
 通过图示中并发请求的处理流程可观测到推理阶段的流水线状态，以及多个请求在推理阶段的`间隔`信息，进行优化。
 
 
-** 三. 降低响应时长优化思路 **
+**三. 降低响应时长优化思路**
 
 根据 `Pipeline Trace Tool` 输出结果在不同阶段耗时长的问题，常见场景的优化方法如下：
 - Op 推理阶段(midp) 耗时长:
