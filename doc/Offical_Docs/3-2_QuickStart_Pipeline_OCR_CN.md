@@ -17,7 +17,7 @@ PaddleOCR 提供的 PP-OCR 系列模型覆盖轻量级服务端、轻量级移�
 | 中英文通用服务端模型 | 143.4M | ch_ppocr_server_v2.0_xx | 服务器端 |
 
 
-## 模型步骤
+## 部署步骤
 
 前提条件是你已完成[环境安装]()步骤，并已验证环境安装成功，此处不在赘述。
 
@@ -155,7 +155,6 @@ op:
             #min_subgraph_size: 3
 ```
 
-
 **四.代码与配置信息绑定 **
 第四步，实现代码和配置文件 Config.yml 绑定，以及设置多模型组合关系。具体包括：
 
@@ -201,6 +200,40 @@ ocr_service.run_service()
 
 
 **五.启动服务与验证**
+
+启动服务前，可看到程序路径下所有文件路径如下：
+```
+.
+├── 7.jpg
+├── benchmark.py
+├── benchmark.sh
+├── config.yml
+├── imgs
+│   └── ggg.png
+├── ocr_det_client
+│   ├── serving_client_conf.prototxt
+│   └── serving_client_conf.stream.prototxt
+├── ocr_det_model
+│   ├── inference.pdiparams
+│   ├── inference.pdmodel
+│   ├── serving_server_conf.prototxt
+│   └── serving_server_conf.stream.prototxt
+├── ocr_rec_client
+│   ├── serving_client_conf.prototxt
+│   └── serving_client_conf.stream.prototxt
+├── ocr_rec_model
+│   ├── inference.pdiparams
+│   ├── inference.pdmodel
+│   ├── serving_server_conf.prototxt
+│   └── serving_server_conf.stream.prototxt
+├── pipeline_http_client.py
+├── pipeline_rpc_client.py
+├── ppocr_keys_v1.txt
+├── ProcessInfo.json
+├── README_CN.md
+├── README.md
+└── web_service.py
+```
 
 运行程序 `web_service.py` 启动服务端
 ```
