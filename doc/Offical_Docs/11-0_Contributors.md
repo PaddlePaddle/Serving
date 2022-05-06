@@ -1,7 +1,73 @@
 # 开发者贡献
 
+## 贡献代码流程
 
-如果您想为Paddle Serving贡献代码，请参考 [Contribution Guidelines(English)](doc/Contribute_EN.md)
+Paddle Serving 使用 Git 分支模式。通常，按以下步骤贡献代码：
+- 创建个人仓库
+- 本地克隆仓库和分支
+- 提交代码
+- 通过 CI 验证
+- Code Review
+- 代码合入
+
+**一.创建个人仓库**
+
+Paddle Serving 社区一直在快速发展，每个人都写到官方回购中是没有意义的。所以，请先 `fork` 出个人仓库，并提交 `Pull Requests`。`fork` 个人仓库，只需前往 [Serving](https://github.com/PaddlePaddle/Serving) 页面并单击右上角 ["Fork"](https://github.com/PaddlePaddle/Serving/fork)。
+
+**二.本地克隆仓库和分支**
+
+创建个人仓库后，`clone` 个人仓库到本地计算机，默认创建本地 `develop` 分支。
+```bash
+git clone https://github.com/your-github-account/Serving
+```
+
+**三.提交代码**
+
+本地修改代码并验证后，准备提交代码。在提交代码前请安装 [`pre-commit`](http://pre-commit.com/)、cpplint 和 pylint。
+```bash
+pip3 install pre-commit
+pre-commit install
+
+pip3 install cpplint pylint
+```
+在提交代码时，会进行代码格式检查和修正，待所有检查都通过后，方可提交。
+```shell
+   $  git commit
+   CRLF end-lines remover...............................(no files to check)Skipped
+   yapf.....................................................................Passed
+   Check for added large files..............................................Passed
+   Check for merge conflicts................................................Passed
+   Check for broken symlinks................................................Passed
+   Detect Private Key...................................(no files to check)Skipped
+   Fix End of Files.........................................................Passed
+   clang-format.............................................................Passed
+   cpplint..................................................................Passed
+   pylint...................................................................Passed
+   copyright_checker........................................................Passed
+   [my-cool-stuff c703c041] add test file
+    1 file changed, 0 insertions(+), 0 deletions(-)
+    create mode 100644 233
+```
+
+运行代码提交命令，提交到个人仓库，再通过 Github 页面创建一个 `pull request` 提交到 Paddel Serving 主仓库。
+```bash
+git push origin develop
+```
+
+**四.通过 CI 验证**
+
+所有提交到 Paddle Serving 主仓库的 `pull request` 都会运行 `py36`、`py38`、`py39`的所有 CI 测试用例。全部通过后才能合入。
+
+**五.Code Review**
+
+所有提交的代码要经过管理员的评审，至少通过2人评审后方可合入。
+
+**六.代码合入**
+
+待通过全部 CI 验证，并且完成 Code Review 和修改后，由仓库管理员合入代码。
+
+
+## 致谢开发者
 
 - 感谢 [@loveululu](https://github.com/loveululu) 提供 Cube python API
 - 感谢 [@EtachGu](https://github.com/EtachGu) 更新 docker 使用命令
