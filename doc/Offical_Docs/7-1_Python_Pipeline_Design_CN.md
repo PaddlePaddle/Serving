@@ -138,8 +138,7 @@ Channel的设计原则：
 </div>
 
 
-
-**三. 服务日志**
+**三.服务日志**
 
 Pipeline 服务日志在当前目录的 `PipelineServingLogs` 目录下，有3种类型日志，分别是 `pipeline.log`、`pipeline.log.wf`、`pipeline.tracer`。
 - `pipeline.log` : 记录 debug & info日志信息
