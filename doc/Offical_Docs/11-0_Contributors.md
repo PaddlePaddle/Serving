@@ -1,18 +1,27 @@
 # 开发者贡献
 
+- [贡献代码流程](#1)
+    - [创建个人仓库](#1.1)
+    - [本地克隆仓库和分支](#1.2)
+    - [提交代码](#1.3)
+    - [通过 CI 验证](#1.4)
+    - [Code Review](#1.5)
+    - [代码合入](#1.6)
+- [致谢开发者](#2) 
+
+<a name="1"></a>
+
 ## 贡献代码流程
 
 Paddle Serving 使用 Git 分支模式。通常，按以下步骤贡献代码：
-- 创建个人仓库
-- 本地克隆仓库和分支
-- 提交代码
-- 通过 CI 验证
-- Code Review
-- 代码合入
+
+<a name="1.1"></a>
 
 **一.创建个人仓库**
 
 Paddle Serving 社区一直在快速发展，每个人都写到官方回购中是没有意义的。所以，请先 `fork` 出个人仓库，并提交 `Pull Requests`。`fork` 个人仓库，只需前往 [Serving](https://github.com/PaddlePaddle/Serving) 页面并单击右上角 ["Fork"](https://github.com/PaddlePaddle/Serving/fork)。
+
+<a name="1.2"></a>
 
 **二.本地克隆仓库和分支**
 
@@ -20,6 +29,8 @@ Paddle Serving 社区一直在快速发展，每个人都写到官方回购中�
 ```bash
 git clone https://github.com/your-github-account/Serving
 ```
+
+<a name="1.3"></a>
 
 **三.提交代码**
 
@@ -54,18 +65,25 @@ pip3 install cpplint pylint
 git push origin develop
 ```
 
+<a name="1.4"></a>
+
 **四.通过 CI 验证**
 
 所有提交到 Paddle Serving 主仓库的 `pull request` 都会运行 `py36`、`py38`、`py39`的所有 CI 测试用例。全部通过后才能合入。
+
+<a name="1.5"></a>
 
 **五.Code Review**
 
 所有提交的代码要经过管理员的评审，至少通过2人评审后方可合入。
 
+<a name="1.6"></a>
+
 **六.代码合入**
 
 待通过全部 CI 验证，并且完成 Code Review 和修改后，由仓库管理员合入代码。
 
+<a name="2"></a>
 
 ## 致谢开发者
 

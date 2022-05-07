@@ -1,6 +1,18 @@
 # Python Pipeline 快速部署案例
 
+- [模型介绍](#1)
+- [部署步骤](#2)
+    - [获取模型与保存模型参数](#2.1)
+    - [保存 Serving 部署的模型参数](#2.2)
+    - [下载测试数据集（可选）](#2.3)
+    - [修改配置文件（可选）](#2.4)
+    - [代码与配置信息绑定](#2.5)
+    - [启动服务与验证](#2.6)
+
+
 Python Pipeline 框架使用 Python 语言开发，是一套端到端多模型组合服务编程框架，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体服务的预估效率。详细设计参考[ Python Pipeline 设计与使用]()
+
+<a name="1"></a>
 
 ## 模型介绍
 
@@ -16,6 +28,7 @@ PaddleOCR 提供的 PP-OCR 系列模型覆盖轻量级服务端、轻量级移�
 | 中英文超轻量移动端模型 | 9.4M | ch_ppocr_mobile_v2.0_xx | 移动端|
 | 中英文通用服务端模型 | 143.4M | ch_ppocr_server_v2.0_xx | 服务器端 |
 
+<a name="2"></a>
 
 ## 部署步骤
 
@@ -33,6 +46,8 @@ git clone https://github.com/PaddlePaddle/Serving
 - 五.代码与配置信息绑定
 - 六.启动服务与验证
 
+<a name="2.1"></a>
+
 **一.获取模型与保存模型参数**
 
 本章节选用中英文超轻量模型 ch_PP-OCRv2_xx 制作部署案例，模型体积小，效果很好，属于性价比很高的选择。 
@@ -44,20 +59,27 @@ python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 
+<a name="2.2"></a>
+
 **二.保存 Serving 部署的模型参数**
 
 为了节省大家的时间，已将预训练模型使用[保存用于 Serving 部署的模型参数](./5-1_Save_Model_Params_CN.md)方法打包成压缩包，下载并解压即可使用。如你自训练的模型需经过保存模型服务化参数步骤才能服务化部署。
 
+<a name="2.3"></a>
 
 **三.下载测试数据集（可选）**
-第二步，下载测试图片集，如使用自有测试数据集，可忽略此步骤。
+
+下载测试图片集，如使用自有测试数据集，可忽略此步骤。
 ```
 wget --no-check-certificate https://paddle-serving.bj.bcebos.com/ocr/test_imgs.tar
 tar xf test_imgs.tar
 ```
 
-**四.修改 `config.yml` 配置（可选）**
-第三步，通过修改配置文件设置服务、图、OP 级别属性。如果使用默认配置，此步骤可忽略。
+<a name="2.4"></a>
+
+**四.修改配置文件（可选）**
+
+修改配置文件 `config.yml` 设置服务、图、OP 级别属性。如果使用默认配置，此步骤可忽略。
 
 由于配置项较多，仅重点介绍部分核心选项的使用，完整配置选项说明可参考[ 配置说明]()
 ```
@@ -165,6 +187,8 @@ op:
             #min_subgraph_size: 3
 ```
 
+<a name="2.5"></a>
+
 **五.代码与配置信息绑定**
 
 第四步，实现代码和配置文件 Config.yml 绑定，以及设置多模型组合关系。具体包括：
@@ -209,6 +233,7 @@ ocr_service.prepare_pipeline_config("config.yml")
 ocr_service.run_service()
 ```
 
+<a name="2.6"></a>
 
 **六.启动服务与验证**
 
