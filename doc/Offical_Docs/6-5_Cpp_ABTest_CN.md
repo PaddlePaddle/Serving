@@ -1,8 +1,18 @@
 # C++ Serving ABTest
 
+- [功能设计](#1)
+- [使用案例](#2)
+  - [1.1 安装 Paddle Serving Wheels](#2.1)
+  - [1.2 下载多个模型并保存模型参数](#2.2)
+  - [1.3 启动 A，B，C 3个服务](#2.3)
+  - [1.4 客户端注册 A，B，C 服务端地址](#2.4)
+  - [1.5 启动客户端并验证结果](#2.5)
+
 ABTest 是一种功能测试方案，一般是为同一个产品目标制定多种方案，让一部分用户使用 A 方案，另一部分用户使用 B 或 C 方案，根据测试效果，如点击率、转化率等来评价方案的优劣。
 
 模型服务化部署框架中，ABTest 属于一个重要的基础功能，为模型迭代升级提供实验环境。Paddle Serving 的 PYTHON SDK 中实现 ABTest 功能，为用户提供简单易用功能测试环境。
+
+<a name="1"></a>
 
 ## 功能设计
 
@@ -12,6 +22,7 @@ Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成�
 <img src='images/6-5_Cpp_ABTest_CN_1.png' height = "400" align="middle"/>
 </div
 
+<a name="2"></a>
 
 ## 使用案例
 
@@ -20,9 +31,10 @@ Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成�
 1. 安装 Paddle Serving Wheels
 2. 下载多个模型并保存模型参数
 3. 启动 A，B，C 3个服务
-4. 客户端注册 A，B，C 服务端地址 
+4. 客户端注册 A，B，C 服务端地址
 5. 启动客户端并验证结果
 
+<a name="2.1"></a>
 
 **一.安装 Paddle Serving Wheels**
 
@@ -31,6 +43,8 @@ Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成�
 ```
 pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+
+<a name="2.2"></a>
 
 **二.下载多个模型并保存模型参数**
 
@@ -108,6 +122,8 @@ fetch_var {
 }
 ```
 
+<a name="2.3"></a>
+
 **三.启动 A，B，C 3个服务**
 
 后台启动 `bow`、`cnn` 和 `lstm` 模型服务:
@@ -122,6 +138,8 @@ python3 -m paddle_serving_server.serve --model imdb_cnn_model/ --port 9298  >/de
 ## 启动 lstm 模型服务
 python3 -m paddle_serving_server.serve --model imdb_lstm_model/ --port 9299 >/dev/null 2>&1 &
 ```
+
+<a name="2.4"></a>
 
 **四.客户端注册 A，B，C 服务端地址**
 
@@ -142,6 +160,7 @@ client.connect()
 ```
 如要在结果中打印请求到了哪个服务，在 `client.predict(feed, fetch, batch, need_variant_tag, logid)` 中设置 `need_variant_tag=True`。
 
+<a name="2.5"></a>
 
 **五.启动客户端并验证结果**
 

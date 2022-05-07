@@ -1,10 +1,25 @@
 # 保存用于 Serving 部署的模型参数
 
+- [背景介绍](#1)
+- [功能设计](#2)
+- [功能使用](#3)
+  - [PYTHON 命令执行](#3.1)
+  - [代码引入执行](#3.2)
+- [Serving 部署](#4)
+  - [服务端部署示例](#4.1)
+  - [客户端部署示例](#4.2)
+
+<a name="1"></a>
+
+## 背景介绍
+
 模型参数信息保存在模型文件中，为什么还要保存用于 Paddle Serving 部署的模型参数呢，原因有3个：
 
 1. 服务化场景分为客户端和服务端，服务端加载模型，而在客户端没有模型信息，但需要在客户端需实现数据拼装和类型转换。
 2. 模型升级过程中 `feed vars` 和 `fetch vars` 的名称变化会导致代码升级，通过增加一个 `alias_name` 字段映射名称，代码无需升级。
 3. 部署 `Web` 服务，并使用 `URL` 方式访问时，请求信息中缺少类型和维度信息，在服务端推理前需要进行转换。
+
+<a name="2"></a>
 
 ## 功能设计
 
@@ -65,6 +80,7 @@ feed 与 fetch 变量的类型列表如下:
 | complex64 | 10 
 | complex128 | 11 |
 
+<a name="3"></a>
 
 ## 功能使用
 
@@ -84,6 +100,7 @@ Paddle 推理模型有3种形式，每种形式的读模型的方式都不同，
 | `model_filename` | str | None | 存储需要转换的模型Inference Program结构的文件名称。如果设置为None，则使用 `__model__` 作为默认的文件名 |
 | `params_filename` | str | None | 存储需要转换的模型所有参数的文件名称。当且仅当所有模型参数被保>存在一个单独的二进制文件中，它才需要被指定。如果模型参数是存储在各自分离的文件中，设置它的值为None |
 
+<a name="3.1"></a>
 
 **一.PYTHON 命令执行**
 
@@ -99,6 +116,7 @@ python3 -m paddle_serving_client.convert --dirname ./your_inference_model_dir
 python3 -m paddle_serving_client.convert --dirname . --model_filename dygraph_model.pdmodel --params_filename dygraph_model.pdiparams --serving_server serving_server --serving_client serving_client
 ```
 
+<a name="3.2"></a>
 
 **二.代码引入执行**
 
@@ -108,10 +126,14 @@ import paddle_serving_client.io as serving_io
 serving_io.inference_model_to_serving(dirname, serving_server="serving_server", serving_client="serving_client",  model_filename=None, params_filename=None)
 ```
 
+<a name="4"></a>
+
 ## Serving 部署
 生成完的模型可直接用于服务化推理，服务端使用和客户端使用。
 
-**一.服务端使用**
+<a name="4.1"></a>
+
+**一.服务端部署示例**
 
 示例一：C++ Serving 启动服务
 ```
@@ -140,7 +162,9 @@ op:
             device_type: 0
 ```
 
-**二.客户端使用**
+<a name="4.2"></a>
+
+**二.客户端部署示例**
 
 通过 `client` 对象的 `load_client_config` 接口加载模型配置信息
 ```

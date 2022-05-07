@@ -1,5 +1,19 @@
 # C++ Serving 通讯协议
 
+- [网络框架](#0)
+- [Tensor](#1)
+  - [1.1 构建 FLOAT32 Tensor](#1.1)
+  - [1.2 构建 STRING Tensor](#1.2)
+- [Request](#2)
+  - [2.1 构建 Protobuf Request](#2.1)
+  - [2.2 构建 Json Request](#2.2)
+- [Response](#3)
+  - [3.1 读取 Response 数据](#3.1)
+
+<a name="0"></a>
+
+## 网络框架
+
 C++ Serving 基于 [bRPC](https://github.com/apache/incubator-brpc) 网络框架构建服务，支持 bRPC、gRPC 和 RESTful 协议请求。不限于开发语言和框架，甚至 `curl` 方式，只要按照上述协议封装数据并发送，Server 就能够接收、处理和返回结果。
 
 对于支持的各种协议我们提供了部分的 Client SDK 示例供用户参考和使用，用户也可以根据自己的需求去开发新的 Client SDK，也欢迎用户添加其他语言/协议（例如 GRPC-Go、GRPC-C++ HTTP2-Go、HTTP2-Java 等）Client SDK 到我们的仓库供其他开发者借鉴和参考。
@@ -15,9 +29,7 @@ C++ Serving 基于 [bRPC](https://github.com/apache/incubator-brpc) 网络框架
 
 C++ Serving 请求和应答的数据格式为 protobuf，重要的结构有以下3个：
 
-- Tensor
-- Request
-- Response
+<a name="1"></a>
 
 ## Tensor
 
@@ -110,6 +122,8 @@ Tensor 结构中重要成员 `elem_type`、`shape`、`lod` 和 `name/alias_name`
 |11|COMPLEX128
 |20|STRING|
 
+<a name="1.1"></a>
+
 **一.构建 FLOAT32 Tensor**
 
 创建 Tensor 对象，通过 `mutable_float_data::Resize()` 设置 FLOAT32 类型数据长度，通过 memcpy 函数拷贝数据。
@@ -135,6 +149,8 @@ tensor->mutable_float_data()->Resize(total_number, 0);
 memcpy(tensor->mutable_float_data()->mutable_data(), float_datadata(), total_number * sizeof(float));
 ```
 
+<a name="1.2"></a>
+
 **二.构建 STRING Tensor**
 
 创建 Tensor 对象，通过 `set_tensor_content` 设置 string 类型数据。
@@ -153,6 +169,8 @@ tensor->set_name(name);
 tensor->set_alias_name(alias_name);
 tensor->set_tensor_content(string_data);
 ```
+
+<a name="2"></a>
 
 ## Request
 
@@ -174,6 +192,8 @@ message Request {
 
 当使用 bRPC 或 gRPC 进行请求时，使用 protobuf 或 Json 格式请求数据。
 
+<a name="2.1"></a>
+
 **一.构建 Protobuf Request**
 
 创建 Request 对象，通过 `add_tensor` 接口来设置 Tensor。
@@ -187,6 +207,7 @@ for (auto &name : fetch_name) {
 Tensor *tensor = req.add_tensor();
 ...
 ```
+<a name="2.2"></a>
 
 **二.构建 Json Request**
 
@@ -195,6 +216,8 @@ Tensor *tensor = req.add_tensor();
 ```JSON
 {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"name":"x","alias_name":"x","shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}
 ```
+
+<a name="3"></a>
 
 ## Response
 
@@ -230,6 +253,8 @@ Response 结构中核心成员：
 |-5001|"Paddle Serving Memory Alloc Error."|
 |-5002|"Paddle Serving Array Overflow Error."|
 |-5100|"Paddle Serving Op Inference Error."|
+
+<a name="3.1"></a>
 
 **一.读取 Response 数据**
 

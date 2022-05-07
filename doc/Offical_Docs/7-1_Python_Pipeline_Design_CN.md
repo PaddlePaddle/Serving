@@ -1,5 +1,22 @@
 # Python Pipeline 框架设计
 
+- [目标](#1)
+- [框架设计](#2)
+  - [2.1 网络层设计](#2.1)
+  - [2.2 图执行引擎层](#2.2)
+  - [2.3 服务日志](#2.3)
+  - [2.4 错误信息](#2.4)
+- [自定义信息](#3)
+  - [3.1 自定义 Web 服务 URL](#3.1)
+  - [3.2 自定义服务输入和输出结构](#3.2)
+  - [3.3 自定义服务并发和模型配置](#3.3)
+  - [3.4 自定义推理过程](#3.4)
+  - [3.5 自定义业务错误类型](#3.5)
+
+
+<a name="1"></a>
+
+## 目标
 为了解决多个深度学习模型组合的复杂问题，Paddle Serving 团队设计了一个通用端到端多模型组合框架，其核心特点包括:
 
 1. 通用性：框架既要满足通用模型的输入类型，又要满足模型组合的复杂拓扑关系。
@@ -7,6 +24,7 @@
 3. 高可用性：高可用的架构依赖每个服务的健壮性，服务状态可查询、异常可监控和管理是必备条件。
 4. 易于开发与调试：使用 Python 语言开发可大幅提升研发效率，运行的错误信息准确帮助开发者快速定位问题。
 
+<a name="2"></a>
 
 ## 框架设计
 Python Pipeline 框架分为网络服务层和图执行引擎2部分，网络服务层处理多种网络协议请求和通用输入参数问题，图执行引擎层解决复杂拓扑关系。如下图所示
@@ -14,6 +32,8 @@ Python Pipeline 框架分为网络服务层和图执行引擎2部分，网络服
 <div align=center>
 <img src='../images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </div>
+
+<a name="2.1"></a>
 
 **一.网络服务层**
 
@@ -69,6 +89,7 @@ rpc_port: 9988
 http_port: 18089
 ```
 
+<a name="2.2"></a>
 
 **二.图执行引擎层**
 
@@ -137,6 +158,7 @@ Channel的设计原则：
 <img src='../images/pipeline_serving-image3.png' height = "500" align="middle"/>
 </div>
 
+<a name="2.3"></a>
 
 **三.服务日志**
 
@@ -209,6 +231,8 @@ Pipeline 的日志模块在 `logger.py` 中定义，使用了 `logging.handlers.
 
 ```
 
+<a name="2.4"></a>
+
 **四. 错误信息**
 
 框架提供的错误信息如下所示， 完整信息在 `error_catch.py` 中 `CustomExceptionCode` 类中定义。
@@ -246,6 +270,7 @@ class CustomExceptionCode(enum.Enum):
     UNKNOW = 10000
 ```
 
+<a name="3"></a>
 
 ## 自定义信息
 
@@ -256,8 +281,9 @@ class CustomExceptionCode(enum.Enum):
 - 自定义推理过程
 - 自定义业务错误类型
 
+<a name="3.1"></a>
 
-1. 自定义 Web 服务 URL
+**一.自定义 Web 服务 URL**
 
 在 Web 服务中自定义服务名称是常见操作，尤其是将已有服务迁移到新框架。URL 中核心字段包括 `ip`、`port`、`name` 和 `method`，根据最新部署的环境信息设置前2个字段，重点介绍如何设置 `name` 和 `method`，框架提供默认的 `methon` 是 `prediciton`，如 `http://127.0.0.1:9999/ocr/prediction` 。
 
@@ -296,8 +322,9 @@ service PipelineService {
   }
 };
 ```
+<a name="3.2"></a>
 
-2. 自定义服务输入和输出结构
+**二.自定义服务输入和输出结构**
 
 输入和输出结构包括 proto 中 Request 和 Response 结构，以及 Op 前后处理返回。
 
@@ -307,10 +334,15 @@ service PipelineService {
 
 修改后，需要[重新编译]()
 
-3. 自定义服务并发和模型配置
+<a name="3.3"></a>
+
+**三.自定义服务并发和模型配置**
+
 完整的配置信息可参考[配置信息]()
 
-4. 自定义推理过程
+<a name="3.4"></a>
+
+**四.自定义推理过程**
 
 推理 Op 为开发者提供3个外部函数接口：
 
@@ -435,8 +467,9 @@ class ResponseOp(Op):
 
         return resp
 ```
+<a name="3.5"></a>
 
-5. 自定义业务错误类型
+**五.自定义业务错误类型**
 
 用户可根据业务场景自定义错误码，继承 ProductErrCode，在 Op 的 preprocess 或 postprocess 中返回列表中返回，下一阶段处理会根据自定义错误码跳过后置OP处理。
 ```python

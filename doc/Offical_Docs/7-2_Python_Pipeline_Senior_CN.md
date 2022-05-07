@@ -2,18 +2,27 @@
 
 从设计上，Python Pipeline 框架实现轻量级的服务化部署，提供了丰富的核心功能，既能满足服务基本使用，又能满足特性需求。
 
-- 安装与环境检查
-- 服务启动与关闭
-- 本地与远程推理
-- 批量推理
-- 单机多卡推理
-- 多种计算芯片上推理
-- TensorRT 推理加速
-- MKLDNN 推理加速
-- 低精度推理
-- 复杂图结构 DAG 跳过某个 Op 运行
+- [安装与环境检查](#1)
+- [服务启动与关闭](#2)
+- [本地与远程推理](#3)
+- [批量推理](#4)
+    - [4.1 客户端打包批量数据](#4.1)
+    - [4.2 服务端合并多个请求动态合并批量](#4.2)
+    - [4.3 Mini-Batch](#4.3)
+- [单机多卡推理](#5)
+- [多种计算芯片上推理](#6)
+- [TensorRT 推理加速](#7)
+- [MKLDNN 推理加速](#8)
+- [低精度推理](#9)
+    - [9.1 CPU 低精度推理](#9.1)
+    - [9.2 GPU 和 TensorRT 低精度推理](#9.2)
+    - [9.3 性能测试](#9.3)
+- [复杂图结构 DAG 跳过某个 Op 运行](#10)
+
+<a name="1"></a>
 
 ## 安装与环境检查
+
 在运行 Python Pipeline 服务前，确保当前环境下可部署且通过[安装指南](./2-0_Index_CN.md)已完成安装。其次，`v0.8.0`及以上版本提供了环境检查功能，检验环境是否安装正确。
 
 输入以下命令，进入环境检查程序。
@@ -78,6 +87,8 @@ shutil.Error: Destination path '/home/work/Pipeline_test_cpu/PipelineServingLogs
 
 ```
 
+<a name="2"></a>
+
 ## 服务启动与关闭
 
 服务启动需要三类文件，PYTHON 程序、模型文件和配置文件。以[Python Pipeline 快速部署案例](./3-2_QuickStart_Pipeline_OCR_CN.md)为例，
@@ -124,6 +135,8 @@ shutil.Error: Destination path '/home/work/Pipeline_test_cpu/PipelineServingLogs
 python3 -m paddle_serving_server.serve stop   # 触发 SIGINT 信号
 python3 -m paddle_serving_server.serve kill   # 触发 SIGKILL 信号，强制关闭
 ```
+
+<a name="3"></a>
 
 ## 本地与远程推理
 
@@ -184,6 +197,8 @@ op:
         fetch_list: ["prediction"]
 ```
 
+<a name="4"></a>
+
 ## 批量推理
 
 Pipeline 支持批量推理，通过增大 batch size 可以提高 GPU 利用率。Python Pipeline 支持3种 batch 形式以及适用的场景如下：
@@ -191,11 +206,14 @@ Pipeline 支持批量推理，通过增大 batch size 可以提高 GPU 利用率
 - 场景2：服务端合并多个请求动态合并批量(Server auto-batching)
 - 场景3：拆分一个大批量的推理请求为多个小批量推理请求(Server mini-batch)
 
+<a name="4.1"></a>
 
 **一.客户端打包批量数据**
 
 当输入数据是 numpy 类型，如shape 为[4, 3, 512, 512]的 numpy 数据，即4张图片，可直接作为输入数据。
 当输入数据的 shape 不同时，需要按最大的shape的尺寸 Padding 对齐后发送给服务端
+
+<a name="4.2"></a>
 
 **二.服务端合并多个请求动态合并批量**
 
@@ -247,6 +265,8 @@ op:
         auto_batching_timeout: 2000
 
 ```
+
+<a name="4.3"></a>
 
 **三.Mini-Batch**
 
@@ -310,6 +330,8 @@ def preprocess(self, input_dicts, data_id, log_id):
         return feed_list, False, None, ""
 ```
 
+<a name="5"></a>
+
 ## 单机多卡推理
 
 单机多卡推理与 `config.yml` 中配置4个参数关系紧密，`is_thread_op`、`concurrency`、`device_type` 和 `devices`，必须在进程模型和 GPU 模式，每张卡上可分配多个进程，即 M 个 Op 进程与 N 个 GPU 卡绑定。
@@ -346,6 +368,8 @@ op:
 
 对于更灵活的进程与 GPU 卡绑定方式，会持续开发。
 
+<a name="6"></a>
+
 ## 多种计算芯片上推理
 
 除了支持 CPU、GPU 芯片推理之外，Python Pipeline 还支持在多种计算硬件上推理。根据 `config.yml` 中的 `device_type` 和 `devices`来设置推理硬件和加速库如下：
@@ -371,6 +395,7 @@ devices: "0"
 ir_optim: True
 
 ```
+<a name="7"></a>
 
 ## TensorRT 推理加速
 
@@ -405,6 +430,7 @@ op:
             #开启 ir_optim
             ir_optim: True
 ```
+<a name="8"></a>
 
 ## MKL-DNN 推理加速
 
@@ -439,6 +465,7 @@ op:
             #开启 MKLDNN
             use_mkldnn: True
 ```
+<a name="9"></a>
 
 ## 低精度推理
 
@@ -446,7 +473,9 @@ Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型
 
 低精度推理需要有量化模型，配合`config.yml`配置一起使用，以[低精度示例]() 为例
 
-**一.CPU 低精度推理配置**
+<a name="9.1"></a>
+
+**一.CPU 低精度推理**
 
 通过设置，`device_type` 和 `devices` 字段使用 CPU 推理，通过调整`precision`、`thread_num`和`use_mkldnn`参数选择低精度和性能调优。
 
@@ -483,6 +512,8 @@ op:
             #开启 MKLDNN
             use_mkldnn: True
 ```
+
+<a name="9.2"></a>
 
 **二.GPU 和 TensorRT 低精度推理**
 
@@ -521,6 +552,8 @@ op:
             ir_optim: True
 ```
 
+<a name="9.3"></a>
+
 **三.性能测试**
 
 测试环境如下：
@@ -546,6 +579,8 @@ CPU 推理性能较好的配置是
 <div align=center>
 <img src='../images/low_precision_profile.png' height = "600" align="middle"/>
 </div
+
+<a name="10"></a>
 
 ## 复杂图结构 DAG 跳过某个 Op 运行
 
