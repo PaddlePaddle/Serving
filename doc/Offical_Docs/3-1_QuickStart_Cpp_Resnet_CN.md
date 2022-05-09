@@ -20,7 +20,7 @@ ResNet 网络是参考了 VGG19 网络，加入残差单元，ResNet50 有50层�
 
 ## 部署步骤
 
-前提条件是你已完成[环境安装]()步骤，并已验证环境安装成功，此处不在赘述。
+前提条件是你已完成[环境安装](./2-0_Index_CN.md)步骤，并已验证环境安装成功，此处不在赘述。
 
 克隆 Serving 仓库后，进入 `examples/C++/PaddleClas/resnet_50_vd` 目录下，已提供程序、配置和性能测试脚本。
 ```
@@ -37,7 +37,7 @@ git clone https://github.com/PaddlePaddle/Serving
 
 **一.获取模型**
 
-下载 `ResNet50_vd` 的 推理模型
+下载 `ResNet50_vd` 的 推理模型，更多模型信息请阅读[ImageNet 预训练模型库](https://github.com/PaddlePaddle/PaddleClas/blob/8fa820f5c81edb1e7a2b222306a307bc27bff90f/docs/zh_CN/algorithm_introduction/ImageNet_models.md)
 ```
 wget https://paddle-imagenet-models-name.bj.bcebos.com/dygraph/inference/ResNet50_vd_infer.tar && tar xf ResNet50_vd_infer.tar
 

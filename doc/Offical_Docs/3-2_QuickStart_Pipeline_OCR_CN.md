@@ -271,11 +271,13 @@ ocr_service.run_service()
 └── web_service.py
 ```
 
-运行程序 `web_service.py` 启动服务端
+运行服务程序 `web_service.py` 启动服务端，接收客户端请求，采用图执行引擎执行推理预测。
 ```
 # Run Server
 python3 web_service.py &>log.txt &
 ```
+
+客户端程序 `pipeline_http_client.py` 注册服务端地址，并发送客户端请求。
 
 启动客户端前，要确认 URL://{ip}:{port}/{name}/{method} 。本项目中 {name} 即是 web_service.py 中 OcrService name 参数 "ocr"。 {method} 默认为 "prediction"
 

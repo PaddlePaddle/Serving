@@ -61,7 +61,7 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 #### Q: Paddle Serving 支持哪些网络协议？
 
-**A:** 支持 HTTP、gRPC 和 bRPC 协议。其中 HTTP 协议既支持 HTTP + Json 格式，同时支持 HTTP + proto 格式。
+**A:** C++ Serving 同时支持 HTTP、gRPC 和 bRPC 协议。其中 HTTP 协议既支持 HTTP + Json 格式，同时支持 HTTP + proto 格式。完整信息请阅读[C++ Serving 通讯协议](./6-2_Cpp_Serving_Protocols_CN.md)；Python Pipeline 支持 HTTP 和 gRPC 协议，更多信息请阅读[Python Pipeline 框架设计](./6-2_Cpp_Serving_Protocols_CN.md)
 
 <a name="3"></a>
 
@@ -71,30 +71,12 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 ```
 Collecting opencv-python
-  Using cached opencv-python-4.3.0.38.tar.gz (88.0 MB)
-  Installing build dependencies ... done
   Getting requirements to build wheel ... error
   ERROR: Command errored out with exit status 1:
    command: /home/work/Python-2.7.17/build/bin/python /home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py get_requires_for_build_wheel /tmp/tmpLiweA9
        cwd: /tmp/pip-install-_w6AUI/opencv-python
   Complete output (22 lines):
   Traceback (most recent call last):
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 280, in <module>
-      main()
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 263, in main
-      json_out['return_val'] = hook(**hook_input['kwargs'])
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 114, in get_requires_for_build_wheel
-      return hook(config_settings)
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 146, in get_requires_for_build_wheel
-      return self._get_build_requires(config_settings, requirements=['wheel'])
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 127, in _get_build_requires
-      self.run_setup()
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 243, in run_setup
-      self).run_setup(setup_script=setup_script)
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 142, in run_setup
-      exec(compile(code, __file__, 'exec'), locals())
-    File "setup.py", line 448, in <module>
-      main()
     File "setup.py", line 99, in main
       % {"ext": re.escape(sysconfig.get_config_var("EXT_SUFFIX"))}
     File "/home/work/Python-2.7.17/build/lib/python2.7/re.py", line 210, in escape
@@ -175,27 +157,11 @@ make: *** [all] Error 2
 
 ## 环境问题
 
-#### Q：使用过程中出现 CXXABI 错误。
+#### Q：程序运行出现 `CXXABI` 相关错误。
 
-这个问题出现的原因是编译 Python 使用的 GCC 版本和编译 Serving 的 GCC 版本不一致。对于 Docker 用户，推荐使用[Docker容器](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)，由于 Docker 容器内的 Python 版本与 Serving 在发布前都做过适配，这样就不会出现类似的错误。如果是其他开发环境，首先需要确保开发环境中具备 GCC 8.2，如果没有 GCC 8.2，参考安装方式
+错误原因是编译 Python 使用的 GCC 版本和编译 Serving 的 GCC 版本不一致。对于 Docker 用户，推荐使用[Docker容器](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)，由于 Docker 容器内的 Python 版本与 Serving 在发布前都做过适配，这样就不会出现类似的错误。
 
-```bash
-wget -q https://paddle-ci.gz.bcebos.com/gcc-8.2.0.tar.xz 
-tar -xvf gcc-8.2.0.tar.xz && \
-cd gcc-8.2.0 && \
-unset LIBRARY_PATH CPATH C_INCLUDE_PATH PKG_CONFIG_PATH CPLUS_INCLUDE_PATH INCLUDE && \
-./contrib/download_prerequisites && \
-cd .. && mkdir temp_gcc82 && cd temp_gcc82 && \
-../gcc-8.2.0/configure --prefix=/usr/local/gcc-8.2 --enable-threads=posix --disable-checking --disable-multilib && \
-make -j8 && make install
-cd .. && rm -rf temp_gcc82
-cp ${lib_so_6} ${lib_so_6}.bak  && rm -f ${lib_so_6} && 
-ln -s /usr/local/gcc-8.2/lib64/libgfortran.so.5 ${lib_so_5} && \
-ln -s /usr/local/gcc-8.2/lib64/libstdc++.so.6 ${lib_so_6} && \
-cp /usr/local/gcc-8.2/lib64/libstdc++.so.6.0.25 ${lib_path}
-```
-
-推荐使用 GCC 8.2 预编译的 [Python3.6](https://paddle-serving.bj.bcebos.com/others/Python3.6.10-gcc82.tar) 包。下载解压后，需要将对应的目录设置为 `PYTHONROOT`，并设置 `PATH` 和 `LD_LIBRARY_PATH`。
+推荐使用 GCC 8.2 预编译包 [Python3.6](https://paddle-serving.bj.bcebos.com/others/Python3.6.10-gcc82.tar) 。下载解压后，需要将对应的目录设置为 `PYTHONROOT`，并设置 `PATH` 和 `LD_LIBRARY_PATH`。
 
 ```bash
 export PYTHONROOT=/path/of/python # 对应解压后的Python目录
