@@ -261,6 +261,8 @@ class PipelineServer(object):
                 "use_mkldnn": False,
                 "mkldnn_cache_capacity": 0,
                 "min_subgraph_size": 3,
+                "collect_shape_range_info": "",
+                "tuned_dynamic_shape_info": "",
             },
         }
         for op in self._used_op:
@@ -422,6 +424,8 @@ class ServerYamlConfChecker(object):
             "use_mkldnn": False,
             "mkldnn_cache_capacity": 0,
             "min_subgraph_size": 3,
+            "collect_shape_range_info": "",
+            "tuned_dynamic_shape_info": "",
         }
         conf_type = {
             "model_config": str,
@@ -438,6 +442,8 @@ class ServerYamlConfChecker(object):
             "mkldnn_op_list": list,
             "mkldnn_bf16_op_list": list,
             "min_subgraph_size": int,
+            "collect_shape_range_info": str,
+            "tuned_dynamic_shape_info": str,
         }
         conf_qualification = {"thread_num": (">=", 1), }
         ServerYamlConfChecker.check_conf(conf, default_conf, conf_type,
