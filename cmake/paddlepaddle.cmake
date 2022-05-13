@@ -30,7 +30,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.3.0-rc0")
+SET(PADDLE_VERSION "2.3.0")
 if (WITH_GPU)
     message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}")
     # cuda 11.0 is not supported, 11.2 would be added.
