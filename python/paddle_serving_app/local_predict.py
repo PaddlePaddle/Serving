@@ -93,7 +93,9 @@ class LocalPredictor(object):
                           use_ascend_cl=False,
                           min_subgraph_size=3,
                           dynamic_shape_info={},
-                          use_calib=False):
+                          use_calib=False,
+                          collect_shape_range_info="",
+                          tuned_dynamic_shape_info=""):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -160,12 +162,14 @@ class LocalPredictor(object):
             "use_trt:{}, use_lite:{}, use_xpu:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, "
-            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{}".
+            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{},"
+            "collect_shape_range_info:{},tuned_dynamic_shape_info:{}".
             format(model_path, use_gpu, gpu_id, use_profile, thread_num,
                    mem_optim, ir_optim, use_trt, use_lite, use_xpu, precision,
                    use_calib, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
                    mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl,
-                   min_subgraph_size, dynamic_shape_info))
+                   min_subgraph_size, dynamic_shape_info,
+                   collect_shape_range_info,tuned_dynamic_shape_info))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -213,6 +217,8 @@ class LocalPredictor(object):
             if mkldnn_op_list is not None:
                 config.set_mkldnn_op(mkldnn_op_list)
         # set gpu
+        if collect_shape_range_info != "":
+            config.collect_shape_range_info(collect_shape_range_info)
         if not use_gpu:
             config.disable_gpu()
         else:
@@ -226,6 +232,9 @@ class LocalPredictor(object):
                     use_static=False,
                     use_calib_mode=use_calib)
 
+                if tuned_dynamic_shape_info != "":
+                    config.enable_tuned_tensorrt_dynamic_shape(tuned_dynamic_shape_info, True)
+
                 @ErrorCatch
                 @ParamChecker
                 def dynamic_shape_info_helper(dynamic_shape_info:lambda dynamic_shape_info: check_dynamic_shape_info(dynamic_shape_info)):
@@ -235,7 +244,7 @@ class LocalPredictor(object):
                     print("dynamic_shape_info configure error, it should contain [min_input_shape', 'max_input_shape', 'opt_input_shape' {}".format(resp.err_msg))
                     kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
 
-                if len(dynamic_shape_info):
+                if len(dynamic_shape_info) and tuned_dynamic_shape_info == "":
                     config.set_trt_dynamic_shape_info(
                         dynamic_shape_info['min_input_shape'],
                         dynamic_shape_info['max_input_shape'],

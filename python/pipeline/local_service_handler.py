@@ -53,7 +53,9 @@ class LocalServiceHandler(object):
                  mkldnn_bf16_op_list=None,
                  min_subgraph_size=3,
                  dynamic_shape_info={},
-                 use_calib=False):
+                 use_calib=False,
+                 collect_shape_range_info="",
+                 tuned_dynamic_shape_info=""):
         """
         Initialization of localservicehandler
 
@@ -99,6 +101,8 @@ class LocalServiceHandler(object):
         self.min_subgraph_size = 3
         self.dynamic_shape_info = {}
         self._use_calib = False
+        self.collect_shape_range_info = ""
+        self.tuned_dynamic_shape_info = ""
 
         if device_type == -1:
             # device_type is not set, determined by `devices`, 
@@ -179,6 +183,8 @@ class LocalServiceHandler(object):
         self._mkldnn_op_list = mkldnn_op_list
         self._mkldnn_bf16_op_list = mkldnn_bf16_op_list
         self._use_calib = use_calib
+        self.collect_shape_range_info = collect_shape_range_info
+        self.tuned_dynamic_shape_info = tuned_dynamic_shape_info
 
         _LOGGER.info(
             "Models({}) will be launched by device {}. use_gpu:{}, "
@@ -187,14 +193,16 @@ class LocalServiceHandler(object):
             "client_type:{}, fetch_names:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_ascend_cl:{}, min_subgraph_size:{},"
-            "is_set_dynamic_shape_info:{}".format(
+            "is_set_dynamic_shape_info:{},collect_shape_range_info:{},"
+            "tuned_dynamic_shape_info:{}".format(
                 model_config, self._device_name, self._use_gpu, self._use_trt,
                 self._use_lite, self._use_xpu, device_type, self._devices, self.
                 _mem_optim, self._ir_optim, self._use_profile, self._thread_num,
                 self._client_type, self._fetch_names, self._precision, self.
                 _use_calib, self._use_mkldnn, self._mkldnn_cache_capacity, self.
                 _mkldnn_op_list, self._mkldnn_bf16_op_list, self._use_ascend_cl,
-                self.min_subgraph_size, bool(len(self.dynamic_shape_info))))
+                self.min_subgraph_size, bool(len(self.dynamic_shape_info)),
+                self.collect_shape_range_info, self.tuned_dynamic_shape_info))
 
     def get_fetch_list(self):
         return self._fetch_names
@@ -254,7 +262,9 @@ class LocalServiceHandler(object):
                 use_ascend_cl=self._use_ascend_cl,
                 min_subgraph_size=self.min_subgraph_size,
                 dynamic_shape_info=self.dynamic_shape_info,
-                use_calib=self._use_calib)
+                use_calib=self._use_calib,
+                collect_shape_range_info=self.collect_shape_range_info,
+                tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
         return self._local_predictor_client
 
     def get_client_config(self):
