@@ -51,17 +51,14 @@ message EngineDesc {
 
   /*
    * "gpu_memory_mb": allocate gpu memory by config.EnableUseGpu()
-   * "cpu_math_thread_num": set thread numbers of cpu math by
-   * config.SetCpuMathLibraryNumThreads()
-   * "trt_workspace_size": set TensorRT workspace size by
-   * config.EnableTensorRtEngine(), 1 << 25 default
-   * "trt_use_static": If true, save the optimization information of the TRT
-   * serialized to the disk, and load from the disk.
+   * "cpu_math_thread_num": set thread numbers of cpu math by config.SetCpuMathLibraryNumThreads()
+   * "trt_workspace_size": set TensorRT workspace size by config.EnableTensorRtEngine(), 1 << 25 default
+   * "trt_use_static": If true, save the optimization information of the TRT  serialized to the disk, and load from the disk.
    */
-  optional int32 gpu_memory_mb = 22 [ default = 100 ];
-  optional int32 cpu_math_thread_num = 23 [ default = 1 ];
-  optional int32 trt_workspace_size = 24 [ default = 33554432 ];
-  optional bool trt_use_static = 25 [ default = false ];
+  optional int32 gpu_memory_mb = 22 [default = 100];
+  optional int32 cpu_math_thread_num = 23 [default = 1];
+  optional int32 trt_workspace_size = 24 [default = 33554432];
+  optional bool trt_use_static = 25 [default = false];
 
   /*
    * "runtime_thread_num": n == 0 means don`t use Asynchronous task scheduling

@@ -121,7 +121,7 @@ class Server(object):
         self.trt_dynamic_shape_info = []
         self.gpu_memory_mb = 50
         self.cpu_math_thread_num = 1
-        self.trt_workspace_size = 33554432  # 1 << 25
+        self.trt_workspace_size = 33554432 # 1 << 25
         self.trt_use_static = False
 
     def get_fetch_list(self, infer_node_idx=-1):
@@ -358,10 +358,10 @@ class Server(object):
             engine.use_xpu = self.use_xpu
             engine.use_ascend_cl = self.use_ascend_cl
             engine.use_gpu = False
-            engine.gpu_memory_mb = self.gpu_memory_mb
-            engine.cpu_math_thread_num = self.cpu_math_thread_num
-            engine.trt_workspace_size = self.trt_workspace_size
-            engine.trt_use_static = self.trt_use_static
+            #engine.gpu_memory_mb = self.gpu_memory_mb
+            #engine.cpu_math_thread_num = self.cpu_math_thread_num
+            #engine.trt_workspace_size = self.trt_workspace_size
+            #engine.trt_use_static = self.trt_use_static
 
             # use distributed model.
             if self.dist_subgraph_index >= 0:

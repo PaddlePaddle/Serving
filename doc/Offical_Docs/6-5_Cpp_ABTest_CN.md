@@ -38,7 +38,7 @@ Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成�
 
 **一.安装 Paddle Serving Wheels**
 
-使用 ABTest 功能的前提是使用 PYTHON SDK，因此需要安装 `paddle_serving_client` 的 wheel 包。安装方法如下：
+使用 ABTest 功能的前提是使用 PYTHON SDK，因此需要安装 `paddle_serving_client` 的 wheel 包。[安装方法](./2-1_Docker_Images_CN.md) 如下：
 
 ```
 pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -48,7 +48,7 @@ pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/s
 
 **二.下载多个模型并保存模型参数**
 
-本示例已提供了一键下载脚本 `sh get_data.sh`，下载 `bow`、`cnn`和`lstm` 3种不同方式训练的模型。 
+本示例已提供了一键下载脚本 `sh get_data.sh`，下载自训练的模型 `bow`、`cnn`和`lstm` 3种不同方式训练的模型。 
 
 ```
 sh get_data.sh

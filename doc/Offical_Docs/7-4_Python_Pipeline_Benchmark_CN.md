@@ -1,7 +1,7 @@
 # Python Pipeline 性能测试
 
 - [测试环境](#1)
-- [性能指标](#2)
+- [性能指标与结论](#2)
 
 <a name="1"></a>
 
@@ -18,7 +18,12 @@
 
 <a name="2"></a>
 
-## 性能指标 
+## 性能指标与结论
+
+通过测试，使用 Python Pipeline 模式通过多进程并发，充分利用 GPU 显卡，具有较好的吞吐性能。
+
+
+测试数据如下：
 
 |model_name |thread_num |batch_size |CPU_util(%) |GPU_memory(mb) |GPU_util(%) |qps(samples/s) |total count |mean(ms) |median(ms) |80 percent(ms) |90 percent(ms) |99 percent(ms) |total cost(s) |each cost(s)|
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--

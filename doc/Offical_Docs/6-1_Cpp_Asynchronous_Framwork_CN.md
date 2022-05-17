@@ -8,8 +8,8 @@
     - [开启同步模式](#2.1)
     - [开启异步模式](#2.2)
 - [性能测试](#3)
-    - [测试数据](#3.1)
-    - [测试结论](#3.2)
+    - [测试结果](#3.1)
+    - [测试数据](#3.2)
 
 <a name="1"></a>
 
@@ -75,7 +75,7 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 16 --p
 
 **二.开启异步模式**
 
-启动命令使用 `--runtime_thread_num 4` 和  `--batch_infer_size 32` 开启异步模式，Serving 框架会启动8个异步线程，单次合并最大批量为32，自动开启动态 Padding。 
+启动命令使用 `--runtime_thread_num 2` 和  `--batch_infer_size 32` 开启异步模式，Serving 框架会启动2个异步线程，单次合并最大批量为32，自动开启动态 Padding。 
 ```
 python3 -m paddle_serving_server.serve --model uci_housing_model --thread 16 --port 9292 --runtime_thread_num 4 --batch_infer_size 32 --ir_optim --gpu_multi_stream --gpu_ids 0
 ```
@@ -84,11 +84,12 @@ python3 -m paddle_serving_server.serve --model uci_housing_model --thread 16 --p
 
 ## 性能测试
 
-GPU：Tesla P4 7611 MiB
-Cuda：cuda11.2-cudnn8-trt8
-Python：python3.7
-模型：ResNet_v2_50
-测试数据：构造全1输入，单client请求100次，shape 范围(1, 224 ± 50, 224 ± 50)
+
+- GPU：Tesla P4 7611 MiB
+- CUDA：cuda11.2-cudnn8-trt8
+- Python 版本：python3.7
+- 模型：ResNet_v2_50
+- 测试数据：构造全1输入，单client请求100次，shape 范围(1, 224 ± 50, 224 ± 50)
 
 同步模式启动命令:
 ```
@@ -102,7 +103,25 @@ python3 -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --por
 
 <a name="3.1"></a>
 
-**一.测试数据**
+**一.测试结果**
+
+使用异步模式，并开启动态批量后，并发测试不同 shape 数据时，吞吐性能大幅提升。
+<div align=center>
+<img src='images/6-1_Cpp_Asynchronous_Framwork_CN_1.png' height = "600" align="middle"/>
+</div
+
+由于动态批量导致响应时长增长，经过测试，大多数场景下吞吐增量高于响应时长增长，尤其在高并发场景(client=70时)，在响应时长增长 33% 情况下，吞吐增加 105%。
+
+|Client |1 |5 |10 | 20 |30 |40 |50 |70 |
+|---|---|---|---|---|---|---|---|---|
+|QPS |-2.08% |-7.23% |-1.89% |20.55% |23.02% |23.34% |46.41% |105.27% |
+|响应时长 | 2.70% |7.09% |5.24% |13.34% |10.80% |43.60% |8.72% |33.89% |
+
+异步模式可有效提升服务吞吐性能。
+
+<a name="3.2"></a>
+
+**二.测试数据**
 
 1. 同步模式
 
@@ -147,20 +166,5 @@ python3 -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --por
 |50 |1 |1.50 |50.60 |7578 |89.04 |121.545 |5000 |411.364 |331.118 |605.809 |874.543 |1285.650 |48.2343 |41.1369 |9350.0000 |2568777.6400 |295.8593|
 |70 |1 |3.80 |83.20 |7602 |89.59 |133.568 |7000 |524.073 |382.653 |799.463 |1202.179 |1576.809 |57.2885 |52.4077 |10761.0000 |3013600.9670 |315.2540|
 
-<a name="3.2"></a>
 
-**二.测试结论**
 
-使用异步模式，并开启动态批量后，并发测试不同 shape 数据时，吞吐性能大幅提升。
-<div align=center>
-<img src='images/6-1_Cpp_Asynchronous_Framwork_CN_1.png' height = "600" align="middle"/>
-</div
-
-由于动态批量导致响应时长增长，经过测试，大多数场景下吞吐增量高于响应时长增长，尤其在高并发场景(client=70时)，在响应时长增长 33% 情况下，吞吐增加 105%。
-
-|Client |1 |5 |10 | 20 |30 |40 |50 |70 |
-|---|---|---|---|---|---|---|---|---|
-|QPS |-2.08% |-7.23% |-1.89% |20.55% |23.02% |23.34% |46.41% |105.27% |
-|响应时长 | 2.70% |7.09% |5.24% |13.34% |10.80% |43.60% |8.72% |33.89% |
-
-异步模式可有效提升吞吐性能。

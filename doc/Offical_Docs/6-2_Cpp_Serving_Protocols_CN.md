@@ -33,7 +33,7 @@ C++ Serving 请求和应答的数据格式为 protobuf，重要的结构有以�
 
 ## Tensor
 
-Tensor 可以装载多种类型的数据，是 Request 和 Response 的基础单元。Tensor 的定义如下：
+[Tensor](https://github.com/PaddlePaddle/Serving/blob/develop/core/general-server/proto/general_model_service.proto#L22) 可以装载多种类型的数据，是 Request 和 Response 的基础单元。Tensor 的定义如下：
 
 ```protobuf
 message Tensor {
@@ -104,7 +104,7 @@ Tensor 结构中重要成员 `elem_type`、`shape`、`lod` 和 `name/alias_name`
 - name/alias_name: 名称及别名，与模型配置对应
 - elem_type：数据类型，当前支持FLOAT32, INT64, INT32, UINT8, INT8, FLOAT16
 - shape：数据维度
-- lod：边长结构 LoD(Level-of-Detail) Tensor 是 Paddle 的高级特性，是对 Tensor 的一种扩充，用于支持更自由的数据输入。详见[LOD](../LOD_CN.md)
+- lod：变长结构 LoD(Level-of-Detail) Tensor 是 Paddle 的高级特性，是对 Tensor 的一种扩充，用于支持更自由的数据输入。详见[LOD](../LOD_CN.md)
 
 |elem_type|类型|
 |---------|----|
@@ -146,7 +146,7 @@ tensor->set_alias_name(alias_name);
 // 拷贝数据
 int total_number = float_data.size();
 tensor->mutable_float_data()->Resize(total_number, 0);
-memcpy(tensor->mutable_float_data()->mutable_data(), float_datadata(), total_number * sizeof(float));
+memcpy(tensor->mutable_float_data()->mutable_data(), float_data.data(), total_number * sizeof(float));
 ```
 
 <a name="1.2"></a>
@@ -174,8 +174,7 @@ tensor->set_tensor_content(string_data);
 
 ## Request
 
-
-Request为客户端需要发送的请求数据，其以Tensor为基础数据单元，并包含了额外的请求信息。定义如下：
+Request 为客户端需要发送的请求数据，其以 Tensor 为基础数据单元，并包含了额外的请求信息。定义如下：
 
 ```protobuf
 message Request {
@@ -186,7 +185,7 @@ message Request {
 };
 ```
 
-- fetch_vat_names: 需要获取的输出数据名称，在GeneralResponseOP会根据该列表进行过滤.请参考模型文件serving_client_conf.prototxt中的`fetch_var`字段下的`alias_name`。
+- fetch_vat_names: 需要获取的输出数据名称，在 `GeneralResponseOP` 会根据该列表进行过滤.请参考模型文件 `serving_client_conf.prototxt` 中的 `fetch_var` 字段下的 `alias_name`。
 - profile_server: 调试参数，打开时会输出性能信息
 - log_id: 请求ID
 
@@ -211,11 +210,13 @@ Tensor *tensor = req.add_tensor();
 
 **二.构建 Json Request**
 
-当使用 RESTful 请求时，可以使用 Json 格式数据，具体格式如下：
+当使用 RESTful 请求时，可以使用 Json 格式数据，示例如下：
 
 ```JSON
 {"tensor":[{"float_data":[0.0137,-0.1136,0.2553,-0.0692,0.0582,-0.0727,-0.1583,-0.0584,0.6283,0.4919,0.1856,0.0795,-0.0332],"elem_type":1,"name":"x","alias_name":"x","shape":[1,13]}],"fetch_var_names":["price"],"log_id":0}
 ```
+
+可参考示例，不用修改整体结构，仅需修改数据类型和数据。
 
 <a name="3"></a>
 
@@ -242,8 +243,8 @@ message ModelOutput {
 
 Response 结构中核心成员：
 - profile_time：当设置 `request->set_profile_server(true)` 时，会返回性能信息
-- err_no：错误码，详见 `core/predictor/common/constant.h`
-- err_msg：错误信息，详见 `core/predictor/common/constant.h`
+- err_no：错误码
+- err_msg：错误信息
 - engine_name：输出节点名称
 
 |err_no|err_msg|
