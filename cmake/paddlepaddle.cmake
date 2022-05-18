@@ -192,7 +192,8 @@ endif()
 
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
 SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
-if (WITH_ASCEND_CL)
+
+if (WITH_ASCEND_CL OR WITH_XPU)
     SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 endif()
 
