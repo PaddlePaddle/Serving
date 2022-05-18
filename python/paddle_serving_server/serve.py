@@ -280,6 +280,27 @@ def serve_args():
         default="",
         nargs="+",
         help="min_subgraph_size")
+    parser.add_argument(
+        "--gpu_memory_mb",
+        type=int,
+        default=50,
+        help="Initially allocate GPU storage size")
+    parser.add_argument(
+        "--cpu_math_thread_num",
+        type=int,
+        default=1,
+        help="Initialize the number of CPU computing threads")
+    parser.add_argument(
+        "--trt_workspace_size",
+        type=int,
+        default=33554432,
+        help="Initialize allocation 1 << 25 GPU storage size")
+    parser.add_argument(
+        "--trt_use_static",
+        default=False,
+        action="store_true",
+        help="Initialize TRT with static data")
+
     return parser.parse_args()
 
 
@@ -396,10 +417,14 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
     server.set_dist_endpoints(args.dist_endpoints.split(","))
     server.set_dist_subgraph_index(args.dist_subgraph_index)
     server.set_min_subgraph_size(args.min_subgraph_size)
+    server.set_gpu_memory_mb(args.gpu_memory_mb)
+    server.set_cpu_math_thread_num(args.cpu_math_thread_num)
 
     if args.use_trt and device == "gpu":
         server.set_trt()
         server.set_ir_optimize(True)
+        server.set_trt_workspace_size(args.trt_workspace_size)
+        server.set_trt_use_static(args.trt_use_static)
         if is_ocr:
             info = set_ocr_dynamic_shape_info()
             server.set_trt_dynamic_shape_info(info)

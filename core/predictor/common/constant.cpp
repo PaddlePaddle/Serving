@@ -20,7 +20,7 @@ namespace predictor {
 
 DEFINE_bool(use_parallel_infer_service, false, "");
 DEFINE_int32(el_log_level, 16, "");
-DEFINE_int32(idle_timeout_s, 16, "");
+DEFINE_int32(idle_timeout_s, 80, "");
 DEFINE_int32(port, 8010, "");
 DEFINE_string(workflow_path, "./conf", "");
 DEFINE_string(workflow_file, "workflow.prototxt", "");

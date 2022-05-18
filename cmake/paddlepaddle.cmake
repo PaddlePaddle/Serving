@@ -171,14 +171,27 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib")
 LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 
+#SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib")
+#LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib)
+
+#SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib")
+#LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib)
+
 if (NOT WITH_MKLML)
     ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
     SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 endif()
 
+#ADD_LIBRARY(paddle2onnx STATIC IMPORTED GLOBAL)
+#SET_PROPERTY(TARGET paddle2onnx PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib/libpaddle2onnx.so)
+
+#ADD_LIBRARY(onnxruntime STATIC IMPORTED GLOBAL)
+#SET_PROPERTY(TARGET onnxruntime PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib/libonnxruntime.so.1.10.0)
+
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
-if (WITH_ASCEND_CL)
+
+SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
+if (WITH_ASCEND_CL OR WITH_XPU)
     SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 endif()
 

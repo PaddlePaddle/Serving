@@ -94,9 +94,9 @@ message Response {
   repeated int64 profile_time = 2;
   bool profile_server = 3;
   uint64 log_id = 4;
+
   // Error code
   int32 err_no = 5;
-
   // Error messages
   string err_msg = 6;
 };
