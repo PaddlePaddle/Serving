@@ -241,10 +241,10 @@ class PaddleInferenceEngine : public EngineCore {
     }
 
     config.SwitchSpecifyInputNames(true);
-    config.SetCpuMathLibraryNumThreads(1);
+    config.SetCpuMathLibraryNumThreads(engine_conf.cpu_math_thread_num());
     if (engine_conf.has_use_gpu() && engine_conf.use_gpu()) {
       // 2000MB GPU memory
-      config.EnableUseGpu(50, gpu_id);
+      config.EnableUseGpu(engine_conf.gpu_memory_mb(), gpu_id);
       if (engine_conf.has_gpu_multi_stream() &&
           engine_conf.gpu_multi_stream()) {
         config.EnableGpuMultiStream();
@@ -267,17 +267,17 @@ class PaddleInferenceEngine : public EngineCore {
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
-        config.EnableUseGpu(50, gpu_id);
+        config.EnableUseGpu(engine_conf.gpu_memory_mb(), gpu_id);
         if (engine_conf.has_gpu_multi_stream() &&
             engine_conf.gpu_multi_stream()) {
           config.EnableGpuMultiStream();
         }
       }
-      config.EnableTensorRtEngine(1 << 25,
+      config.EnableTensorRtEngine(engine_conf.trt_workspace_size(),
                                   max_batch,
                                   local_min_subgraph_size,
                                   precision_type,
-                                  false,
+                                  engine_conf.trt_use_static(),
                                   FLAGS_use_calib);
       std::map<std::string, std::vector<int>> min_input_shape;
       std::map<std::string, std::vector<int>> max_input_shape;
@@ -413,7 +413,11 @@ class PaddleInferenceEngine : public EngineCore {
               << ", use_ascend_cl: " << engine_conf.has_use_ascend_cl()
               << ", use_xpu: " << engine_conf.use_xpu()
               << ", enable_memory_optimization: "
-              << engine_conf.enable_memory_optimization();
+              << engine_conf.enable_memory_optimization()
+              << ", gpu_memory_mb: " << engine_conf.gpu_memory_mb()
+              << ", cpu_math_thread_num: " << engine_conf.cpu_math_thread_num()
+              << ", trt_workspace_size: " << engine_conf.trt_workspace_size()
+              << ", trt_use_static: " << engine_conf.trt_use_static();
 
     VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;

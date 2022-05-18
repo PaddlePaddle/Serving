@@ -40,7 +40,7 @@ we recommend use Proto data format in HTTP-body, set True(which is default)
 if you want use JSON data format in HTTP-body, set False
 '''
 #client.set_http_proto(True)
-client.connect(["127.0.0.1:9292"])
+client.connect(["127.0.0.1:9297"])
 
 # you can define any english sentence or dataset here
 # This example reuses imdb reader in training, you
