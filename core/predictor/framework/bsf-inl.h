@@ -341,7 +341,7 @@ bool TaskExecutor<TaskT>::move_task_to_batch(
     LOG(INFO) << "Hit auto padding, merge " << padding_task_count
               << " tasks into 1 batch.";
   }
-  LOG(INFO) << "Number of tasks remaining in _task_queue is"
+  LOG(INFO) << "Number of tasks remaining in _task_queue is "
             << _task_queue.size();
   return true;
 }

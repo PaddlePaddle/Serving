@@ -21,6 +21,7 @@ option cc_generic_services = true;
 message RequestAndResponse {
   required int32 a = 1;
   required float b = 2;
+  required uint64 log_id = 3 [ default = 0 ];
 };
 
 service LoadGeneralModelService {

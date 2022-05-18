@@ -90,11 +90,12 @@ message Request {
 message Response {
   repeated ModelOutput outputs = 1;
   repeated int64 profile_time = 2;
+  bool profile_server = 3;
+  uint64 log_id = 4;
   // Error code
-  int32 err_no = 3;
-
+  int32 err_no = 5;
   // Error messages
-  string err_msg = 4;
+  string err_msg = 6;
 };
 
 message ModelOutput {
