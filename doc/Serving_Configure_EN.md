@@ -83,23 +83,38 @@ workdir_9393
 More flags:
 | Argument                                       | Type | Default | Description                                           |
 | ---------------------------------------------- | ---- | ------- | ----------------------------------------------------- |
-| `thread`                                       | int  | `2`     | Number of brpc service thread                         |
-| `runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
-| `batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
-| `gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
-| `port`                                         | int  | `9292`  | Exposed port of current service to users              |
-| `model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
-| `mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
-| `ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
-| `use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
-| `use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                            |
-| `use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
-| `use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
-| `precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
-| `use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
-| `gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
-| `use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
-| `request_cache_size`                           | int  | `0`     | Bytes size of request cache. By default, the cache is disabled |
+| `--thread`                                       | int  | `2`     | Number of brpc service thread                         |
+| `--runtime_thread_num`                           | int[]| `0`     | Thread Number for each model in asynchronous mode     |
+| `--batch_infer_size`                             | int[]| `32`    | Batch Number for each model in asynchronous mode      |
+| `--gpu_ids`                                      | str[]| `"-1"`  | Gpu card id for each model                            |
+| `--port`                                         | int  | `9292`  | Exposed port of current service to users              |
+| `--model`                                        | str[]| `""`    | Path of paddle model directory to be served           |
+| `--mem_optim_off`                                | -    | -       | Disable memory / graphic memory optimization          |
+| `--ir_optim`                                     | bool | False   | Enable analysis and optimization of calculation graph |
+| `--use_mkl` (Only for cpu version)               | -    | -       | Run inference with MKL. Need open with ir_optim.                                |
+| `--use_trt` (Only for trt version)               | -    | -       | Run inference with TensorRT. Need open with ir_optim.                            |
+| `--use_lite` (Only for Intel x86 CPU or ARM CPU) | -    | -       | Run PaddleLite inference. Need open with ir_optim.                              |
+| `--use_xpu`                                      | -    | -       | Run PaddleLite inference with Baidu Kunlun XPU. Need open with ir_optim.        |
+| `--precision`                                    | str  | FP32    | Precision Mode, support FP32, FP16, INT8              |
+| `--use_calib`                                    | bool | False   | Use TRT int8 calibration                              |
+| `--gpu_multi_stream`                             | bool | False   | EnableGpuMultiStream to get larger QPS                |
+| `--use_ascend_cl`                                | bool | False   | Enable for ascend910; Use with use_lite for ascend310 |
+| `--request_cache_size`                           | int  | `0`     | Bytes size of request cache. By default, the cache is disabled |
+| `--enable_prometheus`                            | bool | False   | Use Prometheus |
+| `--prometheus_port`                              | int  | 19393   | Port of the Prometheus |
+| `--use_dist_model                                | bool | False   | Use distributed model or not |
+| `--dist_carrier_id`                              | str  | ""      | Carrier id of distributed model |
+| `--dist_cfg_file`                                | str  | ""      | Config file of distributed model |
+| `--dist_endpoints`                               | str  | ""      | Endpoints of distributed model. splited by comma |
+| `--dist_nranks`                                  | int  | 0       | The number of rank in the distributed model|
+| `--dist_subgraph_index`                          | int  | -1      | The subgraph index of distributed model|
+| `--dist_master_serving`                          | bool | False   | The master serving of distributed inference |
+| `--min_subgraph_size`                            | str  | ""      | The min size of subgraph |
+| `--gpu_memory_mb`                                | int  | 50      | Initially allocate GPU storage size, 50 MB default.|
+| `--cpu_math_thread_num`                          | int  | 1       | Initialize the number of CPU computing threads|
+| `--trt_workspace_size`                           | int  | 33554432| Initialize allocation 1 << 25 GPU storage size for tensorRT|
+| `--trt_use_static`                               | bool | False   | Initialize TRT with static data| 
+
 
 #### Serving model with multiple gpus.
 ```BASH

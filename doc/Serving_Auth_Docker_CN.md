@@ -8,13 +8,13 @@
 - 这个服务接口不够安全，需要做相应的鉴权。
 - 这个服务接口不能够控制流量，无法合理利用资源。
 
-本文档的作用，就以 Uci 房价预测服务为例，来介绍如何强化预测服务API接口安全。API网关作为流量入口，对接口进行统一管理。但API网关可以提供流量加密和鉴权等安全功能。
+本文档的作用，就以 Uci 房价预测服务为例，来介绍如何强化预测服务 API 接口安全。API 网关作为流量入口，对接口进行统一管理。但 API 网关可以提供流量加密和鉴权等安全功能。
 
 ## Docker部署
 
-可以使用docker-compose来部署安全网关。这个示例的步骤就是 [部署本地Serving容器] - [部署本地安全网关] - [通过安全网关访问Serving]
+可以使用 docker-compose 来部署安全网关。这个示例的步骤就是 [部署本地Serving容器] - [部署本地安全网关] - [通过安全网关访问Serving]
 
-**注明：** docker-compose与docker不一样，它依赖于docker，一次可以部署多个docker容器，可以类比于本地版的kubenetes，docker-compose的教程请参考[docker-compose安装](https://docs.docker.com/compose/install/) 
+**注明：** docker-compose 与 docker 不一样，它依赖于 docker，一次可以部署多个 docker 容器，可以类比于本地版的 kubenetes，docker-compose 的教程请参考[docker-compose安装](https://docs.docker.com/compose/install/) 
 
 ```shell
 docker-compose -f tools/auth/auth-serving-docker.yaml up -d
@@ -30,50 +30,49 @@ ee59a3dd4806        registry.baidubce.com/serving_dev/serving-runtime:cpu-py36  
 665fd8a34e15        redis:latest                                                                    "docker-entrypoint.s…"   About an hour ago   Up About an hour             0.0.0.0:6379->6379/tcp                                                                               anquan_redis_1 
 ```
 
-其中我们之前serving容器 以 9393端口暴露，KONG网关的端口是8443， KONG的Web控制台的端口是8001。接下来我们在浏览器访问 `https://$IP_ADDR:8005`, 其中 IP_ADDR就是宿主机的IP。
->> **注意**: 第一次登录的时候可能需要输入 Name : admin 以及 Kong Admin URL : http://kong:8001
-<img src="images/kong-dashboard.png">
-可以看到在注册结束后，登陆，看到了 DASHBOARD，我们先看SERVICES，可以看到`serving_service`，这意味着我们端口在9393的Serving服务已经在KONG当中被注册。
+其中我们之前 serving 容器 以 9393 端口暴露，KONG 网关的端口是 8443， KONG 的 Web 控制台的端口是 8001。接下来我们在浏览器访问 `https://$IP_ADDR:8001`, 其中 IP_ADDR 就是宿主机的 IP 。
 
-<img src="images/kong-services.png">
-<img src="images/kong-routes.png">
+<img src="../images/kong-dashboard.png">
+可以看到在注册结束后，登陆，看到了 DASHBOARD，我们先看 SERVICES，可以看到 `serving_service`，这意味着我们端口在 9393 的 Serving 服务已经在 KONG 当中被注册。
 
-然后在ROUTES中，我们可以看到 serving 被链接到了 `/serving-uci`。
+<img src="../images/kong-services.png">
+<img src="../images/kong-routes.png">
 
-最后我们点击 CONSUMERS - default_user - Credentials - API KEYS ，我们可以看到 `Api Keys` 下看到很多key
+然后在 ROUTES 中，我们可以看到 serving 被链接到了 `/serving-uci`。
 
-<img src="images/kong-api_keys.png">
+最后我们点击 CONSUMERS - default_user - Credentials - API KEYS ，我们可以看到 `Api Keys` 下看到很多 key
 
-接下来可以通过curl访问
+<img src="../images/kong-api_keys.png">
+
+接下来可以通过 curl 访问
 
 ```shell
  curl -H "Content-Type:application/json" -H "X-INSTANCE-ID:kong_ins" -H "apikey:hP6v25BQVS5CcS1nqKpxdrFkUxze9JWD" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' https://127.0.0.1:8443/serving-uci/uci/prediction -k
 ```
 
-与之前的Serving HTTP服务相比，有以下区别。
+与之前的 Serving HTTP 服务相比，有以下区别。
 
-- 使用https加密访问，而不是http
-- 使用serving_uci的路径映射到网关
-- 在header处增加了 `X-INSTANCE-ID`和`apikey`
+- 使用 https 加密访问，而不是 http
+- 使用 serving_uci 的路径映射到网关
+- 在 header 处增加了 `X-INSTANCE-ID` 和 `apikey`
 
 
-## K8S部署
+## K8S 部署
 
-同样，我们也提供了K8S集群部署Serving安全网关的方式。
+同样，我们也提供了 K8S 集群部署 Serving 安全网关的方式。
 
-### Step 1：启动Serving服务
+**一. 启动 Serving 服务**
 
-我们仍然以 [Uci房价预测](../examples/C++/fit_a_line/)服务作为例子，这里省略了镜像制作的过程，详情可以参考 [在Kubernetes集群上部署Paddle Serving](./Run_On_Kubernetes_CN.md)。
+我们仍然以 [Uci房价预测](../examples/C++/fit_a_line/)服务作为例子，这里省略了镜像制作的过程，详情可以参考 [在 Kubernetes 集群上部署Paddle Serving](./Run_On_Kubernetes_CN.md)。
 
 在这里我们直接执行 
 ```
 kubectl apply -f tools/auth/serving-demo-k8s.yaml
 ```
 
-可以看到
 
-### Step 2: 安装 KONG (一个集群只需要执行一次就可以)
-接下来我们执行KONG Ingress的安装
+**二.  安装 KONG (一个集群只需要执行一次就可以)**
+接下来我们执行 KONG Ingress 的安装
 ```
 kubectl apply -f tools/auth/kong-install.yaml
 ```
@@ -106,15 +105,15 @@ kong          kong-validation-webhook   ClusterIP   172.16.114.93    <none>     
 
 ```
 
-### Step 3: 创建Ingress资源
+**三. 创建 Ingress 资源**
 
-接下来需要做Serving服务和KONG的链接
+接下来需要做 Serving 服务和 KONG 的链接
 
 ```
 kubectl apply -f tools/auth/kong-ingress-k8s.yaml
 ```
 
-我们也给出yaml文件内容
+我们也给出 yaml 文件内容
 ```
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -132,22 +131,22 @@ spec:
           serviceName: {{SERVING_SERVICE_NAME}}
           servicePort: {{SERVICE_PORT}}
 ```
-其中serviceName就是uci，servicePort就是9393，如果是别的服务就需要改这两个字段，最终会映射到`/foo`下。
+其中 serviceName 就是 uci，servicePort 就是 9393，如果是别的服务就需要改这两个字段，最终会映射到`/foo`下。
 在这一步之后，我们就可以 
 ```
 curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' http://$IP:$PORT/foo/uci/prediction
 ```
 
-### Step 4: 增加安全网关限制
+**四. 增加安全网关限制**
 
-之前的接口没有鉴权功能，无法验证用户身份合法性，现在我们添加一个key-auth插件
+之前的接口没有鉴权功能，无法验证用户身份合法性，现在我们添加一个 key-auth 插件
 
 执行
 ```
 kubectl apply -f key-auth-k8s.yaml
 ```
 
-其中,yaml文内容为
+其中，yaml 文内容为
 ```
 apiVersion: configuration.konghq.com/v1
 kind: KongPlugin
@@ -156,7 +155,7 @@ metadata:
 plugin: key-auth
 ```
 
-现在，需要创建secret，key值为用户指定，需要在请求时携带Header中apikey字段
+现在，需要创建 secret，key 值为用户指定，需要在请求时携带 Header 中 apikey 字段
 执行
 ```
 kubectl create secret generic default-apikey  \
@@ -164,14 +163,14 @@ kubectl create secret generic default-apikey  \
    --from-literal=key=ZGVmYXVsdC1hcGlrZXkK
 ```
 
-在这里，我们的key是随意制定了一串 `ZGVmYXVsdC1hcGlrZXkK`，实际情况也可以
-创建一个用户（consumer）标识访问者身份，并未该用户绑定apikey。
+在这里，我们的 key 是随意制定了一串 `ZGVmYXVsdC1hcGlrZXkK`，实际情况也可以
+创建一个用户（consumer）标识访问者身份，并未该用户绑定 apikey。
 执行
 ```
 kubectl apply -f kong-consumer-k8s.yaml
 ```
 
-其中,yaml文内容为
+其中，yaml 文内容为
 ```
 apiVersion: configuration.konghq.com/v1
 kind: KongConsumer
@@ -184,13 +183,13 @@ credentials:
 - default-apikey
 ```
 
-如果我们这时还想再像上一步一样的做curl访问，会发现已经无法访问，此时已经具备了安全能力，我们需要对应的key。
+如果我们这时还想再像上一步一样的做 curl 访问，会发现已经无法访问，此时已经具备了安全能力，我们需要对应的 key。
 
 
-### Step 5: 通过API Key访问服务
+**五. 通过 API Key 访问服务**
 
 执行
 ```
 curl -H "Content-Type:application/json" -H "apikey:ZGVmYXVsdC1hcGlrZXkK" -X POST -d '{"feed":[{"x": [0.0137, -0.1136, 0.2553, -0.0692, 0.0582, -0.0727, -0.1583, -0.0584, 0.6283, 0.4919, 0.1856, 0.0795, -0.0332]}], "fetch":["price"]}' https://$IP:$PORT/foo/uci/prediction -k
 ```
-我们可以看到 apikey 已经加入到了curl请求的header当中。
+我们可以看到 apikey 已经加入到了 curl 请求的 header 当中。

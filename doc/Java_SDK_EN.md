@@ -18,7 +18,7 @@ The following table shows compatibilities between Paddle Serving Server and Java
 
 | Paddle Serving Server version | Java SDK version |
 | :---------------------------: | :--------------: |
-|             0.8.0             |      0.0.1       |
+|             0.9.0             |      0.0.1       |
 
 1.    Directly use the provided Java SDK as the client for prediction
 ### Install Java SDK
@@ -42,6 +42,4 @@ mvn install:install-file -Dfile=$PWD/paddle-serving-sdk-java-0.0.1.jar -DgroupId
 
 2.    Use it after compiling from the source code. See the [document](../java/README.md).
 
-
 3.    examples for using the java client, see the See the [document](../java/README.md).
-
