@@ -1,5 +1,6 @@
 # C++ Serving性能分析与优化
-# 1.背景知识介绍
+
+## 背景知识介绍
 1) 首先，应确保您知道C++ Serving常用的一些[功能特点](./Introduction_CN.md)和[C++ Serving 参数配置和启动的详细说明](../Serving_Configure_CN.md)。
 2) 关于C++ Serving框架本身的性能分析和介绍，请参考[C++ Serving框架性能测试](./Frame_Performance_CN.md)。
 3) 您需要对您使用的模型、机器环境、需要部署上线的业务有一些了解，例如，您使用CPU还是GPU进行预测；是否可以开启TRT进行加速；你的机器CPU是多少core的；您的业务包含几个模型；每个模型的输入和输出需要做些什么处理；您业务的最大线上流量是多少；您的模型支持的最大输入batch是多少等等.

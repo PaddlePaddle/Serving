@@ -1,79 +1,82 @@
-# FAQ
+# 常见问题与解答
+
+常见问题解答分为8大类问题：
+- [版本升级问题](#1)
+- [基础知识](#2)
+- [安装问题](#3)
+- [编译问题](#4)
+- [环境问题](#5)
+- [部署问题](#6)
+- [预测问题](#7)
+- [日志排查](#8)
+
+<a name="1"></a>
 
 ## 版本升级问题
 
-#### Q: 从v0.6.x升级到v0.7.0版本时，运行Python Pipeline程序时报错信息如下：
+#### Q: 从 `v0.6.x` 升级到 `v0.7.0` 版本时，运行 Python Pipeline 程序时报错信息如下：
 ```
 Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postprocess() takes 4 positional arguments but 5 were given
 ```
 **A:** 在服务端程序（例如 web_service.py)的postprocess函数定义中增加参数data_id，改为 def postprocess(self, input_dicts, fetch_dict, **data_id**, log_id) 即可。
 
-***
+<a name="2"></a>
 
 ## 基础知识
 
-#### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving三者的区别及联系？
+#### Q: Paddle Serving 、Paddle Inference、PaddleHub Serving 三者的区别及联系？
 
-**A:** paddle serving是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。   paddle inference是一个library，适合嵌入到一个大系统中保证预测效率，paddle serving调用了paddle       inference做远程服务。paddlehub serving可以认为是一个示例，都会使用paddle serving作为统一预测服务入口。如果在web端交互，一般是调用远程服务的形式，可以使用paddle serving的web service搭建。
+**A:** Paddle Serving 是远程服务，即发起预测的设备（手机、浏览器、客户端等）与实际预测的硬件不在一起。   paddle inference 是一个 library，适合嵌入到一个大系统中保证预测效率，Paddle Serving 调用 paddle inference 做远程服务。paddlehub serving 可以认为是一个示例，都会使用 Paddle Serving 作为统一预测服务入口。如果在 web 端交互，一般是调用远程服务的形式，可以使用 Paddle Serving 的 web service 搭建。
 
-#### Q: paddle-serving是否支持Int32支持
+#### Q: Paddle Serving 支持哪些数据类型?
 
-**A:** 在protobuf定feed_type和fetch_type编号与数据类型对应如下，完整信息可参考[Serving配置与启动参数说明](./Serving_Configure_CN.md#模型配置文件)
+**A:** 在 protobuf 定义中 `feed_type` 和 `fetch_type` 编号与数据类型对应如下，完整信息可参考[保存用于 Serving 部署的模型参数](./5-1_Save_Model_Params_CN.md)
 
-     0-int64
-    
-     1-float32
-    
-     2-int32
+| 类型 | 类型值 |
+|------|------|
+| int64 | 0   |
+| float32  |1 |
+| int32 | 2 |
+| float64 | 3 |
+| int16 | 4 |
+| float16 | 5 |
+| bfloat16 | 6 |
+| uint8 | 7 |
+| int8 | 8 |
+| bool | 9 |
+| complex64 | 10 
+| complex128 | 11 |
 
-#### Q: paddle-serving是否支持windows和Linux环境下的多线程调用 
+#### Q: Paddle Serving 是否支持 Windows 和 Linux 原生环境部署？
 
-**A:** 客户端可以发起多线程访问调用服务端 
+**A:** 安装 `Linux Docker`，在 Docker 中部署 Paddle Serving，参考[安装指南](./2-0_Index_CN.md)
 
-#### Q: paddle-serving如何修改消息大小限制
+#### Q: Paddle Serving 如何修改消息大小限制
 
-**A:** 在server端和client但通过FLAGS_max_body_size来扩大数据量限制，单位为字节，默认为64MB
+**A:** Server 和 Client 通过修改 `FLAGS_max_body_size` 参数来扩大数据量限制，单位为字节，默认为64MB
 
-#### Q: paddle-serving客户端目前支持哪些语言
+#### Q: Paddle Serving 客户端目前支持哪些开发语言？
 
-**A:** java c++ python 
+**A:** 提供 Python、C++ 和 Java SDK
 
-#### Q: paddle-serving目前支持哪些协议
+#### Q: Paddle Serving 支持哪些网络协议？
 
-**A:** http rpc 
+**A:** C++ Serving 同时支持 HTTP、gRPC 和 bRPC 协议。其中 HTTP 协议既支持 HTTP + Json 格式，同时支持 HTTP + proto 格式。完整信息请阅读[C++ Serving 通讯协议](./6-2_Cpp_Serving_Protocols_CN.md)；Python Pipeline 支持 HTTP 和 gRPC 协议，更多信息请阅读[Python Pipeline 框架设计](./6-2_Cpp_Serving_Protocols_CN.md)
 
-***
+<a name="3"></a>
 
 ## 安装问题
 
-#### Q: pip install安装whl包过程，报错信息如下：
+#### Q: `pip install` 安装 `python wheel` 过程中，报错信息如何修复？
 
 ```
 Collecting opencv-python
-  Using cached opencv-python-4.3.0.38.tar.gz (88.0 MB)
-  Installing build dependencies ... done
   Getting requirements to build wheel ... error
   ERROR: Command errored out with exit status 1:
    command: /home/work/Python-2.7.17/build/bin/python /home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py get_requires_for_build_wheel /tmp/tmpLiweA9
        cwd: /tmp/pip-install-_w6AUI/opencv-python
   Complete output (22 lines):
   Traceback (most recent call last):
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 280, in <module>
-      main()
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 263, in main
-      json_out['return_val'] = hook(**hook_input['kwargs'])
-    File "/home/work/Python-2.7.17/build/lib/python2.7/site-packages/pip/_vendor/pep517/_in_process.py", line 114, in get_requires_for_build_wheel
-      return hook(config_settings)
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 146, in get_requires_for_build_wheel
-      return self._get_build_requires(config_settings, requirements=['wheel'])
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 127, in _get_build_requires
-      self.run_setup()
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 243, in run_setup
-      self).run_setup(setup_script=setup_script)
-    File "/tmp/pip-build-env-AUCbP4/overlay/lib/python2.7/site-packages/setuptools/build_meta.py", line 142, in run_setup
-      exec(compile(code, __file__, 'exec'), locals())
-    File "setup.py", line 448, in <module>
-      main()
     File "setup.py", line 99, in main
       % {"ext": re.escape(sysconfig.get_config_var("EXT_SUFFIX"))}
     File "/home/work/Python-2.7.17/build/lib/python2.7/re.py", line 210, in escape
@@ -81,9 +84,9 @@ Collecting opencv-python
   TypeError: 'NoneType' object is not iterable
 ```
 
-**A:** 指定opencv-python版本安装，pip install opencv-python==4.2.0.32，再安装whl包
+**A:** 指定 `opencv-python` 安装版本4.2.0.32，运行 `pip3 install opencv-python==4.2.0.32`
 
-#### Q: pip3 install whl包过程报错信息如下：
+#### Q: pip3 install wheel包过程报错，详细信息如下：
 
 ```
     Complete output from command python setup.py egg_info:
@@ -94,14 +97,14 @@ Collecting opencv-python
 Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-install-taoxz02y/grpcio/
 ```
 
-**A:** 需要升级pip3，再重新执行安装命令。
+**A:** 需要升级 pip3 版本，再重新执行安装命令。
 
 ```
 pip3 install --upgrade pip
 pip3 install --upgrade setuptools
 ```
 
-#### Q: 运行过程中报错，信息如下：
+#### Q: 运行过程中出现 `No module named xxx` 错误，信息如下：
 
 ```
 Traceback (most recent call last):
@@ -114,26 +117,27 @@ Traceback (most recent call last):
 ImportError: No module named shapely.geometry
 ```
 
-**A:** 有2种方法，第一种通过pip/pip3安装shapely，第二种通过pip/pip3安装所有依赖组件。
+**A:** 有2种方法，第一种通过 pip3 安装shapely，第二种通过 pip3 安装所有依赖组件[requirements.txt](https://github.com/PaddlePaddle/Serving/blob/develop/python/requirements.txt)。
 
 ```
 方法1：
-pip install shapely==1.7.0
+pip3 install shapely==1.7.0
 
 方法2：
-pip install -r python/requirements.txt
+pip3 install -r python/requirements.txt
 ```
-***
+
+<a name="4"></a>
 
 ## 编译问题
 
-#### Q: 如何使用自己编译的Paddle Serving进行预测？
+#### Q: 如何使用自己编译的 Paddle Serving 进行预测？
 
-**A:** 通过pip命令安装自己编译出的whl包，并设置SERVING_BIN环境变量为编译出的serving二进制文件路径。
+**A:** 编译 Paddle Serving 请阅读[编译 Serving](https://github.com/PaddlePaddle/Serving/blob/v0.8.3/doc/Compile_CN.md)。
 
-#### Q: 使用Java客户端，mvn compile过程出现"No compiler is provided in this environment. Perhaps you are running on a JRE rather than a JDK?"错误
+#### Q: 使用 Java 客户端，mvn compile 过程出现 "No compiler is provided in this environment. Perhaps you are running on a JRE rather than a JDK?" 错误
 
-**A:** 没有安装JDK，或者JAVA_HOME路径配置错误（正确配置是JDK路径，常见错误配置成JRE路径，例如正确路径参考JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/"）。Java JDK安装参考https://segmentfault.com/a/1190000015389941
+**A:** 没有安装 JDK，或者 `JAVA_HOME` 路径配置错误（正确配置是 JDK 路径，常见错误配置成 JRE 路径，例如正确路径参考 `JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.262.b10-0.el7_8.x86_64/"`）。Java JDK 安装参考 https://segmentfault.com/a/1190000015389941。
 
 #### Q: 编译过程报错 /usr/local/bin/ld: cannot find -lbz2
 ```
@@ -147,39 +151,17 @@ Makefile:129: recipe for target 'all' failed
 make: *** [all] Error 2
 ```
 
-**A:** 运行命令安装libbz2: apt install libbz2-dev
+**A:**  Ubuntu 系统运行命令安装 libbz2: `apt install libbz2-dev`，
 
-***
+<a name="5"></a>
+
 ## 环境问题
 
-#### Q:  ImportError: dlopen: cannot load any more object with static TLS 
+#### Q：程序运行出现 `CXXABI` 相关错误。
 
-**A:** 一般是用户使用Linux系统版本比较低或者Python使用的gcc版本比较低导致的，可使用以下命令检查，或者通过使用Serving或Paddle镜像安装
-```
-strings /lib/libc.so | grep GLIBC
-```
+错误原因是编译 Python 使用的 GCC 版本和编译 Serving 的 GCC 版本不一致。对于 Docker 用户，推荐使用[Docker容器](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)，由于 Docker 容器内的 Python 版本与 Serving 在发布前都做过适配，这样就不会出现类似的错误。
 
-#### Q：使用过程中出现CXXABI错误。
-
-这个问题出现的原因是Python使用的gcc版本和Serving所需的gcc版本对不上。对于Docker用户，推荐使用[Docker容器](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)，由于Docker容器内的Python版本与Serving在发布前都做过适配，这样就不会出现类似的错误。如果是其他开发环境，首先需要确保开发环境中具备GCC 8.2，如果没有gcc 8.2，参考安装方式
-
-```bash
-wget -q https://paddle-ci.gz.bcebos.com/gcc-8.2.0.tar.xz 
-tar -xvf gcc-8.2.0.tar.xz && \
-cd gcc-8.2.0 && \
-unset LIBRARY_PATH CPATH C_INCLUDE_PATH PKG_CONFIG_PATH CPLUS_INCLUDE_PATH INCLUDE && \
-./contrib/download_prerequisites && \
-cd .. && mkdir temp_gcc82 && cd temp_gcc82 && \
-../gcc-8.2.0/configure --prefix=/usr/local/gcc-8.2 --enable-threads=posix --disable-checking --disable-multilib && \
-make -j8 && make install
-cd .. && rm -rf temp_gcc82
-cp ${lib_so_6} ${lib_so_6}.bak  && rm -f ${lib_so_6} && 
-ln -s /usr/local/gcc-8.2/lib64/libgfortran.so.5 ${lib_so_5} && \
-ln -s /usr/local/gcc-8.2/lib64/libstdc++.so.6 ${lib_so_6} && \
-cp /usr/local/gcc-8.2/lib64/libstdc++.so.6.0.25 ${lib_path}
-```
-
-假如已经有了GCC 8.2，可以自行安装Python，此外我们也提供了两个GCC 8.2编译的[Python2.7](https://paddle-serving.bj.bcebos.com/others/Python2.7.17-gcc82.tar) 和 [Python3.6](https://paddle-serving.bj.bcebos.com/others/Python3.6.10-gcc82.tar) 。下载解压后，需要将对应的目录设置为`PYTHONROOT`，并设置`PATH`和`LD_LIBRARY_PATH`。
+推荐使用 GCC 8.2 预编译包 [Python3.6](https://paddle-serving.bj.bcebos.com/others/Python3.6.10-gcc82.tar) 。下载解压后，需要将对应的目录设置为 `PYTHONROOT`，并设置 `PATH` 和 `LD_LIBRARY_PATH`。
 
 ```bash
 export PYTHONROOT=/path/of/python # 对应解压后的Python目录
@@ -187,13 +169,13 @@ export PATH=$PYTHONROOT/bin:$PATH
 export LD_LIBRARY_PATH=$PYTHONROOT/lib:$LD_LIBRARY_PATH
 ```
 
-#### Q：遇到libstdc++.so.6的版本不够的问题
+#### Q：遇到 `libstdc++.so.6` 的版本不够的问题
 
-触发该问题的原因在于，编译Paddle Serving相关可执行程序和动态库，所采用的是GCC 8.2(Cuda 9.0和10.0的Server可执行程序受限Cuda兼容性采用GCC 4.8编译)。Python在调用的过程中，有可能链接到了其他GCC版本的 `libstdc++.so`。 需要做的就是受限确保所在环境具备GCC 8.2，其次将GCC8.2的`libstdc++.so.*`拷贝到某个目录例如`/home/libstdcpp`下。最后`export LD_LIBRARY_PATH=/home/libstdcpp:$LD_LIBRARY_PATH` 即可。
+触发该问题的原因在于，编译 Paddle Serving 相关可执行程序和动态库，所采用的是 GCC 8.2(Cuda 9.0 和 10.0 的 Server 可执行程序受限 CUDA 兼容性采用 GCC 4.8编译)。Python 在调用的过程中，有可能链接到了其他 GCC 版本的 `libstdc++.so`。 需要做的就是受限确保所在环境具备 GCC 8.2，其次将 GCC8.2 的`libstdc++.so.*`拷贝到某个目录例如`/home/libstdcpp` 下。最后 `export LD_LIBRARY_PATH=/home/libstdcpp:$LD_LIBRARY_PATH` 即可。
 
-#### Q: 遇到OPENSSL_1.0.1EC 符号找不到的问题。
+#### Q: 遇到 `OPENSSL_1.0.1EC` 符号找不到的问题。
 
-目前Serving的可执行程序和客户端动态库需要链接1.0.2k版本的openssl动态库。如果环境当中没有，可以执行
+目前 Serving 的可执行程序和客户端动态库需要链接 `1.0.2k` 版本的 `openssl` 动态库。如果环境当中没有，可以执行
 
 ```bash
 wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
@@ -205,43 +187,27 @@ wget https://paddle-serving.bj.bcebos.com/others/centos_ssl.tar && \
     ln -sf /usr/lib/libssl.so.10 /usr/lib/libssl.so
 ```
 
-其中`/usr/lib` 可以换成其他目录，并确保该目录在`LD_LIBRARY_PATH`下。
+其中 `/usr/lib` 可以换成其他目录，并确保该目录在 `LD_LIBRARY_PATH` 下。
 
 ### GPU相关环境问题
 
-#### Q：需要做哪些检查确保Serving可以运行在GPU环境
+#### Q：需要做哪些检查确保 Serving 可以运行在 GPU 环境
 
-**注：如果是使用Serving提供的镜像不需要做下列检查，如果是其他开发环境可以参考以下指导。**
+**注：如果是使用 Serving 提供的镜像不需要做下列检查，如果是其他开发环境可以参考以下指导。**
 
 首先需要确保`nvidia-smi`可用，其次需要确保所需的动态库so文件在`LD_LIBRARY_PATH`所在的目录（包括系统lib库）。
 
-（1）Cuda显卡驱动：文件名通常为 `libcuda.so.$DRIVER_VERSION` 例如驱动版本为440.10.15，文件名就是`libcuda.so.440.10.15`。
+（1）CUDA 显卡驱动：文件名通常为 `libcuda.so.$DRIVER_VERSION` 例如驱动版本为440.10.15，文件名就是 `libcuda.so.440.10.15`。
 
-（2）Cuda和Cudnn动态库：文件名通常为 `libcudart.so.$CUDA_VERSION`，和 `libcudnn.so.$CUDNN_VERSION`。例如Cuda9就是 `libcudart.so.9.0`，Cudnn7就是 `libcudnn.so.7`。Cuda和Cudnn与Serving的版本匹配参见[Serving所有镜像列表](Docker_Images_CN.md#%E9%99%84%E5%BD%95%E6%89%80%E6%9C%89%E9%95%9C%E5%83%8F%E5%88%97%E8%A1%A8).
+（2）CUDA 和 cuDNN 动态库：文件名通常为 `libcudart.so.$CUDA_VERSION`，和 `libcudnn.so.$CUDNN_VERSION`。例如 CUDA9 就是 `libcudart.so.9.0`，Cudnn7就是 `libcudnn.so.7`。CUDA 和 cuDNN 与 Serving 的版本匹配参见[Serving所有镜像列表](Docker_Images_CN.md#%E9%99%84%E5%BD%95%E6%89%80%E6%9C%89%E9%95%9C%E5%83%8F%E5%88%97%E8%A1%A8).
 
-  (3) Cuda10.1及更高版本需要TensorRT。安装TensorRT相关文件的脚本参考 [install_trt.sh](../tools/dockerfiles/build_scripts/install_trt.sh).
+ (3) CUDA 10.1及更高版本需要 TensorRT。安装 TensorRT 相关文件的脚本参考 [install_trt.sh](../tools/dockerfiles/build_scripts/install_trt.sh).
 
-***
-
-## 模型参数保存问题
-
-#### Q: 找不到'_remove_training_info'属性，详细报错信息如下：
-```
-python3 -m paddle_serving_client.convert --dirname ./ch_PP-OCRv2_det_infer/ \
-                                         --model_filename inference.pdmodel          \
-                                         --params_filename inference.pdiparams       \
-                                         --serving_server ./ppocrv2_det_serving/ \
-                                         --serving_client ./ppocrv2_det_client/ 
- AttributeError: 'Program' object has no attribute '_remove_training_info'
-```
-
-**A:** Paddle版本低，升级Paddle版本到2.2.x及以上
-
-***
+<a name="6"></a>
 
 ## 部署问题
 
-#### Q: GPU环境运行Serving报错，GPU count is: 0。
+#### Q: GPU 环境运行 Serving 报错，GPU count is: 0。
 
 ```
 terminate called after throwing an instance of 'paddle::platform::EnforceNotMet'
@@ -261,34 +227,30 @@ InvalidArgumentError: Device id must be less than GPU count, but received id is:
 [Hint: Expected id < GetCUDADeviceCount(), but received id:0 >= GetCUDADeviceCount():0.] at (/home/scmbuild/workspaces_cluster.dev/baidu.lib.paddlepaddle/baidu/lib/paddlepaddle/Paddle/paddle/fluid/platform/gpu_info.cc:211)
 ```
 
-**A:** libcuda.so没有链接成功。首先在机器上找到libcuda.so，ldd检查libnvidia版本与nvidia-smi中版本一致（libnvidia-fatbinaryloader.so.418.39，与NVIDIA-SMI 418.39 Driver Version: 418.39）,然后用export导出libcuda.so的路径即可（例如libcuda.so在/usr/lib64/，export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/）
+**A:** 原因是 `libcuda.so` 没有链接成功。首先在机器上找到 `libcuda.so`，使用 `ldd` 命令检查 libnvidia 版本与 nvidia-smi 中版本是否一致（libnvidia-fatbinaryloader.so.418.39，与NVIDIA-SMI 418.39 Driver Version: 418.39），然后用 export 导出 `libcuda.so` 的路径即可（例如 libcuda.so 在 /usr/lib64/，export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64/）
 
 #### Q: 遇到 GPU not found, please check your environment or use cpu version by "pip install paddle_serving_server"
 
-**A:** 检查环境中是否有N卡：ls /dev/ | grep nvidia
+**A:** 检查环境中是否有N卡：`ls /dev/ | grep nvidia`
 
-#### Q: 目前Paddle Serving支持哪些镜像环境？
+#### Q: Paddle Serving 支持哪些镜像环境？
 
-**A:** 目前（0.4.0）仅支持CentOS，具体列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)
+**A:** 支持 CentOS 和 Ubuntu 环境镜像 ，完整列表查阅[这里](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)
 
-#### Q: python编译的GCC版本与serving的版本不匹配
+#### Q: Paddle Serving 是否支持本地离线安装 
 
-**A:**:1)使用GPU Dockers, [这里是Docker镜像列表](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Docker_Images_CN.md)解决环境问题；2)修改anaconda的虚拟环境下安装的python的gcc版本[改变python的GCC编译环境](https://www.jianshu.com/p/c498b3d86f77) 
+**A:** 支持离线部署，需要把一些相关的[依赖包](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Compile_CN.md) 提前准备安装好
 
-#### Q: paddle-serving是否支持本地离线安装 
+#### Q: Docker 中启动 Server IP地址 127.0.0.1 与 0.0.0.0 差异
+**A:** 必须将容器的主进程设置为绑定到特殊的 `0.0.0.0` 表示“所有接口”地址，否则它将无法从容器外部访问。在 Docker 中 `127.0.0.1` 仅代表“这个容器”，而不是“这台机器”。如果您从容器建立到 `127.0.0.1` 的出站连接，它将返回到同一个容器；如果您将服务器绑定到 `127.0.0.1`，接收不到来自外部的连接。
 
-**A:** 支持离线部署，需要把一些相关的[依赖包](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Compile_CN.md)提前准备安装好
-
-#### Q: Docker中启动server IP地址 127.0.0.1 与 0.0.0.0 差异
-**A:** 您必须将容器的主进程设置为绑定到特殊的 0.0.0.0 “所有接口”地址，否则它将无法从容器外部访问。在Docker中 127.0.0.1 代表“这个容器”，而不是“这台机器”。如果您从容器建立到 127.0.0.1 的出站连接，它将返回到同一个容器；如果您将服务器绑定到 127.0.0.1，接收不到来自外部的连接。
-
-***
+<a name="7"></a>
 
 ## 预测问题
 
-#### Q: 使用GPU第一次预测时特别慢，如何调整RPC服务的等待时间避免超时？ 
+#### Q: 使用 GPU 第一次预测时特别慢，如何调整 RPC 服务的等待时间避免超时？ 
 
-**A:** GPU第一次预测需要初始化。使用set_rpc_timeout_ms设置更长的等待时间，单位为毫秒，默认时间为20秒。
+**A:** GPU 第一次预测需要初始化。使用 `set_rpc_timeout_ms` 设置更长的等待时间，单位为毫秒，默认时间为20秒。
 
 示例：
 
@@ -300,76 +262,67 @@ client.load_client_config(sys.argv[1])
 client.set_rpc_timeout_ms(100000)
 client.connect(["127.0.0.1:9393"])
 ```
+#### Q: 执行 GPU 预测时遇到 `ExternalError: Cudnn error, CUDNN_STATUS_BAD_PARAM at (../batch_norm_op.cu:198)`错误
 
-#### Q: 执行GPU预测时遇到InvalidArgumentError: Device id must be less than GPU count, but received id is: 0. GPU count is: 0.
+**A:** 将 cuDNN 的 lib64路径添加到 `LD_LIBRARY_PATH`，安装自 `pypi` 的 Paddle Serving 中 `post9` 版本使用的是 `cuDNN 7.3,post10` 使用的是 `cuDNN 7.5。如果是使用自己编译的 Paddle Serving，可以在 `log/serving.INFO` 日志文件中查看对应的 cuDNN 版本。
 
-**A:** 将显卡驱动对应的libcuda.so的目录添加到LD_LIBRARY_PATH环境变量中
+#### Q: 执行 GPU 预测时遇到 `Error: Failed to find dynamic library: libcublas.so`
 
-#### Q: 执行GPU预测时遇到ExternalError: Cudnn error, CUDNN_STATUS_BAD_PARAM at (../batch_norm_op.cu:198)
+**A:** 将 CUDA 的 lib64路径添加到 `LD_LIBRARY_PATH`, post9 版本的 Paddle Serving 使用的是 `cuda 9.0，post10` 版本使用的 `cuda 10.0`。
 
-**A:** 将cudnn的lib64路径添加到LD_LIBRARY_PATH，安装自pypi的Paddle Serving中post9版使用的是cudnn 7.3,post10使用的是cudnn 7.5。如果是使用自己编译的Paddle Serving，可以在log/serving.INFO日志文件中查看对应的cudnn版本。
+#### Q: Client 的 `fetch var`变量名如何设置
 
-#### Q: 执行GPU预测时遇到Error: Failed to find dynamic library: libcublas.so
-
-**A:** 将cuda的lib64路径添加到LD_LIBRARY_PATH, post9版本的Paddle Serving使用的是cuda 9.0，post10版本使用的cuda 10.0。
-
-#### Q: Client端fetch的变量名如何设置
-
-**A:** 可以查看配置文件serving_server_conf.prototxt，获取需要的变量名
+**A:** 通过[保存用于 Serving 部署的模型参数](https://github.com/PaddlePaddle/Serving/blob/v0.8.3/doc/Save_EN.md) 生成配置文件 `serving_server_conf.prototxt`，获取需要的变量名。
 
 #### Q: 如何使用多语言客户端
 
-**A:** 多语言客户端要与多语言服务端配套使用。当前版本下（0.4.0），服务端需要将Server改为MultiLangServer（如果是以命令行启动的话只需要添加--use_multilang参数），Python客户端需要将Client改为MultiLangClient，同时去除load_client_config的过程。[Java客户端参考文档](https://github.com/PaddlePaddle/Serving/blob/develop/doc/Java_SDK_CN.md)
+**A:** 多语言客户端要与多语言服务端配套使用。当前版本下（0.8.3）
 
-#### Q: 如何在Windows下使用Paddle Serving
+#### Q: 如何在 Windows 下使用 Paddle Serving
 
-**A:** 当前版本（0.4.0）在Windows上可以运行多语言RPC客户端，或使用HTTP方式访问。如果使用多语言RPC客户端，需要在Linux环境（比如本机容器，或远程Linux机器）中运行多语言服务端；如果使用HTTP方式，需要在Linux环境中运行普通服务端
+**A:** 在 Windows 上可以运行多语言 RPC 客户端，或使用 HTTP 方式访问。
 
-#### Q: libnvinfer.so: cannot open shared object file: No such file or directory)
+#### Q: 报错信息 `libnvinfer.so: cannot open shared object file: No such file or directory)`
 
- **A:** 参考该文档安装TensorRT: https://blog.csdn.net/hesongzefairy/article/details/105343525
+ **A:** 没有安装 TensorRT，安装 TensorRT 请参考链接: https://blog.csdn.net/hesongzefairy/article/details/105343525
 
-***
+<a name="8"></a>
 
 ## 日志排查
 
 #### Q: 部署和预测中的日志信息在哪里查看？
 
-**A:** server端的日志分为两部分，一部分打印到标准输出，一部分打印到启动服务时的目录下的log/serving.INFO文件中。
-
-client端的日志直接打印到标准输出。
-
+**A:** Server 的日志分为两部分，一部分打印到标准输出，一部分打印到启动服务时的目录下的 `log/serving.INFO` 文件中。
+Client 的日志直接打印到标准输出。
 通过在部署服务之前 'export  GLOG_v=3'可以输出更为详细的日志信息。
 
-#### Q: paddle-serving启动成功后，相关的日志在哪里设置
+#### Q: C++ Serving 启动成功后，日志文件在哪里，在哪里设置日志级别？
 
-**A:** 1)警告是glog组件打印的，告知glog初始化之前日志打印在STDERR
-
-       2)一般采用GLOG_v方式启动服务同时设置日志级别。
+**A:** C++ Serving 服务的所有日志在程序运行的当前目录的`log/`目录下，分为 serving.INFO、serving.WARNING 和 serving.ERROR 文件。
+1)警告是 `glog` 组件打印的，告知 `glog` 初始化之前日志打印在 STDERR；
+2)一般采用 `GLOG_v` 方式启动服务同时设置日志级别。
 
 例如：
-
 ```
 GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999 
 ```
 
+#### Q: Python Pipeline 启动成功后，日志文件在哪里，在哪里设置日志级别？
 
-#### Q: （GLOG_v=2下）Server端日志一切正常，但Client端始终得不到正确的预测结果
+**A:** Python Pipeline 服务的日志信息请阅读[Python Pipeline 设计](./7-1_Python_Pipeline_Design_CN.md) 第三节服务日志。
+
+#### Q: （GLOG_v=2下）Server 日志一切正常，但 Client 始终得不到正确的预测结果
 
 **A:** 可能是配置文件有问题，检查下配置文件（is_load_tensor，fetch_type等有没有问题）
 
-#### Q: 如何给Server传递Logid
+#### Q: 如何给 Server 传递 Logid
 
-**A:** Logid默认为0（后续应该有自动生成Logid的计划，当前版本0.4.0），Client端通过在predict函数中指定log_id参数传递
+**A:** Logid 默认为0，Client 通过在 predict 函数中指定 log_id 参数
 
-#### Q: C++Server出现问题如何调试和定位
+#### Q: C++ Serving 出现问题如何调试和定位
 
-**A:** 推荐您使用gdb进行定位和调试，如果您使用docker,在启动容器时候，需要加上docker run --privileged参数，开启特权模式，这样才能在docker容器中使用gdb定位和调试
+**A:** 推荐您使用 GDB 进行定位和调试，如果您使用 Serving 的 Docker，在启动容器时候，需要加上 `docker run --privileged `参数，开启特权模式，这样才能在 docker 容器中使用 GDB 定位和调试
+如果 C++ Serving 出现 `core dump`，一般会生成 core 文件，若没有，运行 `ulimit -c unlimited`命令开启core dump。
+使用 GDB 调试 core 文件的方法为：`gdb <可执行文件> <core文件>`，进入后输入 `bt` 指令显示栈信息。
 
-如果您C++端出现coredump，一般而言会生成一个core文件，若没有，则应开启生成core文件选项，使用ulimit -c unlimited命令。
-
-使用gdb调试core文件的方法为：gdb <可执行文件> <core文件>，进入后输入bt指令，一般即可显示出错在哪一行。
-
-注意：可执行文件路径是C++ bin文件的路径，而不是python命令，一般为类似下面的这种/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.7.0/serving
-
-
+注意：可执行文件路径是 C++ bin 文件的路径，而不是 python 命令，一般为类似下面的这种 `/usr/local/lib/python3.6/site-packages/paddle_serving_server/serving-gpu-102-0.7.0/serving`
