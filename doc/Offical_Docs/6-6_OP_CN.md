@@ -1,5 +1,10 @@
 # 如何开发一个新的General Op?
 
+- [定义一个Op](#1)
+- [在Op之间使用 `GeneralBlob`](#2)
+  - [2.1 实现 `int Inference()`](#2.1)
+- [定义 Python API](#3)
+
 在本文档中，我们主要集中于如何为 Paddle Serving 开发新的服务器端运算符。在开始编写新运算符之前，让我们看一些示例代码以获得为服务器编写新运算符的基本思想。我们假设您已经知道 Paddle Serving 服务器端的基本计算逻辑。 下面的代码您可以在 Serving代码库下的 `core/general-server/op` 目录查阅。
 
 
@@ -31,10 +36,13 @@ class GeneralInferOp
 }  // namespace paddle_serving
 }  // namespace baidu
 ```
+<a name="1"></a>
 
 ## 定义一个Op
 
 上面的头文件声明了一个名为 `GeneralInferOp` 的 Paddle Serving 运算符。 在运行时，将调用函数 `int inference（)`。 通常，我们将服务器端运算符定义为baidu::paddle_serving::predictor::OpWithChannel 的子类，并使用 `GeneralBlob` 数据结构。
+
+<a name="2"></a>
 
 ## 在Op之间使用 `GeneralBlob` 
 
@@ -62,6 +70,8 @@ struct GeneralBlob {
   std::string ShortDebugString() const { return "Not implemented!"; }
 };
 ```
+
+<a name="2.1"></a>
 
 **一. 实现 `int Inference()`**
 
@@ -106,8 +116,7 @@ DEFINE_OP(GeneralInferOp);
 
 `input_blob` 和 `output_blob` 都有很多的 `paddle::PaddleTensor`, 且 Paddle 预测库会被 `InferManager::instance().infer(engine_name().c_str(), in, out, batch_size)` 调用。此函数中的其他大多数代码都与性能分析有关，将来我们也可能会删除多余的代码。
 
-
-基本上，以上代码可以实现一个新的运算符。如果您想访问字典资源，可以参考 `core/predictor/framework/resource.cpp` 来添加全局可见资源。资源的初始化在启动服务器的运行时执行。
+<a name="3"></a>
 
 ## 定义 Python API
 

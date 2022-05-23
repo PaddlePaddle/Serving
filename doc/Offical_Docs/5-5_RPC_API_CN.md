@@ -2,15 +2,28 @@
 
 Paddle Serving 采用[brpc框架](https://github.com/apache/incubator-brpc)进行 Client/Server 端的通信。brpc 是百度开源的一款PRC网络框架，具有高并发、低延时等特点，已经支持了包括百度在内上百万在线预估实例、上千个在线预估服务，稳定可靠。与 gRPC 网络框架相比，具有更低的延时，更高的并发性能，且底层支持<mark>**brpc/grpc/http+json/http+proto**</mark>等多种协议。本文主要介绍如何使用 BRPC 进行通信。
 
+- [示例](#1)
+  - [1.1 获取模型](#1.1)
+  - [1.2 开启服务端](#1.2)
+- [客户端请求](#2)
+  - [2.1 C++ 方法](#2.1)
+  - [2.2 Python 方法](#2.2)
+
+<a name="1"></a>
+
 ## 示例
 
 我们将以 examples/C++/fit_a_line 为例，讲解如何通过 RPC 访问 Server 端。
+
+<a name="1.1"></a>
 
 **一. 获取模型：**
 
 ```shell
 sh get_data.sh
 ```
+
+<a name="1.2"></a>
 
 **二. 开启服务端：**
 
@@ -19,11 +32,19 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 ```
 服务端无须做任何改造，即可支持 RPC 方式。
 
+<a name="2"></a>
+
 ## 客户端请求
+
+<a name="2.1"></a>
 
 **一. C++ 方法：**
 
-基础使用方法主要分为四步：1、创建一个 Client 对象。2、加载 Client 端的 prototxt 配置文件（本例中为 examples/C++/fit_a_line 目录下的 uci_housing_client/serving_client_conf.prototxt)。3、准备请求数据。4、调用 predict 函数，通过 brpc 方式请求预测服务。
+基础使用方法主要分为四步：
+- 1、创建一个 Client 对象。
+- 2、加载 Client 端的 prototxt 配置文件（本例中为 examples/C++/fit_a_line 目录下的 uci_housing_client/serving_client_conf.prototxt)。
+- 3、准备请求数据。
+- 4、调用 predict 函数，通过 brpc 方式请求预测服务。
 示例如下：
 
 ```
@@ -68,6 +89,8 @@ python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 -
 | `server_port`                                  | str  | `"127.0.0.1:9393"`                   | Exposed ip:port of server                             |
 | `test_type`                                    | str  | `"brpc"`                             | Mode of request "brpc"                                |
 | `sample_type`                                  | str  | `"fit_a_line"`                       | Type of sample include "fit_a_line,bert"              |
+
+<a name="2.2"></a>
 
 **二. Python 方法：**
 
