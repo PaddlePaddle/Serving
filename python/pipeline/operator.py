@@ -121,6 +121,8 @@ class Op(object):
         self._succ_close_op = False
         self.dynamic_shape_info = {}
         self.set_dynamic_shape_info()
+        self.collect_shape_range_info = ""
+        self.tuned_dynamic_shape_info = ""
 
     def set_dynamic_shape_info(self):
         """
@@ -235,6 +237,14 @@ class Op(object):
                         "mkldnn_bf16_op_list")
                     self.min_subgraph_size = local_service_conf.get(
                         "min_subgraph_size")
+                    self.collect_shape_range_info = local_service_conf.get(
+                        "collect_shape_range_info")
+                    self.tuned_dynamic_shape_info = local_service_conf.get(
+                        "tuned_dynamic_shape_info")
+                    if self.collect_shape_range_info is None:
+                        self.collect_shape_range_info = ""
+                    if self.tuned_dynamic_shape_info is None:
+                        self.tuned_dynamic_shape_info = ""
 
                     if self.model_config is None:
                         self.with_serving = False
@@ -259,7 +269,9 @@ class Op(object):
                                 mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
                                 min_subgraph_size=self.min_subgraph_size,
                                 dynamic_shape_info=self.dynamic_shape_info,
-                                use_calib=self.use_calib)
+                                use_calib=self.use_calib,
+                                collect_shape_range_info=self.collect_shape_range_info,
+                                tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -290,7 +302,9 @@ class Op(object):
                                 mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
                                 min_subgraph_size=self.min_subgraph_size,
                                 dynamic_shape_info=self.dynamic_shape_info,
-                                use_calib=self.use_calib)
+                                use_calib=self.use_calib,
+                                collect_shape_range_info=self.collect_shape_range_info,
+                                tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -1387,7 +1401,9 @@ class Op(object):
                     mkldnn_bf16_op_list=mkldnn_bf16_op_list,
                     min_subgraph_size=min_subgraph_size,
                     dynamic_shape_info=dynamic_shape_info,
-                    use_calib=use_calib)
+                    use_calib=use_calib,
+                    collect_shape_range_info=self.collect_shape_range_info,
+                    tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))

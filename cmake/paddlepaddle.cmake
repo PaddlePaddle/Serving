@@ -30,7 +30,7 @@ message( "WITH_GPU = ${WITH_GPU}")
 # Paddle Version should be one of:
 # latest: latest develop build
 # version number like 1.5.2
-SET(PADDLE_VERSION "2.3.0-rc0")
+SET(PADDLE_VERSION "2.3.0")
 if (WITH_GPU)
     message("CUDA: ${CUDA_VERSION}, CUDNN_MAJOR_VERSION: ${CUDNN_MAJOR_VERSION}")
     # cuda 11.0 is not supported, 11.2 would be added.
@@ -53,6 +53,7 @@ else()
     set(WITH_TRT OFF)
 endif()  
 if (WITH_GPU)
+    SET(PADDLE_VERSION "2.3.0-no-ort")
     SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}/cxx_c/Linux/GPU/${CUDA_SUFFIX}")
 elseif (WITH_LITE)
     message("cpu arch: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -85,6 +86,7 @@ elseif (WITH_ASCEND_CL)
     endif()
 else()
     if (WITH_AVX)
+        SET(PADDLE_VERSION "2.3.0-no-ort")
         if (WITH_MKLML)
             SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}/cxx_c/Linux/CPU/gcc8.2_avx_mkl")
         else()
@@ -171,14 +173,27 @@ LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mklml/lib)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib")
 LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib)
 
+#SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib")
+#LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib)
+
+#SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}" "${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib")
+#LINK_DIRECTORIES(${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib)
+
 if (NOT WITH_MKLML)
     ADD_LIBRARY(openblas STATIC IMPORTED GLOBAL)
     SET_PROPERTY(TARGET openblas PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/openblas/lib/libopenblas.a)
 endif()
 
+#ADD_LIBRARY(paddle2onnx STATIC IMPORTED GLOBAL)
+#SET_PROPERTY(TARGET paddle2onnx PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/paddle2onnx/lib/libpaddle2onnx.so)
+
+#ADD_LIBRARY(onnxruntime STATIC IMPORTED GLOBAL)
+#SET_PROPERTY(TARGET onnxruntime PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/third_party/install/onnxruntime/lib/libonnxruntime.so.1.10.0)
+
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
-SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
-if (WITH_ASCEND_CL)
+SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
+
+if (WITH_ASCEND_CL OR WITH_XPU)
     SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 endif()
 
