@@ -197,7 +197,7 @@ Op 的进程数量不是越大越好，受到机器 CPU 核数、内存和显存
 
 2.动态批量
 
-动态批量是增加吞吐的有一种方法，开启方式可参考[Python Pipeline 核心功能](./7-2_Python_Pipeline_Senior_CN.md#批量推理)
+动态批量是增加吞吐的有一种方法，开启方式可参考[Python Pipeline 核心功能](./Pipeline_Features_CN.md#批量推理)
 
 <a name="2.2.3"></a>
 

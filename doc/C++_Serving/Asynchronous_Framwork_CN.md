@@ -107,7 +107,7 @@ python3 -m paddle_serving_server.serve --model resnet_v2_50_imagenet_model --por
 
 使用异步模式，并开启动态批量后，并发测试不同 shape 数据时，吞吐性能大幅提升。
 <div align=center>
-<img src='images/6-1_Cpp_Asynchronous_Framwork_CN_1.png' height = "600" align="middle"/>
+<img src='../images/6-1_Cpp_Asynchronous_Framwork_CN_1.png' height = "600" align="middle"/>
 </div
 
 由于动态批量导致响应时长增长，经过测试，大多数场景下吞吐增量高于响应时长增长，尤其在高并发场景(client=70时)，在响应时长增长 33% 情况下，吞吐增加 105%。

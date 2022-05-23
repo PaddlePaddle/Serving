@@ -19,7 +19,7 @@ ABTest 是一种功能测试方案，一般是为同一个产品目标制定多�
 Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成。每个服务端加载不同模型，在客户端上注册多个服务端地址和访问比例，最终确定访问。
 
 <div align=center>
-<img src='images/6-5_Cpp_ABTest_CN_1.png' height = "400" align="middle"/>
+<img src='../images/6-5_Cpp_ABTest_CN_1.png' height = "400" align="middle"/>
 </div
 
 <a name="2"></a>
@@ -38,7 +38,7 @@ Paddle Serving 的 ABTest 功能是基于 PYTHON SDK 和 多个服务端构成�
 
 **一.安装 Paddle Serving Wheels**
 
-使用 ABTest 功能的前提是使用 PYTHON SDK，因此需要安装 `paddle_serving_client` 的 wheel 包。[安装方法](./2-1_Docker_Images_CN.md) 如下：
+使用 ABTest 功能的前提是使用 PYTHON SDK，因此需要安装 `paddle_serving_client` 的 wheel 包。[安装方法](../Docker_Images_CN.md) 如下：
 
 ```
 pip3 install paddle-serving-client==0.8.3 -i https://pypi.tuna.tsinghua.edu.cn/simple

@@ -23,7 +23,7 @@
 
 ## 安装与环境检查
 
-在运行 Python Pipeline 服务前，确保当前环境下可部署且通过[安装指南](./2-0_Index_CN.md)已完成安装。其次，`v0.8.0`及以上版本提供了环境检查功能，检验环境是否安装正确。
+在运行 Python Pipeline 服务前，确保当前环境下可部署且通过[安装指南](../Install_CN.md)已完成安装。其次，`v0.8.0`及以上版本提供了环境检查功能，检验环境是否安装正确。
 
 输入以下命令，进入环境检查程序。
 ```python
@@ -91,7 +91,7 @@ shutil.Error: Destination path '/home/work/Pipeline_test_cpu/PipelineServingLogs
 
 ## 服务启动与关闭
 
-服务启动需要三类文件，PYTHON 程序、模型文件和配置文件。以[Python Pipeline 快速部署案例](./3-2_QuickStart_Pipeline_OCR_CN.md)为例，
+服务启动需要三类文件，PYTHON 程序、模型文件和配置文件。以[Python Pipeline 快速部署案例](../Quick_Start_CN.md)为例，
 ```
 .
 ├── config.yml
@@ -471,7 +471,7 @@ op:
 
 Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下图所示：
 
-低精度推理需要有量化模型，配合`config.yml`配置一起使用，以[低精度示例]() 为例
+低精度推理需要有量化模型，配合`config.yml`配置一起使用，以[低精度示例](../Low_Precision_CN.md) 为例
 
 <a name="9.1"></a>
 

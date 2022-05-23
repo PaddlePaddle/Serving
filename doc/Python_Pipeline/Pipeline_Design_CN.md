@@ -333,13 +333,13 @@ service PipelineService {
 - pipeline/gateway/proto/gateway.proto 
 - pipeline/proto/pipeline_service.proto
 
-修改后，需要[重新编译]()
+修改后，需要重新[编译 Paddle Serving](../Compile_CN.md)
 
 <a name="3.3"></a>
 
 **三.自定义服务并发和模型配置**
 
-完整的配置信息可参考[配置信息]()
+完整的配置信息可参考[配置信息](../Serving_Configure_CN.md)
 
 <a name="3.4"></a>
 
