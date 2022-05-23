@@ -1,7 +1,13 @@
-本次提测的Serving版本，支持GPU预测，希望以此任务为例，对Paddle Serving支持GPU预测的性能给出测试数据。
+# Python Pipeline 性能测试
 
-## 1. 测试环境说明
+- [测试环境](#1)
+- [性能指标与结论](#2)
 
+<a name="1"></a>
+
+## 测试环境
+
+测试环境如下表所示：
 |          | GPU | 显存 | CPU | 内存 |
 |----------|---------|----------|----------------------------------------------|------|
 | Serving端 | 4x Tesla P4-8GB | 7611MiB | Intel(R) Xeon(R) Gold 5117 CPU @ 2.00GHz 48核 | 216G |
@@ -10,7 +16,15 @@
 使用单卡GPU，未开启TensorRT。
 模型：ResNet_v2_50
 
-## 2. PaddleServing-PipeLine(python)
+<a name="2"></a>
+
+## 性能指标与结论
+
+通过测试，使用 Python Pipeline 模式通过多进程并发，充分利用 GPU 显卡，具有较好的吞吐性能。
+
+
+测试数据如下：
+
 |model_name |thread_num |batch_size |CPU_util(%) |GPU_memory(mb) |GPU_util(%) |qps(samples/s) |total count |mean(ms) |median(ms) |80 percent(ms) |90 percent(ms) |99 percent(ms) |total cost(s) |each cost(s)|
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--
 |ResNet_v2_50 |1 |1 |2.2 |3327 |17.25 |17.633658869240787 |355 |56.428481238996476 |38.646728515625 |39.496826171875 |39.98369140625 |1273.1911083984373 |20.131953477859497 |20.033540725708008|
