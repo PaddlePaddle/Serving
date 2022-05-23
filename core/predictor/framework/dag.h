@@ -29,6 +29,7 @@ struct DagNode {
   std::string name;       // opname
   std::string full_name;  // workflow_stageindex_opname
   std::string type;
+  std::vector<std::string> address;
   void* conf;
   boost::unordered_map<std::string, EdgeMode> depends;
 };

@@ -129,6 +129,10 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
     node->id = i + 1;  // 0 is reserved for begginer-op
     node->name = conf.nodes(i).name();
     node->type = conf.nodes(i).type();
+    for (int add_index = 0; add_index < conf.nodes(i).address_size();
+         ++add_index) {
+      node->address.push_back(conf.nodes(i).address(add_index));
+    }
     uint32_t depend_size = conf.nodes(i).dependencies_size();
     for (uint32_t j = 0; j < depend_size; j++) {
       const configure::DAGNodeDependency& depend =
@@ -159,7 +163,8 @@ int Dag::init(const configure::Workflow& conf, const std::string& name) {
     for (uint32_t nid = 0; nid < _index_nodes.size(); nid++) {
       DagNode* node = _index_nodes[nid];
       LOG(INFO) << "OP-" << node->id << "-" << node->name << "-" << node->type
-                << " depends: " << node->depends.size();
+                << " depends: " << node->depends.size()
+                << " address: " << node->address.size();
 
       boost::unordered_map<std::string, EdgeMode>::iterator it;
       for (it = node->depends.begin(); it != node->depends.end(); it++) {

@@ -53,6 +53,14 @@ class Server(object):
         self.general_model_config_fn:'list'=[] # ["GeneralInferOp_0/general_model.prototxt"]The quantity is equal to the InferOp quantity,Feed and Fetch --OP
         self.subdirectory:'list'=[] # The quantity is equal to the InferOp quantity, and name = node.name = engine.name
         self.model_config_paths:'collections.OrderedDict()' # Save the serving_server_conf.prototxt path (feed and fetch information) this is a map for multi-model in a workflow
+        self.enable_dist_model: bool, enable distributed model, false default
+        self.dist_carrier_id: string, mark distributed model carrier name, "" default.
+        self.dist_cfg_file: string, file name of distributed configure, "" default.
+        self.dist_nranks: int, number of distributed nodes, 0 default.
+        self.dist_endpoints: list of string, all endpoints(ip:port) of distributed nodes, [] default.
+        self.dist_subgraph_index: index of distributed subgraph model, -1 default. It is used to select the endpoint of the current shard in distribute model. -1 default.
+        self.dist_worker_serving_endpoints: all endpoints of worker serving in the same machine. [] default.
+        self.dist_master_serving: the master serving is used for receiving client requests, only in pp0 of pipeline parallel, False default.
         """
         self.server_handle_ = None
         self.infer_service_conf = None
@@ -101,6 +109,20 @@ class Server(object):
         self.enable_prometheus = False
         self.prometheus_port = 19393
         self.request_cache_size = 0
+        self.enable_dist_model = False
+        self.dist_carrier_id = ""
+        self.dist_cfg_file = ""
+        self.dist_nranks = 0
+        self.dist_endpoints = []
+        self.dist_subgraph_index = -1
+        self.dist_worker_serving_endpoints = []
+        self.dist_master_serving = False
+        self.min_subgraph_size = []
+        self.trt_dynamic_shape_info = []
+        self.gpu_memory_mb = 50
+        self.cpu_math_thread_num = 1
+        self.trt_workspace_size = 33554432 # 1 << 25
+        self.trt_use_static = False
 
     def get_fetch_list(self, infer_node_idx=-1):
         fetch_names = [
@@ -211,6 +233,78 @@ class Server(object):
     def set_request_cache_size(self, request_cache_size):
         self.request_cache_size = request_cache_size
 
+    def set_enable_dist_model(self, status):
+        self.enable_dist_model = status
+
+    def set_dist_carrier_id(self, carrier_id):
+        if isinstance(carrier_id, int):
+            carrier_id = str(carrier_id)
+        self.dist_carrier_id = carrier_id
+
+    def set_dist_cfg_file(self, dist_cfg_file):
+        self.dist_cfg_file = dist_cfg_file
+
+    def set_dist_nranks(self, nranks):
+        if isinstance(nranks, str):
+            nranks = int(nranks)
+        elif not isinstance(nranks, int):
+            raise ValueError("dist_nranks type error! must be int or string")
+
+        self.dist_nranks = nranks
+
+    def set_dist_endpoints(self, endpoints):
+        if isinstance(endpoints, list):
+            self.dist_endpoints = endpoints
+        elif isinstance(endpoints, str):
+            self.dist_endpoints = [endpoints]
+        else:
+            raise ValueError(
+                "dist_endpoints type error! must be list or string")
+
+    def set_dist_subgraph_index(self, subgraph_index):
+        if isinstance(subgraph_index, str):
+            subgraph_index = int(subgraph_index)
+        elif not isinstance(subgraph_index, int):
+            raise ValueError("subgraph type error! must be int or string")
+
+        self.dist_subgraph_index = subgraph_index
+
+    def set_dist_worker_serving_endpoint(self, serving_endpoints):
+        if isinstance(serving_endpoints, list):
+            self.dist_worker_serving_endpoint = serving_endpoints
+        elif not isinstance(serving_endpoints, str):
+            self.dist_worker_serving_endpoint = [serving_endpoints]
+        else:
+            raise ValueError(
+                "dist_worker_serving_endpoint type error! must be list or string"
+            )
+
+    def set_dist_master_serving(self, is_master):
+        self.dist_master_serving = is_master
+
+    def set_min_subgraph_size(self, min_subgraph_size):
+        for s in min_subgraph_size:
+            try:
+                size = int(s)
+            except:
+                size = 3
+            self.min_subgraph_size.append(size)
+
+    def set_trt_dynamic_shape_info(self, info):
+        self.trt_dynamic_shape_info = info
+
+    def set_gpu_memory_mb(self, gpu_memory_mb):
+        self.gpu_memory_mb = gpu_memory_mb
+
+    def set_cpu_math_thread_num(self, cpu_math_thread_num):
+        self.cpu_math_thread_num = cpu_math_thread_num
+
+    def set_trt_workspace_size(self, trt_workspace_size):
+        self.trt_workspace_size = trt_workspace_size
+
+    def set_trt_use_static(self, trt_use_static):
+        self.trt_use_static = trt_use_static
+
     def _prepare_engine(self, model_config_paths, device, use_encryption_model):
         self.device = device
         if self.model_toolkit_conf == None:
@@ -264,6 +358,19 @@ class Server(object):
             engine.use_xpu = self.use_xpu
             engine.use_ascend_cl = self.use_ascend_cl
             engine.use_gpu = False
+            #engine.gpu_memory_mb = self.gpu_memory_mb
+            #engine.cpu_math_thread_num = self.cpu_math_thread_num
+            #engine.trt_workspace_size = self.trt_workspace_size
+            #engine.trt_use_static = self.trt_use_static
+
+            # use distributed model.
+            if self.dist_subgraph_index >= 0:
+                engine.enable_dist_model = True
+                engine.dist_carrier_id = self.dist_carrier_id
+                engine.dist_cfg_file = self.dist_cfg_file
+                engine.dist_nranks = self.dist_nranks
+                engine.dist_endpoints.extend(self.dist_endpoints)
+                engine.dist_subgraph_index = self.dist_subgraph_index
 
             if len(self.gpuid) == 0:
                 raise ValueError("CPU: self.gpuid = -1, GPU: must set it ")
@@ -292,6 +399,25 @@ class Server(object):
             if use_encryption_model:
                 engine.encrypted_model = True
             engine.type = "PADDLE_INFER"
+            if len(self.min_subgraph_size) > index:
+                engine.min_subgraph_size = self.min_subgraph_size[index]
+            if len(self.trt_dynamic_shape_info) > index:
+                dynamic_shape_info = self.trt_dynamic_shape_info[index]
+                try:
+                    for key, value in dynamic_shape_info.items():
+                        shape_type = key
+                        if shape_type == "min_input_shape":
+                            local_map = engine.min_input_shape
+                        if shape_type == "max_input_shape":
+                            local_map = engine.max_input_shape
+                        if shape_type == "opt_input_shape":
+                            local_map = engine.opt_input_shape
+                        for name, shape in value.items():
+                            local_value = ' '.join(str(i) for i in shape)
+                            local_map[name] = local_value
+                except:
+                    raise ValueError("Set TRT dynamic shape info error!")
+
             self.model_toolkit_conf.append(server_sdk.ModelToolkitConf())
             self.model_toolkit_conf[-1].engines.extend([engine])
             index = index + 1
@@ -473,7 +599,7 @@ class Server(object):
         folder_name = "serving-%s-%s" % (self.get_serving_bin_name(),
                                          version_tag)
         tar_name = "%s.tar.gz" % folder_name
-        bin_url = "https://paddle-serving.bj.bcebos.com/bin/%s" % tar_name
+        bin_url = "https://paddle-serving.bj.bcebos.com/test-dev/bin/%s" % tar_name
 
         self.server_path = os.path.join(self.module_path, folder_name)
 

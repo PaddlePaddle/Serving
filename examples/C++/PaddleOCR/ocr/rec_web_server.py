@@ -39,7 +39,7 @@ class OCRService(WebService):
         # TODO: to handle batch rec images
         img_list = []
         for feed_data in feed:
-            data = base64.b64decode(feed_data["image"].encode('utf8'))
+            data = base64.b64decode(feed_data["x"].encode('utf8'))
             data = np.fromstring(data, np.uint8)
             im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             img_list.append(im)
@@ -55,12 +55,12 @@ class OCRService(WebService):
             norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
             imgs[i] = norm_img
 
-        feed = {"image": imgs.copy()}
-        fetch = ["ctc_greedy_decoder_0.tmp_0", "softmax_0.tmp_0"]
+        feed = {"x": imgs.copy()}
+        fetch = ["save_infer_model/scale_0.tmp_1"]
         return feed, fetch, True
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
-        rec_res = self.ocr_reader.postprocess(fetch_map, with_score=True)
+        rec_res = self.ocr_reader.postprocess_ocrv2(fetch_map, with_score=True)
         res_lst = []
         for res in rec_res:
             res_lst.append(res[0])

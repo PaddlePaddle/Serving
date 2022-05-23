@@ -50,6 +50,17 @@ message EngineDesc {
   optional bool use_ascend_cl = 21;
 
   /*
+   * "gpu_memory_mb": allocate gpu memory by config.EnableUseGpu()
+   * "cpu_math_thread_num": set thread numbers of cpu math by config.SetCpuMathLibraryNumThreads()
+   * "trt_workspace_size": set TensorRT workspace size by config.EnableTensorRtEngine(), 1 << 25 default
+   * "trt_use_static": If true, save the optimization information of the TRT  serialized to the disk, and load from the disk.
+   */
+  optional int32 gpu_memory_mb = 22 [default = 100];
+  optional int32 cpu_math_thread_num = 23 [default = 1];
+  optional int32 trt_workspace_size = 24 [default = 33554432];
+  optional bool trt_use_static = 25 [default = false];
+
+  /*
    * "runtime_thread_num": n == 0 means don`t use Asynchronous task scheduling
    * mode.
    * n > 0 means how many Predictor for this engine in Asynchronous task
@@ -65,6 +76,28 @@ message EngineDesc {
   optional int32 batch_infer_size = 31 [ default = 32 ];
   optional bool enable_overrun = 32 [ default = false ];
   optional bool allow_split_request = 33 [ default = true ];
+  optional int32 min_subgraph_size = 34 [ default = 3 ];
+  map<string, string> min_input_shape = 35;
+  map<string, string> max_input_shape = 36;
+  map<string, string> opt_input_shape = 37;
+
+  /*
+   * Distributed inference params
+   * "enable_dist_model": enable distributed model, false default.
+   * "carrier_id": mark carrier
+   * "dist_cfg_file": file name of distributed configure.
+   * "dist_nranks": number of distributed nodes.
+   * "dist_endpoints": all endpoints(ip:port) of distributed nodes.
+   * "dist_subgraph_index": distributed subgraph index, auto increment from 0.
+   * It is
+   * used to select the endpoint of the current shard in distribute model.
+   */
+  optional bool enable_dist_model = 40 [ default = false ];
+  optional string dist_carrier_id = 41 [ default = "inference" ];
+  optional string dist_cfg_file = 42;
+  optional int32 dist_nranks = 43 [ default = 0 ];
+  repeated string dist_endpoints = 44;
+  optional int32 dist_subgraph_index = 45 [ default = 0 ];
 };
 
 // model_toolkit conf
@@ -96,7 +129,8 @@ message DAGNodeDependency {
 message DAGNode {
   required string name = 1;
   required string type = 2;
-  repeated DAGNodeDependency dependencies = 3;
+  repeated string address = 3;
+  repeated DAGNodeDependency dependencies = 4;
 };
 
 // workflow entry

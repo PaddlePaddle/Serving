@@ -40,7 +40,7 @@ WORKDIR /home
       RUN bash /build_scripts/install_trt.sh <<run_env>> && rm -rf /build_scripts
 
 # install go
-RUN wget -qO- https://dl.google.com/go/go1.14.linux-amd64.tar.gz | \
+RUN wget -qO- https://paddle-ci.cdn.bcebos.com/go1.17.2.linux-amd64.tar.gz | \
     tar -xz -C /usr/local && \
     mkdir /root/go && \
     mkdir /root/go/bin && \

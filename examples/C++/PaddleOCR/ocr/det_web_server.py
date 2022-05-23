@@ -47,17 +47,17 @@ class OCRService(WebService):
         })
 
     def preprocess(self, feed=[], fetch=[]):
-        data = base64.b64decode(feed[0]["image"].encode('utf8'))
+        data = base64.b64decode(feed[0]["x"].encode('utf8'))
         data = np.fromstring(data, np.uint8)
         im = cv2.imdecode(data, cv2.IMREAD_COLOR)
         self.ori_h, self.ori_w, _ = im.shape
         det_img = self.det_preprocess(im)
         _, self.new_h, self.new_w = det_img.shape
         print(det_img)
-        return {"image": det_img}, ["concat_1.tmp_0"], False
+        return {"x": det_img}, ["save_infer_model/scale_0.tmp_1"], False
 
     def postprocess(self, feed={}, fetch=[], fetch_map=None):
-        det_out = fetch_map["concat_1.tmp_0"]
+        det_out = fetch_map["save_infer_model/scale_0.tmp_1"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
         ]

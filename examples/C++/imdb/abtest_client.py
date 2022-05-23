@@ -11,35 +11,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+# pylint: disable=doc-string-missing
 from paddle_serving_client import Client
+from paddle_serving_app.reader.imdb_reader import IMDBDataset
+import sys
 import numpy as np
 
 client = Client()
-client.load_client_config('imdb_bow_client_conf/serving_client_conf.prototxt')
-client.add_variant("bow", ["127.0.0.1:8000"], 10)
-client.add_variant("lstm", ["127.0.0.1:9000"], 90)
+client.load_client_config(sys.argv[1])
+client.add_variant("bow", ["127.0.0.1:9297"], 10)
+client.add_variant("cnn", ["127.0.0.1:9298"], 30)
+client.add_variant("lstm", ["127.0.0.1:9299"], 60)
 client.connect()
 
-print('please wait for about 10s')
-with open('processed.data') as f:
-    cnt = {"bow": {'acc': 0, 'total': 0}, "lstm": {'acc': 0, 'total': 0}}
-    for line in f:
-        word_ids, label = line.split(';')
-        word_ids = [int(x) for x in word_ids.split(',')]
-        word_len = len(word_ids)
-        feed = {
-            "words": np.array(word_ids).reshape(word_len, 1),
-            "words.lod": [0, word_len]
-        }
-        fetch = ["acc", "cost", "prediction"]
-        [fetch_map, tag] = client.predict(
-            feed=feed, fetch=fetch, need_variant_tag=True, batch=True)
-        if (float(fetch_map["prediction"][0][1]) - 0.5) * (float(label[0]) - 0.5
-                                                           ) > 0:
-            cnt[tag]['acc'] += 1
-        cnt[tag]['total'] += 1
+# you can define any english sentence or dataset here
+# This example reuses imdb reader in training, you
+# can define your own data preprocessing easily.
+imdb_dataset = IMDBDataset()
+imdb_dataset.load_resource(sys.argv[2])
 
-    for tag, data in cnt.items():
-        print('[{}](total: {}) acc: {}'.format(tag, data[
-            'total'], float(data['acc']) / float(data['total'])))
+for line in sys.stdin:
+    word_ids, label = imdb_dataset.get_words_and_label(line)
+    word_len = len(word_ids)
+    feed = {
+        "words": np.array(word_ids).reshape(word_len, 1),
+        "words.lod": [0, word_len]
+    }
+    #print(feed)
+    fetch = ["prediction"]
+    fetch_map = client.predict(
+        feed=feed, fetch=fetch, batch=True, need_variant_tag=True)
+    print("server_tag={} prediction={} ".format(fetch_map[1], fetch_map[0][
+        "prediction"][0]))

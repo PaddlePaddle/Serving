@@ -1,20 +1,19 @@
 import numpy as np
-import av
 import cv2
 import pickle
-import decord as de
 import math
 import random
 
 import os
 
 from PIL import Image
-import SimpleITK as sitk
-
 
 try:
     import cPickle as pickle
     from cStringIO import StringIO
+    import av
+    import decord as de
+    import SimpleITK as sitk
 except ImportError:
     import pickle
     from io import BytesIO

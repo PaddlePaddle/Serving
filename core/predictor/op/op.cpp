@@ -36,12 +36,14 @@ int Op::init(Bus* bus,
              const std::string& name,
              const std::string& type,
              void* conf,
+             const std::vector<std::string>& address,
              const uint64_t log_id) {
   _bus = bus;
   _dag = dag;
   _id = id;
   _name = name;
   _type = type;
+  _address = address;
   set_config(conf);
 
   _timer = butil::get_object<TimerFlow>();
@@ -110,11 +112,13 @@ int Op::process(const uint64_t log_id, bool debug) {
     return ERR_INTERNAL_FAILURE;
   }
 
+  /*
   if (_has_calc) {
     LOG(INFO) << "(logid=" << log_id << ") Op: " << _name
               << " already processed before";
     return ERR_OK;
   }
+  */
 
   // 1. dependency inference
   /*
@@ -147,8 +151,10 @@ int Op::process(const uint64_t log_id, bool debug) {
   }
 
   // 3. share output to bus
-  Channel* channel = mutable_channel();
-  channel->share_to_bus(_bus, log_id);
+  if (!_has_calc) {
+    Channel* channel = mutable_channel();
+    channel->share_to_bus(_bus, log_id);
+  }
 
   // 4. mark has calculated
   _has_calc = true;

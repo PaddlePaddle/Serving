@@ -37,6 +37,7 @@ using paddle_infer::PrecisionType;
 using paddle_infer::Predictor;
 using paddle_infer::Tensor;
 using paddle_infer::CreatePredictor;
+using paddle_infer::DistConfig;
 
 DECLARE_int32(gpuid);
 DECLARE_string(precision);
@@ -206,11 +207,44 @@ class PaddleInferenceEngine : public EngineCore {
       config.SetModel(model_path);
     }
 
+    // Enable distributed model inferencing
+    DistConfig distCfg;
+    if (engine_conf.has_enable_dist_model() &&
+        engine_conf.enable_dist_model()) {
+      int ep_size = engine_conf.dist_endpoints_size();
+      int cur_index = engine_conf.dist_subgraph_index();
+      if (ep_size <= cur_index) {
+        LOG(ERROR) << "create paddle predictor failed, Distributed model error."
+                   << " dist_endpoints_size=" << ep_size
+                   << " is not bigger than dist_subgraph_index=" << cur_index;
+        return -1;
+      }
+      std::vector<std::string> vec_eps;
+      for (int i = 0; i < ep_size; ++i) {
+        vec_eps.emplace_back(engine_conf.dist_endpoints(i));
+      }
+      distCfg.EnableDistModel(true);
+      distCfg.SetCarrierId(engine_conf.dist_carrier_id());
+      distCfg.SetRanks(engine_conf.dist_nranks(), cur_index);
+      distCfg.SetEndpoints(vec_eps, engine_conf.dist_endpoints(cur_index));
+      distCfg.SetCommInitConfig(engine_conf.dist_cfg_file());
+
+      config.SetDistConfig(distCfg);
+      LOG(INFO) << "Create Distributed predictor! dist_carrier_id="
+                << engine_conf.dist_carrier_id()
+                << ", Ranks=" << engine_conf.dist_nranks()
+                << ", current index of ranks=" << cur_index
+                << ", current endpoint="
+                << engine_conf.dist_endpoints(cur_index)
+                << ", communicate init config file="
+                << engine_conf.dist_cfg_file();
+    }
+
     config.SwitchSpecifyInputNames(true);
-    config.SetCpuMathLibraryNumThreads(1);
+    config.SetCpuMathLibraryNumThreads(engine_conf.cpu_math_thread_num());
     if (engine_conf.has_use_gpu() && engine_conf.use_gpu()) {
       // 2000MB GPU memory
-      config.EnableUseGpu(50, gpu_id);
+      config.EnableUseGpu(engine_conf.gpu_memory_mb(), gpu_id);
       if (engine_conf.has_gpu_multi_stream() &&
           engine_conf.gpu_multi_stream()) {
         config.EnableGpuMultiStream();
@@ -225,21 +259,70 @@ class PaddleInferenceEngine : public EngineCore {
       config.SwitchIrOptim(true);
     }
 
+    int local_min_subgraph_size = min_subgraph_size;
+    if (engine_conf.has_min_subgraph_size()) {
+      local_min_subgraph_size = engine_conf.min_subgraph_size();
+    }
+
     if (engine_conf.has_use_trt() && engine_conf.use_trt()) {
       config.SwitchIrOptim(true);
       if (!engine_conf.has_use_gpu() || !engine_conf.use_gpu()) {
-        config.EnableUseGpu(50, gpu_id);
+        config.EnableUseGpu(engine_conf.gpu_memory_mb(), gpu_id);
         if (engine_conf.has_gpu_multi_stream() &&
             engine_conf.gpu_multi_stream()) {
           config.EnableGpuMultiStream();
         }
       }
-      config.EnableTensorRtEngine(1 << 20,
+      config.EnableTensorRtEngine(engine_conf.trt_workspace_size(),
                                   max_batch,
-                                  min_subgraph_size,
+                                  local_min_subgraph_size,
                                   precision_type,
-                                  false,
+                                  engine_conf.trt_use_static(),
                                   FLAGS_use_calib);
+      std::map<std::string, std::vector<int>> min_input_shape;
+      std::map<std::string, std::vector<int>> max_input_shape;
+      std::map<std::string, std::vector<int>> optim_input_shape;
+      if (engine_conf.min_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.min_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          min_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.max_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.max_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          max_input_shape[key] = arr;
+        }
+      }
+      if (engine_conf.opt_input_shape_size() > 0) {
+        for (auto& iter : engine_conf.opt_input_shape()) {
+          std::string key = iter.first;
+          std::string value = iter.second;
+          std::istringstream ss(value);
+          std::string word;
+          std::vector<int> arr;
+          while (ss >> word) {
+            arr.push_back(std::stoi(word));
+          }
+          optim_input_shape[key] = arr;
+        }
+      }
+      config.SetTRTDynamicShapeInfo(
+          min_input_shape, max_input_shape, optim_input_shape);
       LOG(INFO) << "create TensorRT predictor";
     }
 
@@ -313,6 +396,28 @@ class PaddleInferenceEngine : public EngineCore {
       LOG(ERROR) << "create paddle predictor failed, path: " << model_path;
       return -1;
     }
+
+    LOG(INFO) << "paddle_engine params : enable_dist_model:"
+              << engine_conf.enable_dist_model()
+              << ", use_gpu: " << engine_conf.has_use_gpu()
+              << ", gpu_id: " << gpu_id
+              << ", use_gpu_multi_stream: " << engine_conf.gpu_multi_stream()
+              << ", precision: " << FLAGS_precision
+              << ", enable_ir_optimization: "
+              << engine_conf.enable_ir_optimization()
+              << ", use_trt: " << engine_conf.use_trt()
+              << ", trt_max_batch: " << max_batch
+              << ", trt_min_subgraph_size: " << min_subgraph_size
+              << ", use_calib: " << FLAGS_use_calib
+              << ", use_lite: " << engine_conf.use_lite()
+              << ", use_ascend_cl: " << engine_conf.has_use_ascend_cl()
+              << ", use_xpu: " << engine_conf.use_xpu()
+              << ", enable_memory_optimization: "
+              << engine_conf.enable_memory_optimization()
+              << ", gpu_memory_mb: " << engine_conf.gpu_memory_mb()
+              << ", cpu_math_thread_num: " << engine_conf.cpu_math_thread_num()
+              << ", trt_workspace_size: " << engine_conf.trt_workspace_size()
+              << ", trt_use_static: " << engine_conf.trt_use_static();
 
     VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;

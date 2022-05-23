@@ -20,7 +20,7 @@ metadata:
     app: << APP_NAME >>
   name: << APP_NAME >>
 spec:
-  replicas: 1
+  replicas: << POD_NUM >>
   selector:
     matchLabels:
       app: << APP_NAME >>

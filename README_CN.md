@@ -39,11 +39,18 @@ Paddle Serving依托深度学习框架PaddlePaddle旨在帮助深度学习开发
 - 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问
 
 
-<h2 align="center">教程</h2>
+<h2 align="center">教程与论文</h2>
 
-- AIStudio教程-[Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/2538249)
-- 视频教程-[深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
-- 边缘AI解决方案-[基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+- AIStudio 使用教程 : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/3946013)
+- AIStudio OCR实战 : [基于PaddleServing的OCR服务化部署实战](https://aistudio.baidu.com/aistudio/projectdetail/3630726)
+- 视频教程 : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
+- 边缘AI 解决方案 : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+
+- 论文 : [JiZhi: A Fast and Cost-Effective Model-As-A-Service System for
+Web-Scale Online Inference at Baidu](https://arxiv.org/pdf/2106.01674.pdf)
+- 论文 : [ERNIE 3.0 TITAN: EXPLORING LARGER-SCALE KNOWLEDGE
+ENHANCED PRE-TRAINING FOR LANGUAGE UNDERSTANDING
+AND GENERATION](https://arxiv.org/pdf/2112.12731.pdf)
 
 <p align="center">
     <img src="doc/images/demo.gif" width="700">

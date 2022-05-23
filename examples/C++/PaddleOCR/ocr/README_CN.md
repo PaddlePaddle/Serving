@@ -4,9 +4,9 @@
 
 ## 获取模型
 ```
-wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/image/OCR/ocr_rec.tar.gz
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-wget https://paddle-serving.bj.bcebos.com/ocr/ocr_det.tar.gz
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 ```
 ## 获取数据集（可选）
@@ -106,7 +106,7 @@ python3 rec_web_client.py
 一个服务启动两个模型串联，只需要在`--model后依次按顺序传入模型文件夹的相对路径`，且需要在`--op后依次传入自定义C++OP类名称`，其中--model后面的模型与--op后面的类名称的顺序需要对应，`这里假设我们已经定义好了两个OP分别为GeneralDetectionOp和GeneralRecOp`，则脚本代码如下：
 ```python
 #一个服务启动多模型串联
-python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralRecOp --port 9293
+python3 -m paddle_serving_server.serve --model ocr_det_model ocr_rec_model --op GeneralDetectionOp GeneralInferOp --port 9293
 #多模型串联 ocr_det_model对应GeneralDetectionOp  ocr_rec_model对应GeneralRecOp
 ```
 

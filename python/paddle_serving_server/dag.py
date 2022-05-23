@@ -30,10 +30,16 @@ class OpMaker(object):
             "GeneralDistKVOp",
             "GeneralCopyOp",
             "GeneralDetectionOp",
+            "GeneralRemoteOp",
         ]
         self.node_name_suffix_ = collections.defaultdict(int)
 
-    def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
+    def create(self,
+               node_type,
+               engine_name=None,
+               inputs=[],
+               outputs=[],
+               addresses=[]):
         if node_type not in self.op_list:
             raise Exception("Op type {} is not supported right now".format(
                 node_type))
@@ -55,6 +61,11 @@ class OpMaker(object):
                 dep.name = dep_node.name
                 dep.mode = "RO"
                 node.dependencies.extend([dep])
+
+        # for general_remote op.
+        if addresses:
+            node.address.extend(addresses)
+
         # Because the return value will be used as the key value of the
         # dict, and the proto object is variable which cannot be hashed,
         # so it is processed into a string. This has little effect on

@@ -136,20 +136,23 @@ After you have defined a C++ operator on server side for Paddle Serving, the las
 
 
 ``` python
-self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_response": "GeneralResponseOp",
-            "general_text_reader": "GeneralTextReaderOp",
-            "general_text_response": "GeneralTextResponseOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv": "GeneralDistKVOp"
-        }
+self.op_list = [
+            "GeneralInferOp",
+            "GeneralReaderOp",
+            "GeneralResponseOp",
+            "GeneralTextReaderOp",
+            "GeneralTextResponseOp",
+            "GeneralSingleKVOp",
+            "GeneralDistKVInferOp",
+            "GeneralDistKVOp",
+            "GeneralCopyOp",
+            "GeneralDetectionOp",
+        ]
 ```
 
 In `python/paddle_serving_server/server.py` file, only the class name of the C++ OP class that needs to load the model and execute prediction is added. 
 
-For example, `general_reader`, need to be added in the 👆 code, but not in the 👇 code. Because it only does some simple data processing without loading the model and call prediction. 
+For example, `GeneralReaderOp`, need to be added in the 👆 code, but not in the 👇 code. Because it only does some simple data processing without loading the model and call prediction. 
 ``` python
 default_engine_types = [
                 'GeneralInferOp',
