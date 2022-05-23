@@ -37,17 +37,16 @@ In addition, for some C++ secondary development scenarios, we also provide OPENC
 
 Docker compilation is recommended. We have prepared the Paddle Serving compilation environment for you and configured the above compilation dependencies. For details, please refer to [this document](DOCKER_IMAGES_CN.md).
 
-We provide five environment development images, namely CPU, CUDA10.1 + CUDNN7, CUDA10.2 + CUDNN7, CUDA10.2 + CUDNN8, CUDA11.2 + CUDNN8. We provide a Serving development image to cover the above environment. At the same time, we also support Paddle development mirroring.
+We provide 4 environment development images, namely CPU, CUDA10.2 + CUDNN7, CUDA10.2 + CUDNN8, CUDA11.2 + CUDNN8. We provide a Serving development image to cover the above environment. At the same time, we also support Paddle development mirroring.
 
 Serving development mirror is the mirror used to compile and debug prediction services provided by Serving suite in order to support various prediction environments. Paddle development mirror is the mirror used for compilation, development, and training models released by Paddle on the official website. In order to allow Paddle developers to use Serving directly in the same container. For developers who have already used Serving users in the previous version, Serving development image should not be unfamiliar. But for developers who are familiar with the Paddle training framework ecology, they should be more familiar with the existing Paddle development mirrors. In order to adapt to the different habits of all users, we have fully supported both sets of mirrors.
 
 |  Environment           |   Serving Dev Image Tag               |    OS      | Paddle Dev Image Tag       |  OS            |
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
-|  CPU                         | 0.8.0-devel                       |  Ubuntu 16.04   | 2.2.2                 | Ubuntu 18.04.       |
-|  CUDA10.1 + Cudnn7             | 0.8.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | Nan                     | Nan                 |
-|  CUDA10.2 + Cudnn7             | 0.8.0-cuda10.2-cudnn7-devel       |  Ubuntu 16.04   | 2.2.2-gpu-cuda10.2-cudnn7 | Ubuntu 16.04        |
-|  CUDA10.2 + Cudnn8             | 0.8.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | Nan                    |  Nan                 |
-|  CUDA11.2 + Cudnn8             | 0.8.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.2.2-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
+|  CPU                         | 0.9.0-devel                       |  Ubuntu 16.04   | 2.3.0                 | Ubuntu 18.04.       |
+|  CUDA10.1 + Cudnn7             | 0.9.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | Nan                     | Nan                 |
+|  CUDA10.2 + Cudnn8             | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | Nan                    |  Nan                 |
+|  CUDA11.2 + Cudnn8             | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04        | 
 
 We first need to pull related images for the environment we need. Under the **Environment** column in the above table, except for the CPU, the rest (Cuda**+Cudnn**) belong to the GPU environment.
 

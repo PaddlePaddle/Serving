@@ -17,7 +17,7 @@ Paddle Serving 提供了 Java SDK，支持 Client 端用 Java 语言进行预测
 
 | Paddle Serving Server version | Java SDK version |
 | :---------------------------: | :--------------: |
-|             0.8.0             |      0.0.1       |
+|             0.9.0             |      0.0.1       |
 
 1.    直接使用提供的Java SDK作为Client进行预测
 ### 安装
