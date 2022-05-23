@@ -33,6 +33,7 @@ python -m paddle_serving_server.serve \
 
 **二. C++ Serving 设置动态 shape**
 
+1. 方法一：
 在`**/paddle_inference/paddle/include/paddle_engine.h` 修改如下代码
 
 ```
@@ -125,6 +126,55 @@ python -m paddle_serving_server.serve \
       }
       LOG(INFO) << "create TensorRT predictor";
     }
+```
+
+2. 方法二：
+在`**/python/paddle_serving_server/serve.py` 参考如下代码生成配置信息，
+并使用`server.set_trt_dynamic_shape_info(info)`方法进行设置
+
+```
+def set_ocr_dynamic_shape_info():
+    info = []
+    min_input_shape = {
+        "x": [1, 3, 50, 50],
+        "conv2d_182.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_2.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_3.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_4.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_5.tmp_0": [1, 1, 20, 20]
+    }
+    max_input_shape = {
+        "x": [1, 3, 1536, 1536],
+        "conv2d_182.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_2.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_3.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_4.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_5.tmp_0": [20, 200, 960, 960],
+    }
+    opt_input_shape = {
+        "x": [1, 3, 960, 960],
+        "conv2d_182.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_2.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_3.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_4.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_5.tmp_0": [3, 24, 240, 240],
+    }
+    det_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(det_info)
+    min_input_shape = {"x": [1, 3, 32, 10], "lstm_1.tmp_0": [1, 1, 128]}
+    max_input_shape = {"x": [50, 3, 32, 1000], "lstm_1.tmp_0": [500, 50, 128]}
+    opt_input_shape = {"x": [6, 3, 32, 100], "lstm_1.tmp_0": [25, 5, 128]}
+    rec_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(rec_info)
+    return info
 ```
 
 
