@@ -35,9 +35,10 @@
 |                         镜像选择                         |   操作系统    |             TAG              |                          Dockerfile                          |
 | :----------------------------------------------------------: | :-----: | :--------------------------: | :----------------------------------------------------------: |
 |                       CPU development                        | Ubuntu16 |         0.9.0-devel         |        [Dockerfile.devel](../tools/Dockerfile.devel)         |
-|              GPU (cuda10.1-cudnn7-tensorRT6) development               | Ubuntu16 | 0.9.0-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
-|              GPU (cuda10.2-cudnn8-tensorRT7) development               | Ubuntu16 | 0.9.0-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
-|              GPU (cuda11.2-cudnn8-tensorRT8) development               | Ubuntu16 | 0.9.0-cuda11.2-cudnn8-devel | [Dockerfile.cuda11.2-cudnn8.devel](../tools/Dockerfile.cuda11.2-cudnn8.devel) |
+|              GPU (cuda10.1-cudnn7-tensorRT6) development     | Ubuntu16 | 0.9.0-cuda10.1-cudnn7-devel | [Dockerfile.cuda10.1-cudnn7.devel](../tools/Dockerfile.cuda10.1-cudnn7.devel) |
+|              GPU (cuda10.2-cudnn7-tensorRT6) development     | Ubuntu16 | 0.9.0-cuda10.2-cudnn7-devel | [Dockerfile.cuda10.2-cudnn7.devel](../tools/Dockerfile.cuda10.2-cudnn7.devel)
+|              GPU (cuda10.2-cudnn8-tensorRT7) development     | Ubuntu16 | 0.9.0-cuda10.2-cudnn8-devel | [Dockerfile.cuda10.2-cudnn8.devel](../tools/Dockerfile.cuda10.2-cudnn8.devel) |
+|              GPU (cuda11.2-cudnn8-tensorRT8) development     | Ubuntu16 | 0.9.0-cuda11.2-cudnn8-devel | [Dockerfile.cuda11.2-cudnn8.devel](../tools/Dockerfile.cuda11.2-cudnn8.devel) |
 
 
 **运行镜像：**
@@ -48,13 +49,14 @@
 |----------|---------|------------------------------|-----------|-------------|------|
 |    CPU   | 0.9.0 | 0.9.0-runtime                 | Ubuntu 16 |  8.2.0       | 3.9 GB |
 | CUDA 10.1 + cuDNN 7 | 0.9.0 | 0.9.0-cuda10.1-cudnn7-runtime  | Ubuntu 16 |   8.2.0       | 10 GB |
+| CUDA 10.2 + cuDNN 7 | 0.9.0 | 0.9.0-cuda10.2-cudnn7-runtime  | Ubuntu 16 |   8.2.0       | 10.1 GB |
 | CUDA 10.2 + cuDNN 8 | 0.9.0 | 0.9.0-cuda10.2-cudnn8-runtime  | Ubuntu 16 |   8.2.0       | 10.1 GB |
 | CUDA 11.2 + cuDNN 8 | 0.9.0 | 0.9.0-cuda11.2-cudnn8-runtime  | Ubuntu 16 |   8.2.0       | 14.2 GB |
 
 
 **Java镜像：**
 ```
-registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-java
+registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda10.2-cudnn8-java
 ```
 
 **XPU镜像：**

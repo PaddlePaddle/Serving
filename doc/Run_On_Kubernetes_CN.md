@@ -1,248 +1,177 @@
-## 在Kubenetes集群上部署Paddle Serving
+# Kubernetes 集群部署
 
-Paddle Serving在0.6.0版本开始支持在Kubenetes集群上部署，并提供反向代理和安全网关支持。与Paddle Serving在Docker镜像中开发类似，Paddle Serving 模型在Kubenetes集群部署需要制作轻量化的运行镜像，并使用kubectl工具在集群上部署。
+Kubernetes 是一个基于容器技术的分布式架构的解决方案，是云原生容器集群管理系统，提供服务发现与负载均衡、存储编排、自动部署和回滚、资源管理、自动恢复以及密钥和配置管理。Paddle Serving 支持 Kubenetes 集群部署方案，为企业级用户提供集群部署示例。
 
-### 1.集群准备
+## 部署方案
 
-如果您还没有Kubenetes集群，我们推荐[购买并使用百度智能云CCE集群](https://cloud.baidu.com/doc/CCE/index.html). 如果是其他云服务商提供的集群，或者自行安装Kubenetes集群，请遵照对应的教程。
+为了解决 Pod 迁移、Node Pod 端口、域名动态分配等问题，选择使用 Ingress 解决方案，对外提供可访问的 URL、负载均衡、SSL、基于名称的虚拟主机等功能。在众多 Ingress 插件中选用 Kong 作为微服务的 API 网关，因其具备以下优势：
+- 拥有丰富的微服务功能，如 API认证、鉴权、DDos保护和灰度部署等
+- 提供一些 API、服务的定义，可抽象成 Kubernetes 的 CRD，通过 Kubernetes Ingress 配置实现同步状态到 Kong 集群
+- 集群配置信息存储在 postgres 数据库，配置信息实现全局节点共享和实时同步
+- 有成熟的第三方管理 UI，实现可视化管理 Kong 配置
 
-您还需要准备一个用于Kubenetes集群部署使用的镜像仓库，通常与云服务提供商绑定，如果您使用的是百度智能云的CCE集群，可以参照[百度智能云CCR镜像仓库使用方式](https://cloud.baidu.com/doc/CCR/index.html)。当然Docker Hub也可以作为镜像仓库，但是可能在部署时会出现下载速度慢的情况。
+Paddle Serving 的 Kubernetes 集群部署方案设计如下图所示，用户流量通过 Kong Ingress 转发到 Kubernetes 集群。Kubernetes 集群负责管理 Service 和 Pod 实例。
 
-### 2.环境准备
+<p align="center">
+  <img src="../images/kubernetes_design.png" width="800">
+</p>
 
-需要在Kubenetes集群上安装网关工具KONG。
+## 部署步骤
+
+**一. 准备环境**
+
+推荐[购买并使用百度智能云 CCE 集群](https://cloud.baidu.com/doc/CCE/index.html)，提供完整的部署环境。如自行安装 Kubenetes 集群，请参考[教程](https://kubernetes.io/zh/docs/setup/)。
+
+此外，还需要准备一个用于 Kubenetes 集群部署的镜像仓库，通常与云服务提供商绑定，如果使用百度智能云的CCE集群，可以参照[百度智能云 CCR 镜像仓库使用方式](https://cloud.baidu.com/doc/CCR/index.html)。当然 Docker Hub 也可以作为镜像仓库，但下载速度慢，集群扩容时间较长。
+
+在 Kubenetes 集群中运行下面命令，安装网关工具 Kong
 
 ```
 kubectl apply -f https://bit.ly/kong-ingress-dbless
 ```
 
-### 选择Serving开发镜像 （可选）
-您可以直接选择已生成的Serving [DOCKER开发镜像列表](./Docker_Images_CN.md)作为Kubernetes部署的首选，携带了开发工具，可用于调试和编译代码。
+**二. 安装 Kubernetes **
+kubernetes 集群环境安装和启动步骤如下，并使用 kubectl 命令与通过它与 Kubernetes 进行交互和管理。
+```
+// close OS firewall
+systemctl disable firewarlld
+systemctl stop firewarlld
+ 
+// install etcd & kubernetes
+yum install -y etcd kubernetes
+ 
+// start etcd & kubernetes
+systemctl start etcd
+systemctl start docker
+systemctl start kube-apiserver
+systemctl start kube-controller-manager
+systemctl start kube-scheduler
+systemctl start kubelet
+systemctl start kube-proxy
+```
 
-### 制作Serving运行镜像（可选）
+**二. 制作镜像**
 
-与[DOCKER开发镜像列表](./Docker_Images_CN.md)文档相比，开发镜像用于调试、编译代码，携带了大量的开发工具，因此镜像体积较大。运行镜像通常容器体积更小的轻量级容器，可在边缘端设备上部署。如您不需要轻量级运行容器，请直接跳过这一部分。
+首先，可直接使用 Paddle Serving 提供的镜像作为 Base 制作业务镜像，或者重新制作镜像。Paddle Serving 提供以下3种镜像，区别如下：
+- 开发镜像：安装多种开发工具，可用于调试和编译代码，镜像体积较大。
+- 运行镜像：安装运行 Serving 的必备工具，经过裁剪后镜像体积较小，适合在存储受限场景使用
+- Java 镜像：为 Java SDK 提供基础环境，包括 JRE、JDK 和 Maven
+- XPU 镜像：为 Arm 或 异构硬件（百度昆仑、海光DCU）环境部署
 
-我们提供了运行镜像的生成脚本在Serving代码库下`tools/generate_runtime_docker.sh`文件，通过以下命令可生成代码。
+完整镜像列表，请参考 [DOCKER 开发镜像列表](./Docker_Images_CN.md)
 
+制作镜像的整体步骤如下，这里选定 Serving 运行镜像，相比于开发镜像体积更小，镜像内已安装相关的依赖和 Serving wheel 包。
+1.选定运行镜像：registry.baidubce.com/paddlepaddle/serving:0.8.3-cuda10.1-cudnn7-runtime 
+2.运行镜像并拷贝模型和服务代码到镜像中，当你需要部署外部其他模型时，更换模型和代码即可。
+3.制作并上传新镜像
+
+假定已完成上述3个前置运行镜像并拷贝模型到镜像中，看具体操作。
 ```bash
-bash tools/generate_runtime_docker.sh --env cuda10.1 --python 3.7 --image_name serving_runtime:cuda10.1-py37 --paddle 2.2.0 --serving 0.8.0
-```
+# Run docker
+nvidia-docker run --rm -dit --name pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:0.8.0-cuda10.1-cudnn7-runtime bash
 
-会生成 cuda10.1，python 3.7，serving版本0.8.0 还有 paddle版本2.2.2的运行镜像。如果有其他疑问，可以执行下列语句得到帮助信息。强烈建议您使用最新的paddle和serving的版本（2个版本是对应的如paddle 2.2.0 与serving 0.7.x对应，paddle 2.2.2 与 serving 0.8.x对应），因为更早的版本上出现的错误只在最新版本修复，无法在历史版本中修复。
+# Enter your serving repo, and download OCR models
+cd /home/work/Serving/examples/Pipeline/PaddleOCR/ocr
 
-```
-bash tools/generate_runtime_docker.sh --help
-```
-
-运行镜像会携带以下组建在运行镜像中
-
-- paddle-serving-server， paddle-serving-client，paddle-serving-app，paddlepaddle，具体版本可以在tools/runtime.dockerfile当中查看，同时，如果有定制化的需求，也可以在该文件中进行定制化。
-- paddle-serving-server 二进制可执行程序
-
-也就是说，运行镜像在生成之后，我们只需要将我们运行的代码（如果有）和模型搬运到镜像中就可以。生成后的镜像名为`paddle_serving:cuda10.2-py37`
-
-### 添加您的代码和模型 
-
-在刚才镜像的基础上，我们需要先收集好运行文件。这取决于您是如何使用PaddleServing的
-
-#### Pipeline模式：
-
-对于pipeline模式，我们需要确保模型和程序文件、配置文件等各种依赖都能够在镜像中运行。因此可以在`/home/project`下存放我们的执行文件时，我们以`Serving/examples/Pipeline/PaddleOCR/ocr`为例，这是OCR文字识别任务。
-
-```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为paddle_serving:cuda10.2-py36
-docker run --rm -dit --name pipeline_serving_demo paddle_serving:cuda10.2-py36 bash
-cd Serving/examples/Pipeline/PaddleOCR/ocr
-# get models
-python -m paddle_serving_app.package --get_model ocr_rec
+python3 -m paddle_serving_app.package --get_model ocr_rec
 tar -xzvf ocr_rec.tar.gz
-python -m paddle_serving_app.package --get_model ocr_det
+python3 -m paddle_serving_app.package --get_model ocr_det
 tar -xzvf ocr_det.tar.gz
 cd ..
 
+# Copy OCR directory to your docker
 docker cp ocr pipeline_serving_demo:/home/
-docker commit pipeline_serving_demo ocr_serving:latest
+
+# Commit and push it
+docker commit pipeline_serving_demo registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
+docker push registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
 ```
 
-其中容器名`paddle_serving_demo`和最终的镜像名`ocr_serving:latest`都可以自行定义，最终通过`docker push`来推到云端的镜像仓库。至此，部署前的最后一步工作已完成。
-
-**提示：如果您对runtime镜像是否可运行需要验证，可以执行**
-
+最终，你完成了业务镜像制作环节。通过拉取制作的镜像，创建Docker示例后，在`/home`路径下验证模型目录，通过以下命令验证 Wheel 包安装。
 ```
-docker exec -it pipeline_serving_demo bash
-cd /home/ocr
-python3.6 web_service.py 
+pip3.7 list | grep paddle
 ```
-
-进入容器到工程目录之后，剩下的操作和调试代码的工作是类似的。
-
-**为了方便您对照，我们也提供了示例镜像registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo**
-
-#### WebService模式：
-
-web service模式本质上和pipeline模式类似，因此我们以`Serving/examples/C++/PaddleNLP/bert`为例
-
-```bash
-#假设您已经拥有Serving运行镜像，假设镜像名为registry.baidubce.com/paddlepaddle/serving:0.8.0-cpu-py36
-docker run --rm -dit --name webservice_serving_demo registry.baidubce.com/paddlepaddle/serving:0.8.0-cpu-py36 bash
-cd Serving/examples/C++/PaddleNLP/bert
-### download model 
-wget https://paddle-serving.bj.bcebos.com/paddle_hub_models/text/SemanticModel/bert_chinese_L-12_H-768_A-12.tar.gz
-tar -xzf bert_chinese_L-12_H-768_A-12.tar.gz
-mv bert_chinese_L-12_H-768_A-12_model bert_seq128_model
-mv bert_chinese_L-12_H-768_A-12_client bert_seq128_client
-sh get_data.sh
-cd ..
-docker cp bert webservice_serving_demo:/home/
-docker commit webservice_serving_demo bert_serving:latest
+输出显示已安装3个 Serving Wheel 包和1个 Paddle Wheel 包。
+```
+paddle-serving-app        0.8.3
+paddle-serving-client     0.8.3
+paddle-serving-server-gpu 0.8.3.post101
+paddlepaddle-gpu          2.2.2.post101
 ```
 
-**提示：如果您对runtime镜像是否可运行需要验证，可以执行**
+**三. 集群部署**
 
-```bash
-docker exec -it webservice_serving_demo bash
-cd /home/bert
-python3.6 bert_web_service.py bert_seq128_model 9292
+Serving/tools/generate_k8s_yamls.sh 会生成 Kubernetes 部署配置。以 OCR 为例，运行以下命令生成 Kubernetes 集群配置。
+```
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101 --workdir /home/ocr --command "python3.7 web_service.py" --port 9999
+```
+生成信息如下：
+```
+named arg: app_name: ocr
+named arg: image_name: registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101
+named arg: workdir: /home/ocr
+named arg: command: python3.7 web_service.py
+named arg: port: 9999
+check k8s_serving.yaml and k8s_ingress.yaml please.
 ```
 
-进入容器到工程目录之后，剩下的操作和调试代码的工作是类似的。
-
-**为了方便您对照，我们也提供了示例镜像registry.baidubce.com/paddlepaddle/serving:k8s-web-demo**
-
-
-
-### 在Kubenetes集群上部署 
-
-kubenetes集群操作需要`kubectl`去操纵yaml文件。我们这里给出了三个部署的例子，他们分别是
-
-- pipeline ocr示例 
-
-```bash
-sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo --workdir /home/ocr --command "python3.6 web_service.py" --port 9999
-```
-
-- web service bert示例
-
-```bash
-sh tools/generate_k8s_yamls.sh  --app_name bert --image_name registry.baidubce.com/paddlepaddle/serving:k8s-web-demo --workdir /home/bert --command "python3.6 bert_web_service.py bert_seq128_model 9292" --port 9292
-```
-**需要注意的是，app_name需要同URL的函数名相同。例如示例中bert的访问URL是`https://127.0.0.1:9292/bert/prediction`，那么app_name应为bert。**
-
-接下来我们会看到有两个yaml文件，分别是`k8s_serving.yaml`和 k8s_ingress.yaml`.
-
-为减少大家的阅读时间，我们只选择以pipeline为例。
-
-```yaml
-#k8s_serving.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: ocr
-  name: ocr
-spec:
-  ports:
-  - port: 18080
-    name: http
-    protocol: TCP
-    targetPort: 18080
-  selector:
-    app: ocr
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: ocr
-  name: ocr
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ocr
-  strategy: {}
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: ocr
-    spec:
-      containers:
-      - image: registry.baidubce.com/paddlepaddle/serving:k8s-pipeline-demo
-        name: ocr
-        ports:
-        - containerPort: 18080
-        workingDir: /home/ocr
-        name: ocr
-        command: ['/bin/bash', '-c']
-        args: ["python3.6 bert_web_service.py bert_seq128_model 9292"]
-        env:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-        resources: {}
-```
-
-```yaml
-#kong_api.yaml
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: ocr
-  annotations:
-    kubernetes.io/ingress.class: kong
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /ocr
-        backend:
-          serviceName: ocr
-          servicePort: 18080
-```
-
-最终我们执行就可以启动相关容器和API网关。
+运行命令后，生成2个 yaml 文件，分别是 k8s_serving.yaml 和 k8s_ingress.yaml。执行以下命令启动 Kubernetes 集群 和 Ingress 网关。
 
 ```
-kubectl apply -f k8s_serving.yaml
-kubectl apply -f k8s_ingress.yaml
+kubectl create -f k8s_serving.yaml
+kubectl create -f k8s_ingress.yaml
 ```
 
-输入
+Kubernetes 下常用命令
+| 命令 | 说明 |
+| --- | --- |
+| kubectl create -f xxx.yaml | 使用 xxx.yml 创建资源对象 |
+| kubectl apply -f xxx.yaml |	使用 xxx.yml 更新资源对象 |	
+| kubectl delete po mysql| 删除名为 mysql 的 pods |
+| kubectl get all --all-namespace | 查询所有资源信息 |	
+| kubectl get po | 查询所有 pods |
+| kubectl get namespace |	查询所有命名空间 |
+| kubectl get rc | 查询所有|
+| kubectl get services | 查询所有 services |
+| kubectl get node | 查询所有 node 节点 |
+| kubectl get deploy | 查询集群部署状态 |
 
+按下面4个步骤查询集群状态并进入 Pod 容器:
+
+1. 最终通过输入以下命令检验集群部署状态：
 ```
 kubectl get deploy
+
 ```
 
-可见
-
+部署状态如下：
 ```
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
-ocr    1/1     1            1           2d20h
+ocr    1/1     1            1           10m
 ```
 
-我们使用
+2. 查询全部 Pod 信息 运行命令：
+```
+kubectl get pods
+```
+查询 Pod 信息如下：
+```
+NAME                       READY   STATUS    RESTARTS   AGE
+ocr-c5bd77d49-mfh72        1/1     Running   0          10m
+uci-5bc7d545f5-zfn65       1/1     Running   0          52d
+```
 
+3. 进入 Pod container 运行命令：
+```
+kubectl exec -ti ocr-c5bd77d49-mfh72 -n bash 
+```
+
+4. 查询集群服务状态：
 ```
 kubectl get service --all-namespaces
 ```
 
-可以看到
-
+集群部署状态如下：
 ```
 NAMESPACE     NAME                      TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE
 default       bert                      ClusterIP      172.16.86.12     <none>        9292/TCP                   20m
@@ -255,16 +184,22 @@ kube-system   kube-dns                  ClusterIP      172.16.0.10      <none>  
 kube-system   metrics-server            ClusterIP      172.16.34.157    <none>        443/TCP                    28d
 ```
 
-访问的方式就在
+根据 kong-proxy 的 CLUSTER-IP 和 端口信息，访问 URL: http://172.16.88.132:80/ocr/prediction 查询 OCR 服务。 
 
-```:
-http://${KONG_IP}:80/${APP_NAME}/prediction
+**四.更新镜像**
+
+假定更新了文件或数据，重新生成 k8s_serving.yaml 和 k8s_ingress.yaml。
 ```
-
-例如Bert
-
+sh tools/generate_k8s_yamls.sh  --app_name ocr --image_name registry.baidubce.com/paddlepaddle/serving:k8s_ocr_pipeline_0.8.3_post101 --workdir /home/ocr --command "python3.7 web_service.py" --port 9999
 ```
-curl -H "Content-Type:application/json" -X POST -d '{"feed":[{"words": "hello"}], "fetch":["pooled_output"]}' http://172.16.88.132:80/bert/prediction
+更新配置，并重启Pod
 ```
+kubectl apply -f k8s_serving.yaml
+kubectl apply -f k8s_ingress.yaml
 
-就会从KONG的网关转发给bert服务。同理，OCR服务也可以把对应的IP地址换成`http://172.16.88.132:80/ocr/prediction`
+# 查找 ocr 的 pod name
+kubectl get pods
+
+# 更新 pod
+kubectl exec -it ocr-c5bd77d49-s8jwh -n default -- /bin/sh
+```

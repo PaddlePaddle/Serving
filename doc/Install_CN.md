@@ -62,8 +62,9 @@ pip3 install -r python/requirements.txt
 
 安装服务whl包，共有3种client、app、server，Server分为CPU和GPU，GPU包根据您的环境选择一种安装
 - post112 = CUDA11.2 + cuDNN8 + TensorRT8（推荐）
-- post102 = CUDA10.2 + cuDNN8 + TensorRT7
 - post101 = CUDA10.1 + cuDNN7 + TensorRT6
+- post102 = CUDA10.2 + cuDNN7 + TensorRT6 (与Paddle 镜像一致)
+- post1028 = CUDA10.2 + cuDNN8 + TensorRT7
 
 
 ```shell
@@ -75,8 +76,6 @@ pip3 install paddle-serving-server==0.9.0 -i https://pypi.tuna.tsinghua.edu.cn/s
 
 # GPU Server，需要确认环境再选择执行哪一条，推荐使用CUDA 11.2的包
 pip3 install paddle-serving-server-gpu==0.9.0.post112 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.9.0.post101 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip3 install paddle-serving-server-gpu==0.9.0.post102 -i https://pypi.tuna.tsinghua.edu.cn/simple 
 ```
 
 默认开启国内清华镜像源来加速下载，如果您使用HTTP代理可以关闭(`-i https://pypi.tuna.tsinghua.edu.cn/simple`)

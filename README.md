@@ -27,7 +27,7 @@
 The goal of Paddle Serving is to provide high-performance, flexible and easy-to-use industrial-grade online inference services for machine learning developers and enterprises.Paddle Serving supports multiple protocols such as RESTful, gRPC, bRPC, and provides inference solutions under a variety of hardware and multiple operating system environments, and many famous pre-trained model examples. The core features are as follows:
 
 
-- Integrate high-performance server-side inference engine paddle Inference and mobile-side engine paddle Lite. Models of other machine learning platforms (Caffe/TensorFlow/ONNX/PyTorch) can be migrated to paddle through [x2paddle](https://github.com/PaddlePaddle/X2Paddle).
+- Integrate high-performance server-side inference engine [Paddle Inference](https://paddleinference.paddlepaddle.org.cn/product_introduction/inference_intro.html) and mobile-side engine [Paddle Lite](https://paddlelite.paddlepaddle.org.cn/introduction/tech_highlights.html). Models of other machine learning platforms (Caffe/TensorFlow/ONNX/PyTorch) can be migrated to paddle through [x2paddle](https://github.com/PaddlePaddle/X2Paddle).
 - There are two frameworks, namely high-performance C++ Serving and high-easy-to-use Python pipeline. The C++ Serving is based on the bRPC network framework to create a high-throughput, low-latency inference service, and its performance indicators are ahead of competing products. The Python pipeline is based on the gRPC/gRPC-Gateway network framework and the Python language to build a highly easy-to-use and high-throughput inference service. How to choose which one please see [Techinical Selection](doc/Serving_Design_EN.md#21-design-selection).
 - Support multiple [protocols](doc/C++_Serving/Inference_Protocols_CN.md) such as HTTP, gRPC, bRPC, and provide C++, Python, Java language SDK.
 - Design and implement a high-performance inference service framework for asynchronous pipelines based on directed acyclic graph (DAG), with features such as multi-model combination, asynchronous scheduling, concurrent inference, dynamic batch, multi-card multi-stream inference, request cache, etc.
@@ -40,13 +40,17 @@ The goal of Paddle Serving is to provide high-performance, flexible and easy-to-
 - Support service monitoring, provide prometheus-based performance statistics and port access
 
 
-<h2 align="center">Tutorial and Papers</h2>
-
+<h2 align="center">Tutorial and Solutions</h2>
 
 - AIStudio tutorial(Chinese) : [Paddle Serving服务化部署框架](https://www.paddlepaddle.org.cn/tutorials/projectdetail/3946013)
 - AIStudio OCR practice(Chinese) : [基于PaddleServing的OCR服务化部署实战](https://aistudio.baidu.com/aistudio/projectdetail/3630726)
 - Video tutorial(Chinese) : [深度学习服务化部署-以互联网应用为例](https://aistudio.baidu.com/aistudio/course/introduce/19084)
 - Edge AI solution(Chinese) : [基于Paddle Serving&百度智能边缘BIE的边缘AI解决方案](https://mp.weixin.qq.com/s/j0EVlQXaZ7qmoz9Fv96Yrw)
+- GOVT Q&A Solution(Chinese) : [政务问答检索式 FAQ System](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/applications/question_answering/faq_system)
+- Smart Q&A Solution(Chinese) : [保险智能问答](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/applications/question_answering/faq_finance)
+- Semantic Indexing Solution(Chinese) : [In-batch Negatives](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/applications/neural_search/recall/in_batch_negative)
+
+<h2 align="center">Papers</h2>
 
 - Paper : [JiZhi: A Fast and Cost-Effective Model-As-A-Service System for
 Web-Scale Online Inference at Baidu](https://arxiv.org/pdf/2106.01674.pdf)
@@ -67,6 +71,7 @@ This chapter guides you through the installation and deployment steps. It is str
 
 - [Install Paddle Serving using docker](doc/Install_EN.md)
 - [Build Paddle Serving from Source with Docker](doc/Compile_EN.md)
+- [Install Paddle Serving on linux system](doc/Install_Linux_Env_CN.md)
 - [Deploy Paddle Serving on Kubernetes(Chinese)](doc/Run_On_Kubernetes_CN.md)
 - [Deploy Paddle Serving with Security gateway(Chinese)](doc/Serving_Auth_Docker_CN.md)
 - Deploy on more hardwares[[ARM CPU、百度昆仑](doc/Run_On_XPU_EN.md)、[华为昇腾](doc/Run_On_NPU_CN.md)、[海光DCU](doc/Run_On_DCU_CN.md)、[Jetson](doc/Run_On_JETSON_CN.md)]
@@ -93,10 +98,11 @@ The first step is to call the model save interface to generate a model parameter
   - [Benchmark(Chinese)](doc/C++_Serving/Benchmark_CN.md)
   - [Multiple models in series(Chinese)](doc/C++_Serving/2+_model.md)
   - [Request Cache(Chinese)](doc/C++_Serving/Request_Cache_CN.md)
-- [Python Pipeline](doc/Python_Pipeline/Pipeline_Design_EN.md)
-  - [Analyze and optimize performance](doc/Python_Pipeline/Performance_Tuning_EN.md)
-  - [TensorRT dynamic Shape](doc/TensorRT_Dynamic_Shape_EN.md)
-  - [Benchmark(Chinese)](doc/Python_Pipeline/Benchmark_CN.md)
+- [Python Pipeline Overview(Chinese)](doc/Python_Pipeline/Pipeline_Int_CN.md)
+  - [Architecture Design(Chinese)](doc/Python_Pipeline/Pipeline_Design_CN.md)
+  - [Core Features(Chinese)](doc/Python_Pipeline/Pipeline_Features_CN.md)
+  - [Performance Optimization(Chinese)](doc/Python_Pipeline/Pipeline_Optimize_CN.md)
+  - [Benchmark(Chinese)](doc/Python_Pipeline/Pipeline_Benchmark_CN.md)
 - Client SDK
   - [Python SDK(Chinese)](doc/C++_Serving/Introduction_CN.md#42-多语言多协议Client)
   - [JAVA SDK](doc/Java_SDK_EN.md)

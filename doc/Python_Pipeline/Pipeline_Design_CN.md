@@ -1,37 +1,46 @@
-# Pipeline Serving
-
-(简体中文|[English](Pipeline_Design_EN.md))
-
-- [架构设计](Pipeline_Design_CN.md#1架构设计)
-- [详细设计](Pipeline_Design_CN.md#2详细设计)
-- [典型示例](Pipeline_Design_CN.md#3典型示例)
-- [高阶用法](Pipeline_Design_CN.md#4高阶用法)
-- [日志追踪](Pipeline_Design_CN.md#5日志追踪)
-- [性能分析与优化](Pipeline_Design_CN.md#6性能分析与优化)
+# Python Pipeline 框架设计
 
 
-在许多深度学习框架中，Serving通常用于单模型的一键部署。在AI工业大生产的背景下，端到端的深度学习模型当前还不能解决所有问题，多个深度学习模型配合起来使用还是解决现实问题的常规手段。但多模型应用设计复杂，为了降低开发和维护难度，同时保证服务的可用性，通常会采用串行或简单的并行方式，但一般这种情况下吞吐量仅达到可用状态，而且GPU利用率偏低。
+- [目标](#1)
+- [框架设计](#2)
+  - [2.1 网络层设计](#2.1)
+  - [2.2 图执行引擎层](#2.2)
+  - [2.3 服务日志](#2.3)
+  - [2.4 错误信息](#2.4)
+- [自定义信息](#3)
+  - [3.1 自定义 Web 服务 URL](#3.1)
+  - [3.2 自定义服务输入和输出结构](#3.2)
+  - [3.3 自定义服务并发和模型配置](#3.3)
+  - [3.4 自定义推理过程](#3.4)
+  - [3.5 自定义业务错误类型](#3.5)
 
-Paddle Serving提供了用户友好的多模型组合服务编程框架，Pipeline Serving，旨在降低编程门槛，提高资源使用率（尤其是GPU设备），提升整体的预估效率。
 
+<a name="1"></a>
 
-## 1.架构设计
+## 目标
+为了解决多个深度学习模型组合的复杂问题，Paddle Serving 团队设计了一个通用端到端多模型组合框架，其核心特点包括:
 
-Server端基于<b>RPC服务层</b>和<b>图执行引擎</b>构建，两者的关系如下图所示。
+1. 通用性：框架既要满足通用模型的输入类型，又要满足模型组合的复杂拓扑关系。
+2. 高性能：与常见互联网后端服务不同，深度学习模型的推理程序属于计算密集型程序，同时 GPU 等计算芯片价格昂贵，因此在平均响应时间不苛刻的场景下，计算资源占用和吞吐量指标格外重要。
+3. 高可用性：高可用的架构依赖每个服务的健壮性，服务状态可查询、异常可监控和管理是必备条件。
+4. 易于开发与调试：使用 Python 语言开发可大幅提升研发效率，运行的错误信息准确帮助开发者快速定位问题。
+
+<a name="2"></a>
+
+## 框架设计
+Python Pipeline 框架分为网络服务层和图执行引擎2部分，网络服务层处理多种网络协议请求和通用输入参数问题，图执行引擎层解决复杂拓扑关系。如下图所示
 
 <div align=center>
 <img src='../images/pipeline_serving-image1.png' height = "250" align="middle"/>
 </div>
 
-</n>
+<a name="2.1"></a>
 
-### 1.1 RPC服务层
+**一.网络服务层**
 
-为满足用户不同的使用需求，RPC服务层同时启动1个Web服务器和1个RPC服务器，可同时处理RESTful API、gRPC 2种类型请求。gPRC gateway接收RESTful API请求通过反向代理服务器将请求转发给gRPC Service；gRPC请求由gRPC service接收，所以，2种类型的请求统一由gRPC Service处理，确保处理逻辑一致。
+网络服务层包括了 gRPC-gateway 和 gRPC Server。gPRC gateway 接收 HTTP 请求，打包成 proto 格式后转发给 gRPC Server，一套处理程序可同时处理 HTTP、gRPC 2种类型请求。
 
-#### <b>1.1.1 proto的输入输出结构</b>
-
-gRPC服务和gRPC gateway服务统一用service.proto生成。
+另外，在支持多种模型的输入输出数据类型上，使用统一的 service.proto 结构，具有更好的通用性。
 
 ```proto
 message Request {
@@ -50,100 +59,60 @@ message Response {
   repeated string value = 4;
 };
 ```
-Request中`key`与`value`是配对的string数组用于接收数据。 `name`与`method`对应RESTful API的URL://{ip}:{port}/{name}/{method}。`logid`和`clientip`便于用户串联服务级请求和自定义策略。
+Request 是输入结构，`key` 与 `value` 是配对的 string 数组。 `name` 与 `method` 对应 URL://{ip}:{port}/{name}/{method}。`logid` 和 `clientip` 便于用户串联服务级请求和自定义策略。
 
-Response中`err_no`和`err_msg`表达处理结果的正确性和错误信息，`key`和`value`为返回结果。
+Response 是输出结构，`err_no` 和 `err_msg` 表达处理结果的正确性和错误信息，`key` 和 `value` 为结果。
 
+Pipeline 服务包装了继承于 WebService 类，以 [OCR 示例](https://github.com/PaddlePaddle/Serving/tree/develop/examples/Pipeline/PaddleOCR/ocr)为例，派生出 OcrService 类，get_pipeline_response 函数内实现 DAG 拓扑关系，默认服务入口为 read_op，函数返回的 Op 为最后一个处理，此处要求最后返回的 Op 必须唯一。
 
-### 1.2 图执行引擎
+所有服务和模型的所有配置信息在 `config.yml` 中记录，URL 的 name 字段由 OcrService 初始化定义；run_service 函数启动服务。
 
-图执行引擎由 OP 和 Channel 构成，相连接的 OP 之间会共享一个 Channel。
+```python
+class OcrService(WebService):
+    def get_pipeline_response(self, read_op):
+        det_op = DetOp(name="det", input_ops=[read_op])
+        rec_op = RecOp(name="rec", input_ops=[det_op])
+        return rec_op
 
-- Channel 可以理解为一个缓冲队列。每个 OP 只接受一个 Channel 的输入和多个 Channel 的输出（每个输出相同）；一个 Channel 可以包含来自多个 OP 的输出，同一个 Channel 的数据可以作为多个 OP 的输入Channel
-- 用户只需要定义 OP 间的关系，在编译期图引擎负责分析整个图的依赖关系，并声明Channel
-- Request 进入图执行引擎服务后会产生一个 Request Id，Reponse 会通过 Request Id 进行对应的返回
-- 对于 OP 之间需要传输过大数据的情况，可以考虑 RAM DB 外存进行全局存储，通过在 Channel 中传递索引的 Key 来进行数据传输
+ocr_service = OcrService(name="ocr")
+ocr_service.prepare_pipeline_config("config.yml")
+ocr_service.run_service()
+```
+
+与网络框架相关的配置在 `config.yml` 中设置。其中 `worker_num` 表示框架主线程 gRPC 线程池工作线程数，可理解成网络同步线程并发数。
+
+其次，`rpc_port` 和 `http_port` 是服务端口，可同时开启，不允许同时为空。
+```
+worker_num: 10
+
+# http 和 gRPC 服务端口
+rpc_port: 9988
+http_port: 18089
+```
+
+<a name="2.2"></a>
+
+**二.图执行引擎层**
+
+图执行引擎的设计思路是基于有向无环图实现多模型组合的复杂拓扑关系，有向无环图由单节点或多节点串联、并联结构构成。
 
 <div align=center>
 <img src='../images/pipeline_serving-image2.png' height = "300" align="middle"/>
 </div>
 
+图执行引擎抽象归纳出2种数据结构 Op 节点和 Channel 有向边，构建一条异步流水线工作流。核心概念和设计思路如下：
+- Op 节点： 可理解成1个推理模型、一个处理方法，甚至是训练前向代码，可独立运行，独立设置并发度。每个 Op 节点的计算结果放入其绑定的 Channel 中。
+- Channel 数据管道： 可理解为一个单向缓冲队列。每个 Channel 只接收上游 Op 节点的计算输出，作为下游 Op 节点的输入。
+- 工作流：根据用户定义的节点依赖关系，图执行引擎自动生成有向无环图。每条用户请求到达图执行引擎时会生成一个唯一自增 ID，通过这种唯一性绑定关系标记流水线中的不同请求。
 
-#### <b>1.2.1 OP的设计</b>
+Op 的设计原则：
+- 单个 Op 默认的功能是根据输入的 Channel 数据，访问一个 Paddle Serving 的单模型服务，并将结果存在输出的 Channel
+- 单个 Op 可以支持用户自定义，包括 preprocess，process，postprocess 三个函数都可以由用户继承和实现
+- 单个 Op 可以控制并发数，从而增加处理并发数
+- 单个 Op 可以获取多个不同 RPC 请求的数据，以实现 Auto-Batching
+- Op 可以由线程或进程启动
 
-- 单个 OP 默认的功能是根据输入的 Channel 数据，访问一个 Paddle Serving 的单模型服务，并将结果存在输出的 Channel
-- 单个 OP 可以支持用户自定义，包括 preprocess，process，postprocess 三个函数都可以由用户继承和实现
-- 单个 OP 可以控制并发数，从而增加处理并发数
-- 单个 OP 可以获取多个不同 RPC 请求的数据，以实现 Auto-Batching
-- OP 可以由线程或进程启动
-
-#### <b>1.2.2 Channel的设计</b>
-
-- Channel 是 OP 之间共享数据的数据结构，负责共享数据或者共享数据状态信息
-- Channel 可以支持多个OP的输出存储在同一个 Channel，同一个 Channel 中的数据可以被多个 OP 使用
-- 下图为图执行引擎中 Channel 的设计，采用 input buffer 和 output buffer 进行多 OP 输入或多 OP 输出的数据对齐，中间采用一个 Queue 进行缓冲
-
-<div align=center>
-<img src='../images/pipeline_serving-image3.png' height = "500" align="middle"/>
-</div>
-
-#### <b>1.2.3 预测类型的设计</b>
-
-- OP的预测类型(client_type)有3种类型，brpc、grpc和local_predictor，各自特点如下：
-  - brpc: 使用bRPC Client与远端的Serving服务网络交互，性能优于grpc，但仅支持Linux平台
-  - grpc: 使用gRPC Client与远端的Serving服务网络交互，支持跨操作系统部署，性能弱于bprc
-  - local_predictor: 本地服务内加载模型并完成预测，不需要网络交互,延时更低，支持Linux部署。支持本机多卡部署和TensorRT实现高性能预测。
-  - 选型: 
-    - 延时(越少越好): local_predictor < brpc <= grpc
-    - 操作系统：grpc > local_precitor >= brpc
-    - 微服务: brpc或grpc模型分拆成独立服务，简化开发和部署复杂度，提升资源利用率
-
-
-#### <b>1.2.4 极端情况的考虑</b>
-
-- `请求超时的处理`
-
-  整个图执行引擎每一步都有可能发生超时，图执行引擎里面通过设置 timeout 值来控制，任何环节超时的请求都会返回超时响应。
-
-- `Channel 存储的数据过大`
-
-  Channel 中可能会存储过大的数据，导致拷贝等耗时过高，图执行引擎里面可以通过将 OP 计算结果数据存储到外存，如高速的内存 KV 系统
-
-- `Channel 设计中的 input buffer 和 output buffer 是否会无限增加`
-
-  - 不会。整个图执行引擎的输入会放到一个 Channel 的 internal queue 里面，直接作为整个服务的流量控制缓冲队列
-  - 对于 input buffer，根据计算量的情况调整 OP1 和 OP2 的并发数，使得 input buffer 来自各个输入 OP 的数量相对平衡（input buffer 的长度取决于 internal queue 中每个 item 完全 ready 的速度）
-  - 对于 output buffer，可以采用和 input buffer 类似的处理方法，即调整 OP3 和 OP4 的并发数，使得 output buffer 的缓冲长度得到控制（output buffer 的长度取决于下游 OP 从 output buffer 获取数据的速度）
-  - 同时 Channel 中数据量不会超过 gRPC 的 `worker_num`，即线程池大小
-
-***
-
-
-## 2.详细设计
-
-对于Pipeline的设计实现，首先介绍PipelineServer、OP、重写OP前后处理，最后介绍特定OP(RequestOp和ResponseOp)二次开发的方法。
-
-### 2.1 PipelineServer定义
-
-PipelineServer包装了RPC运行层和图引擎执行，所有Pipeline服务首先要实例化PipelineServer示例，再设置2个核心接口 set_response_op、加载配置信息，最后调用run_server启动服务。代码示例如下：
-
-```python
-server = PipelineServer()
-server.set_response_op(response_op)
-server.prepare_server(config_yml_path)
-#server.prepare_pipeline_config(config_yml_path)
-server.run_server()
-```
-PipelineServer的核心接口：
-- `set_response_op`，设置response_op 将会根据各个 OP 的拓扑关系初始化 Channel 并构建计算图。
-- `prepare_server`: 加载配置信息，并启动远端Serving服务，适用于调用远端远端推理服务
-- `prepare_pipeline_config`，仅加载配置信息，适用于local_prdict
-- `run_server`，启动gRPC服务，接收请求
-
-
-### 2.2 OP 定义
-
-普通 OP 作为图执行引擎中的基本单元，其构造函数如下：
+其构造函数如下：
 
 ```python
 def __init__(name=None,
@@ -160,37 +129,233 @@ def __init__(name=None,
              local_service_handler=None)
 ```
 
-各参数含义如下
+各参数含义如下：
 
 |        参数名         |     类型     |                  含义                             |
 | :-------------------: | :---------: |:------------------------------------------------: |
-|         name          |   （str）   | 用于标识 OP 类型的字符串，该字段必须全局唯一。     |
-|       input_ops       |   （list）  | 当前 OP 的所有前继 OP 的列表。            |
+|         name          |   （str）   | 用于标识 Op 类型的字符串，该字段必须全局唯一。     |
+|       input_ops       |   （list）  | 当前 Op 的所有前继 Op 的列表。            |
 |   server_endpoints    |   （list）  |远程 Paddle Serving Service 的 endpoints 列表。如果不设置该参数，认为是local_precditor模式，从local_service_conf中读取配置。 |
 |      fetch_list       |   （list）  |远程 Paddle Serving Service 的 fetch 列表。      |
 |     client_config     |   （str）   |Paddle Serving Service 对应的 Client 端配置文件路径。 |
 |      client_type      |    (str)    |可选择brpc、grpc或local_predictor。local_predictor不启动Serving服务，进程内预测。 |
-|      concurrency      |   （int）   | OP 的并发数。                     |
+|      concurrency      |   （int）   | Op 的并发数。                     |
 |        timeout        |   （int）   |process 操作的超时时间，单位为毫秒。若该值小于零，则视作不超时。 |
 |         retry         |   （int）   |超时重试次数。当该值为 1 时，不进行重试。       |
 |      batch_size       |   （int）   |进行 Auto-Batching 的期望 batch_size 大小，由于构建 batch 可能超时，实际 batch_size 可能小于设定值，默认为 1。 |
 | auto_batching_timeout |  （float）  |进行 Auto-Batching 构建 batch 的超时时间，单位为毫秒。batch_size > 1时，要设置auto_batching_timeout，否则请求数量不足batch_size时会阻塞等待。 |
-| local_service_handler |   (object)  |local predictor handler，Op init()入参赋值 或 在Op init()中创建|
+| local_service_handler |   (object) |local predictor handler，Op init() 入参赋值或在 Op init() 中创建|
+
+对于 Op 之间需要传输过大数据的情况，可以考虑 RAM DB 外存进行全局存储，通过在 Channel 中传递索引的 Key 来进行数据传输
 
 
+Channel的设计原则：
+- Channel 是 Op 之间共享数据的数据结构，负责共享数据或者共享数据状态信息
+- Channel 可以支持多个OP的输出存储在同一个 Channel，同一个 Channel 中的数据可以被多个 Op 使用
 
-### 2.3 重写OP前后处理
-OP 二次开发的目的是满足业务开发人员控制OP处理策略。
+下图为图执行引擎中 Channel 的设计，采用 input buffer 和 output buffer 进行多 Op 输入或多 Op 输出的数据对齐，中间采用一个 Queue 进行缓冲
+
+<div align=center>
+<img src='../images/pipeline_serving-image3.png' height = "500" align="middle"/>
+</div>
+
+<a name="2.3"></a>
+
+**三.服务日志**
+
+Pipeline 服务日志在当前目录的 `PipelineServingLogs` 目录下，有3种类型日志，分别是 `pipeline.log`、`pipeline.log.wf`、`pipeline.tracer`。
+- `pipeline.log` : 记录 debug & info日志信息
+- `pipeline.log.wf` : 记录 warning & error日志
+- `pipeline.tracer` : 统计各个阶段耗时、channel 堆积信息
+
+```
+├── config.yml
+├── get_data.sh
+├── PipelineServingLogs
+│   ├── pipeline.log
+│   ├── pipeline.log.wf
+│   └── pipeline.tracer
+├── README_CN.md
+├── README.md
+├── uci_housing_client
+│   ├── serving_client_conf.prototxt
+│   └── serving_client_conf.stream.prototxt
+├── uci_housing_model
+│   ├── fc_0.b_0
+│   ├── fc_0.w_0
+│   ├── __model__
+│   ├── serving_server_conf.prototxt
+│   └── serving_server_conf.stream.prototxt
+├── web_service_java.py
+└── web_service.py
+```
+
+在服务发生异常时，错误信息会记录在 pipeline.log.wf 日志中。打印 tracer 日志要求在 config.yml 的 DAG 属性中添加 tracer 配置。
+
+1. 日志与请求的唯一标识
+Pipeline 中有2种 id 用以串联请求，分别是 data_id 和 log_id，二者区别如下：
+- data_id : Pipeline 框架生成的自增 ID，标记请求唯一性标识
+- log_id : 上游模块传入的标识，跟踪多个服务间串联关系，由于用户可不传入或不保证唯一性，因此不能作为唯一性标识
+
+通常，Pipeline 框架打印的日志会同时带上 data_id 和 log_id。开启 auto-batching 后，会使用批量中的第一个 data_id 标记 batch 整体，同时框架会在一条日志中打印批量中所有 data_id。
+
+2. 日志滚动
+Pipeline 的日志模块在 `logger.py` 中定义，使用了 `logging.handlers.RotatingFileHandler` 支持磁盘日志文件的轮换。根据不同文件级别和日质量分别设置了 `maxBytes` 和 `backupCount`，当即将超出预定大小时，将关闭旧文件并打开一个新文件用于输出。
+
+```python
+"handlers": {
+    "f_pipeline.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log"),
+        "maxBytes": 512000000,
+        "backupCount": 20,
+    },
+    "f_pipeline.log.wf": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "WARNING",
+        "formatter": "normal_fmt",
+        "filename": os.path.join(log_dir, "pipeline.log.wf"),
+        "maxBytes": 512000000,
+        "backupCount": 10,
+    },
+    "f_tracer.log": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": "INFO",
+        "formatter": "tracer_fmt",
+        "filename": os.path.join(log_dir, "pipeline.tracer"),
+        "maxBytes": 512000000,
+        "backupCount": 5,
+    },
+}
+
+```
+
+<a name="2.4"></a>
+
+**四. 错误信息**
+
+框架提供的错误信息如下所示， 完整信息在 `error_catch.py` 中 `CustomExceptionCode` 类中定义。
+
+| 错误码 |  说明  |
+| :---: | :-------------: |
+| 0   |  成功 |
+| 50 ~ 999 | 产品错误 |
+| 3000 ~ 3999 | 框架内部服务错误 |
+| 4000 ~ 4999 | 配置错误  |
+| 5000 ~ 5999 | 用户输入错误  |
+| 6000 ~ 6999 | 超时错误 | 
+| 7000 ~ 7999 | 类型检查错误 |
+| 8000 ~ 8999 | 内部通讯错误 |
+| 9000 ~ 9999 | 推理错误 |
+| 10000 ~     | 其他错误 |
+
+具体错误信息如下：
+
+```
+class CustomExceptionCode(enum.Enum): 
+    OK = 0
+    PRODUCT_ERROR = 50
+
+    NOT_IMPLEMENTED = 3000
+    CLOSED_ERROR = 3001
+    NO_SERVICE = 3002
+    INIT_ERROR = 3003
+    CONF_ERROR = 4000
+    INPUT_PARAMS_ERROR = 5000
+    TIMEOUT = 6000
+    TYPE_ERROR = 7000
+    RPC_PACKAGE_ERROR = 8000 
+    CLIENT_ERROR = 9000
+    UNKNOW = 10000
+```
+
+<a name="3"></a>
+
+## 自定义信息
+
+提供给开发者提供以下自定义信息，包括自定义 Web 服务、自定义服务输入和输出结构、自定义服务并发和模型配置和自定义推理过程
+- 自定义 Web 服务 URL
+- 自定义服务输入和输出结构
+- 自定义服务并发和模型配置
+- 自定义推理过程
+- 自定义业务错误类型
+
+<a name="3.1"></a>
+
+**一.自定义 Web 服务 URL**
+
+在 Web 服务中自定义服务名称是常见操作，尤其是将已有服务迁移到新框架。URL 中核心字段包括 `ip`、`port`、`name` 和 `method`，根据最新部署的环境信息设置前2个字段，重点介绍如何设置 `name` 和 `method`，框架提供默认的 `methon` 是 `prediciton`，如 `http://127.0.0.1:9999/ocr/prediction` 。
+
+框架有2处代码与此相关，分别是 gRPC Gateway 的配置文件 `python/pipeline/gateway/proto/gateway.proto` 和 服务启动文件 `web_server.py`。
+
+业务场景中通过设置 `name` 和 验证 `method` 解决问题。以 [OCR 示例]()为例，服务启动文件 `web_server.py` 通过类 `OcrService` 构造函数的 `name` 字段设置 URL 中 `name` 字段；
+```
+ocr_service = OcrService(name="ocr")
+ocr_service.prepare_pipeline_config("config.yml")
+ocr_service.run_service()
+``` 
+
+框架提供默认的 `methon` 是 `prediciton`，通过重载 `RequestOp::unpack_request_package` 来验证 `method`。
+```
+def unpack_request_package(self, request):
+    dict_data = {}
+    log_id = None
+    if request is None:
+        _LOGGER.critical("request is None")
+        raise ValueError("request is None")
+    if request.method is not "prediction":
+        _LOGGER.critical("request method error")
+        raise ValueError("request method error")      
+    ...
+```
+
+在 `python/pipeline/gateway/proto/gateway.proto` 文件可以对 `name` 和 `method` 做严格限制，一般不需要修改，如需要特殊指定修改后，需要重新编译 Paddle Serving，[编译方法]()
+
+```proto
+service PipelineService {
+  rpc inference(Request) returns (Response) {
+    option (google.api.http) = {
+      post : "/{name=*}/{method=*}"
+      body : "*"
+    };
+  }
+};
+```
+<a name="3.2"></a>
+
+**二.自定义服务输入和输出结构**
+
+输入和输出结构包括 proto 中 Request 和 Response 结构，以及 Op 前后处理返回。
+
+当默认 proto 结构不满足业务需求时，同时下面2个文件的 proto 的 Request 和 Response message 结构，保持一致。
+- pipeline/gateway/proto/gateway.proto 
+- pipeline/proto/pipeline_service.proto
+
+修改后，需要[重新编译]()
+
+<a name="3.3"></a>
+
+**三.自定义服务并发和模型配置**
+
+完整的配置信息可参考[配置信息]()
+
+<a name="3.4"></a>
+
+**四.自定义推理过程**
+
+推理 Op 为开发者提供3个外部函数接口：
 
 |                    变量或接口                    |                             说明                             |
 | :----------------------------------------------: | :----------------------------------------------------------: |
 |        def preprocess(self, input_dicts)         | 对从 Channel 中获取的数据进行处理，处理完的数据将作为 **process** 函数的输入。（该函数对一个 **sample** 进行处理） |
 | def process(self, feed_dict_list, typical_logid) | 基于 Paddle Serving Client 进行 RPC 预测，处理完的数据将作为 **postprocess** 函数的输入。（该函数对一个 **batch** 进行处理） |
-|  def postprocess(self, input_dicts, fetch_dict)  | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 OP 获取。（该函数对一个 **sample** 进行处理） |
+|  def postprocess(self, input_dicts, fetch_dict)  | 处理预测结果，处理完的数据将被放入后继 Channel 中，以被后继 Op 获取。（该函数对一个 **sample** 进行处理） |
 |                def init_op(self)                 |                  用于加载资源（如字典等）。                  |
-|               self.concurrency_idx               |  当前进程（非线程）的并发数索引（不同种类的 OP 单独计算）。  |
+|               self.concurrency_idx               |  当前进程（非线程）的并发数索引（不同种类的 Op 单独计算）。  |
 
-OP 在一个运行周期中会依次执行 preprocess，process，postprocess 三个操作（当不设置 `server_endpoints` 参数时，不执行 process 操作），用户可以对这三个函数进行重写，默认实现如下：
+Op 在一个运行周期中会依次执行 preprocess，process，postprocess 三个操作（当不设置 `server_endpoints` 参数时，不执行 process 操作），用户可以对这三个函数进行重写，默认实现如下：
 
 ```python
 def preprocess(self, input_dicts):
@@ -219,7 +384,7 @@ def postprocess(self, input_dicts, fetch_dict):
   return fetch_dict
 ```
 
-**preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量（作为一个 **sample**）是一个以前继 OP 的 name 为 Key，对应 OP 的输出为 Value 的字典。
+**preprocess** 的参数是前继 Channel 中的数据 `input_dicts`，该变量（作为一个 **sample**）是一个以前继 Op 的 name 为 Key，对应 Op 的输出为 Value 的字典。
 
 **process** 的参数是 Paddle Serving Client 预测接口的输入变量 `fetch_dict_list`（preprocess 函数的返回值的列表），该变量（作为一个 **batch**）是一个列表，列表中的元素为以 feed_name 为 Key，对应 ndarray 格式的数据为 Value 的字典。`typical_logid` 作为向 PaddleServingService 穿透的 logid。
 
@@ -232,11 +397,13 @@ def init_op(self):
   pass
 ```
 
-需要**注意**的是，在线程版 OP 中，每个 OP 只会调用一次该函数，故加载的资源必须要求是线程安全的。
+RequestOp 和 ResponseOp 是 Python Pipeline 的中2个特殊 Op，分别是用分解 RPC 数据加入到图执行引擎中，和拿到图执行引擎的预测结果并打包 RPC 数据到客户端。
+RequestOp 类的设计如下所示，核心是在 unpack_request_package 函数中解析请求数据，因此，当修改 Request 结构后重写此函数实现全新的解包处理。
 
-### 2.4 RequestOp 定义 与 二次开发接口
-
-RequestOp 用于处理 Pipeline Server 接收到的 RPC 数据，处理后的数据将会被加入到图执行引擎中。其功能实现如下：
+|                接口                 |                    说明                    |
+| :---------------------------------------: | :----------------------------------------: |
+|             init_op(self)             | OP初始化，设置默认名称@DAGExecutor |
+| unpack_request_package(self, request) | 解析请求数据 |
 
 ```python
 class RequestOp(Op):
@@ -267,17 +434,12 @@ class RequestOp(Op):
         return dict_data, log_id, None, ""
 ```
 
-**unpack_request_package** 的默认实现是将 RPC request 中的 key 和 value 做成字典交给第一个自定义OP。当默认的RequestOp无法满足参数解析需求时，可通过重写下面2个接口自定义请求参数解析方法。
+ResponseOp 类的设计如下所示，核心是在 pack_response_package 中打包返回结构，因此修改 Response 结构后重写此函数实现全新的打包格式。
 
-|                接口                 |                    说明                    |
-| :---------------------------------------: | :----------------------------------------: |
-|             init_op(self)             | OP初始化，设置默认名称@DAGExecutor |
-| unpack_request_package(self, request) | 处理接收的RPC数据 |
-
-
-### 2.5 ResponseOp 定义 与 二次开发接口
-
-ResponseOp 用于处理图执行引擎的预测结果，处理后的数据将会作为 Pipeline Server 的RPC 返回值，其函数实现如下，在pack_response_package中做了精简
+|                  接口                  |                    说明                     |
+| :------------------------------------------: | :-----------------------------------------: |
+|              init_op(self)               | Op 初始化，设置默认名称 @DAGExecutor  |
+| pack_response_package(self, channeldata) | 处理接收的 RPC 数据 |
 
 ```python
 class ResponseOp(Op):
@@ -306,267 +468,11 @@ class ResponseOp(Op):
 
         return resp
 ```
-**pack_response_package** 的默认实现是将预测结果的字典转化为 RPC response 中的 key 和 value。当默认的 ResponseOp 无法满足结果返回格式要求时，可通过重写下面2个接口自定义返回包打包方法。
+<a name="3.5"></a>
 
-|                  接口                  |                    说明                     |
-| :------------------------------------------: | :-----------------------------------------: |
-|              init_op(self)               | OP初始化，设置默认名称@DAGExecutor  |
-| pack_response_package(self, channeldata) | 处理接收的RPC数据 |
+**五.自定义业务错误类型**
 
-***
-
-## 3.典型示例
-所有Pipeline示例在[examples/Pipeline/](../../examples/Pipeline) 目录下，目前有7种类型模型示例：
-- [PaddleClas](../../examples/Pipeline/PaddleClas) 
-- [Detection](../../examples/Pipeline/PaddleDetection)  
-- [bert](../../examples/Pipeline/PaddleNLP/bert)
-- [imagenet](../../examples/Pipeline/PaddleClas/imagenet)
-- [imdb_model_ensemble](../../examples/Pipeline/imdb_model_ensemble)
-- [ocr](../../examples/Pipeline/PaddleOCR/ocr)
-- [simple_web_service](../../examples/Pipeline/simple_web_service)
-
-以 imdb_model_ensemble 为例来展示如何使用 Pipeline Serving，相关代码在 `Serving/examples/Pipeline/imdb_model_ensemble` 文件夹下可以找到，例子中的 Server 端结构如下图所示：
-
-<div align=center>
-<img src='../images/pipeline_serving-image4.png' height = "200" align="middle"/>
-</div>
-
-### 3.1 Pipeline部署需要的文件
-需要五类文件，其中模型文件、配置文件、服务端代码是构建Pipeline服务必备的三个文件。测试客户端和测试数据集为测试准备
-- 模型文件
-- 配置文件(config.yml)
-  - 服务级别：服务端口、gRPC线程数、服务超时、重试次数等
-  - DAG级别：资源类型、开启Trace、性能profile
-  - OP级别：模型路径、并发度、推理方式、计算硬件、推理超时、自动批量等
-- 服务端(web_server.py)
-  - 服务级别：定义服务名称、读取配置文件、启动服务
-  - DAG级别：指定多OP之间的拓扑关系
-  - OP级别：重写OP前后处理
-- 测试客户端
-  - 正确性校验
-  - 压力测试
-- 测试数据集
-  - 图片、文本、语音等
-
-
-### 3.2 获取模型文件
-
-```shell
-cd Serving/examples/Pipeline/imdb_model_ensemble
-sh get_data.sh
-python -m paddle_serving_server.serve --model imdb_cnn_model --port 9292 &> cnn.log &
-python -m paddle_serving_server.serve --model imdb_bow_model --port 9393 &> bow.log &
-```
-
-PipelineServing 也支持本地自动启动 PaddleServingService，请参考 `Serving/examples/Pipeline/PaddleOCR/ocr` 下的例子。
-
-### 3.3 创建config.yaml
-本示例采用了brpc的client连接类型，还可以选择grpc或local_predictor。
-```yaml
-#rpc端口, rpc_port和http_port不允许同时为空。当rpc_port为空且http_port不为空时，会自动将rpc_port设置为http_port+1
-rpc_port: 18070
-
-#http端口, rpc_port和http_port不允许同时为空。当rpc_port可用且http_port为空时，不自动生成http_port
-http_port: 18071
-
-#worker_num, 最大并发数。当build_dag_each_worker=True时, 框架会创建worker_num个进程，每个进程内构建grpcSever和DAG
-#当build_dag_each_worker=False时，框架会设置主线程grpc线程池的max_workers=worker_num
-worker_num: 4
-
-#build_dag_each_worker, False，框架在进程内创建一条DAG；True，框架会每个进程内创建多个独立的DAG
-build_dag_each_worker: False
-
-dag:
-    #op资源类型, True, 为线程模型；False，为进程模型
-    is_thread_op: True
-
-    #重试次数
-    retry: 1
-
-    #使用性能分析, True，生成Timeline性能数据，对性能有一定影响；False为不使用
-    use_profile: False
-
-    #channel的最大长度，默认为0
-    channel_size: 0
-
-    #tracer, 跟踪框架吞吐，每个OP和channel的工作情况。无tracer时不生成数据
-    tracer:
-        #每次trace的时间间隔，单位秒/s
-        interval_s: 10
-op:
-    bow:
-        # 并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
-
-        # client连接类型，brpc, grpc和local_predictor
-        client_type: brpc
-
-        # Serving交互重试次数，默认不重试
-        retry: 1
-
-        # Serving交互超时时间, 单位ms
-        timeout: 3000
-
-        # Serving IPs
-        server_endpoints: ["127.0.0.1:9393"]
-
-        # bow模型client端配置
-        client_config: "imdb_bow_client_conf/serving_client_conf.prototxt"
-
-        # Fetch结果列表，以client_config中fetch_var的alias_name为准
-        fetch_list: ["prediction"]
-
-        # 批量查询Serving的数量, 默认1。batch_size>1要设置auto_batching_timeout，否则不足batch_size时会阻塞
-        batch_size: 2
-
-        # 批量查询超时，与batch_size配合使用
-        auto_batching_timeout: 2000
-    cnn:
-        # 并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
-
-        # client连接类型，brpc
-        client_type: brpc
-
-        # Serving交互重试次数，默认不重试
-        retry: 1
-
-        # 预测超时时间, 单位ms
-        timeout: 3000
-
-        # Serving IPs
-        server_endpoints: ["127.0.0.1:9292"]
-
-        # cnn模型client端配置
-        client_config: "imdb_cnn_client_conf/serving_client_conf.prototxt"
-
-        # Fetch结果列表，以client_config中fetch_var的alias_name为准
-        fetch_list: ["prediction"]
-        
-        # 批量查询Serving的数量, 默认1。
-        batch_size: 2
-
-        # 批量查询超时，与batch_size配合使用
-        auto_batching_timeout: 2000
-    combine:
-        # 并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
-
-        # Serving交互重试次数，默认不重试
-        retry: 1
-
-        # 预测超时时间, 单位ms
-        timeout: 3000
-
-        # 批量查询Serving的数量, 默认1。
-        batch_size: 2
-
-        # 批量查询超时，与batch_size配合使用
-        auto_batching_timeout: 2000
-```
-
-### 3.4 实现Server并启动服务
-
-代码示例中，重点留意3个自定义Op的preprocess、postprocess处理，以及Combin Op初始化列表input_ops=[bow_op, cnn_op]，设置Combin Op的前置OP列表。
-
-```python
-from paddle_serving_server.pipeline import Op, RequestOp, ResponseOp
-from paddle_serving_server.pipeline import PipelineServer
-from paddle_serving_server.pipeline.proto import pipeline_service_pb2
-from paddle_serving_server.pipeline.channel import ChannelDataEcode
-import numpy as np
-from paddle_serving_app.reader import IMDBDataset
-
-class ImdbRequestOp(RequestOp):
-    def init_op(self):
-        self.imdb_dataset = IMDBDataset()
-        self.imdb_dataset.load_resource('imdb.vocab')
-
-    def unpack_request_package(self, request):
-        dictdata = {}
-        for idx, key in enumerate(request.key):
-            if key != "words":
-                continue
-            words = request.value[idx]
-            word_ids, _ = self.imdb_dataset.get_words_and_label(words)
-            dictdata[key] = np.array(word_ids)
-        return dictdata
-
-
-class CombineOp(Op):
-    def preprocess(self, input_data):
-        combined_prediction = 0
-        for op_name, data in input_data.items():
-            combined_prediction += data["prediction"]
-        data = {"prediction": combined_prediction / 2}
-        return data
-
-
-read_op = ImdbRequestOp()
-bow_op = Op(name="bow",
-            input_ops=[read_op],
-            server_endpoints=["127.0.0.1:9393"],
-            fetch_list=["prediction"],
-            client_config="imdb_bow_client_conf/serving_client_conf.prototxt",
-            concurrency=1,
-            timeout=-1,
-            retry=1)
-cnn_op = Op(name="cnn",
-            input_ops=[read_op],
-            server_endpoints=["127.0.0.1:9292"],
-            fetch_list=["prediction"],
-            client_config="imdb_cnn_client_conf/serving_client_conf.prototxt",
-            concurrency=1,
-            timeout=-1,
-            retry=1)
-combine_op = CombineOp(
-    name="combine",
-    input_ops=[bow_op, cnn_op],
-    concurrency=5,
-    timeout=-1,
-    retry=1)
-
-# use default ResponseOp implementation
-response_op = ResponseOp(input_ops=[combine_op])
-
-server = PipelineServer()
-server.set_response_op(response_op)
-server.prepare_server('config.yml')
-server.run_server()
-```
-
-### 3.5 推理测试
-
-```python
-from paddle_serving_client.pipeline import PipelineClient
-import numpy as np
-
-client = PipelineClient()
-client.connect(['127.0.0.1:18080'])
-
-words = 'i am very sad | 0'
-
-futures = []
-for i in range(3):
-    futures.append(
-        client.predict(
-            feed_dict={"words": words},
-            fetch=["prediction"],
-            asyn=True))
-
-for f in futures:
-    res = f.result()
-    if res["ecode"] != 0:
-        print(res)
-        exit(1)
-```
-
-***
-
-## 4.高阶用法
-
-### 4.1 业务自定义错误类型
-用户可根据业务场景自定义错误码，继承ProductErrCode，在Op的preprocess或postprocess中返回列表中返回，下一阶段处理会根据自定义错误码跳过后置OP处理。
+用户可根据业务场景自定义错误码，继承 ProductErrCode，在 Op 的 preprocess 或 postprocess 中返回列表中返回，下一阶段处理会根据自定义错误码跳过后置OP处理。
 ```python
 class ProductErrCode(enum.Enum):
     """
@@ -576,259 +482,34 @@ class ProductErrCode(enum.Enum):
     pass
 ```
 
-### 4.2 跳过OP process阶段
-preprocess返回结果列表的第二个结果是`is_skip_process=True`表示是否跳过当前OP的process阶段，直接进入postprocess处理
-
+其使用方法如下所示，定义了一种错误类型 `Product_Error` ，在 `preprocess` 函数返回值中设置错误信息，在 `postprocess` 函数中也可以设置。
 ```python
+
+class ProductErrCode(enum.Enum):
+    """
+    ProductErrCode is a base class for recording business error code. 
+    product developers inherit this class and extend more error codes. 
+    """
+    Product_Error = 100001,
+
 def preprocess(self, input_dicts, data_id, log_id):
-        """
-        In preprocess stage, assembling data for process stage. users can 
-        override this function for model feed features.
-        Args:
-            input_dicts: input data to be preprocessed
-            data_id: inner unique id
-            log_id: global unique id for RTT
-        Return:
-            input_dict: data for process stage
-            is_skip_process: skip process stage or not, False default
-            prod_errcode: None default, otherwise, product errores occured.
-                          It is handled in the same way as exception. 
-            prod_errinfo: "" default
-        """
-        # multiple previous Op
-        if len(input_dicts) != 1:
-            _LOGGER.critical(
-                self._log(
-                    "Failed to run preprocess: this Op has multiple previous "
-                    "inputs. Please override this func."))
-            os._exit(-1)
-        (_, input_dict), = input_dicts.items()
-        return input_dict, False, None, ""
+    """
+    In preprocess stage, assembling data for process stage. users can 
+    override this function for model feed features.
+    Args:
+        input_dicts: input data to be preprocessed
+        data_id: inner unique id
+        log_id: global unique id for RTT
+    Return:
+        input_dict: data for process stage
+        is_skip_process: skip process stage or not, False default
+        prod_errcode: None default, otherwise, product errores occured.
+                      It is handled in the same way as exception. 
+        prod_errinfo: "" default
+    """
+    (_, input_dict), = input_dicts.items()
+    if input_dict.get_key("product_error"):
+        return input_dict, False, Product_Error, "Product Error Occured"
+    return input_dict, False, None, "" 
 
 ```
-
-### 4.3 自定义proto Request 和 Response结构
-
-当默认proto结构不满足业务需求时，同时下面2个文件的proto的Request和Response message结构，保持一致。
-
-> pipeline/gateway/proto/gateway.proto 
-
-> pipeline/proto/pipeline_service.proto
-
-再重新编译Serving Server。
-
-
-### 4.4 自定义URL
-grpc gateway处理post请求，默认`method`是`prediction`，例如:127.0.0.1:8080/ocr/prediction。用户可自定义name和method，对于已有url的服务可无缝切换
-
-```proto
-service PipelineService {
-  rpc inference(Request) returns (Response) {
-    option (google.api.http) = {
-      post : "/{name=*}/{method=*}"
-      body : "*"
-    };
-  }
-};
-```
-
-### 4.5 批量推理
-Pipeline支持批量推理，通过增大batch size可以提高GPU利用率。Pipeline Pipeline Serving支持3种batch形式以及适用的场景如下：
-- 场景1：一个推理请求包含批量数据(batch)
-  - 单条数据定长，批量变长，数据转成BCHW格式
-  - 单条数据变长，前处理中将单条数据做padding转成定长
-- 场景2：一个推理请求的批量数据拆分成多个小块推理(mini-batch)
-  - 由于padding会按最长对齐，当一批数据中有个"极大"尺寸数据时会导致推理变慢
-  - 指定一个块大小，从而缩小"极大"尺寸数据的作用范围
-- 场景3：合并多个请求数据批量推理(auto-batching)
-  - 推理耗时明显长于前后处理，合并多个请求数据推理一次会提高吞吐和GPU利用率
-  - 要求多个request的数据的shape一致
-
-|                  接口                  |                    说明                     |
-| :------------------------------------------: | :-----------------------------------------: |
-|  batch | client发送批量数据，client.predict的batch=True |
-| mini-batch | preprocess按list类型返回，参考OCR示例 RecOp的preprocess|
-| auto-batching | config.yml中OP级别设置batch_size和auto_batching_timeout |
-
-
-### 4.6 单机多卡
-单机多卡推理，M个OP进程与N个GPU卡绑定，在config.yml中配置3个参数有关系，首先选择进程模式、并发数即进程数，devices是GPU卡ID。绑定方法是进程启动时遍历GPU卡ID，例如启动7个OP进程，config.yml设置devices:0,1,2，那么第1，4，7个启动的进程与0卡绑定，第2，4个启动的进程与1卡绑定，3，6进程与卡2绑定。
-- 进程ID: 0  绑定 GPU 卡0
-- 进程ID: 1  绑定 GPU 卡1
-- 进程ID: 2  绑定 GPU 卡2
-- 进程ID: 3  绑定 GPU 卡0
-- 进程ID: 4  绑定 GPU 卡1
-- 进程ID: 5  绑定 GPU 卡2
-- 进程ID: 6  绑定 GPU 卡0
-
-config.yml中硬件配置：
-```
-#计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-devices: "0,1,2"
-```
-
-### 4.7 异构硬件
-Pipeline除了支持CPU、GPU之外，还支持在多种异构硬件部署。在config.yml中由device_type和devices。优先使用device_type指定类型，当空缺时根据devices判断。device_type描述如下：
-- CPU(Intel) : 0
-- GPU : 1
-- TensorRT : 2
-- CPU(Arm) : 3
-- XPU : 4
-
-config.yml中硬件配置：
-```
-#计算硬件类型: 空缺时由devices决定(CPU/GPU)，0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
-device_type: 0
-
-#计算硬件ID，优先由device_type决定硬件类型。devices为""或空缺时为CPU预测；当为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-devices: "" # "0,1"
-```
-           
-### 4.8 低精度推理
-Pipeline Serving支持低精度推理，CPU、GPU和TensoRT支持的精度类型如下图所示：
-
-- CPU
-  - fp32(default)
-  - fp16
-  - bf16(mkldnn)
-- GPU
-  - fp32(default)
-  - fp16
-  - int8
-- Tensor RT
-  - fp32(default)
-  - fp16
-  - int8 
-
-使用int8时，要开启use_calib: True
-
-参考[simple_web_service](../../examples/Pipeline/simple_web_service)示例
-***
-
-## 5.日志追踪
-Pipeline服务日志在当前目录的PipelineServingLogs目录下，有3种类型日志，分别是pipeline.log日志、pipeline.log.wf日志、pipeline.tracer日志。
-- `pipeline.log` : 记录 debug & info日志信息
-- `pipeline.log.wf` : 记录 warning & error日志
-- `pipeline.tracer` : 统计各个阶段耗时、channel堆积信息
-
-在服务发生异常时，错误信息会记录在pipeline.log.wf日志中。打印tracer日志要求在config.yml的DAG属性中添加tracer配置。
-
-### 5.1 log唯一标识
-Pipeline中有2种id用以串联请求，分别时data_id和log_id，二者区别如下：
-- data_id : Pipeline框架生成的自增ID，标记请求唯一性标识
-- log_id : 上游模块传入的标识，跟踪多个服务间串联关系，由于用户可不传入或不保证唯一性，因此不能作为唯一性标识
-
-通常，Pipeline框架打印的日志会同时带上data_id和log_id。开启auto-batching后，会使用批量中的第一个data_id标记batch整体，同时框架会在一条日志中打印批量中所有data_id。
-
-### 5.2 日志滚动
-Pipeline的日志模块在`logger.py`中定义，使用了`logging.handlers.RotatingFileHandler`支持磁盘日志文件的轮换。根据不同文件级别和日质量分别设置了`maxBytes` 和 `backupCount`，当即将超出预定大小时，将关闭旧文件并打开一个新文件用于输出。
-
-```python
-"handlers": {
-    "f_pipeline.log": {
-        "class": "logging.handlers.RotatingFileHandler",
-        "level": "INFO",
-        "formatter": "normal_fmt",
-        "filename": os.path.join(log_dir, "pipeline.log"),
-        "maxBytes": 512000000,
-        "backupCount": 20,
-    },
-    "f_pipeline.log.wf": {
-        "class": "logging.handlers.RotatingFileHandler",
-        "level": "WARNING",
-        "formatter": "normal_fmt",
-        "filename": os.path.join(log_dir, "pipeline.log.wf"),
-        "maxBytes": 512000000,
-        "backupCount": 10,
-    },
-    "f_tracer.log": {
-        "class": "logging.handlers.RotatingFileHandler",
-        "level": "INFO",
-        "formatter": "tracer_fmt",
-        "filename": os.path.join(log_dir, "pipeline.tracer"),
-        "maxBytes": 512000000,
-        "backupCount": 5,
-    },
-},
-```
-
-***
-
-## 6.性能分析与优化
-
-
-### 6.1 如何通过 Timeline 工具进行优化
-
-为了更好地对性能进行优化，PipelineServing 提供了 Timeline 工具，对整个服务的各个阶段时间进行打点。
-
-### 6.2 在 Server 端输出 Profile 信息
-
-Server 端用 yaml 中的 `use_profile` 字段进行控制：
-
-```yaml
-dag:
-    use_profile: true
-```
-
-开启该功能后，Server 端在预测的过程中会将对应的日志信息打印到标准输出，为了更直观地展现各阶段的耗时，提供 Analyst 模块对日志文件做进一步的分析处理。
-
-使用时先将 Server 的输出保存到文件，以 `profile.txt` 为例，脚本将日志中的时间打点信息转换成 json 格式保存到 `trace` 文件，`trace` 文件可以通过 chrome 浏览器的 tracing 功能进行可视化。
-
-```python
-from paddle_serving_server.pipeline import Analyst
-import json
-import sys
-
-if __name__ == "__main__":
-    log_filename = "profile.txt"
-    trace_filename = "trace"
-    analyst = Analyst(log_filename)
-    analyst.save_trace(trace_filename)
-```
-
-具体操作：打开 chrome 浏览器，在地址栏输入 `chrome://tracing/` ，跳转至 tracing 页面，点击 load 按钮，打开保存的 `trace` 文件，即可将预测服务的各阶段时间信息可视化。
-
-### 6.3 在 Client 端输出 Profile 信息
-
-Client 端在 `predict` 接口设置 `profile=True`，即可开启 Profile 功能。
-
-开启该功能后，Client 端在预测的过程中会将该次预测对应的日志信息打印到标准输出，后续分析处理同 Server。
-
-### 6.4 分析方法
-根据pipeline.tracer日志中的各个阶段耗时，按以下公式逐步分析出主要耗时在哪个阶段。
-```
-单OP耗时：
-op_cost = process(pre + mid + post) 
-
-OP期望并发数：
-op_concurrency  = 单OP耗时(s) * 期望QPS
-
-服务吞吐量：
-service_throughput = 1 / 最慢OP的耗时 * 并发数
-
-服务平响：
-service_avg_cost = ∑op_concurrency 【关键路径】
-
-Channel堆积：
-channel_acc_size = QPS(down - up) * time
-
-批量预测平均耗时：
-avg_batch_cost = (N * pre + mid + post) / N 
-```
-
-### 6.5 优化思路
-根据长耗时在不同阶段，采用不同的优化方法.
-- OP推理阶段(mid-process):
-  - 增加OP并发度
-  - 开启auto-batching(前提是多个请求的shape一致)
-  - 若批量数据中某条数据的shape很大，padding很大导致推理很慢，可使用mini-batch
-  - 开启TensorRT/MKL-DNN优化
-  - 开启低精度推理
-- OP前处理阶段(pre-process):
-  - 增加OP并发度
-  - 优化前处理逻辑
-- in/out耗时长（channel堆积>5）
-  - 检查channel传递的数据大小和延迟
-  - 优化传入数据，不传递数据或压缩后再传入
-  - 增加OP并发度
-  - 减少上游OP并发度
