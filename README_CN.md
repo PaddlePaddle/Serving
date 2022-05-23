@@ -11,7 +11,7 @@
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop?style=flat-square">
         <img alt="Docs" src="https://img.shields.io/badge/docs-中文文档-brightgreen?style=flat-square">
-        <img alt="Release" src="https://img.shields.io/badge/release-0.8.0-blue?style=flat-square">
+        <img alt="Release" src="https://img.shields.io/badge/release-0.9.0-blue?style=flat-square">
         <img alt="Python" src="https://img.shields.io/badge/python-3.6/3.7/3.8/3.9-blue?style=flat-square">
         <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving?color=blue&style=flat-square">
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
@@ -125,9 +125,9 @@ Paddle Serving works closely with the Paddle model suite, and implements a large
 
 <p align="center">
 
-| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | Paddle Video |
-| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 14 | 2 | 3 | 6 | 1|
+| Image Classification & Recognition | NLP | Recommend | Face Recognition | Object Detection | OCR | Image segmentation | Keypoint Detection | Video|
+| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | :----: |  :----: | 
+| 14 | 6 | 3 | 1 | 10 | 8 | 2 | 1 | 1 |
 
 </p>
 

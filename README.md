@@ -11,7 +11,7 @@
     <a href="https://travis-ci.com/PaddlePaddle/Serving">
         <img alt="Build Status" src="https://img.shields.io/travis/com/PaddlePaddle/Serving/develop?style=flat-square">
         <img alt="Docs" src="https://img.shields.io/badge/docs-中文文档-brightgreen?style=flat-square">
-        <img alt="Release" src="https://img.shields.io/badge/release-0.8.0-blue?style=flat-square">
+        <img alt="Release" src="https://img.shields.io/badge/release-0.9.0-blue?style=flat-square">
         <img alt="Python" src="https://img.shields.io/badge/python-3.6/3.7/3.8/3.9-blue?style=flat-square">
         <img alt="License" src="https://img.shields.io/github/license/PaddlePaddle/Serving?color=blue&style=flat-square">
         <img alt="Forks" src="https://img.shields.io/github/forks/PaddlePaddle/Serving?color=yellow&style=flat-square">
@@ -116,13 +116,13 @@ AND GENERATION](https://arxiv.org/pdf/2112.12731.pdf)
 
 <h2 align="center">模型库</h2>
 
-Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计47个模型。
+Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，包括图像分类、物体检测、语言文本识别、中文词性、情感分析、内容推荐等多种类型示例，以及Paddle全链条项目，共计46个模型。
 
 <p align="center">
 
-| PaddleOCR | PaddleDetection | PaddleClas | PaddleSeg | PaddleRec | Paddle NLP | Paddle Video |
-| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | 
-| 8 | 12 | 14 | 2 | 3 | 7 | 1 | 
+| 图像分类与识别 | NLP | 推荐系统 | 人脸识别 | 目标检测 | 文字识别 | 图像分割 | 关键点检测 | 视频理解 |
+| :----:  | :----: | :----: | :----: | :----: | :----: | :----: | :----: |  :----: | 
+| 14 | 6 | 3 | 1 | 10 | 8 | 2 | 1 | 1 |
 
 </p>
 
