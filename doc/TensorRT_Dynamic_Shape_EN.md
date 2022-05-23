@@ -16,6 +16,8 @@ The following is the dynamic shape api
 For detail, please refer to API doc [C++](https://paddleinference.paddlepaddle.org.cn/api_reference/cxx_api_doc/Config/GPUConfig.html#tensorrt)/[Python](https://paddleinference.paddlepaddle.org.cn/api_reference/python_api_doc/Config/GPUConfig.html#tensorrt)
 
 ### C++ Serving
+
+1. Method 1: 
 Modify the following code in `**/paddle_inference/paddle/include/paddle_engine.h`
 
 ```
@@ -110,6 +112,54 @@ Modify the following code in `**/paddle_inference/paddle/include/paddle_engine.h
     }
 ```
 
+2. Method 2:
+Refer to the code of `**/python/paddle_serving_server/serve.py` below to generate the configuration information, 
+and using method `server.set_trt_dynamic_shape_info(info)` to set information.
+
+```
+def set_ocr_dynamic_shape_info():
+    info = []
+    min_input_shape = {
+        "x": [1, 3, 50, 50],
+        "conv2d_182.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_2.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_3.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_4.tmp_0": [1, 1, 20, 20],
+        "nearest_interp_v2_5.tmp_0": [1, 1, 20, 20]
+    }
+    max_input_shape = {
+        "x": [1, 3, 1536, 1536],
+        "conv2d_182.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_2.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_3.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_4.tmp_0": [20, 200, 960, 960],
+        "nearest_interp_v2_5.tmp_0": [20, 200, 960, 960],
+    }
+    opt_input_shape = {
+        "x": [1, 3, 960, 960],
+        "conv2d_182.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_2.tmp_0": [3, 96, 240, 240],
+        "nearest_interp_v2_3.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_4.tmp_0": [3, 24, 240, 240],
+        "nearest_interp_v2_5.tmp_0": [3, 24, 240, 240],
+    }
+    det_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(det_info)
+    min_input_shape = {"x": [1, 3, 32, 10], "lstm_1.tmp_0": [1, 1, 128]}
+    max_input_shape = {"x": [50, 3, 32, 1000], "lstm_1.tmp_0": [500, 50, 128]}
+    opt_input_shape = {"x": [6, 3, 32, 100], "lstm_1.tmp_0": [25, 5, 128]}
+    rec_info = {
+        "min_input_shape": min_input_shape,
+        "max_input_shape": max_input_shape,
+        "opt_input_shape": opt_input_shape,
+    }
+    info.append(rec_info)
+    return info
+```
 
 ### Pipeline Serving
 
