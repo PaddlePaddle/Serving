@@ -30,7 +30,7 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 #### Q: Paddle Serving 支持哪些数据类型?
 
-**A:** 在 protobuf 定义中 `feed_type` 和 `fetch_type` 编号与数据类型对应如下，完整信息可参考[保存用于 Serving 部署的模型参数](./5-1_Save_Model_Params_CN.md)
+**A:** 在 protobuf 定义中 `feed_type` 和 `fetch_type` 编号与数据类型对应如下，完整信息可参考[保存用于 Serving 部署的模型参数](./Save_CN.md)
 
 | 类型 | 类型值 |
 |------|------|
@@ -49,7 +49,7 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 #### Q: Paddle Serving 是否支持 Windows 和 Linux 原生环境部署？
 
-**A:** 安装 `Linux Docker`，在 Docker 中部署 Paddle Serving，参考[安装指南](./2-0_Index_CN.md)
+**A:** 安装 `Linux Docker`，在 Docker 中部署 Paddle Serving，参考[安装指南](./Install_CN.md)
 
 #### Q: Paddle Serving 如何修改消息大小限制
 
@@ -61,7 +61,7 @@ Failed to predict: (data_id=1 log_id=0) [det|0] Failed to postprocess: postproce
 
 #### Q: Paddle Serving 支持哪些网络协议？
 
-**A:** C++ Serving 同时支持 HTTP、gRPC 和 bRPC 协议。其中 HTTP 协议既支持 HTTP + Json 格式，同时支持 HTTP + proto 格式。完整信息请阅读[C++ Serving 通讯协议](./6-2_Cpp_Serving_Protocols_CN.md)；Python Pipeline 支持 HTTP 和 gRPC 协议，更多信息请阅读[Python Pipeline 框架设计](./6-2_Cpp_Serving_Protocols_CN.md)
+**A:** C++ Serving 同时支持 HTTP、gRPC 和 bRPC 协议。其中 HTTP 协议既支持 HTTP + Json 格式，同时支持 HTTP + proto 格式。完整信息请阅读[C++ Serving 通讯协议](./C++_Serving/Inference_Protocols_CN.md)；Python Pipeline 支持 HTTP 和 gRPC 协议，更多信息请阅读[Python Pipeline 框架设计](./Python_Pipeline/Pipeline_Features_CN.md)
 
 <a name="3"></a>
 
@@ -309,7 +309,7 @@ GLOG_v=2 python -m paddle_serving_server.serve --model xxx_conf/ --port 9999
 
 #### Q: Python Pipeline 启动成功后，日志文件在哪里，在哪里设置日志级别？
 
-**A:** Python Pipeline 服务的日志信息请阅读[Python Pipeline 设计](./7-1_Python_Pipeline_Design_CN.md) 第三节服务日志。
+**A:** Python Pipeline 服务的日志信息请阅读[Python Pipeline 设计](./Python_Pipeline/Pipeline_Design_CN.md) 第三节服务日志。
 
 #### Q: （GLOG_v=2下）Server 日志一切正常，但 Client 始终得不到正确的预测结果
 

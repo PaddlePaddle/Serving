@@ -4,6 +4,8 @@
 
 低精度部署, 在Intel CPU上支持int8、bfloat16模型，Nvidia TensorRT支持int8、float16模型。
 
+## C++ Serving 部署量化模型
+
 ### 通过PaddleSlim量化生成低精度模型
 详细见[PaddleSlim量化](https://paddleslim.readthedocs.io/zh_CN/latest/tutorials/quant/overview.html)
 
@@ -41,7 +43,12 @@ fetch_map = client.predict(feed={"image": img}, fetch=["score"])
 print(fetch_map["score"].reshape(-1))
 ```
 
-### 参考文档
+## Python Pipeline 部署量化模型
+
+请参考 [Python Pipeline 低精度推理](./Python_Pipeline/Pipeline_Features_CN.md#低精度推理)
+
+
+## 参考文档
 * [PaddleSlim](https://github.com/PaddlePaddle/PaddleSlim)
 * PaddleInference Intel CPU部署量化模型[文档](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_x86_cpu_int8.html)
 * PaddleInference NV GPU部署量化模型[文档](https://paddle-inference.readthedocs.io/en/latest/optimize/paddle_trt.html)
