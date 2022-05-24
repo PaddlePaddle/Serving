@@ -15,20 +15,24 @@
 
 **提示-1**：本项目仅支持<mark>**Python3.6/3.7/3.8/3.9**</mark>，接下来所有的与Python/Pip相关的操作都需要选择正确的Python版本。
 
-**提示-2**：以下示例中GPU环境均为cuda11.2-cudnn8，如果您使用Python Pipeline来部署，并需要Nvidia TensorRT来优化预测性能，请参考[支持的镜像环境和说明](#4支持的镜像环境和说明)来选择其他版本。
+**提示-2**：以下示例中GPU环境均为cuda11.2-cudnn8，如果您使用Python Pipeline来部署，并需要Nvidia TensorRT来优化预测性能，请参考以下说明来选择其他版本。
 
 <a name="1"></a>
 
 ## 1.使用开发镜像
 
-<mark>**同时支持使用Serving镜像和Paddle镜像，1.1和1.2章节中的操作2选1即可。**</mark> 在Paddle docker镜像上部署Serving服务需要安装额外依赖库，因此，我们直接使用Serving开发镜像。
+- Serving 镜像: registry.baidubce.com/paddlepaddle/serving:{Tag}
+- Paddle 镜像: registry.baidubce.com/paddlepaddle/paddle:{Tag}
 
-|  环境                         |   Serving开发镜像Tag               |    操作系统      | Paddle开发镜像Tag       |  操作系统            |
+<mark>**同时支持使用 Serving 镜像和 Paddle 镜像，`1.1` 和 `1.2` 章节中的操作2选1即可。**</mark> 在Paddle docker镜像上部署 Servin g服务需要安装额外依赖库，因此，我们直接使用 Serving 开发镜像。
+
+|  环境                         |   Serving镜像 Tag               |    操作系统      | Paddle镜像 Tag       |  操作系统            |
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
-|  CPU                         | 0.9.0-devel                       |  Ubuntu 16.04   | 2.3.0                | Ubuntu 18.04.       |
-|  CUDA10.1 + CUDNN7           | 0.9.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                   | 无                 |
-|  CUDA10.2 + CUDNN8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                   | Ubuntu 18.04   |
-|  CUDA11.2 + CUDNN8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04   | 
+|  CPU                         | 0.9.0-devel                       |  Ubuntu 16    | 2.3.0                | Ubuntu 18       |
+|  CUDA10.1 + cuDNN 7           | 0.9.0-cuda10.1-cudnn7-devel       |  Ubuntu 16   | 无                    | 无                 |
+|  CUDA10.2 + cuDNN 7           | 0.9.0-cuda10.2-cudnn7-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda10.2-cudnn7 | Ubuntu 18
+|  CUDA10.2 + cuDNN 8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16   | 无                   | Ubuntu 18 |
+|  CUDA11.2 + cuDNN 8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18   | 
 
 对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)。
 
@@ -157,7 +161,14 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.3.0/python/Linux/GPU/x
 
 **1.安装离线 Wheel 包**
 
-Serving 和 Paddle Wheel包的离线依赖包下载在 `py3x_offline_whls` 目录下 `serving_dependent_wheels/` 和 `paddle_dependent_wheels/`。
+Serving 和 Paddle Wheel包的离线依赖包下载有4个链接。
+
+```
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py36_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py37_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py38_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py39_offline_whl_packages.tar
+```
 
 通过运行 `install.py` 脚本可本地安装 Serving 和 Paddle Wheel 包。`install.py` 脚本的参数列表如下：
 ```
@@ -165,8 +176,8 @@ python3 install.py
   --python_version : Python version for installing wheels, one of [py36, py37, py38, py39], py37 default.
   --device : Type of devices, one of [cpu, gpu], cpu default.
   --cuda_version : CUDA version for GPU, one of [101, 102, 112, empty], empty default.
-  --serving_version : Verson of Serving, one of [0.8.3, no_install], 0.8.3 default.
-  --paddle_version Verson of Paddle, one of [2.2.2, no_install], 2.2.2 default.
+  --serving_version : Verson of Serving, one of [0.9.0, no_install], 0.9.0 default.
+  --paddle_version Verson of Paddle, one of [2.3.0, no_install], 2.3.0 default.
 ```
 
 **2.在环境变量中指定 `SERVING_BIN` 路径**
@@ -182,34 +193,34 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 
 由于所有版本的二进制程序包有 20 GB，非常大。因此提供多个版本的下载链接，通过手动 `wget` 下载指定版本到 `serving_bin` 目录下，解压后导出到环境变量中。
 
-- cpu-avx-mkl: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.8.3.tar.gz
-- cpu-avx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.8.3.tar.gz
-- cpu-noavx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.8.3.tar.gz
-- cuda10.1-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.8.3.tar.gz
-- cuda10.2-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.8.3.tar.gz
-- cuda10.2-cudnn8-TensorRT7: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.8.3.tar.gz
-- cuda11.2-cudnn8-TensorRT8: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.8.3.tar.gz
+- cpu-avx-mkl: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.9.0.tar.gz
+- cpu-avx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.9.0.tar.gz
+- cpu-noavx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.9.0.tar.gz
+- cuda10.1-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.9.0.tar.gz
+- cuda10.2-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.9.0.tar.gz
+- cuda10.2-cudnn8-TensorRT7: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.9.0.tar.gz
+- cuda11.2-cudnn8-TensorRT8: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.9.0.tar.gz
 
 以 GPU CUDA 10.2 为例，在命令行或启动程序中设置环境变量如下：
 ```
-export SERVING_BIN = $PWD/serving_bin/serving-gpu-102-0.8.3/serving
+export SERVING_BIN = $PWD/serving_bin/serving-gpu-102-0.9.0/serving
 ```
 
 **3.运行 `install.py` 安装 Wheel 包**
 
 1.同时安装 Serving 和 Paddle 的 py38 版本 GPU wheel 包：
 ```
-python3 install.py --cuda_version="102" --python_version="py38" --device="GPU" --serving_version="0.8.3" --paddle_version="2.2.2"
+python3 install.py --cuda_version="102" --python_version="py38" --device="GPU" --serving_version="0.9.0" --paddle_version="2.3.0"
 ```
 
 2.仅安装 Serving 的 py39 版本 CPU wheel 包，设置 `--paddle_version="no_install"` 表示不安装 Paddle 预测库，设置 `--device="cpu"` 表示 cpu 版本
 ```
-python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --serving_version="0.8.3" --paddle_version="no_install"
+python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --serving_version="0.9.0" --paddle_version="no_install"
 ```
 
 3.仅安装 Paddle 的 py36 版本`cuda=11.2` 的 GPU wheel 包，
 ```
-python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.2.2"
+python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.3.0"
 ```
 
 <a name="3"></a>
