@@ -24,7 +24,7 @@ opencv-python; platform_machine == "aarch64"
 pytest==7.0.1
 prometheus-client==0.12.0
 pillow==8.4.0 ; python_version == "3.6"
-pillow==9.0.0 ; python_version > "3.6"
+pillow==9.0.1 ; python_version > "3.6"
 av==8.0.3; platform_machine !=  "aarch64"
 decord==0.4.2; platform_machine !=  "aarch64"
 SimpleITK; platform_machine !=  "aarch64"
