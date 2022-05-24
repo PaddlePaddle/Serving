@@ -219,9 +219,9 @@ cd ..
 
 ## 安装相关whl包
 ```
-pip3.7 install -r build_server/python/dist/*.whl
-pip3.7 install -r build_client/python/dist/*.whl
-pip3.7 install -r build_app/python/dist/*.whl
+pip3.7 install build_server/python/dist/*.whl
+pip3.7 install build_client/python/dist/*.whl
+pip3.7 install build_app/python/dist/*.whl
 export SERVING_BIN=${PWD}/build_server/core/general-server/serving
 ```
 
