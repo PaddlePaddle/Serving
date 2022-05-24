@@ -95,6 +95,7 @@ else()
     endif()
 endif()
 if(WITH_JETSON)
+    SET(PADDLE_VERSION "2.3.0")
     SET(PADDLE_LIB_VERSION "${PADDLE_VERSION}/cxx_c/Jetson/jetpack4.6_gcc7.5/all")
 endif()
 
