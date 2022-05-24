@@ -23,10 +23,11 @@
 
 | Environment | Serving Development Image Tag | Operating System | Paddle Development Image Tag | Operating System |
 | :--------------------------: | :-------------------------------: | :-------------: | :-------------------: | :----------------: |
-|  CPU                         | 0.9.0-devel                       |  Ubuntu 16.04   | 2.3.0                | Ubuntu 18.04.       |
-|  CUDA10.1 + CUDNN7           | 0.9.0-cuda10.1-cudnn7-devel       |  Ubuntu 16.04   | 无                   | 无                 |
-|  CUDA10.2 + CUDNN8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16.04   | 无                   | Ubuntu 18.04   |
-|  CUDA11.2 + CUDNN8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16.04   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18.04   |
+|  CPU                         | 0.9.0-devel                       |  Ubuntu 16    | 2.3.0                    | Ubuntu 18       |
+|  CUDA10.1 + cuDNN 7           | 0.9.0-cuda10.1-cudnn7-devel       |  Ubuntu 16   | None                       | None                 |
+|  CUDA10.2 + cuDNN 7           | 0.9.0-cuda10.2-cudnn7-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda10.2-cudnn7 | Ubuntu 18
+|  CUDA10.2 + cuDNN 8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16   | None                   | None |
+|  CUDA11.2 + cuDNN 8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18   | 
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).
 
@@ -91,7 +92,7 @@ pip3 install -r python/requirements.txt
 Install the service whl package. There are three types of client, app and server. The server is divided into CPU and GPU. Choose one installation according to the environment. 
 - post112 = CUDA11.2 + cuDNN8 + TensorRT8（Recommanded）
 - post101 = CUDA10.1 + cuDNN7 + TensorRT6
-- post102 = CUDA10.2 + cuDNN7 + TensorRT6 (与Paddle 镜像一致
+- post102 = CUDA10.2 + cuDNN7 + TensorRT6 (The same with paddle docker images)
 - post1028 = CUDA10.2 + cuDNN8 + TensorRT7
 
 <a name="2.1"></a>
@@ -154,7 +155,14 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.3.0/python/Linux/GPU/x
 
 **1.Install offline wheel packages**
 
-The independent dependencies of the Serving and Paddle Wheel packages are downloaded in `serving_dependent_wheels/` and `paddle_dependent_wheels/` under the `py3x_offline_whls` directory.
+The independent dependencies of the Serving and Paddle Wheel packages are downloaded by four links.
+
+```
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py36_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py37_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py38_offline_whl_packages.tar
+wget https://paddle-serving.bj.bcebos.com/offline_wheels/0.9.0/py39_offline_whl_packages.tar
+```
 
 The Serving and Paddle Wheel packages can be installed locally by running the `install.py` script. The parameter list for the `install.py` script is as follows:
 ```
@@ -162,8 +170,8 @@ python3 install.py
   --python_version : Python version for installing wheels, one of [py36, py37, py38, py39], py37 default.
   --device : Type of devices, one of [cpu, gpu], cpu default.
   --cuda_version : CUDA version for GPU, one of [101, 102, 112, empty], empty default.
-  --serving_version : Verson of Serving, one of [0.8.3, no_install], 0.8.3 default.
-  --paddle_version Verson of Paddle, one of [2.2.2, no_install], 2.2.2 default.
+  --serving_version : Verson of Serving, one of [0.9.0, no_install], 0.9.0 default.
+  --paddle_version Verson of Paddle, one of [2.3.0, no_install], 2.3.0 default.
 ```
 
 **2.Specify the `SERVING_BIN` path in the environment variable**
@@ -176,13 +184,13 @@ python3 -m paddle_serving_server.serve --model serving_model --thread 10 --port 
 ```
 Since the binary package for all versions has 20 GB, it is very large. Therefore, multiple versions of download links are provided. Manually `wget` downloads the specified version to the `serving_bin` directory, decompresses it and exports it to the environment variable.
 
-- cpu-avx-mkl: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.8.3.tar.gz
-- cpu-avx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.8.3.tar.gz
-- cpu-noavx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.8.3.tar.gz
-- cuda10.1-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.8.3.tar.gz
-- cuda10.2-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.8.3.tar.gz
-- cuda10.2-cudnn8-TensorRT7: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.8.3.tar.gz
-- cuda11.2-cudnn8-TensorRT8: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.8.3.tar.gz
+- cpu-avx-mkl: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-mkl-0.9.0.tar.gz
+- cpu-avx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-avx-openblas-0.9.0.tar.gz
+- cpu-noavx-openblas: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-cpu-noavx-openblas-0.9.0.tar.gz
+- cuda10.1-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-101-0.9.0.tar.gz
+- cuda10.2-cudnn7-TensorRT6: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-102-0.9.0.tar.gz
+- cuda10.2-cudnn8-TensorRT7: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-1028-0.9.0.tar.gz
+- cuda11.2-cudnn8-TensorRT8: https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-gpu-112-0.9.0.tar.gz
 
 Taking GPU CUDA 10.2 as an example, set the environment variables on the command line or in the launcher as follows:
 
@@ -190,16 +198,16 @@ Taking GPU CUDA 10.2 as an example, set the environment variables on the command
 
 1. Install the py38 version GPU wheel package of Serving and Paddle at the same time:
 ```
-python3 install.py --cuda_version="102" --python_version="py38" --device="GPU" --serving_version="0.8.3" --paddle_version="2.2.2"
+python3 install.py --cuda_version="102" --python_version="py38" --device="GPU" --serving_version="0.9.0" --paddle_version="2.3.0"
 ```
 
 2.Only install the py39 version of the Serving CPU wheel package, set `--paddle_version="no_install"` to not install the Paddle prediction library, set `--device="cpu"` to indicate the cpu version
 ```
-python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --serving_version="0.8.3" --paddle_version="no_install"
+python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --serving_version="0.9.0" --paddle_version="no_install"
 ```
 3. Install only the GPU wheel package of Paddle's py36 version `cuda=11.2`
 ```
-python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.2.2"
+python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.3.0"
 ```
 
 <a name="3"></a>
