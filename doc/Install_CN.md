@@ -4,10 +4,16 @@
 
 - [1.使用开发镜像](#1)
     - [Serving 开发镜像](#1.1)
+        - [CPU 镜像](#1.1.1)
+        - [GPU 镜像](#1.1.2)
+        - [ARM & XPU 镜像](#1.1.3)
     - [Paddle 开发镜像](#1.2)
+        - [CPU 镜像](#1.2.1)
+        - [GPU 镜像](#1.2.2)
 - [2.安装 Wheel 包](#2)
     - [在线安装](#2.1)
     - [离线安装](#2.2)
+    - [ARM & XPU 包安装](#2.3)
 - [3.环境检查](#3)
 
 
@@ -33,33 +39,52 @@
 |  CUDA10.2 + cuDNN 7           | 0.9.0-cuda10.2-cudnn7-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda10.2-cudnn7 | Ubuntu 18
 |  CUDA10.2 + cuDNN 8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16   | 无                   | Ubuntu 18 |
 |  CUDA11.2 + cuDNN 8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18   | 
+|  ARM + XPU                    | xpu-arm                           |  CentOS 8.3  | 无                         | 无           |
 
 对于**Windows 10 用户**，请参考文档[Windows平台使用Paddle Serving指导](Windows_Tutorial_CN.md)。
-
 
 <a name="1.1"></a>
 
 ### 1.1 Serving开发镜像（CPU/GPU 2选1）
+
+<a name="1.1.1"></a>
+
 **CPU：**
 ```
 # 启动 CPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-devel bash
-docker exec -it test bash
+docker run -p 9292:9292 --name test_cpu -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-devel bash
+docker exec -it test_cpu bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+
+<a name="1.1.2"></a>
+
 **GPU：**
 ```
 # 启动 GPU Docker
 docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn8-devel
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn8-devel bash
-nvidia-docker exec -it test bash
+nvidia-docker run -p 9292:9292 --name test_gpu -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn8-devel bash
+nvidia-docker exec -it test_gpu bash
+git clone https://github.com/PaddlePaddle/Serving
+```
+
+<a name="1.1.3"></a>
+
+**ARM & XPU: **
+```
+docker pull registry.baidubce.com/paddlepaddle/serving:xpu-arm
+docker run -p 9292:9292 --name test_arm_xpu -dit registry.baidubce.com/paddlepaddle/serving:xpu-arm bash
+docker exec -it test_arm_xpu bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 
 <a name="1.2"></a>
 
 ### 1.2 Paddle开发镜像（CPU/GPU 2选1）
+
+<a name="1.2.1"></a>
+
 **CPU：**
 ```
 ### 启动 CPU Docker
@@ -71,6 +96,9 @@ git clone https://github.com/PaddlePaddle/Serving
 ### Paddle开发镜像需要执行以下脚本增加Serving所需依赖项
 bash Serving/tools/paddle_env_install.sh
 ```
+
+<a name="1.2.2"></a>
+
 **GPU：**
 ```
 ### 启动 GPU Docker
@@ -103,6 +131,7 @@ pip3 install -r python/requirements.txt
 <a name="2.1"></a>
 
 ### 2.1 在线安装
+在线安装采用 `pypi` 下载并安装的方式。
 
 ```shell
 pip3 install paddle-serving-client==0.9.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -158,6 +187,7 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.3.0/python/Linux/GPU/x
 <a name="2.2"></a>
 
 ### 2.2 离线安装
+离线安装是指所有的 Paddle 和 Serving 包和依赖库，传入到无网或弱网环境下安装。
 
 **1.安装离线 Wheel 包**
 
@@ -222,6 +252,24 @@ python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --se
 ```
 python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.3.0"
 ```
+
+<a name="2.3"></a>
+
+### 2.3 ARM & XPU 安装 wheel 包
+
+由于使用 ARM 和 XPU 的用户较少，安装此环境的 Wheel 单独提供如下，其中 `paddle_serving_client` 仅提供 `py36` 的版本，如需其他版本请与我们联系。
+
+```
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_app-0.9.0-py3-none-any.whl
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_client-0.9.0-cp36-none-any.whl
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
+```
+
+二进制包地址:
+```
+wget https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-xpu-aarch64-0.9.0.tar.gz
+```
+
 
 <a name="3"></a>
 

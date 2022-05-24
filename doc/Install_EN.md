@@ -4,10 +4,16 @@
 
 - [1.Use devel docker](#1)
     - [Serving devel images](#1.1)
+        - [CPU images](#1.1.1)
+        - [GPU images](#1.1.2)
+        - [ARM & XPU images](#1.1.3)
     - [Paddle devel images](#1.2)
+        - [CPU images](#1.2.1)
+        - [GPU images](#1.2.2)
 - [2.Install Wheel Packages](#2)
     - [Online Install](#2.1)
     - [Offline Install](#2.2)
+    - [ARM & XPU Install](#2.3)
 - [3.Installation Check](#3)
 
 **Strongly recommend** you build **Paddle Serving** in Docker. For more images, please refer to [Docker Image List](Docker_Images_CN.md).
@@ -28,6 +34,7 @@
 |  CUDA10.2 + cuDNN 7           | 0.9.0-cuda10.2-cudnn7-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda10.2-cudnn7 | Ubuntu 18
 |  CUDA10.2 + cuDNN 8           | 0.9.0-cuda10.2-cudnn8-devel       |  Ubuntu 16   | None                   | None |
 |  CUDA11.2 + cuDNN 8           | 0.9.0-cuda11.2-cudnn8-devel       |  Ubuntu 16   | 2.3.0-gpu-cuda11.2-cudnn8 | Ubuntu 18   | 
+|  ARM + XPU                    | xpu-arm                           |  CentOS 8.3  | None                         | None           |
 
 For **Windows 10 users**, please refer to the document [Paddle Serving Guide for Windows Platform](Windows_Tutorial_CN.md).
 
@@ -36,46 +43,68 @@ For **Windows 10 users**, please refer to the document [Paddle Serving Guide for
 
 ### 1.1 Serving Devel Images (CPU/GPU 2 choose 1)
 
+<a name="1.1.1"></a>
+
 **CPU:**
 ```
 # Start CPU Docker Container
 docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-devel
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-devel bash
-docker exec -it test bash
+docker run -p 9292:9292 --name test_cpu -dit registry.baidubce.com/paddlepaddle/serving:0.9.0-devel bash
+docker exec -it test_cpu bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
+
+<a name="1.1.2"></a>
+
 **GPU:**
 ```
 # Start GPU Docker Container
 docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn7-devel
-nvidia-docker run -p 9292:9292 --name test -dit docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn7-devel bash
-nvidia-docker exec -it test bash
+nvidia-docker run -p 9292:9292 --name test_gpu -dit docker pull registry.baidubce.com/paddlepaddle/serving:0.9.0-cuda11.2-cudnn7-devel bash
+nvidia-docker exec -it test_gpu bash
+git clone https://github.com/PaddlePaddle/Serving
+```
+
+<a name="1.1.3"></a>
+
+**ARM & XPU: **
+```
+docker pull registry.baidubce.com/paddlepaddle/serving:xpu-arm
+docker run -p 9292:9292 --name test_arm_xpu -dit registry.baidubce.com/paddlepaddle/serving:xpu-arm bash
+docker exec -it test_arm_xpu bash
 git clone https://github.com/PaddlePaddle/Serving
 ```
 
 <a name="1.2"></a>
 
 ### 1.2 Paddle Devel Images (choose any codeblock of CPU/GPU)
+
+<a name="1.2.1"></a>
+
 **CPU:**
-```
+```shell
 # Start CPU Docker Container
 docker pull registry.baidubce.com/paddlepaddle/paddle:2.3.0
-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.3.0 bash
-docker exec -it test bash
+docker run -p 9292:9292 --name test_cpu -dit registry.baidubce.com/paddlepaddle/paddle:2.3.0 bash
+docker exec -it test_cpu bash
 git clone https://github.com/PaddlePaddle/Serving
 
-# Paddle dev image needs to run the following script to increase the dependencies required by Serving
+### Paddle dev image needs to run the following script to increase the dependencies required by Serving
 bash Serving/tools/paddle_env_install.sh
 ```
+
+<a name="1.2.2"></a>
+
 **GPU:**
-```
-# Start GPU Docker
+
+```shell
+### Start GPU Docker
 nvidia-docker pull registry.baidubce.com/paddlepaddle/paddle:2.3.0-gpu-cuda11.2-cudnn8
-nvidia-docker run -p 9292:9292 --name test -dit registry.baidubce.com/paddlepaddle/paddle:2.3.0-gpu-cuda11.2-cudnn8 bash
-nvidia-docker exec -it test bash
+nvidia-docker run -p 9292:9292 --name test_gpu -dit registry.baidubce.com/paddlepaddle/paddle:2.3.0-gpu-cuda11.2-cudnn8 bash
+nvidia-docker exec -it test_gpu bash
 git clone https://github.com/PaddlePaddle/Serving
 
-# Paddle development image needs to execute the following script to increase the dependencies required by Serving
+### Paddle development image needs to execute the following script to increase the dependencies required by Serving
 bash Serving/tools/paddle_env_install.sh
 ```
 
@@ -98,6 +127,7 @@ Install the service whl package. There are three types of client, app and server
 <a name="2.1"></a>
 
 ### 2.1 Online Install
+Online installation uses `pypi` to download and install.
 
 ```shell
 pip3 install paddle-serving-client==0.9.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
@@ -152,6 +182,7 @@ pip3 install https://paddle-inference-lib.bj.bcebos.com/2.3.0/python/Linux/GPU/x
 <a name="2.2"></a>
 
 ### 2.2 Offline Install
+Offline installation is to download all Paddle and Serving packages and dependent libraries, and install them in a no-network or weak-network environment.
 
 **1.Install offline wheel packages**
 
@@ -208,6 +239,22 @@ python3 install.py --cuda_version="" --python_version="py39" --device="cpu" --se
 3. Install only the GPU wheel package of Paddle's py36 version `cuda=11.2`
 ```
 python3 install.py --cuda_version="112" --python_version="py36" --device="GPU" --serving_version="no_install" --paddle_version="2.3.0"
+```
+
+<a name="2.3"></a>
+
+### 2.3 ARM & XPU Install
+
+Since there are few users using ARM and XPU, the Wheel for installing this environment is provided separately as follows, among which `paddle_serving_client` only provides the `py36` version, if you need other versions, please contact us.
+```
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_app-0.9.0-py3-none-any.whl
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_client-0.9.0-cp36-none-any.whl
+pip3.6 install https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
+```
+
+Download binary package address:
+```
+wget https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-xpu-aarch64-0.9.0.tar.gz
 ```
 
 <a name="3"></a>
