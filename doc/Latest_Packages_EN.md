@@ -46,23 +46,22 @@ for kunlun user who uses arm-xpu or x86-xpu can download the wheel packages as f
 
 ### Wheel Package Links
 
-for arm kunlun user
-```
+for arm kunlun user, 
+```shell
 # paddle-serving-server
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_server_xpu-0.0.0.post2-py3-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_app-0.9.0-py3-none-any.whl
 # paddle-serving-client
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_client-0.0.0-cp36-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_client-0.9.0-cp36-none-any.whl
 # paddle-serving-app
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_app-0.0.0-py3-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
 
 # SERVING BIN
-https://paddle-serving.bj.bcebos.com/bin/serving-xpu-aarch64-0.0.0.tar.gz
+wget https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-xpu-aarch64-0.9.0.tar.gz
 ```
  
-for x86 kunlun user
-``` 
+for x86 xpu user, the wheel packages are here.
+```shell
 https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
-
 ```
 
 

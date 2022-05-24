@@ -48,22 +48,23 @@
 ### Wheel包链接
 
 适用ARM CPU环境的昆仑Wheel包：
-```
+
+```shell
 # paddle-serving-server
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_server_xpu-0.0.0.post2-py3-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_app-0.9.0-py3-none-any.whl
 # paddle-serving-client
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_client-0.0.0-cp36-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_client-0.9.0-cp36-none-any.whl
 # paddle-serving-app
-https://paddle-serving.bj.bcebos.com/whl/xpu/arm/paddle_serving_app-0.0.0-py3-none-any.whl
+wget https://paddle-serving.bj.bcebos.com/test-dev/whl/arm/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
 
 # SERVING BIN
-https://paddle-serving.bj.bcebos.com/bin/serving-xpu-aarch64-0.0.0.tar.gz
+wget https://paddle-serving.bj.bcebos.com/test-dev/bin/serving-xpu-aarch64-0.9.0.tar.gz
 ```
  
-适用于x86 CPU环境的昆仑Wheel包：
-``` 
+适用于ARM & XPU 的 v0.9.0 版本 Wheel包：
+```shell
 https://paddle-serving.bj.bcebos.com/test-dev/whl/paddle_serving_server_xpu-0.9.0.post2-py3-none-any.whl
-
 ```
+
 
 
