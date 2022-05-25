@@ -78,9 +78,13 @@ AND GENERATION](https://arxiv.org/pdf/2112.12731.pdf)
 > 使用
 
 安装Paddle Serving后，使用快速开始将引导您运行Serving。具体步骤如下：
+
 第一步，调用模型保存接口，生成模型参数配置文件(.prototxt)用以在客户端和服务端使用；
+
 第二步，阅读配置和启动参数并启动服务；
+
 第三步，根据API和您的使用场景，基于SDK编写客户端请求，并测试推理服务。您想了解跟多特性的使用场景和方法，请详细阅读以下文档。
+
 - [快速开始](doc/Quick_Start_CN.md)
 - [保存用于Paddle Serving的模型和配置](doc/Save_CN.md)
 - [配置和启动参数的说明](doc/Serving_Configure_CN.md)
