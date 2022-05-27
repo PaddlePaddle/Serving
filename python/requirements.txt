@@ -5,8 +5,8 @@ wheel>=0.34.0, <0.35.0
 setuptools>=44.1.0
 google>=2.0.3
 protobuf>=3.12.2
-grpcio-tools==1.33.2
-grpcio>=1.28.1
+grpcio-tools==1.37.1
+grpcio>=1.37.1
 func-timeout>=4.3.5
 pyyaml>=5.1
 flask>=1.1.2
