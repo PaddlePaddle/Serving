@@ -183,6 +183,13 @@ int GeneralResponseOp::inference() {
         VLOG(2) << "(logid=" << log_id << ")Prepare float16 var ["
                 << model_config->_fetch_name[idx] << "].";
         tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
+      } else {
+        // dType is not in paddle::PaddleDType, It's not return type of Paddle Inference.
+        // Copy all fields of Input data to output tensor.
+        VLOG(2) << "(logid=" << log_id << ")Prepare SPECIAL TYPE=" << dtype << " var ["
+                << model_config->_fetch_name[idx] << "].";
+        tensor->set_elem_type(dtype);
+        tensor->set_tensor_content(in->at(idx).data.data(), in->at(idx).data.length());
       }
 
       VLOG(2) << "(logid=" << log_id << ") fetch var ["
