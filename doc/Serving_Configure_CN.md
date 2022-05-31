@@ -103,7 +103,7 @@ workdir_9393
 | `--request_cache_size`                           | int  | `0`     | Bytes size of request cache. By default, the cache is disabled |
 | `--enable_prometheus`                            | bool | False   | Use Prometheus |
 | `--prometheus_port`                              | int  | 19393   | Port of the Prometheus |
-| `--use_dist_model                                | bool | False   | Use distributed model or not |
+| `--use_dist_model`                               | bool | False   | Use distributed model or not |
 | `--dist_carrier_id`                              | str  | ""      | Carrier id of distributed model |
 | `--dist_cfg_file`                                | str  | ""      | Config file of distributed model |
 | `--dist_endpoints`                               | str  | ""      | Endpoints of distributed model. splited by comma |
