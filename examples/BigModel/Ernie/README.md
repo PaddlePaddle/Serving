@@ -318,7 +318,7 @@ end kill serving
 
 ### 4.1 编译 Paddle
 
-首先，参考飞桨官网[使用Docker编译](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/compile/linux-compile.html#compile_from_docker)步骤完成以下5步：
+首先，参考飞桨官网[使用Docker编译](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/compile/linux-compile.html#compile_from_docker)步骤完成以下8步：
 - 1.选择您希望储存PaddlePaddle的路径
 - 2.进入Paddle目录下
 - 3.拉取 PaddlePaddle 镜像
