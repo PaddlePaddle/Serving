@@ -319,14 +319,14 @@ end kill serving
 ### 4.1 编译 Paddle
 
 首先，参考飞桨官网[使用Docker编译](https://www.paddlepaddle.org.cn/documentation/docs/zh/install/compile/linux-compile.html#compile_from_docker)步骤完成以下5步：
-1.选择您希望储存PaddlePaddle的路径
-2.进入Paddle目录下
-3.拉取 PaddlePaddle 镜像
-4.创建并进入已配置好编译环境的Docker容器
-5.进入Docker后进入paddle目录下
-6.切换到 `release/2.3` 进行编译
-7.创建并进入/paddle/build路径下
-8.使用以下命令安装相关依赖
+- 1.选择您希望储存PaddlePaddle的路径
+- 2.进入Paddle目录下
+- 3.拉取 PaddlePaddle 镜像
+- 4.创建并进入已配置好编译环境的Docker容器
+- 5.进入Docker后进入paddle目录下
+- 6.切换到 `release/2.3` 进行编译
+- 7.创建并进入/paddle/build路径下
+- 8.使用以下命令安装相关依赖
 
 9.执行 cmake 步骤使用以下命令，开启了多个编译选项，如分布式选项`-DWITH_DISTRIBUTE`
 ```
