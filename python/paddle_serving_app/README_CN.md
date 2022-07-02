@@ -48,7 +48,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
   - `process(line)`
     - line（str）：输入文本
 
-  [参考示例](../examples/bert/bert_client.py)
+  [参考示例](../../examples/C++/PaddleNLP/bert/bert_client.py)
 
 - class LACReader 中文分词预处理
 
@@ -60,7 +60,7 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
     - words（str）：原始文本
     - crf_decode（np.array）：模型预测结果中的CRF编码
 
-  [参考示例](../examples/lac/lac_web_service.py)
+  [参考示例](../../examples/C++/PaddleNLP/lac/lac_http_client.py)
 
 - class SentaReader
 
@@ -69,9 +69,9 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
   - `process(cols)`
     - cols（str）：分词后的文本
 
-  [参考示例](../examples/senta/senta_web_service.py)
+  [参考示例](../../examples/C++/PaddleNLP/senta/senta_web_service.py)
 
-- 图像的预处理方法相比于上述的方法更加灵活多变，可以通过以下的多个类进行组合，[参考示例](../examples/imagenet/resnet50_rpc_client.py)
+- 图像的预处理方法相比于上述的方法更加灵活多变，可以通过以下的多个类进行组合，[参考示例](../../examples/C++/PaddleClas/imagenet/resnet50_rpc_client.py)
 
 - class Sequentia
 
@@ -135,16 +135,16 @@ paddle_serving_app针对CV和NLP领域的模型任务，提供了多种常见的
 
 4. 使用chrome浏览器，打开`chrome://tracing/`网址，通过load按钮加载上一步产生的trace文件，即可将预测服务的各阶段时间信息可视化。
 
-   效果如下图，图中展示了使用[bert示例](https://github.com/PaddlePaddle/Serving/tree/develop/python/examples/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline。
+   效果如下图，图中展示了使用[bert示例](../../examples/C++/PaddleNLP/bert)的GPU预测服务，server端开启4卡预测，client端启动4进程，batch size为1时的各阶段timeline。
 其中bert_pre代表client端的数据预处理阶段，client_infer代表client完成预测请求的发送到接收结果的阶段，图中的process代表的是client的进程号，每个进程的第二行展示的是server各个op的timeline。
 
-   ![timeline](../../doc/timeline-example.png)
+   ![timeline](../../doc/images/timeline-example.png)
 
 ## Debug工具
 
 Paddle Serving框架的server预测op使用了Paddle 的预测框架，在部署预测服务之前可能需要对预测服务的输入输出进行检验或者查看资源占用等。因此在paddle_serving_app中内置了本地预测工具，使用方式与通过client向服务端发送请求一致。
 
-以[fit_a_line预测服务](../examples/fit_a_line)为例，使用以下代码即可执行本地预测。
+以[fit_a_line预测服务](../../examples/C++/fit_a_line)为例，使用以下代码即可执行本地预测。
 
 ```python
 from paddle_serving_app.local_predict import LocalPredictor

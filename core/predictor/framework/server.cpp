@@ -91,10 +91,15 @@ int ServerManager::start_and_wait() {
     }
   }
 
+  // rpc multi-thread start from here.
   if (_server.Start(FLAGS_port, &_options) != 0) {
     LOG(ERROR) << "Failed to start Paddle Inference Server";
     return -1;
   }
+
+  std::cout << "C++ Serving service started successfully!" << std::endl;
+  LOG(INFO) << "C++ Serving service started successfully!";
+
   _server.RunUntilAskedToQuit();
 
   ServerManager::stop_reloader();

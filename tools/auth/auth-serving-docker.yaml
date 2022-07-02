@@ -1,0 +1,109 @@
+version: '3'
+
+volumes:
+  kong_data: {}
+
+services:
+  db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_DB=kong
+      - POSTGRES_USER=kong
+      - POSTGRES_PASSWORD=kong
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  kong-migrations:
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
+    command: kong migrations bootstrap
+    depends_on:
+      - db
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_DATABASE=kong
+      - KONG_PG_HOST=db
+      - KONG_PG_USER=kong
+      - KONG_PG_PASSWORD=kong
+    restart: on-failure
+
+  kong:
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
+    depends_on:
+      - db
+      - redis
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=db
+      - KONG_PG_DATABASE=kong
+      - KONG_PG_USER=kong
+      - KONG_PG_PASSWORD=kong
+      # - KONGKA_REDIS_HOST=redis
+      # - KONGKA_REDIS_PORT=6379
+      # - KONGKA_REDIS_DATABASE=0
+    ports:
+      - 8000:8000/tcp
+      - 127.0.0.1:8001:8001/tcp
+      - 8443:8443/tcp
+      - 127.0.0.1:8444:8444/tcp
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: always
+
+  kong-prepare:
+    image: registry.baidubce.com/paddlepaddle/serving:gateway-kong
+    entrypoint: ["bash", "/autoconfigure-admin-api.sh"]
+    depends_on:
+      - kong
+    restart: on-failure
+
+  konga-prepare:
+    image: pantsel/konga:next
+    command: -c prepare -a postgres -u postgresql://kong:kong@db/konga
+    depends_on:
+      - db
+    restart: on-failure
+    healthcheck:
+      test: "exit 0"
+
+  konga:
+    image: pantsel/konga:next
+    environment:
+      - DB_ADAPTER=postgres
+      - DB_HOST=db
+      - DB_USER=kong
+      - DB_PASSWORD=kong
+      - DB_DATABASE=konga
+      - NODE_ENV=production
+    depends_on:
+      - db
+      - konga-prepare
+    ports:
+      - 8005:1337/tcp
+
+    restart: always
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    restart: always
+
+  serving:
+    image: registry.baidubce.com/serving_dev/serving-runtime:cpu-py36
+    ports:
+      - 9393:9393
+    command: bash -c "
+            wget --no-check-certificate https://paddle-serving.bj.bcebos.com/uci_housing.tar.gz
+            && tar -xzf uci_housing.tar.gz
+            && python3.6 -m paddle_serving_server.serve --model uci_housing_model --thread 10 --port 9393 --name uci
+        "
+    restart: always

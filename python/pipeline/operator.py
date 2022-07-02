@@ -16,7 +16,7 @@ from time import time as _time
 import time
 import threading
 import multiprocessing
-from paddle_serving_client import MultiLangClient, Client
+from paddle_serving_client import Client
 from concurrent import futures
 import logging
 import func_timeout
@@ -26,6 +26,7 @@ import collections
 import numpy as np
 import json
 from numpy import *
+from io import BytesIO
 if sys.version_info.major == 2:
     import Queue
 elif sys.version_info.major == 3:
@@ -33,16 +34,40 @@ elif sys.version_info.major == 3:
 else:
     raise Exception("Error Python version")
 
+from .error_catch import ErrorCatch, CustomException, CustomExceptionCode, ParamChecker, ParamVerify
+check_feed_dict = ParamVerify.check_feed_dict
+check_fetch_list = ParamVerify.check_fetch_list
 from .proto import pipeline_service_pb2
-from .channel import (ThreadChannel, ProcessChannel, ChannelDataErrcode,
-                      ChannelData, ChannelDataType, ChannelStopError,
-                      ChannelTimeoutError, ProductErrCode)
+from .channel import (ThreadChannel, ProcessChannel, ChannelData,
+                      ChannelDataType, ChannelStopError, ChannelTimeoutError)
+from .error_catch import ProductErrCode
+from .error_catch import CustomExceptionCode as ChannelDataErrcode
 from .util import NameGenerator
 from .profiler import UnsafeTimeProfiler as TimeProfiler
 from . import local_service_handler
+from .pipeline_client import PipelineClient as PPClient
+from paddle_serving_server.util import kill_stop_process_by_pid
 
 _LOGGER = logging.getLogger(__name__)
 _op_name_gen = NameGenerator("Op")
+
+# data type of tensor to numpy_data
+_TENSOR_DTYPE_2_NUMPY_DATA_DTYPE = {
+    0: "int64",  # VarType.INT64
+    1: "float32",  # VarType.FP32
+    2: "int32",  # VarType.INT32
+    3: "float64",  # VarType.FP64
+    4: "int16",  # VarType.int16
+    5: "float16",  # VarType.FP32
+    6: "uint16",  # VarType.BF16
+    7: "uint8",  # VarType.UINT8
+    8: "int8",  # VarType.INT8
+    9: "bool",  # VarType.BOOL
+    10: "complex64",  # VarType.COMPLEX64
+    11: "complex128",  # VarType.COMPLEX128
+    12: "string",  # load by numpy
+    13: "bytes",  # load by numpy
+}
 
 
 class Op(object):
@@ -58,13 +83,15 @@ class Op(object):
                  retry=0,
                  batch_size=None,
                  auto_batching_timeout=None,
-                 local_service_handler=None):
+                 local_service_handler=None,
+                 jump_to_ops=[]):
         # In __init__, all the parameters are just saved and Op is not initialized
         if name is None:
             name = _op_name_gen.next()
         self.name = name  # to identify the type of OP, it must be globally unique
         self.concurrency = concurrency  # amount of concurrency
         self.set_input_ops(input_ops)
+        self.set_jump_to_ops(jump_to_ops)
 
         self._local_service_handler = local_service_handler
         self._server_endpoints = server_endpoints
@@ -75,6 +102,8 @@ class Op(object):
         self._retry = max(1, retry)
         self._batch_size = batch_size
         self._auto_batching_timeout = auto_batching_timeout
+        self._use_encryption_model = None
+        self._encryption_key = ""
 
         self._input = None
         self._outputs = []
@@ -82,11 +111,38 @@ class Op(object):
         self._server_use_profile = False
         self._tracer = None
 
+        # for grpc_pipeline predict mode. False, string key/val; True, tensor format.
+        self._pack_tensor_format = False
+
         # only for thread op
         self._for_init_op_lock = threading.Lock()
         self._for_close_op_lock = threading.Lock()
         self._succ_init_op = False
         self._succ_close_op = False
+        self.dynamic_shape_info = {}
+        self.set_dynamic_shape_info()
+        self.collect_shape_range_info = ""
+        self.tuned_dynamic_shape_info = ""
+
+    def set_dynamic_shape_info(self):
+        """
+        when opening tensorrt(configure in config.yml) and each time the input shape
+        for inferring is different, using this method for configuring tensorrt
+        dynamic shape to infer in each op model
+        """
+        pass
+
+    # for feed/fetch dict cehck
+    @staticmethod
+    def get_feed_fetch_list(client):
+        from paddle_serving_app.local_predict import LocalPredictor
+        if isinstance(client, Client):
+            feed_names = client.get_feed_names()
+            fetch_names = client.get_fetch_names()
+        if isinstance(client, LocalPredictor):
+            feed_names = client.feed_names_
+            fetch_names = client.fetch_names_
+        return feed_names, fetch_names
 
     def init_from_dict(self, conf):
         """
@@ -99,9 +155,7 @@ class Op(object):
             conf: config.yaml
 
         Returns:
-            None
         """
-        # init op
         if self.concurrency is None:
             self.concurrency = conf["concurrency"]
         if self._retry is None:
@@ -110,7 +164,12 @@ class Op(object):
             self._fetch_names = conf.get("fetch_list")
         if self._client_config is None:
             self._client_config = conf.get("client_config")
-
+        if self._use_encryption_model is None:
+            print("config use_encryption model here",
+                  conf.get("use_encryption_model"))
+            self._use_encryption_model = conf.get("use_encryption_model")
+            if self._encryption_key is None or self._encryption_key == "":
+                self._encryption_key = conf.get("encryption_key")
         if self._timeout is None:
             self._timeout = conf["timeout"]
         if self._timeout > 0:
@@ -123,7 +182,7 @@ class Op(object):
         if self._auto_batching_timeout is None:
             self._auto_batching_timeout = conf["auto_batching_timeout"]
         if self._auto_batching_timeout <= 0 or self._batch_size == 1:
-            _LOGGER.warning(
+            _LOGGER.debug(
                 self._log(
                     "Because auto_batching_timeout <= 0 or batch_size == 1,"
                     " set auto_batching_timeout to None."))
@@ -138,6 +197,14 @@ class Op(object):
         self.devices = ""
         self.mem_optim = False
         self.ir_optim = False
+        self.precision = "fp32"
+        self.use_mkldnn = False
+        self.mkldnn_cache_capacity = 0
+        self.mkldnn_op_list = None
+        self.mkldnn_bf16_op_list = None
+        self.min_subgraph_size = 3
+        self.use_calib = False
+
         if self._server_endpoints is None:
             server_endpoints = conf.get("server_endpoints", [])
             if len(server_endpoints) != 0:
@@ -159,6 +226,26 @@ class Op(object):
                     self.mem_optim = local_service_conf.get("mem_optim")
                     self.ir_optim = local_service_conf.get("ir_optim")
                     self._fetch_names = local_service_conf.get("fetch_list")
+                    self.precision = local_service_conf.get("precision")
+                    self.use_calib = local_service_conf.get("use_calib")
+                    self.use_mkldnn = local_service_conf.get("use_mkldnn")
+                    self.mkldnn_cache_capacity = local_service_conf.get(
+                        "mkldnn_cache_capacity")
+                    self.mkldnn_op_list = local_service_conf.get(
+                        "mkldnn_op_list")
+                    self.mkldnn_bf16_op_list = local_service_conf.get(
+                        "mkldnn_bf16_op_list")
+                    self.min_subgraph_size = local_service_conf.get(
+                        "min_subgraph_size")
+                    self.collect_shape_range_info = local_service_conf.get(
+                        "collect_shape_range_info")
+                    self.tuned_dynamic_shape_info = local_service_conf.get(
+                        "tuned_dynamic_shape_info")
+                    if self.collect_shape_range_info is None:
+                        self.collect_shape_range_info = ""
+                    if self.tuned_dynamic_shape_info is None:
+                        self.tuned_dynamic_shape_info = ""
+
                     if self.model_config is None:
                         self.with_serving = False
                     else:
@@ -173,7 +260,18 @@ class Op(object):
                                 device_type=self.device_type,
                                 devices=self.devices,
                                 mem_optim=self.mem_optim,
-                                ir_optim=self.ir_optim)
+                                ir_optim=self.ir_optim,
+                                precision=self.precision,
+                                use_mkldnn=self.use_mkldnn,
+                                mkldnn_cache_capacity=self.
+                                mkldnn_cache_capacity,
+                                mkldnn_op_list=self.mkldnn_bf16_op_list,
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
+                                min_subgraph_size=self.min_subgraph_size,
+                                dynamic_shape_info=self.dynamic_shape_info,
+                                use_calib=self.use_calib,
+                                collect_shape_range_info=self.collect_shape_range_info,
+                                tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -195,7 +293,18 @@ class Op(object):
                                 devices=self.devices,
                                 fetch_names=self._fetch_names,
                                 mem_optim=self.mem_optim,
-                                ir_optim=self.ir_optim)
+                                ir_optim=self.ir_optim,
+                                precision=self.precision,
+                                use_mkldnn=self.use_mkldnn,
+                                mkldnn_cache_capacity=self.
+                                mkldnn_cache_capacity,
+                                mkldnn_op_list=self.mkldnn_op_list,
+                                mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
+                                min_subgraph_size=self.min_subgraph_size,
+                                dynamic_shape_info=self.dynamic_shape_info,
+                                use_calib=self.use_calib,
+                                collect_shape_range_info=self.collect_shape_range_info,
+                                tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -283,6 +392,9 @@ class Op(object):
     def set_tracer(self, tracer):
         self._tracer = tracer
 
+    def set_use_prometheus(self, use_prometheus):
+        self._use_prometheus = use_prometheus
+
     def init_client(self, client_config, server_endpoints):
         """
         Initialize the client object. There are three types of clients, brpc,
@@ -303,12 +415,16 @@ class Op(object):
         if self.client_type == 'brpc':
             client = Client()
             client.load_client_config(client_config)
-        elif self.client_type == 'grpc':
-            client = MultiLangClient()
+            self.right_feed_names, self.right_fetch_names = self.get_feed_fetch_list(
+                client)
+        elif self.client_type == 'pipeline_grpc':
+            client = PPClient()
         elif self.client_type == 'local_predictor':
             if self.local_predictor is None:
                 raise ValueError("local predictor not yet created")
             client = self.local_predictor
+            self.right_feed_names, self.right_fetch_names = self.get_feed_fetch_list(
+                client)
         else:
             raise ValueError("Failed to init client: unknow client "
                              "type {}".format(self.client_type))
@@ -316,7 +432,14 @@ class Op(object):
             self._fetch_names = client.fetch_names_
             _LOGGER.info("Op({}) has no fetch name set. So fetch all vars")
         if self.client_type != "local_predictor":
-            client.connect(server_endpoints)
+            if self._use_encryption_model is None or self._use_encryption_model is False:
+                client.connect(server_endpoints)
+            else:
+                print("connect to encryption rpc client")
+                client.use_key(self._encryption_key)
+                client.connect(server_endpoints, encryption=True)
+        _LOGGER.info("init_client, feed_list:{}, fetch_list: {}".format(
+            self.right_feed_names, self.right_fetch_names))
         return client
 
     def get_input_ops(self):
@@ -343,6 +466,82 @@ class Op(object):
                               "must be Op type, not {}".format(type(op))))
                 os._exit(-1)
             self._input_ops.append(op)
+
+    def set_pack_tensor_format(self, is_tensor_format=False):
+        self._pack_tensor_format = is_tensor_format
+
+    def get_jump_to_ops(self):
+        return self._jump_to_ops
+
+    def set_jump_to_ops(self, ops):
+        """
+        Set jump to ops, then, this op can send channeldata to output channel.
+
+        Args:
+            ops: op list to be jumpped
+
+        Returns:
+            None.
+        """
+        if not isinstance(ops, list):
+            ops = [] if ops is None else [ops]
+
+        self._jump_to_ops = []
+        for op in ops:
+            if not isinstance(op, Op):
+                _LOGGER.critical(
+                    self._log("Failed to set input_ops: input op "
+                              "must be Op type, not {}".format(type(op))))
+                os._exit(-1)
+            self._jump_to_ops.append(op)
+
+    def is_jump_op(self):
+        """
+        The op has _jump_to_ops members or not.
+
+        Args:
+            None
+
+        Returns:
+            True or False
+        """
+        return len(self._jump_to_ops) > 0
+
+    def check_jumping(self, input_data):
+        """
+        Check whether to send data to jump ops.WhileOp needs to rewrite 
+        this interface. this function returns False default.
+     
+        Args:
+            input_data: input data to be preprocessed
+
+        Returns:
+            True, send data to the output channel of jump ops
+            False, send data to output channel.
+        """
+        return False
+
+    def get_output_channels_of_jump_ops(self):
+        """
+        Get output channels of jump ops
+
+        Args:
+            None
+
+        Returns:
+            list of channels
+        """
+        channels = []
+        if self.is_jump_op() is False:
+            return channels
+        for op in self._jump_to_ops:
+            _LOGGER.info("op:{} extend op._get_output_channels:{}".format(
+                op.name, op._get_output_channels()))
+            channels.extend(op._get_output_channels())
+
+        _LOGGER.info("get_output_channels_of_jump_ops, channels:{}".format(
+            channels))
+        return channels
 
     def add_input_channel(self, channel):
         """
@@ -382,6 +581,7 @@ class Op(object):
             os._exit(-1)
         channel.add_producer(self.name)
         self._outputs.append(channel)
+        _LOGGER.debug("op:{} add output_channel {}".format(self.name, channel))
 
     def clean_output_channels(self):
         self._outputs = []
@@ -396,7 +596,7 @@ class Op(object):
 
         Args:
             input_dicts: input data to be preprocessed
-            data_id: inner unique id, 0 default
+            data_id: inner unique id, increase auto
             log_id: global unique id for RTT, 0 default
 
         Return:
@@ -429,36 +629,97 @@ class Op(object):
         Returns:
             call_result: predict result
         """
-        err, err_info = ChannelData.check_batch_npdata(feed_batch)
-        if err != 0:
-            _LOGGER.critical(
-                self._log("Failed to run process: {}. Please override "
-                          "preprocess func.".format(err_info)))
-            os._exit(-1)
+
+        call_result = None
+        err_code = ChannelDataErrcode.OK.value
+        err_info = ""
+
+        @ErrorCatch
+        @ParamChecker
+        def feed_fetch_list_check_helper(
+                feed_batch: lambda feed_batch: check_feed_dict(feed_batch[0], self.right_feed_names),
+                fetch_list: lambda fetch_list: check_fetch_list(fetch_list, self.right_fetch_names),
+                log_id):
+            return None
+
+        _, resp = feed_fetch_list_check_helper(
+            feed_batch, self._fetch_names, log_id=typical_logid)
+        if resp.err_no != CustomExceptionCode.OK.value:
+            err_code = resp.err_no
+            err_info = resp.err_msg
+            call_result = None
+            return call_result, err_code, err_info
+
         if self.client_type == "local_predictor":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for local_predictor mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
+
             call_result = self.client.predict(
                 feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        else:
+
+        elif self.client_type == "brpc":
+            err, err_info = ChannelData.check_batch_npdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                        npdata in process for brpc mode.".format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be npdata"
             call_result = self.client.predict(
-                feed=feed_batch,
+                feed=feed_batch[0],
                 fetch=self._fetch_names,
                 batch=True,
                 log_id=typical_logid)
-        if isinstance(self.client, MultiLangClient):
-            if call_result is None or call_result["serving_status_code"] != 0:
-                return None
-            call_result.pop("serving_status_code")
-        return call_result
 
-    def postprocess(self, input_data, fetch_data, log_id=0):
+        elif self.client_type == "pipeline_grpc":
+            err, err_info = ChannelData.check_dictdata(feed_batch)
+            if err != 0:
+                _LOGGER.error(
+                    self._log("Failed to run process: {}. feed_batch must be \
+                       npdata in process for pipeline_grpc mode."
+                              .format(err_info)))
+                return call_result, ChannelDataErrcode.TYPE_ERROR.value, "feed_batch must be dict"
+
+            call_result = self.client.predict(
+                feed_dict=feed_batch[0],
+                fetch=self._fetch_names,
+                asyn=False,
+                pack_tensor_format=self._pack_tensor_format,
+                profile=False)
+            if call_result is None:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. call_result is None."))
+                return call_result, ChannelDataErrcode.UNKNOW.value, "pipeline_grpc error"
+            if call_result.err_no != 0:
+                _LOGGER.error(
+                    self._log("Failed in pipeline_grpc. err_no:{}, err_info:{}".
+                              format(call_result.err_no, call_result.err_msg)))
+                return call_result, ChannelDataErrcode(
+                    call_result.err_no).value, call_result.err_msg
+
+            new_dict = {}
+            err_code = ChannelDataErrcode(call_result.err_no).value
+            err_info = call_result.err_msg
+            for idx, key in enumerate(call_result.key):
+                new_dict[key] = [call_result.value[idx]]
+            call_result = new_dict
+
+        return call_result, err_code, err_info
+
+    def postprocess(self, input_data, fetch_data, data_id=0, log_id=0):
         """
         In postprocess stage, assemble data for next op or output.
         Args:
             input_data: data returned in preprocess stage, dict(for single predict) or list(for batch predict)
             fetch_data: data returned in process stage, dict(for single predict) or list(for batch predict)
+            data_id: inner unique id, increase auto
             log_id: logid, 0 default
 
         Returns: 
@@ -560,7 +821,12 @@ class Op(object):
                       self._get_output_channels(), False, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
                       self.device_type, self.devices, self.mem_optim,
-                      self.ir_optim))
+                      self.ir_optim, self.precision, self.use_mkldnn,
+                      self.mkldnn_cache_capacity, self.mkldnn_op_list,
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops(),
+                      self.min_subgraph_size, self.dynamic_shape_info,
+                      self.use_calib))
             p.daemon = True
             p.start()
             process.append(p)
@@ -594,7 +860,12 @@ class Op(object):
                       self._get_output_channels(), True, trace_buffer,
                       self.model_config, self.workdir, self.thread_num,
                       self.device_type, self.devices, self.mem_optim,
-                      self.ir_optim))
+                      self.ir_optim, self.precision, self.use_mkldnn,
+                      self.mkldnn_cache_capacity, self.mkldnn_op_list,
+                      self.mkldnn_bf16_op_list, self.is_jump_op(),
+                      self.get_output_channels_of_jump_ops(),
+                      self.min_subgraph_size, self.dynamic_shape_info,
+                      self.use_calib))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -623,46 +894,43 @@ class Op(object):
         preped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
         skip_process_dict = {}
+
+        @ErrorCatch
+        def preprocess_help(self, parsed_data, data_id, logid_dict):
+            preped_data, is_skip_process, prod_errcode, prod_errinfo = self.preprocess(
+                parsed_data, data_id, logid_dict.get(data_id))
+            return preped_data, is_skip_process, prod_errcode, prod_errinfo
+
         for data_id, parsed_data in parsed_data_dict.items():
             preped_data, error_channeldata = None, None
             is_skip_process = False
             prod_errcode, prod_errinfo = None, None
             log_id = logid_dict.get(data_id)
-            try:
-                preped_data, is_skip_process, prod_errcode, prod_errinfo = self.preprocess(
-                    parsed_data, data_id, logid_dict.get(data_id))
-                # Set skip_process_dict
+            process_res, resp = preprocess_help(
+                self, parsed_data, data_id=data_id, logid_dict=logid_dict)
+            if resp.err_no == CustomExceptionCode.OK.value:
+                preped_data, is_skip_process, prod_errcode, prod_errinfo = process_res
                 if is_skip_process is True:
                     skip_process_dict[data_id] = True
-            except TypeError as e:
-                # Error type in channeldata.datatype
-                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
-                error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.TYPE_ERROR.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
-            except Exception as e:
-                error_info = "(data_id={} log_id={}) {} Failed to preprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
-                error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.UNKNOW.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
+                if prod_errcode is not None:
+                    _LOGGER.error(
+                        "data_id: {} return product error. Product ErrNo:{}, Product ErrMsg: {}".
+                        format(data_id, prod_errcode, prod_errinfo))
+                    error_channeldata = ChannelData(
+                        error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                        error_info="",
+                        prod_error_code=prod_errcode,
+                        prod_error_info=prod_errinfo,
+                        data_id=data_id,
+                        log_id=log_id)
+            else:
 
-            if prod_errcode is not None:
-                # product errors occured
                 error_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
-                    error_info="",
-                    prod_error_code=prod_errcode,
-                    prod_error_info=prod_errinfo,
+                    error_code=resp.err_no,
+                    error_info=resp.err_msg,
                     data_id=data_id,
                     log_id=log_id)
+                skip_process_dict[data_id] = True
 
             if error_channeldata is not None:
                 err_channeldata_dict[data_id] = error_channeldata
@@ -779,16 +1047,20 @@ class Op(object):
 
         midped_batch = None
         error_code = ChannelDataErrcode.OK.value
+        error_info = ""
         if self._timeout <= 0:
             # No retry
             try:
                 if batch_input is False:
-                    midped_batch = self.process(feed_batch, typical_logid)
+                    midped_batch, error_code, error_info = self.process(
+                        feed_batch, typical_logid)
                 else:
                     midped_batch = []
                     for idx in range(len(feed_batch)):
-                        predict_res = self.process([feed_batch[idx]],
-                                                   typical_logid)
+                        predict_res, error_code, error_info = self.process(
+                            [feed_batch[idx]], typical_logid)
+                        if error_code != ChannelDataErrcode.OK.value:
+                            break
                         midped_batch.append(predict_res)
             except Exception as e:
                 error_code = ChannelDataErrcode.UNKNOW.value
@@ -801,14 +1073,14 @@ class Op(object):
                 try:
                     # time out for each process
                     if batch_input is False:
-                        midped_batch = func_timeout.func_timeout(
+                        midped_batch, error_code, error_info = func_timeout.func_timeout(
                             self._timeout,
                             self.process,
                             args=(feed_batch, typical_logid))
                     else:
                         midped_batch = []
                         for idx in range(len(feed_batch)):
-                            predict_res = func_timeout.func_timeout(
+                            predict_res, error_code, error_info = func_timeout.func_timeout(
                                 self._timeout,
                                 self.process,
                                 args=([feed_batch[idx]], typical_logid))
@@ -837,12 +1109,13 @@ class Op(object):
 
         # 2 kinds of errors
         if error_code != ChannelDataErrcode.OK.value or midped_batch is None:
-            error_info = "(log_id={}) {} failed to predict.".format(
-                typical_logid, self.name)
+            error_info = "[{}] failed to predict. {}. Please check the input dict and checkout PipelineServingLogs/pipeline.log for more details.".format(
+                self.name, error_info)
+
             _LOGGER.error(error_info)
             for data_id in data_ids:
                 err_channeldata_dict[data_id] = ChannelData(
-                    error_code=ChannelDataErrcode.CLIENT_ERROR.value,
+                    error_code=error_code,
                     error_info=error_info,
                     data_id=data_id,
                     log_id=logid_dict.get(data_id))
@@ -913,68 +1186,66 @@ class Op(object):
         _LOGGER.debug("{} Running postprocess".format(op_info_prefix))
         postped_data_dict = collections.OrderedDict()
         err_channeldata_dict = collections.OrderedDict()
+
+        @ErrorCatch
+        def postprocess_help(self, parsed_data_dict, midped_data, data_id,
+                             logid_dict):
+            postped_data, prod_errcode, prod_errinfo = self.postprocess(
+                parsed_data_dict[data_id], midped_data, data_id,
+                logid_dict.get(data_id))
+            if not isinstance(postped_data, dict):
+                raise CustomException(CustomExceptionCode.TYPE_ERROR,
+                                      "postprocess should return dict", True)
+            return postped_data, prod_errcode, prod_errinfo
+
         for data_id, midped_data in midped_data_dict.items():
             log_id = logid_dict.get(data_id)
             postped_data, err_channeldata = None, None
             prod_errcode, prod_errinfo = None, None
-            try:
-                postped_data, prod_errcode, prod_errinfo = self.postprocess(
-                    parsed_data_dict[data_id], midped_data,
-                    logid_dict.get(data_id))
-            except Exception as e:
-                error_info = "(data_id={} log_id={}) {} Failed to postprocess: {}".format(
-                    data_id, log_id, op_info_prefix, e)
-                _LOGGER.error(error_info, exc_info=True)
-                err_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.UNKNOW.value,
-                    error_info=error_info,
-                    data_id=data_id,
-                    log_id=log_id)
 
-            if prod_errcode is not None:
-                # product errors occured
+            post_res, resp = postprocess_help(
+                self,
+                parsed_data_dict,
+                midped_data,
+                data_id=data_id,
+                logid_dict=logid_dict)
+            if resp.err_no == CustomExceptionCode.OK.value:
+                postped_data, prod_errcode, prod_errinfo = post_res
+                if prod_errcode is not None:
+                    # product errors occured
+                    err_channeldata = ChannelData(
+                        error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
+                        error_info="",
+                        prod_error_code=prod_errcode,
+                        prod_error_info=prod_errinfo,
+                        data_id=data_id,
+                        log_id=log_id)
+            else:
                 err_channeldata = ChannelData(
-                    error_code=ChannelDataErrcode.PRODUCT_ERROR.value,
-                    error_info="",
-                    prod_error_code=prod_errcode,
-                    prod_error_info=prod_errinfo,
+                    error_code=resp.err_no,
+                    error_info=resp.err_msg,
                     data_id=data_id,
                     log_id=log_id)
 
             if err_channeldata is not None:
                 err_channeldata_dict[data_id] = err_channeldata
                 continue
-            else:
-                if not isinstance(postped_data, dict):
-                    error_info = "(log_id={} log_id={}) {} Failed to postprocess: " \
-                            "output of postprocess funticon must be " \
-                            "dict type, but get {}".format(
-                                data_id, log_id, op_info_prefix,
-                                type(postped_data))
-                    _LOGGER.error(error_info)
-                    err_channeldata = ChannelData(
-                        error_code=ChannelDataErrcode.UNKNOW.value,
-                        error_info=error_info,
-                        data_id=data_id,
-                        log_id=log_id)
-                    err_channeldata_dict[data_id] = err_channeldata
-                    continue
 
-                output_data = None
-                err, _ = ChannelData.check_npdata(postped_data)
-                if err == 0:
-                    output_data = ChannelData(
-                        ChannelDataType.CHANNEL_NPDATA.value,
-                        npdata=postped_data,
-                        data_id=data_id,
-                        log_id=log_id)
-                else:
-                    output_data = ChannelData(
-                        ChannelDataType.DICT.value,
-                        dictdata=postped_data,
-                        data_id=data_id,
-                        log_id=log_id)
-                postped_data_dict[data_id] = output_data
+            output_data = None
+            err, _ = ChannelData.check_npdata(postped_data)
+            if err == 0:
+                output_data = ChannelData(
+                    ChannelDataType.CHANNEL_NPDATA.value,
+                    npdata=postped_data,
+                    data_id=data_id,
+                    log_id=log_id)
+            else:
+                output_data = ChannelData(
+                    ChannelDataType.DICT.value,
+                    dictdata=postped_data,
+                    data_id=data_id,
+                    log_id=log_id)
+            postped_data_dict[data_id] = output_data
         _LOGGER.debug("{} Succ postprocess".format(op_info_prefix))
         return postped_data_dict, err_channeldata_dict
 
@@ -1005,6 +1276,7 @@ class Op(object):
                 for idx in range(batch_size):
                     try:
                         channeldata_dict = None
+                        front_start_time = int(round(_time() * 1000000))
                         if timeout is not None:
                             remaining = endtime - _time()
                             if remaining <= 0.0:
@@ -1017,8 +1289,8 @@ class Op(object):
                             channeldata_dict = input_channel.front(op_name)
                         batch.append(channeldata_dict)
                         _LOGGER.debug(
-                            "_auto_batching_generator get {} channeldata from op:{} into batch, batch_size:{}".
-                            format(idx, op_name, batch_size))
+                            "_auto_batching_generator get {} channeldata from op:{} input channel. time={}".
+                            format(idx, op_name, front_start_time))
                     except ChannelTimeoutError:
                         _LOGGER.debug("{} Failed to generate batch: "
                                       "timeout".format(op_info_prefix))
@@ -1063,7 +1335,10 @@ class Op(object):
 
     def _run(self, concurrency_idx, input_channel, output_channels,
              is_thread_op, trace_buffer, model_config, workdir, thread_num,
-             device_type, devices, mem_optim, ir_optim):
+             device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
+             mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
+             is_jump_op, output_channels_of_jump_ops, min_subgraph_size,
+             dynamic_shape_info, use_calib):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1084,7 +1359,15 @@ class Op(object):
             device_type: support multiple devices
             devices: gpu id list[gpu], "" default[cpu]
             mem_optim: use memory/graphics memory optimization, True default.
-            ir_optim: use calculation chart optimization, False default. 
+            ir_optim: use calculation chart optimization, False default.
+            precision: inference precision, e.g. "fp32", "fp16", "int8", "bf16"
+            use_mkldnn: use mkldnn, default False.
+            mkldnn_cache_capacity: cache capacity of mkldnn, 0 means no limit.
+            mkldnn_op_list: OP list optimized by mkldnn, None default.
+            mkldnn_bf16_op_list: OP list optimized by mkldnn bf16, None default.
+            is_jump_op: OP has jump op list or not, False default.
+            output_channels_of_jump_ops: all output channels of jump ops.
+            use_calib: use calib mode of paddle inference, False default.
 
         Returns:
             None
@@ -1093,7 +1376,14 @@ class Op(object):
 
         # init ops
         profiler = None
-        try:
+
+        @ErrorCatch
+        def check_helper(self, is_thread_op, model_config, workdir, thread_num,
+                         device_type, devices, mem_optim, ir_optim, precision,
+                         use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
+                         mkldnn_bf16_op_list, min_subgraph_size,
+                         dynamic_shape_info):
+
             if is_thread_op == False and self.client_type == "local_predictor":
                 self.service_handler = local_service_handler.LocalServiceHandler(
                     model_config=model_config,
@@ -1103,7 +1393,17 @@ class Op(object):
                     device_type=device_type,
                     devices=devices,
                     mem_optim=mem_optim,
-                    ir_optim=ir_optim)
+                    ir_optim=ir_optim,
+                    precision=precision,
+                    use_mkldnn=use_mkldnn,
+                    mkldnn_cache_capacity=mkldnn_cache_capacity,
+                    mkldnn_op_list=mkldnn_op_list,
+                    mkldnn_bf16_op_list=mkldnn_bf16_op_list,
+                    min_subgraph_size=min_subgraph_size,
+                    dynamic_shape_info=dynamic_shape_info,
+                    use_calib=use_calib,
+                    collect_shape_range_info=self.collect_shape_range_info,
+                    tuned_dynamic_shape_info=self.tuned_dynamic_shape_info)
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))
@@ -1111,12 +1411,23 @@ class Op(object):
                     concurrency_idx)
             # check all ops initialized successfully.
             profiler = self._initialize(is_thread_op, concurrency_idx)
+            return profiler
 
-        except Exception as e:
+        profiler, resp = check_helper(
+            self, is_thread_op, model_config, workdir, thread_num, device_type,
+            devices, mem_optim, ir_optim, precision, use_mkldnn,
+            mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
+            min_subgraph_size, dynamic_shape_info)
+
+        if resp.err_no != CustomExceptionCode.OK.value:
             _LOGGER.critical(
-                "{} failed to init op: {}".format(op_info_prefix, e),
-                exc_info=True)
-            os._exit(-1)
+                "{} failed to init op: {}".format(op_info_prefix, resp.err_msg),
+                exc_info=False)
+
+            print("{} failed to init op: {}".format(op_info_prefix,
+                                                    resp.err_msg))
+            kill_stop_process_by_pid("kill", os.getpgid(os.getpid()))
+
         _LOGGER.info("{} Succ init".format(op_info_prefix))
 
         batch_generator = self._auto_batching_generator(
@@ -1138,6 +1449,8 @@ class Op(object):
                 break
             end = int(round(_time() * 1000000))
             in_time = end - start
+            _LOGGER.debug("op:{} in_time_end:{}".format(op_info_prefix,
+                                                        time.time()))
 
             # parse channeldata batch
             try:
@@ -1151,6 +1464,14 @@ class Op(object):
             if len(parsed_data_dict) == 0:
                 # data in the whole batch is all error data
                 continue
+            _LOGGER.debug("op:{} parse_end:{}".format(op_info_prefix,
+                                                      time.time()))
+
+            front_cost = int(round(_time() * 1000000)) - start
+            for data_id, parsed_data in parsed_data_dict.items():
+                _LOGGER.debug(
+                    "(data_id={}) POP INPUT CHANNEL! op:{}, cost:{} ms".format(
+                        data_id, self.name, front_cost / 1000.0))
 
             # preprecess
             start = profiler.record("prep#{}_0".format(op_info_prefix))
@@ -1158,6 +1479,8 @@ class Op(object):
                     = self._run_preprocess(parsed_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("prep#{}_1".format(op_info_prefix))
             prep_time = end - start
+            _LOGGER.debug("op:{} preprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), prep_time))
             try:
                 # put error requests into output channel, skip process and postprocess stage
                 for data_id, err_channeldata in err_channeldata_dict.items():
@@ -1178,7 +1501,10 @@ class Op(object):
             midped_data_dict, err_channeldata_dict \
                     = self._run_process(preped_data_dict, op_info_prefix, skip_process_dict, logid_dict)
             end = profiler.record("midp#{}_1".format(op_info_prefix))
+            _LOGGER.info("prometheus inf count +1")
             midp_time = end - start
+            _LOGGER.debug("op:{} process_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), midp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1199,6 +1525,9 @@ class Op(object):
                     = self._run_postprocess(parsed_data_dict, midped_data_dict, op_info_prefix, logid_dict)
             end = profiler.record("postp#{}_1".format(op_info_prefix))
             postp_time = end - start
+            after_postp_time = _time()
+            _LOGGER.debug("op:{} postprocess_end:{}, cost:{}".format(
+                op_info_prefix, time.time(), postp_time))
             try:
                 for data_id, err_channeldata in err_channeldata_dict.items():
                     self._push_to_output_channels(
@@ -1217,21 +1546,48 @@ class Op(object):
             start = int(round(_time() * 1000000))
             try:
                 profile_str = profiler.gen_profile_str()
-                for data_id, postped_data in postped_data_dict.items():
-                    if self._server_use_profile:
-                        sys.stderr.write(profile_str)
-                    self._push_to_output_channels(
-                        data=postped_data,
-                        channels=output_channels,
-                        profile_str=profile_str,
-                        client_need_profile=need_profile_dict[data_id],
-                        profile_set=profile_dict[data_id])
+                if self.is_jump_op() is True and self.check_jumping(
+                        postped_data_dict) is True:
+                    # push data to output channel of ops to be jumped 
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels_of_jump_ops,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL OF JUMP OPs! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
+                else:
+                    # push data to output channel.
+                    for data_id, postped_data in postped_data_dict.items():
+                        if self._server_use_profile:
+                            sys.stderr.write(profile_str)
+                        self._push_to_output_channels(
+                            data=postped_data,
+                            channels=output_channels,
+                            profile_str=profile_str,
+                            client_need_profile=need_profile_dict[data_id],
+                            profile_set=profile_dict[data_id])
+                        after_outchannel_time = _time()
+                        _LOGGER.debug(
+                            "(data_id={}) PUSH OUTPUT CHANNEL! op:{} push cost:{} ms".
+                            format(data_id, self.name, (after_outchannel_time -
+                                                        after_postp_time) *
+                                   1000))
             except ChannelStopError:
                 _LOGGER.debug("{} Stop.".format(op_info_prefix))
                 self._finalize(is_thread_op)
                 break
             end = int(round(_time() * 1000000))
             out_time = end - start
+            after_outchannel_time = int(round(_time() * 1000000))
             if trace_buffer is not None:
                 trace_que.append({
                     "name": self.name,
@@ -1265,26 +1621,31 @@ class Op(object):
         Returns:
             TimeProfiler
         """
-        if is_thread_op:
-            with self._for_init_op_lock:
-                if not self._succ_init_op:
-                    # for the threaded version of Op, each thread cannot get its concurrency_idx
-                    self.concurrency_idx = None
-                    # init client
-                    self.client = self.init_client(self._client_config,
-                                                   self._server_endpoints)
-                    # user defined
-                    self.init_op()
-                    self._succ_init_op = True
-                    self._succ_close_op = False
-        else:
-            self.concurrency_idx = concurrency_idx
-            # init client
-            self.client = self.init_client(self._client_config,
-                                           self._server_endpoints)
-            # user defined
-            self.init_op()
 
+        @ErrorCatch
+        def init_helper(self, is_thread_op, concurrency_idx):
+            if is_thread_op:
+                with self._for_init_op_lock:
+                    if not self._succ_init_op:
+                        # for the threaded version of Op, each thread cannot get its concurrency_idx
+                        self.concurrency_idx = None
+                        # init client
+                        self.client = self.init_client(self._client_config,
+                                                       self._server_endpoints)
+                        # user defined
+                        self.init_op()
+                        self._succ_init_op = True
+                        self._succ_close_op = False
+            else:
+                self.concurrency_idx = concurrency_idx
+                # init client
+                self.client = self.init_client(self._client_config,
+                                               self._server_endpoints)
+                # user defined
+                self.init_op()
+
+        init_helper(self, is_thread_op, concurrency_idx)
+        print("[OP Object] init success")
         # use a separate TimeProfiler per thread or process
         profiler = TimeProfiler()
         profiler.enable(True)
@@ -1324,6 +1685,97 @@ class RequestOp(Op):
             _LOGGER.critical("Op(Request) Failed to init: {}".format(e))
             os._exit(-1)
 
+    def proto_tensor_2_numpy(self, tensor):
+        """
+        Convert proto tensor to numpy array, The supported types are as follows:
+                INT64
+                FP32
+		INT32
+		FP64
+		INT16
+		FP16
+		BF16
+		UINT8
+		INT8
+		BOOL
+                BYTES
+        Unsupported type:
+                STRING
+                COMPLEX64
+                COMPLEX128
+
+        Args:
+            tensor: one tensor in request.tensors.
+
+        Returns:
+            np_data: np.ndnumpy, the tensor data is converted to numpy.
+            lod_info: np.ndnumpy, lod info of the tensor data, None default.
+        """
+        if tensor is None or tensor.elem_type is None or tensor.name is None:
+            _LOGGER.error("input params of tensor is wrong. tensor: {}".format(
+                tensor))
+            return None
+
+        # Set dim shape
+        dims = []
+        if tensor.shape is None:
+            dims.append(1)
+        else:
+            for one_dim in tensor.shape:
+                dims.append(one_dim)
+
+        # Set up 2-d lod tensor
+        np_lod = None
+        if len(tensor.lod) > 0:
+            np_lod = np.array(tensor.lod).astype(int32).reshape(2, -1)
+
+        np_data = None
+        _LOGGER.info("proto_to_numpy, name:{}, type:{}, dims:{}".format(
+            tensor.name, tensor.elem_type, dims))
+        if tensor.elem_type == 0:
+            # VarType: INT64
+            np_data = np.array(tensor.int64_data).astype(int64).reshape(dims)
+        elif tensor.elem_type == 1:
+            # VarType: FP32
+            np_data = np.array(tensor.float_data).astype(float32).reshape(dims)
+        elif tensor.elem_type == 2:
+            # VarType: INT32
+            np_data = np.array(tensor.int_data).astype(int32).reshape(dims)
+        elif tensor.elem_type == 3:
+            # VarType: FP64
+            np_data = np.array(tensor.float64_data).astype(float64).reshape(
+                dims)
+        elif tensor.elem_type == 4:
+            # VarType: INT16
+            np_data = np.array(tensor.int_data).astype(int16).reshape(dims)
+        elif tensor.elem_type == 5:
+            # VarType: FP16
+            np_data = np.array(tensor.float_data).astype(float16).reshape(dims)
+        elif tensor.elem_type == 6:
+            # VarType: BF16
+            np_data = np.array(tensor.uint32_data).astype(uint16).reshape(dims)
+        elif tensor.elem_type == 7:
+            # VarType: UINT8
+            np_data = np.array(tensor.uint32_data).astype(uint8).reshape(dims)
+        elif tensor.elem_type == 8:
+            # VarType: INT8
+            np_data = np.array(tensor.int_data).astype(int8).reshape(dims)
+        elif tensor.elem_type == 9:
+            # VarType: BOOL
+            np_data = np.array(tensor.bool_data).astype(bool).reshape(dims)
+        elif tensor.elem_type == 13:
+            # VarType: BYTES
+            byte_data = BytesIO(tensor.byte_data)
+            np_data = np.load(byte_data, allow_pickle=True)
+        else:
+            _LOGGER.error("Sorry, the type {} of tensor {} is not supported.".
+                          format(tensor.elem_type, tensor.name))
+            raise ValueError(
+                "Sorry, the type {} of tensor {} is not supported.".format(
+                    tensor.elem_type, tensor.name))
+
+        return np_data, np_lod
+
     def unpack_request_package(self, request):
         """
         Unpack request package by gateway.proto
@@ -1344,19 +1796,50 @@ class RequestOp(Op):
             _LOGGER.critical("request is None")
             raise ValueError("request is None")
 
+        # unpack key/value string list
         for idx, key in enumerate(request.key):
-            data = request.value[idx]
-            try:
-                evaled_data = eval(data)
-                if isinstance(evaled_data, np.ndarray):
-                    data = evaled_data
-            except Exception as e:
-                pass
-            dict_data[key] = data
+            dict_data[key] = request.value[idx]
         log_id = request.logid
+
+        # unpack proto.tensors data.
+        for one_tensor in request.tensors:
+            name = one_tensor.name
+            elem_type = one_tensor.elem_type
+
+            if one_tensor.name is None:
+                _LOGGER.error("Tensor name is None.")
+                raise ValueError("Tensor name is None.")
+
+            numpy_dtype = _TENSOR_DTYPE_2_NUMPY_DATA_DTYPE.get(elem_type)
+            if numpy_dtype is None:
+                _LOGGER.error(
+                    "elem_type:{} is dismatch in unpack_request_package.",
+                    format(elem_type))
+                raise ValueError("elem_type:{} error".format(elem_type))
+
+            if numpy_dtype == "string":
+                new_string = ""
+                if one_tensor.str_data is None:
+                    _LOGGER.error(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                    raise ValueError(
+                        "str_data of tensor:{} is None, elem_type is {}.".
+                        format(name, elem_type))
+                for one_str in one_tensor.str_data:
+                    new_string += one_str
+
+                dict_data[name] = new_string
+            else:
+                np_data, np_lod = self.proto_tensor_2_numpy(one_tensor)
+                dict_data[name] = np_data
+                if np_lod is not None:
+                    dict_data[name + ".lod"] = np_lod
+
         _LOGGER.info("RequestOp unpack one request. log_id:{}, clientip:{} \
-            name:{}, method:{}".format(log_id, request.clientip, request.name,
-                                       request.method))
+            name:{}, method:{}, time:{}"
+                     .format(log_id, request.clientip, request.name,
+                             request.method, time.time()))
 
         return dict_data, log_id, None, ""
 
@@ -1375,6 +1858,7 @@ class ResponseOp(Op):
         """
         super(ResponseOp, self).__init__(
             name="@DAGExecutor", input_ops=input_ops)
+
         # init op
         try:
             self.init_op()
@@ -1382,6 +1866,12 @@ class ResponseOp(Op):
             _LOGGER.critical("Op(ResponseOp) Failed to init: {}".format(
                 e, exc_info=True))
             os._exit(-1)
+
+        # init ResponseOp
+        self.is_pack_tensor = False
+
+    def set_pack_format(self, isTensor=False):
+        self.is_pack_tensor = isTensor
 
     def pack_response_package(self, channeldata):
         """
@@ -1459,8 +1949,8 @@ class VirtualOp(Op):
                \-> E ----------/
 
         DAG view: [[A], [B, E], [C], [D], [F]]
-        BUILD DAG: [A -> B -> C -> D -> E -> F]
-                     \-> E -> V1-> V2-> V3/
+        BUILD DAG: [A -> B -> C -> D -> F]
+                     \-> E -> V1-> V2->/
     """
 
     def __init__(self, name, concurrency=1):

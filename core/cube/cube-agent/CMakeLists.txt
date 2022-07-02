@@ -15,7 +15,6 @@
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 project(cube-agent Go)
-
 include(cmake/golang.cmake)
 
 ExternalGoProject_Add(agent-docopt-go github.com/docopt/docopt-go)

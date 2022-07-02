@@ -3,7 +3,7 @@ include(op/CMakeLists.txt)
 include(proto/CMakeLists.txt)
 
 add_executable(serving ${serving_srcs})
-add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api utils)
+add_dependencies(serving pdcodegen paddle_inference_engine pdserving paddle_inference cube-api utils utf8proc)
 
 if (WITH_GPU)
     add_dependencies(serving paddle_inference_engine)
@@ -30,6 +30,11 @@ target_link_libraries(serving protobuf)
 target_link_libraries(serving pdserving)
 target_link_libraries(serving cube-api)
 target_link_libraries(serving utils)
+target_link_libraries(serving utf8proc)
+target_link_libraries(serving prometheus ${prometheus_libs})
+if(WITH_ASCEND_CL AND NOT WITH_LITE)
+    target_link_libraries(serving ascendcl acl_op_compiler)
+endif()
 
 
 if(WITH_GPU)
@@ -37,7 +42,9 @@ if(WITH_GPU)
 endif()
 
 if(WITH_MKL OR WITH_GPU)
-    if (WITH_TRT)
+    if (WITH_JETSON)
+        target_link_libraries(serving openblas -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2) 
+    elseif (WITH_TRT)
     target_link_libraries(serving -liomp5 -lmklml_intel -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2 -ldnnl)
     else()
     target_link_libraries(serving -liomp5 -lmklml_intel -lmkldnn -lpthread -lcrypto -lm -lrt -lssl -ldl -lz -lbz2)
@@ -62,4 +69,8 @@ install(FILES
         ${CMAKE_BINARY_DIR}/third_party/install/Paddle/third_party/install/mkldnn/lib/libdnnl.so.1
         DESTINATION
         ${PADDLE_SERVING_INSTALL_DIR}/demo/serving/bin)
+endif()
+
+if (WITH_ROCM)
+    target_link_libraries(serving ${ROCM_HIPRTC_LIB})
 endif()

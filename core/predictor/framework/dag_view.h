@@ -24,7 +24,7 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-class Op;
+// class Op;
 
 struct ViewNode {
   Op* op;  // op->full_name == service_workflow_stageindex_opname
@@ -75,11 +75,20 @@ class DagView {
   Bus* _bus;
 };
 
+struct Args {
+  Op* _op;
+  uint64_t _log_id;
+  bool _debug;
+  int errcode;
+};
+
 // The derived DagView supports parallel execution
 // strategy, by implments the execute_one_stage().
 class ParallelDagView : public DagView {
  public:
-  int execute_one_stage(ViewStage* vstage, butil::IOBufBuilder*) { return 0; }
+  virtual int execute_one_stage(ViewStage* vstage,
+                                const uint64_t log_id,
+                                butil::IOBufBuilder* debug_os);
 };
 
 }  // namespace predictor

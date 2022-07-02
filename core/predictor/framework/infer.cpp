@@ -25,7 +25,8 @@ int ReloadableInferEngine::proc_initialize_impl(
   _model_dir = conf.model_dir();
   _infer_thread_num = conf.runtime_thread_num();
   _infer_batch_size = conf.batch_infer_size();
-  _infer_batch_align = conf.enable_batch_align();
+  _infer_overrun = conf.enable_overrun();
+  _allow_split_request = conf.allow_split_request();
 
   _conf = conf;
 
@@ -56,25 +57,38 @@ int ReloadableInferEngine::proc_initialize(const configure::EngineDesc& conf,
   }
 
   // init bsf framework
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_init_fn(
-      boost::bind(&InferEngine::thrd_initialize_impl, this));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_reset_fn(
-      boost::bind(&InferEngine::thrd_clear_impl, this));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_thread_callback_fn(
-      boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
-  im::bsf::TaskExecutor<TaskT>::instance()->set_batch_size(_infer_batch_size);
-  im::bsf::TaskExecutor<TaskT>::instance()->set_batch_align(_infer_batch_align);
-  if (im::bsf::TaskExecutor<TaskT>::instance()->start(_infer_thread_num) != 0) {
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_init_fn(
+          boost::bind(&InferEngine::thrd_initialize_impl, this));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_reset_fn(boost::bind(&InferEngine::thrd_clear_impl, this));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_thread_callback_fn(
+          boost::bind(&InferEngine::task_infer_impl, this, _1, _2));
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_batch_size(
+      _infer_batch_size);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].set_overrun(
+      _infer_overrun);
+  im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index]
+      .set_allow_split_request(_allow_split_request);
+  if (im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].start(
+          _infer_thread_num) != 0) {
     LOG(ERROR) << "Failed start bsf executor, threads:" << _infer_thread_num;
     return -1;
   }
 
   LOG(WARNING) << "Enable batch schedule framework, thread_num:"
                << _infer_thread_num << ", batch_size:" << _infer_batch_size
-               << ", enable_batch_align:" << _infer_batch_align;
+               << ", enable_overrun:" << _infer_overrun
+               << ", allow_split_request:" << _allow_split_request;
   return 0;
 }
 
+// Multiple threads will enter this method of the same object
+// One Model corresponds to One ReloadableInferEngine object.
+// ReloadableInferEngine object is Process object.
+// One ReloadableInferEngine object can have several ModelData<EngineCore>
+// ModelData<EngineCore> is Thread object.
 int ReloadableInferEngine::infer(const void* in,
                                  void* out,
                                  uint32_t batch_size) {
@@ -82,9 +96,9 @@ int ReloadableInferEngine::infer(const void* in,
     return infer_impl(in, out, batch_size);
   }
 
-  im::bsf::TaskManager<Tensor, Tensor> task_manager;
-  task_manager.schedule(*(reinterpret_cast<const BatchTensor*>(in)),
-                        *(reinterpret_cast<BatchTensor*>(out)));
+  im::bsf::TaskManager<paddle::PaddleTensor, paddle::PaddleTensor> task_manager(
+      _model_index);
+  task_manager.schedule(in, out, MempoolWrapper::instance().get_thread_memory_ptr());
   task_manager.wait();
   return 0;
 }
@@ -110,7 +124,7 @@ int ReloadableInferEngine::proc_finalize() {
   }
 
   if (_infer_thread_num > 0) {
-    im::bsf::TaskExecutor<TaskT>::instance()->stop();
+    im::bsf::TaskExecutorVector<TaskT>::instance()[_model_index].stop();
   }
   return 0;
 }
@@ -191,6 +205,7 @@ int VersionedInferEngine::proc_initialize(const configure::EngineDesc& conf,
   std::string engine_type = conf.type();
   InferEngine* engine =
       StaticInferFactory::instance().generate_object(engine_type);
+  engine->set_model_index(_model_index);
   if (!engine) {
     LOG(ERROR) << "Failed generate engine with type:" << engine_type;
     return -1;
@@ -333,7 +348,7 @@ T* VersionedInferEngine::get_core() {
 }
 
 template <typename T>
-T* VersionedInferEngine::get_core(uint64_t version) {
+T* VersionedInferEngine::get_core(const uint64_t version) {
   auto iter = _versions.find(version);
   if (iter == _versions.end()) {
     LOG(ERROR) << "Not found version engine: " << version;
@@ -346,6 +361,15 @@ T* VersionedInferEngine::get_core(uint64_t version) {
   }
   LOG(WARNING) << "fail to get core for " << version;
   return NULL;
+}
+
+CubeCache* VersionedInferEngine::get_cube_cache() {
+  InferEngine* engine = default_engine();
+  if (!engine) {
+    LOG(WARNING) << "fail to get default engine";
+    return nullptr;
+  }
+  return engine->get_cube_cache();
 }
 
 int VersionedInferEngine::proc_initialize_impl(
@@ -362,23 +386,33 @@ int VersionedInferEngine::infer_impl(const void* in,
                                      uint32_t batch_size) {
   return -1;
 }
-int VersionedInferEngine::task_infer_impl(const BatchTensor& in,
-                                          BatchTensor& out) {  // NOLINT
+int VersionedInferEngine::task_infer_impl(const void* in,
+                                          void* out) {  // NOLINT
   return -1;
 }
 
-int InferManager::proc_initialize(const char* path, const char* file) {
+int InferManager::set_taskexecutor_num(size_t total_engine_num) {
+  im::bsf::TaskExecutorVector<TaskT>::instance().resize(total_engine_num);
+  return 0;
+}
+
+int InferManager::proc_initialize(const char* path,
+                                  const char* file,
+                                  std::shared_ptr<int> engine_index_ptr) {
   ModelToolkitConf model_toolkit_conf;
   if (configure::read_proto_conf(path, file, &model_toolkit_conf) != 0) {
     LOG(ERROR) << "failed load infer config, path: " << path << "/" << file;
     return -1;
   }
-  size_t engine_num = model_toolkit_conf.engines_size();
-  for (size_t ei = 0; ei < engine_num; ++ei) {
+  uint32_t engine_num = model_toolkit_conf.engines_size();
+  for (uint32_t ei = 0; ei < engine_num; ++ei) {
     LOG(INFO) << "model_toolkit_conf.engines(" << ei
               << ").name: " << model_toolkit_conf.engines(ei).name();
     std::string engine_name = model_toolkit_conf.engines(ei).name();
     VersionedInferEngine* engine = new (std::nothrow) VersionedInferEngine();
+    int temp_engine_index_ptr = *engine_index_ptr;
+    engine->set_model_index(temp_engine_index_ptr);
+    *engine_index_ptr = temp_engine_index_ptr + 1;
     if (!engine) {
       LOG(ERROR) << "Failed generate versioned engine: " << engine_name;
       return -1;
@@ -480,6 +514,15 @@ T* InferManager::get_core(const char* model_name) {
   return NULL;
 }
 
+CubeCache* InferManager::get_cube_cache(const char* model_name) {
+  auto it = _map.find(model_name);
+  if (it == _map.end()) {
+    LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;
+    return nullptr;
+  }
+  return it->second->get_cube_cache();
+}
+
 // Versioned inference interface
 int InferManager::infer(const char* model_name,
                         const void* in,
@@ -495,7 +538,7 @@ int InferManager::infer(const char* model_name,
 }
 
 template <typename T>
-T* InferManager::get_core(const char* model_name, uint64_t version) {
+T* InferManager::get_core(const char* model_name, const uint64_t version) {
   auto it = _map.find(model_name);
   if (it == _map.end()) {
     LOG(WARNING) << "Cannot find engine in map, model name:" << model_name;

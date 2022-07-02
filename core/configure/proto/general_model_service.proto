@@ -1,0 +1,109 @@
+// Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+package baidu.paddle_serving.predictor.general_model;
+option java_multiple_files = true;
+option cc_generic_services = true;
+
+message Tensor {
+  // VarType: INT64
+  repeated int64 int64_data = 1;
+
+  // VarType: FP32
+  repeated float float_data = 2;
+
+  // VarType: INT32
+  repeated int32 int_data = 3;
+
+  // VarType: FP64
+  repeated double float64_data = 4;
+
+  // VarType: UINT32
+  repeated uint32 uint32_data = 5;
+
+  // VarType: BOOL
+  repeated bool bool_data = 6;
+
+  // (No support)VarType: COMPLEX64, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated float complex64_data = 7;
+
+  // (No support)VarType: COMPLEX128, 2x represents the real part, 2x+1
+  // represents the imaginary part
+  repeated double complex128_data = 8;
+
+  // VarType: STRING
+  repeated string data = 9;
+
+  // Element types:
+  //   0 => INT64
+  //   1 => FP32
+  //   2 => INT32
+  //   3 => FP64
+  //   4 => INT16
+  //   5 => FP16
+  //   6 => BF16
+  //   7 => UINT8
+  //   8 => INT8
+  //   9 => BOOL
+  //  10 => COMPLEX64
+  //  11 => COMPLEX128
+  //  20 => STRING
+  int32 elem_type = 10;
+
+  // Shape of the tensor, including batch dimensions.
+  repeated int32 shape = 11;
+
+  // Level of data(LOD), support variable length data, only for fetch tensor
+  // currently.
+  repeated int32 lod = 12;
+
+  // Correspond to the variable 'name' in the model description prototxt.
+  string name = 13;
+
+  // Correspond to the variable 'alias_name' in the model description prototxt.
+  string alias_name = 14; // get from the Model prototxt
+
+  // VarType: FP16, INT16, INT8, BF16, UINT8
+  bytes tensor_content = 15;
+};
+
+message Request {
+  repeated Tensor tensor = 1;
+  repeated string fetch_var_names = 2;
+  bool profile_server = 3;
+  uint64 log_id = 4;
+};
+
+message Response {
+  repeated ModelOutput outputs = 1;
+  repeated int64 profile_time = 2;
+  bool profile_server = 3;
+  uint64 log_id = 4;
+  // Error code
+  int32 err_no = 5;
+  // Error messages
+  string err_msg = 6;
+};
+
+message ModelOutput {
+  repeated Tensor tensor = 1;
+  string engine_name = 2;
+}
+
+service GeneralModelService {
+  rpc inference(Request) returns (Response);
+  rpc debug(Request) returns (Response);
+};

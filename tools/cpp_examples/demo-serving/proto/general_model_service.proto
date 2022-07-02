@@ -20,18 +20,41 @@ package baidu.paddle_serving.predictor.general_model;
 option cc_generic_services = true;
 
 message Tensor {
-  repeated bytes data = 1;
-  optional int32 elem_type = 2;
-  repeated int32 shape = 3;
+  repeated string data = 1;
+  repeated int32 int_data = 2;
+  repeated int64 int64_data = 3;
+  repeated float float_data = 4;
+  optional int32 elem_type =
+      5; // 0 means int64, 1 means float32, 2 means int32, 3 means string
+  repeated int32 shape = 6;       // shape should include batch
+  repeated int32 lod = 7;         // only for fetch tensor currently
+  optional string name = 8;       // get from the Model prototxt
+  optional string alias_name = 9; // get from the Model prototxt
 };
 
-message FeedInst { repeated Tensor tensor_array = 1; };
+message Request {
+  repeated Tensor tensor = 1;
+  repeated string fetch_var_names = 2;
+  optional bool profile_server = 3 [ default = false ];
+  required uint64 log_id = 4 [ default = 0 ];
+};
 
-message FetchInst { repeated Tensor tensor_array = 1; };
+message Response {
+  repeated ModelOutput outputs = 1;
+  repeated int64 profile_time = 2;
+  bool profile_server = 3;
+  uint64 log_id = 4;
 
-message Request { repeated FeedInst insts = 1; };
+  // Error code
+  int32 err_no = 5;
+  // Error messages
+  string err_msg = 6;
+};
 
-message Response { repeated FetchInst insts = 1; };
+message ModelOutput {
+  repeated Tensor tensor = 1;
+  optional string engine_name = 2;
+}
 
 service GeneralModelService {
   rpc inference(Request) returns (Response);

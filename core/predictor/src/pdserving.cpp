@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #ifdef BCLOUD
 #include <bthread_unstable.h>  // bthread_set_worker_startfn
@@ -37,6 +38,7 @@ using baidu::paddle_serving::predictor::ServerManager;
 using baidu::paddle_serving::predictor::WorkflowManager;
 using baidu::paddle_serving::predictor::InferServiceManager;
 using baidu::paddle_serving::predictor::Resource;
+using baidu::paddle_serving::predictor::PrometheusMetric;
 using baidu::paddle_serving::predictor::FLAGS_workflow_path;
 using baidu::paddle_serving::predictor::FLAGS_workflow_file;
 using baidu::paddle_serving::predictor::FLAGS_inferservice_path;
@@ -47,6 +49,7 @@ using baidu::paddle_serving::predictor::FLAGS_resource_path;
 using baidu::paddle_serving::predictor::FLAGS_resource_file;
 using baidu::paddle_serving::predictor::FLAGS_reload_interval_s;
 using baidu::paddle_serving::predictor::FLAGS_port;
+using baidu::paddle_serving::predictor::FLAGS_enable_prometheus;
 
 using baidu::paddle_serving::configure::InferServiceConf;
 using baidu::paddle_serving::configure::read_proto_conf;
@@ -68,13 +71,14 @@ static bvar::PassiveStatus<std::string> s_predictor_revision(
 DEFINE_bool(V, false, "print version, bool");
 DEFINE_bool(g, false, "user defined gflag path");
 DECLARE_string(flagfile);
-
+/*
 namespace bthread {
 extern pthread_mutex_t g_task_control_mutex;
 }
 pthread_mutex_t g_worker_start_fn_mutex = PTHREAD_MUTEX_INITIALIZER;
-
+*/
 void pthread_worker_start_fn() {
+  /*
   while (pthread_mutex_lock(&g_worker_start_fn_mutex) != 0) {
   }
 
@@ -83,15 +87,18 @@ void pthread_worker_start_fn() {
   if (lock_status == EBUSY || lock_status == EAGAIN) {
     pthread_mutex_unlock(&bthread::g_task_control_mutex);
   }
+  */
   Resource::instance().thread_initialize();
 
   // Try to avoid deadlock in bthread
+  /*
   if (lock_status == EBUSY || lock_status == EAGAIN) {
     while (pthread_mutex_lock(&bthread::g_task_control_mutex) != 0) {
     }
   }
 
   pthread_mutex_unlock(&g_worker_start_fn_mutex);
+  */
 }
 
 static void g_change_server_port() {
@@ -126,19 +133,25 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  //google::ParseCommandLineFlags(&argc, &argv, true);
+  // google::ParseCommandLineFlags(&argc, &argv, true);
 
   g_change_server_port();
+  std::string base_log_path = "";
+  if (const char* serving_log_path = std::getenv("SERVING_LOG_PATH")) {
+     base_log_path = serving_log_path;
+  }
 
 // initialize logger instance
 #ifdef BCLOUD
   logging::LoggingSettings settings;
   settings.logging_dest = logging::LOG_TO_FILE;
-
+  std::string log_dir = base_log_path + "./log/";
   std::string filename(argv[0]);
   filename = filename.substr(filename.find_last_of('/') + 1);
+
+  
   settings.log_file =
-      strdup((std::string("./log/") + filename + ".log").c_str());
+      strdup((std::string(log_dir) + filename + ".log").c_str());
   settings.delete_old = logging::DELETE_OLD_LOG_FILE;
   logging::InitLogging(settings);
 
@@ -148,7 +161,7 @@ int main(int argc, char** argv) {
   logging::ComlogSink::GetInstance()->Setup(&cso);
 #else
   if (FLAGS_log_dir == "") {
-    FLAGS_log_dir = "./log";
+    FLAGS_log_dir = base_log_path + "./log";
   }
 
   struct stat st_buf;
@@ -202,7 +215,7 @@ int main(int argc, char** argv) {
   }
   VLOG(2) << "Succ call pthread worker start function";
 
-  //this is not used by any code segment,which can be cancelled.
+  // this is not used by any code segment,which can be cancelled.
   if (Resource::instance().general_model_initialize(FLAGS_resource_path,
                                                     FLAGS_resource_file) != 0) {
     LOG(ERROR) << "Failed to initialize general model conf: "
@@ -211,6 +224,11 @@ int main(int argc, char** argv) {
   }
 
   VLOG(2) << "Succ initialize general model";
+
+  // enable prometheus
+  if (FLAGS_enable_prometheus) {
+    PrometheusMetric::EnableMetrics();
+  }
 
 #ifndef BCLOUD
   // FATAL messages are output to stderr

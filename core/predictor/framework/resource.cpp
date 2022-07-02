@@ -135,12 +135,25 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 
   if (FLAGS_enable_model_toolkit) {
     size_t model_toolkit_num = resource_conf.model_toolkit_path_size();
+    // 此处暂时认为，每个model_toolkit仅包含一个engine
+    // 故认为 model_toolkit_num == engine总数
+    // 若以后出现model_toolkit仅包含多个engine
+    // 则应先for循环统计engine总数,再set_taskexecutor_num
+    // 切不可动态im::bsf::TaskExecutorVector<TaskT>::instance().resize
+    // TaskExecutor是线程池，内含锁，在engine进程初始化时已开始work加锁循环运行了
+    // 之后再resize内存搬运，会导致work使用原锁，而搬运后的TaskExecutor的锁内存已改变
+    if (InferManager::instance().set_taskexecutor_num(model_toolkit_num) != 0) {
+      LOG(ERROR) << "failed set_taskexecutor_num";
+      return -1;
+    }
+    std::shared_ptr<int> engine_index_ptr(new int(0));
     for (size_t mi = 0; mi < model_toolkit_num; ++mi) {
       std::string model_toolkit_path = resource_conf.model_toolkit_path(mi);
       std::string model_toolkit_file = resource_conf.model_toolkit_file(mi);
 
-      if (InferManager::instance().proc_initialize(
-              model_toolkit_path.c_str(), model_toolkit_file.c_str()) != 0) {
+      if (InferManager::instance().proc_initialize(model_toolkit_path.c_str(),
+                                                   model_toolkit_file.c_str(),
+                                                   engine_index_ptr) != 0) {
         LOG(ERROR) << "failed proc initialize modeltoolkit, config: "
                    << model_toolkit_path << "/" << model_toolkit_file;
         return -1;
@@ -163,18 +176,18 @@ int Resource::initialize(const std::string& path, const std::string& file) {
     rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
     std::string cube_config_fullpath = "./" + resource_conf.cube_config_path() +
                                        "/" + resource_conf.cube_config_file();
-    this->cube_config_fullpath = cube_config_fullpath;
-    this->cube_quant_bits = resource_conf.has_cube_quant_bits()
-                                ? resource_conf.cube_quant_bits()
-                                : 0;
-    if (this->cube_quant_bits != 0 && this->cube_quant_bits != 8) {
+    this->_cube_config_fullpath = cube_config_fullpath;
+    this->_cube_quant_bits = resource_conf.has_cube_quant_bits()
+                                 ? resource_conf.cube_quant_bits()
+                                 : 0;
+    if (this->_cube_quant_bits != 0 && this->_cube_quant_bits != 8) {
       LOG(ERROR) << "Cube quant bits illegal! should be 0 or 8.";
       return -1;
     }
-    if (this->cube_quant_bits == 0) {
+    if (this->_cube_quant_bits == 0) {
       LOG(INFO) << "cube quant mode OFF";
     } else {
-      LOG(INFO) << "cube quant mode ON, quant bits: " << this->cube_quant_bits;
+      LOG(INFO) << "cube quant mode ON, quant bits: " << this->_cube_quant_bits;
     }
   }
 
@@ -185,10 +198,10 @@ int Resource::initialize(const std::string& path, const std::string& file) {
 // model config
 int Resource::general_model_initialize(const std::string& path,
                                        const std::string& file) {
-  if (this->cube_config_fullpath.size() != 0) {
-    LOG(INFO) << "init cube by config file : " << this->cube_config_fullpath;
+  if (this->_cube_config_fullpath.size() != 0) {
+    LOG(INFO) << "init cube by config file : " << this->_cube_config_fullpath;
     rec::mcube::CubeAPI* cube = rec::mcube::CubeAPI::instance();
-    int ret = cube->init(this->cube_config_fullpath.c_str());
+    int ret = cube->init(this->_cube_config_fullpath.c_str());
     if (ret != 0) {
       LOG(ERROR) << "cube init error";
       return -1;
@@ -313,7 +326,7 @@ int Resource::thread_clear() {
   }
   return 0;
 }
-size_t Resource::get_cube_quant_bits() { return this->cube_quant_bits; }
+size_t Resource::get_cube_quant_bits() { return this->_cube_quant_bits; }
 
 int Resource::reload() {
   if (FLAGS_enable_model_toolkit && InferManager::instance().reload() != 0) {

@@ -60,6 +60,9 @@
 #include "core/predictor/common/types.h"
 #include "core/predictor/common/utils.h"
 
+#include "core/predictor/framework/prometheus_metric.h"
+#include "core/predictor/framework/request_cache.h"
+
 #ifdef BCLOUD
 namespace brpc = baidu::rpc;
 namespace butil = base;

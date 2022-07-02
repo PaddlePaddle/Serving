@@ -63,7 +63,7 @@ class GeneralDetectionOp
 
     double det_db_thresh_ = 0.3;
     double det_db_box_thresh_ = 0.5;
-    double det_db_unclip_ratio_ = 2.0;
+    double det_db_unclip_ratio_ = 1.5;
 
     std::vector<float> mean_det = {0.485f, 0.456f, 0.406f};
     std::vector<float> scale_det = {1 / 0.229f, 1 / 0.224f, 1 / 0.225f};

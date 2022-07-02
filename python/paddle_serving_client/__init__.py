@@ -16,5 +16,6 @@
 from . import version
 from . import client
 from .client import *
+from .httpclient import *
 
 __version__ = version.version_tag

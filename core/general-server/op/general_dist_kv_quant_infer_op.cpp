@@ -35,7 +35,6 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
@@ -117,9 +116,6 @@ int GeneralDistKVQuantInferOp::inference() {
   std::unordered_map<int, int> in_out_map;
   baidu::paddle_serving::predictor::Resource &resource =
       baidu::paddle_serving::predictor::Resource::instance();
-  //TODO:Temporary addition, specific details to be studied by HexToString
-  std::shared_ptr<PaddleGeneralModelConfig> model_config =
-      resource.get_general_model_config()[0];
   int cube_quant_bits = resource.get_cube_quant_bits();
   size_t EMBEDDING_SIZE = 0;
   if (cube_quant_bits == 0) {
@@ -146,7 +142,7 @@ int GeneralDistKVQuantInferOp::inference() {
     sparse_out[sparse_idx].shape.push_back(
         sparse_out[sparse_idx].lod[0].back());
     sparse_out[sparse_idx].shape.push_back(EMBEDDING_SIZE);
-    sparse_out[sparse_idx].name = model_config->_feed_name[i];
+    sparse_out[sparse_idx].name = in->at(i).name;
     sparse_out[sparse_idx].data.Resize(sparse_out[sparse_idx].lod[0].back() *
                                        EMBEDDING_SIZE * sizeof(float));
     // END HERE

@@ -19,25 +19,6 @@ namespace baidu {
 namespace paddle_serving {
 namespace predictor {
 
-struct MempoolRegion {
-  MempoolRegion(im::fugue::memory::Region* region, im::Mempool* mempool)
-      : _region(region), _mempool(mempool) {}
-  im::fugue::memory::Region* region() { return _region; }
-  im::Mempool* mempool() { return _mempool; }
-
-  im::fugue::memory::Region* _region;
-  im::Mempool* _mempool;
-  ~MempoolRegion() {
-    if (_region) {
-      delete _region;
-      _region = NULL;
-    }
-    if (_mempool) {
-      delete _mempool;
-      _mempool = NULL;
-    }
-  }
-};
 
 int MempoolWrapper::initialize() {
   if (THREAD_KEY_CREATE(&_bspec_key, NULL) != 0) {
@@ -105,6 +86,45 @@ void* MempoolWrapper::malloc(size_t size) {
     return NULL;
   }
   return mempool->malloc(size);
+}
+
+void* MempoolWrapper::malloc(size_t size, MempoolRegion* my_mempool_region) {
+  MempoolRegion* mempool_region = my_mempool_region;
+  if (mempool_region == NULL) {
+    LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
+    return NULL;
+  }
+
+  im::Mempool* mempool = mempool_region->mempool();
+  if (!mempool) {
+    LOG(WARNING) << "Cannot malloc memory:" << size
+                 << ", since mempool is not thread initialized";
+    return NULL;
+  }
+  return mempool->malloc(size);
+}
+
+MempoolRegion* MempoolWrapper::get_thread_memory_ptr(){
+  MempoolRegion* mempool_region =
+      (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  return mempool_region;
+}
+
+void MempoolWrapper::free(void* p, size_t size) {
+  MempoolRegion* mempool_region =
+      (MempoolRegion*)THREAD_GETSPECIFIC(_bspec_key);
+  if (mempool_region == NULL) {
+    LOG(WARNING) << "THREAD_GETSPECIFIC() returned NULL";
+    return;
+  }
+
+  im::Mempool* mempool = mempool_region->mempool();
+  if (!mempool) {
+    LOG(WARNING) << "Cannot free memory:" << size
+                 << ", since mempool is not thread initialized";
+    return;
+  }
+  return mempool->free(p, size);
 }
 
 }  // namespace predictor

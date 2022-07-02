@@ -36,7 +36,6 @@ using baidu::paddle_serving::predictor::MempoolWrapper;
 using baidu::paddle_serving::predictor::general_model::Tensor;
 using baidu::paddle_serving::predictor::general_model::Response;
 using baidu::paddle_serving::predictor::general_model::Request;
-using baidu::paddle_serving::predictor::general_model::FetchInst;
 using baidu::paddle_serving::predictor::InferManager;
 using baidu::paddle_serving::predictor::PaddleGeneralModelConfig;
 
@@ -192,42 +191,64 @@ int GeneralDetectionOp::inference() {
 
     boxes = post_processor_.FilterTagDetRes(boxes, ratio_h, ratio_w, srcimg);
 
-    for (int i = boxes.size() - 1; i >= 0; i--) {
-      crop_img = GetRotateCropImage(img, boxes[i]);
+    float max_wh_ratio = 0.0f;
+    std::vector<cv::Mat> crop_imgs;
+    std::vector<cv::Mat> resize_imgs;
+    int max_resize_w = 0;
+    int max_resize_h = 0;
+    int box_num = boxes.size();
+    std::vector<std::vector<float>> output_rec;
+    for (int i = 0; i < box_num; ++i) {
+      cv::Mat line_img = GetRotateCropImage(img, boxes[i]);
+      float wh_ratio = float(line_img.cols) / float(line_img.rows);
+      max_wh_ratio = max_wh_ratio > wh_ratio ? max_wh_ratio : wh_ratio;
+      crop_imgs.push_back(line_img);
+    }
 
-      float wh_ratio = float(crop_img.cols) / float(crop_img.rows);
-
+    for (int i = 0; i < box_num; ++i) {
+      cv::Mat resize_img;
+      crop_img = crop_imgs[i];
       this->resize_op_rec.Run(
-          crop_img, resize_img_rec, wh_ratio, this->use_tensorrt_);
+          crop_img, resize_img, max_wh_ratio, this->use_tensorrt_);
 
       this->normalize_op_.Run(
-          &resize_img_rec, this->mean_rec, this->scale_rec, this->is_scale_);
+          &resize_img, this->mean_rec, this->scale_rec, this->is_scale_);
 
-      std::vector<float> output_rec(
-          1 * 3 * resize_img_rec.rows * resize_img_rec.cols, 0.0f);
-
-      this->permute_op_.Run(&resize_img_rec, output_rec.data());
-
-      // Inference.
-      output_shape = {1, 3, resize_img_rec.rows, resize_img_rec.cols};
-      out_num = std::accumulate(
-          output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
-      databuf_size_out = out_num * sizeof(float);
-      databuf_data_out = MempoolWrapper::instance().malloc(databuf_size_out);
-      if (!databuf_data_out) {
-        LOG(ERROR) << "Malloc failed, size: " << databuf_size_out;
-        return -1;
-      }
-      memcpy(databuf_data_out, output_rec.data(), databuf_size_out);
-      databuf_char_out = reinterpret_cast<char*>(databuf_data_out);
-      paddle::PaddleBuf paddleBuf(databuf_char_out, databuf_size_out);
-      paddle::PaddleTensor tensor_out;
-      tensor_out.name = "image";
-      tensor_out.dtype = paddle::PaddleDType::FLOAT32;
-      tensor_out.shape = {1, 3, resize_img_rec.rows, resize_img_rec.cols};
-      tensor_out.data = paddleBuf;
-      out->push_back(tensor_out);
+      max_resize_w = std::max(max_resize_w, resize_img.cols);
+      max_resize_h = std::max(max_resize_h, resize_img.rows);
+      resize_imgs.push_back(resize_img);
     }
+    int buf_size = 3 * max_resize_h * max_resize_w;
+    output_rec = std::vector<std::vector<float>>(box_num,
+                     std::vector<float>(buf_size, 0.0f));
+    for (int i = 0; i < box_num; ++i) {
+      resize_img_rec = resize_imgs[i];
+
+      this->permute_op_.Run(&resize_img_rec, output_rec[i].data());
+    }
+
+    // Inference.
+    output_shape = {box_num, 3, max_resize_h, max_resize_w};
+    out_num = std::accumulate(
+        output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
+    databuf_size_out = out_num * sizeof(float);
+    databuf_data_out = MempoolWrapper::instance().malloc(databuf_size_out);
+    if (!databuf_data_out) {
+      LOG(ERROR) << "Malloc failed, size: " << databuf_size_out;
+      return -1;
+    }
+    int offset = buf_size * sizeof(float);
+    for (int i = 0; i < box_num; ++i) {
+      memcpy(databuf_data_out + i * offset, output_rec[i].data(), offset);
+    }
+    databuf_char_out = reinterpret_cast<char*>(databuf_data_out);
+    paddle::PaddleBuf paddleBuf(databuf_char_out, databuf_size_out);
+    paddle::PaddleTensor tensor_out;
+    tensor_out.name = "x";
+    tensor_out.dtype = paddle::PaddleDType::FLOAT32;
+    tensor_out.shape = output_shape;
+    tensor_out.data = paddleBuf;
+    out->push_back(tensor_out);
   }
   out->erase(out->begin(), out->begin() + infer_outnum);
 

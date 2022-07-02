@@ -24,8 +24,11 @@ class SectionLevelFilter(object):
     def filter(self, logRecord):
         return logRecord.levelno in self._levels
 
-
 log_dir = "PipelineServingLogs"
+if 'SERVING_LOG_PATH' in os.environ:
+    serving_log_path = os.environ['SERVING_LOG_PATH']
+    log_dir = os.path.join(serving_log_path, log_dir)
+
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -42,22 +45,28 @@ logger_config = {
     },
     "handlers": {
         "f_pipeline.log": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "INFO",
             "formatter": "normal_fmt",
             "filename": os.path.join(log_dir, "pipeline.log"),
+            "maxBytes": 512000000,
+            "backupCount": 20,
         },
         "f_pipeline.log.wf": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "WARNING",
             "formatter": "normal_fmt",
             "filename": os.path.join(log_dir, "pipeline.log.wf"),
+            "maxBytes": 512000000,
+            "backupCount": 10,
         },
         "f_tracer.log": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "level": "INFO",
             "formatter": "tracer_fmt",
             "filename": os.path.join(log_dir, "pipeline.tracer"),
+            "maxBytes": 512000000,
+            "backupCount": 5,
         },
     },
     "loggers": {

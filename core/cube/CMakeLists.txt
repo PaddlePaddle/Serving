@@ -11,10 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
-#execute_process(COMMAND go env -w GO111MODULE=off)
 add_subdirectory(cube-server)
 add_subdirectory(cube-api)
 add_subdirectory(cube-builder)
-#add_subdirectory(cube-transfer)
-#add_subdirectory(cube-agent)
+add_subdirectory(cube-transfer)
+add_subdirectory(cube-agent)

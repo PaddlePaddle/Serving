@@ -25,24 +25,27 @@ import base64
 import time
 import sys
 
-import grpc
-from .proto import multi_lang_general_model_service_pb2
 sys.path.append(
     os.path.join(os.path.abspath(os.path.dirname(__file__)), 'proto'))
-from .proto import multi_lang_general_model_service_pb2_grpc
 
 #param 'type'(which is in feed_var or fetch_var) = 0 means dataType is int64
 #param 'type'(which is in feed_var or fetch_var) = 1 means dataType is float32
 #param 'type'(which is in feed_var or fetch_var) = 2 means dataType is int32
-#param 'type'(which is in feed_var or fetch_var) = 3 means dataType is string(also called bytes in proto)
+#param 'type'(which is in feed_var or fetch_var) = 5 means dataType is float16
+#param 'type'(which is in feed_var or fetch_var) = 7 means dataType is uint8
+#param 'type'(which is in feed_var or fetch_var) = 8 means dataType is int8
+#param 'type'(which is in feed_var or fetch_var) = 20 means dataType is string(also called bytes in proto)
 int64_type = 0
 float32_type = 1
 int32_type = 2
-bytes_type = 3
+float16_type = 5
+uint8_type = 7
+int8_type = 8
+bytes_type = 20
 #int_type,float_type,string_type are the set of each subdivision classes.
 int_type = set([int64_type, int32_type])
 float_type = set([float32_type])
-string_type = set([bytes_type])
+string_type = set([bytes_type, float16_type, uint8_type, int8_type])
 
 
 class _NOPProfiler(object):
@@ -79,7 +82,7 @@ class SDKConfig(object):
         self.tag_list = []
         self.cluster_list = []
         self.variant_weight_list = []
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         self.load_balance_strategy = "la"
 
     def add_server_variant(self, tag, cluster, variant_weight):
@@ -142,7 +145,7 @@ class Client(object):
         self.profile_ = _Profiler()
         self.all_numpy_input = True
         self.has_numpy_input = False
-        self.rpc_timeout_ms = 20000
+        self.rpc_timeout_ms = 200000
         from .serving_client import PredictorRes
         self.predictorres_constructor = PredictorRes
 
@@ -292,130 +295,150 @@ class Client(object):
                 log_id=0):
         self.profile_.record('py_prepro_0')
 
-        if feed is None or fetch is None:
-            raise ValueError("You should specify feed and fetch for prediction")
+        # fetch 可以为空，此时会取所有的输出结果
+        if feed is None:
+            raise ValueError("You should specify feed for prediction")
 
         fetch_list = []
         if isinstance(fetch, str):
             fetch_list = [fetch]
         elif isinstance(fetch, list):
             fetch_list = fetch
+        # fetch 可以为空，此时会取所有的输出结果
+        elif fetch == None:
+            pass
         else:
-            raise ValueError("Fetch only accepts string and list of string")
+            raise ValueError("Fetch only accepts string or list of string")
 
         feed_batch = []
         if isinstance(feed, dict):
             feed_batch.append(feed)
         elif isinstance(feed, list):
-            feed_batch = feed
+            # feed = [dict]
+            if len(feed) == 1 and isinstance(feed[0], dict):
+                feed_batch = feed
+            else:
+                # if input is a list and the number of feed_var is 1.
+                # create a temp_dict { key = feed_var_name, value = list}
+                # put the temp_dict into the feed_batch.
+                if len(self.feed_names_) != 1:
+                    raise ValueError(
+                        "input is a list, but we got 0 or 2+ feed_var, don`t know how to divide the feed list"
+                    )
+                temp_dict = {}
+                temp_dict[self.feed_names_[0]] = feed
+                feed_batch.append(temp_dict)
         else:
             raise ValueError("Feed only accepts dict and list of dict")
 
-        int_slot_batch = []
-        int_feed_names = []
-        int_shape = []
-        int_lod_slot_batch = []
-        float_slot_batch = []
+        # batch_size must be 1, cause batch is already in Tensor.
+        if len(feed_batch) != 1:
+            raise ValueError("len of feed_batch can only be 1.")
+
+        int32_slot = []
+        int32_feed_names = []
+        int32_shape = []
+        int32_lod_slot_batch = []
+
+        int64_slot = []
+        int64_feed_names = []
+        int64_shape = []
+        int64_lod_slot_batch = []
+
+        float_slot = []
         float_feed_names = []
         float_lod_slot_batch = []
         float_shape = []
-        string_slot_batch = []
+
+        string_slot = []
         string_feed_names = []
         string_lod_slot_batch = []
         string_shape = []
-
         fetch_names = []
-        counter = 0
-        batch_size = len(feed_batch)
 
         for key in fetch_list:
             if key in self.fetch_names_:
                 fetch_names.append(key)
 
-        if len(fetch_names) == 0:
-            raise ValueError(
-                "Fetch names should not be empty or out of saved fetch list.")
-            return {}
+        feed_dict = feed_batch[0]
+        for key in feed_dict:
+            if ".lod" not in key and key not in self.feed_names_:
+                raise ValueError("Wrong feed name: {}.".format(key))
+            if ".lod" in key:
+                continue
 
-        for i, feed_i in enumerate(feed_batch):
-            int_slot = []
-            int_lod_slot = []
-            float_slot = []
-            float_lod_slot = []
-            string_slot = []
-            string_lod_slot = []
-            for key in feed_i:
-                if ".lod" not in key and key not in self.feed_names_:
-                    raise ValueError("Wrong feed name: {}.".format(key))
-                if ".lod" in key:
-                    continue
-                #if not isinstance(feed_i[key], np.ndarray):
-                self.shape_check(feed_i, key)
-                if self.feed_types_[key] in int_type:
-                    if i == 0:
-                        int_feed_names.append(key)
-                        shape_lst = []
-                        if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis, :]
-                        if isinstance(feed_i[key], np.ndarray):
-                            shape_lst.extend(list(feed_i[key].shape))
-                            int_shape.append(shape_lst)
-                        else:
-                            int_shape.append(self.feed_shapes_[key])
-                        if "{}.lod".format(key) in feed_i:
-                            int_lod_slot_batch.append(feed_i["{}.lod".format(
-                                key)])
-                        else:
-                            int_lod_slot_batch.append([])
-
-                    if isinstance(feed_i[key], np.ndarray):
-                        int_slot.append(feed_i[key])
+            self.shape_check(feed_dict, key)
+            if self.feed_types_[key] in int_type:
+                shape_lst = []
+                if batch == False:
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
+                        1, axis=0)
+                # verify different input int_type
+                if(self.feed_types_[key] == int64_type):
+                    int64_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int64_shape.append(shape_lst)
                         self.has_numpy_input = True
                     else:
-                        int_slot.append(feed_i[key])
+                        int64_shape.append(self.feed_shapes_[key])
                         self.all_numpy_input = False
-
-                elif self.feed_types_[key] in float_type:
-                    if i == 0:
-                        float_feed_names.append(key)
-                        shape_lst = []
-                        if batch == False:
-                            feed_i[key] = feed_i[key][np.newaxis, :]
-                        if isinstance(feed_i[key], np.ndarray):
-                            shape_lst.extend(list(feed_i[key].shape))
-                            float_shape.append(shape_lst)
-                        else:
-                            float_shape.append(self.feed_shapes_[key])
-                        if "{}.lod".format(key) in feed_i:
-                            float_lod_slot_batch.append(feed_i["{}.lod".format(
-                                key)])
-                        else:
-                            float_lod_slot_batch.append([])
-
-                    if isinstance(feed_i[key], np.ndarray):
-                        float_slot.append(feed_i[key])
+                    if "{}.lod".format(key) in feed_dict:
+                        int64_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int64_lod_slot_batch.append([])
+                    int64_slot.append(np.ascontiguousarray(feed_dict[key]))
+                else:
+                    int32_feed_names.append(key)
+                    if isinstance(feed_dict[key], np.ndarray):
+                        shape_lst.extend(list(feed_dict[key].shape))
+                        int32_shape.append(shape_lst)
                         self.has_numpy_input = True
                     else:
-                        float_slot.append(feed_i[key])
+                        int32_shape.append(self.feed_shapes_[key])
                         self.all_numpy_input = False
-                #if input is string, feed is not numpy.
-                elif self.feed_types_[key] in string_type:
-                    if i == 0:
-                        string_feed_names.append(key)
-                        string_shape.append(self.feed_shapes_[key])
-                        if "{}.lod".format(key) in feed_i:
-                            string_lod_slot_batch.append(feed_i["{}.lod".format(
-                                key)])
-                        else:
-                            string_lod_slot_batch.append([])
-                    string_slot.append(feed_i[key])
+                    if "{}.lod".format(key) in feed_dict:
+                        int32_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                    else:
+                        int32_lod_slot_batch.append([])
+                    int32_slot.append(np.ascontiguousarray(feed_dict[key]))
+
+            elif self.feed_types_[key] in float_type:
+                float_feed_names.append(key)
+                shape_lst = []
+                if batch == False:
+                    feed_dict[key] = np.expand_dims(feed_dict[key], 0).repeat(
+                        1, axis=0)
+                if isinstance(feed_dict[key], np.ndarray):
+                    shape_lst.extend(list(feed_dict[key].shape))
+                    float_shape.append(shape_lst)
+                else:
+                    float_shape.append(self.feed_shapes_[key])
+                if "{}.lod".format(key) in feed_dict:
+                    float_lod_slot_batch.append(feed_dict["{}.lod".format(key)])
+                else:
+                    float_lod_slot_batch.append([])
+
+                if isinstance(feed_dict[key], np.ndarray):
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
                     self.has_numpy_input = True
-            int_slot_batch.append(int_slot)
-            int_lod_slot_batch.append(int_lod_slot)
-            float_slot_batch.append(float_slot)
-            float_lod_slot_batch.append(float_lod_slot)
-            string_slot_batch.append(string_slot)
-            string_lod_slot_batch.append(string_lod_slot)
+                else:
+                    float_slot.append(np.ascontiguousarray(feed_dict[key]))
+                    self.all_numpy_input = False
+            #if input is string, feed is not numpy.
+            elif self.feed_types_[key] in string_type:
+                string_feed_names.append(key)
+                string_shape.append(self.feed_shapes_[key])
+                if "{}.lod".format(key) in feed_dict:
+                    string_lod_slot_batch.append(feed_dict["{}.lod".format(
+                        key)])
+                else:
+                    string_lod_slot_batch.append([])
+                if type(feed_dict[key]) is np.ndarray:
+                    string_slot.append(feed_dict[key].tostring())
+                else:
+                    string_slot.append(feed_dict[key])
+                self.has_numpy_input = True
 
         self.profile_.record('py_prepro_1')
         self.profile_.record('py_client_infer_0')
@@ -423,11 +446,12 @@ class Client(object):
         result_batch_handle = self.predictorres_constructor()
         if self.all_numpy_input:
             res = self.client_handle_.numpy_predict(
-                float_slot_batch, float_feed_names, float_shape,
-                float_lod_slot_batch, int_slot_batch, int_feed_names, int_shape,
-                int_lod_slot_batch, string_slot_batch, string_feed_names,
-                string_shape, string_lod_slot_batch, fetch_names,
-                result_batch_handle, self.pid, log_id)
+                float_slot, float_feed_names, float_shape, float_lod_slot_batch,
+                int32_slot, int32_feed_names, int32_shape, int32_lod_slot_batch,
+                int64_slot, int64_feed_names, int64_shape, int64_lod_slot_batch,
+                string_slot, string_feed_names, string_shape,
+                string_lod_slot_batch, fetch_names, result_batch_handle,
+                self.pid, log_id)
         elif self.has_numpy_input == False:
             raise ValueError(
                 "Please make sure all of your inputs are numpy array")
@@ -446,6 +470,9 @@ class Client(object):
         model_engine_names = result_batch_handle.get_engine_names()
         for mi, engine_name in enumerate(model_engine_names):
             result_map = {}
+            # fetch 为空，则会取所有的输出结果
+            if len(fetch_names) == 0:
+                fetch_names = result_batch_handle.get_tensor_alias_names(mi)
             # result map needs to be a numpy array
             for i, name in enumerate(fetch_names):
                 if self.fetch_names_to_type_[name] == int64_type:
@@ -492,6 +519,54 @@ class Client(object):
                         tmp_lod = result_batch_handle.get_lod(mi, name)
                         if np.size(tmp_lod) > 0:
                             result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == uint8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.uint8)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == int8_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.int8)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
+                elif self.fetch_names_to_type_[name] == float16_type:
+                    # result_map[name] will be py::array(numpy array)
+                    tmp_str = result_batch_handle.get_string_by_name(
+                        mi, name)
+                    result_map[name] = np.fromstring(tmp_str, dtype = np.float16)
+                    if result_map[name].size == 0:
+                        raise ValueError(
+                            "Failed to fetch, maybe the type of [{}]"
+                            " is wrong, please check the model file".format(
+                                name))
+                    shape = result_batch_handle.get_shape(mi, name)
+                    result_map[name].shape = shape
+                    if name in self.lod_tensor_set:
+                        tmp_lod = result_batch_handle.get_lod(mi, name)
+                        if np.size(tmp_lod) > 0:
+                            result_map["{}.lod".format(name)] = tmp_lod
             multi_result_map.append(result_map)
         ret = None
         if len(model_engine_names) == 1:
@@ -515,242 +590,3 @@ class Client(object):
     def release(self):
         self.client_handle_.destroy_predictor()
         self.client_handle_ = None
-
-
-class MultiLangClient(object):
-    def __init__(self):
-        self.channel_ = None
-        self.stub_ = None
-        self.rpc_timeout_s_ = 2
-        self.profile_ = _Profiler()
-
-    def add_variant(self, tag, cluster, variant_weight):
-        # TODO
-        raise Exception("cannot support ABtest yet")
-
-    def set_rpc_timeout_ms(self, rpc_timeout):
-        if self.stub_ is None:
-            raise Exception("set timeout must be set after connect.")
-        if not isinstance(rpc_timeout, int):
-            # for bclient
-            raise ValueError("rpc_timeout must be int type.")
-        self.rpc_timeout_s_ = rpc_timeout / 1000.0
-        timeout_req = multi_lang_general_model_service_pb2.SetTimeoutRequest()
-        timeout_req.timeout_ms = rpc_timeout
-        resp = self.stub_.SetTimeout(timeout_req)
-        return resp.err_code == 0
-
-    def connect(self, endpoints):
-        # https://github.com/tensorflow/serving/issues/1382
-        options = [('grpc.max_receive_message_length', 512 * 1024 * 1024),
-                   ('grpc.max_send_message_length', 512 * 1024 * 1024),
-                   ('grpc.lb_policy_name', 'round_robin')]
-        # TODO: weight round robin
-        g_endpoint = 'ipv4:{}'.format(','.join(endpoints))
-        self.channel_ = grpc.insecure_channel(g_endpoint, options=options)
-        self.stub_ = multi_lang_general_model_service_pb2_grpc.MultiLangGeneralModelServiceStub(
-            self.channel_)
-        # get client model config
-        get_client_config_req = multi_lang_general_model_service_pb2.GetClientConfigRequest(
-        )
-        resp = self.stub_.GetClientConfig(get_client_config_req)
-        model_config_str = resp.client_config_str
-        self._parse_model_config(model_config_str)
-
-    def _flatten_list(self, nested_list):
-        for item in nested_list:
-            if isinstance(item, (list, tuple)):
-                for sub_item in self._flatten_list(item):
-                    yield sub_item
-            else:
-                yield item
-
-    def _parse_model_config(self, model_config_str):
-        model_conf = m_config.GeneralModelConfig()
-        model_conf = google.protobuf.text_format.Merge(model_config_str,
-                                                       model_conf)
-        self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
-        self.feed_types_ = {}
-        self.feed_shapes_ = {}
-        self.lod_tensor_set_ = set()
-        for i, var in enumerate(model_conf.feed_var):
-            self.feed_types_[var.alias_name] = var.feed_type
-            self.feed_shapes_[var.alias_name] = var.shape
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-        self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
-        self.fetch_types_ = {}
-        for i, var in enumerate(model_conf.fetch_var):
-            self.fetch_types_[var.alias_name] = var.fetch_type
-            if var.is_lod_tensor:
-                self.lod_tensor_set_.add(var.alias_name)
-
-    def _pack_inference_request(self, feed, fetch, is_python, log_id):
-        req = multi_lang_general_model_service_pb2.InferenceRequest()
-        req.fetch_var_names.extend(fetch)
-        req.is_python = is_python
-        req.log_id = log_id
-        feed_var_names = []
-        for key in feed.keys():
-            if '.lod' not in key:
-                feed_var_names.append(key)
-        req.feed_var_names.extend(feed_var_names)
-        inst = multi_lang_general_model_service_pb2.FeedInst()
-        for name in req.feed_var_names:
-            tensor = multi_lang_general_model_service_pb2.Tensor()
-            var = feed[name]
-            v_type = self.feed_types_[name]
-            if is_python:
-                data = None
-                if isinstance(var, list):
-                    if v_type == 0:  # int64
-                        data = np.array(var, dtype="int64")
-                    elif v_type == 1:  # float32
-                        data = np.array(var, dtype="float32")
-                    elif v_type == 2:  # int32
-                        data = np.array(var, dtype="int32")
-                    else:
-                        raise Exception("error tensor value type.")
-                elif isinstance(var, np.ndarray):
-                    data = var
-                    if v_type == 0:
-                        if data.dtype != 'int64':
-                            data = data.astype("int64")
-                    elif v_type == 1:
-                        if data.dtype != 'float32':
-                            data = data.astype("float32")
-                    elif v_type == 2:
-                        if data.dtype != 'int32':
-                            data = data.astype("int32")
-                    else:
-                        raise Exception("error tensor value type.")
-                else:
-                    raise Exception("var must be list or ndarray.")
-                tensor.data = data.tobytes()
-            tensor.shape.extend(list(var.shape))
-            if "{}.lod".format(name) in feed.keys():
-                tensor.lod.extend(feed["{}.lod".format(name)])
-            inst.tensor_array.append(tensor)
-        req.insts.append(inst)
-        return req
-
-    def _unpack_inference_response(self, resp, fetch, is_python,
-                                   need_variant_tag):
-        if resp.err_code != 0:
-            return None
-        tag = resp.tag
-        multi_result_map = {}
-        for model_result in resp.outputs:
-            inst = model_result.insts[0]
-            result_map = {}
-            for i, name in enumerate(fetch):
-                var = inst.tensor_array[i]
-                v_type = self.fetch_types_[name]
-                if is_python:
-                    if v_type == 0:  # int64
-                        result_map[name] = np.frombuffer(
-                            var.data, dtype="int64")
-                    elif v_type == 1:  # float32
-                        result_map[name] = np.frombuffer(
-                            var.data, dtype="float32")
-                    else:
-                        raise Exception("error type.")
-                else:
-                    if v_type == 0:  # int64
-                        result_map[name] = np.array(
-                            list(var.int64_data), dtype="int64")
-                    elif v_type == 1:  # float32
-                        result_map[name] = np.array(
-                            list(var.float_data), dtype="float32")
-                    else:
-                        raise Exception("error type.")
-                result_map[name].shape = list(var.shape)
-                if name in self.lod_tensor_set_:
-                    result_map["{}.lod".format(name)] = np.array(list(var.lod))
-            multi_result_map[model_result.engine_name] = result_map
-        ret = None
-        if len(resp.outputs) == 1:
-            ret = list(multi_result_map.values())[0]
-        else:
-            ret = multi_result_map
-
-        ret["serving_status_code"] = 0
-        return ret if not need_variant_tag else [ret, tag]
-
-    def _done_callback_func(self, fetch, is_python, need_variant_tag):
-        def unpack_resp(resp):
-            return self._unpack_inference_response(resp, fetch, is_python,
-                                                   need_variant_tag)
-
-        return unpack_resp
-
-    def get_feed_names(self):
-        return self.feed_names_
-
-    def predict(self,
-                feed,
-                fetch,
-                batch=True,
-                need_variant_tag=False,
-                asyn=False,
-                is_python=True,
-                log_id=0):
-        if isinstance(feed, dict) is False:
-            raise ValueError("Type Error. grpc feed must be dict.")
-        if batch is False:
-            for key in feed:
-                if ".lod" not in key:
-                    feed[key] = feed[key][np.newaxis, :]
-        if not asyn:
-            try:
-                self.profile_.record('py_prepro_0')
-                req = self._pack_inference_request(
-                    feed, fetch, is_python=is_python, log_id=log_id)
-                self.profile_.record('py_prepro_1')
-
-                self.profile_.record('py_client_infer_0')
-                resp = self.stub_.Inference(req, timeout=self.rpc_timeout_s_)
-                self.profile_.record('py_client_infer_1')
-
-                self.profile_.record('py_postpro_0')
-                ret = self._unpack_inference_response(
-                    resp,
-                    fetch,
-                    is_python=is_python,
-                    need_variant_tag=need_variant_tag)
-                self.profile_.record('py_postpro_1')
-                self.profile_.print_profile()
-                return ret
-            except grpc.RpcError as e:
-                return {"serving_status_code": e.code()}
-        else:
-            req = self._pack_inference_request(
-                feed, fetch, is_python=is_python, log_id=log_id)
-            call_future = self.stub_.Inference.future(
-                req, timeout=self.rpc_timeout_s_)
-            return MultiLangPredictFuture(
-                call_future,
-                self._done_callback_func(
-                    fetch,
-                    is_python=is_python,
-                    need_variant_tag=need_variant_tag))
-
-
-class MultiLangPredictFuture(object):
-    def __init__(self, call_future, callback_func):
-        self.call_future_ = call_future
-        self.callback_func_ = callback_func
-
-    def result(self):
-        try:
-            resp = self.call_future_.result()
-        except grpc.RpcError as e:
-            return {"serving_status_code": e.code()}
-        return self.callback_func_(resp)
-
-    def add_done_callback(self, fn):
-        def __fn__(call_future):
-            assert call_future == self.call_future_
-            fn(self)
-
-        self.call_future_.add_done_callback(__fn__)

@@ -1,26 +1,46 @@
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from .proto import server_configure_pb2 as server_sdk
 import google.protobuf.text_format
 import collections
 
+
 class OpMaker(object):
     def __init__(self):
-        self.op_dict = {
-            "general_infer": "GeneralInferOp",
-            "general_reader": "GeneralReaderOp",
-            "general_response": "GeneralResponseOp",
-            "general_text_reader": "GeneralTextReaderOp",
-            "general_text_response": "GeneralTextResponseOp",
-            "general_single_kv": "GeneralSingleKVOp",
-            "general_dist_kv_infer": "GeneralDistKVInferOp",
-            "general_dist_kv": "GeneralDistKVOp",
-            "general_copy": "GeneralCopyOp",
-            "general_detection":"GeneralDetectionOp",
-        }
+        self.op_list = [
+            "GeneralInferOp",
+            "GeneralReaderOp",
+            "GeneralResponseOp",
+            "GeneralTextReaderOp",
+            "GeneralTextResponseOp",
+            "GeneralSingleKVOp",
+            "GeneralDistKVInferOp",
+            "GeneralDistKVOp",
+            "GeneralCopyOp",
+            "GeneralDetectionOp",
+            "GeneralRemoteOp",
+        ]
         self.node_name_suffix_ = collections.defaultdict(int)
 
-    def create(self, node_type, engine_name=None, inputs=[], outputs=[]):
-        if node_type not in self.op_dict:
+    def create(self,
+               node_type,
+               engine_name=None,
+               inputs=[],
+               outputs=[],
+               addresses=[]):
+        if node_type not in self.op_list:
             raise Exception("Op type {} is not supported right now".format(
                 node_type))
         node = server_sdk.DAGNode()
@@ -32,7 +52,7 @@ class OpMaker(object):
                                        self.node_name_suffix_[node_type])
             self.node_name_suffix_[node_type] += 1
 
-        node.type = self.op_dict[node_type]
+        node.type = node_type
         if inputs:
             for dep_node_str in inputs:
                 dep_node = server_sdk.DAGNode()
@@ -41,11 +61,17 @@ class OpMaker(object):
                 dep.name = dep_node.name
                 dep.mode = "RO"
                 node.dependencies.extend([dep])
+
+        # for general_remote op.
+        if addresses:
+            node.address.extend(addresses)
+
         # Because the return value will be used as the key value of the
         # dict, and the proto object is variable which cannot be hashed,
         # so it is processed into a string. This has little effect on
         # overall efficiency.
         return google.protobuf.text_format.MessageToString(node)
+
 
 class OpSeqMaker(object):
     def __init__(self):
@@ -78,6 +104,7 @@ class OpSeqMaker(object):
         workflow_conf = server_sdk.WorkflowConf()
         workflow_conf.workflows.extend([self.workflow])
         return workflow_conf
+
 
 # TODO:Currently, SDK only supports "Sequence".OpGraphMaker is not useful.
 # Config should be changed to adapt command-line for list[dict] or list[list[] ]

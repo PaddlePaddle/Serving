@@ -61,8 +61,11 @@ else()
 endif()
 
 if(CUDNN_FOUND)
-    file(READ ${CUDNN_INCLUDE_DIR}/cudnn.h CUDNN_VERSION_FILE_CONTENTS)
-
+    if(EXISTS "${CUDNN_INCLUDE_DIR}/cudnn_version.h")
+        file(READ ${CUDNN_INCLUDE_DIR}/cudnn_version.h CUDNN_VERSION_FILE_CONTENTS)
+    elseif(EXISTS "${CUDNN_INCLUDE_DIR}/cudnn.h")
+        file(READ ${CUDNN_INCLUDE_DIR}/cudnn.h CUDNN_VERSION_FILE_CONTENTS)
+    endif()
     get_filename_component(CUDNN_LIB_PATH ${CUDNN_LIBRARY} DIRECTORY)
 
     string(REGEX MATCH "define CUDNN_VERSION +([0-9]+)"

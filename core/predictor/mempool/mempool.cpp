@@ -16,6 +16,7 @@
 
 namespace im {
 
+// `g_mempool` this is not used at all
 __thread Mempool* g_mempool = NULL;
 
 namespace fugue {
@@ -23,43 +24,52 @@ namespace fugue {
 namespace memory {
 
 void Region::init() {
-  _big_mem_capacity = 32 * 1024 * 1024;
+  _big_mem_capacity = 128 * 1024 * 1024;  // 128MB
   _big_mem_start = new char[_big_mem_capacity];
 }
 
 void Region::reset() {
-  // release memory allocate from GlobalMempool
-  _free_blocks.unsafe_foreach<GlobalPut>();
-  _free_blocks.reset();
+  // return the Block memory borrow from BlockFreeList
+  _blockReference_FreeList.unsafe_foreach<PutBlockByReference>();
+  _blockReference_FreeList.reset();
 
-  // release memory from malloc
-  BigNode* head = _big_nodes.release();
+  // release BigNode memory
+  BigNode* head = _bigNode_Stack.releaseAndGetHeadPtr();
   while (head) {
     BigNode* next = head->next;
     ::free(head);
     head = next;
   }
-  _mlc_mem_size.store(0, butil::memory_order_relaxed);
-  _mlc_mem_count.store(0, butil::memory_order_relaxed);
+  _total_bigNode_size.store(0, butil::memory_order_relaxed);
+  _total_bigNode_count.store(0, butil::memory_order_relaxed);
 
-  // clear the large buffer
+  // clear the large buffer, but don`t release it.
+  // it will be deleted in the deconstruction.
   _big_mem_size.store(0, butil::memory_order_relaxed);
   _big_mem_count.store(0, butil::memory_order_relaxed);
 }
 
 BlockReference* Region::get() {
-  BlockReference* ref = _free_blocks.get();
+  // the first time, it will be null
+  // after you call put(), it won`t be null.
+  BlockReference* ref = _blockReference_FreeList.get();
   if (ref->block == NULL) {
     ref->offset = 0;
-    ref->block = GlobalBlockFreeList::instance()->get();
+    ref->block = BlockFreeList::instance()->get();
   }
   return ref;
 }
 
-void Region::put(BlockReference* block) { _free_blocks.put(block); }
+// this will not return the Block to the BlockFreeList
+// it just return to the _blockReference_FreeList.
+// next time when you call get(), you will get the BlockReference* head (which
+// is just put by yourself)
+void Region::put(BlockReference* blockReference) {
+  _blockReference_FreeList.put(blockReference);
+}
 
 void* Region::malloc(size_t size) {
-  if (size < MLC_MEM_THRESHOLD) {
+  if (size < BIGNODE_MEM_THRESHOLD) {
     uint32_t offset =
         _big_mem_size.fetch_add(size, butil::memory_order_relaxed);
     if (offset + size < _big_mem_capacity) {
@@ -68,22 +78,22 @@ void* Region::malloc(size_t size) {
     }
   }
 
-  _mlc_mem_size.fetch_add(size, butil::memory_order_relaxed);
-  _mlc_mem_count.fetch_add(1, butil::memory_order_relaxed);
+  // if size>= BIGNODE_MEM_THRESHOLD or the _big_mem_capacity is used up.
+  _total_bigNode_size.fetch_add(size, butil::memory_order_relaxed);
+  _total_bigNode_count.fetch_add(1, butil::memory_order_relaxed);
   BigNode* node = reinterpret_cast<BigNode*>(::malloc(sizeof(BigNode) + size));
-  _big_nodes.push(node);
+  _bigNode_Stack.push(node);
   return node->data;
 }
 
 Region::Region() {
   _big_mem_size.store(0, butil::memory_order_relaxed);
   _big_mem_count.store(0, butil::memory_order_relaxed);
-
   _big_mem_start = NULL;
   _big_mem_capacity = 0;
 
-  _mlc_mem_size.store(0, butil::memory_order_relaxed);
-  _mlc_mem_count.store(0, butil::memory_order_relaxed);
+  _total_bigNode_size.store(0, butil::memory_order_relaxed);
+  _total_bigNode_count.store(0, butil::memory_order_relaxed);
 }
 }  // namespace memory
 }  // namespace fugue

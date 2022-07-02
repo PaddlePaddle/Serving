@@ -21,11 +21,9 @@ message EngineDesc {
   required string reloadable_meta = 3;
   required string reloadable_type = 4;
   required string model_dir = 5;
-  required int32 runtime_thread_num = 6;
-  required int32 batch_infer_size = 7;
-  required int32 enable_batch_align = 8;
-  optional string version_file = 9;
-  optional string version_type = 10;
+  repeated int32 gpu_ids = 6;
+  optional string version_file = 7;
+  optional string version_type = 8;
 
   /*
    * Sparse Parameter Service type. Valid types are:
@@ -38,16 +36,68 @@ message EngineDesc {
     LOCAL = 1;
     REMOTE = 2;
   }
-  optional SparseParamServiceType sparse_param_service_type = 11;
-  optional string sparse_param_service_table_name = 12;
-  optional bool enable_memory_optimization = 13;
-  optional bool enable_ir_optimization = 14;
-  optional bool use_trt = 15;
-  optional bool use_lite = 16;
-  optional bool use_xpu = 17;
-  optional bool use_gpu = 18;
-  optional bool combined_model = 19;
-  optional bool encrypted_model = 20;
+  optional SparseParamServiceType sparse_param_service_type = 10;
+  optional string sparse_param_service_table_name = 11;
+  optional bool enable_memory_optimization = 12;
+  optional bool enable_ir_optimization = 13;
+  optional bool use_trt = 14;
+  optional bool use_lite = 15;
+  optional bool use_xpu = 16;
+  optional bool use_gpu = 17;
+  optional bool combined_model = 18;
+  optional bool encrypted_model = 19;
+  optional bool gpu_multi_stream = 20;
+  optional bool use_ascend_cl = 21;
+
+  /*
+   * "gpu_memory_mb": allocate gpu memory by config.EnableUseGpu()
+   * "cpu_math_thread_num": set thread numbers of cpu math by config.SetCpuMathLibraryNumThreads()
+   * "trt_workspace_size": set TensorRT workspace size by config.EnableTensorRtEngine(), 1 << 25 default
+   * "trt_use_static": If true, save the optimization information of the TRT  serialized to the disk, and load from the disk.
+   */
+  optional int32 gpu_memory_mb = 22 [default = 100];
+  optional int32 cpu_math_thread_num = 23 [default = 1];
+  optional int32 trt_workspace_size = 24 [default = 33554432];
+  optional bool trt_use_static = 25 [default = false];
+
+  /*
+   * "runtime_thread_num": n == 0 means don`t use Asynchronous task scheduling
+   * mode.
+   * n > 0 means how many Predictor for this engine in Asynchronous task
+   * scheduling mode.
+   * "batch_infer_size": the max batch for this engine in Asynchronous task
+   * scheduling mode.
+   * "enable_overrun": always put a whole task into the TaskQueue even if the
+   * total batch is bigger than "batch_infer_size".
+   * "allow_split_request": allow to split task(which is corresponding to
+   * request).
+   */
+  optional int32 runtime_thread_num = 30 [ default = 0 ];
+  optional int32 batch_infer_size = 31 [ default = 32 ];
+  optional bool enable_overrun = 32 [ default = false ];
+  optional bool allow_split_request = 33 [ default = true ];
+  optional int32 min_subgraph_size = 34 [ default = 3 ];
+  map<string, string> min_input_shape = 35;
+  map<string, string> max_input_shape = 36;
+  map<string, string> opt_input_shape = 37;
+
+  /*
+   * Distributed inference params
+   * "enable_dist_model": enable distributed model, false default.
+   * "carrier_id": mark carrier
+   * "dist_cfg_file": file name of distributed configure.
+   * "dist_nranks": number of distributed nodes.
+   * "dist_endpoints": all endpoints(ip:port) of distributed nodes.
+   * "dist_subgraph_index": distributed subgraph index, auto increment from 0.
+   * It is
+   * used to select the endpoint of the current shard in distribute model.
+   */
+  optional bool enable_dist_model = 40 [ default = false ];
+  optional string dist_carrier_id = 41 [ default = "inference" ];
+  optional string dist_cfg_file = 42;
+  optional int32 dist_nranks = 43 [ default = 0 ];
+  repeated string dist_endpoints = 44;
+  optional int32 dist_subgraph_index = 45 [ default = 0 ];
 };
 
 // model_toolkit conf
@@ -59,11 +109,14 @@ message ResourceConf {
   repeated string model_toolkit_file = 2;
   repeated string general_model_path = 3;
   repeated string general_model_file = 4;
-  optional string cube_config_path = 5;
-  optional string cube_config_file = 6;
-  optional int32 cube_quant_bits = 7; // set 0 if no quant.
-  optional string auth_product_name = 8;
-  optional string auth_container_id = 9;
+
+  optional string cube_config_path = 10;
+  optional string cube_config_file = 11;
+  optional int32 cube_quant_bits = 12;
+  optional string cube_cache_path = 13;
+
+  optional string auth_product_name = 20;
+  optional string auth_container_id = 21;
 };
 
 // DAG node depency info
@@ -76,7 +129,8 @@ message DAGNodeDependency {
 message DAGNode {
   required string name = 1;
   required string type = 2;
-  repeated DAGNodeDependency dependencies = 3;
+  repeated string address = 3;
+  repeated DAGNodeDependency dependencies = 4;
 };
 
 // workflow entry

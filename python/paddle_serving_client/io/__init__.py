@@ -19,7 +19,7 @@ from paddle.fluid.framework import core
 from paddle.fluid.framework import default_main_program
 from paddle.fluid.framework import Program
 from paddle.fluid import CPUPlace
-from paddle.fluid.io import save_inference_model
+from .paddle_io import save_inference_model, normalize_program
 import paddle.fluid as fluid
 from paddle.fluid.core import CipherUtils
 from paddle.fluid.core import CipherFactory
@@ -30,6 +30,21 @@ import paddle
 import paddle.nn.functional as F
 import errno
 from paddle.jit import to_static
+
+_PADDLE_DTYPE_2_NUMPY_DTYPE = {
+    core.VarDesc.VarType.BOOL: 'bool',
+    core.VarDesc.VarType.FP16: 'float16',
+    core.VarDesc.VarType.BF16: 'uint16',
+    core.VarDesc.VarType.FP32: 'float32',
+    core.VarDesc.VarType.FP64: 'float64',
+    core.VarDesc.VarType.INT8: 'int8',
+    core.VarDesc.VarType.INT16: 'int16',
+    core.VarDesc.VarType.INT32: 'int32',
+    core.VarDesc.VarType.INT64: 'int64',
+    core.VarDesc.VarType.UINT8: 'uint8',
+    core.VarDesc.VarType.COMPLEX64: 'complex64',
+    core.VarDesc.VarType.COMPLEX128: 'complex128',
+}
 
 
 def save_dygraph_model(serving_model_folder, client_config_folder, model):
@@ -52,18 +67,12 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
     }
     config = model_conf.GeneralModelConfig()
 
-    #int64 = 0; float32 = 1; int32 = 2;
     for key in feed_var_dict:
         feed_var = model_conf.FeedVar()
         feed_var.alias_name = key
         feed_var.name = feed_var_dict[key].name
+        feed_var.feed_type = var_type_conversion(feed_var_dict[key].dtype)
         feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            feed_var.feed_type = 0
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            feed_var.feed_type = 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            feed_var.feed_type = 2
         if feed_var.is_lod_tensor:
             feed_var.shape.extend([-1])
         else:
@@ -77,13 +86,8 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
         fetch_var = model_conf.FetchVar()
         fetch_var.alias_name = key
         fetch_var.name = fetch_var_dict[key].name
+        fetch_var.fetch_type = var_type_conversion(fetch_var_dict[key].dtype)
         fetch_var.is_lod_tensor = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            fetch_var.fetch_type = 0
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            fetch_var.fetch_type = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            fetch_var.fetch_type = 2
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
@@ -119,6 +123,58 @@ def save_dygraph_model(serving_model_folder, client_config_folder, model):
         fout.write(config.SerializeToString())
 
 
+def var_type_conversion(dtype):
+    """
+    Variable type conversion
+    Args:
+        dtype: type of core.VarDesc.VarType.xxxxx
+        (https://github.com/PaddlePaddle/Paddle/blob/release/2.1/python/paddle/framework/dtype.py) 
+    
+    Returns:
+        (int)type value, -1 is type matching failed.
+            int64 => 0; 
+            float32 => 1; 
+            int32 => 2; 
+            float64 => 3; 
+            int16 => 4; 
+            float16 => 5; 
+            bfloat16 => 6; 
+            uint8 => 7; 
+            int8 => 8; 
+            bool => 9;
+            complex64 => 10, 
+            complex128 => 11;
+    """
+    type_val = -1
+    if dtype == core.VarDesc.VarType.INT64:
+        type_val = 0
+    elif dtype == core.VarDesc.VarType.FP32:
+        type_val = 1
+    elif dtype == core.VarDesc.VarType.INT32:
+        type_val = 2
+    elif dtype == core.VarDesc.VarType.FP64:
+        type_val = 3
+    elif dtype == core.VarDesc.VarType.INT16:
+        type_val = 4
+    elif dtype == core.VarDesc.VarType.FP16:
+        type_val = 5
+    elif dtype == core.VarDesc.VarType.BF16:
+        type_val = 6
+    elif dtype == core.VarDesc.VarType.UINT8:
+        type_val = 7
+    elif dtype == core.VarDesc.VarType.INT8:
+        type_val = 8
+    elif dtype == core.VarDesc.VarType.BOOL:
+        type_val = 9
+    elif dtype == core.VarDesc.VarType.COMPLEX64:
+        type_val = 10
+    elif dtype == core.VarDesc.VarType.COMPLEX128:
+        type_val = 11
+    else:
+        type_val = -1
+    return type_val
+
+
 def save_model(server_model_folder,
                client_config_folder,
                feed_var_dict,
@@ -126,26 +182,49 @@ def save_model(server_model_folder,
                main_program=None,
                encryption=False,
                key_len=128,
-               encrypt_conf=None):
+               encrypt_conf=None,
+               model_filename=None,
+               params_filename=None,
+               show_proto=False,
+               feed_alias_names=None,
+               fetch_alias_names=None):
     executor = Executor(place=CPUPlace())
 
     feed_var_names = [feed_var_dict[x].name for x in feed_var_dict]
+    feed_vars = [feed_var_dict[x] for x in feed_var_dict]
     target_vars = []
     target_var_names = []
     for key in sorted(fetch_var_dict.keys()):
         target_vars.append(fetch_var_dict[key])
         target_var_names.append(key)
 
-    if not encryption:
-        save_inference_model(
-            server_model_folder,
-            feed_var_names,
-            target_vars,
-            executor,
-            model_filename="__model__",
-            params_filename="__params__",
-            main_program=main_program)
-    else:
+    main_program = normalize_program(main_program, feed_vars, target_vars)
+    if not encryption and not show_proto:
+        if not os.path.exists(server_model_folder):
+            os.makedirs(server_model_folder)
+        if not model_filename:
+            model_filename = "model.pdmodel"
+        if not params_filename:
+            params_filename = "params.pdiparams"
+
+        new_model_path = os.path.join(server_model_folder, model_filename)
+        new_params_path = os.path.join(server_model_folder, params_filename)
+
+        with open(new_model_path, "wb") as new_model_file:
+            new_model_file.write(
+                main_program._remove_training_info(False)
+                .desc.serialize_to_string())
+
+        paddle.static.save_vars(
+            executor=executor,
+            dirname=server_model_folder,
+            main_program=main_program,
+            vars=None,
+            predicate=paddle.static.io.is_persistable,
+            filename=params_filename)
+    elif not show_proto:
+        if not os.path.exists(server_model_folder):
+            os.makedirs(server_model_folder)
         if encrypt_conf == None:
             aes_cipher = CipherFactory.create_cipher()
         else:
@@ -154,7 +233,8 @@ def save_model(server_model_folder,
         key = CipherUtils.gen_key_to_file(128, "key")
         params = fluid.io.save_persistables(
             executor=executor, dirname=None, main_program=main_program)
-        model = main_program.desc.serialize_to_string()
+        model = main_program._remove_training_info(
+            False).desc.serialize_to_string()
         if not os.path.exists(server_model_folder):
             os.makedirs(server_model_folder)
         os.chdir(server_model_folder)
@@ -163,19 +243,28 @@ def save_model(server_model_folder,
         os.chdir("..")
 
     config = model_conf.GeneralModelConfig()
-
-    #int64 = 0; float32 = 1; int32 = 2;
-    for key in feed_var_dict:
+    if feed_alias_names is None:
+        feed_alias = list(feed_var_dict.keys())
+    else:
+        feed_alias = feed_alias_names.split(',')
+    if fetch_alias_names is None:
+        fetch_alias = target_var_names
+    else:
+        fetch_alias = fetch_alias_names.split(',')
+    if len(feed_alias) != len(feed_var_dict.keys()) or len(fetch_alias) != len(
+            target_var_names):
+        raise ValueError(
+            "please check the input --feed_alias_names and --fetch_alias_names, should be same size with feed_vars and fetch_vars"
+        )
+    for i, key in enumerate(feed_var_dict):
         feed_var = model_conf.FeedVar()
-        feed_var.alias_name = key
+        feed_var.alias_name = feed_alias[i]
         feed_var.name = feed_var_dict[key].name
-        feed_var.is_lod_tensor = feed_var_dict[key].lod_level >= 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            feed_var.feed_type = 0
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            feed_var.feed_type = 1
-        if feed_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            feed_var.feed_type = 2
+        feed_var.feed_type = var_type_conversion(feed_var_dict[key].dtype)
+
+        feed_var.is_lod_tensor = feed_var_dict[
+            key].lod_level >= 1 if feed_var_dict[
+                key].lod_level is not None else False
         if feed_var.is_lod_tensor:
             feed_var.shape.extend([-1])
         else:
@@ -186,18 +275,14 @@ def save_model(server_model_folder,
             feed_var.shape.extend(tmp_shape)
         config.feed_var.extend([feed_var])
 
-    for key in target_var_names:
+    for i, key in enumerate(target_var_names):
         fetch_var = model_conf.FetchVar()
-        fetch_var.alias_name = key
+        fetch_var.alias_name = fetch_alias[i]
         fetch_var.name = fetch_var_dict[key].name
-        #fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
-        fetch_var.is_lod_tensor = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT64:
-            fetch_var.fetch_type = 0
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.FP32:
-            fetch_var.fetch_type = 1
-        if fetch_var_dict[key].dtype == core.VarDesc.VarType.INT32:
-            fetch_var.fetch_type = 2
+        fetch_var.fetch_type = var_type_conversion(fetch_var_dict[key].dtype)
+
+        fetch_var.is_lod_tensor = fetch_var_dict[key].lod_level >= 1
+        #fetch_var.is_lod_tensor = 1
         if fetch_var.is_lod_tensor:
             fetch_var.shape.extend([-1])
         else:
@@ -208,6 +293,9 @@ def save_model(server_model_folder,
             fetch_var.shape.extend(tmp_shape)
         config.fetch_var.extend([fetch_var])
 
+    if show_proto:
+        print(str(config))
+        return
     try:
         save_dirname = os.path.normpath(client_config_folder)
         os.makedirs(save_dirname)
@@ -235,7 +323,10 @@ def inference_model_to_serving(dirname,
                                params_filename=None,
                                encryption=False,
                                key_len=128,
-                               encrypt_conf=None):
+                               encrypt_conf=None,
+                               show_proto=False,
+                               feed_alias_names=None,
+                               fetch_alias_names=None):
     paddle.enable_static()
     place = fluid.CPUPlace()
     exe = fluid.Executor(place)
@@ -247,7 +338,9 @@ def inference_model_to_serving(dirname,
     }
     fetch_dict = {x.name: x for x in fetch_targets}
     save_model(serving_server, serving_client, feed_dict, fetch_dict,
-               inference_program, encryption, key_len, encrypt_conf)
+               inference_program, encryption, key_len, encrypt_conf,
+               model_filename, params_filename, show_proto, feed_alias_names,
+               fetch_alias_names)
     feed_names = feed_dict.keys()
     fetch_names = fetch_dict.keys()
     return feed_names, fetch_names

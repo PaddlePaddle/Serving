@@ -30,7 +30,7 @@ find_package(Threads REQUIRED)
 find_package(CUDA QUIET)
 
 include(simd)
-
+# SET(CMAKE_BUILD_TYPE "Debug")
 # CMAKE_BUILD_TYPE
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -59,6 +59,9 @@ option(PACK                 "Compile for whl"                                   
 option(WITH_TRT             "Compile Paddle Serving with TRT"                   OFF)
 option(PADDLE_ON_INFERENCE  "Compile for encryption"                             ON)
 option(WITH_OPENCV	    "Compile Paddle Serving with OPENCV"                    OFF)
+option(WITH_ROCM	    "Compile Paddle Serving with ROCM"                    OFF)
+option(WITH_ASCEND_CL       "Compile PaddlePaddle with ASCEND CL"               OFF)
+option(WITH_JETSON       "Compile PaddlePaddle with JETSON"               OFF)
 
 if(NOT DEFINED VERSION_TAG)
   set(VERSION_TAG "0.0.0")
@@ -104,6 +107,7 @@ if (SERVER OR CLIENT)
     include(external/brpc)
     include(external/gflags)
     include(external/glog)
+    include(external/utf8proc)
     if (WITH_PYTHON)
         include(external/pybind11)
         include(external/python)
@@ -128,6 +132,7 @@ if (SERVER)
     #include(external/rocksdb)
     include(external/cudnn)
     include(paddlepaddle)
+    include(external/prometheus)
 endif()
 
 message("paddle serving source dir: " ${PADDLE_SERVING_SOURCE_DIR})
@@ -162,6 +167,14 @@ if(SERVER)
     endif()
 
     list(APPEND EXTERNAL_LIBS paddlepaddle)
+    if(WITH_ROCM)
+        include(hip)
+    endif()
+
+    if(WITH_ASCEND_CL)
+	    include(external/ascend)
+	    list(APPEND EXTERNAL_LIBS ascend ascend_cl)
+    endif()
 endif()
 
 
