@@ -1084,7 +1084,7 @@ class Op(object):
                                 self._timeout,
                                 self.process,
                                 args=([feed_batch[idx]], typical_logid))
-                            midped_batch[idx].append(predict_res)
+                            midped_batch.append(predict_res)
 
                 except func_timeout.FunctionTimedOut as e:
                     if i + 1 >= self._retry:
