@@ -14,12 +14,13 @@ Paddle Serving支持使用百度昆仑芯片进行预测部署。目前支持在
 cd Serving
 mkdir -p server-build-arm && cd server-build-arm
 
-cmake -DPYTHON_INCLUDE_DIR=/usr/include/python3.7m/ \
-    -DPYTHON_LIBRARIES=/usr/lib64/libpython3.7m.so \
-    -DPYTHON_EXECUTABLE=/usr/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=/usr/local/include/python3.7m/ \
+    -DPYTHON_LIBRARIES=/usr/local/lib/ \
+    -DPYTHON_EXECUTABLE=/usr/local/bin/python3.7 \
     -DWITH_PYTHON=ON \
     -DWITH_LITE=ON \
     -DWITH_XPU=ON \
+    -DWITH_MKL=ON \
     -DSERVER=ON ..
 make -j10
 ```
@@ -28,9 +29,9 @@ make -j10
 ```
 mkdir -p client-build-arm && cd client-build-arm
 
-cmake -DPYTHON_INCLUDE_DIR=/usr/include/python3.7m/ \
-    -DPYTHON_LIBRARIES=/usr/lib64/libpython3.7m.so \
-    -DPYTHON_EXECUTABLE=/usr/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=/usr/local/include/python3.7m/ \
+    -DPYTHON_LIBRARIES=/usr/local/lib/ \
+    -DPYTHON_EXECUTABLE=/usr/local/bin/python3.7 \
     -DWITH_PYTHON=ON \
     -DWITH_LITE=ON \
     -DWITH_XPU=ON \
@@ -43,9 +44,9 @@ make -j10
 cd Serving 
 mkdir -p app-build-arm && cd app-build-arm
 
-cmake -DPYTHON_INCLUDE_DIR=/usr/include/python3.7m/ \
-    -DPYTHON_LIBRARIES=/usr/lib64/libpython3.7m.so \
-    -DPYTHON_EXECUTABLE=/usr/bin/python \
+cmake -DPYTHON_INCLUDE_DIR=/usr/local/include/python3.7m/ \
+    -DPYTHON_LIBRARIES=/usr/local/lib/ \
+    -DPYTHON_EXECUTABLE=/usr/local/bin/python3.7 \
     -DWITH_PYTHON=ON \
     -DWITH_LITE=ON \
     -DWITH_XPU=ON \
