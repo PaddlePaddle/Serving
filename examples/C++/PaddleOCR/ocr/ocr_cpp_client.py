@@ -29,7 +29,6 @@ client = Client()
 client.load_client_config(sys.argv[1:])
 client.connect(["127.0.0.1:9293"])
 
-import paddle
 test_img_dir = "imgs/"
 
 
