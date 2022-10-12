@@ -223,6 +223,9 @@ struct Task {
     if (dtype == paddle::PaddleDType::UINT8) {
       return sizeof(char);
     }
+    if (dtype == paddle::PaddleDType::FLOAT16) {
+      return sizeof(float)/2;
+    }
     return 0;
   }
 
@@ -1102,6 +1105,9 @@ class BatchTasks {
     }
     if (dtype == paddle::PaddleDType::UINT8) {
       return sizeof(char);
+    }
+    if (dtype == paddle::PaddleDType::FLOAT16) {
+      return sizeof(float)/2;
     }
     return 0;
   }

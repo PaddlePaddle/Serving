@@ -60,7 +60,7 @@ PYBIND11_MODULE(serving_client, m) {
            })
       .def("get_string_by_name",
            [](PredictorRes &self, int model_idx, std::string &name) {
-             return self.get_string_by_name_with_rv(model_idx, name);
+             return py::bytes(self.get_string_by_name_with_rv(model_idx, name));
            })
       .def("get_shape",
            [](PredictorRes &self, int model_idx, std::string &name) {
