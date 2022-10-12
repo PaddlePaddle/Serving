@@ -202,6 +202,7 @@ class Op(object):
         self.mkldnn_bf16_op_list = None
         self.min_subgraph_size = 3
         self.use_calib = False
+        self.ipu_config = ""
 
         if self._server_endpoints is None:
             server_endpoints = conf.get("server_endpoints", [])
@@ -235,6 +236,7 @@ class Op(object):
                         "mkldnn_bf16_op_list")
                     self.min_subgraph_size = local_service_conf.get(
                         "min_subgraph_size")
+                    self.ipu_config = local_service_conf.get("ipu_config")
 
                     if self.model_config is None:
                         self.with_serving = False
@@ -259,7 +261,8 @@ class Op(object):
                                 mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
                                 min_subgraph_size=self.min_subgraph_size,
                                 dynamic_shape_info=self.dynamic_shape_info,
-                                use_calib=self.use_calib)
+                                use_calib=self.use_calib,
+                                ipu_config=self.ipu_config)
                             service_handler.prepare_server()  # get fetch_list
                             serivce_ports = service_handler.get_port_list()
                             self._server_endpoints = [
@@ -290,7 +293,8 @@ class Op(object):
                                 mkldnn_bf16_op_list=self.mkldnn_bf16_op_list,
                                 min_subgraph_size=self.min_subgraph_size,
                                 dynamic_shape_info=self.dynamic_shape_info,
-                                use_calib=self.use_calib)
+                                use_calib=self.use_calib,
+                                ipu_config=self.ipu_config)
                             if self._client_config is None:
                                 self._client_config = service_handler.get_client_config(
                                 )
@@ -812,7 +816,7 @@ class Op(object):
                       self.mkldnn_bf16_op_list, self.is_jump_op(),
                       self.get_output_channels_of_jump_ops(),
                       self.min_subgraph_size, self.dynamic_shape_info,
-                      self.use_calib))
+                      self.use_calib, self.ipu_config))
             p.daemon = True
             p.start()
             process.append(p)
@@ -851,7 +855,7 @@ class Op(object):
                       self.mkldnn_bf16_op_list, self.is_jump_op(),
                       self.get_output_channels_of_jump_ops(),
                       self.min_subgraph_size, self.dynamic_shape_info,
-                      self.use_calib))
+                      self.use_calib, self.ipu_config))
             # When a process exits, it attempts to terminate
             # all of its daemonic child processes.
             t.daemon = True
@@ -1324,7 +1328,7 @@ class Op(object):
              device_type, devices, mem_optim, ir_optim, precision, use_mkldnn,
              mkldnn_cache_capacity, mkldnn_op_list, mkldnn_bf16_op_list,
              is_jump_op, output_channels_of_jump_ops, min_subgraph_size,
-             dynamic_shape_info, use_calib):
+             dynamic_shape_info, use_calib, ipu_config):
         """
         _run() is the entry function of OP process / thread model.When client 
         type is local_predictor in process mode, the CUDA environment needs to 
@@ -1354,6 +1358,7 @@ class Op(object):
             is_jump_op: OP has jump op list or not, False default.
             output_channels_of_jump_ops: all output channels of jump ops.
             use_calib: use calib mode of paddle inference, False default.
+            ipu_config: configure file for IPU inference.
 
         Returns:
             None
@@ -1387,7 +1392,8 @@ class Op(object):
                     mkldnn_bf16_op_list=mkldnn_bf16_op_list,
                     min_subgraph_size=min_subgraph_size,
                     dynamic_shape_info=dynamic_shape_info,
-                    use_calib=use_calib)
+                    use_calib=use_calib,
+                    ipu_config=ipu_config)
 
                 _LOGGER.info("Init cuda env in process {}".format(
                     concurrency_idx))

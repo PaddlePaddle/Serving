@@ -97,6 +97,8 @@ class Server(object):
         self.use_lite = False
         self.use_xpu = False
         self.use_ascend_cl = False
+        self.use_ipu = False
+        self.ipu_cfg_file = ""
         self.model_config_paths = collections.OrderedDict()
         self.product_name = None
         self.container_id = None
@@ -223,6 +225,12 @@ class Server(object):
 
     def set_ascend_cl(self):
         self.use_ascend_cl = True
+
+    def set_ipu(self):
+        self.use_ipu = True
+
+    def set_ipu_cfg_file(self, ipu_cfg_file):
+        self.ipu_cfg_file = ipu_cfg_file
 
     def set_enable_prometheus(self, flag=False):
         self.enable_prometheus = flag
@@ -356,6 +364,8 @@ class Server(object):
             engine.gpu_multi_stream = self.gpu_multi_stream
             engine.use_lite = self.use_lite
             engine.use_xpu = self.use_xpu
+            engine.use_ipu = self.use_ipu
+            engine.ipu_cfg_file = self.ipu_cfg_file
             engine.use_ascend_cl = self.use_ascend_cl
             engine.use_gpu = False
             #engine.gpu_memory_mb = self.gpu_memory_mb

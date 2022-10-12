@@ -128,6 +128,7 @@ class WebService(object):
                             mem_optim=True,
                             use_lite=False,
                             use_xpu=False,
+                            use_ipu=False,
                             ir_optim=False,
                             precision="fp32",
                             use_calib=False,
@@ -197,6 +198,8 @@ class WebService(object):
             server.set_lite()
         if use_xpu:
             server.set_xpu()
+        if use_ipu:
+            server.set_ipu()
 
         server.load_model_config(self.server_config_dir_paths
                                  )  #brpc Server support server_config_dir_paths
@@ -220,6 +223,7 @@ class WebService(object):
                 mem_optim=self.mem_optim,
                 use_lite=self.use_lite,
                 use_xpu=self.use_xpu,
+                use_ipu=self.use_ipu,
                 ir_optim=self.ir_optim,
                 precision=self.precision,
                 use_calib=self.use_calib,
@@ -236,6 +240,7 @@ class WebService(object):
                        use_calib=False,
                        use_lite=False,
                        use_xpu=False,
+                       use_ipu=False,
                        ir_optim=False,
                        thread_num=4,
                        mem_optim=True,
@@ -254,6 +259,7 @@ class WebService(object):
         self.use_calib = use_calib
         self.use_lite = use_lite
         self.use_xpu = use_xpu
+        self.use_ipu = use_ipu
         self.ir_optim = ir_optim
         self.mem_optim = mem_optim
         self.port_list = []

@@ -101,6 +101,9 @@ message EngineDesc {
   optional int32 dist_nranks = 43 [ default = 0 ];
   repeated string dist_endpoints = 44;
   optional int32 dist_subgraph_index = 45 [ default = 0 ];
+
+  optional bool use_ipu = 46;
+  optional string ipu_cfg_file = 47;
 };
 
 // model_toolkit conf

@@ -45,9 +45,14 @@
 // Author: kenton@google.com (Kenton Varda)
 
 // #include <google/protobuf/stubs/strutil.h>
+#ifdef PADDLE_WITH_IPU
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/logging.h>
+#else
+#include "core/pdcodegen/plugin/strutil.h"
+#endif
 #include "core/pdcodegen/plugin/substitute.h"
 #include "core/pdcodegen/plugin/stl_util-inl.h"
-#include "core/pdcodegen/plugin/strutil.h"
 
 namespace google {
 namespace protobuf {

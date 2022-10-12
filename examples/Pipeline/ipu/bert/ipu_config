@@ -1,0 +1,4 @@
+ipu_device_num, 1
+ipu_enable_fp16, false
+ipu_enable_half_partial, false
+ipu_micro_batch_size, 4

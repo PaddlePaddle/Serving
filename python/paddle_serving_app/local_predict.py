@@ -93,7 +93,9 @@ class LocalPredictor(object):
                           use_ascend_cl=False,
                           min_subgraph_size=3,
                           dynamic_shape_info={},
-                          use_calib=False):
+                          use_calib=False,
+                          use_ipu=False,
+                          ipu_config=""):
         """
         Load model configs and create the paddle predictor by Paddle Inference API.
    
@@ -121,6 +123,7 @@ class LocalPredictor(object):
             min_subgraph_size: the minimal subgraph size for opening tensorrt to optimize, 3 default
             dynamic_shape_info: dict including min_input_shape，max_input_shape, opt_input_shape, {} default 
             use_calib: use TensorRT calibration, False default
+            use_ipu: use Graphcore IPU, False default
         """
         gpu_id = int(gpu_id)
         client_config = "{}/serving_server_conf.prototxt".format(model_path)
@@ -160,12 +163,12 @@ class LocalPredictor(object):
             "use_trt:{}, use_lite:{}, use_xpu:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_feed_fetch_ops:{}, "
-            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{}".
+            "use_ascend_cl:{}, min_subgraph_size:{}, dynamic_shape_info:{}, use_ipu:{}".
             format(model_path, use_gpu, gpu_id, use_profile, thread_num,
                    mem_optim, ir_optim, use_trt, use_lite, use_xpu, precision,
                    use_calib, use_mkldnn, mkldnn_cache_capacity, mkldnn_op_list,
                    mkldnn_bf16_op_list, use_feed_fetch_ops, use_ascend_cl,
-                   min_subgraph_size, dynamic_shape_info))
+                   min_subgraph_size, dynamic_shape_info, use_ipu))
 
         self.feed_names_ = [var.alias_name for var in model_conf.feed_var]
         self.fetch_names_ = [var.alias_name for var in model_conf.fetch_var]
@@ -280,6 +283,10 @@ class LocalPredictor(object):
                 config.enable_mkldnn_bfloat16()
                 if mkldnn_bf16_op_list is not None:
                     config.set_bfloat16_op(mkldnn_bf16_op_list)
+        if use_ipu:
+            config.enable_ipu()
+            if (ipu_config):
+                config.load_ipu_config(ipu_config)
 
         @ErrorCatch
         def create_predictor_check(config):

@@ -50,6 +50,7 @@ option(WITH_MKL	            "Compile Paddle Serving with MKL support."          
 option(WITH_GPU	            "Compile Paddle Serving with NVIDIA GPU"            OFF)
 option(WITH_LITE            "Compile Paddle Serving with Paddle Lite Engine"    OFF)
 option(WITH_XPU	            "Compile Paddle Serving with Baidu Kunlun"          OFF)
+option(WITH_IPU	            "Compile Paddle Serving with Graphcore IPU"         OFF)
 option(WITH_PYTHON          "Compile Paddle Serving with Python"                 ON)
 option(CLIENT  	            "Compile Paddle Serving Client"		                OFF)
 option(SERVER	            "Compile Paddle Serving Server"		                OFF)
@@ -97,6 +98,9 @@ if (NOT DEFINED WITH_MKLDNN)
     endif()
 endif()
 
+if (WITH_IPU)
+  add_definitions(-DPADDLE_WITH_IPU)
+endif()
 
 if (SERVER OR CLIENT)
     include(external/snappy)

@@ -245,16 +245,29 @@ FUNCTION(build_protobuf TARGET_NAME BUILD_FOR_HOST)
 
     SET(OPTIONAL_CACHE_ARGS "")
     SET(OPTIONAL_ARGS "")
+    SET(IPU_COMPILE_FLAG "")
+
+    IF(WITH_IPU)
+        SET(PROTOBUF_REPO "https://github.com/google/protobuf.git")
+        SET(PROTOBUF_TAG "d750fbf648256c7c631f51ffdbf67d7c18b0114e")
+        SET(PROTOBUF_VERSION 3.6.1)
+        SET(IPU_COMPILE_FLAG "-fvisibility=hidden")
+    ELSE()
+        SET(PROTOBUF_REPO "https://github.com/google/protobuf.git")
+        SET(PROTOBUF_TAG "9f75c5aa851cd877fb0d93ccc31b8567a6706546")
+        SET(PROTOBUF_VERSION 3.1)
+    ENDIF()
+
     IF(BUILD_FOR_HOST)
         SET(OPTIONAL_ARGS "-Dprotobuf_WITH_ZLIB=OFF")
     ELSE()
         SET(OPTIONAL_ARGS
             "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
             "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}"
-            "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
-            "-DCMAKE_C_FLAGS_DEBUG=${CMAKE_C_FLAGS_DEBUG}"
+            "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS} ${IPU_COMPILE_FLAG}"
+            "-DCMAKE_C_FLAGS_DEBUG=${CMAKE_C_FLAGS_DEBUG} "
             "-DCMAKE_C_FLAGS_RELEASE=${CMAKE_C_FLAGS_RELEASE}"
-            "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
+            "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} ${IPU_COMPILE_FLAG}"
             "-DCMAKE_CXX_FLAGS_RELEASE=${CMAKE_CXX_FLAGS_RELEASE}"
             "-DCMAKE_CXX_FLAGS_DEBUG=${CMAKE_CXX_FLAGS_DEBUG}"
             "-Dprotobuf_WITH_ZLIB=ON"
@@ -265,9 +278,6 @@ FUNCTION(build_protobuf TARGET_NAME BUILD_FOR_HOST)
     IF(WIN32)
         SET(OPTIONAL_ARGS ${OPTIONAL_ARGS} "-DCMAKE_GENERATOR_PLATFORM=x64")
     ENDIF()
-
-    SET(PROTOBUF_REPO "https://github.com/google/protobuf.git")
-    SET(PROTOBUF_TAG "9f75c5aa851cd877fb0d93ccc31b8567a6706546")
 
     ExternalProject_Add(
         ${TARGET_NAME}
@@ -282,6 +292,7 @@ FUNCTION(build_protobuf TARGET_NAME BUILD_FOR_HOST)
             ${OPTIONAL_ARGS}
             -Dprotobuf_BUILD_TESTS=OFF
             -DCMAKE_SKIP_RPATH=ON
+            -DBUILD_SHARED_LIBS=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
             -DCMAKE_INSTALL_PREFIX=${PROTOBUF_INSTALL_DIR}
@@ -294,8 +305,6 @@ FUNCTION(build_protobuf TARGET_NAME BUILD_FOR_HOST)
             ${OPTIONAL_CACHE_ARGS}
     )
 ENDFUNCTION()
-
-SET(PROTOBUF_VERSION 3.1)
 
 IF(NOT PROTOBUF_FOUND)
     build_protobuf(extern_protobuf FALSE)

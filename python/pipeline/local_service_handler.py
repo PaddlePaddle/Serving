@@ -53,7 +53,8 @@ class LocalServiceHandler(object):
                  mkldnn_bf16_op_list=None,
                  min_subgraph_size=3,
                  dynamic_shape_info={},
-                 use_calib=False):
+                 use_calib=False,
+                 ipu_config=""):
         """
         Initialization of localservicehandler
 
@@ -63,7 +64,7 @@ class LocalServiceHandler(object):
            workdir: work directory
            thread_num: number of threads, concurrent quantity.
            device_type: support multiple devices. -1=Not set, determined by
-               `devices`. 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu
+               `devices`. 0=cpu, 1=gpu, 2=tensorRT, 3=arm cpu, 4=kunlun xpu, 7=graphcore ipu
            devices: gpu id list[gpu], "" default[cpu]
            fetch_names: get fetch names out of LocalServiceHandler in 
                local_predictor mode. fetch_names_ is compatible for Client().
@@ -92,6 +93,8 @@ class LocalServiceHandler(object):
         self._use_lite = False
         self._use_xpu = False
         self._use_ascend_cl = False
+        self._use_ipu = False
+        self._ipu_config = ipu_config
         self._use_mkldnn = False
         self._mkldnn_cache_capacity = 0
         self._mkldnn_op_list = None
@@ -151,6 +154,11 @@ class LocalServiceHandler(object):
             self._device_name = "arm"
             devices = [int(x) for x in devices.split(",")]
             self._use_ascend_cl = True
+        elif device_type == 7:
+            # Graphcore IPU
+            self._device_name = "ipu"
+            devices = [-1]
+            self._use_ipu = True
         else:
             _LOGGER.error(
                 "LocalServiceHandler initialization fail. device_type={}"
@@ -182,18 +190,19 @@ class LocalServiceHandler(object):
 
         _LOGGER.info(
             "Models({}) will be launched by device {}. use_gpu:{}, "
-            "use_trt:{}, use_lite:{}, use_xpu:{}, device_type:{}, devices:{}, "
+            "use_trt:{}, use_lite:{}, use_xpu:{}, use_ipu:{}, device_type:{}, devices:{}, "
             "mem_optim:{}, ir_optim:{}, use_profile:{}, thread_num:{}, "
             "client_type:{}, fetch_names:{}, precision:{}, use_calib:{}, "
             "use_mkldnn:{}, mkldnn_cache_capacity:{}, mkldnn_op_list:{}, "
             "mkldnn_bf16_op_list:{}, use_ascend_cl:{}, min_subgraph_size:{},"
             "is_set_dynamic_shape_info:{}".format(
                 model_config, self._device_name, self._use_gpu, self._use_trt,
-                self._use_lite, self._use_xpu, device_type, self._devices, self.
-                _mem_optim, self._ir_optim, self._use_profile, self._thread_num,
-                self._client_type, self._fetch_names, self._precision, self.
-                _use_calib, self._use_mkldnn, self._mkldnn_cache_capacity, self.
-                _mkldnn_op_list, self._mkldnn_bf16_op_list, self._use_ascend_cl,
+                self._use_lite, self._use_xpu, self._use_ipu, device_type, self.
+                _devices, self._mem_optim, self._ir_optim, self._use_profile,
+                self._thread_num, self._client_type, self._fetch_names,
+                self._precision, self._use_calib, self._use_mkldnn,
+                self._mkldnn_cache_capacity, self._mkldnn_op_list,
+                self._mkldnn_bf16_op_list, self._use_ascend_cl,
                 self.min_subgraph_size, bool(len(self.dynamic_shape_info))))
 
     def get_fetch_list(self):
@@ -246,6 +255,8 @@ class LocalServiceHandler(object):
                 use_trt=self._use_trt,
                 use_lite=self._use_lite,
                 use_xpu=self._use_xpu,
+                use_ipu=self._use_ipu,
+                ipu_config=self._ipu_config,
                 precision=self._precision,
                 use_mkldnn=self._use_mkldnn,
                 mkldnn_cache_capacity=self._mkldnn_cache_capacity,
@@ -315,6 +326,8 @@ class LocalServiceHandler(object):
                 server.set_lite()
             if self._use_ascend_cl:
                 server.set_ascend_cl()
+            if self._use_ipu:
+                server.set_ipu()
 
         server.set_op_sequence(op_seq_maker.get_op_sequence())
         server.set_num_threads(thread_num)

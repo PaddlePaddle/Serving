@@ -47,6 +47,8 @@ elif package_name.endswith('rocm'):
     update_info("paddle_serving_server/version.py", "device_type", "3")
 elif package_name.endswith('npu'):
     update_info("paddle_serving_server/version.py", "device_type", "4")
+elif package_name.endswith('ipu'):
+    update_info("paddle_serving_server/version.py", "device_type", "7")
 
 path = "paddle_serving_" + sys.argv[1]
 commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'])

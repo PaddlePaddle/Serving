@@ -131,6 +131,15 @@ if ((WITH_GPU OR WITH_MKLML) AND NOT WITH_JETSON)
                 ${CMAKE_COMMAND} -E copy_directory ${PADDLE_DOWNLOAD_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
                 ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libdnnl.so.1 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libdnnl.so
         )
+    elseif (WITH_IPU)
+      add_custom_target(
+        extern_paddle
+        COMMAND
+              ${CMAKE_COMMAND} -E copy_directory ${PADDLE_INFER_INSTALL_DIR}/paddle/include ${PADDLE_INSTALL_DIR}/include &&
+              ${CMAKE_COMMAND} -E copy_directory ${PADDLE_INFER_INSTALL_DIR}/paddle/lib ${PADDLE_INSTALL_DIR}/lib &&
+              ${CMAKE_COMMAND} -E copy_directory ${PADDLE_INFER_INSTALL_DIR}/third_party ${PADDLE_INSTALL_DIR}/third_party &&
+              ${CMAKE_COMMAND} -E copy ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so.0 ${PADDLE_INSTALL_DIR}/third_party/install/mkldnn/lib/libmkldnn.so 
+        )
     else()
         ExternalProject_Add(
             "extern_paddle"
@@ -192,7 +201,7 @@ endif()
 ADD_LIBRARY(paddle_inference STATIC IMPORTED GLOBAL)
 
 SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.a)
-if (WITH_ASCEND_CL OR WITH_XPU)
+if (WITH_ASCEND_CL OR WITH_XPU OR WITH_IPU)
     SET_PROPERTY(TARGET paddle_inference PROPERTY IMPORTED_LOCATION ${PADDLE_INSTALL_DIR}/lib/libpaddle_inference.so)
 endif()
 

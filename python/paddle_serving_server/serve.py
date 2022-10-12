@@ -205,6 +205,10 @@ def serve_args():
         action="store_true",
         help="Use Ascend CL")
     parser.add_argument(
+        "--use_ipu", default=False, action="store_true", help="Use IPU")
+    parser.add_argument(
+        "--ipu_cfg_file", type=str, default="", help="config file of IPU model")
+    parser.add_argument(
         "--product_name",
         type=str,
         default=None,
@@ -446,6 +450,9 @@ def start_gpu_card_model(gpu_mode, port, args):  # pylint: disable=doc-string-mi
         server.set_xpu()
     if args.use_ascend_cl:
         server.set_ascend_cl()
+    if args.use_ipu:
+        server.set_ipu()
+        server.set_ipu_cfg_file(args.ipu_cfg_file)
 
     if args.product_name != None:
         server.set_product_name(args.product_name)

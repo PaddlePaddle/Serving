@@ -385,6 +385,16 @@ class PaddleInferenceEngine : public EngineCore {
       }
     }
 
+#ifdef PADDLE_WITH_IPU
+    if (engine_conf.has_use_ipu() && engine_conf.use_ipu()) {
+      config.EnableIpu();
+      if (engine_conf.ipu_cfg_file() != "") {
+        config.LoadIpuConfig(engine_conf.ipu_cfg_file());
+      }
+      LOG(INFO) << "create IPU predictor";
+    }
+#endif
+
     if (engine_conf.has_enable_memory_optimization() &&
         engine_conf.enable_memory_optimization()) {
       config.EnableMemoryOptim();
@@ -417,7 +427,8 @@ class PaddleInferenceEngine : public EngineCore {
               << ", gpu_memory_mb: " << engine_conf.gpu_memory_mb()
               << ", cpu_math_thread_num: " << engine_conf.cpu_math_thread_num()
               << ", trt_workspace_size: " << engine_conf.trt_workspace_size()
-              << ", trt_use_static: " << engine_conf.trt_use_static();
+              << ", trt_use_static: " << engine_conf.trt_use_static()
+              << ", use_ipu: " << engine_conf.has_use_ipu();
 
     VLOG(2) << "create paddle predictor sucess, path: " << model_path;
     return 0;

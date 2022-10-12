@@ -16,7 +16,11 @@
 #include "boost/algorithm/string.hpp"
 #include "boost/scoped_ptr.hpp"
 #include "core/pdcodegen/pds_option.pb.h"
+#ifdef PADDLE_WITH_IPU
+#include "google/protobuf/stubs/strutil.h"
+#else
 #include "core/pdcodegen/plugin/strutil.h"
+#endif
 #include "core/pdcodegen/plugin/substitute.h"
 #include "google/protobuf/compiler/code_generator.h"
 #include "google/protobuf/compiler/plugin.h"

@@ -49,7 +49,11 @@
 #include <string>
 // hmmm...
 // #include <google/protobuf/stubs/strutil.h>
+#ifdef PADDLE_WITH_IPU
+#include <google/protobuf/stubs/strutil.h>
+#else
 #include "core/pdcodegen/plugin/strutil.h"
+#endif
 
 #pragma once
 namespace google {
