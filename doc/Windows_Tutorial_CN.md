@@ -19,7 +19,7 @@
 **安装Paddle和Serving**：在Powershell，执行
 
 ```
-python -m pip install -U paddle_serving_server paddle_serving_client paddle_serving_app paddlepaddle`
+python -m pip install -U paddle_serving_server paddle_serving_client paddle_serving_app paddlepaddle
 ```
 
 如果是GPU用户
