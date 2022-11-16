@@ -71,7 +71,7 @@ git clone https://github.com/PaddlePaddle/Serving
 
 <a name="1.1.3"></a>
 
-**ARM & XPU: **
+**ARM & XPU:**
 ```
 docker pull registry.baidubce.com/paddlepaddle/serving:xpu-arm
 docker run -p 9292:9292 --name test_arm_xpu -dit registry.baidubce.com/paddlepaddle/serving:xpu-arm bash
