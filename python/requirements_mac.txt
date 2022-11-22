@@ -20,5 +20,5 @@ sentencepiece; platform_machine ==  "aarch64"
 opencv-python==3.4.17.61; platform_machine !=  "aarch64"
 opencv-python; platform_machine == "aarch64"
 pillow==8.4.0 ; python_version == "3.6"
-pillow==9.0.0 ; python_version > "3.6"
+pillow==9.3.0 ; python_version > "3.6"
 
