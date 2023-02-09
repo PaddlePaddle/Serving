@@ -107,7 +107,7 @@ find / -name libpython3.7.so
 find / -name libpython3.7m.so
 ```
 通常会有类似于`**/lib/libpython3.7.so`或者`**/lib/x86_64-linux-gnu/libpython3.7.so`出现，我们只需要取它的文件夹目录就好，比如找到`/usr/local/lib/libpython3.7.so`，那么我们只需要`export PYTHON_LIBRARIES=/usr/local/lib`就好。
-如果没有找到，说明 1）静态编译Python，需要重新安装动态编译的Python 2）全县不足无法查看相关系统目录。
+如果没有找到，说明 1）静态编译Python，需要重新安装动态编译的Python 2）权限不足无法查看相关系统目录。
 
 3) 设置`PYTHON_EXECUTABLE`
 
