@@ -26,17 +26,17 @@
 
 Paddle Serving 依托深度学习框架 PaddlePaddle 旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving 支持 RESTful、gRPC、bRPC 等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
-- 集成高性能服务端推理引擎 [Paddle Inference](https://paddleinference.paddlepaddle.org.cn/product_introduction/inference_intro.html) 和端侧引擎 [Paddle Lite](https://paddlelite.paddlepaddle.org.cn/introduction/tech_highlights.html)，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过 [x2paddle](https://github.com/PaddlePaddle/X2Paddle) 工具迁移模型
-- 具有高性能 C++ Serving 和高易用 Python Pipeline 2套框架。C++ Serving 基于高性能 bRPC 网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python Pipeline 基于 gRPC/gRPC-Gateway 网络框架和 Python 语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)
-- 支持 HTTP、gRPC、bRPC 等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供 C++、Python、Java 语言 SDK
-- 设计并实现基于有向无环图(DAG) 的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理、请求缓存等特性
-- 适配 x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑 XPU、华为昇腾310/910、海光 DCU、Nvidia Jetson 等多种硬件
-- 集成 Intel MKLDNN、Nvidia TensorRT 加速库，以及低精度量化推理
-- 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs 安全网关，并在实际项目中应用
-- 支持云端部署，提供百度云智能云 kubernetes 集群部署 Paddle Serving 案例
-- 提供丰富的经典模型部署示例，如 PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec 等套件，共计40+个预训练精品模型
-- 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频 cache 等特性、可单机或云端部署
-- 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问
+- 集成高性能服务端推理引擎 [Paddle Inference](https://paddleinference.paddlepaddle.org.cn/product_introduction/inference_intro.html) 和端侧引擎 [Paddle Lite](https://paddlelite.paddlepaddle.org.cn/introduction/tech_highlights.html)，其他机器学习平台（Caffe/TensorFlow/ONNX/PyTorch）可通过 [x2paddle](https://github.com/PaddlePaddle/X2Paddle) 工具迁移模型；
+- 具有高性能 C++ Serving 和高易用 Python Pipeline 2套框架。C++ Serving 基于高性能 bRPC 网络框架打造高吞吐、低延迟的推理服务，性能领先竞品。Python Pipeline 基于 gRPC/gRPC-Gateway 网络框架和 Python 语言构建高易用、高吞吐推理服务框架。技术选型参考[技术选型](doc/Serving_Design_CN.md#21-设计选型)；
+- 支持 HTTP、gRPC、bRPC 等多种[协议](doc/C++_Serving/Inference_Protocols_CN.md)；提供 C++、Python、Java 语言 SDK；
+- 设计并实现基于有向无环图(DAG) 的异步流水线高性能推理框架，具有多模型组合、异步调度、并发推理、动态批量、多卡多流推理、请求缓存等特性；
+- 适配 x86(Intel) CPU、ARM CPU、Nvidia GPU、昆仑 XPU、华为昇腾310/910、海光 DCU、Nvidia Jetson 等多种硬件；
+- 集成 Intel MKLDNN、Nvidia TensorRT 加速库，以及低精度量化推理；
+- 提供一套模型安全部署解决方案，包括加密模型部署、鉴权校验、HTTPs 安全网关，并在实际项目中应用；
+- 支持云端部署，提供百度云智能云 kubernetes 集群部署 Paddle Serving 案例；
+- 提供丰富的经典模型部署示例，如 PaddleOCR、PaddleClas、PaddleDetection、PaddleSeg、PaddleNLP、PaddleRec 等套件，共计40+个预训练精品模型；
+- 支持大规模稀疏参数索引模型分布式部署，具有多表、多分片、多副本、本地高频 cache 等特性、可单机或云端部署；
+- 支持服务监控，提供基于普罗米修斯的性能数据统计及端口访问。
 
 
 <h2 align="center">教程与案例</h2>
@@ -175,7 +175,7 @@ Paddle Serving与Paddle模型套件紧密配合，实现大量服务化部署，
 
 > 反馈
 
-如有任何反馈或是bug，请在 [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues)提交
+如有任何反馈或是bug，请在 [GitHub Issue](https://github.com/PaddlePaddle/Serving/issues)提交。
 
 > License
 
