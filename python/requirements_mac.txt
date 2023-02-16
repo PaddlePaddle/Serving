@@ -11,7 +11,7 @@ click==7.1.2
 itsdangerous==1.1.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 ujson>=2.0.3
 grpcio-tools==1.33.2
 grpcio>=1.33.2

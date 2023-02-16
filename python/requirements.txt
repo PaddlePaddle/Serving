@@ -15,7 +15,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.3
 pyclipper==1.2.1
 MarkupSafe==1.1.1
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 ujson>=2.0.3
 sentencepiece==0.1.96; platform_machine !=  "aarch64"
 sentencepiece; platform_machine ==  "aarch64"
