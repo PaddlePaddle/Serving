@@ -73,6 +73,7 @@ class FileReader {
           data.append(buffer);
         }
       }
+      pclose(stream);
       return data;
     };
     std::string cmd = "md5sum " + this->filename_;
