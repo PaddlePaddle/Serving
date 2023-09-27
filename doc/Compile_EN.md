@@ -23,7 +23,7 @@ In addition, for some C++ secondary development scenarios, we also provide OPENC
 |           gcc-c++            |          5.4.0(Cuda 10.1) and 8.2.0         |
 |            cmake             |          3.2.0 and later          |
 |            Python            |          3.6.0 and later          |
-|              Go              |          1.17.2 and later          |
+|              Go              |          1.19 and later          |
 |             git              |         2.17.1 and later          |
 |         glibc-static         |               2.17                |
 |        openssl-devel         |              1.0.2k               |
