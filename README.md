@@ -22,11 +22,11 @@
     <br>
 <p>
 
+***
+
 **【更新说明】**
 我们在新开源项目FastDeploy里面，基于Triton Inference Server，集成FastDeploy Runtime(包括Paddle Inference、ONNX Runtime、TensorRT以及OpenVINO等)，可支持飞桨模型的高性能服务化部署，对服务化部署有需求的开发者，可以参考如下文档进行使用，有任何问题，欢迎在FastDeploy开源项目里通过issue反馈。
 - [FastDeploy服务化部署](https://github.com/PaddlePaddle/FastDeploy/blob/develop/serving/README_CN.md)
-
-***
 
 Paddle Serving 依托深度学习框架 PaddlePaddle 旨在帮助深度学习开发者和企业提供高性能、灵活易用的工业级在线推理服务。Paddle Serving 支持 RESTful、gRPC、bRPC 等多种协议，提供多种异构硬件和多种操作系统环境下推理解决方案，和多种经典预训练模型示例。核心特性如下：
 
