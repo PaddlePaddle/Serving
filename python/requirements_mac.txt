@@ -15,7 +15,7 @@ Werkzeug==1.0.1
 ujson>=2.0.3
 grpcio-tools==1.33.2
 grpcio>=1.33.2
-sentencepiece==0.1.96; platform_machine !=  "aarch64"
+sentencepiece==0.2.1; platform_machine !=  "aarch64"
 sentencepiece; platform_machine ==  "aarch64"
 opencv-python==3.4.17.61; platform_machine !=  "aarch64"
 opencv-python; platform_machine == "aarch64"
