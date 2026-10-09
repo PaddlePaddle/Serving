@@ -24,6 +24,10 @@
 
 ***
 
+**Maintenance notice**
+
+This repository is no longer maintained. For model serving and deployment, we recommend NVIDIA's open-source [Triton Inference Server](https://github.com/triton-inference-server/server).
+
 The goal of Paddle Serving is to provide high-performance, flexible and easy-to-use industrial-grade online inference services for machine learning developers and enterprises.Paddle Serving supports multiple protocols such as RESTful, gRPC, bRPC, and provides inference solutions under a variety of hardware and multiple operating system environments, and many famous pre-trained model examples. The core features are as follows:
 
 
