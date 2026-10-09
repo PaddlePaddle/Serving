@@ -24,10 +24,6 @@
 
 ***
 
-**【更新说明】**
-我们在新开源项目FastDeploy里面，基于Triton Inference Server，集成FastDeploy Runtime(包括Paddle Inference、ONNX Runtime、TensorRT以及OpenVINO等)，可支持飞桨模型的高性能服务化部署，对服务化部署有需求的开发者，可以参考如下文档进行使用，有任何问题，欢迎在FastDeploy开源项目里通过issue反馈。
-- [FastDeploy服务化部署](https://github.com/PaddlePaddle/FastDeploy/blob/develop/serving/README_CN.md)
-
 **维护说明**
 
 本仓库目前已停止维护。对于模型服务化部署，推荐使用英伟达开源项目 [Triton Inference Server](https://github.com/triton-inference-server/server)。
